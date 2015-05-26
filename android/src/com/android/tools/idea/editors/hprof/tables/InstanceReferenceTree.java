@@ -16,24 +16,18 @@
 package com.android.tools.idea.editors.hprof.tables;
 
 import com.android.tools.idea.editors.allocations.ColumnTreeBuilder;
-import com.android.tools.idea.editors.hprof.descriptors.InstanceFieldDescriptorImpl;
-import com.android.tools.perflib.heap.ArrayInstance;
-import com.android.tools.perflib.heap.Instance;
-import com.android.tools.perflib.heap.RootObj;
+import com.android.tools.perflib.heap.*;
 import com.intellij.debugger.ui.impl.tree.TreeBuilder;
 import com.intellij.debugger.ui.impl.tree.TreeBuilderNode;
-import com.intellij.debugger.ui.impl.watch.DebuggerTreeNodeImpl;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -44,7 +38,7 @@ public class InstanceReferenceTree {
   @NotNull private JComponent myColumnTree;
   private Instance myInstance;
 
-  public InstanceReferenceTree() {
+  public InstanceReferenceTree(@NotNull SelectionModel selectionModel) {
     final TreeBuilder model = new TreeBuilder(null) {
       @Override
       public void buildChildren(TreeBuilderNode node) {
@@ -194,46 +188,43 @@ public class InstanceReferenceTree {
       );
 
     myColumnTree = builder.build();
+
+    selectionModel.addListener(new SelectionModel.SelectionListener() {
+      @Override
+      public void onHeapChanged(@NotNull Heap heap) {
+        clearInstance();
+      }
+
+      @Override
+      public void onClassObjChanged(@Nullable ClassObj classObj) {
+        clearInstance();
+      }
+
+      @Override
+      public void onInstanceChanged(@Nullable Instance instance) {
+        if (instance == null) {
+          clearInstance();
+        }
+        else {
+          myInstance = instance;
+          TreeBuilder model = getMutableModel();
+          TreeBuilderNode root = (TreeBuilderNode)model.getRoot();
+          root.removeAllChildren();
+          root.add(createInstanceBuilderNode(instance));
+          model.nodeStructureChanged((TreeBuilderNode)model.getRoot());
+        }
+      }
+    });
   }
 
   public JComponent getComponent() {
     return myColumnTree;
   }
 
-  public void clearInstance() {
+  private void clearInstance() {
     TreeBuilderNode root = (TreeBuilderNode)getMutableModel().getRoot();
     root.removeAllChildren();
     getMutableModel().nodeStructureChanged(root);
-  }
-
-  public void setInstance(@NotNull Instance instance) {
-    clearInstance();
-
-    TreeBuilder model = getMutableModel();
-    TreeBuilderNode root = (TreeBuilderNode)model.getRoot();
-    root.add(createInstanceBuilderNode(instance));
-    model.nodeStructureChanged((TreeBuilderNode)model.getRoot());
-  }
-
-  public TreeSelectionListener getOnInstanceSelectionListener() {
-    return new TreeSelectionListener() {
-      @Override
-      public void valueChanged(TreeSelectionEvent e) {
-        TreePath path = e.getPath();
-        if (path == null || path.getPathCount() < 2 || !e.isAddedPath()) {
-          clearInstance();
-          return;
-        }
-
-        DebuggerTreeNodeImpl node = (DebuggerTreeNodeImpl)path.getPathComponent(1);
-        if (node.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
-          InstanceFieldDescriptorImpl descriptor = (InstanceFieldDescriptorImpl)node.getDescriptor();
-          myInstance = descriptor.getInstance();
-          assert (myInstance != null);
-          setInstance(myInstance);
-        }
-      }
-    };
   }
 
   @NotNull

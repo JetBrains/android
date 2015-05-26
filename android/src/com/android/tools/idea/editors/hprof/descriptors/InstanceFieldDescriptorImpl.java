@@ -16,12 +16,10 @@
 package com.android.tools.idea.editors.hprof.descriptors;
 
 import com.android.tools.idea.editors.hprof.jdi.ArrayReferenceImpl;
+import com.android.tools.idea.editors.hprof.jdi.ClassObjectReferenceImpl;
 import com.android.tools.idea.editors.hprof.jdi.ObjectReferenceImpl;
 import com.android.tools.idea.editors.hprof.jdi.StringReferenceImpl;
-import com.android.tools.perflib.heap.ArrayInstance;
-import com.android.tools.perflib.heap.ClassInstance;
-import com.android.tools.perflib.heap.Field;
-import com.android.tools.perflib.heap.Instance;
+import com.android.tools.perflib.heap.*;
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
 import com.intellij.debugger.ui.impl.watch.ValueDescriptorImpl;
 import com.intellij.openapi.project.Project;
@@ -60,7 +58,15 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
 
   @Override
   public boolean isExpandable() {
-    return !isNull();
+    if (myValueData instanceof ClassObj) {
+      return false;
+    }
+    else if (myValueData instanceof ArrayInstance) {
+      return ((ArrayInstance)myValueData).getSize() > 0;
+    }
+    else {
+      return !isNull();
+    }
   }
 
   @Override
@@ -81,13 +87,17 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
   @NotNull
   @Override
   public String getValueText() {
+    if (myTruncatedValueText != null) {
+      return myTruncatedValueText;
+    }
+
     if (myValueData == null) {
-      return "null";
+      myTruncatedValueText = "null";
     }
-    else if (!isString()) {
-      return "";
+    else if (myValueData instanceof ClassObj) {
+      myTruncatedValueText = String.format(" \"class %s\"", ((ClassObj)myValueData).getClassName());
     }
-    else if (myTruncatedValueText == null) {
+    else if (isString()) {
       ArrayInstance charBufferArray = null;
       assert (myValueData instanceof ClassInstance);
       ClassInstance classInstance = (ClassInstance)myValueData;
@@ -111,6 +121,10 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
       builder.append("\"");
       myTruncatedValueText = builder.toString();
     }
+    else {
+      myTruncatedValueText = "";
+    }
+
     return myTruncatedValueText;
   }
 
@@ -123,12 +137,14 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
     if (isString()) {
       return new StringReferenceImpl(myField, (Instance)myValueData);
     }
-    else if (isArray()) {
+    else if (myValueData instanceof ArrayInstance) {
       //noinspection ConstantConditions
       return new ArrayReferenceImpl(myField, (ArrayInstance)myValueData);
     }
+    else if (myValueData instanceof ClassObj) {
+      return new ClassObjectReferenceImpl(myField, (ClassObj)myValueData);
+    }
     else {
-      // TODO: Implement Class objects.
       return new ObjectReferenceImpl(myField, (Instance)myValueData);
     }
   }

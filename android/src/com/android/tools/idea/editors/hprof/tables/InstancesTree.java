@@ -55,10 +55,11 @@ public class InstancesTree {
   @NotNull private DebugProcessImpl myDebugProcess;
   @NotNull private volatile SuspendContextImpl myDummySuspendContext;
   @NotNull private Heap myHeap;
+  @Nullable private ClassObj myClassObj;
   @Nullable private Comparator<DebuggerTreeNodeImpl> myComparator;
   @NotNull private SortOrder mySortOrder = SortOrder.UNSORTED;
 
-  public InstancesTree(@NotNull Project project, @NotNull Heap heap, @NotNull TreeSelectionListener treeSelectionListener) {
+  public InstancesTree(@NotNull Project project, @NotNull final SelectionModel selectionModel) {
     myDebuggerTree = new DebuggerTree(project) {
       @Override
       protected void build(DebuggerContextImpl context) {
@@ -67,7 +68,7 @@ public class InstancesTree {
         addChildren(root, null, instance);
       }
     };
-    myHeap = heap;
+    myHeap = selectionModel.getHeap();
     myDebugProcess = new DebugProcessEvents(project);
     final SuspendManagerImpl suspendManager = new SuspendManagerImpl(myDebugProcess);
     myDebugProcess.getManagerThread().invokeAndWait(new DebuggerCommandImpl() {
@@ -126,7 +127,46 @@ public class InstancesTree {
     });
     myDebuggerTree.setModel(model);
     myDebuggerTree.setRootVisible(false);
-    myDebuggerTree.addTreeSelectionListener(treeSelectionListener);
+
+    selectionModel.addListener(new SelectionModel.SelectionListener() {
+      @Override
+      public void onHeapChanged(@NotNull Heap heap) {
+        if (heap != myHeap) {
+          myHeap = heap;
+          if (myDebuggerTree.getMutableModel().getRoot() != null) {
+            onSelectionChanged();
+          }
+        }
+      }
+
+      @Override
+      public void onClassObjChanged(@Nullable ClassObj classObj) {
+        if (classObj != myClassObj) {
+          myClassObj = classObj;
+          onSelectionChanged();
+        }
+      }
+
+      @Override
+      public void onInstanceChanged(@Nullable Instance instance) {
+
+      }
+
+      private void onSelectionChanged() {
+        DebuggerTreeNodeImpl newRoot;
+        if (myClassObj != null) {
+          ContainerDescriptorImpl containerDescriptor = new ContainerDescriptorImpl(myClassObj, myHeap.getId());
+          newRoot = DebuggerTreeNodeImpl.createNodeNoUpdate(myDebuggerTree, containerDescriptor);
+        }
+        else {
+          newRoot = myDebuggerTree.getNodeFactory().getDefaultNode();
+        }
+
+        myDebuggerTree.getMutableModel().setRoot(newRoot);
+        myDebuggerTree.treeChanged();
+        myDebuggerTree.scrollRowToVisible(0);
+      }
+    });
 
     // Add a listener specifically for detecting if the user decided to show more nodes.
     myDebuggerTree.addTreeSelectionListener(new TreeSelectionListener() {
@@ -134,14 +174,22 @@ public class InstancesTree {
       public void valueChanged(TreeSelectionEvent e) {
         TreePath path = e.getPath();
         if (path == null || path.getPathCount() < 2 || !e.isAddedPath()) {
+          selectionModel.setInstance(null);
           return;
         }
 
-        DebuggerTreeNodeImpl node = (DebuggerTreeNodeImpl)path.getLastPathComponent();
-        if (node.getDescriptor() instanceof ExpansionDescriptorImpl) {
-          ExpansionDescriptorImpl expansionDescriptor = (ExpansionDescriptorImpl)node.getDescriptor();
-          DebuggerTreeNodeImpl parentNode = node.getParent();
-          myDebuggerTree.getMutableModel().removeNodeFromParent(node);
+        DebuggerTreeNodeImpl instanceNode = (DebuggerTreeNodeImpl)path.getPathComponent(1);
+        if (instanceNode.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
+          InstanceFieldDescriptorImpl descriptor = (InstanceFieldDescriptorImpl)instanceNode.getDescriptor();
+          selectionModel.setInstance(descriptor.getInstance());
+        }
+
+        // Handle node expansions (this is present when the list is large).
+        DebuggerTreeNodeImpl lastPathNode = (DebuggerTreeNodeImpl)path.getLastPathComponent();
+        if (lastPathNode.getDescriptor() instanceof ExpansionDescriptorImpl) {
+          ExpansionDescriptorImpl expansionDescriptor = (ExpansionDescriptorImpl)lastPathNode.getDescriptor();
+          DebuggerTreeNodeImpl parentNode = lastPathNode.getParent();
+          myDebuggerTree.getMutableModel().removeNodeFromParent(lastPathNode);
 
           if (parentNode.getDescriptor() instanceof ContainerDescriptorImpl) {
             addContainerChildren(parentNode, expansionDescriptor.getStartIndex());
@@ -351,44 +399,6 @@ public class InstancesTree {
            (mySortOrder == SortOrder.ASCENDING ? 1 : -1);
   }
 
-  public void setClassObj(@NotNull Heap heap, @Nullable ClassObj classObj) {
-    if (myDebuggerTree.getMutableModel().getRoot() == null) {
-      return;
-    }
-
-    if (myHeap == heap && ((DebuggerTreeNodeImpl)myDebuggerTree.getModel().getRoot()).getDescriptor() instanceof ContainerDescriptorImpl) {
-      if (getClassObj() == classObj) {
-        return;
-      }
-    }
-
-    myHeap = heap;
-    DebuggerTreeNodeImpl newRoot;
-
-    if (classObj != null) {
-      ContainerDescriptorImpl containerDescriptor = new ContainerDescriptorImpl(classObj, heap.getId());
-      newRoot = DebuggerTreeNodeImpl.createNodeNoUpdate(myDebuggerTree, containerDescriptor);
-    }
-    else {
-      newRoot = myDebuggerTree.getNodeFactory().getDefaultNode();
-    }
-    myDebuggerTree.getMutableModel().setRoot(newRoot);
-    myDebuggerTree.treeChanged();
-    myDebuggerTree.scrollRowToVisible(0);
-  }
-
-  @Nullable
-  public ClassObj getClassObj() {
-    DebuggerTreeNodeImpl node = (DebuggerTreeNodeImpl)myDebuggerTree.getMutableModel().getRoot();
-    if (node.getDescriptor() instanceof DefaultNodeDescriptor) {
-      return null;
-    }
-    else {
-      ContainerDescriptorImpl containerDescriptor = (ContainerDescriptorImpl)node.getDescriptor();
-      return containerDescriptor.getClassObj();
-    }
-  }
-
   private void addContainerChildren(@NotNull DebuggerTreeNodeImpl node, int startIndex) {
     ContainerDescriptorImpl containerDescriptor = (ContainerDescriptorImpl)node.getDescriptor();
     List<Instance> instances = containerDescriptor.getInstances();
@@ -448,9 +458,10 @@ public class InstancesTree {
       assert (field != null);
       ArrayInstance arrayInstance = (ArrayInstance)instance;
       Object[] values = arrayInstance.getValues();
+      descriptors = new ArrayList<HprofFieldDescriptorImpl>(values.length);
+      arrayLength = values.length;
+
       if (arrayInstance.getArrayType() == Type.OBJECT) {
-        descriptors = new ArrayList<HprofFieldDescriptorImpl>(values.length);
-        arrayLength = values.length;
         while (currentArrayIndex < arrayLength && currentArrayIndex < limit) {
           descriptors.add(
             new InstanceFieldDescriptorImpl(
@@ -461,8 +472,6 @@ public class InstancesTree {
         }
       }
       else {
-        descriptors = new ArrayList<HprofFieldDescriptorImpl>(values.length);
-        arrayLength = values.length;
         while (currentArrayIndex < arrayLength && currentArrayIndex < limit) {
           descriptors.add(
             new PrimitiveFieldDescriptorImpl(myDebuggerTree.getProject(),
