@@ -34,9 +34,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 public class HprofViewPanel implements Disposable {
   private static final int DIVIDER_WIDTH = 4;
@@ -122,15 +122,18 @@ public class HprofViewPanel implements Disposable {
   @NotNull
   private ClassTable createClassTable(@NotNull SelectionModel selectionModel) {
     final ClassTable classTable = new ClassTable(selectionModel);
-    classTable.addMouseListener(new MouseAdapter() {
+    ListSelectionModel listSelectionModel = classTable.getSelectionModel();
+    listSelectionModel.addListSelectionListener(new ListSelectionListener() {
       @Override
-      public void mousePressed(MouseEvent mouseEvent) {
-        super.mousePressed(mouseEvent);
-        int row = classTable.getSelectedRow();
-        if (row >= 0) {
-          int modelRow = classTable.getRowSorter().convertRowIndexToModel(row);
-          ClassObj classObj = (ClassObj)classTable.getModel().getValueAt(modelRow, 0);
-          mySelectionModel.setClassObj(classObj);
+      public void valueChanged(ListSelectionEvent e) {
+        if (!e.getValueIsAdjusting()) {
+          e.getFirstIndex();
+          int row = classTable.getSelectedRow();
+          if (row >= 0) {
+            int modelRow = classTable.getRowSorter().convertRowIndexToModel(row);
+            ClassObj classObj = (ClassObj)classTable.getModel().getValueAt(modelRow, 0);
+            mySelectionModel.setClassObj(classObj);
+          }
         }
       }
     });
