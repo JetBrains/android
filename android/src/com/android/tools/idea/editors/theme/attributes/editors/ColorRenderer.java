@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.diagnostic.Logger;
@@ -29,12 +30,11 @@ import java.util.List;
 public class ColorRenderer implements TableCellRenderer {
   private static final Logger LOG = Logger.getInstance(ColorRenderer.class);
 
-  private final Configuration myConfiguration;
-
   private final ColorComponent myComponent;
+  private final ThemeEditorContext myContext;
 
-  public ColorRenderer(@NotNull Configuration configuration) {
-    myConfiguration = configuration;
+  public ColorRenderer(@NotNull ThemeEditorContext context) {
+    myContext = context;
     myComponent = new ColorComponent();
   }
 
@@ -42,7 +42,7 @@ public class ColorRenderer implements TableCellRenderer {
   public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected, boolean hasFocus, int row, int column) {
     if (obj instanceof EditedStyleItem) {
       final EditedStyleItem item = (EditedStyleItem) obj;
-      final List<Color> colors = ResourceHelper.resolveMultipleColors(myConfiguration.getResourceResolver(), item.getItemResourceValue());
+      final List<Color> colors = ResourceHelper.resolveMultipleColors(myContext.getResourceResolver(), item.getItemResourceValue());
       myComponent.configure(item, colors);
     } else {
       LOG.error(String.format("Object passed to ColorRendererEditor has class %1$s instead of ItemResourceValueWrapper", obj.getClass().getName()));
