@@ -19,6 +19,9 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.DomPullParser;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import org.jetbrains.annotations.NotNull;
@@ -28,12 +31,19 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Generic UI component for rendering.
  */
 public class AndroidPreviewPanel extends JComponent implements Scrollable {
   private static final Logger LOG = Logger.getInstance(AndroidPreviewPanel.class);
+
+  private static final Notification UNSUPPORTED_LAYOUTLIB_NOTIFICATION =
+    new Notification("Android", "Layoutlib", "The preview requires the latest version of layoutlib", NotificationType.ERROR);
+
+  private static final AtomicBoolean ourLayoutlibNotification = new AtomicBoolean(false);
+
   private final DumbService myDumbService;
   private Configuration myConfiguration;
   private Document myDocument;
@@ -120,6 +130,9 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
         myGraphicsLayoutRenderer.setScale(myScale);
         myGraphicsLayoutRenderer.setSize(getSize().width, getSize().height);
       }
+      catch (UnsupportedLayoutlibException e) {
+        notifyUnsupportedLayoutlib();
+      }
       catch (InitializationException e) {
         LOG.error(e);
       }
@@ -134,6 +147,12 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
         myLastRenderedSize = renderSize;
         revalidate();
       }
+    }
+  }
+
+  private void notifyUnsupportedLayoutlib() {
+    if (ourLayoutlibNotification.compareAndSet(false, true)) {
+      Notifications.Bus.notify(UNSUPPORTED_LAYOUTLIB_NOTIFICATION);
     }
   }
 

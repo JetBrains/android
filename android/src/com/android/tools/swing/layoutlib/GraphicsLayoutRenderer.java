@@ -57,6 +57,8 @@ import java.util.concurrent.Callable;
 public class GraphicsLayoutRenderer {
   private static final Logger LOG = Logger.getInstance(GraphicsLayoutRenderer.class);
 
+  private static final int MIN_LAYOUTLIB_API_VERSION = 15;
+
   private final LayoutLibrary myLayoutLibrary;
   private final SessionParams mySessionParams;
   private final FakeImageFactory myImageFactory;
@@ -123,6 +125,10 @@ public class GraphicsLayoutRenderer {
     }
     catch (IOException e) {
       throw new InitializationException(e);
+    }
+
+    if (layoutLib.getApiLevel() < MIN_LAYOUTLIB_API_VERSION) {
+      throw new UnsupportedLayoutlibException("GraphicsLayoutRenderer requires at least layoutlib version " + MIN_LAYOUTLIB_API_VERSION);
     }
 
     AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
