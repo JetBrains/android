@@ -16,6 +16,7 @@
 package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.ide.DataManager;
@@ -140,6 +141,8 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
 
     @Override
     public void run() {
+      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_STANDALONE_LAUNCHED, null, null);
+
       final String toolPath = mySdkPath + File.separator + AndroidCommonUtils.toolPath(SdkConstants.androidCmdName());
       GeneralCommandLine commandLine = new GeneralCommandLine();
       commandLine.setExePath(toolPath);

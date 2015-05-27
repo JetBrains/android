@@ -24,6 +24,7 @@ import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemoteSdk;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -79,6 +80,8 @@ public class SdkUpdaterConfigPanel {
 
 
   public SdkUpdaterConfigPanel(SdkState sdkState, final Runnable channelChangedCallback) {
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_SDK_MANAGER_LOADED, null, null);
+
     mySdkState = sdkState;
     ILogger logger = new LogWrapper(Logger.getInstance(getClass()));
     mySdkSources = mySdkState.getRemoteSdk().fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, logger);
