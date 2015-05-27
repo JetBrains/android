@@ -37,6 +37,7 @@ public class SelectionModel {
   @NotNull private Heap myHeap;
   @Nullable private ClassObj myClassObj;
   @Nullable private Instance myInstance;
+  private boolean mySelectionLocked;
 
   public SelectionModel(@NotNull Heap heap) {
     myHeap = heap;
@@ -48,7 +49,7 @@ public class SelectionModel {
   }
 
   public void setHeap(@NotNull Heap heap) {
-    if (myHeap != heap) {
+    if (myHeap != heap && !mySelectionLocked) {
       myHeap = heap;
       myDispatcher.getMulticaster().onHeapChanged(myHeap);
     }
@@ -60,7 +61,7 @@ public class SelectionModel {
   }
 
   public void setClassObj(@Nullable ClassObj classObj) {
-    if (myClassObj != classObj) {
+    if (myClassObj != classObj && !mySelectionLocked) {
       myClassObj = classObj;
       myDispatcher.getMulticaster().onClassObjChanged(myClassObj);
     }
@@ -72,10 +73,14 @@ public class SelectionModel {
   }
 
   public void setInstance(@Nullable Instance instance) {
-    if (myInstance != instance) {
+    if (myInstance != instance && !mySelectionLocked) {
       myInstance = instance;
       myDispatcher.getMulticaster().onInstanceChanged(myInstance);
     }
+  }
+
+  public void setSelectionLocked(boolean locked) {
+    mySelectionLocked = locked;
   }
 
   public void addListener(@NotNull SelectionListener listener) {
