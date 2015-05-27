@@ -44,8 +44,12 @@ public class ThemeEditorTable extends CellSpanTable {
 
   @Override
   public JPopupMenu getComponentPopupMenu() {
-    final Point point = getMousePosition();
-    return point != null ? getPopupMenuAtCell(rowAtPoint(point), columnAtPoint(point)) : null;
+    // Workaround for http://b.android.com/173610
+    // getMousePosition returns null sometimes even when the component is visible and the mouse is over the component. This seems to be a
+    // bug in LWWindowPeer after a modal dialog has been displayed.
+    Point point = MouseInfo.getPointerInfo().getLocation();
+    SwingUtilities.convertPointFromScreen(point, this);
+    return getPopupMenuAtCell(rowAtPoint(point), columnAtPoint(point));
   }
 
   @Override
