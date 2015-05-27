@@ -17,6 +17,8 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.UIUtil;
+
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -38,7 +40,9 @@ import static com.intellij.util.ui.GraphicsUtil.setupAAPainting;
  */
 abstract class ResourceComponent extends JPanel {
 
-  private static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#6F6F6F\">%s</font></b><font color=\"#9B9B9B\"> - %s</font>";
+  private static final String COLOR_LIGHT = "6F6F6F";
+  private static final String COLOR_DARCULA = "AAAAAA";
+  private static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b><font color=\"#9B9B9B\"> - %3$s</font>";
 
   private static final int DISTANCE_BETWEEN_ROWS = 20;
   private static final int LABEL_BUTTON_GAP = 8;
@@ -67,7 +71,8 @@ abstract class ResourceComponent extends JPanel {
   abstract void setIconHeight(int height);
 
   public void configure(String name, String type, String value) {
-    myNameLabel.setText(String.format(LABEL_TEMPLATE, name, type));
+    String firstColor = UIUtil.isUnderDarcula() ? COLOR_DARCULA : COLOR_LIGHT;
+    myNameLabel.setText(String.format(LABEL_TEMPLATE, firstColor, name, type));
     myResourceChooserButton.setText(value);
   }
 
