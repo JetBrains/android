@@ -19,6 +19,7 @@ import com.android.tools.idea.editors.AndroidFakeFileSystem;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.ex.FakeFileType;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
@@ -37,19 +38,19 @@ public class ThemeEditorVirtualFile extends LightVirtualFile {
   public static final String FILENAME = "Theme Editor";
   private static final Key<ThemeEditorVirtualFile> KEY = Key.create(ThemeEditorVirtualFile.class.getName());
 
-  private final @NotNull Module myModule;
+  private final @NotNull Project myProject;
 
-  private ThemeEditorVirtualFile(final @NotNull Module module) {
+  private ThemeEditorVirtualFile(final @NotNull Project project) {
     super(FILENAME);
-    myModule = module;
+    myProject = project;
   }
 
   @NotNull
-  public static ThemeEditorVirtualFile getThemeEditorFile(@NotNull Module module) {
-    ThemeEditorVirtualFile vfile = module.getUserData(KEY);
+  public static ThemeEditorVirtualFile getThemeEditorFile(@NotNull Project project) {
+    ThemeEditorVirtualFile vfile = project.getUserData(KEY);
     if (vfile == null) {
-      vfile = new ThemeEditorVirtualFile(module);
-      module.putUserData(KEY, vfile);
+      vfile = new ThemeEditorVirtualFile(project);
+      project.putUserData(KEY, vfile);
     }
 
     return vfile;
@@ -58,8 +59,7 @@ public class ThemeEditorVirtualFile extends LightVirtualFile {
   @Nullable
   @Override
   public VirtualFile getParent() {
-    final VirtualFile moduleFile = myModule.getModuleFile();
-    return moduleFile == null ? null : moduleFile.getParent();
+    return myProject.getProjectFile();
   }
 
   @NotNull
@@ -69,8 +69,8 @@ public class ThemeEditorVirtualFile extends LightVirtualFile {
   }
 
   @NotNull
-  public Module getModule() {
-    return myModule;
+  public Project getProject() {
+    return myProject;
   }
 
   @NotNull
@@ -82,7 +82,7 @@ public class ThemeEditorVirtualFile extends LightVirtualFile {
   @NotNull
   @Override
   public String getPath() {
-    return AndroidFakeFileSystem.constructPathForFile(FILENAME, myModule);
+    return AndroidFakeFileSystem.constructPathForFile(FILENAME, myProject);
   }
 
   private static class ThemeEditorFileType extends FakeFileType {

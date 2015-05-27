@@ -29,7 +29,10 @@ import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.rendering.ProjectResourceRepository;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.lint.checks.ApiLookup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -58,15 +61,15 @@ import java.util.Collections;
 import java.util.List;
 
 /**
-* Wrapper for style configurations that allows modifying attributes directly in the XML file.
-*/
+ * Wrapper for style configurations that allows modifying attributes directly in the XML file.
+ */
 public class ThemeEditorStyle {
   private static final Logger LOG = Logger.getInstance(ThemeEditorStyle.class);
 
-  private final StyleResolver myThemeResolver;
   private final boolean myIsFrameworkStyle;
-  private final String myStyleName;
-  private final Configuration myConfiguration;
+  private final @NotNull StyleResolver myThemeResolver;
+  private final @NotNull String myStyleName;
+  private final @NotNull Configuration myConfiguration;
   private final Project myProject;
 
   public ThemeEditorStyle(@NotNull StyleResolver resolver,
