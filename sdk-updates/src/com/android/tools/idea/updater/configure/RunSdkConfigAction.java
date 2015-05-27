@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.intellij.ide.actions.ShowSettingsAction;
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.DumbAwareAction;
-import org.jetbrains.android.actions.AndroidRunSdkToolAction;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Action to open the Android SDK pane in Settings.
@@ -33,6 +31,7 @@ public class RunSdkConfigAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_TOOLBAR_BUTTON_CLICKED, null, null);
     ShowSettingsUtil.getInstance().showSettingsDialog(null, SdkUpdaterConfigurable.class);
   }
 }
