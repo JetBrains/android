@@ -119,7 +119,11 @@ public class InstanceReferenceTree {
     });
 
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree).addColumn(
-      new ColumnTreeBuilder.ColumnBuilder().setName("Reference Tree").setPreferredWidth(600).setRenderer(
+      new ColumnTreeBuilder.ColumnBuilder()
+        .setName("Reference Tree")
+        .setPreferredWidth(600)
+        .setHeaderAlignment(SwingConstants.LEFT)
+        .setRenderer(
         new ColoredTreeCellRenderer() {
           @Override
           public void customizeCellRenderer(@NotNull JTree tree,
@@ -196,26 +200,33 @@ public class InstanceReferenceTree {
             append(instance.toString(), attributes);
           }
         })
-      ).addColumn(new ColumnTreeBuilder.ColumnBuilder().setName("Depth").setPreferredWidth(40).setRenderer(
-        new ColoredTreeCellRenderer() {
-          @Override
-          public void customizeCellRenderer(@NotNull JTree tree,
-                                            Object value,
-                                            boolean selected,
-                                            boolean expanded,
-                                            boolean leaf,
-                                            int row,
-                                            boolean hasFocus) {
-            Instance instance = ((InstanceNode)value).getInstance();
-            if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
-              append(String.valueOf(instance.getDistanceToGcRoot()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-            }
-            setTextAlign(SwingConstants.RIGHT);
-          }
-        })
       ).addColumn(
-        new ColumnTreeBuilder.ColumnBuilder().setName("Shallow Size").setPreferredWidth(80).setRenderer(
-          new ColoredTreeCellRenderer() {
+        new ColumnTreeBuilder.ColumnBuilder()
+          .setName("Depth")
+          .setPreferredWidth(40)
+          .setHeaderAlignment(SwingConstants.RIGHT)
+          .setRenderer(new ColoredTreeCellRenderer() {
+            @Override
+            public void customizeCellRenderer(@NotNull JTree tree,
+                                              Object value,
+                                              boolean selected,
+                                              boolean expanded,
+                                              boolean leaf,
+                                              int row,
+                                              boolean hasFocus) {
+              Instance instance = ((InstanceNode)value).getInstance();
+              if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
+                append(String.valueOf(instance.getDistanceToGcRoot()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+              }
+              setTextAlign(SwingConstants.RIGHT);
+            }
+          })
+      ).addColumn(
+        new ColumnTreeBuilder.ColumnBuilder()
+          .setName("Shallow Size")
+          .setPreferredWidth(80)
+          .setHeaderAlignment(SwingConstants.RIGHT)
+          .setRenderer(new ColoredTreeCellRenderer() {
             @Override
             public void customizeCellRenderer(@NotNull JTree tree,
                                               Object value,
@@ -232,8 +243,11 @@ public class InstanceReferenceTree {
             }
           })
       ).addColumn(
-        new ColumnTreeBuilder.ColumnBuilder().setName("Dominating Size").setPreferredWidth(80).setRenderer(
-          new ColoredTreeCellRenderer() {
+        new ColumnTreeBuilder.ColumnBuilder()
+          .setName("Dominating Size")
+          .setPreferredWidth(80)
+          .setHeaderAlignment(SwingConstants.RIGHT)
+          .setRenderer(new ColoredTreeCellRenderer() {
             @Override
             public void customizeCellRenderer(@NotNull JTree tree,
                                               Object value,
@@ -247,8 +261,8 @@ public class InstanceReferenceTree {
                 append(String.valueOf(instance.getTotalRetainedSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
               }
               setTextAlign(SwingConstants.RIGHT);
-          }
-        })
+            }
+          })
       );
 
     myColumnTree = builder.build();

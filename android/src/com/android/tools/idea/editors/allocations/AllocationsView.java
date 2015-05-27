@@ -119,6 +119,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
         .addColumn(new ColumnTreeBuilder.ColumnBuilder()
             .setName("Method")
             .setPreferredWidth(600)
+            .setHeaderAlignment(SwingConstants.LEFT)
             .setComparator(new Comparator<AbstractTreeNode>() {
               @Override
               public int compare(AbstractTreeNode a, AbstractTreeNode b) {
@@ -141,6 +142,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
         .addColumn(new ColumnTreeBuilder.ColumnBuilder()
             .setName("Count")
             .setPreferredWidth(150)
+            .setHeaderAlignment(SwingConstants.RIGHT)
             .setComparator(new Comparator<AbstractTreeNode>() {
                 @Override
                 public int compare(AbstractTreeNode a, AbstractTreeNode b) {
@@ -168,6 +170,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
         .addColumn(new ColumnTreeBuilder.ColumnBuilder()
             .setName("Size")
             .setPreferredWidth(150)
+            .setHeaderAlignment(SwingConstants.RIGHT)
             .setComparator(new Comparator<AbstractTreeNode>() {
                 @Override
                 public int compare(AbstractTreeNode a, AbstractTreeNode b) {
