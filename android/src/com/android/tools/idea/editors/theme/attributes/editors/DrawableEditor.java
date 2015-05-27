@@ -35,7 +35,7 @@ public class DrawableEditor extends TypedCellEditor<EditedStyleItem, AttributeEd
   private final RenderTask myRenderTask;
 
   private EditedStyleItem myEditedItem;
-  private String myResultValue;
+  private @Nullable AttributeEditorValue myResultValue;
   private Module myModule;
 
   public DrawableEditor(final @NotNull Module module, final @NotNull JTable table, final @Nullable RenderTask renderTask) {
@@ -55,7 +55,7 @@ public class DrawableEditor extends TypedCellEditor<EditedStyleItem, AttributeEd
 
   @Override
   public AttributeEditorValue getEditorValue() {
-    return new AttributeEditorValue(myResultValue, false);
+    return myResultValue;
   }
 
   private class EditorClickListener implements ActionListener {
@@ -67,7 +67,7 @@ public class DrawableEditor extends TypedCellEditor<EditedStyleItem, AttributeEd
       dialog.show();
 
       if (dialog.isOK()) {
-        myResultValue = dialog.getResourceName();
+        myResultValue = new AttributeEditorValue(dialog.getResourceName(), false);
         stopCellEditing();
       } else {
         myResultValue = null;
