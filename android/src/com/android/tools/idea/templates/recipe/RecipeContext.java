@@ -94,10 +94,11 @@ public final class RecipeContext {
   }
 
   public RecipeContext(@NotNull Module module,
-                                @NotNull PrefixTemplateLoader loader,
-                                @NotNull Configuration freemarker,
-                                @NotNull Map<String, Object> paramMap,
-                                @NotNull File templateRoot) {
+                       @NotNull PrefixTemplateLoader loader,
+                       @NotNull Configuration freemarker,
+                       @NotNull Map<String, Object> paramMap,
+                       @NotNull File templateRoot,
+                       boolean syncGradleIfNeeded) {
     File moduleRoot = new File(module.getModuleFilePath()).getParentFile();
 
     myProject = module.getProject();
@@ -107,7 +108,7 @@ public final class RecipeContext {
     myTemplateRoot = templateRoot;
     myOutputRoot = moduleRoot;
     myModuleRoot = moduleRoot;
-    mySyncGradleIfNeeded = true;
+    mySyncGradleIfNeeded = syncGradleIfNeeded;
   }
 
   /**
