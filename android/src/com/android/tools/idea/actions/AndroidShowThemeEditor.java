@@ -21,6 +21,7 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
@@ -36,31 +37,18 @@ public class AndroidShowThemeEditor extends AnAction {
   public void update(final AnActionEvent e) {
     if (!ThemeEditorProvider.THEME_EDITOR_ENABLE) {
       e.getPresentation().setVisible(false);
+      return;
     }
-    Module module = getModuleFromAction(e);
-    e.getPresentation().setEnabled(module != null);
+    e.getPresentation().setEnabled(e.getProject() != null);
   }
 
   @Override
   public void actionPerformed(final AnActionEvent e) {
-    final Module module = getModuleFromAction(e);
-    if (module == null) {
+    Project project = e.getProject();
+    if (project == null) {
       return;
     }
 
-    ThemeEditorUtils.openThemeEditor(module);
-  }
-
-  @Nullable
-  private static Module getModuleFromAction(final AnActionEvent e) {
-    if (e.getProject() == null) {
-      return null;
-    }
-
-    List<AndroidFacet> facets = ProjectFacetManager.getInstance(e.getProject()).getFacets(AndroidFacet.ID);
-    if (facets.isEmpty()) {
-      return null;
-    }
-    return facets.get(0).getModule();
+    ThemeEditorUtils.openThemeEditor(project);
   }
 }

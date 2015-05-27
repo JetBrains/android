@@ -22,6 +22,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
 import com.android.tools.idea.editors.theme.attributes.*;
@@ -35,6 +36,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -44,6 +46,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.ui.JBColor;
@@ -85,6 +88,7 @@ public class ThemeEditorComponent extends Splitter {
   public static final float HEADER_FONT_SCALE = 1.3f;
   public static final int REGULAR_CELL_PADDING = 4;
   public static final int LARGE_CELL_PADDING = 10;
+  private final Project myProject;
 
   private Font myHeaderFont;
 
@@ -120,7 +124,28 @@ public class ThemeEditorComponent extends Splitter {
   private MessageBusConnection myMessageBusConnection;
   private AttributesTableModel myModel;
 
-  public ThemeEditorComponent(final Configuration configuration, final Module module) {
+  public ThemeEditorComponent(@NotNull final Project project) {
+    myProject = project;
+
+    ProjectThemeResolver resolver = new ProjectThemeResolver(project);
+    ProjectThemeResolver.ThemeWithSource firstTheme = Iterables.getFirst(resolver.getAllThemes(), null);
+
+    // TODO(ddrone): get non-project theme (e.g. Theme.Material) here in case there are no project themes
+    assert firstTheme != null : "Trying to launch Theme Editor without any themes";
+
+    final Module module = firstTheme.getSourceModule();
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+
+    // Module is a source of a theme, thus, should be Android module
+    assert facet != null : String.format("Module %s is not Android module", module.getName());
+
+    ConfigurationManager configurationManager = facet.getConfigurationManager();
+    final VirtualFile moduleFile = module.getModuleFile();
+    assert moduleFile != null : String.format("Module file for module %s is null", module.getName());
+
+    // TODO(ddrone): check whether that gives us configuration with current output level
+    final Configuration configuration = configurationManager.getConfiguration(moduleFile);
+
     myThemeEditorContext = new ThemeEditorContext(configuration, module);
     myThemeEditorContext.addConfigurationListener(new ConfigurationListener() {
       @Override
@@ -135,8 +160,6 @@ public class ThemeEditorComponent extends Splitter {
         return true;
       }
     });
-
-    final Project project = module.getProject();
 
     myStyleResolver = new StyleResolver(configuration);
 
@@ -271,26 +294,32 @@ public class ThemeEditorComponent extends Splitter {
             // User clicked "cancel", restore previously selected item in themes combo.
             myPanel.setSelectedTheme(mySelectedTheme);
           }
-          return;
         }
-        if (myPanel.isShowAllThemesSelected()) {
+        else if (myPanel.isShowAllThemesSelected()) {
           if (!selectNewTheme()) {
             myPanel.setSelectedTheme(mySelectedTheme);
           }
-          return;
         }
-        if (myPanel.isRenameSelected()) {
+        else if (myPanel.isRenameSelected()) {
           if (!renameTheme()) {
             myPanel.setSelectedTheme(mySelectedTheme);
           }
-          return;
         }
-        mySelectedTheme = myPanel.getSelectedTheme();
-        saveCurrentSelectedTheme();
-        myCurrentSubStyle = null;
-        mySubStyleSourceAttribute = null;
+        else {
+          Object item = myPanel.getThemeCombo().getSelectedItem();
+          final ThemeEditorStyle theme = ThemesListModel.getStyle(item);
+          assert theme != null;
 
-        loadStyleAttributes();
+          mySelectedTheme = theme;
+          saveCurrentSelectedTheme();
+          myCurrentSubStyle = null;
+          mySubStyleSourceAttribute = null;
+
+          if (item instanceof ProjectThemeResolver.ThemeWithSource) {
+            myThemeEditorContext.setCurrentThemeModule(((ProjectThemeResolver.ThemeWithSource)item).getSourceModule());
+          }
+          loadStyleAttributes();
+        }
       }
     });
 
@@ -612,7 +641,7 @@ public class ThemeEditorComponent extends Splitter {
     mySubStyleSourceAttribute = null;
 
     final ThemeResolver themeResolver = new ThemeResolver(configuration, myStyleResolver);
-    myPanel.getThemeCombo().setModel(new ThemesListModel(themeResolver, defaultThemeName));
+    myPanel.getThemeCombo().setModel(new ThemesListModel(new ProjectThemeResolver(myProject), themeResolver, defaultThemeName));
     loadStyleAttributes();
     mySelectedTheme = myPanel.getSelectedTheme();
     saveCurrentSelectedTheme();
