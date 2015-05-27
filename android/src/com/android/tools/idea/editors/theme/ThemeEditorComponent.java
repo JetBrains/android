@@ -835,6 +835,12 @@ public class ThemeEditorComponent extends Splitter {
 
     int regularFontSize = getFontMetrics(regularFont).getHeight();
     myHeaderFont = regularFont.deriveFont(regularFontSize * HEADER_FONT_SCALE);
+
+    // The condition below isn't constant, because updateUiParameters() is triggered during
+    // construction: constructor of ThemeEditorComponent calls constructor of Splitter, which
+    // calls setUI at some point. If this condition is removed, theme editor would fail with
+    // NPE during its startup.
+    //noinspection ConstantConditions
     if (myAttributesTable == null) {
       return;
     }
