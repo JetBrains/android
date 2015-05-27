@@ -68,13 +68,14 @@ public final class ComponentInstaller {
   private Iterable<LocalPkgInfo> getOldPackages(Collection<LocalPkgInfo> installed) {
     if (myRemotePackages != null) {
       LocalPkgInfo[] packagesArray = ArrayUtil.toObjectArray(installed, LocalPkgInfo.class);
-      SdkPackages result = new SdkPackages(packagesArray, myRemotePackages);
-      return Iterables.transform(result.getUpdatedPkgs(), new Function<UpdatablePkgInfo, LocalPkgInfo>() {
-        @Override
-        public LocalPkgInfo apply(@Nullable UpdatablePkgInfo input) {
-          return input.getLocalInfo();
+      SdkPackages packages = new SdkPackages(packagesArray, myRemotePackages);
+      List<LocalPkgInfo> result = Lists.newArrayList();
+      for (UpdatablePkgInfo update : packages.getUpdatedPkgs()) {
+        if (update.hasRemote(false)) {
+          result.add(update.getLocalInfo());
         }
-      });
+      }
+      return result;
     }
     else {
       return installed; // We should try reinstalling all...
