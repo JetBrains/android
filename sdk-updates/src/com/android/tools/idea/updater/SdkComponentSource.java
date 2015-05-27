@@ -179,9 +179,11 @@ public class SdkComponentSource implements ExternalComponentSource {
           result.add(Pair.create("Android SDK Tools:", toolsRevision.toString()));
         }
         if (platformVersion != null) {
-          result.add(Pair.create("Android Platform Version:", SdkVersionInfo.getAndroidName(platformVersion.getApiLevel()) +
-                                                              " revision " +
-                                                              platformRevision));
+          result.add(Pair.create("Android Platform Version:", String.format("%1$s revision %2$s",
+                                                                            platformVersion.getCodename() != null ?
+                                                                            platformVersion.getCodename() :
+                                                                            SdkVersionInfo.getAndroidName(platformVersion.getApiLevel()),
+                                                                            platformRevision)));
         }
         resultFuture.set(result);
       }
