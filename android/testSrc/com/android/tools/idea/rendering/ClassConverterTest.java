@@ -245,6 +245,158 @@ public class ClassConverterTest extends TestCase {
     assertTrue(methods.contains("onMeasure_Original(II)V"));
   }
 
+  public void testMethodWrapping2() throws Exception {
+    final byte[] firstData = getFirstOnMeasureClass();
+    final byte[] secondData = getSecondOnMeasureClass();
+    assertTrue(ClassConverter.isValidClassFile(firstData));
+    assertTrue(ClassConverter.isValidClassFile(secondData));
+
+    ClassLoader loader = new ClassLoader() {
+      @Override
+      protected Class<?> findClass(String name) throws ClassNotFoundException {
+        if (name.equals("FirstClass")) {
+          return defineClass(name, firstData, 0, firstData.length);
+        }
+        if (name.equals("SecondClass")) {
+          return defineClass(name, secondData, 0, secondData.length);
+        }
+        return super.findClass(name);
+      }
+    };
+    Class<?> clazz = loader.loadClass("FirstClass");
+    Object o = clazz.newInstance();
+    int outValue = (Integer) clazz.getMethod("test").invoke(o);
+    assertEquals(1, outValue);
+    clazz = loader.loadClass("SecondClass");
+    o = clazz.newInstance();
+    outValue = (Integer)clazz.getMethod("test").invoke(o);
+    assertEquals(2, outValue);
+
+
+    // Modify the classes and repeat.
+    final byte[] modifiedFirstData = ClassConverter.rewriteClass(firstData, 50, 0);
+    final byte[] modifiedSecondData = ClassConverter.rewriteClass(secondData, 50, 0);
+    loader = new ClassLoader() {
+      @Override
+      protected Class<?> findClass(String name) throws ClassNotFoundException {
+        if (name.equals("FirstClass")) {
+          return defineClass(name, modifiedFirstData, 0, modifiedFirstData.length);
+        }
+        if (name.equals("SecondClass")) {
+          return defineClass(name, modifiedSecondData, 0, modifiedSecondData.length);
+        }
+        return super.findClass(name);
+      }
+    };
+    clazz = loader.loadClass("FirstClass");
+    o = clazz.newInstance();
+    outValue = (Integer) clazz.getMethod("test").invoke(o);
+    assertEquals(1, outValue);
+    clazz = loader.loadClass("SecondClass");
+    o = clazz.newInstance();
+    outValue = (Integer)clazz.getMethod("test").invoke(o);
+    assertEquals(2, outValue);
+  }
+
+  private static byte[] getFirstOnMeasureClass() {
+    // Use asmifier to convert the compiled version of following class to generation code:
+    // public class FirstClass {
+    // int a;
+    // public void onMeasure(int x, int y) {a = 1;}
+    // public void setMeasuredDimension(int x, int y) {}
+    // public int test() { onMeasure(0,0); return a;}}
+
+    ClassWriter cw = new ClassWriter(0);
+    FieldVisitor fv;
+    MethodVisitor mv;
+
+    cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, "FirstClass", null, "java/lang/Object", null);
+
+    {
+      fv = cw.visitField(0, "a", "I", null, null);
+      fv.visitEnd();
+    }
+    {
+      mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+      mv.visitInsn(RETURN);
+      mv.visitMaxs(1, 1);
+      mv.visitEnd();
+    }
+    {
+      mv = cw.visitMethod(ACC_PUBLIC, "onMeasure", "(II)V", null, null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitInsn(ICONST_1);
+      mv.visitFieldInsn(PUTFIELD, "FirstClass", "a", "I");
+      mv.visitInsn(RETURN);
+      mv.visitMaxs(2, 3);
+      mv.visitEnd();
+    }
+    {
+      mv = cw.visitMethod(ACC_PUBLIC, "setMeasuredDimension", "(II)V", null, null);
+      mv.visitCode();
+      mv.visitInsn(RETURN);
+      mv.visitMaxs(0, 3);
+      mv.visitEnd();
+    }
+    {
+      mv = cw.visitMethod(ACC_PUBLIC, "test", "()I", null, null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitInsn(ICONST_0);
+      mv.visitInsn(ICONST_0);
+      mv.visitMethodInsn(INVOKEVIRTUAL, "FirstClass", "onMeasure", "(II)V", false);
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitFieldInsn(GETFIELD, "FirstClass", "a", "I");
+      mv.visitInsn(IRETURN);
+      mv.visitMaxs(3, 1);
+      mv.visitEnd();
+    }
+    cw.visitEnd();
+
+    return cw.toByteArray();
+  }
+
+  private static byte[] getSecondOnMeasureClass() {
+    // Use asmifier to convert the compiled version of following class to generation code:
+    // class SecondClass extends FirstClass {@Override public void onMeasure(int x, int y) {super.onMeasure(x, y); a = 2;}}
+
+    ClassWriter cw = new ClassWriter(0);
+    MethodVisitor mv;
+
+    cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, "SecondClass", null, "FirstClass", null);
+
+    {
+      mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitMethodInsn(INVOKESPECIAL, "FirstClass", "<init>", "()V", false);
+      mv.visitInsn(RETURN);
+      mv.visitMaxs(1, 1);
+      mv.visitEnd();
+    }
+    {
+      mv = cw.visitMethod(ACC_PUBLIC, "onMeasure", "(II)V", null, null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitVarInsn(ILOAD, 1);
+      mv.visitVarInsn(ILOAD, 2);
+      mv.visitMethodInsn(INVOKESPECIAL, "FirstClass", "onMeasure", "(II)V", false);
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitInsn(ICONST_2);
+      mv.visitFieldInsn(PUTFIELD, "SecondClass", "a", "I");
+      mv.visitInsn(RETURN);
+      mv.visitMaxs(3, 3);
+      mv.visitEnd();
+    }
+    cw.visitEnd();
+
+    return cw.toByteArray();
+  }
+
   private static class TestClassLoader extends RenderClassLoader {
     final byte[] myData;
     public TestClassLoader(byte[] data) {

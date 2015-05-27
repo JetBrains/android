@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.ClassReader;
@@ -46,6 +45,20 @@ import java.util.Collection;
  */
 public class ClassConverter {
   private static final String ORIGINAL_SUFFIX = "_Original";
+  private static final String ERROR_METHOD_DESCRIPTION;
+
+  static {
+    String desc;
+    try {
+       desc = Type.getMethodDescriptor(LayoutLog.class.getMethod("error", String.class, String.class, Throwable.class, Object.class));
+    }
+    catch (NoSuchMethodException e) {
+      desc = "";
+      // We control the API, so the method should always exist.
+      assert false;
+    }
+    ERROR_METHOD_DESCRIPTION = desc;
+  }
 
   /**
    * Rewrites the given class to a version runnable on the current JDK
@@ -80,16 +93,13 @@ public class ClassConverter {
       }
 
       /**
-       * Creates a new method that calls an existing "name"_original method and catches any exception the method might throw.
+       * Creates a new method that calls an existing "name"_Original method and catches any exception the method might throw.
        * The exception is logged via the Bridge logger.
        * <p/>
        * Only void return type methods are currently supported.
        */
-      private void wrapMethod(int access, String name, String desc, String signature, String[] exceptions) throws NoSuchMethodException {
+      private void wrapMethod(int access, String name, String desc, String signature, String[] exceptions) {
         assert Type.getReturnType(desc) == Type.VOID_TYPE : "Non void return methods are not supported";
-
-        String errorMethodDescription =
-          Type.getMethodDescriptor(LayoutLog.class.getMethod("error", String.class, String.class, Throwable.class, Object.class));
 
         MethodVisitor mw = super.visitMethod(access, name, desc, signature, exceptions);
 
@@ -131,7 +141,8 @@ public class ClassConverter {
         mw.visitLdcInsn(name + " error");
         mw.visitVarInsn(Opcodes.ALOAD, throwableIndex);
         mw.visitInsn(Opcodes.ACONST_NULL);
-        mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/android/ide/common/rendering/api/LayoutLog", "error", errorMethodDescription, false);
+        mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/android/ide/common/rendering/api/LayoutLog", "error", ERROR_METHOD_DESCRIPTION,
+                           false);
 
         mw.visitLabel(exit);
         mw.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
@@ -144,15 +155,11 @@ public class ClassConverter {
         // We catch the exceptions from any onLayout, onMeasure or onDraw that match the signature from the View methods
         if ("onLayout".equals(name) && "(ZIIII)V".equals(desc) ||
             "onMeasure".equals(name) && "(II)V".equals(desc) ||
-            "onDraw".equals(name) && "(Landroid/graphics/Canvas;)V".equals(desc)) {
-          try {
-            wrapMethod(access, name, desc, signature, exceptions);
-            return super.visitMethod(access, name + ORIGINAL_SUFFIX, desc, signature, exceptions);
-          }
-          catch (NoSuchMethodException e) {
-            // Logging here would cause a RenderSecurityException
-            // We just don't replace the method and we let it run
-          }
+            "onDraw".equals(name) && "(Landroid/graphics/Canvas;)V".equals(desc) && ((access & Opcodes.ACC_PUBLIC) != 0)) {
+          wrapMethod(access, name, desc, signature, exceptions);
+          // Make the Original method private so that it does not end up calling the inherited method.
+          int modifiedAccess = (access & ~Opcodes.ACC_PUBLIC & ~Opcodes.ACC_PROTECTED) | Opcodes.ACC_PRIVATE;
+          return super.visitMethod(modifiedAccess, name + ORIGINAL_SUFFIX, desc, signature, exceptions);
         }
 
         return super.visitMethod(access, name, desc, signature, exceptions);
