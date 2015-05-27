@@ -47,19 +47,22 @@ public class AndroidFakeFileSystem extends DummyFileSystem {
   @Override
   public VirtualFile findFileByPath(@NotNull String path) {
     List<String> components = ContainerUtil.collect(Splitter.on(SEPARATOR).split(path).iterator());
-    if (components.size() != 3) { // all files are of form: project/module/name
+    int size = components.size();
+    if (size < 3) { // all files are of form: projectPath/moduleName/fileName
       return null;
     }
 
-    Module m = findModule(findProject(components.get(0)), components.get(1));
+    String projectPath = Joiner.on(SEPARATOR).join(components.subList(0, size - 2));
+    String moduleName = components.get(size - 2);
+    Module m = findModule(findProject(projectPath), moduleName);
     if (m == null) {
       return null;
     }
 
-    String name = components.get(2);
-    if (StringsVirtualFile.NAME.equals(name)) {
+    String fileName = components.get(size - 1);
+    if (StringsVirtualFile.NAME.equals(fileName)) {
       return StringsVirtualFile.getStringsVirtualFile(m);
-    } else if (ThemeEditorVirtualFile.FILENAME.equals(name)) {
+    } else if (ThemeEditorVirtualFile.FILENAME.equals(fileName)) {
       return ThemeEditorVirtualFile.getThemeEditorFile(m);
     }
 
@@ -68,7 +71,7 @@ public class AndroidFakeFileSystem extends DummyFileSystem {
 
   @NotNull
   public static String constructPathForFile(@NotNull String fileName, @NotNull Module module) {
-    return Joiner.on(SEPARATOR).join(module.getProject().getName(), module.getName(), fileName);
+    return Joiner.on(SEPARATOR).join(module.getProject().getBasePath(), module.getName(), fileName);
   }
 
   @Nullable
@@ -87,9 +90,9 @@ public class AndroidFakeFileSystem extends DummyFileSystem {
   }
 
   @Nullable
-  private static Project findProject(@NotNull String name) {
+  private static Project findProject(@NotNull String basePath) {
     for (Project p : ProjectManager.getInstance().getOpenProjects()) {
-      if (p.getName().equals(name)) {
+      if (basePath.equals(p.getBasePath())) {
         return p;
       }
     }
