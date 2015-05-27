@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
@@ -40,7 +41,7 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Attr
   private static final String[] COMBOBOX_OPTIONS = {"true", "false", USE_REFERENCE};
 
   private final ComboBox myComboBox;
-  private String myResultValue;
+  private @Nullable AttributeEditorValue myResultValue;
   private String myEditedItemValue;
   private final Module myModule;
 
@@ -83,7 +84,7 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Attr
 
   @Override
   public AttributeEditorValue getEditorValue() {
-    return new AttributeEditorValue(myResultValue, false);
+    return myResultValue;
   }
 
   private class BooleanChoiceListener implements ActionListener {
@@ -98,7 +99,7 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Attr
         dialog.show();
 
         if (dialog.isOK()) {
-          myResultValue = dialog.getResourceName();
+          myResultValue = new AttributeEditorValue(dialog.getResourceName(), false);
           stopCellEditing();
         }
         else {
@@ -106,7 +107,7 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Attr
           cancelCellEditing();
         }
       } else {
-        myResultValue = selectedValue;
+        myResultValue = new AttributeEditorValue(selectedValue, false);
         stopCellEditing();
       }
     }
