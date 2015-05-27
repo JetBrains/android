@@ -33,6 +33,7 @@ import java.awt.event.ActionListener;
 
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Custom Renderer and Editor for the theme parent attribute.
@@ -41,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, AttributeEditorValue> implements TableCellRenderer {
   private final ComboBox myComboBox;
-  private String myResultValue;
+  private @Nullable AttributeEditorValue myResultValue;
   private final Configuration myConfiguration;
 
   public ParentRendererEditor(@NotNull Configuration configuration) {
@@ -67,13 +68,13 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Attr
   public Component getEditorComponent(JTable table, ThemeEditorStyle value, boolean isSelected, int row, int column) {
     ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(new ThemeResolver(myConfiguration));
     myComboBox.setModel(new ParentThemesListModel(defaultThemes, value));
-    myResultValue = value.getName();
+    myResultValue = new AttributeEditorValue(value.getName(), false);
     return myComboBox;
   }
 
   @Override
   public AttributeEditorValue getEditorValue() {
-    return new AttributeEditorValue(myResultValue, false);
+    return myResultValue;
   }
 
   private class ParentChoiceListener implements ActionListener {
@@ -88,7 +89,8 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Attr
         dialog.show();
 
         if (dialog.isOK()) {
-          myResultValue = dialog.getTheme();
+          String theme = dialog.getTheme();
+          myResultValue = theme == null ? null : new AttributeEditorValue(theme, false);
           stopCellEditing();
         }
         else {
@@ -98,7 +100,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Attr
       }
       else {
         if (selectedValue instanceof ThemeEditorStyle){
-          myResultValue = ((ThemeEditorStyle)selectedValue).getName();
+          myResultValue = new AttributeEditorValue(((ThemeEditorStyle)selectedValue).getName(), false);
         }
         stopCellEditing();
       }
