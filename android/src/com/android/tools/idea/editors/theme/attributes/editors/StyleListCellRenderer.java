@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredComponent;
@@ -32,12 +33,12 @@ import java.awt.*;
  * A {@link ListCellRenderer} to render {@link ThemeEditorStyle} elements.
  */
 public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
-  private final AndroidFacet myFacet;
+  private final ThemeEditorContext myContext;
   private final SimpleColoredComponent myStyleNameLabel = new SimpleColoredComponent();
   private final SimpleColoredComponent myDefaultLabel = new SimpleColoredComponent();
 
-  public StyleListCellRenderer(AndroidFacet facet) {
-    myFacet = facet;
+  public StyleListCellRenderer(ThemeEditorContext context) {
+    myContext = context;
 
     setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
@@ -85,8 +86,9 @@ public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
     String parentName = parent != null ? parent.getSimpleName() : null;
 
     String defaultAppTheme = null;
-    if (myFacet != null) {
-      Manifest manifest = myFacet.getManifest();
+    final AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentThemeModule());
+    if (facet != null) {
+      Manifest manifest = facet.getManifest();
       if (manifest != null && manifest.getApplication() != null && manifest.getApplication().getXmlTag() != null) {
         defaultAppTheme = manifest.getApplication()
           .getXmlTag().getAttributeValue(SdkConstants.ATTR_THEME, SdkConstants.ANDROID_URI);

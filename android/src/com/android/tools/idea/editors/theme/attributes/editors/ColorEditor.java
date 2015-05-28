@@ -16,12 +16,11 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,9 +34,7 @@ import java.util.List;
 public class ColorEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> {
   private static final Logger LOG = Logger.getInstance(ColorEditor.class);
 
-  private final Module myModule;
-  private final Configuration myConfiguration;
-
+  private final ThemeEditorContext myContext;
   private final ColorComponent myComponent;
   private AttributeEditorValue myEditorValue = null;
 
@@ -45,9 +42,8 @@ public class ColorEditor extends TypedCellEditor<EditedStyleItem, AttributeEdito
 
   private EditedStyleItem myItem;
 
-  public ColorEditor(@NotNull Module module, @NotNull Configuration configuration, AndroidThemePreviewPanel previewPanel) {
-    myModule = module;
-    myConfiguration = configuration;
+  public ColorEditor(@NotNull ThemeEditorContext context, AndroidThemePreviewPanel previewPanel) {
+    myContext = context;
 
     myComponent = new ColorComponent();
     myComponent.addActionListener(new ColorEditorActionListener());
@@ -58,7 +54,7 @@ public class ColorEditor extends TypedCellEditor<EditedStyleItem, AttributeEdito
   @Override
   public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
     myItem = value;
-    final List<Color> colors = ResourceHelper.resolveMultipleColors(myConfiguration.getResourceResolver(), myItem.getItemResourceValue());
+    final List<Color> colors = ResourceHelper.resolveMultipleColors(myContext.getResourceResolver(), myItem.getItemResourceValue());
     myComponent.configure(myItem, colors);
     myEditorValue = null; // invalidate stored editor value
 
@@ -89,9 +85,9 @@ public class ColorEditor extends TypedCellEditor<EditedStyleItem, AttributeEdito
 
       // TODO we need to handle color state lists correctly here.
       String resolvedColor = ResourceHelper.colorToString(
-        ResourceHelper.resolveColor(myConfiguration.getResourceResolver(), myItem.getItemResourceValue()));
+        ResourceHelper.resolveColor(myContext.getResourceResolver(), myItem.getItemResourceValue()));
 
-      final ChooseResourceDialog dialog = new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, resolvedColor, null,
+      final ChooseResourceDialog dialog = new ChooseResourceDialog(myContext.getCurrentThemeModule(), ChooseResourceDialog.COLOR_TYPES, resolvedColor, null,
                                                                    ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
 
       final String oldValue = myItem.getItemResourceValue().getValue();
