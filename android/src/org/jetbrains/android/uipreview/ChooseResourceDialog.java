@@ -17,7 +17,6 @@ package org.jetbrains.android.uipreview;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
@@ -33,6 +32,7 @@ import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -54,6 +54,7 @@ import com.intellij.util.ui.tree.TreeUtil;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
+import org.jetbrains.android.actions.CreateXmlResourcePanel;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.AndroidBaseLayoutRefactoringAction;
@@ -120,8 +121,7 @@ import java.io.IOException;
  * </ul>
  */
 public class ChooseResourceDialog extends DialogWrapper implements TreeSelectionListener {
-  private static final String RESOURCE_NAME_DEFAULT_TEXT = "Enter the resource name";
-  private static final String RESOURCE_NAME_REQUIRED = "The resource name is required for this attribute";
+
   private static final String ANDROID = "@android:";
   private static final String TYPE_KEY = "ResourceType";
 
@@ -181,6 +181,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   private JLabel myResourceNameMessage;
   private ResourceNameValidator myValidator;
   private ResourceNameVisibility myResourceNameVisibility;
+  CreateXmlResourcePanel myLocationSettings;
 
   public boolean overwriteResource() {
     return myOverwriteResource;
@@ -237,7 +238,6 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       if (myResourceNameVisibility != ResourceNameVisibility.HIDE) {
         ResourceDialogSouthPanel resourceDialogSouthPanel = new ResourceDialogSouthPanel();
         myResourceNameField = resourceDialogSouthPanel.getResourceNameField();
-        myResourceNameField.getDocument().addDocumentListener(new ValidatingDocumentListener());
         if (colorName != null) {
           myResourceNameField.setText(colorName);
         }
@@ -245,14 +245,22 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
         Color backgroundColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
         myResourceNameMessage.setBackground(backgroundColor == null ? JBColor.YELLOW : backgroundColor);
         colorPickerContent.add(resourceDialogSouthPanel.getFullPanel(), BorderLayout.SOUTH);
-        updateResourceNameStatus();
+
+        myLocationSettings = new CreateXmlResourcePanel(myModule, ResourceType.COLOR, null);
+        resourceDialogSouthPanel.setExpertPanel(myLocationSettings.getPanel());
+        myLocationSettings.addModuleComboActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            myValidator = ResourceNameValidator.create(false, AppResourceRepository.getAppResources(myLocationSettings.getModule(), true), ResourceType.COLOR, false);
+          }
+        });
       }
 
       if (color != null) {
         myContentPanel.setSelectedIndex(2);
         doSelection = false;
       }
-      myValidator = ResourceNameValidator.create(false, AppResourceRepository.getAppResources(module, true), ResourceType.COLOR, false);
+      myValidator = ResourceNameValidator.create(false, AppResourceRepository.getAppResources(myModule, true), ResourceType.COLOR, false);
     }
     if (doSelection && value.startsWith("@")) {
       value = StringUtil.replace(value, "+", "");
@@ -283,6 +291,13 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
     valueChanged(null);
     init();
+    // we need to trigger this once before the window is made visible to update any extra labels
+    doValidate();
+  }
+
+  @Override
+  protected boolean postponeValidation() {
+    return false;
   }
 
   public enum ResourceNameVisibility {
@@ -313,53 +328,42 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     return result;
   }
 
-  @NotNull
-  private String getResourceNameMessage() {
-    if (myResourceNameVisibility == ResourceNameVisibility.FORCE) {
-      return RESOURCE_NAME_REQUIRED;
-    } else {
-      return RESOURCE_NAME_DEFAULT_TEXT;
-    }
-  }
+  @Nullable
+  @Override
+  protected ValidationInfo doValidate() {
+    Component selectedComponent = myContentPanel.getSelectedComponent();
 
-  public void updateResourceNameStatus() {
-    if (myResourceNameVisibility == ResourceNameVisibility.HIDE) {
-      setOKActionEnabled(true);
-      return;
-    }
+    final boolean oKActionEnabled;
+    ValidationInfo error = null;
 
-    final String errorText = getErrorString();
-    if (errorText == null) {
-      myResourceNameMessage.setText(getResourceNameMessage());
-      myResourceNameMessage.setForeground(JBColor.BLACK);
-      myResourceNameMessage.setOpaque(false);
-      setOKActionEnabled(true);
+    if (selectedComponent != myColorPickerPanel) {
+      boolean isProjectPanel = selectedComponent == myProjectPanel.myComponent;
+      ResourcePanel panel = isProjectPanel ? myProjectPanel : mySystemPanel;
+      ResourceItem element = getSelectedElement(panel.myTreeBuilder, ResourceItem.class);
+      oKActionEnabled = element != null;
     }
     else {
-      myResourceNameMessage.setText(errorText);
-      myResourceNameMessage.setForeground(myOverwriteResource ? JBColor.BLACK : JBColor.RED);
-      myResourceNameMessage.setOpaque(myOverwriteResource);
-      setOKActionEnabled(myOverwriteResource);
-    }
-  }
-
-  private class ValidatingDocumentListener implements DocumentListener {
-    @Override
-    public void insertUpdate(DocumentEvent e) { check(); }
-
-    @Override
-    public void removeUpdate(DocumentEvent e) { check(); }
-
-    @Override
-    public void changedUpdate(DocumentEvent e) { check(); }
-
-    private void check() {
-      if (myValidator == null) {
-        return;
+      // if name is hidden, then we allow any value
+      if (myResourceNameVisibility != ResourceNameVisibility.HIDE) {
+        final String errorText = getErrorString();
+        if (errorText != null && !myOverwriteResource) {
+          myResourceNameMessage.setText("");
+          error = new ValidationInfo(errorText, myResourceNameField);
+        }
+        else {
+          myResourceNameMessage.setText(errorText != null ? errorText : "");
+          error = myLocationSettings.doValidate();
+        }
       }
-
-      updateResourceNameStatus();
+      oKActionEnabled = error == null;
     }
+
+    // Need to always manually update the setOKActionEnabled as the DialogWrapper
+    // only updates it if we go from having a error string to not having one
+    // or the other way round, but not if the error string state has not changed.
+    setOKActionEnabled(oKActionEnabled);
+
+    return error;
   }
 
   public void setResourcePickerListener(ResourcePickerListener resourcePickerListener) {
@@ -496,11 +500,14 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     valueChanged(null);
     if (myContentPanel.getSelectedComponent() == myColorPickerPanel && myResourceNameVisibility != ResourceNameVisibility.HIDE) {
       String colorName = myResourceNameField.getText();
+      Module module = myLocationSettings.getModule();
+      String fileName = myLocationSettings.getFileName();
+      List<String> dirNames = myLocationSettings.getDirNames();
 
-      if (myOverwriteResource) {
-        ThemeEditorUtils.changeColor(myModule, colorName, myResultResourceName);
-      } else {
-        ThemeEditorUtils.createColor(myModule, colorName, myResultResourceName);
+      if (!AndroidResourceUtil.changeColorResource(AndroidFacet.getInstance(module), colorName, myResultResourceName, fileName, dirNames)) {
+        // Changing color resource has failed, one possible reason is that color isn't defined in the project.
+        // Trying to create the color instead.
+        AndroidResourceUtil.createValueResource(module, colorName, ResourceType.COLOR, fileName, dirNames, myResultResourceName);
       }
 
       myResultResourceName = SdkConstants.COLOR_RESOURCE_PREFIX + colorName;
@@ -522,13 +529,12 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       Color color = myColorPicker.getColor();
       myNewResourceAction.setEnabled(false);
       myResultResourceName = ResourceHelper.colorToString(color);
-      updateResourceNameStatus();
     }
     else {
       boolean isProjectPanel = selectedComponent == myProjectPanel.myComponent;
       ResourcePanel panel = isProjectPanel ? myProjectPanel : mySystemPanel;
       ResourceItem element = getSelectedElement(panel.myTreeBuilder, ResourceItem.class);
-      setOKActionEnabled(element != null);
+
       myNewResourceAction.setEnabled(isProjectPanel && !panel.myTreeBuilder.getSelectedElements().isEmpty());
 
       if (element == null) {
