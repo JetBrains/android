@@ -103,14 +103,6 @@ public class ClassConverter {
 
         MethodVisitor mw = super.visitMethod(access, name, desc, signature, exceptions);
 
-        if ("onMeasure".equals(name)) {
-          // For onMeasure we need to generate a call to setMeasureDimension to avoid an exception when no size is set
-          mw.visitVarInsn(Opcodes.ALOAD, 0); // this
-          mw.visitInsn(Opcodes.ICONST_0); // measuredWidth
-          mw.visitInsn(Opcodes.ICONST_0); // measuredHeight
-          mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, myClassName, "setMeasuredDimension", desc, false);
-        }
-
         Label tryStart = new Label();
         Label tryEnd = new Label();
         Label tryHandler = new Label();
@@ -144,6 +136,14 @@ public class ClassConverter {
         mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/android/ide/common/rendering/api/LayoutLog", "error", ERROR_METHOD_DESCRIPTION,
                            false);
 
+        if ("onMeasure".equals(name)) {
+          // For onMeasure we need to generate a call to setMeasureDimension to avoid an exception when no size is set
+          mw.visitVarInsn(Opcodes.ALOAD, 0); // this
+          mw.visitInsn(Opcodes.ICONST_0); // measuredWidth
+          mw.visitInsn(Opcodes.ICONST_0); // measuredHeight
+          mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, myClassName, "setMeasuredDimension", desc, false);
+        }
+
         mw.visitLabel(exit);
         mw.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
         mw.visitInsn(Opcodes.RETURN);
@@ -153,9 +153,10 @@ public class ClassConverter {
       @Override
       public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         // We catch the exceptions from any onLayout, onMeasure or onDraw that match the signature from the View methods
-        if ("onLayout".equals(name) && "(ZIIII)V".equals(desc) ||
-            "onMeasure".equals(name) && "(II)V".equals(desc) ||
-            "onDraw".equals(name) && "(Landroid/graphics/Canvas;)V".equals(desc) && ((access & Opcodes.ACC_PUBLIC) != 0)) {
+        if (("onLayout".equals(name) && "(ZIIII)V".equals(desc) ||
+             "onMeasure".equals(name) && "(II)V".equals(desc) ||
+             "onDraw".equals(name) && "(Landroid/graphics/Canvas;)V".equals(desc)) &&
+            ((access & (Opcodes.ACC_PUBLIC | Opcodes.ACC_PROTECTED)) != 0)) {
           wrapMethod(access, name, desc, signature, exceptions);
           // Make the Original method private so that it does not end up calling the inherited method.
           int modifiedAccess = (access & ~Opcodes.ACC_PUBLIC & ~Opcodes.ACC_PROTECTED) | Opcodes.ACC_PRIVATE;

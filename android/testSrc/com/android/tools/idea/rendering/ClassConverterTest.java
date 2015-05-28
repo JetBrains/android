@@ -302,8 +302,7 @@ public class ClassConverterTest extends TestCase {
     // Use asmifier to convert the compiled version of following class to generation code:
     // public class FirstClass {
     // int a;
-    // public void onMeasure(int x, int y) {a = 1;}
-    // public void setMeasuredDimension(int x, int y) {}
+    // protected void onMeasure(int x, int y) {a = 1;}
     // public int test() { onMeasure(0,0); return a;}}
 
     ClassWriter cw = new ClassWriter(0);
@@ -326,20 +325,13 @@ public class ClassConverterTest extends TestCase {
       mv.visitEnd();
     }
     {
-      mv = cw.visitMethod(ACC_PUBLIC, "onMeasure", "(II)V", null, null);
+      mv = cw.visitMethod(ACC_PROTECTED, "onMeasure", "(II)V", null, null);
       mv.visitCode();
       mv.visitVarInsn(ALOAD, 0);
       mv.visitInsn(ICONST_1);
       mv.visitFieldInsn(PUTFIELD, "FirstClass", "a", "I");
       mv.visitInsn(RETURN);
       mv.visitMaxs(2, 3);
-      mv.visitEnd();
-    }
-    {
-      mv = cw.visitMethod(ACC_PUBLIC, "setMeasuredDimension", "(II)V", null, null);
-      mv.visitCode();
-      mv.visitInsn(RETURN);
-      mv.visitMaxs(0, 3);
       mv.visitEnd();
     }
     {
@@ -362,7 +354,7 @@ public class ClassConverterTest extends TestCase {
 
   private static byte[] getSecondOnMeasureClass() {
     // Use asmifier to convert the compiled version of following class to generation code:
-    // class SecondClass extends FirstClass {@Override public void onMeasure(int x, int y) {super.onMeasure(x, y); a = 2;}}
+    // class SecondClass extends FirstClass {@Override protected void onMeasure(int x, int y) {super.onMeasure(x, y); a = 2;}}
 
     ClassWriter cw = new ClassWriter(0);
     MethodVisitor mv;
@@ -379,7 +371,7 @@ public class ClassConverterTest extends TestCase {
       mv.visitEnd();
     }
     {
-      mv = cw.visitMethod(ACC_PUBLIC, "onMeasure", "(II)V", null, null);
+      mv = cw.visitMethod(ACC_PROTECTED, "onMeasure", "(II)V", null, null);
       mv.visitCode();
       mv.visitVarInsn(ALOAD, 0);
       mv.visitVarInsn(ILOAD, 1);
