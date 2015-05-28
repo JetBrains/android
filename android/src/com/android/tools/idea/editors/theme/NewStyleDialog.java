@@ -37,6 +37,7 @@ import java.awt.event.ActionListener;
 
 public class NewStyleDialog extends DialogWrapper {
   private final ResourceNameValidator myResourceNameValidator;
+  private final ThemeEditorContext myContext;
   private JPanel contentPane;
   private JTextField myStyleNameTextField;
   private JLabel myMessageLabel;
@@ -55,7 +56,7 @@ public class NewStyleDialog extends DialogWrapper {
    * @param message Message to display to the user when creating the new style.
    */
   public NewStyleDialog(boolean isTheme,
-                        @NotNull final Configuration configuration,
+                        @NotNull ThemeEditorContext context,
                         @Nullable String defaultParentName,
                         @Nullable final String currentThemeName,
                         @Nullable String message) {
@@ -68,6 +69,8 @@ public class NewStyleDialog extends DialogWrapper {
       myMessageLabel.setVisible(false);
     }
 
+    myContext = context;
+    final Configuration configuration = myContext.getConfiguration();
     myResourceNameValidator =
       ResourceNameValidator.create(false, AppResourceRepository.getAppResources(configuration.getModule(), true), ResourceType.STYLE);
 
@@ -87,7 +90,7 @@ public class NewStyleDialog extends DialogWrapper {
     }
 
     //noinspection GtkPreferredJComboBoxRenderer
-    myParentStyleComboBox.setRenderer(new StyleListCellRenderer(AndroidFacet.getInstance(configuration.getModule())));
+    myParentStyleComboBox.setRenderer(new StyleListCellRenderer(myContext));
     final ParentThemesListModel parentThemesListModel = new ParentThemesListModel(defaultThemes, defaultParent);
     myParentStyleComboBox.setModel(parentThemesListModel);
     myParentStyleComboBox.addActionListener(new ActionListener() {

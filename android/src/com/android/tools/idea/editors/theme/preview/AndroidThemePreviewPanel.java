@@ -23,6 +23,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewBuilder.ComponentDefinition;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedViewHierarchy;
@@ -58,12 +59,17 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-import javax.swing.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.xml.parsers.ParserConfigurationException;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -102,8 +108,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   private static final Map<String, String> SUPPORT_LIBRARY_REPLACEMENTS =
     ImmutableMap.of("android.support.v7.widget.Toolbar", "Toolbar");
 
-  /** Min API level to use for filtering. */
-  private int myMinApiLevel;
   /** Current search term to use for filtering. If empty, no search term is being used */
   private String mySearchTerm = "";
   /** Cache of the custom components found on the project */
@@ -114,7 +118,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   /** List of component names that shouldn't be displayed. This is used in the case where a support component superseeds a framework one. */
   private List<String> myDisabledComponents = new ArrayList<String>();
 
-  protected final Configuration myConfiguration;
+  private final ThemeEditorContext myContext;
   protected final NavigationComponent<Breadcrumb> myBreadcrumbs;
   protected final SearchTextField mySearchTextField;
   protected final AndroidPreviewPanel myAndroidPreviewPanel;
@@ -190,22 +194,27 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   }
 
 
-  public AndroidThemePreviewPanel(@NotNull final Configuration configuration, @NotNull Color background) {
+  public AndroidThemePreviewPanel(@NotNull ThemeEditorContext context, @NotNull Color background) {
     super(BoxLayout.PAGE_AXIS);
 
     setOpaque(true);
     setMinimumSize(JBUI.size(200, 0));
 
-    myConfiguration = configuration;
-    myAndroidPreviewPanel = new AndroidPreviewPanel(configuration);
+    myContext = context;
+    myAndroidPreviewPanel = new AndroidPreviewPanel(myContext.getConfiguration());
+    myContext.addChangeListener(new ThemeEditorContext.ChangeListener() {
+      @Override
+      public void onNewConfiguration(ThemeEditorContext context) {
+        refreshConfiguration();
+      }
+    });
     myAndroidPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
     myBreadcrumbs = new NavigationComponent<Breadcrumb>();
     myBreadcrumbs.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
 
-    myDumbService = DumbService.getInstance(myConfiguration.getModule().getProject());
+    myDumbService = DumbService.getInstance(context.getProject());
 
-    myMinApiLevel = configuration.getTarget() != null ? configuration.getTarget().getVersion().getApiLevel() : Integer.MAX_VALUE;
 
     myScrollPane = new JBScrollPane(myAndroidPreviewPanel,
                                                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -299,13 +308,13 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
       }
     });
 
-    myConfiguration.addListener(new ConfigurationListener() {
+    myContext.addConfigurationListener(new ConfigurationListener() {
       @Override
       public boolean changed(int flags) {
         refreshConfiguration();
 
         if ((flags & ConfigurationListener.CFG_THEME) != 0) {
-          boolean appCompatTheme = isAppCompatTheme(myConfiguration);
+          boolean appCompatTheme = isAppCompatTheme(myContext.getConfiguration());
           if (appCompatTheme != myIsAppCompatTheme) {
             rebuild();
           }
@@ -338,7 +347,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     myDumbService.runWhenSmart(new Runnable() {
       @Override
       public void run() {
-        Project project = myConfiguration.getModule().getProject();
+        Project project = myContext.getProject();
         if (!project.isOpen()) {
           return;
         }
@@ -408,14 +417,16 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
    */
   private void rebuild(boolean forceRepaint) {
     try {
+      Configuration configuration = myContext.getConfiguration();
+      int minApiLevel = configuration.getTarget() != null ? configuration.getTarget().getVersion().getApiLevel() : Integer.MAX_VALUE;
       ThemePreviewBuilder builder = new ThemePreviewBuilder()
         .setBackgroundColor(getBackground()).addAllComponents(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS)
         .addAllComponents(myCustomComponents)
         .addComponentFilter(new ThemePreviewBuilder.SearchFilter(mySearchTerm))
-        .addComponentFilter(new ThemePreviewBuilder.ApiLevelFilter(myMinApiLevel))
+        .addComponentFilter(new ThemePreviewBuilder.ApiLevelFilter(minApiLevel))
         .addComponentFilter(myGroupFilter);
 
-      myIsAppCompatTheme = isAppCompatTheme(myConfiguration);
+      myIsAppCompatTheme = isAppCompatTheme(configuration);
       if (myIsAppCompatTheme) {
         builder
           .addComponentFilter(mySupportReplacementsFilter)
@@ -440,11 +451,12 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   }
 
   private void refreshConfiguration() {
-    myAndroidPreviewPanel.updateConfiguration(myConfiguration);
+    Configuration configuration = myContext.getConfiguration();
+    myAndroidPreviewPanel.updateConfiguration(configuration);
     // We want the preview to remain the same size even when the device being used to render is different.
     // Adjust the scale to the current config.
-    if (myConfiguration.getDeviceState() != null) {
-      double scale = myConstantScalingFactor / myConfiguration.getDeviceState().getHardware().getScreen().getPixelDensity().getDpiValue();
+    if (configuration.getDeviceState() != null) {
+      double scale = myConstantScalingFactor / configuration.getDeviceState().getHardware().getScreen().getPixelDensity().getDpiValue();
       myAndroidPreviewPanel.setScale(scale);
     } else {
       LOG.error("Configuration getDeviceState returned null. Unable to set preview scale.");
@@ -495,7 +507,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   @Nullable
   @Override
   public Configuration getConfiguration() {
-    return myConfiguration;
+    return myContext.getConfiguration();
   }
 
   @Override

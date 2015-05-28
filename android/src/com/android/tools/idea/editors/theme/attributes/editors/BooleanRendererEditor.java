@@ -17,12 +17,13 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
@@ -41,12 +42,12 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Attr
   private static final String[] COMBOBOX_OPTIONS = {"true", "false", USE_REFERENCE};
 
   private final ComboBox myComboBox;
+  private final @NotNull ThemeEditorContext myContext;
   private @Nullable AttributeEditorValue myResultValue;
   private String myEditedItemValue;
-  private final Module myModule;
 
-  public BooleanRendererEditor(Module module) {
-    myModule = module;
+  public BooleanRendererEditor(@NotNull ThemeEditorContext context) {
+    myContext = context;
     myComboBox = new ComboBox();
     myComboBox.addActionListener(new BooleanChoiceListener());
   }
@@ -94,7 +95,7 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Attr
       String selectedValue = (String) myComboBox.getSelectedItem();
       if (USE_REFERENCE.equals(selectedValue)) {
         myComboBox.hidePopup();
-        final ChooseResourceDialog dialog = new ChooseResourceDialog(myModule, BOOLEAN_TYPE, myEditedItemValue, null);
+        final ChooseResourceDialog dialog = new ChooseResourceDialog(myContext.getCurrentThemeModule(), BOOLEAN_TYPE, myEditedItemValue, null);
 
         dialog.show();
 

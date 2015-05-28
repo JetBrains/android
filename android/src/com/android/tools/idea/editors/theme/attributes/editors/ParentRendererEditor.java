@@ -16,9 +16,9 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
 import com.android.tools.idea.editors.theme.ParentThemesListModel;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
@@ -26,12 +26,11 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.ComboBox;
 
 import java.awt.Component;
-import javax.swing.*;
+import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,13 +42,13 @@ import org.jetbrains.annotations.Nullable;
 public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, AttributeEditorValue> implements TableCellRenderer {
   private final ComboBox myComboBox;
   private @Nullable AttributeEditorValue myResultValue;
-  private final Configuration myConfiguration;
+  private final ThemeEditorContext myContext;
 
-  public ParentRendererEditor(@NotNull Configuration configuration) {
-    myConfiguration = configuration;
+  public ParentRendererEditor(@NotNull ThemeEditorContext context) {
+    myContext = context;
     myComboBox = new ComboBox();
     //noinspection GtkPreferredJComboBoxRenderer
-    myComboBox.setRenderer(new StyleListCellRenderer(AndroidFacet.getInstance(configuration.getModule())));
+    myComboBox.setRenderer(new StyleListCellRenderer(context));
     myComboBox.addActionListener(new ParentChoiceListener());
   }
 
@@ -66,7 +65,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Attr
 
   @Override
   public Component getEditorComponent(JTable table, ThemeEditorStyle value, boolean isSelected, int row, int column) {
-    ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(new ThemeResolver(myConfiguration));
+    ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(new ThemeResolver(myContext.getConfiguration()));
     myComboBox.setModel(new ParentThemesListModel(defaultThemes, value));
     myResultValue = new AttributeEditorValue(value.getName(), false);
     return myComboBox;
@@ -84,7 +83,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Attr
       Object selectedValue = myComboBox.getSelectedItem();
       if (ParentThemesListModel.SHOW_ALL_THEMES.equals(selectedValue)) {
         myComboBox.hidePopup();
-        final ThemeSelectionDialog dialog = new ThemeSelectionDialog(myConfiguration);
+        final ThemeSelectionDialog dialog = new ThemeSelectionDialog(myContext.getConfiguration());
 
         dialog.show();
 

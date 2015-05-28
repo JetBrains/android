@@ -16,12 +16,12 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
-import com.intellij.openapi.module.Module;
+import org.jetbrains.annotations.NotNull;
 import spantable.CellSpanModel;
 
 import javax.swing.*;
@@ -39,18 +39,16 @@ public class DelegatingCellEditor implements TableCellEditor {
   private final TableCellEditor myDelegate;
   private final boolean myConvertValueToString;
 
-  private final Module myModule;
-  private final Configuration myConfiguration;
+  private final ThemeEditorContext myContext;
 
-  public DelegatingCellEditor(boolean convertValueToString, final TableCellEditor delegate, Module module, Configuration configuration) {
+  public DelegatingCellEditor(boolean convertValueToString, final TableCellEditor delegate, @NotNull ThemeEditorContext context) {
     myConvertValueToString = convertValueToString;
     myDelegate = delegate;
-    myModule = module;
-    myConfiguration = configuration;
+    myContext = context;
   }
 
-  public DelegatingCellEditor(final TableCellEditor delegate, Module module, Configuration configuration) {
-    this(true, delegate, module, configuration);
+  public DelegatingCellEditor(final TableCellEditor delegate, @NotNull ThemeEditorContext context) {
+    this(true, delegate, context);
   }
 
   @Override
@@ -63,7 +61,7 @@ public class DelegatingCellEditor implements TableCellEditor {
     final Font font;
     if (value instanceof EditedStyleItem) {
       final EditedStyleItem item = (EditedStyleItem) value;
-      tooltipText = ThemeEditorUtils.generateToolTipText(item.getItemResourceValue(), myModule, myConfiguration);
+      tooltipText = ThemeEditorUtils.generateToolTipText(item.getItemResourceValue(), myContext.getCurrentThemeModule(), myContext.getConfiguration());
       stringValue = ThemeEditorUtils.extractRealValue(item, model.getCellClass(row, column));
       ThemeEditorStyle selectedStyle = ((AttributesTableModel)table.getModel()).getSelectedStyle();
       // Displays in bold attributes that are overriding their inherited value
