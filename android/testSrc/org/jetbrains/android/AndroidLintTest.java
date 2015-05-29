@@ -491,6 +491,11 @@ public class AndroidLintTest extends AndroidTestCase {
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintIconDuplicatesInspection());
   }
 
+  public void testCallSuper() throws Exception {
+    myFixture.copyFileToProject(getGlobalTestDir() + "/CallSuperTest.java", "src/p1/p2/CallSuperTest.java");
+    doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintMissingSuperCallInspection());
+  }
+
   public void testSuppressingInXml1() throws Exception {
     doTestNoFix(new AndroidLintInspectionToolProvider.AndroidLintHardcodedTextInspection(),
                 "/res/layout/layout.xml", "xml");
