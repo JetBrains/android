@@ -25,8 +25,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-
 public class ThemeEditorStyleTest extends AndroidTestCase {
 
   public ThemeEditorStyleTest() {
@@ -53,14 +51,16 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
     assertNotNull(theme);
+    ThemeEditorStyle parent = theme.getParent();
+    assertNotNull(parent);
 
     ItemResourceValue hasItem = new ItemResourceValue("myColor", false, "?android:attr/colorBackground", false);
     ItemResourceValue hasNotItem = new ItemResourceValue("myHasNot", false, "?android:attr/colorBackground", false);
     ItemResourceValue hasInParent = new ItemResourceValue("editTextStyle", true, "?android:attr/colorBackground", true);
-    assertEquals(true, theme.hasItem(new EditedStyleItem(hasItem, theme)));
-    assertEquals(false, theme.hasItem(new EditedStyleItem(hasNotItem, theme)));
-    assertEquals(true, theme.getParent().hasItem(new EditedStyleItem(hasInParent, theme.getParent())));
-    assertEquals(false, theme.hasItem(new EditedStyleItem(hasInParent, theme.getParent())));
+    assertTrue(theme.hasItem(new EditedStyleItem(hasItem, theme)));
+    assertFalse(theme.hasItem(new EditedStyleItem(hasNotItem, theme)));
+    assertTrue(theme.getParent().hasItem(new EditedStyleItem(hasInParent, parent)));
+    assertFalse(theme.hasItem(new EditedStyleItem(hasInParent, parent)));
   }
 
   private void doTestForAttributeValuePairApi(@NotNull String attribute, @NotNull String value, @NotNull String afterDirectoryName) {
@@ -162,6 +162,32 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
    */
   public void testModifyingHighApiAttribute() {
     doTestForAttributeApi("android:actionModeStyle", "apiTestAfter7");
+  }
+
+  /**
+   * Test setting a low-api attributes and parent in a theme defined only in higher api files
+   */
+  public void testSettingInHighApiTheme() {
+    VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi.xml", "res/values/styles.xml");
+    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v14.xml", "res/values-v14/styles.xml");
+    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
+    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v21.xml", "res/values-v21/styles.xml");
+
+    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    Configuration configuration = configurationManager.getConfiguration(virtualFile);
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+    ThemeEditorStyle theme = themeResolver.getTheme("@style/Theme.MyOtherTheme");
+
+    assertNotNull(theme);
+    theme.setValue("android:windowIsFloating", "holo_purple");
+    theme.setValue("android:actionBarDivider", "myValue");
+    theme.setParent("@android:style/Theme.Holo.Light.DarkActionBar");
+
+
+    myFixture.checkResultByFile("res/values/styles.xml", "themeEditor/apiTestAfter8/stylesApi.xml", true);
+    myFixture.checkResultByFile("res/values-v14/styles.xml", "themeEditor/apiTestAfter8/stylesApi-v14.xml", true);
+    myFixture.checkResultByFile("res/values-v19/styles.xml", "themeEditor/apiTestAfter8/stylesApi-v19.xml", true);
+    myFixture.checkResultByFile("res/values-v21/styles.xml", "themeEditor/apiTestAfter8/stylesApi-v21.xml", true);
   }
 
   /**
