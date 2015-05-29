@@ -136,7 +136,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
       if (myGraphicsLayoutRenderer != null && !currentSize.equals(previousSize)) {
         // Because we use GraphicsLayoutRender in vertical scroll mode, the height passed it's only a minimum. If the actual rendering results
         // in a bigger size, the GraphicsLayoutRenderer.getPreferredSize() call will return the correct size.
-        myGraphicsLayoutRenderer.setSize(width, height);
+        myGraphicsLayoutRenderer.setSize(width, 1);
       }
     }
   }
