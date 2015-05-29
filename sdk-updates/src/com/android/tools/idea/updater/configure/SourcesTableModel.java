@@ -213,7 +213,9 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   }
 
   public void reset() {
-    mySources.loadUserAddons(new StdLogger(StdLogger.Level.WARNING));
+    if (isSourcesModified()) {
+      mySources.loadUserAddons(new StdLogger(StdLogger.Level.WARNING));
+    }
     for (Row row : getItems()) {
       row.myEnabled = row.mySource.isEnabled();
     }
