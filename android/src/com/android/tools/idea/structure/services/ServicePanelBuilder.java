@@ -46,7 +46,7 @@ public final class ServicePanelBuilder {
   @NotNull private final Stack<UiGrid> myGrids = new Stack<UiGrid>();
 
   public ServicePanelBuilder() {
-    myRootPanel = new JPanel(new VerticalFlowLayout());
+    myRootPanel = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, false, false));
     // Pass BindingsManager to the panel so it stays alive after this builder goes away.
     myRootPanel.putClientProperty("bindings", myBindings);
   }
