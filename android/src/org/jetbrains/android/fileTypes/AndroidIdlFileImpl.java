@@ -29,7 +29,7 @@ public class AndroidIdlFileImpl extends PsiFileBase {
   public AndroidIdlFileImpl(FileViewProvider viewProvider) {
     //super(AndroidIdlParserDefinition.AIDL_FILE_ELEMENT_TYPE, AndroidIdlParserDefinition.AIDL_TEXT, viewProvider);
     super(viewProvider, AndroidIdlFileType.ourFileType.getLanguage());
-    myFileType = viewProvider.getVirtualFile().getFileType();
+    myFileType = viewProvider.getFileType();
   }
 
   @Override
