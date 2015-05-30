@@ -909,6 +909,16 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (v instanceof Number) {
           return (Number)v;
         }
+      } else if (argument instanceof PsiReferenceExpression) {
+        PsiReferenceExpression ref = (PsiReferenceExpression)argument;
+        PsiElement resolved = ref.resolve();
+        if (resolved instanceof PsiField) {
+          PsiField field = (PsiField)resolved;
+          PsiExpression initializer = field.getInitializer();
+          if (initializer != null) {
+            return guessSize(initializer);
+          }
+        }
       }
       return null;
     }
@@ -1147,6 +1157,16 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         Object v = JavaConstantExpressionEvaluator.computeConstantExpression(argument, false);
         if (v instanceof String) {
           return ((String)v).length();
+        }
+      } else if (argument instanceof PsiReferenceExpression) {
+        PsiReferenceExpression ref = (PsiReferenceExpression)argument;
+        PsiElement resolved = ref.resolve();
+        if (resolved instanceof PsiField) {
+          PsiField field = (PsiField)resolved;
+          PsiExpression initializer = field.getInitializer();
+          if (initializer != null) {
+            return guessSize(initializer);
+          }
         }
       }
       return -1;
