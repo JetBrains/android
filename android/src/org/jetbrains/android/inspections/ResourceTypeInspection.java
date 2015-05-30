@@ -1259,7 +1259,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   }
 
   @Nullable
-  private static ResourceType getResourceTypeFromAnnotation(@NotNull String qualifiedName) {
+  public static ResourceType getResourceTypeFromAnnotation(@NotNull String qualifiedName) {
     String resourceTypeName =
       Character.toLowerCase(qualifiedName.charAt(SUPPORT_ANNOTATIONS_PREFIX.length())) +
       qualifiedName.substring(SUPPORT_ANNOTATIONS_PREFIX.length() + 1, qualifiedName.length() - RES_SUFFIX.length());
@@ -1267,7 +1267,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   }
 
   @Nullable
-  static Constraints getAllowedValues(@NotNull PsiModifierListOwner element, @Nullable PsiType type, @Nullable Set<PsiClass> visited) {
+  public static Constraints getAllowedValues(@NotNull PsiModifierListOwner element, @Nullable PsiType type, @Nullable Set<PsiClass> visited) {
     PsiAnnotation[] annotations = getAllAnnotations(element);
     PsiManager manager = element.getManager();
     List<ResourceType> resourceTypes = null;
@@ -1325,7 +1325,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return null;
   }
 
-  private static PsiAnnotation[] getAllAnnotations(final PsiModifierListOwner element) {
+  public static PsiAnnotation[] getAllAnnotations(final PsiModifierListOwner element) {
     return CachedValuesManager.getCachedValue(element, new CachedValueProvider<PsiAnnotation[]>() {
       @Nullable
       @Override
