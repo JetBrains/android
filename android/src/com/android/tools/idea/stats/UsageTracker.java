@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class UsageTracker {
   public static final String CATEGORY_GRADLE = "gradle";
   public static final String CATEGORY_DEPLOYMENT = "deployment";
+  public static final String CATEGORY_DEVELOPER_SERVICES = "devServices";
 
   // GA only allows sending a single <category,action,value> tuple per event
   // However, we'd like to track different components of the avd such as its version, arch, etc
@@ -41,9 +42,11 @@ public abstract class UsageTracker {
   public static final String ACTION_APK_DEPLOYED = "apkDeployed";
   public static final String ACTION_EMULATOR_LAUNCHED = "emulatorLaunch";
 
+  public static final String ACTION_SERVICE_INSTALLED = "installed";
+  public static final String ACTION_SERVICE_REMOVED = "removed";
+
   public static final String INFO_AVD_ABI = "abi";
   public static final String INFO_AVD_TARGET_VERSION = "version";
-
 
   /**
    * When using the usage tracker, do NOT include any information that can identify the user
