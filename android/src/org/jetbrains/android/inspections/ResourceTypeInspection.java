@@ -17,6 +17,7 @@
 package org.jetbrains.android.inspections;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.DeclaredPermissionsLookup;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.android.tools.lint.checks.PermissionRequirement;
@@ -416,7 +417,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           fixes = list.toArray(new LocalQuickFix[list.size()]);
         }
         holder.registerProblem(methodCall, message, fixes);
-      } else if (requirement.isRevocable()) {
+      } else if (requirement.isRevocable() && AndroidModuleInfo.get(facet).getTargetSdkVersion().getFeatureLevel() >= 23) {
         JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
         PsiClass securityException = psiFacade.findClass("java.lang.SecurityException", GlobalSearchScope.allScope(project));
         if (securityException != null && ExceptionUtil.isHandled(PsiTypesUtil.getClassType(securityException), methodCall)) {
