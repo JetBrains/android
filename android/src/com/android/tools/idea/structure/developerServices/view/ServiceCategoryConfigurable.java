@@ -16,7 +16,6 @@
 package com.android.tools.idea.structure.developerServices.view;
 
 import com.android.tools.idea.structure.developerServices.ServiceCategory;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import org.jetbrains.annotations.Nls;
@@ -69,7 +68,7 @@ public final class ServiceCategoryConfigurable implements Configurable {
 
   @Override
   public void reset() {
-    // TODO: Reload values from the project
+    // Do nothing - service data is already reset when AndroidProjectStructureConfigurable opens
   }
 
   @Override

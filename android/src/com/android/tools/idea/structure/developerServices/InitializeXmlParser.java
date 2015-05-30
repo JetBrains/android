@@ -123,6 +123,7 @@ import static com.android.tools.idea.templates.parse.SaxUtils.requireAttr;
   public void endElement(String uri, String localName, @NotNull String tagName) throws SAXException {
     if (tagName.equals(INITIALIZE_TAG)) {
       myContext.isInstalled().set(myIsInstalled);
+      myContext.snapshot();
     }
   }
 

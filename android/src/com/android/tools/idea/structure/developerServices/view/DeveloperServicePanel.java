@@ -163,8 +163,7 @@ public final class DeveloperServicePanel extends EditorPanel {
 
   @Override
   public boolean isModified() {
-    // TODO: Query our active definition's context to see if it is modified
-    return false;
+    return myService.getContext().isModified().get();
   }
 
   public void dispose() {

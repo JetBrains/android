@@ -34,6 +34,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
+import com.intellij.diagnostic.Developer;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -313,9 +314,19 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
           }
         }
 
-        if (!myProject.isDefault() && moduleConfigurables.size() > 0) {
-          Module module = (Module)moduleList.getSelectedItem();
+        if (!myProject.isDefault() && moduleList.getSize() > 0) {
+          // We may have modified service values previous but then cancelled this dialog. To be
+          // safe, we restore our old values now.
+          // TODO: We really should do this on cancel but it doesn't look like we have any hooks
+          // into that event.
+          for (int i = 0; i < moduleList.getSize(); i++) {
+            Module module = (Module)moduleList.getElementAt(i);
+            for (DeveloperService service : DeveloperServices.getAll(module)) {
+              service.getContext().restore();
+            }
+          }
 
+          Module module = (Module)moduleList.getSelectedItem();
           Set<ServiceCategory> categories = Sets.newHashSet();
           for (DeveloperService s : DeveloperServices.getAll(module)) {
             categories.add(s.getCategory());
