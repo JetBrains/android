@@ -42,8 +42,7 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
 
 /**
- * {@link com.android.ide.common.rendering.api.ILayoutPullParser} implementation on top of
- * the PSI {@link XmlTag}.
+ * {@link ILayoutPullParser} implementation on top of the PSI {@link XmlTag}.
  * <p/>
  * It's designed to work on layout files, and will not work on other resource files (no text event
  * support for example).
@@ -89,12 +88,12 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    * parsing a layout resource files, and handling "exploded rendering" - adding padding on views
    * to make them easier to see and operate on.
    *
-   * @param file         The {@link com.intellij.psi.xml.XmlTag} for the root node.
+   * @param file         The {@link XmlTag} for the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param explodeNodes A set of individual nodes that should be assigned a fixed amount of
- *                       padding ({@link com.android.tools.idea.rendering.PaddingLayoutPsiPullParser#FIXED_PADDING_VALUE}).
- *                       This is intended for use with nodes that (without padding) would be
- *                       invisible.
+   *                     padding ({@link PaddingLayoutPsiPullParser#FIXED_PADDING_VALUE}).
+   *                     This is intended for use with nodes that (without padding) would be
+   *                     invisible.
    * @param density      the density factor for the screen.
    */
   @NotNull
@@ -547,7 +546,8 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     myProvideViewCookies = provideViewCookies;
   }
 
-  private static Element createSnapshot(XmlTag tag) {
+  @Nullable
+  private static Element createSnapshot(@NotNull XmlTag tag) {
     // <include> tags can't be at the root level; handle <fragment> rewriting here such that we don't
     // need to handle it as a tag name rewrite (where it's harder to change the structure)
     // https://code.google.com/p/android/issues/detail?id=67910
@@ -559,7 +559,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       element.attributes = attributes;
       for (XmlAttribute psiAttribute : psiAttributes) {
         Attribute attribute = createAttributeSnapshot(psiAttribute);
-        attributes.add(attribute);
+        if (attribute != null) {
+          attributes.add(attribute);
+        }
       }
       Element include = new Element(null, VIEW_FRAGMENT, "", "");
       element.children = Collections.singletonList(include);
@@ -577,7 +579,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
           continue;
         }
         Attribute attribute = createAttributeSnapshot(psiAttribute);
-        includeAttributes.add(attribute);
+        if (attribute != null) {
+          includeAttributes.add(attribute);
+        }
       }
       return element;
     } else if (rootTag.equals(FRAME_LAYOUT)) {
@@ -626,6 +630,14 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       }
 
       return root;
+    } else if (rootTag.equals(TAG_LAYOUT)) {
+      for (XmlTag subTag : tag.getSubTags()) {
+        if (!subTag.getName().equals(TAG_DATA)) {
+          return createSnapshot(subTag);
+        }
+      }
+      // Rely on code inspection to log errors in the layout.
+      return null;
     } else {
       Element root = createTagSnapshot(tag);
 
@@ -645,7 +657,8 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     }
   }
 
-  private static Element createTagSnapshot(XmlTag tag) {
+  @NotNull
+  private static Element createTagSnapshot(@NotNull XmlTag tag) {
     Element element = new Element(tag);
 
     // Attributes
@@ -654,7 +667,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     element.attributes = attributes;
     for (XmlAttribute psiAttribute : psiAttributes) {
       Attribute attribute = createAttributeSnapshot(psiAttribute);
-      attributes.add(attribute);
+      if (attribute != null) {
+        attributes.add(attribute);
+      }
     }
 
     // Children
@@ -678,11 +693,19 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     return element;
   }
 
-  private static Attribute createAttributeSnapshot(XmlAttribute psiAttribute) {
+  /**
+   * Returns null if the attribute should not be passed to LayoutLib.
+   */
+  @Nullable
+  private static Attribute createAttributeSnapshot(@NotNull XmlAttribute psiAttribute) {
     String localName = psiAttribute.getLocalName();
     String namespace = psiAttribute.getNamespace();
     String prefix = psiAttribute.getNamespacePrefix();
     String value = psiAttribute.getValue();
+    if (value != null && value.trim().startsWith(PREFIX_BINDING_EXPRN)) {
+      // Strip out attributes whose value is bound to a variable.
+      return null;
+    }
     return new Attribute(namespace, prefix, localName, value);
   }
 

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.developerServices.view;
+package com.android.tools.idea.structure.services.view;
 
-import com.android.tools.idea.structure.developerServices.ServiceCategory;
+import com.android.tools.idea.structure.services.ServiceCategory;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import org.jetbrains.annotations.Nls;
