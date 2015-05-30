@@ -296,13 +296,14 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         Module[] modules = moduleManager.getModules();
         Arrays.sort(modules, ModuleTypeComparator.INSTANCE);
 
-        Module firstModule = null;
+        DefaultComboBoxModel moduleList = new DefaultComboBoxModel();
         Module toSelect = null;
         for (Module module : modules) {
           AndroidModuleConfigurable configurable = addModule(module);
           if (configurable != null) {
-            if (AndroidFacet.getInstance(module) != null && firstModule == null) {
-              firstModule = module;
+            if (AndroidFacet.getInstance(module) != null) {
+              // Only add Android modules
+              moduleList.addElement(module);
             }
             myConfigurables.add(configurable);
             if (configurable.getDisplayName().equals(myUiState.lastSelectedConfigurable)) {
@@ -313,16 +314,16 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
         // Populate the "Developer Services" section, defaulting to the first module
         removeServices();
-        if (!myProject.isDefault() && firstModule != null) {
+        if (!myProject.isDefault() && moduleList.getSize() > 0) {
+          Module module = (Module)moduleList.getSelectedItem();
           Set<ServiceCategory> categories = Sets.newHashSet();
-          for (DeveloperService s : DeveloperServices.getAll(firstModule)) {
+          for (DeveloperService s : DeveloperServices.getAll(module)) {
             categories.add(s.getCategory());
           }
           ArrayList<ServiceCategory> categoriesSorted = Lists.newArrayList(categories);
           Collections.sort(categoriesSorted);
           for (ServiceCategory category : categoriesSorted) {
-            // TODO: Allow changing the module from a pulldown in the UI
-            myConfigurables.add(new ServiceCategoryConfigurable(firstModule, category));
+            myConfigurables.add(new ServiceCategoryConfigurable(moduleList, category));
           }
         }
 

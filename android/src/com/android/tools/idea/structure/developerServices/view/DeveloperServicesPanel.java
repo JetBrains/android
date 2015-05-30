@@ -22,10 +22,15 @@ import com.android.tools.idea.structure.developerServices.DeveloperServices;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.VerticalFlowLayout;
+import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.SeparatorComponent;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 
 
@@ -34,40 +39,86 @@ import java.util.List;
  */
 public final class DeveloperServicesPanel extends EditorPanel {
 
+  private JPanel myRoot;
+  private JComboBox myModuleCombo;
+  private JPanel myServicesPanel;
+  private JPanel myHeaderPanel;
+
   // Keep a copy of service panel children so we can iterate over them directly
-  private final List<DeveloperServicePanel> myPanels = Lists.newArrayList();
+  private final List<DeveloperServicePanel> myPanelsList = Lists.newArrayList();
 
-  public DeveloperServicesPanel(@NotNull Module module, @NotNull ServiceCategory serviceCategory) {
-    super(new VerticalFlowLayout());
+  public DeveloperServicesPanel(@NotNull ComboBoxModel moduleList, @NotNull final ServiceCategory serviceCategory) {
+    super(new BorderLayout());
 
-    for (DeveloperService service : DeveloperServices.getFor(module, serviceCategory)) {
-      myPanels.add(new DeveloperServicePanel(service));
-    }
-
-    setBorder(new TitledBorder(serviceCategory.getDisplayName()));
-    for (DeveloperServicePanel panel : myPanels) {
-      if (getComponentCount() > 0) {
-        add(new SeparatorComponent());
+    ListCellRendererWrapper<Module> renderer = new ListCellRendererWrapper<Module>() {
+      @Override
+      public void customize(JList list, Module value, int index, boolean selected, boolean hasFocus) {
+        setText(value.getName());
       }
-      add(panel);
-    }
+    };
+    myModuleCombo.setModel(moduleList);
+    myModuleCombo.setRenderer(renderer);
+
+    myServicesPanel.setBorder(new TitledBorder(serviceCategory.getDisplayName()));
+    updateServicePanels(serviceCategory);
+    myModuleCombo.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent actionEvent) {
+        updateServicePanels(serviceCategory);
+      }
+    });
+
+    add(myRoot);
   }
 
   @Override
   public void apply() {
-    for (DeveloperServicePanel panel : myPanels) {
+    for (DeveloperServicePanel panel : myPanelsList) {
       panel.apply();
     }
   }
 
   @Override
   public boolean isModified() {
-    for (DeveloperServicePanel panel : myPanels) {
+    for (DeveloperServicePanel panel : myPanelsList) {
       if (panel.isModified()) {
         return true;
       }
     }
 
     return false;
+  }
+
+  private void createUIComponents() {
+    myServicesPanel = new JPanel(new VerticalFlowLayout());
+  }
+
+  private void updateServicePanels(@NotNull ServiceCategory serviceCategory) {
+    for (DeveloperServicePanel developerServicePanel : myPanelsList) {
+      developerServicePanel.dispose();
+    }
+    myPanelsList.clear();
+    myServicesPanel.removeAll();
+
+    Module module = (Module)myModuleCombo.getSelectedItem();
+    if (module == null) {
+      return;
+    }
+
+    for (DeveloperService service : DeveloperServices.getFor(module, serviceCategory)) {
+      myPanelsList.add(new DeveloperServicePanel(service));
+    }
+
+    for (DeveloperServicePanel panel : myPanelsList) {
+      if (myServicesPanel.getComponentCount() > 0) {
+        myServicesPanel.add(new SeparatorComponent());
+      }
+      myServicesPanel.add(panel);
+    }
+
+    // For some reason, requesting a layout and paint update is required here, as otherwise
+    // previous content may not be cleared and new content may not be laid out.
+    myServicesPanel.validate();
+    myServicesPanel.repaint();
   }
 }

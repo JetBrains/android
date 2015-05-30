@@ -163,4 +163,8 @@ public final class DeveloperServicePanel extends EditorPanel {
     // TODO: Query our active definition's context to see if it is modified
     return false;
   }
+
+  public void dispose() {
+    myDetailsPanel.removeAll();
+  }
 }
