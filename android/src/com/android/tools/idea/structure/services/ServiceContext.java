@@ -19,13 +19,16 @@ import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.Observable;
 import com.android.tools.idea.ui.properties.ObservableProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.util.EmptyRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.Callable;
 
 /**
  * A generic mapping of strings to {@link Observable} values and {@link Runnable} actions. Adding
@@ -40,56 +43,135 @@ import java.util.WeakHashMap;
  * As a convention, you should organize your keys into namespaces, using periods to delimit them.
  * For example, instead of "countOfAnalyticsProjects" and "countOfAdsProjects", prefer instead
  * "analytics.projects.count" and "ads.projects.count"
+ *
+ * TODO: Revisit this class so that the whole concept of snapshot and restore is unecessary. Every
+ * time we show the UI of a service, we should instead create and initialize a ServiceContext from
+ * scratch?
  */
 public final class ServiceContext {
   private final Map<String, Observable> myValues = Maps.newHashMap();
   private final Map<String, Runnable> myActions = Maps.newHashMap();
   private final Map<ObservableProperty, Object> myWatched = new WeakHashMap<ObservableProperty, Object>();
-  private final BoolValueProperty myIsInstalled = new BoolValueProperty();
-  private final BoolValueProperty myIsModified = new BoolValueProperty();
+  private final BoolValueProperty myInstalled = new BoolValueProperty();
+  private final BoolValueProperty myModified = new BoolValueProperty();
 
   private final InvalidationListener myWatchedListener = new InvalidationListener() {
     @Override
     protected void onInvalidated(@NotNull Observable sender) {
-      myIsModified.set(true);
+      myModified.set(true);
     }
   };
 
-  public BoolValueProperty isModified() {
-    return myIsModified;
+  private Runnable myBeforeShown = EmptyRunnable.INSTANCE;
+  private Callable<Boolean> myTestValidity = new Callable<Boolean>() {
+    @Override
+    public Boolean call() throws Exception {
+      return true;
+    }
+  };
+
+  /**
+   * Set a callback to call before this service's UI is shown to the user. This is a useful place
+   * to put in any expensive operations, like network requests, that should only happen when
+   * needed.
+   */
+  public void setBeforeShownCallback(@NotNull Runnable beforeShown) {
+    myBeforeShown = beforeShown;
   }
 
-  public BoolValueProperty isInstalled() {
-    return myIsInstalled;
+  /**
+   * Set a callback to call when the user wishes to install this service, to ensure the values
+   * are OK.
+   */
+  public void setIsValidCallback(@NotNull Callable<Boolean> testValidity) {
+    myTestValidity = testValidity;
   }
 
+
+  public void beginEditing() {
+    myBeforeShown.run();
+
+    if (myWatched.isEmpty()) {
+      myModified.set(isValid());
+    }
+  }
+
+  public void finishEditing() {
+    if (!myModified.get()) {
+      return;
+    }
+
+    myModified.set(isValid());
+  }
+
+  public void cancelEditing() {
+    myModified.set(false);
+  }
+
+
+  /**
+   * A property which indicates whether this service is already installed into the current module
+   * or not.
+   */
+  public BoolValueProperty installed() {
+    return myInstalled;
+  }
+
+  /**
+   * A property which indicates if any of the watched values have been changed.
+   *
+   * @see #putWatchedValue(String, ObservableProperty)
+   */
+  public ObservableBool modified() {
+    return myModified;
+  }
+
+  /**
+   * Take a snapshot of the current state of all watched values and clear the modified flag. You
+   * can later {@link #restore()} the values to the snapshot.
+   *
+   * @see #putWatchedValue(String, ObservableProperty)
+   */
   public void snapshot() {
     for (ObservableProperty property : myWatched.keySet()) {
       myWatched.put(property, property.get());
     }
 
-    myIsModified.set(false);
+    myModified.set(false);
   }
 
+  /**
+   * Restore the values captured by {@link #snapshot()}
+   */
   public void restore() {
     for (ObservableProperty property : myWatched.keySet()) {
       //noinspection unchecked
       property.set(myWatched.get(property));
     }
 
-    myIsModified.set(false);
+    myModified.set(false);
   }
 
+  /**
+   * Put a named value into the context.
+   */
   public void putValue(@NotNull String key, @NotNull Observable observable) {
     myValues.put(key, observable);
   }
 
+  /**
+   * Put a named value into the context which can be {@link #snapshot()}ed and {@link #restore()}d.
+   * Watched values are also used to determine whether this service has been {@link #modified()}.
+   */
   public void putWatchedValue(@NotNull String key, @NotNull ObservableProperty property) {
     putValue(key, property);
     property.addWeakListener(myWatchedListener);
     myWatched.put(property, property.get());
   }
 
+  /**
+   * Put a named {@link Runnable} into the context.
+   */
   public void putAction(@NotNull String key, @NotNull Runnable action) {
     myActions.put(key, action);
   }
@@ -113,15 +195,15 @@ public final class ServiceContext {
   }
 
   /**
-   * Converts this service context, which is itslef backed by a flat map, into a hierarchical map,
+   * Converts this service context, which is itself backed by a flat map, into a hierarchical map,
    * a data structure that freemarker works well with.
    * <p/>
    * For example, a service context with the values "parent.child1" and "parent.child2" will return
    * a map that is nested like so
    * <pre>
-   * "parent"
-   *   "child1"
-   *   "child2"
+   * parent
+   *   child1
+   *   child2
    * </pre>
    */
   @NotNull
@@ -154,5 +236,18 @@ public final class ServiceContext {
     }
 
     return valueMap;
+  }
+
+  /**
+   * Check if this service is valid - if any of the user's values are bad, we shouldn't install
+   * this service.
+   */
+  private boolean isValid() {
+    try {
+      return myTestValidity.call();
+    }
+    catch (Exception e) {
+      return false;
+    }
   }
 }
