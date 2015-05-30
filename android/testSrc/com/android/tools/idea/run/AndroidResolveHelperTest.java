@@ -98,7 +98,7 @@ public class AndroidResolveHelperTest extends AndroidTestCase {
     assertEquals("GONE", map.get(8));
   }
 
-  public void testAnnotationResolution1() {
+  public void testAnnotationInferenceFromField() {
     @Language("JAVA")
     String text = "package p1.p2;\n" +
                   "\n" +
@@ -113,7 +113,7 @@ public class AndroidResolveHelperTest extends AndroidTestCase {
     testResolution(text);
   }
 
-  public void testAnnotationResolution2() {
+  public void testAnnotationInferenceFromMethod() {
     @Language("JAVA")
     String text = "package p1.p2;\n" +
                   "\n" +
@@ -124,6 +124,19 @@ public class AndroidResolveHelperTest extends AndroidTestCase {
                   "\n" +
                   "  private void check() {\n" +
                   "    int color;\n" +
+                  "    <caret>color = getColor();\n" +
+                  "  }\n" +
+                  "}";
+    testResolution(text);
+  }
+
+  public void testAnnotationInferenceFromVariable() {
+    @Language("JAVA")
+    String text = "package p1.p2;\n" +
+                  "\n" +
+                  "class Foo {\n" +
+                  "  private void check() {\n" +
+                  "    @android.support.annotation.ColorInt int color;\n" +
                   "    <caret>color = getColor();\n" +
                   "  }\n" +
                   "}";
