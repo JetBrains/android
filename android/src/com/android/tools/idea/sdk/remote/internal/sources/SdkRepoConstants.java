@@ -115,8 +115,10 @@ public class SdkRepoConstants extends RepoConstants {
     public static final String NODE_SAMPLE          = "sample";               //$NON-NLS-1$
     /** A source package. */
     public static final String NODE_SOURCE          = "source";               //$NON-NLS-1$
+    /** A source package. */
+    public static final String NODE_NDK             = "ndk";                  //$NON-NLS-1$
     /** A generic package. */
-    public static final String NODE_GENERIC         = "generic";               //$NON-NLS-1$
+    public static final String NODE_GENERIC         = "generic";              //$NON-NLS-1$
 
     /**
      * List of possible nodes in a repository XML. Used to populate options automatically

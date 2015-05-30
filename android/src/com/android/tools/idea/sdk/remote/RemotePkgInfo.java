@@ -342,6 +342,7 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
    * and the {@link Comparable} interface.
    */
   @NonNull
+  // TODO: in each case this should be obtainable from the PkgDesc, so this shouldn't be needed.
   public abstract String installId();
 
   /**

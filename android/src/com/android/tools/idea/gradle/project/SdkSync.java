@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
+import com.android.tools.idea.sdk.SelectNdkDialog;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -29,6 +30,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.sdk.IdeSdks.isValidAndroidSdkPath;
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -52,6 +55,7 @@ public final class SdkSync {
 
   public static void syncIdeAndProjectAndroidSdks(@NotNull LocalProperties localProperties) {
     syncIdeAndProjectAndroidSdks(localProperties, new FindValidSdkPathTask());
+    verifyProjectAndroidNdk(localProperties,  new FindValidNdkPathTask());
   }
 
   @VisibleForTesting
@@ -141,6 +145,22 @@ public final class SdkSync {
     }
   }
 
+  @VisibleForTesting
+  static void verifyProjectAndroidNdk(@NotNull final LocalProperties localProperties, @NotNull final FindValidNdkPathTask findNdkPathTask) {
+    File androidNdkPath = localProperties.getAndroidNdkPath();
+    if (androidNdkPath != null && !validateAndroidNdk(androidNdkPath, false).success) {
+      File ndkPath = findNdkPathTask.selectValidNdkPath(androidNdkPath.getPath());
+      localProperties.setAndroidNdkPath(ndkPath);
+      try {
+        localProperties.save();
+      }
+      catch (IOException e) {
+        String msg = String.format("Unable to save '%1$s'", localProperties.getFilePath().getPath());
+        throw new ExternalSystemException(msg, e);
+      }
+    }
+  }
+
   private static void setIdeSdk(@NotNull LocalProperties localProperties, @NotNull final File projectAndroidSdkPath) {
     // There is one case where DefaultSdks.setAndroidSdkPath will not update local.properties in the project. The conditions for this to
     // happen are:
@@ -225,6 +245,33 @@ public final class SdkSync {
           findValidSdkPath(pathRef);
         }
         return;
+      }
+      pathRef.set(path);
+    }
+  }
+
+  @VisibleForTesting
+  static class FindValidNdkPathTask {
+    @Nullable
+    File selectValidNdkPath(final String invalidNdkPath) {
+      final Ref<File> pathRef = new Ref<File>();
+      invokeAndWaitIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          findValidNdkPath(pathRef, invalidNdkPath);
+        }
+      });
+      return pathRef.get();
+    }
+
+    private static void findValidNdkPath(@NotNull Ref<File> pathRef, String invalidNdkPath) {
+      SelectNdkDialog dialog = new SelectNdkDialog(invalidNdkPath);
+      dialog.setModal(true);
+      dialog.show();
+      String androidNdkPath = dialog.getAndroidNdkPath();
+      File path = null;
+      if (StringUtil.isNotEmpty(androidNdkPath)) {
+        path = new File(androidNdkPath);
       }
       pathRef.set(path);
     }
