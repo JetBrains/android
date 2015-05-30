@@ -55,4 +55,39 @@ public final class SaxUtils {
     String value = attributes.getValue(name);
     return (value != null) ? value : defaultValue;
   }
+
+  /**
+   * Retrieve the named parameter from the attribute list, or throw an exception.
+   *
+   * @param tag        the name of the tag these attributes are part of, required for the error string.
+   * @param attributes the map of attributes
+   * @param name       the name of the attribute to retrieve
+   */
+  @NotNull
+  public static String requireAttr(@NotNull String tag, @NotNull Attributes attributes, @NotNull String name) {
+    String result = attributes.getValue(name);
+    if (result == null) {
+      throw new RuntimeException(
+        String.format("Required attribute \"%1$s\" not found in element <%2$s %3$s>", name, tag, attrsToString(attributes)));
+    }
+    return result;
+  }
+
+  @NotNull
+  private static String attrsToString(@NotNull Attributes attributes) {
+    StringBuilder builder = new StringBuilder();
+    builder.append('[');
+    for (int i = 0; i < attributes.getLength(); i++) {
+      builder.append(attributes.getQName(i));
+      builder.append('=');
+      builder.append(attributes.getValue(i));
+
+      if (i < attributes.getLength() - 1) {
+        builder.append("; ");
+      }
+    }
+    builder.append(']');
+    return builder.toString();
+  }
+
 }
