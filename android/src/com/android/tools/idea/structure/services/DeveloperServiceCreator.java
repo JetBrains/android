@@ -40,7 +40,7 @@ import java.io.InputStream;
  * content files (service.xml, recipe.xml, code files, etc.) that make up their service. This
  * allows this base class to instantiate an associated {@link DeveloperService}
  */
-public abstract class DeveloperServiceInitializer {
+public abstract class DeveloperServiceCreator {
   /**
    * Reserved filename for the xml file which defines a service.
    */
@@ -53,7 +53,7 @@ public abstract class DeveloperServiceInitializer {
    */
   @NotNull private final File myRootPath;
 
-  public DeveloperServiceInitializer() {
+  public DeveloperServiceCreator() {
     try {
       // TODO: Here, we copy all resources out from the initializer and create local File copies
       // of them, because our template code (see Template.java, RecipeXmlParser.java) requires

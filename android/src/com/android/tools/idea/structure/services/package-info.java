@@ -28,7 +28,7 @@
  * TODO: Link to service.xml documentation here.
  *
  * Services are provided by plugins, which should implement the
- * {@link com.android.tools.idea.structure.services.DeveloperServiceInitializers}
+ * {@link com.android.tools.idea.structure.services.DeveloperServiceCreators}
  * interface and return a list of service initializers that they expose.
  */
 package com.android.tools.idea.structure.services;

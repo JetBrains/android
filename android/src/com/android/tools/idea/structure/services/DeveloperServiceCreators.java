@@ -20,11 +20,11 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import java.util.Collection;
 
 /**
- * Plugins should use this extension point to provide {@link DeveloperServiceInitializer}s.
+ * Plugins should use this extension point to provide {@link DeveloperServiceCreator}s.
  */
-public interface DeveloperServiceInitializers {
-  ExtensionPointName<DeveloperServiceInitializers> EP_NAME =
-    ExtensionPointName.create("com.android.tools.idea.structure.services.developerServiceInitializers");
+public interface DeveloperServiceCreators {
+  ExtensionPointName<DeveloperServiceCreators> EP_NAME =
+    ExtensionPointName.create("com.android.tools.idea.structure.services.developerServiceCreators");
 
-  Collection<? extends DeveloperServiceInitializer> getInitializers();
+  Collection<? extends DeveloperServiceCreator> getCreators();
 }
