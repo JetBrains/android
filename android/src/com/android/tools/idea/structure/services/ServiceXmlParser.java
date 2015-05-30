@@ -18,10 +18,7 @@ package com.android.tools.idea.structure.services;
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.templates.FreemarkerConfiguration;
-import com.android.tools.idea.templates.FreemarkerUtils;
-import com.android.tools.idea.templates.PrefixTemplateLoader;
-import com.android.tools.idea.templates.TypedVariable;
+import com.android.tools.idea.templates.*;
 import com.android.tools.idea.templates.parse.SaxUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.tools.idea.templates.recipe.RecipeContext;
@@ -44,19 +41,15 @@ import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.swing.*;
 import javax.xml.bind.JAXBException;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
@@ -192,6 +185,14 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       if (executeRecipe) {
         RecipeContext recipeContext = new RecipeContext(myModule, myLoader, freemarker, paramMap, myRootPath);
         recipe.execute(recipeContext);
+
+        // Convert relative paths to absolute paths, so TemplateUtils.openEditors can find them
+        List<File> relFilesToOpen = recipe.getFilesToOpen();
+        List<File> absFilesToOpen = Lists.newArrayListWithCapacity(relFilesToOpen.size());
+        for (File file : relFilesToOpen) {
+          absFilesToOpen.add(recipeContext.getTargetFile(file));
+        }
+        TemplateUtils.openEditors(myModule.getProject(), absFilesToOpen, true);
       }
 
       return recipe;

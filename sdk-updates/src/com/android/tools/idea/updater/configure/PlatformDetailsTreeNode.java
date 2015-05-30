@@ -30,15 +30,17 @@ import javax.swing.*;
  */
 class PlatformDetailsTreeNode extends UpdaterTreeNode {
   private NodeStateHolder myStateHolder;
+  private boolean myIncludePreview;
 
-  public PlatformDetailsTreeNode(@NotNull NodeStateHolder state) {
+  public PlatformDetailsTreeNode(@NotNull NodeStateHolder state, boolean includePreview) {
     myStateHolder = state;
     myStateHolder.setState(getInitialState());
+    myIncludePreview = includePreview;
   }
 
   @Override
   public NodeStateHolder.SelectedState getInitialState() {
-    return myStateHolder.getPkg().hasRemote() && myStateHolder.getPkg().hasLocal()
+    return myStateHolder.getPkg().hasRemote(myIncludePreview) && myStateHolder.getPkg().hasLocal()
            ? NodeStateHolder.SelectedState.MIXED
            : myStateHolder.getPkg().hasLocal() ? NodeStateHolder.SelectedState.INSTALLED : NodeStateHolder.SelectedState.NOT_INSTALLED;
   }
@@ -97,7 +99,7 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
         versionName = ((LocalPlatformPkgInfo)p.getLocalInfo()).getAndroidTarget().getVersionName();
       }
       else {
-        versionName = ((RemotePlatformPkgInfo)p.getRemote()).getVersionName();
+        versionName = ((RemotePlatformPkgInfo)p.getRemote(myIncludePreview)).getVersionName();
       }
       result = String.format("Android %s Platform", versionName);
       if (p.getPkgDesc().isObsolete()) {
@@ -117,7 +119,7 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
 
   @Override
   protected boolean canHaveMixedState() {
-    return myStateHolder.getPkg().hasRemote() && myStateHolder.getPkg().hasLocal();
+    return myStateHolder.getPkg().hasRemote(myIncludePreview) && myStateHolder.getPkg().hasLocal();
   }
 
   @Override
@@ -126,7 +128,7 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
       return "Not installed";
     }
     else if (getInitialState() == NodeStateHolder.SelectedState.MIXED) {
-      return "Update Available: " + myStateHolder.getPkg().getRemote().getRevision();
+      return "Update Available: " + myStateHolder.getPkg().getRemote(myIncludePreview).getRevision();
     }
     else {
       return "Installed";

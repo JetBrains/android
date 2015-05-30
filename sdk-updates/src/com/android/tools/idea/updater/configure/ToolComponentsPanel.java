@@ -56,6 +56,7 @@ public class ToolComponentsPanel {
   Set<NodeStateHolder> myStates = Sets.newHashSet();
 
   private boolean myModified = false;
+  private boolean myIncludePreview;
 
   public ToolComponentsPanel() {
     myToolsDetailsCheckbox.addActionListener(new ActionListener() {
@@ -64,7 +65,6 @@ public class ToolComponentsPanel {
         updateToolsTable();
       }
     });
-
   }
 
   private void updateToolsTable() {
@@ -91,21 +91,21 @@ public class ToolComponentsPanel {
     for (UpdatablePkgInfo info : myBuildToolsPackages) {
       NodeStateHolder holder = new NodeStateHolder(info);
       myStates.add(holder);
-      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder);
+      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview);
       buildToolsParent.add(node);
       buildToolsNodes.add(node);
     }
     myToolsDetailsRootNode.add(buildToolsParent);
 
-    myToolsSummaryRootNode.add(new BuildToolsSummaryTreeNode(buildToolsNodes));
+    myToolsSummaryRootNode.add(new BuildToolsSummaryTreeNode(buildToolsNodes, myIncludePreview));
 
     for (UpdatablePkgInfo info : myToolsPackages) {
       NodeStateHolder holder = new NodeStateHolder(info);
       myStates.add(holder);
-      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder);
+      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview);
       myToolsDetailsRootNode.add(node);
       if (!info.getPkgDesc().isObsolete()) {
-        myToolsSummaryRootNode.add(new PlatformDetailsTreeNode(holder));
+        myToolsSummaryRootNode.add(new PlatformDetailsTreeNode(holder, myIncludePreview));
       }
     }
 
@@ -187,5 +187,10 @@ public class ToolComponentsPanel {
 
   public void clearState() {
     myStates.clear();
+  }
+
+  public void setIncludePreview(boolean includePreview) {
+    myIncludePreview = includePreview;
+    updateToolsItems();
   }
 }

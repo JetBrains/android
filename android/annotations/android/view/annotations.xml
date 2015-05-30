@@ -349,7 +349,13 @@
   <item name="android.view.View android.content.res.ColorStateList getBackgroundTintList()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.view.View android.content.res.ColorStateList getForegroundTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.View android.graphics.PorterDuff.Mode getBackgroundTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View android.graphics.PorterDuff.Mode getForegroundTintMode()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View android.os.Parcelable onSaveInstanceState()">
@@ -443,6 +449,9 @@
   <item name="android.view.View boolean verifyDrawable(android.graphics.drawable.Drawable)">
     <annotation name="android.support.annotation.CallSuper" />
   </item>
+  <item name="android.view.View int getBackgroundColor()">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.view.View int getDrawingCacheBackgroundColor()">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -462,6 +471,12 @@
   <item name="android.view.View int getScrollBarStyle()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.SCROLLBARS_INSIDE_OVERLAY, android.view.View.SCROLLBARS_INSIDE_INSET, android.view.View.SCROLLBARS_OUTSIDE_OVERLAY, android.view.View.SCROLLBARS_OUTSIDE_INSET}" />
+    </annotation>
+  </item>
+  <item name="android.view.View int getScrollIndicators()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.SCROLL_INDICATOR_TOP, android.view.View.SCROLL_INDICATOR_BOTTOM, android.view.View.SCROLL_INDICATOR_LEFT, android.view.View.SCROLL_INDICATOR_RIGHT, android.view.View.SCROLL_INDICATOR_START, android.view.View.SCROLL_INDICATOR_END}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.view.View int getSolidColor()">
@@ -708,6 +723,12 @@
       <val name="value" val="{android.view.View.DRAWING_CACHE_QUALITY_LOW, android.view.View.DRAWING_CACHE_QUALITY_HIGH, android.view.View.DRAWING_CACHE_QUALITY_AUTO}" />
     </annotation>
   </item>
+  <item name="android.view.View void setForegroundTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View void setForegroundTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.View void setId(int) 0">
     <annotation name="android.support.annotation.IdRes" />
   </item>
@@ -725,9 +746,30 @@
   <item name="android.view.View void setOnLongClickListener(android.view.View.OnLongClickListener) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.view.View void setOnStylusButtonPressListener(android.view.View.OnStylusButtonPressListener) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.View void setScrollBarStyle(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.SCROLLBARS_INSIDE_OVERLAY, android.view.View.SCROLLBARS_INSIDE_INSET, android.view.View.SCROLLBARS_OUTSIDE_OVERLAY, android.view.View.SCROLLBARS_OUTSIDE_INSET}" />
+    </annotation>
+  </item>
+  <item name="android.view.View void setScrollIndicators(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.SCROLL_INDICATOR_TOP, android.view.View.SCROLL_INDICATOR_BOTTOM, android.view.View.SCROLL_INDICATOR_LEFT, android.view.View.SCROLL_INDICATOR_RIGHT, android.view.View.SCROLL_INDICATOR_START, android.view.View.SCROLL_INDICATOR_END}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.view.View void setScrollIndicators(int, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.SCROLL_INDICATOR_TOP, android.view.View.SCROLL_INDICATOR_BOTTOM, android.view.View.SCROLL_INDICATOR_LEFT, android.view.View.SCROLL_INDICATOR_RIGHT, android.view.View.SCROLL_INDICATOR_START, android.view.View.SCROLL_INDICATOR_END}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.view.View void setScrollIndicators(int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.SCROLL_INDICATOR_TOP, android.view.View.SCROLL_INDICATOR_BOTTOM, android.view.View.SCROLL_INDICATOR_LEFT, android.view.View.SCROLL_INDICATOR_RIGHT, android.view.View.SCROLL_INDICATOR_START, android.view.View.SCROLL_INDICATOR_END}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.view.View void setTextAlignment(int) 0">
@@ -1129,6 +1171,9 @@
     <annotation name="android.support.annotation.StyleRes" />
   </item>
   <item name="android.view.Window.Callback android.view.ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.Window.Callback android.view.ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback, int)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.Window.Callback android.view.View onCreatePanelView(int)">

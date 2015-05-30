@@ -28,14 +28,18 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.updateSettings.impl.UpdateSettingsConfigurable;
+import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.util.ui.tree.TreeUtil;
+import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.TreePath;
 import java.util.Collection;
@@ -51,6 +55,8 @@ public class SdkUpdaterConfigPanel {
   private PlatformComponentsPanel myPlatformComponentsPanel;
   private ToolComponentsPanel myToolComponentsPanel;
   private UpdateSitesPanel myUpdateSitesPanel;
+  private HyperlinkLabel myLaunchStandaloneLink;
+  private HyperlinkLabel myChannelLink;
   private SdkSources mySdkSources;
   private Runnable mySourcesChangeListener = new DispatchRunnable() {
     @Override
@@ -60,6 +66,8 @@ public class SdkUpdaterConfigPanel {
   };
 
   private final SdkState mySdkState;
+  private boolean myHasPreview;
+  private boolean myIncludePreview;
 
   Runnable myUpdater = new DispatchRunnable() {
     @Override
@@ -69,13 +77,37 @@ public class SdkUpdaterConfigPanel {
   };
 
 
-  public SdkUpdaterConfigPanel(SdkState sdkState) {
+  public SdkUpdaterConfigPanel(SdkState sdkState, final Runnable channelChangedCallback) {
     mySdkState = sdkState;
     ILogger logger = new LogWrapper(Logger.getInstance(getClass()));
     mySdkSources = mySdkState.getRemoteSdk().fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, logger);
     mySdkSources.addChangeListener(mySourcesChangeListener);
     myUpdateSitesPanel.setSdkState(sdkState);
     mySdkLocation.setText(IdeSdks.getAndroidSdkPath().getPath());
+    myLaunchStandaloneLink.setHyperlinkText("Launch Standalone SDK Manager");
+    myLaunchStandaloneLink.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      protected void hyperlinkActivated(HyperlinkEvent e) {
+        RunAndroidSdkManagerAction.runSpecificSdkManager(null, IdeSdks.getAndroidSdkPath());
+      }
+    });
+    myChannelLink.setHyperlinkText("Preview packages available! ", "Switch", " to Preview Channel to see them");
+    myChannelLink.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      protected void hyperlinkActivated(HyperlinkEvent e) {
+        UpdateSettingsConfigurable settings = new UpdateSettingsConfigurable();
+        settings.setCheckNowEnabled(false);
+        ShowSettingsUtil.getInstance().editConfigurable(getComponent(), settings);
+        channelChangedCallback.run();
+      }
+    });
+  }
+
+  public void setIncludePreview(boolean includePreview) {
+    myIncludePreview = includePreview;
+    myChannelLink.setVisible(myHasPreview && !myIncludePreview);
+    myPlatformComponentsPanel.setIncludePreview(includePreview);
+    myToolComponentsPanel.setIncludePreview(includePreview);
   }
 
   public String getSdkPath() {
@@ -155,7 +187,11 @@ public class SdkUpdaterConfigPanel {
       else {
         toolsPackages.add(info);
       }
+      if (info.hasPreview()) {
+        myHasPreview = true;
+      }
     }
+    myChannelLink.setVisible(myHasPreview && !myIncludePreview);
     myPlatformComponentsPanel.setPackages(platformPackages);
     myToolComponentsPanel.setPackages(toolsPackages, buildToolsPackages);
   }

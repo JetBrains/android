@@ -57,7 +57,11 @@ import java.util.concurrent.ExecutionException;
 public class SdkComponentSource implements ExternalComponentSource {
   SdkSources mySources;
   SdkState mySdkState;
+  public static String NAME = "Android SDK";
   private static final ILogger ILOG = new StdLogger(StdLogger.Level.ERROR);
+
+  public static final String PREVIEW_CHANNEL = "Preview Channel";
+  public static final String STABLE_CHANNEL = "Stable Channel";
 
   private boolean initIfNecessary() {
     if (mySdkState != null) {
@@ -121,10 +125,11 @@ public class SdkComponentSource implements ExternalComponentSource {
 
     Set<String> ignored = settings != null ? Sets.newHashSet(settings.getIgnoredBuildNumbers()) : ImmutableSet.<String>of();
     mySdkState.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, true, null, null, null, false);
+    boolean previewChannel = settings != null && PREVIEW_CHANNEL.equals(settings.getExternalUpdateChannels().get(getName()));
     for (UpdatablePkgInfo info : mySdkState.getPackages().getConsolidatedPkgs().values()) {
       if (remote) {
-        if (info.hasRemote()) {
-          IPkgDesc desc = info.getRemote().getPkgDesc();
+        if (info.hasRemote(previewChannel)) {
+          IPkgDesc desc = info.getRemote(previewChannel).getPkgDesc();
           if (!ignored.contains(desc.getInstallId())) {
             result.add(new UpdatablePackage(desc));
           }
@@ -142,7 +147,7 @@ public class SdkComponentSource implements ExternalComponentSource {
   @NotNull
   @Override
   public String getName() {
-    return "Android SDK";
+    return NAME;
   }
 
   @NotNull
@@ -190,5 +195,11 @@ public class SdkComponentSource implements ExternalComponentSource {
     catch (ExecutionException e) {
       return ImmutableList.of();
     }
+  }
+
+  @Nullable
+  @Override
+  public List<String> getAllChannels() {
+    return ImmutableList.of(STABLE_CHANNEL, PREVIEW_CHANNEL);
   }
 }

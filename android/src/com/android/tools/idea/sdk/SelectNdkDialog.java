@@ -16,18 +16,24 @@
 
 package com.android.tools.idea.sdk;
 
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.*;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -43,17 +49,18 @@ public class SelectNdkDialog extends DialogWrapper {
   private JBLabel myInvalidNdkPathLabel;
   private JRadioButton myRemoveInvalidNdkRadioButton;
   private JRadioButton mySelectValidNdkRadioButton;
-  private HyperlinkLabel myNdkHyperlinkLabel;
   private TextFieldWithBrowseButton myNdkTextFieldWithButton;
+  private JRadioButton myDownloadNdkRadioButton;
+  private JBLabel myHeaderText;
 
   private String myNdkPath = "";
 
   /**
    * Displays NDK selection dialog.
    *
-   * @param invalidNdkPath path to the invalid Android Ndk.
+   * @param invalidNdkPath path to the invalid Android Ndk. If {@code null}, no NDK path is set but one is required.
    */
-  public SelectNdkDialog(@NotNull String invalidNdkPath) {
+  public SelectNdkDialog(@Nullable String invalidNdkPath, boolean showRemove) {
     super(false);
     init();
 
@@ -61,25 +68,34 @@ public class SelectNdkDialog extends DialogWrapper {
 
     myInvalidNdkPathLabel.setText(invalidNdkPath);
 
-    myNdkHyperlinkLabel.setHyperlinkText("If you do not have the Android NDK, you can obtain it from ", "here", ".");
-    myNdkHyperlinkLabel.setHyperlinkTarget("http://developer.android.com/tools/sdk/ndk/");
-
     configureNdkTextField();
 
-    myRemoveInvalidNdkRadioButton.setSelected(true);
-    myNdkTextFieldWithButton.setEditable(false);
+    myDownloadNdkRadioButton.setSelected(true);
+    myNdkTextFieldWithButton.setEnabled(false);
 
-    myRemoveInvalidNdkRadioButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        myNdkTextFieldWithButton.setEditable(!myRemoveInvalidNdkRadioButton.isSelected());
-      }
-    });
+    if (showRemove) {
+      myRemoveInvalidNdkRadioButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+          myNdkTextFieldWithButton.setEnabled(!myRemoveInvalidNdkRadioButton.isSelected());
+        }
+      });
+    }
+    else {
+      myRemoveInvalidNdkRadioButton.setVisible(false);
+    }
 
-    mySelectValidNdkRadioButton.addActionListener(new ActionListener() {
+    if (invalidNdkPath == null) {
+      myHeaderText.setText("The project's local.properties doesn't contain an NDK path.");
+    }
+    else {
+      myHeaderText.setText("The project's local.properties file contains an invalid NDK path:");
+    }
+
+    mySelectValidNdkRadioButton.addChangeListener(new ChangeListener() {
       @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        myNdkTextFieldWithButton.setEditable(mySelectValidNdkRadioButton.isSelected());
+      public void stateChanged(ChangeEvent e) {
+        myNdkTextFieldWithButton.setEnabled(mySelectValidNdkRadioButton.isSelected());
       }
     });
   }
@@ -171,6 +187,17 @@ public class SelectNdkDialog extends DialogWrapper {
 
   @Override
   protected void doOKAction() {
+    if (myDownloadNdkRadioButton.isSelected()) {
+      List<IPkgDesc> requested = ImmutableList.of(PkgDesc.Builder.newNdk(FullRevision.NOT_SPECIFIED).create());
+      SdkQuickfixWizard wizard = new SdkQuickfixWizard(null, null, requested);
+      wizard.init();
+      if (wizard.showAndGet()) {
+        File ndk = IdeSdks.getAndroidNdkPath();
+        if (ndk != null) {
+          myNdkPath = ndk.getPath();
+        }
+      }
+    }
     if (mySelectValidNdkRadioButton.isSelected()) {
       myNdkPath = myNdkTextFieldWithButton.getText();
     }

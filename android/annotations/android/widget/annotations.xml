@@ -465,6 +465,9 @@
   <item name="android.widget.CompoundButton android.graphics.PorterDuff.Mode getButtonTintMode()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.widget.CompoundButton android.graphics.drawable.Drawable getButtonDrawable()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.CompoundButton android.os.Parcelable onSaveInstanceState()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -1461,11 +1464,17 @@
   <item name="android.widget.SearchView boolean onKeyDown(int, android.view.KeyEvent) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.SearchView java.lang.CharSequence getQueryHint()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.SearchView void onInitializeAccessibilityEvent(android.view.accessibility.AccessibilityEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.widget.SearchView void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.SearchView void setQueryHint(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.SeekBar void onInitializeAccessibilityEvent(android.view.accessibility.AccessibilityEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -1623,6 +1632,18 @@
   <item name="android.widget.Switch Switch(android.content.Context, android.util.AttributeSet, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.Switch android.content.res.ColorStateList getThumbTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.Switch android.content.res.ColorStateList getTrackTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.Switch android.graphics.PorterDuff.Mode getThumbTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.Switch android.graphics.PorterDuff.Mode getTrackTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.Switch boolean onTouchEvent(android.view.MotionEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -1647,8 +1668,20 @@
   <item name="android.widget.Switch void setThumbResource(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>
+  <item name="android.widget.Switch void setThumbTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.Switch void setThumbTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.Switch void setTrackResource(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.widget.Switch void setTrackTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.Switch void setTrackTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.TabHost TabHost(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -1827,6 +1860,11 @@
   <item name="android.widget.TextView boolean onTouchEvent(android.view.MotionEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.TextView int getBreakStrategy()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.text.Layout.BREAK_STRATEGY_SIMPLE, android.text.Layout.BREAK_STRATEGY_HIGH_QUALITY, android.text.Layout.BREAK_STRATEGY_BALANCED}" />
+    </annotation>
+  </item>
   <item name="android.widget.TextView int getCurrentHintTextColor()">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -1835,6 +1873,11 @@
   </item>
   <item name="android.widget.TextView int getHighlightColor()">
     <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.widget.TextView int getHyphenationFrequency()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.text.Layout.HYPHENATION_FREQUENCY_NORMAL, android.text.Layout.HYPHENATION_FREQUENCY_FULL, android.text.Layout.HYPHENATION_FREQUENCY_NONE}" />
+    </annotation>
   </item>
   <item name="android.widget.TextView int getShadowColor()">
     <annotation name="android.support.annotation.ColorInt" />
@@ -1871,6 +1914,17 @@
   </item>
   <item name="android.widget.TextView void onPopulateAccessibilityEvent(android.view.accessibility.AccessibilityEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.TextView void setBreakStrategy(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.text.Layout.BREAK_STRATEGY_SIMPLE, android.text.Layout.BREAK_STRATEGY_HIGH_QUALITY, android.text.Layout.BREAK_STRATEGY_BALANCED}" />
+    </annotation>
+  </item>
+  <item name="android.widget.TextView void setCompoundDrawableTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.TextView void setCompoundDrawableTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.TextView void setCompoundDrawables(android.graphics.drawable.Drawable, android.graphics.drawable.Drawable, android.graphics.drawable.Drawable, android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -1959,6 +2013,17 @@
   <item name="android.widget.TextView void setHintTextColor(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.widget.TextView void setHyphenationFrequency(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.text.Layout.HYPHENATION_FREQUENCY_NORMAL, android.text.Layout.HYPHENATION_FREQUENCY_FULL, android.text.Layout.HYPHENATION_FREQUENCY_NONE}" />
+    </annotation>
+  </item>
+  <item name="android.widget.TextView void setIndents(int[], int[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.TextView void setIndents(int[], int[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.TextView void setInputExtras(int) 0">
     <annotation name="android.support.annotation.XmlRes" />
   </item>
@@ -1978,6 +2043,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.widget.TextView void setTextAppearance(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.StyleRes" />
+  </item>
+  <item name="android.widget.TextView void setTextAppearance(int) 0">
     <annotation name="android.support.annotation.StyleRes" />
   </item>
   <item name="android.widget.TextView void setTextColor(int) 0">

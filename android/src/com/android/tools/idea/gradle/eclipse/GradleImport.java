@@ -182,7 +182,8 @@ public class GradleImport {
 
   public static boolean isAdtProjectDir(@Nullable File file) {
     return new File(file, ANDROID_MANIFEST_XML).exists() &&
-           (isEclipseProjectDir(file) || (new File(file, FD_RES).exists() && new File(file, FD_SOURCES).exists()));
+           (isEclipseProjectDir(file) ||
+            (new File(file, FD_RES).exists() && ((new File(file, FD_SOURCES).exists() || new File(file, "jni").exists()))));
   }
 
   @Nullable

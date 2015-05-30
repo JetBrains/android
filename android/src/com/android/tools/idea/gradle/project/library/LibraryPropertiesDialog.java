@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.library;
 
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
@@ -26,6 +27,7 @@ import com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryEditor;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryRootsComponent;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
+import com.intellij.openapi.ui.ex.MultiLineLabel;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
@@ -34,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
@@ -41,6 +44,8 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 import static com.intellij.util.ui.JBUI.Borders.customLine;
+import static com.intellij.util.ui.UIUtil.findComponentOfType;
+import static com.intellij.util.ui.UIUtil.findComponentsOfType;
 
 public class LibraryPropertiesDialog extends DialogWrapper {
   @NotNull private final Project myProject;
@@ -72,6 +77,24 @@ public class LibraryPropertiesDialog extends DialogWrapper {
     myLibraryEditorComponent.updatePropertiesLabel();
 
     JComponent c = myLibraryEditorComponent.getComponent();
+
+    // Remove "Exclude" button. We don't support this in libraries.
+    List<ActionButton> actionButtons = findComponentsOfType(c, ActionButton.class);
+    for (ActionButton actionButton : actionButtons) {
+      String text = actionButton.getAction().getTemplatePresentation().getText();
+      if (text != null && text.startsWith("Exclude")) {
+        actionButton.setVisible(false);
+        break;
+      }
+    }
+
+    // Add text to the library editor.
+    MultiLineLabel propertiesLabel = findComponentOfType(c, MultiLineLabel.class);
+    if (propertiesLabel != null) {
+      propertiesLabel.setText("Add or remove source/Javadoc attachments");
+      propertiesLabel.setBorder(BorderFactory.createEmptyBorder(1, 1, 0, 1));
+    }
+
     myTreePanel.add(c, BorderLayout.CENTER);
     myTreePanel.setBorder(customLine(OnePixelDivider.BACKGROUND, 1, 1, 1, 1));
 

@@ -96,7 +96,7 @@ public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionPr
    */
   @Override
   public String installId() {
-    return "doc-" + getPkgDesc().getAndroidVersion().getApiString();    //$NON-NLS-1$
+    return "doc";    //$NON-NLS-1$
   }
 
   /**
@@ -105,14 +105,9 @@ public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionPr
    */
   private static String createListDescription(String listDisplay, AndroidVersion version, boolean obsolete) {
     if (!listDisplay.isEmpty()) {
-      return String.format("%1$s%2$s", listDisplay, obsolete ? " (Obsolete)" : "");
+      return listDisplay;
     }
-    if (version.isPreview()) {
-      return String.format("Documentation for Android '%1$s' Preview SDK%2$s", version.getCodename(), obsolete ? " (Obsolete)" : "");
-    }
-    else {
-      return String.format("Documentation for Android SDK%2$s", version.getApiLevel(), obsolete ? " (Obsolete)" : "");
-    }
+   return "Documentation for Android SDK";
   }
 
   /**

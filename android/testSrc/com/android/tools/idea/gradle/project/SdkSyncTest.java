@@ -111,46 +111,6 @@ public class SdkSyncTest extends IdeaTestCase {
     assertNull(myLocalProperties.getAndroidSdkPath());
   }
 
-  public void testRemoveInvalidNdkPath() throws Exception {
-    final File invalidNdk = new File("invalid/ndk/path");
-    myLocalProperties = new LocalProperties(myProject);
-    myLocalProperties.setAndroidNdkPath(invalidNdk);
-
-    SdkSync.FindValidNdkPathTask task = new SdkSync.FindValidNdkPathTask() {
-      @NotNull
-      @Override
-      File selectValidNdkPath(String invalidNdkPath) {
-        assertEquals(invalidNdk.getPath(), invalidNdkPath);
-        return new File("");
-      }
-    };
-
-    SdkSync.verifyProjectAndroidNdk(myLocalProperties, task);
-    myLocalProperties = new LocalProperties(myProject);
-    assertNull(myLocalProperties.getAndroidNdkPath());
-  }
-
-  public void testUpdateNdkPath() throws Exception {
-    final File invalidNdk = new File("invalid/ndk/path");
-    myLocalProperties = new LocalProperties(myProject);
-    myLocalProperties.setAndroidNdkPath(invalidNdk);
-
-    final File validNdk = new File("invalid/ndk/path");
-
-    SdkSync.FindValidNdkPathTask task = new SdkSync.FindValidNdkPathTask() {
-      @NotNull
-      @Override
-      File selectValidNdkPath(String invalidNdkPath) {
-        assertEquals(invalidNdk.getPath(), invalidNdkPath);
-        return validNdk;
-      }
-    };
-
-    SdkSync.verifyProjectAndroidNdk(myLocalProperties, task);
-    myLocalProperties = new LocalProperties(myProject);
-    assertEquals(validNdk, myLocalProperties.getAndroidNdkPath());
-  }
-
   private void assertDefaultSdkSet() {
     File actual = IdeSdks.getAndroidSdkPath();
     assertNotNull(actual);
