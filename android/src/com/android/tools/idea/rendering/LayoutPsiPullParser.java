@@ -22,21 +22,13 @@ import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.lang.db3.DbFile;
-import com.android.tools.idea.lang.db3.psi.PsiDbDefaults;
+import com.android.tools.idea.lang.databinding.DbUtil;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Ref;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiLanguageInjectionHost;
-import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
@@ -711,38 +703,15 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     String namespace = psiAttribute.getNamespace();
     String prefix = psiAttribute.getNamespacePrefix();
     String value = psiAttribute.getValue();
-    if (value != null && value.startsWith(PREFIX_BINDING_EXPRN)) {
+    if (value != null && value.startsWith(PREFIX_BINDING_EXPR)) {
       // if this is a binding expression, get the default value.
-      value = getBindingExprnDefault(psiAttribute);
+      value = DbUtil.getBindingExprDefault(psiAttribute);
       if (value == null) {
         // If no default value, strip the attribute completely.
         return null;
       }
     }
     return new Attribute(namespace, prefix, localName, value);
-  }
-
-  @Nullable
-  private static String getBindingExprnDefault(@NotNull XmlAttribute psiAttribute) {
-    XmlAttributeValue attrValue = psiAttribute.getValueElement();
-    if (attrValue instanceof PsiLanguageInjectionHost) {
-      final Ref<PsiElement> injections = Ref.create();
-      InjectedLanguageUtil.enumerate(attrValue, new PsiLanguageInjectionHost.InjectedPsiVisitor() {
-        @Override
-        public void visit(@NotNull PsiFile injectedPsi, @NotNull List<PsiLanguageInjectionHost.Shred> places) {
-          if (injectedPsi instanceof DbFile) {
-            injections.set(injectedPsi);
-          }
-        }
-      });
-      if (injections.get() != null) {
-        PsiDbDefaults defaults = PsiTreeUtil.getChildOfType(injections.get(), PsiDbDefaults.class);
-        if (defaults != null) {
-          return defaults.getConstantValue().getText();
-        }
-      }
-    }
-    return null;
   }
 
   protected static class Element {
