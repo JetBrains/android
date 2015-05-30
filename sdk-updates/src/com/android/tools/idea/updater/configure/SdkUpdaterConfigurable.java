@@ -136,7 +136,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
         }
       }
       else if (holder.getState() == NodeStateHolder.SelectedState.INSTALLED &&
-               (holder.getPkg().isUpdate() || !holder.getPkg().hasLocal())) {
+               (holder.getPkg().isUpdate(myIncludePreview) || !holder.getPkg().hasLocal())) {
         requestedPackages.add(holder.getPkg().getRemote(myIncludePreview).getPkgDesc());
       }
     }

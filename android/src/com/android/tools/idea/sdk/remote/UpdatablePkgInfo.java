@@ -128,8 +128,9 @@ public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
     return myLocalInfo == null ? myRemoteInfo.getPkgDesc() : myLocalInfo.getDesc();
   }
 
-  public boolean isUpdate() {
-    return myLocalInfo != null && myRemoteInfo != null &&
-           myRemoteInfo.getPkgDesc().getPreciseRevision().compareTo(myLocalInfo.getDesc().getPreciseRevision()) > 0;
+  public boolean isUpdate(boolean alwaysIncludePreview) {
+    RemotePkgInfo remote = getRemote(alwaysIncludePreview);
+    return myLocalInfo != null && remote != null &&
+           remote.getPkgDesc().getPreciseRevision().compareTo(myLocalInfo.getDesc().getPreciseRevision()) > 0;
   }
 }
