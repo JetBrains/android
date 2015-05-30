@@ -45,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
@@ -237,6 +238,11 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   public ResourceFile getMatchingFile(@NonNull String name, @NonNull ResourceType type, @NonNull FolderConfiguration config) {
     assert name.indexOf('.') == -1 : name;
     return super.getMatchingFile(name, type, config);
+  }
+
+  @Nullable
+  public Map<String, DataBindingInfo> getDataBindingResourceFiles() {
+    return null;
   }
 
   @VisibleForTesting
