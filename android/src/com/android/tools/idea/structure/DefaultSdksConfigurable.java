@@ -16,10 +16,12 @@
 
 package com.android.tools.idea.structure;
 
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.options.BaseConfigurable;
@@ -28,10 +30,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.DetailsComponent;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.Function;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -44,9 +48,13 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
+import static com.android.SdkConstants.NDK_DIR_PROPERTY;
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -59,15 +67,22 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 public class DefaultSdksConfigurable extends BaseConfigurable {
   private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR = "Please choose a valid JDK directory.";
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
+  private static final String CHOOSE_VALID_NDK_DIRECTORY_ERR = "Please choose a valid Android NDK directory.";
+
+  private static final Logger LOG = Logger.getInstance(DefaultSdksConfigurable.class);
 
   @Nullable private final AndroidProjectStructureConfigurable myHost;
   @Nullable private final Project myProject;
 
   // These paths are system-dependent.
   private String myOriginalJdkHomePath;
+  private String myOriginalNdkHomePath;
   private String myOriginalSdkHomePath;
 
+  private JLabel myAndroidNDKLocationLabel;
+  private HyperlinkLabel myNdkDownloadHyperlinkLabel;
   private TextFieldWithBrowseButton mySdkLocationTextField;
+  private TextFieldWithBrowseButton myNdkLocationTextField;
   private TextFieldWithBrowseButton myJdkLocationTextField;
   private JPanel myWholePanel;
 
@@ -81,6 +96,14 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     myDetailsComponent = new DetailsComponent();
     myDetailsComponent.setContent(myWholePanel);
     myDetailsComponent.setText("SDK Location");
+
+    // Ndk directory is stored on per project basis and there is no IDE-level ndk directory setting. Due to that hide the ndk directory
+    // option in the default Project Structure dialog.
+    if (myProject == null || myProject.isDefault()) {
+      myAndroidNDKLocationLabel.setVisible(false);
+      myNdkDownloadHyperlinkLabel.setVisible(false);
+      myNdkLocationTextField.setVisible(false);
+    }
   }
 
   @Override
@@ -90,9 +113,11 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   @Override
   public void reset() {
     myOriginalSdkHomePath = getDefaultSdkPath();
+    myOriginalNdkHomePath = getDefaultNdkPath();
     myOriginalJdkHomePath = getDefaultJdkPath();
 
     mySdkLocationTextField.setText(myOriginalSdkHomePath);
+    myNdkLocationTextField.setText(myOriginalNdkHomePath);
     myJdkLocationTextField.setText(myOriginalJdkHomePath);
   }
 
@@ -103,6 +128,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       public void run() {
         IdeSdks.setJdkPath(getJdkLocation());
         IdeSdks.setAndroidSdkPath(getSdkLocation(), myProject);
+        saveAndroidNdkPath();
 
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
           RunAndroidSdkManagerAction.updateInWelcomePage(myDetailsComponent.getComponent());
@@ -111,20 +137,69 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     });
   }
 
+  private void saveAndroidNdkPath() {
+    if(myProject == null || myProject.isDefault()) {
+      return;
+    }
+
+    try {
+      LocalProperties localProperties = new LocalProperties(myProject);
+      localProperties.setAndroidNdkPath(getNdkLocation());
+      localProperties.save();
+    }
+    catch (IOException e) {
+      LOG.info(String.format("Unable to update local.properties file in project '%1$s'.", myProject.getName()), e);
+      String cause = e.getMessage();
+      if (isNullOrEmpty(cause)) {
+        cause = "[Unknown]";
+      }
+      String msg = String.format("Unable to update local.properties file in project '%1$s'.\n\n" +
+                                 "Cause: %2$s\n\n" +
+                                 "Please manually update the file's '%3$s' property value to \n" +
+                                 "'%4$s'\n" +
+                                 "and sync the project with Gradle files.", myProject.getName(), cause,
+                                 NDK_DIR_PROPERTY, getNdkLocation().getPath());
+      Messages.showErrorDialog(myProject, msg, "Android Ndk Update");
+    }
+  }
+
   private void createUIComponents() {
     createSdkLocationTextField();
     createJdkLocationTextField();
+    createNdkLocationTextField();
+    createNdkDownloadLink();
   }
 
   private void createSdkLocationTextField() {
-    final FileChooserDescriptor descriptor = createSingleFolderDescriptor("Choose Android SDK Location", new Function<File, Void>() {
+    mySdkLocationTextField = createTextFieldWithBrowseButton("Choose Android SDK Location", CHOOSE_VALID_SDK_DIRECTORY_ERR,
+                                                             new Function<File, ValidationResult>() {
+                                                               @Override
+                                                               public ValidationResult fun(File file) {
+                                                                 return validateAndroidSdk(file, false);
+                                                               }
+                                                             });
+  }
+
+  private void createNdkLocationTextField() {
+    myNdkLocationTextField = createTextFieldWithBrowseButton("Choose Android NDK Location", CHOOSE_VALID_NDK_DIRECTORY_ERR,
+                                                             new Function<File, ValidationResult>() {
+                                                               @Override
+                                                               public ValidationResult fun(File file) {
+                                                                 return validateAndroidNdk(file, false);
+                                                               }
+                                                             });
+  }
+
+  private TextFieldWithBrowseButton createTextFieldWithBrowseButton(String title, final String errorMessagae, final Function<File,
+    ValidationResult> validation) {
+    final FileChooserDescriptor descriptor = createSingleFolderDescriptor(title, new Function<File, Void>() {
       @Override
       public Void fun(File file) {
-        ValidationResult validationResult = validateAndroidSdk(file, false);
+        ValidationResult validationResult = validation.fun(file);
         if (!validationResult.success) {
           String msg = validationResult.message;
           if (isEmpty(msg)) {
-            msg = CHOOSE_VALID_SDK_DIRECTORY_ERR;
+            msg = errorMessagae;
           }
           throw new IllegalArgumentException(msg);
         }
@@ -132,23 +207,29 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       }
     });
 
-    JTextField textField = new JTextField(10);
-    mySdkLocationTextField = new TextFieldWithBrowseButton(textField, new ActionListener() {
+    final JTextField textField = new JTextField(10);
+    installValidationListener(textField);
+    return new TextFieldWithBrowseButton(textField, new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         VirtualFile suggestedDir = null;
-        File sdkLocation = getSdkLocation();
-        if (sdkLocation.isDirectory()) {
-          suggestedDir = findFileByIoFile(sdkLocation, false);
+        File ndkLocation = getNdkLocation();
+        if (ndkLocation.isDirectory()) {
+          suggestedDir = findFileByIoFile(ndkLocation, false);
         }
         VirtualFile chosen = FileChooser.chooseFile(descriptor, null, suggestedDir);
         if (chosen != null) {
           File f = virtualToIoFile(chosen);
-          mySdkLocationTextField.setText(f.getPath());
+          textField.setText(f.getPath());
         }
       }
     });
-    installValidationListener(textField);
+  }
+
+  private void createNdkDownloadLink() {
+    myNdkDownloadHyperlinkLabel = new HyperlinkLabel();
+    myNdkDownloadHyperlinkLabel.setHyperlinkText("Android NDK can be downloaded from ", "here", " .");
+    myNdkDownloadHyperlinkLabel.setHyperlinkTarget("http://developer.android.com/tools/sdk/ndk/");
   }
 
   private void createJdkLocationTextField() {
@@ -237,7 +318,9 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
 
   @Override
   public boolean isModified() {
-    return !myOriginalSdkHomePath.equals(getSdkLocation().getPath()) || !myOriginalJdkHomePath.equals(getJdkLocation().getPath());
+    return !myOriginalSdkHomePath.equals(getSdkLocation().getPath())
+           || !myOriginalNdkHomePath.equals(getNdkLocation().getPath())
+           || !myOriginalJdkHomePath.equals(getJdkLocation().getPath());
   }
 
   /**
@@ -284,6 +367,25 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   }
 
   /**
+   * @return what the IDE is using as the home path for the Android SDK for new projects.
+   */
+  @NotNull
+  private String getDefaultNdkPath() {
+    if (myProject != null && !myProject.isDefault()) {
+      try {
+        File androidNdkPath = new LocalProperties(myProject).getAndroidNdkPath();
+        if (androidNdkPath != null) {
+          return androidNdkPath.getPath();
+        }
+      }
+      catch (IOException e) {
+        LOG.info(String.format("Unable to read local.properties file in project '%1$s'.", myProject.getName()), e);
+      }
+    }
+    return "";
+  }
+
+  /**
    * @return what the IDE is using as the home path for the JDK.
    */
   @NotNull
@@ -298,6 +400,12 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     return new File(toSystemDependentName(sdkLocation));
   }
 
+  @NotNull
+  private File getNdkLocation() {
+    String ndkLocation = myNdkLocationTextField.getText();
+    return new File(toSystemDependentName(ndkLocation));
+  }
+
   @Override
   @NotNull
   public JComponent getPreferredFocusedComponent() {
@@ -305,18 +413,20 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   }
 
   public boolean validate() throws ConfigurationException {
-    ValidationResult validationResult = validateAndroidSdk(getSdkLocation(), false);
-    if (!validationResult.success) {
-      String msg = validationResult.message;
-      if (isEmpty(msg)) {
-        msg = CHOOSE_VALID_SDK_DIRECTORY_ERR;
-      }
+    String msg = validateAndroidSdkPath();
+    if (msg != null) {
       throw new ConfigurationException(msg);
     }
 
     if (!validateAndUpdateJdkPath(getJdkLocation())) {
       throw new ConfigurationException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
     }
+
+    msg = validateAndroidNdkPath();
+    if (msg != null) {
+      throw new ConfigurationException(msg);
+    }
+
     return true;
   }
 
@@ -324,12 +434,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   public List<ProjectConfigurationError> validateState() {
     List<ProjectConfigurationError> errors = Lists.newArrayList();
 
-    ValidationResult validationResult = validateAndroidSdk(getSdkLocation(), false);
-    if (!validationResult.success) {
-      String msg = validationResult.message;
-      if (isEmpty(msg)) {
-        msg = CHOOSE_VALID_SDK_DIRECTORY_ERR;
-      }
+    String msg = validateAndroidSdkPath();
+    if (msg != null) {
       ProjectConfigurationError error = new ProjectConfigurationError(msg, mySdkLocationTextField.getTextField());
       errors.add(error);
     }
@@ -340,7 +446,48 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       errors.add(error);
     }
 
+    msg = validateAndroidNdkPath();
+    if (msg != null) {
+      ProjectConfigurationError error = new ProjectConfigurationError(msg, myNdkLocationTextField.getTextField());
+      errors.add(error);
+    }
+
     return errors;
+  }
+
+  /**
+   * @return the error message when the sdk path is not valid, {@code null} otherwise.
+   */
+  @Nullable
+  private String validateAndroidSdkPath() {
+    ValidationResult validationResult = validateAndroidSdk(getSdkLocation(), false);
+    if (!validationResult.success) {
+      String msg = validationResult.message;
+      if (isEmpty(msg)) {
+        msg = CHOOSE_VALID_SDK_DIRECTORY_ERR;
+      }
+      return msg;
+    }
+    return null;
+  }
+
+  /**
+   * @return the error message when the ndk path is not valid, {@code null} otherwise.
+   */
+  @Nullable
+  private String validateAndroidNdkPath() {
+    // As Ndk is required with for the projects with ndk modules, considering the empty value as legal.
+    if (!myNdkLocationTextField.getText().isEmpty()) {
+      ValidationResult validationResult = validateAndroidNdk(getNdkLocation(), false);
+      if (!validationResult.success) {
+        String msg = validationResult.message;
+        if (isEmpty(msg)) {
+          msg = CHOOSE_VALID_NDK_DIRECTORY_ERR;
+        }
+        return msg;
+      }
+    }
+    return null;
   }
 
   @NotNull
