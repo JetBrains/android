@@ -35,6 +35,7 @@ public enum ServiceCategory {
   LOCALIZATION,
   MARKETING,
   MEDIA,
+  NOTIFICATIONS,
   PAYMENTS,
   SOCIAL;
 
