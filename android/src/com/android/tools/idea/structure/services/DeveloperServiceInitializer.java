@@ -130,6 +130,7 @@ public abstract class DeveloperServiceInitializer {
   /**
    * Returns the root path that all resource paths returned by {@link #getResources()} live under.
    */
+  @NotNull
   protected abstract String getResourceRoot();
 
   /**
@@ -138,11 +139,13 @@ public abstract class DeveloperServiceInitializer {
    */
   // TODO: Revisit this and eliminate if possible. It exists so we can fetch all resources
   // under getResourceRoot() as input streams and convert them to files.
+  @NotNull
   protected abstract String[] getResources();
 
   /**
    * Create a context (a package of methods and variables, essentially) for the service UI to be
    * able to bind to.
    */
+  @NotNull
   protected abstract ServiceContext createContext();
 }

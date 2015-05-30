@@ -99,11 +99,11 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   @NotNull private final ServiceContext myContext;
   @NotNull private final Stack<String> myTagStack = new Stack<String>();
 
-  private PrefixTemplateLoader myLoader;
-  private DeveloperServiceMetadata myDeveloperServiceMetadata;
-  private ServiceCategory myServiceCategory;
-  private ServicePanelBuilder myPanelBuilder;
-  private File myRecipeFile;
+  @NotNull private PrefixTemplateLoader myLoader;
+  @NotNull private ServicePanelBuilder myPanelBuilder;
+  @NotNull private ServiceCategory myServiceCategory;
+  @NotNull private DeveloperServiceMetadata myDeveloperServiceMetadata;
+  @NotNull private File myRecipeFile;
 
   public ServiceXmlParser(@NotNull Module module, @NotNull File rootPath, @NotNull ServiceContext serviceContext) {
     myModule = module;
@@ -123,10 +123,12 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     }
   }
 
+  @NotNull
   public Module getModule() {
     return myModule;
   }
 
+  @NotNull
   public ServiceContext getContext() {
     return myContext;
   }
@@ -200,7 +202,6 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     }
   }
 
-  @NotNull
   private void initializeService(@NotNull File initializeFile) {
     InitializeXmlParser initializeXmlParser = new InitializeXmlParser(myModule, myContext);
 
