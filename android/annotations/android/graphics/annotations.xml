@@ -556,6 +556,15 @@
   <item name="android.graphics.RadialGradient RadialGradient(float, float, float, int[], float[], android.graphics.Shader.TileMode) 5">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.graphics.Rect boolean intersect(android.graphics.Rect)">
+    <annotation name="android.support.annotation.CheckResult" />
+  </item>
+  <item name="android.graphics.Rect boolean intersect(int, int, int, int)">
+    <annotation name="android.support.annotation.CheckResult" />
+  </item>
+  <item name="android.graphics.Rect boolean setIntersect(android.graphics.Rect, android.graphics.Rect)">
+    <annotation name="android.support.annotation.CheckResult" />
+  </item>
   <item name="android.graphics.SurfaceTexture void setOnFrameAvailableListener(android.graphics.SurfaceTexture.OnFrameAvailableListener) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>

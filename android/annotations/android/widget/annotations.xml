@@ -492,6 +492,9 @@
   <item name="android.widget.CompoundButton void setButtonTintMode(android.graphics.PorterDuff.Mode) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.widget.CursorAdapter android.database.Cursor runQueryOnBackgroundThread(java.lang.CharSequence)">
+    <annotation name="android.support.annotation.WorkerThread" />
+  </item>
   <item name="android.widget.DatePicker DatePicker(android.content.Context) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -594,12 +597,6 @@
   <item name="android.widget.FrameLayout FrameLayout(android.content.Context, android.util.AttributeSet, int, int) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.widget.FrameLayout android.content.res.ColorStateList getForegroundTintList()">
-    <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.widget.FrameLayout android.graphics.PorterDuff.Mode getForegroundTintMode()">
-    <annotation name="android.support.annotation.Nullable" />
-  </item>
   <item name="android.widget.FrameLayout android.view.ViewGroup.LayoutParams generateLayoutParams(android.view.ViewGroup.LayoutParams) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -611,20 +608,6 @@
   </item>
   <item name="android.widget.FrameLayout void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo) 0">
     <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.widget.FrameLayout void onVisibilityChanged(android.view.View, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.widget.FrameLayout void onVisibilityChanged(android.view.View, int) 1">
-    <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
-    </annotation>
-  </item>
-  <item name="android.widget.FrameLayout void setForegroundTintList(android.content.res.ColorStateList) 0">
-    <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.widget.FrameLayout void setForegroundTintMode(android.graphics.PorterDuff.Mode) 0">
-    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.FrameLayout.LayoutParams LayoutParams(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -2018,6 +2001,12 @@
   <item name="android.widget.TimePicker boolean dispatchPopulateAccessibilityEvent(android.view.accessibility.AccessibilityEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.TimePicker java.lang.Integer getCurrentHour()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.TimePicker java.lang.Integer getCurrentMinute()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.widget.TimePicker void onConfigurationChanged(android.content.res.Configuration) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -2028,6 +2017,15 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.widget.TimePicker void onPopulateAccessibilityEvent(android.view.accessibility.AccessibilityEvent) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.TimePicker void setCurrentHour(java.lang.Integer) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.TimePicker void setCurrentMinute(java.lang.Integer) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.TimePicker void setIs24HourView(java.lang.Boolean) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.widget.Toast Toast(android.content.Context) 0">

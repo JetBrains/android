@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.location.LocationManager android.location.Location getLastKnownLocation(java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager boolean addGpsStatusListener(android.location.GpsStatus.Listener)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_FINE_LOCATION&quot;" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager boolean addNmeaListener(android.location.GpsStatus.NmeaListener)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_FINE_LOCATION&quot;" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void addProximityAlert(double, double, float, long, android.app.PendingIntent)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void addTestProvider(java.lang.String, boolean, boolean, boolean, boolean, boolean, boolean, boolean, int, int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_MOCK_LOCATION&quot;" />
+      <val name="conditional" val="true" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void clearTestProviderEnabled(java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_MOCK_LOCATION&quot;" />
+      <val name="conditional" val="true" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void clearTestProviderLocation(java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_MOCK_LOCATION&quot;" />
+      <val name="conditional" val="true" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void clearTestProviderStatus(java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_MOCK_LOCATION&quot;" />
+      <val name="conditional" val="true" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void removeProximityAlert(android.app.PendingIntent)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void removeTestProvider(java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_MOCK_LOCATION&quot;" />
+      <val name="conditional" val="true" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void removeUpdates(android.location.LocationListener)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void requestLocationUpdates(java.lang.String, long, float, android.app.PendingIntent)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void requestLocationUpdates(java.lang.String, long, float, android.location.LocationListener)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void requestLocationUpdates(java.lang.String, long, float, android.location.LocationListener, android.os.Looper)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void requestLocationUpdates(long, float, android.location.Criteria, android.app.PendingIntent)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void requestLocationUpdates(long, float, android.location.Criteria, android.location.LocationListener, android.os.Looper)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void requestSingleUpdate(android.location.Criteria, android.app.PendingIntent)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void requestSingleUpdate(android.location.Criteria, android.location.LocationListener, android.os.Looper)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void requestSingleUpdate(java.lang.String, android.app.PendingIntent)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void requestSingleUpdate(java.lang.String, android.location.LocationListener, android.os.Looper)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void setTestProviderEnabled(java.lang.String, boolean)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_MOCK_LOCATION&quot;" />
+      <val name="conditional" val="true" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void setTestProviderLocation(java.lang.String, android.location.Location)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_MOCK_LOCATION&quot;" />
+      <val name="conditional" val="true" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager void setTestProviderStatus(java.lang.String, int, android.os.Bundle, long)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_MOCK_LOCATION&quot;" />
+      <val name="conditional" val="true" />
+    </annotation>
+  </item>
+</root>
+

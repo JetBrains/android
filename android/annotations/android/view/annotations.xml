@@ -328,6 +328,9 @@
   <item name="android.view.TouchDelegate boolean onTouchEvent(android.view.MotionEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.View">
+    <annotation name="android.support.annotation.UiThread" />
+  </item>
   <item name="android.view.View View(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -789,6 +792,7 @@
   </item>
   <item name="android.view.View.MeasureSpec int makeMeasureSpec(int, int) 0">
     <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
       <val name="to" val="1073741823" />
     </annotation>
   </item>
@@ -805,6 +809,9 @@
   </item>
   <item name="android.view.ViewDebug void dumpCapturedView(java.lang.String, java.lang.Object) 1">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewGroup">
+    <annotation name="android.support.annotation.UiThread" />
   </item>
   <item name="android.view.ViewGroup ViewGroup(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
