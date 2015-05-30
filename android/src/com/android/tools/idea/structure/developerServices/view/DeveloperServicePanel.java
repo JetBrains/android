@@ -19,10 +19,13 @@ import com.android.tools.idea.structure.EditorPanel;
 import com.android.tools.idea.structure.developerServices.DeveloperService;
 import com.android.tools.idea.structure.developerServices.DeveloperServiceMetadata;
 import com.android.tools.idea.ui.properties.BindingsManager;
+import com.android.tools.idea.ui.properties.InvalidationListener;
+import com.android.tools.idea.ui.properties.Observable;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.VisibleProperty;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Joiner;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.IconUtil;
@@ -40,8 +43,15 @@ import java.util.List;
  */
 public final class DeveloperServicePanel extends EditorPanel {
 
-  @NotNull private DeveloperService myService;
-  @NotNull private BindingsManager myBindings = new BindingsManager();
+  public static final String DELETE_SERVICE_TITLE = "Confirm Uninstall Service";
+
+  public static final String DELETE_SERVICE_MESSAGE =
+    "You are about to uninstall the %1$s service. This will remove the following dependencies:\n" +
+    "\n" +
+    "%2$s\n" +
+    "\n" +
+    "This may cause compile errors that you'll have to fix manually. Continue?";
+
   private JPanel myRootPanel;
   private JLabel myHeaderLabel;
   private JPanel myDetailsPanel;
@@ -51,6 +61,9 @@ public final class DeveloperServicePanel extends EditorPanel {
   private JPanel myOverviewPanel;
   private JCheckBox myEnabledCheckbox;
   private JPanel myCheckboxBorder;
+
+  @NotNull private DeveloperService myService;
+  @NotNull private BindingsManager myBindings = new BindingsManager();
 
   public DeveloperServicePanel(@NotNull DeveloperService service) {
     super(new BorderLayout());
@@ -62,10 +75,41 @@ public final class DeveloperServicePanel extends EditorPanel {
     myDetailsPanel.add(service.getPanel());
     initializeFooterPanel(developerServiceMetadata);
 
-    myBindings.bind(new VisibleProperty(myDetailsPanel), new SelectedProperty(myEnabledCheckbox));
-    if (myService.getContext().isInstalled().get()) {
+    final SelectedProperty enabledCheckboxSelected = new SelectedProperty(myEnabledCheckbox);
+    myBindings.bind(new VisibleProperty(myDetailsPanel), enabledCheckboxSelected.or(service.getContext().isInstalled()));
+
+    // This definition might be modified from the user interacting with the service earlier but not
+    // yet committing to install it.
+    if (service.getContext().isInstalled().get() || service.getContext().isModified().get()) {
       myEnabledCheckbox.setSelected(true);
     }
+
+    enabledCheckboxSelected.addListener(new InvalidationListener() {
+      @Override
+      protected void onInvalidated(@NotNull Observable sender) {
+        if (enabledCheckboxSelected.get()) {
+          myService.getContext().isModified().set(true);
+        }
+        else {
+          boolean isModified = myService.getContext().isModified().get();
+          if (myService.getContext().isInstalled().get()) {
+            String message = String.format(DELETE_SERVICE_MESSAGE, myService.getMetadata().getName(),
+                                           Joiner.on('\n').join(myService.getMetadata().getDependencies()));
+            int answer = Messages.showYesNoDialog(myService.getModule().getProject(), message, DELETE_SERVICE_TITLE, null);
+            if (answer == Messages.YES) {
+              myService.uninstall();
+            }
+            else {
+              enabledCheckboxSelected.set(true);
+              myService.getContext().isModified().set(isModified);
+            }
+          }
+          else {
+            myService.getContext().isModified().set(false);
+          }
+        }
+      }
+    });
 
     add(myRootPanel);
   }
