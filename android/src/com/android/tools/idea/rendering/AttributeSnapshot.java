@@ -79,4 +79,9 @@ public class AttributeSnapshot {
 
     return attributes;
   }
+
+  @Override
+  public String toString() {
+    return "AttributeSnapshot{" + name + "=\"" + value + "\"}";
+  }
 }

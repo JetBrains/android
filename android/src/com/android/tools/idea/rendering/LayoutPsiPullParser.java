@@ -546,21 +546,16 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     String rootTag = tag.getName();
     assert rootTag != null;
     if (rootTag.equals(VIEW_FRAGMENT)) {
-      TagSnapshot element = TagSnapshot.createSyntheticTag(tag, FRAME_LAYOUT, "", "");
       XmlAttribute[] psiAttributes = tag.getAttributes();
       List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
-      element.attributes = attributes;
       for (XmlAttribute psiAttribute : psiAttributes) {
         AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
         if (attribute != null) {
           attributes.add(attribute);
         }
       }
-      TagSnapshot include = TagSnapshot.createSyntheticTag(null, VIEW_FRAGMENT, "", "");
-      element.children = Collections.singletonList(include);
-      include.children = Collections.emptyList();
+
       List<AttributeSnapshot> includeAttributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
-      include.attributes = includeAttributes;
       for (XmlAttribute psiAttribute : psiAttributes) {
         String name = psiAttribute.getName();
         assert name != null;
@@ -577,7 +572,10 @@ public class LayoutPsiPullParser extends LayoutPullParser {
           includeAttributes.add(attribute);
         }
       }
-      return element;
+
+      TagSnapshot include = TagSnapshot.createSyntheticTag(null, VIEW_FRAGMENT, "", "", includeAttributes,
+                                                           Collections.<TagSnapshot>emptyList());
+      return TagSnapshot.createSyntheticTag(tag, FRAME_LAYOUT, "", "", attributes, Collections.singletonList(include));
     } else if (rootTag.equals(FRAME_LAYOUT)) {
       TagSnapshot root = TagSnapshot.createTagSnapshot(tag);
 
@@ -588,17 +586,14 @@ public class LayoutPsiPullParser extends LayoutPullParser {
         String prefix = tag.getPrefixByNamespace(ANDROID_URI);
         if (prefix != null) {
           List<TagSnapshot> children = Lists.newArrayList();
-          children.addAll(root.children);
           root.children = children;
-
-          TagSnapshot element = TagSnapshot.createSyntheticTag(null, VIEW_INCLUDE, "", "");
-          children.add(element);
-          element.children = Collections.emptyList();
           List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(3);
-          element.attributes = attributes;
           attributes.add(new AttributeSnapshot("", "", ATTR_LAYOUT, layout));
           attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT));
           attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT));
+          TagSnapshot element = TagSnapshot.createSyntheticTag(null, VIEW_INCLUDE, "", "", attributes,
+                                                               Collections.<TagSnapshot>emptyList());
+          children.add(element);
         }
       }
 
@@ -644,7 +639,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
         if (id == null) {
           String prefix = tag.getPrefixByNamespace(ANDROID_URI);
           if (prefix != null) {
-            root.attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_ID, "@+id/_dynamic"));
+            root.setAttribute(ATTR_ID, ANDROID_URI, prefix, "@+id/_dynamic");
           }
         }
       }
