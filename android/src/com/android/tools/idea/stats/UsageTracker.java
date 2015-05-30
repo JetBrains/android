@@ -26,6 +26,7 @@ public abstract class UsageTracker {
   public static final String CATEGORY_GRADLE = "gradle";
   public static final String CATEGORY_DEPLOYMENT = "deployment";
   public static final String CATEGORY_DEVELOPER_SERVICES = "devServices";
+  public static final String CATEGORY_SDK_MANAGER = "sdkManager";
 
   // GA only allows sending a single <category,action,value> tuple per event
   // However, we'd like to track different components of the avd such as its version, arch, etc
@@ -44,6 +45,10 @@ public abstract class UsageTracker {
 
   public static final String ACTION_SERVICE_INSTALLED = "installed";
   public static final String ACTION_SERVICE_REMOVED = "removed";
+
+  public static final String ACTION_TOOLBAR_BUTTON_CLICKED = "toolbarButtonClicked";
+  public static final String ACTION_STANDALONE_LAUNCHED = "standaloneLaunched";
+  public static final String ACTION_SDK_MANAGER_LOADED = "sdkManagerLoaded";
 
   public static final String INFO_AVD_ABI = "abi";
   public static final String INFO_AVD_TARGET_VERSION = "version";
