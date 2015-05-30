@@ -19,6 +19,9 @@ import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
+import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -32,6 +35,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
 import java.net.URL;
+import java.util.concurrent.Callable;
 
 /**
  * A class used by plugins to expose their service resources to Android Studio.
@@ -41,6 +45,16 @@ import java.net.URL;
  * allows this base class to instantiate an associated {@link DeveloperService}
  */
 public abstract class DeveloperServiceCreator {
+
+  /**
+   * Simple interface for a callback that runs on the dispatch thread.
+   *
+   * @see #runInBackground(Callable, Dispatchable)
+   */
+  protected interface Dispatchable<T> {
+    void dispatch(@NotNull T input);
+  }
+
   /**
    * Reserved filename for the xml file which defines a service.
    */
@@ -144,6 +158,38 @@ public abstract class DeveloperServiceCreator {
     }
 
     return context;
+  }
+
+  /**
+   * Useful method child classes can call to run code asynchronously. A followup callback,
+   * if provided, will be run on the dispatch thread on successful completion of the initial
+   * callback, as long as the initial callback doesn't throw an exception or return null.
+   * The output of the initial callback will be fed as an argument into the dispatch callback.
+   */
+  protected final <T> void runInBackground(@NotNull final Callable<T> backgroundAction, @Nullable final Dispatchable<T> dispatchAfter) {
+    final Application application = ApplicationManager.getApplication();
+    application.executeOnPooledThread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          T result = backgroundAction.call();
+          if (result != null && dispatchAfter != null) {
+            dispatchAfter.dispatch(result);
+          }
+        }
+        catch (Exception e) {
+          // We currently don't care about failure, and treat it same as returning a null result
+          // TODO: If necessary, add a param for handling failure
+        }
+      }
+    });
+  }
+
+  /**
+   * Convenience method to open a target ULR in a browser window.
+   */
+  protected final void browse(@NotNull String url) {
+    BrowserUtil.browse(url);
   }
 
   /**
