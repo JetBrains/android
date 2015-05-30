@@ -17,11 +17,9 @@ package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.rendering.DataBindingInfo;
 import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
@@ -35,7 +33,6 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
-import com.intellij.util.indexing.IdFilter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +48,7 @@ import java.util.Set;
  * PsiShortNames cache that finds classes generated for layout files.
  */
 public class DataBindingShortNamesCache extends PsiShortNamesCache {
-  private AndroidFacet myFacet;
+  private DataBindingProjectComponent myComponent;
   private CachedValue<Map<String, List<DataBindingInfo>>> myNameCache;
   private CachedValue<String[]> myAllClassNamesCache;
   private CachedValue<Map<String, List<PsiMethod>>> myMethodsByNameCache;
@@ -60,114 +57,89 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   private CachedValue<String[]> myAllFieldNamesCache;
 
 
-  public DataBindingShortNamesCache(final AndroidFacet facet) {
-    myFacet = facet;
-    NameCacheProvider provider = new NameCacheProvider(myFacet);
-    Project project = facet.getModule().getProject();
-    myNameCache = CachedValuesManager.getManager(project).createCachedValue(provider, false);
-    myAllClassNamesCache = CachedValuesManager.getManager(project).createCachedValue(
-        new ResourceCacheValueProvider<String[]>(myFacet) {
-          @Override
-          String[] doCompute() {
-            Set<String> keySet = myNameCache.getValue().keySet();
-            return keySet.toArray(new String[keySet.size()]);
-          }
 
-          @Override
-          String[] defaultValue() {
-            return ArrayUtil.EMPTY_STRING_ARRAY;
-          }
-        }, false);
+  public DataBindingShortNamesCache(DataBindingProjectComponent dataBindingProjectComponent) {
+    myComponent = dataBindingProjectComponent;
+    final NameCacheProvider nameCacheProvider = new NameCacheProvider(myComponent);
+    Project project = dataBindingProjectComponent.getProject();
+    CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(project);
+    myNameCache = cachedValuesManager.createCachedValue(nameCacheProvider, false);
 
-    myMethodsByNameCache = CachedValuesManager.getManager(project).createCachedValue(
-        new ResourceCacheValueProvider<Map<String, List<PsiMethod>>>(myFacet) {
+    myAllClassNamesCache = cachedValuesManager.createCachedValue(new CachedValueProvider<String[]>() {
+      @Nullable
+      @Override
+      public Result<String[]> compute() {
+        return Result.create(ArrayUtil.toStringArray(myNameCache.getValue().keySet()), nameCacheProvider);
+      }
+    }, false);
+
+    myMethodsByNameCache = cachedValuesManager.createCachedValue(new CachedValueProvider<Map<String, List<PsiMethod>>>() {
+      @Nullable
+      @Override
+      public Result<Map<String, List<PsiMethod>>> compute() {
+        final Map<String, List<PsiMethod>> result = Maps.newHashMap();
+        traverseAllClasses(new Function<PsiClass, Void>() {
           @Override
-          Map<String, List<PsiMethod>> doCompute() {
-            final Map<String, List<PsiMethod>> result = Maps.newHashMap();
-            traverseAllClasses(new Function<PsiClass, Void>() {
-              @Override
-              public Void fun(PsiClass psiClass) {
-                for (PsiMethod method : psiClass.getMethods()) {
-                  List<PsiMethod> psiMethods = result.get(method.getName());
-                  if (psiMethods == null) {
-                    psiMethods = Lists.newArrayList();
-                    result.put(method.getName(), psiMethods);
-                  }
-                  psiMethods.add(method);
-                }
-                return null;
+          public Void fun(PsiClass psiClass) {
+            for (PsiMethod method : psiClass.getMethods()) {
+              List<PsiMethod> psiMethods = result.get(method.getName());
+              if (psiMethods == null) {
+                psiMethods = Lists.newArrayList();
+                result.put(method.getName(), psiMethods);
               }
-            });
-            return result;
+              psiMethods.add(method);
+            }
+            return null;
           }
+        });
+        return Result.create(result, nameCacheProvider);
+      }
+    }, false);
 
+    myFieldsByNameCache = cachedValuesManager.createCachedValue(new CachedValueProvider<Map<String, List<PsiField>>>() {
+      @Nullable
+      @Override
+      public Result<Map<String, List<PsiField>>> compute() {
+        final Map<String, List<PsiField>> result = Maps.newHashMap();
+        traverseAllClasses(new Function<PsiClass, Void>() {
           @Override
-          Map<String, List<PsiMethod>> defaultValue() {
-            return Maps.newHashMap();
-          }
-        }, false);
-
-    myFieldsByNameCache = CachedValuesManager.getManager(project).createCachedValue(
-        new ResourceCacheValueProvider<Map<String, List<PsiField>>>(myFacet) {
-          @Override
-          Map<String, List<PsiField>> doCompute() {
-            final Map<String, List<PsiField>> result = Maps.newHashMap();
-            traverseAllClasses(new Function<PsiClass, Void>() {
-              @Override
-              public Void fun(PsiClass psiClass) {
-                for (PsiField field : psiClass.getFields()) {
-                  List<PsiField> psiFields = result.get(field.getName());
-                  if (psiFields == null) {
-                    psiFields = Lists.newArrayList();
-                    result.put(field.getName(), psiFields);
-                  }
-                  psiFields.add(field);
-                }
-                return null;
+          public Void fun(PsiClass psiClass) {
+            for (PsiField field : psiClass.getFields()) {
+              List<PsiField> psiFields = result.get(field.getName());
+              if (psiFields == null) {
+                psiFields = Lists.newArrayList();
+                result.put(field.getName(), psiFields);
               }
-            });
-            return result;
+              psiFields.add(field);
+            }
+            return null;
           }
-
-          @Override
-          Map<String, List<PsiField>> defaultValue() {
-            return Maps.newHashMap();
-          }
-        }, false);
-
-    myAllMethodNamesCache = CachedValuesManager.getManager(project).createCachedValue(
-        new ResourceCacheValueProvider<String[]>(myFacet) {
-          @Override
-          String[] doCompute() {
-            Set<String> names = myMethodsByNameCache.getValue().keySet();
-            return names.toArray(new String[names.size()]);
-          }
-
-          @Override
-          String[] defaultValue() {
-            return ArrayUtil.EMPTY_STRING_ARRAY;
-          }
-        }, false);
-
-    myAllFieldNamesCache = CachedValuesManager.getManager(project).createCachedValue(
-        new ResourceCacheValueProvider<String[]>(myFacet) {
-          @Override
-          String[] doCompute() {
-            Set<String> names = myFieldsByNameCache.getValue().keySet();
-            return names.toArray(new String[names.size()]);
-          }
-
-          @Override
-          String[] defaultValue() {
-            return ArrayUtil.EMPTY_STRING_ARRAY;
-          }
-        }, false);
+        });
+        return Result.create(result, nameCacheProvider);
+      }
+    }, false);
+    myAllMethodNamesCache = cachedValuesManager.createCachedValue(new CachedValueProvider<String[]>() {
+      @Nullable
+      @Override
+      public Result<String[]> compute() {
+        Set<String> names = myMethodsByNameCache.getValue().keySet();
+        return Result.create(ArrayUtil.toStringArray(names), nameCacheProvider);
+      }
+    }, false);
+    myAllFieldNamesCache = cachedValuesManager.createCachedValue(new CachedValueProvider<String[]>() {
+      @Nullable
+      @Override
+      public Result<String[]> compute() {
+        Set<String> names = myFieldsByNameCache.getValue().keySet();
+        return Result.create(ArrayUtil.toStringArray(names), nameCacheProvider);
+      }
+    }, false);
   }
 
   private void traverseAllClasses(Function<PsiClass, Void> receiver) {
     for (List<DataBindingInfo> infoList : myNameCache.getValue().values()) {
       for (DataBindingInfo info : infoList) {
-        PsiClass psiClass = DataBindingUtil.getOrCreatePsiClass(myFacet, info);
+        PsiClass psiClass = DataBindingUtil.getOrCreatePsiClass(info);
         receiver.fun(psiClass);
       }
     }
@@ -176,6 +148,9 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public PsiClass[] getClassesByName(@NotNull @NonNls String name, @NotNull GlobalSearchScope scope) {
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return PsiClass.EMPTY_ARRAY;
+    }
     List<DataBindingInfo> infoList = myNameCache.getValue().get(name);
     if (infoList == null || infoList.size() == 0) {
       return PsiClass.EMPTY_ARRAY;
@@ -183,7 +158,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
     List<PsiClass> selected = Lists.newArrayList();
     for (DataBindingInfo info : infoList) {
       if (scope.accept(info.getPsiFile().getVirtualFile())) {
-        selected.add(DataBindingUtil.getOrCreatePsiClass(myFacet, info));
+        selected.add(DataBindingUtil.getOrCreatePsiClass(info));
       }
     }
     if (selected.isEmpty()) {
@@ -195,17 +170,26 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public String[] getAllClassNames() {
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return ArrayUtil.EMPTY_STRING_ARRAY;
+    }
     return myAllClassNamesCache.getValue();
   }
 
   @Override
   public void getAllClassNames(@NotNull HashSet<String> dest) {
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return;
+    }
     Collections.addAll(dest, getAllClassNames());
   }
 
   @NotNull
   @Override
   public PsiMethod[] getMethodsByName(@NonNls @NotNull String name, @NotNull GlobalSearchScope scope) {
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return PsiMethod.EMPTY_ARRAY;
+    }
     List<PsiMethod> methods = myMethodsByNameCache.getValue().get(name);
     return filterByScope(methods, scope, PsiMethod.class, PsiMethod.EMPTY_ARRAY);
   }
@@ -213,6 +197,9 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public PsiMethod[] getMethodsByNameIfNotMoreThan(@NonNls @NotNull String name, @NotNull GlobalSearchScope scope, int maxCount) {
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return PsiMethod.EMPTY_ARRAY;
+    }
     PsiMethod[] methods = getMethodsByName(name, scope);
     if (methods.length > maxCount) {
       return PsiMethod.EMPTY_ARRAY;
@@ -223,6 +210,9 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public PsiField[] getFieldsByNameIfNotMoreThan(@NonNls @NotNull String name, @NotNull GlobalSearchScope scope, int maxCount) {
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return PsiField.EMPTY_ARRAY;
+    }
     List<PsiField> psiFields = myFieldsByNameCache.getValue().get(name);
     PsiField[] selected = filterByScope(psiFields, scope, PsiField.class, PsiField.EMPTY_ARRAY);
     if (selected.length > maxCount) {
@@ -231,7 +221,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
     return selected;
   }
 
-  private <T extends PsiElement> T[] filterByScope(List<T> items, @NotNull GlobalSearchScope scope, Class<T> klass, T[] defaultValue) {
+  private static <T extends PsiElement> T[] filterByScope(List<T> items, @NotNull GlobalSearchScope scope, Class<T> klass, T[] defaultValue) {
     if (items == null || items.isEmpty()) {
       return defaultValue;
     }
@@ -241,6 +231,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
         selected.add(item);
       }
     }
+    //noinspection unchecked
     return selected.toArray((T[])Array.newInstance(klass, selected.size()));
   }
 
@@ -259,19 +250,26 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public String[] getAllMethodNames() {
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return ArrayUtil.EMPTY_STRING_ARRAY;
+    }
     return myAllMethodNamesCache.getValue();
   }
 
   @Override
   public void getAllMethodNames(@NotNull HashSet<String> set) {
-    for (String method : getAllClassNames()) {
-      set.add(method);
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return;
     }
+    Collections.addAll(set, getAllClassNames());
   }
 
   @NotNull
   @Override
   public PsiField[] getFieldsByName(@NotNull @NonNls String name, @NotNull GlobalSearchScope scope) {
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return PsiField.EMPTY_ARRAY;
+    }
     List<PsiField> psiFields = myFieldsByNameCache.getValue().get(name);
     return filterByScope(psiFields, scope, PsiField.class, PsiField.EMPTY_ARRAY);
   }
@@ -279,27 +277,46 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public String[] getAllFieldNames() {
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return ArrayUtil.EMPTY_STRING_ARRAY;
+    }
     return myAllFieldNamesCache.getValue();
   }
 
   @Override
   public void getAllFieldNames(@NotNull HashSet<String> set) {
-    for (String field : getAllFieldNames()) {
-      set.add(field);
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return;
+    }
+    Collections.addAll(set, getAllFieldNames());
+  }
+
+  private static class NameCacheProvider extends ProjectResourceCachedValueProvider.MergedMapValueProvider<String, DataBindingInfo> {
+
+    public NameCacheProvider(DataBindingProjectComponent component) {
+      super(component);
+    }
+
+    @Override
+    ResourceCacheValueProvider<Map<String, List<DataBindingInfo>>> createCacheProvider(AndroidFacet facet) {
+      return new FacetNameCacheProvider(facet);
     }
   }
 
-  private class NameCacheProvider extends ResourceCacheValueProvider<Map<String, List<DataBindingInfo>>> {
-    public NameCacheProvider(AndroidFacet facet) {
+  private static class FacetNameCacheProvider extends ResourceCacheValueProvider<Map<String, List<DataBindingInfo>>> {
+    public FacetNameCacheProvider(AndroidFacet facet) {
       super(facet);
     }
 
     @Override
     Map<String, List<DataBindingInfo>> doCompute() {
-      ProjectResourceRepository projectResources = ProjectResourceRepository.getProjectResources(myFacet, true);
-      Map<String, DataBindingInfo> dataBindingResourceFiles = projectResources.getDataBindingResourceFiles();
+      LocalResourceRepository moduleResources = getFacet().getModuleResources(false);
+      if (moduleResources == null) {
+        return defaultValue();
+      }
+      Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
       if (dataBindingResourceFiles == null) {
-        return Maps.newHashMap();
+        return defaultValue();
       }
       Map<String, List<DataBindingInfo>> cache = Maps.newHashMap();
       for (DataBindingInfo info : dataBindingResourceFiles.values()) {

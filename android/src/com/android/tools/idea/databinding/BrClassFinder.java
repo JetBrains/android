@@ -15,72 +15,88 @@
  */
 package com.android.tools.idea.databinding;
 
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class BrClassFinder extends PsiElementFinder {
-  private final AndroidFacet myFacet;
-  private String myBrName;
-  private DataBindingUtil.LightBrClass myLightBrClass;
-  private String myPackageName;
-
-  public BrClassFinder(AndroidFacet facet) {
-    myFacet = facet;
-  }
-
-  private String getBrName() {
-    if (myBrName == null) {
-      myBrName = DataBindingUtil.getBrQualifiedName(myFacet);
-    }
-    return myBrName;
-  }
-
-  private String getPackageName() {
-    if (myPackageName == null) {
-      myPackageName = DataBindingUtil.getGeneratedPackageName(myFacet);
-    }
-    return myPackageName;
-  }
-
-  public boolean isMyScope(GlobalSearchScope scope) {
-    return scope.isSearchInModuleContent(myFacet.getModule());
+  private final DataBindingProjectComponent myComponent;
+  private CachedValue<Map<String, PsiClass>> myClassByPackageCache;
+  public BrClassFinder(DataBindingProjectComponent component) {
+    myComponent = component;
+    myClassByPackageCache = CachedValuesManager.getManager(component.getProject()).createCachedValue(
+      new CachedValueProvider<Map<String, PsiClass>>() {
+        @Nullable
+        @Override
+        public Result<Map<String, PsiClass>> compute() {
+          Map<String, PsiClass> classes = new HashMap<String, PsiClass>();
+          for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
+            if (facet.isDataBindingEnabled()) {
+              classes.put(DataBindingUtil.getBrQualifiedName(facet), DataBindingUtil.getOrCreateBrClassFor(facet));
+            }
+          }
+          return Result.create(classes, myComponent);
+        }
+      }, false);
   }
 
   @Nullable
   @Override
   public PsiClass findClass(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-    if (isMyScope(scope) && qualifiedName.equals(getBrName())) {
-      return getLightBrClass();
+    if (!myComponent.hasAnyDataBindingEnabledFacet() || !qualifiedName.endsWith(DataBindingUtil.BR)) {
+      return null;
     }
-    return null;
+    PsiClass psiClass = myClassByPackageCache.getValue().get(qualifiedName);
+    if (psiClass == null) {
+      return null;
+    }
+    PsiFile containingFile = psiClass.getContainingFile();
+    if (containingFile == null) {
+      return null;
+    }
+    VirtualFile virtualFile = containingFile.getVirtualFile();
+    if (virtualFile == null) {
+      return null;
+    }
+    if (!scope.accept(virtualFile)) {
+      return null;
+    }
+    return psiClass;
   }
 
   @NotNull
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-    if (isMyScope(scope) && qualifiedName.equals(getBrName())) {
-      return new PsiClass[]{getLightBrClass()};
+    PsiClass aClass = findClass(qualifiedName, scope);
+    if (aClass == null) {
+      return PsiClass.EMPTY_ARRAY;
     }
-    return PsiClass.EMPTY_ARRAY;
-  }
-
-  private DataBindingUtil.LightBrClass getLightBrClass() {
-    if (myLightBrClass == null) {
-      myLightBrClass = DataBindingUtil.getOrCreateBrClassFor(myFacet);
-    }
-    return myLightBrClass;
+    return new PsiClass[]{aClass};
   }
 
   @Nullable
   @Override
   public PsiPackage findPackage(@NotNull String qualifiedName) {
-    if (qualifiedName.equals(getPackageName())) {
-      return myFacet.getOrCreateDataBindingPsiPackage(getPackageName());
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return null;
+    }
+    for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
+      String generatedPackageName = DataBindingUtil.getGeneratedPackageName(facet);
+      if (generatedPackageName.equals(qualifiedName)) {
+        return myComponent.getOrCreateDataBindingPsiPackage(generatedPackageName);
+      }
     }
     return null;
   }

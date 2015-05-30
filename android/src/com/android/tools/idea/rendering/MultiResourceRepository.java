@@ -19,12 +19,10 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.databinding.DataBindingUtil;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,6 +109,18 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
 
     return myGeneration;
+  }
+
+  @Nullable
+  @Override
+  public DataBindingInfo getDataBindingInfoForLayout(String layoutName) {
+    for (LocalResourceRepository child : myChildren) {
+      DataBindingInfo info = child.getDataBindingInfoForLayout(layoutName);
+      if (info != null) {
+        return info;
+      }
+    }
+    return null;
   }
 
   @NotNull

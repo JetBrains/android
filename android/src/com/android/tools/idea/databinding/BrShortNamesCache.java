@@ -15,28 +15,63 @@
  */
 package com.android.tools.idea.databinding;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class BrShortNamesCache extends PsiShortNamesCache {
-  private DataBindingUtil.LightBrClass myLightBrClass;
-  private final AndroidFacet myFacet;
-
-  public BrShortNamesCache(AndroidFacet facet) {
-    myFacet = facet;
+  private final DataBindingProjectComponent myComponent;
+  private CachedValue<String[]> myAllFieldNamesCache;
+  private static final String[] BR_CLASS_NAME_LIST = new String[]{DataBindingUtil.BR};
+  public BrShortNamesCache(DataBindingProjectComponent dataBindingProjectComponent) {
+    myComponent = dataBindingProjectComponent;
+    myAllFieldNamesCache = CachedValuesManager.getManager(myComponent.getProject()).createCachedValue(new CachedValueProvider<String[]>() {
+      @Nullable
+      @Override
+      public Result<String[]> compute() {
+        AndroidFacet[] facets = myComponent.getDataBindingEnabledFacets();
+        String[] result;
+        if (facets.length == 0) {
+          result = ArrayUtil.EMPTY_STRING_ARRAY;
+        } else {
+          Set<String> allFields = Sets.newHashSet();
+          for (AndroidFacet facet : facets) {
+            DataBindingUtil.LightBrClass brClass = DataBindingUtil.getOrCreateBrClassFor(facet);
+            Collections.addAll(allFields, brClass.getAllFieldNames());
+          }
+          result = ArrayUtil.toStringArray(allFields);
+        }
+        return Result.create(result, myComponent);
+      }
+    }, false);
   }
 
-  public boolean isMyScope(GlobalSearchScope scope) {
-    return scope.isSearchInModuleContent(myFacet.getModule());
+  private boolean isMyScope(GlobalSearchScope scope) {
+    if( !myComponent.hasAnyDataBindingEnabledFacet()) {
+      return false;
+    }
+    if (scope.getProject() == null) {
+      return false;
+    }
+    return myComponent.getProject().equals(scope.getProject());
   }
 
   @NotNull
@@ -45,20 +80,27 @@ public class BrShortNamesCache extends PsiShortNamesCache {
     if (!isMyScope(scope)) {
       return PsiClass.EMPTY_ARRAY;
     }
-    if (DataBindingUtil.BR.equals(name)) {
-      return new PsiClass[]{getLightBrClass()};
+    if (!DataBindingUtil.BR.equals(name)) {
+      return PsiClass.EMPTY_ARRAY;
     }
-    return PsiClass.EMPTY_ARRAY;
+    AndroidFacet[] facets = myComponent.getDataBindingEnabledFacets();
+    return filterByScope(facets, scope);
   }
 
   @NotNull
   @Override
   public String[] getAllClassNames() {
-    return new String[]{DataBindingUtil.BR};
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return ArrayUtil.EMPTY_STRING_ARRAY;
+    }
+    return BR_CLASS_NAME_LIST;
   }
 
   @Override
   public void getAllClassNames(@NotNull HashSet<String> dest) {
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return;
+    }
     dest.add(DataBindingUtil.BR);
   }
 
@@ -77,14 +119,11 @@ public class BrShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public PsiField[] getFieldsByNameIfNotMoreThan(@NonNls @NotNull String name, @NotNull GlobalSearchScope scope, int maxCount) {
-    if (!isMyScope(scope) || maxCount < 1) {
+    PsiField[] fields = getFieldsByName(name, scope);
+    if (fields.length > maxCount) {
       return PsiField.EMPTY_ARRAY;
     }
-    PsiField field = getLightBrClass().findFieldByName(name, false);
-    if (field == null) {
-      return PsiField.EMPTY_ARRAY;
-    }
-    return new PsiField[]{field};
+    return fields;
   }
 
   @Override
@@ -111,30 +150,47 @@ public class BrShortNamesCache extends PsiShortNamesCache {
     if (!isMyScope(scope)) {
       return PsiField.EMPTY_ARRAY;
     }
-    PsiField field = getLightBrClass().findFieldByName(name, false);
-    if (field == null) {
+    PsiClass[] psiClasses = filterByScope(myComponent.getDataBindingEnabledFacets(), scope);
+    if (psiClasses.length == 0) {
       return PsiField.EMPTY_ARRAY;
     }
-    return new PsiField[]{field};
+    List<PsiField> result = Lists.newArrayList();
+    for (PsiClass psiClass : psiClasses) {
+      PsiField field = psiClass.findFieldByName(name, false);
+      if (field != null) {
+        result.add(field);
+      }
+    }
+    return result.toArray(new PsiField[result.size()]);
   }
 
   @NotNull
   @Override
   public String[] getAllFieldNames() {
-    return getLightBrClass().getAllFieldNames();
+    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+      return ArrayUtil.EMPTY_STRING_ARRAY;
+    }
+    return myAllFieldNamesCache.getValue();
   }
 
   @Override
   public void getAllFieldNames(@NotNull HashSet<String> set) {
-    for (String name : getAllFieldNames()) {
-      set.add(name);
-    }
+    Collections.addAll(set, getAllFieldNames());
   }
 
-  private DataBindingUtil.LightBrClass getLightBrClass() {
-    if (myLightBrClass == null) {
-      myLightBrClass = DataBindingUtil.getOrCreateBrClassFor(myFacet);
+  private static PsiClass[] filterByScope(AndroidFacet[] facets, @NotNull GlobalSearchScope scope) {
+    if (facets == null || facets.length == 0) {
+      return PsiClass.EMPTY_ARRAY;
     }
-    return myLightBrClass;
+    List<PsiClass> selected = Lists.newArrayList();
+    for (AndroidFacet facet : facets) {
+      if (scope.isSearchInModuleContent(facet.getModule())) {
+        selected.add(DataBindingUtil.getOrCreateBrClassFor(facet));
+      }
+    }
+    if (selected.size() == 0) {
+      return PsiClass.EMPTY_ARRAY;
+    }
+    return selected.toArray(new PsiClass[selected.size()]);
   }
 }
