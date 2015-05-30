@@ -48,6 +48,10 @@
       <implementation-class>com.android.tools.idea.rendering.ResourceNotificationManager</implementation-class>
       <skipForDefaultProject/>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.model.DeclaredPermissionsLookup</implementation-class>
+      <skipForDefaultProject/>
+    </component>
   </project-components>
   <actions>
     <group id="Project.Subview" text="Project Subview" class="com.android.tools.idea.gradle.project.subset.ProjectSubsetGroup">

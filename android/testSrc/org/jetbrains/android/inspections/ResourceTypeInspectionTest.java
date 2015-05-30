@@ -18,6 +18,7 @@ package org.jetbrains.android.inspections;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.collect.Lists;
+import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -535,93 +536,203 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}");
   }
 
-  public void testNotAndroid() {
+  public void testMissingPermission() {
     doCheck("import android.Manifest;\n" +
             "import android.content.Context;\n" +
             "import android.content.pm.PackageManager;\n" +
             "import android.graphics.Bitmap;\n" +
+            "import android.support.annotation.RequiresPermission;\n" +
+            "\n" +
+            "import static android.Manifest.permission.ACCESS_COARSE_LOCATION;\n" +
+            "import static android.Manifest.permission.ACCESS_FINE_LOCATION;\n" +
             "\n" +
             "public class X {\n" +
-            "    private Bitmap checkResult(Bitmap bitmap) {\n" +
-            "        /*The result 'extractAlpha' is not used*/bitmap.extractAlpha()/**/; // WARNING\n" +
-            "        Bitmap bitmap2 = bitmap.extractAlpha(); // OK\n" +
-            "        call(bitmap.extractAlpha()); // OK\n" +
-            "        return bitmap.extractAlpha(); // OK\n" +
+            "    private static void foo(Context context, LocationManager manager) {\n" +
+            "        /*Missing permissions required by LocationManager.myMethod: android.permission.ACCESS_FINE_LOCATION or android.permission.ACCESS_COARSE_LOCATION*/manager.myMethod(\"myprovider\")/**/;\n" +
             "    }\n" +
             "\n" +
-            "    private void showAlert(Context context, String error, String s) {\n" +
-            "    }\n" +
-            "\n" +
-            "    private void check(int i) {\n" +
-            "    }\n" +
-            "    private void call(Bitmap bitmap) {\n" +
+            "    @SuppressWarnings(\"UnusedDeclaration\")\n" +
+            "    public abstract class LocationManager {\n" +
+            "        @RequiresPermission(anyOf = {ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION})\n" +
+            "        public abstract Location myMethod(String provider);\n" +
+            "        public class Location {\n" +
+            "        }\n" +
             "    }\n" +
             "}");
   }
 
+  public void testWrongThread() {
+    doCheck("import android.support.annotation.MainThread;\n" +
+            "import android.support.annotation.UiThread;\n" +
+            "import android.support.annotation.WorkerThread;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    public AsyncTask testTask() {\n" +
+            "\n" +
+            "        return new AsyncTask() {\n" +
+            "            final CustomView view = new CustomView();\n" +
+            "\n" +
+            "            @Override\n" +
+            "            protected void doInBackground(Object... params) {\n" +
+            "                /*Method onPreExecute must be called from the main thread, currently inferred thread is worker*/onPreExecute()/**/; // ERROR\n" +
+            "                /*Method paint must be called from the UI thread, currently inferred thread is worker*/view.paint()/**/; // ERROR\n" +
+            "                publishProgress(); // OK\n" +
+            "            }\n" +
+            "\n" +
+            "            @Override\n" +
+            "            protected void onPreExecute() {\n" +
+            "                /*Method publishProgress must be called from the worker thread, currently inferred thread is main*/publishProgress()/**/; // ERROR\n" +
+            "                onProgressUpdate(); // OK\n" +
+            "            }\n" +
+            "        };\n" +
+            "    }\n" +
+            "\n" +
+            "    @UiThread\n" +
+            "    public static class View {\n" +
+            "        public void paint() {\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public static class CustomView extends View {\n" +
+            "    }\n" +
+            "\n" +
+            "    public static abstract class AsyncTask {\n" +
+            "        @WorkerThread\n" +
+            "        protected abstract void doInBackground(Object... params);\n" +
+            "\n" +
+            "        @MainThread\n" +
+            "        protected void onPreExecute() {\n" +
+            "        }\n" +
+            "\n" +
+            "        @MainThread\n" +
+            "        protected void onProgressUpdate(Object... values) {\n" +
+            "        }\n" +
+            "\n" +
+            "        @WorkerThread\n" +
+            "        protected final void publishProgress(Object... values) {\n" +
+            "        }\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   @Override
   protected String[] getEnvironmentClasses() {
+    @Language("JAVA")
     String header = "package android.support.annotation;\n" +
                     "\n" +
                     "import java.lang.annotation.Documented;\n" +
                     "import java.lang.annotation.Retention;\n" +
                     "import java.lang.annotation.Target;\n" +
                     "\n" +
+                    "import static java.lang.annotation.ElementType.ANNOTATION_TYPE;\n" +
                     "import static java.lang.annotation.ElementType.CONSTRUCTOR;\n" +
                     "import static java.lang.annotation.ElementType.FIELD;\n" +
                     "import static java.lang.annotation.ElementType.LOCAL_VARIABLE;\n" +
                     "import static java.lang.annotation.ElementType.METHOD;\n" +
                     "import static java.lang.annotation.ElementType.PARAMETER;\n" +
+                    "import static java.lang.annotation.ElementType.TYPE;\n" +
                     "import static java.lang.annotation.RetentionPolicy.SOURCE;\n" +
                     "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
                     "\n";
 
     List<String> classes = Lists.newArrayList();
-    classes.add(header +
-                "@Retention(CLASS)\n" +
-                "@Target({CONSTRUCTOR,METHOD,PARAMETER,FIELD,LOCAL_VARIABLE})\n" +
-                "public @interface FloatRange {\n" +
-                "    double from() default Double.NEGATIVE_INFINITY;\n" +
-                "    double to() default Double.POSITIVE_INFINITY;\n" +
-                "    boolean fromInclusive() default true;\n" +
-                "    boolean toInclusive() default true;\n" +
-                "}");
+    @Language("JAVA")
+    String floatRange = "@Retention(CLASS)\n" +
+                        "@Target({CONSTRUCTOR,METHOD,PARAMETER,FIELD,LOCAL_VARIABLE})\n" +
+                        "public @interface FloatRange {\n" +
+                        "    double from() default Double.NEGATIVE_INFINITY;\n" +
+                        "    double to() default Double.POSITIVE_INFINITY;\n" +
+                        "    boolean fromInclusive() default true;\n" +
+                        "    boolean toInclusive() default true;\n" +
+                        "}";
+    classes.add(header + floatRange);
 
-    classes.add(header +
-                "@Retention(CLASS)\n" +
-                "@Target({CONSTRUCTOR,METHOD,PARAMETER,FIELD,LOCAL_VARIABLE})\n" +
-                "public @interface IntRange {\n" +
-                "    long from() default Long.MIN_VALUE;\n" +
-                "    long to() default Long.MAX_VALUE;\n" +
-                "}");
+    @Language("JAVA")
+    String intRange = "@Retention(CLASS)\n" +
+                      "@Target({CONSTRUCTOR,METHOD,PARAMETER,FIELD,LOCAL_VARIABLE})\n" +
+                      "public @interface IntRange {\n" +
+                      "    long from() default Long.MIN_VALUE;\n" +
+                      "    long to() default Long.MAX_VALUE;\n" +
+                      "}";
+    classes.add(header + intRange);
 
-    classes.add(header +
-                "@Retention(CLASS)\n" +
-                "@Target({PARAMETER, LOCAL_VARIABLE, METHOD, FIELD})\n" +
-                "public @interface Size {\n" +
-                "    long value() default -1;\n" +
-                "    long min() default Long.MIN_VALUE;\n" +
-                "    long max() default Long.MAX_VALUE;\n" +
-                "    long multiple() default 1;\n" +
-                "}");
+    @Language("JAVA")
+    String size = "@Retention(CLASS)\n" +
+                  "@Target({PARAMETER, LOCAL_VARIABLE, METHOD, FIELD})\n" +
+                  "public @interface Size {\n" +
+                  "    long value() default -1;\n" +
+                  "    long min() default Long.MIN_VALUE;\n" +
+                  "    long max() default Long.MAX_VALUE;\n" +
+                  "    long multiple() default 1;\n" +
+                  "}";
+    classes.add(header + size);
+
+    @Language("JAVA")
+    String permission = "@Retention(SOURCE)\n" +
+                        "@Target({ANNOTATION_TYPE,METHOD,CONSTRUCTOR,FIELD})\n" +
+                        "public @interface RequiresPermission {\n" +
+                        "    String value() default \"\";\n" +
+                        "    String[] allOf() default {};\n" +
+                        "    String[] anyOf() default {};\n" +
+                        "    boolean conditional() default false;\n" +
+                        "    @Target(FIELD)\n" +
+                        "    @interface Read {\n" +
+                        "        RequiresPermission value();\n" +
+                        "    }\n" +
+                        "    @Target(FIELD)\n" +
+                        "    @interface Write {\n" +
+                        "        RequiresPermission value();\n" +
+                        "    }\n" +
+                        "}\n";
+    classes.add(header + permission);
+
+    @Language("JAVA")
+    String uiThread = "@Retention(SOURCE)\n" +
+                      "@Target({METHOD,CONSTRUCTOR,TYPE})\n" +
+                      "public @interface UiThread {\n" +
+                      "}";
+    classes.add(header + uiThread);
+
+    @Language("JAVA")
+    String mainThread = "@Retention(SOURCE)\n" +
+                        "@Target({METHOD,CONSTRUCTOR,TYPE})\n" +
+                        "public @interface MainThread {\n" +
+                        "}";
+    classes.add(header + mainThread);
+
+    @Language("JAVA")
+    String workerThread = "@Retention(SOURCE)\n" +
+                          "@Target({METHOD,CONSTRUCTOR,TYPE})\n" +
+                          "public @interface WorkerThread {\n" +
+                          "}";
+    classes.add(header + workerThread);
+
+    @Language("JAVA")
+    String binderThread = "@Retention(SOURCE)\n" +
+                          "@Target({METHOD,CONSTRUCTOR,TYPE})\n" +
+                          "public @interface BinderThread {\n" +
+                          "}";
+    classes.add(header + binderThread);
+
 
     for (ResourceType type : ResourceType.values()) {
       if (type == ResourceType.FRACTION) {
         continue;
       }
-      classes.add(header +
-                  "@Documented\n" +
-                  "@Retention(SOURCE)\n" +
-                  "@Target({METHOD, PARAMETER, FIELD})\n" +
-                  "public @interface " + StringUtil.capitalize(type.getName()) + "Res {\n" +
-                  "}");
+      @Language("JAVA")
+      String resourceTypeAnnotation = "@Documented\n" +
+                                      "@Retention(SOURCE)\n" +
+                                      "@Target({METHOD, PARAMETER, FIELD})\n" +
+                                      "public @interface " + StringUtil.capitalize(type.getName()) + "Res {\n" +
+                                      "}";
+      classes.add(header + resourceTypeAnnotation);
     }
-    classes.add(header +
-                "@Documented\n" +
-                "@Retention(SOURCE)\n" +
-                "@Target({METHOD, PARAMETER, FIELD})\n" +
-                "public @interface AnyRes {\n" +
-                "}");
+    String anyRes = "@Documented\n" +
+                    "@Retention(SOURCE)\n" +
+                    "@Target({METHOD, PARAMETER, FIELD})\n" +
+                    "public @interface AnyRes {\n" +
+                    "}";
+    classes.add(header + anyRes);
     return ArrayUtil.toStringArray(classes);
   }
 
@@ -651,6 +762,13 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
 
     // Now delegate to the real test implementation (it won't find comments to replace with <warning>)
     super.doTest(newText.toString());
+  }
+
+  protected void checkQuickFix(@NotNull String quickFixName, @NotNull String expected) {
+    final IntentionAction quickFix = myFixture.getAvailableIntention(quickFixName);
+    assertNotNull(quickFix);
+    myFixture.launchAction(quickFix);
+    myFixture.checkResult(expected);
   }
 
   @Nullable
