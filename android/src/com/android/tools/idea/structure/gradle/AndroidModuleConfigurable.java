@@ -48,13 +48,17 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
     myModule = module;
   }
 
+  public Module getModule() {
+    return myModule;
+  }
+
   @Override
   public void setDisplayName(String name) {
   }
 
   @Override
   public Object getEditableObject() {
-    return myModule;
+    return getModule();
   }
 
   @Override
