@@ -28,10 +28,8 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.net.URL;
 
 /**
  * A class used by plugins to expose their service resources to Android Studio.
@@ -71,7 +69,11 @@ public abstract class DeveloperServiceCreator {
         Files.createParentDirs(file);
         assert file.createNewFile();
         String fullName = new File(getResourceRoot(), name).getPath();
-        Resources.asByteSource(getClass().getResource(fullName)).copyTo(Files.asByteSink(file));
+        URL resource = getClass().getResource(fullName);
+        if (resource == null) {
+          throw new FileNotFoundException(String.format("Could not find service file %1$s", fullName));
+        }
+        Resources.asByteSource(resource).copyTo(Files.asByteSink(file));
       }
     }
     catch (IOException e) {
