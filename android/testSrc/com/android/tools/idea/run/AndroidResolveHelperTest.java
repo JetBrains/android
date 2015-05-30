@@ -143,6 +143,38 @@ public class AndroidResolveHelperTest extends AndroidTestCase {
     testResolution(text);
   }
 
+  public void testAnnotationInferenceFromInitializerCall() {
+    @Language("JAVA")
+    String text = "package p1.p2;\n" +
+                  "\n" +
+                  "class Foo {\n" +
+                  "  @android.support.annotation.ColorInt int getColor() {\n" +
+                  "    return 0x11223344;\n" +
+                  "  }\n" +
+                  "\n" +
+                  "  private void check() {\n" +
+                  "    int color = getColor();\n" +
+                  "    int x = <caret>color;\n" +
+                  "  }\n" +
+                  "}";
+    testResolution(text);
+  }
+
+  public void testAnnotationInferenceFromInitializerField() {
+    @Language("JAVA")
+    String text = "package p1.p2;\n" +
+                  "\n" +
+                  "class Foo {\n" +
+                  "  @android.support.annotation.ColorInt private int mColor = 0xFF123456;\n" +
+                  "  \n" +
+                  "  private void check() {\n" +
+                  "    int color = mColor;\n" +
+                  "    int x = <caret>color;\n" +
+                  "  }\n" +
+                  "}";
+    testResolution(text);
+  }
+
   private void testResolution(String text) {
     PsiElement element = getPsiElement(text);
     assertNotNull(element);
