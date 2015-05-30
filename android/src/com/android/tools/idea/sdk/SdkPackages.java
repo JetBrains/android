@@ -142,7 +142,8 @@ public final class SdkPackages {
       IPkgDesc remoteDesc = remote.getPkgDesc();
       for (UpdatablePkgInfo info : updatablePkgInfos) {
         IPkgDesc localDesc = info.getLocalInfo().getDesc();
-        if (remoteDesc.compareTo(localDesc) == 0 || remoteDesc.isUpdateFor(localDesc)) {
+        if (remoteDesc.compareTo(localDesc) == 0 || remoteDesc.isUpdateFor(localDesc) ||
+            localDesc.isUpdateFor(remoteDesc) /* shouldn't happen in the normal case */) {
           // if package is same as an installed or is an update for an installed
           // one, then it's not new.
           continue nextRemote;
