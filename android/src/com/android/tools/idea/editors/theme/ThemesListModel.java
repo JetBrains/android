@@ -42,10 +42,6 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
 
   private final ArrayList<String> myEditThemeOptions = new ArrayList<String>();
 
-  public ThemesListModel(@NotNull ThemeResolver themeResolver) {
-    this(themeResolver, null);
-  }
-
   public ThemesListModel(@NotNull ThemeResolver themeResolver, @Nullable String defaultThemeName) {
     myEditThemeOptions.add(CREATE_NEW_THEME);
     setThemeResolver(themeResolver, defaultThemeName);
