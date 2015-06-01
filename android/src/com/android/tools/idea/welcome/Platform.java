@@ -87,7 +87,10 @@ public class Platform extends InstallableComponent {
 
   public static ComponentTreeNode createSubtree(@NotNull ScopedStateStore store, Multimap<PkgType, RemotePkgInfo> remotePackages) {
     ComponentTreeNode latestPlatform = getLatestPlatform(store, remotePackages, false);
-    ComponentTreeNode previewPlatform = getLatestPlatform(store, remotePackages, true);
+    ComponentTreeNode previewPlatform = null;
+    // We never want to push preview platforms on our users (see http://b.android.com/175343 for more)
+    //   ComponentTreeNode previewPlatform = getLatestPlatform(store, remotePackages, true);
+    //noinspection ConstantConditions
     if (previewPlatform != null) {
       if (latestPlatform != null) {
         return new ComponentCategory("Android SDK Platform", "SDK components for creating applications for different Android platforms",
@@ -146,7 +149,7 @@ public class Platform extends InstallableComponent {
       // No unchecking if the platform is already installed. We can update but not remove existing platforms
       AndroidVersion androidVersion = desc.getAndroidVersion();
       int apiLevel = androidVersion == null ? 0 : androidVersion.getApiLevel();
-      if (myVersion.getApiLevel() == apiLevel) {
+      if (myVersion.getFeatureLevel() == apiLevel) {
         return false;
       }
     }
