@@ -96,9 +96,8 @@ public class StyleResolver {
     }
     catch (ExecutionException e) {
       LOG.warn("Unable to retrieve style", e);
+      throw new IllegalArgumentException(e);
     }
-
-    return null;
   }
 
   @Nullable
