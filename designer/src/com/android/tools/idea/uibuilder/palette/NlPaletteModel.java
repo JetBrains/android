@@ -37,6 +37,7 @@ public class NlPaletteModel {
   private static final String ELEM_ITEM = "item";
   private static final String ELEM_PALETTE = "palette";
   private static final String ELEM_CREATION = "creation";
+  private static final String ELEM_PRESENTATION = "presentation";
 
   private static final String ATTR_TAG = "tag";
   private static final String ATTR_ID = "id";
@@ -45,8 +46,8 @@ public class NlPaletteModel {
   private static final String ATTR_TOOLTIP = "tooltip";
   private static final String ATTR_ICON = "icon";
 
-  @NotNull private final List<NlPaletteGroup> myGroups;
-  @NotNull private final Map<String, Element> myTag2Model;
+  private final List<NlPaletteGroup> myGroups;
+  private final Map<String, NlPaletteItem> myTag2Item;
   private static NlPaletteModel ourInstance;
 
   @NotNull
@@ -58,131 +59,26 @@ public class NlPaletteModel {
     return ourInstance;
   }
 
+  @NotNull
+  public List<NlPaletteGroup> getGroups() {
+    return myGroups;
+  }
+
+  @Nullable
+  public NlPaletteItem getItemByTagName(@NotNull String tagName) {
+    return myTag2Item.get(tagName);
+  }
+
   @VisibleForTesting
   NlPaletteModel() {
     myGroups = new ArrayList<NlPaletteGroup>();
-    myTag2Model = new HashMap<String, Element>();
+    myTag2Item = new HashMap<String, NlPaletteItem>();
   }
 
   private void loadPalette() {
     Document document = loadDocument(METADATA);
     if (document != null) {
       loadPalette(document);
-    }
-  }
-
-  @NotNull
-  public List<NlPaletteGroup> getGroups() {
-    return myGroups;
-  }
-
-  @VisibleForTesting
-  void loadPalette(@NotNull Document document) {
-    loadModels(document);
-    Element palette = document.getRootElement().getChild(ELEM_PALETTE);
-    if (palette == null) {
-      LOG.warn("Missing palette tag");
-      return;
-    }
-    for (Element groupElement : palette.getChildren()) {
-      NlPaletteGroup group = loadGroup(groupElement);
-      if (group != null) {
-        myGroups.add(group);
-      }
-    }
-  }
-
-  @Nullable
-  private NlPaletteGroup loadGroup(@NotNull Element groupElement) {
-    String name = groupElement.getAttributeValue(ATTR_NAME);
-    if (name == null) {
-      LOG.warn("Group element without a name");
-      return null;
-    }
-    NlPaletteGroup group = new NlPaletteGroup(name);
-    for (Element itemElement : groupElement.getChildren(ELEM_ITEM)) {
-      String tag = itemElement.getAttributeValue(ATTR_TAG);
-      if (tag == null) {
-        LOG.warn(String.format("Item without a tag for group: %s", name));
-        continue;
-      }
-      Element modelElement = myTag2Model.get(tag);
-      if (modelElement == null) {
-        LOG.warn(String.format("Model not found for group: %s with tag: %s", name, tag));
-        continue;
-      }
-      Element paletteElement = modelElement.getChild(ELEM_PALETTE);
-      if (paletteElement == null) {
-        LOG.warn(String.format("Palette not found on model for group: %s with tag: %s", name, tag));
-        continue;
-      }
-      NlPaletteItem item = loadItem(itemElement, modelElement);
-      if (item == null) {
-        continue;
-      }
-      group.add(item);
-      for (Element subItemElement : itemElement.getChildren(ELEM_ITEM)) {
-        NlPaletteItem subItem = loadItem(subItemElement, modelElement);
-        if (subItem == null) {
-          continue;
-        }
-        group.add(subItem);
-      }
-    }
-    return group;
-  }
-
-  @Nullable
-  private static NlPaletteItem loadItem(@NotNull Element itemElement, @NotNull Element modelElement) {
-    String title = getAttributeValue(itemElement, modelElement, ATTR_TITLE);
-    String tooltip = getAttributeValue(itemElement, modelElement, ATTR_TOOLTIP);
-    String iconPath = getAttributeValue(itemElement, modelElement, ATTR_ICON);
-    String id = getAttributeValue(itemElement, modelElement, ATTR_ID);
-    String creation = getElementValue(itemElement, modelElement, ELEM_CREATION);
-    if (title.isEmpty()) {
-      LOG.warn(String.format("No title found for item with tag: %s", modelElement.getAttributeValue(ATTR_TAG)));
-      return null;
-    }
-    if (creation.isEmpty()) {
-      creation = "<" + modelElement.getAttributeValue(ATTR_TAG) +"/>";
-    }
-    if (id.isEmpty()) {
-      id = itemElement.getAttributeValue(ATTR_TAG, "");
-    }
-    return new NlPaletteItem(title, iconPath, tooltip, creation, id);
-  }
-
-  @NotNull
-  private static String getAttributeValue(@NotNull Element fromElement, @NotNull Element modelElement, @NotNull String attributeName) {
-    String value = fromElement.getAttributeValue(attributeName);
-    if (value != null) {
-      return value;
-    }
-    Element paletteElement = modelElement.getChild(ELEM_PALETTE);
-    assert paletteElement != null;
-    value = paletteElement.getAttributeValue(attributeName);
-    return value != null ? value : "";
-  }
-
-  @NotNull
-  private static String getElementValue(@NotNull Element fromElement, @NotNull Element modelElement, @NotNull String tagName) {
-    Element element = fromElement.getChild(tagName);
-    if (element != null) {
-      return element.getText();
-    }
-    element = modelElement.getChild(tagName);
-    if (element == null) {
-      return "";
-    }
-    return element.getText();
-  }
-
-  private void loadModels(@NotNull Document document) {
-    for (Element element : document.getRootElement().getChildren()) {
-      String tag = element.getAttributeValue(ATTR_TAG);
-      if (tag != null) {
-        myTag2Model.put(tag, element);
-      }
     }
   }
 
@@ -197,6 +93,144 @@ public class NlPaletteModel {
     catch (Throwable e) {
       LOG.error(e);
       return null;
+    }
+  }
+
+  @VisibleForTesting
+  void loadPalette(@NotNull Document document) {
+    ModelLoader loader = new ModelLoader();
+    loader.loadPalette(document);
+  }
+
+  private class ModelLoader {
+    private final Map<String, Element> myTag2Model;
+
+    public ModelLoader() {
+      myTag2Model = new HashMap<String, Element>();
+    }
+
+    @VisibleForTesting
+    void loadPalette(@NotNull Document document) {
+      loadModels(document);
+      Element palette = document.getRootElement().getChild(ELEM_PALETTE);
+      if (palette == null) {
+        LOG.warn("Missing palette tag");
+        return;
+      }
+      for (Element groupElement : palette.getChildren()) {
+        NlPaletteGroup group = loadGroup(groupElement);
+        if (group != null) {
+          myGroups.add(group);
+        }
+      }
+    }
+
+    @Nullable
+    private NlPaletteGroup loadGroup(@NotNull Element groupElement) {
+      String name = groupElement.getAttributeValue(ATTR_NAME);
+      if (name == null) {
+        LOG.warn("Group element without a name");
+        return null;
+      }
+      NlPaletteGroup group = new NlPaletteGroup(name);
+      for (Element itemElement : groupElement.getChildren(ELEM_ITEM)) {
+        String tag = itemElement.getAttributeValue(ATTR_TAG);
+        if (tag == null) {
+          LOG.warn(String.format("Item without a tag for group: %s", name));
+          continue;
+        }
+        Element modelElement = myTag2Model.get(tag);
+        if (modelElement == null) {
+          LOG.warn(String.format("Model not found for group: %s with tag: %s", name, tag));
+          continue;
+        }
+        Element paletteElement = modelElement.getChild(ELEM_PALETTE);
+        if (paletteElement == null) {
+          LOG.warn(String.format("Palette not found on model for group: %s with tag: %s", name, tag));
+          continue;
+        }
+        NlPaletteItem item = loadItem(itemElement, modelElement);
+        if (item == null) {
+          continue;
+        }
+        myTag2Item.put(tag, item);
+        group.add(item);
+        for (Element subItemElement : itemElement.getChildren(ELEM_ITEM)) {
+          NlPaletteItem subItem = loadItem(subItemElement, modelElement);
+          if (subItem == null) {
+            continue;
+          }
+          group.add(subItem);
+        }
+      }
+      return group;
+    }
+
+    @Nullable
+    private NlPaletteItem loadItem(@NotNull Element itemElement, @NotNull Element modelElement) {
+      String title = getAttributeValue(itemElement, modelElement, ATTR_TITLE);
+      String tooltip = getAttributeValue(itemElement, modelElement, ATTR_TOOLTIP);
+      String iconPath = getAttributeValue(itemElement, modelElement, ATTR_ICON);
+      String id = getAttributeValue(itemElement, modelElement, ATTR_ID);
+      String creation = getElementValue(itemElement, modelElement, ELEM_CREATION);
+      String structureTitle = getAttributeValue(null, modelElement, ATTR_TITLE);
+      String format = getFormatValue(modelElement);
+      if (title.isEmpty()) {
+        LOG.warn(String.format("No title found for item with tag: %s", modelElement.getAttributeValue(ATTR_TAG)));
+        return null;
+      }
+      if (creation.isEmpty()) {
+        creation = "<" + modelElement.getAttributeValue(ATTR_TAG) +"/>";
+      }
+      if (id.isEmpty()) {
+        id = itemElement.getAttributeValue(ATTR_TAG, "");
+      }
+      return new NlPaletteItem(title, iconPath, tooltip, creation, id, structureTitle, format);
+    }
+
+    @NotNull
+    private String getAttributeValue(@Nullable Element fromElement, @NotNull Element modelElement, @NotNull String attributeName) {
+      if (fromElement != null) {
+        String value = fromElement.getAttributeValue(attributeName);
+        if (value != null) {
+          return value;
+        }
+      }
+      Element paletteElement = modelElement.getChild(ELEM_PALETTE);
+      assert paletteElement != null;
+      String value = paletteElement.getAttributeValue(attributeName);
+      return value != null ? value : "";
+    }
+
+    @Nullable
+    private String getFormatValue(@NotNull Element modelElement) {
+      Element presentationElement = modelElement.getChild(ELEM_PRESENTATION);
+      if (presentationElement == null) {
+        return null;
+      }
+      return presentationElement.getAttributeValue(ATTR_TITLE);
+    }
+
+    @NotNull
+    private String getElementValue(@NotNull Element fromElement, @NotNull Element modelElement, @NotNull String tagName) {
+      Element element = fromElement.getChild(tagName);
+      if (element != null) {
+        return element.getText();
+      }
+      element = modelElement.getChild(tagName);
+      if (element == null) {
+        return "";
+      }
+      return element.getText();
+    }
+
+    private void loadModels(@NotNull Document document) {
+      for (Element element : document.getRootElement().getChildren()) {
+        String tag = element.getAttributeValue(ATTR_TAG);
+        if (tag != null) {
+          myTag2Model.put(tag, element);
+        }
+      }
     }
   }
 }

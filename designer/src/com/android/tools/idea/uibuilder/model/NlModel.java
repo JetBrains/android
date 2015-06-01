@@ -53,6 +53,7 @@ import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.util.*;
@@ -231,7 +232,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private void notifyListeners() {
     synchronized (myListeners) {
       for (ChangeListener listener : myListeners) {
-        listener.stateChanged(null);
+        listener.stateChanged(new ChangeEvent(this));
       }
     }
   }

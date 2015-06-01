@@ -22,20 +22,24 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class NlPaletteItem {
-  @NotNull private final String myTitle;
-  @NotNull private final String myTooltip;
-  @NotNull private final String myIconPath;
-  @NotNull private final String myRepresentation;
-  @NotNull private final String myId;
-  @Nullable private Icon myIcon;
+  private final String myTitle;
+  private final String myTooltip;
+  private final String myIconPath;
+  private final String myRepresentation;
+  private final String myId;
+  private String myStructureTitle;
+  private String myFormat;
+  private Icon myIcon;
 
   public NlPaletteItem(@NotNull String title, @NotNull String iconPath, @NotNull String tooltip, @NotNull String representation,
-                       @NotNull String id) {
+                       @NotNull String id, @NotNull String structureTitle, @Nullable String format) {
     myTitle = title;
     myIconPath = iconPath;
     myTooltip = tooltip;
     myRepresentation = representation;
     myId = id;
+    myStructureTitle = structureTitle;
+    myFormat = format;
   }
 
   @NotNull
@@ -70,4 +74,15 @@ public class NlPaletteItem {
   public String getId() {
     return myId;
   }
+
+  @NotNull
+  public String getStructureTitle() {
+    return myStructureTitle;
+  }
+
+  @Nullable
+  public String getStructureFormat() {
+    return myFormat;
+  }
+
 }
