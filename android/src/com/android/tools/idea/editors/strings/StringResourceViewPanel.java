@@ -64,7 +64,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class StringResourceViewPanel implements HyperlinkListener {
-  private static final boolean HIDE_TRANSLATION_ORDER_LINK = !Boolean.getBoolean("order.translations");
+  private static final boolean HIDE_TRANSLATION_ORDER_LINK = Boolean.getBoolean("hide.order.translations");
 
   private final AndroidFacet myFacet;
   private JPanel myContainer;
