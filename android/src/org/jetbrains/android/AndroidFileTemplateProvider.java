@@ -25,7 +25,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import icons.AndroidIcons;
-import org.jetbrains.android.fileTypes.AndroidIdlFileType;
+import com.android.tools.idea.lang.aidl.AidlFileType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +62,7 @@ public class AndroidFileTemplateProvider implements FileTemplateGroupDescriptorF
     group.addTemplate(new FileTemplateDescriptor(APPLICATION, StdFileTypes.JAVA.getIcon()));
     group.addTemplate(new FileTemplateDescriptor(SERVICE, StdFileTypes.JAVA.getIcon()));
     group.addTemplate(new FileTemplateDescriptor(BROADCAST_RECEIVER, StdFileTypes.JAVA.getIcon()));
-    group.addTemplate(new FileTemplateDescriptor(REMOTE_INTERFACE_TEMPLATE, AndroidIdlFileType.ourFileType.getIcon()));
+    group.addTemplate(new FileTemplateDescriptor(REMOTE_INTERFACE_TEMPLATE, AidlFileType.INSTANCE.getIcon()));
     return group;
   }
 

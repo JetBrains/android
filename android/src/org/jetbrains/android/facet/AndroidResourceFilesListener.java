@@ -40,7 +40,7 @@ import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.fileTypes.AndroidIdlFileType;
+import com.android.tools.idea.lang.aidl.AidlFileType;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -95,7 +95,7 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
   private static boolean shouldScheduleUpdate(@NotNull VirtualFile file) {
     final FileType fileType = file.getFileType();
 
-    if (fileType == AndroidIdlFileType.ourFileType ||
+    if (fileType == AidlFileType.INSTANCE ||
         fileType == AndroidRenderscriptFileType.INSTANCE ||
         SdkConstants.FN_ANDROID_MANIFEST_XML.equals(file.getName())) {
       return true;
@@ -226,7 +226,7 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
         modes.add(AndroidAutogeneratorMode.AAPT);
         modes.add(AndroidAutogeneratorMode.BUILDCONFIG);
       }
-      else if (file.getFileType() == AndroidIdlFileType.ourFileType) {
+      else if (file.getFileType() == AidlFileType.INSTANCE) {
         VirtualFile sourceRoot = findSourceRoot(module, file);
         if (sourceRoot != null && !Comparing.equal(AndroidRootUtil.getAidlGenDir(facet), sourceRoot)) {
           modes.add(AndroidAutogeneratorMode.AIDL);
