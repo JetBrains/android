@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.structure.NlStructurePanel;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindow;
 import com.intellij.icons.AllIcons;
@@ -47,12 +48,16 @@ public class NlStructureManager extends NlAbstractWindowManager {
   protected void updateToolWindow(@Nullable DesignerEditorPanelFacade designer) {
     if (designer == null) {
       myToolWindow.setAvailable(false, null);
+      if (myStructurePanel != null) {
+        myStructurePanel.setDesignSurface(null);
+      }
     }
     else {
       if (myStructurePanel == null) {
-        myStructurePanel = createStructurePane(designer);
+        myStructurePanel = new NlStructurePanel(getDesignSurface(designer));
         createWindowContent(myStructurePanel.getPanel(), myStructurePanel.getPanel(), null);
       }
+      myStructurePanel.setDesignSurface(getDesignSurface(designer));
       myToolWindow.setAvailable(true, null);
       myToolWindow.show(null);
     }
@@ -63,17 +68,16 @@ public class NlStructureManager extends NlAbstractWindowManager {
     return ToolWindowAnchor.RIGHT;
   }
 
-  private static NlStructurePanel createStructurePane(@NotNull DesignerEditorPanelFacade designer) {
-    // should be whatever is bound in NlEditor
+  @NotNull
+  private static DesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
     assert designer instanceof NlEditorPanel;
     NlEditorPanel editor = (NlEditorPanel)designer;
-    return new NlStructurePanel(editor.getSurface());
+    return editor.getSurface();
   }
-
 
   @Override
   protected LightToolWindow createContent(@NotNull DesignerEditorPanelFacade designer) {
-    NlStructurePanel structurePanel = createStructurePane(designer);
+    NlStructurePanel structurePanel = new NlStructurePanel(getDesignSurface(designer));
 
     return createContent(designer,
                          structurePanel,
