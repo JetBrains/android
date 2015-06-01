@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
@@ -273,6 +274,13 @@ public class ConfigurationManager implements Disposable {
     for (int i = targetList.length - 1; i >= 0; i--) {
       IAndroidTarget target = targetList[i];
       if (isLayoutLibTarget(target)) {
+        if (target.getVersion().isPreview()) {
+          // Only pick this target if the project is also compiled with the same target
+          AndroidVersion buildSdkVersion = AndroidModuleInfo.getBuildSdkVersion(myModule);
+          if (buildSdkVersion != null && !buildSdkVersion.isPreview()) {
+            continue;
+          }
+        }
         return target;
       }
     }
@@ -512,7 +520,15 @@ public class ConfigurationManager implements Disposable {
     IAndroidTarget[] targetList = getTargets();
     for (int i = targetList.length - 1; i >= 0; i--) {
       target = targetList[i];
-      if (isLayoutLibTarget(target) && target.getVersion().getApiLevel() >= min) {
+      if (isLayoutLibTarget(target) && target.getVersion().getFeatureLevel() >= min) {
+        if (target.getVersion().isPreview()) {
+          // Only pick this target if the project is also compiled with the same target
+          AndroidVersion buildSdkVersion = AndroidModuleInfo.getBuildSdkVersion(myModule);
+          if (buildSdkVersion != null && !buildSdkVersion.isPreview()) {
+            continue;
+          }
+        }
+
         return target;
       }
     }
