@@ -56,7 +56,11 @@ public final class AndroidSdk extends InstallableComponent {
     Collection<RemotePkgInfo> tools = packages.get(PkgType.PKG_BUILD_TOOLS);
     for (RemotePkgInfo tool : tools) {
       FullRevision fullRevision = tool.getPkgDesc().getFullRevision();
-      if (revision == null || (fullRevision != null && fullRevision.compareTo(revision) > 0)) {
+      // We never want to push preview platforms on users
+      if (fullRevision == null || fullRevision.isPreview()) {
+        continue;
+      }
+      if (revision == null || fullRevision.compareTo(revision) > 0) {
         revision = fullRevision;
       }
     }
