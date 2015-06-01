@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
@@ -35,6 +34,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.ArrayUtil;
 import lombok.ast.Node;
@@ -533,6 +533,16 @@ public class LombokPsiParser extends JavaParser {
     }
 
     @Override
+    @Nullable
+    public ResolvedMethod getSuperMethod() {
+      final PsiMethod[] superMethods = myMethod.findSuperMethods();
+      if (superMethods.length > 0) {
+        return new ResolvedPsiMethod(superMethods[0]);
+      }
+      return null;
+    }
+
+    @Override
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
@@ -841,6 +851,18 @@ public class LombokPsiParser extends JavaParser {
     public ResolvedClass getSuperClass() {
       if (myClass != null) {
         PsiClass superClass = myClass.getSuperClass();
+        // When you make an anonymous inner class from an interface like this,
+        // we want to treat the interface itself as the "super class"
+        //   public View.OnClickListener onSave = new View.OnClickListener() {
+        //     @Override
+        //     public void onClick(View v) {
+        //       ..
+        if (PsiUtil.isLocalOrAnonymousClass(myClass)) {
+          PsiClass[] interfaces = myClass.getInterfaces();
+          if (interfaces.length > 0) {
+            return new ResolvedPsiClass(interfaces[0]);
+          }
+        }
         if (superClass != null) {
           return new ResolvedPsiClass(superClass);
         }
