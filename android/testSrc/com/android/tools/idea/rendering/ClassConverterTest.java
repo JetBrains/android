@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.org.objectweb.asm.AnnotationVisitor;
 import org.jetbrains.org.objectweb.asm.ClassReader;
 import org.jetbrains.org.objectweb.asm.ClassVisitor;
 import org.jetbrains.org.objectweb.asm.ClassWriter;
@@ -157,20 +156,6 @@ public class ClassConverterTest extends TestCase {
     }
   }
 
-  /*
-    Compile the class below and take the binary content
-
-      class TestView extends View {
-         public TestView(Context context) {
-            super(context);
-        }
-
-        @Override
-        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        }
-      }
-    */
   // Method that generates the binary dump of the view below:
   //
   //class TestView extends View {
@@ -188,9 +173,7 @@ public class ClassConverterTest extends TestCase {
   // java -classpath asm-debug-all-5.0.2.jar:. org.objectweb.asm.util.ASMifier TestView.class
   private static byte[] dumpTestViewClass () throws Exception {
     ClassWriter cw = new ClassWriter(0);
-    FieldVisitor fv;
     MethodVisitor mv;
-    AnnotationVisitor av0;
 
     cw.visit(V1_7, ACC_SUPER, "TestView", null, "android/view/View", null);
 
