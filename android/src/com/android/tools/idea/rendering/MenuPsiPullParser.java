@@ -74,17 +74,17 @@ public class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayo
   @Override
   public Object getViewCookie() {
     if (myProvideViewCookies) {
-      Element element = getCurrentNode();
+      TagSnapshot element = getCurrentNode();
       if (element != null) {
         // <menu> tags means that we are adding a sub-menu. Since we don't show the submenu, we
         // return the enclosing tag.
-        if (element.tag.equals(FD_RES_MENU)) {
-          Element previousElement = getPreviousNode();
+        if (element.tagName.equals(FD_RES_MENU)) {
+          TagSnapshot previousElement = getPreviousNode();
           if (previousElement != null) {
-            return previousElement.cookie;
+            return previousElement.tag;
           }
         }
-        return element.cookie;
+        return element.tag;
       }
     }
 

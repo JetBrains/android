@@ -17,11 +17,18 @@
 package org.jetbrains.android.inspections;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.DeclaredPermissionsLookup;
+import com.android.tools.lint.checks.PermissionHolder;
+import com.android.tools.lint.checks.PermissionRequirement;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.AnnotationUtil;
+import com.intellij.codeInsight.ExceptionUtil;
 import com.intellij.codeInsight.FileModificationService;
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.codeInspection.*;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.editor.Document;
@@ -31,12 +38,17 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.ReadonlyStatusHandler;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.*;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.slicer.DuplicateMap;
 import com.intellij.slicer.SliceAnalysisParams;
 import com.intellij.slicer.SliceRootNode;
@@ -45,8 +57,13 @@ import com.intellij.util.Function;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
+import lombok.ast.BinaryOperator;
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.inspections.lint.LombokPsiParser;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,6 +73,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.SupportAnnotationDetector.*;
+import static com.intellij.psi.CommonClassNames.DEFAULT_PACKAGE;
 import static com.intellij.psi.CommonClassNames.JAVA_LANG_STRING;
 
 /**
@@ -102,7 +120,7 @@ import static com.intellij.psi.CommonClassNames.JAVA_LANG_STRING;
  * The main methods that were modified are:
  * <ul>
  *   <li>
- *     {@link #getAllowedValues(com.intellij.psi.PsiModifierListOwner, com.intellij.psi.PsiType, java.util.Set)}:
+ *     {@link #getAllowedValues(PsiModifierListOwner, PsiType, Set)}:
  *     Changed to look for IntDef/StringDef instead of MagicConstant, as well as look for the Resource type annotations
  *     ({@code }@StringRes}, {@code @IdRes}, etc) and for these we have to loop since you can specify more than one.
  *   </li>
@@ -143,8 +161,6 @@ import static com.intellij.psi.CommonClassNames.JAVA_LANG_STRING;
  * <p>
  */
 public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
-
-  private static final String RESOURCE_TYPE_ANNOTATIONS_SUFFIX = "Res";
 
   @NotNull
   @Override
@@ -259,37 +275,417 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       checkMagicParameterArgument(parameter, argument, values, holder);
     }
 
-    checkUseReturnValue(methodCall, holder, method);
+    checkMethodAnnotations(methodCall, holder, method);
   }
 
-  private static void checkUseReturnValue(PsiCallExpression methodCall, ProblemsHolder holder, PsiMethod method) {
-    if (methodCall.getParent() instanceof PsiExpressionStatement) {
-      PsiAnnotation annotation = AnnotationUtil.findAnnotation(method, CHECK_RESULT_ANNOTATION);
-      if (annotation != null) {
-        String message = String.format("The result '%1$s' is not used", method.getName());
-        PsiAnnotationMemberValue value = annotation.findAttributeValue(ATTR_SUGGEST);
-        if (value instanceof PsiLiteral) {
-          PsiLiteral literal = (PsiLiteral)value;
-          Object literalValue = literal.getValue();
-          if (literalValue instanceof String) {
-            String suggest = (String)literalValue;
-            // TODO: Resolve suggest attribute (e.g. prefix annotation class if it starts
-            // with "#" etc)?
-            if (!suggest.isEmpty()) {
-              String name = suggest;
-              if (name.startsWith("#")) {
-                name = name.substring(1);
-              }
-              message = String.format("The result of '%1$s' is not used; did you mean to call '%2$s'?", method.getName(), name);
-              if (suggest.startsWith("#") && methodCall instanceof PsiMethodCallExpression) {
-                holder.registerProblem(methodCall, message, new ReplaceCallFix((PsiMethodCallExpression)methodCall, suggest));
-                return;
-              }
+  private static void checkMethodAnnotations(PsiCallExpression methodCall, ProblemsHolder holder, PsiMethod method) {
+    PsiAnnotation[] annotations = getAllAnnotations(method);
+    for (PsiAnnotation annotation : annotations) {
+      String qualifiedName = annotation.getQualifiedName();
+      if (qualifiedName == null) {
+        continue;
+      } else if (!qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX)) {
+        if (qualifiedName.startsWith(DEFAULT_PACKAGE)) { // java.lang.Override, java.lang.SuppressWarnings etc, ignore
+          continue;
+        } else {
+          // Look for annotation that itself is annotated; we allow this for the @RequiresPermission annotation
+          PsiJavaCodeReferenceElement ref = annotation.getNameReferenceElement();
+          PsiElement resolved = ref == null ? null : ref.resolve();
+          if (!(resolved instanceof PsiClass) || !((PsiClass)resolved).isAnnotationType()) {
+            continue;
+          }
+          PsiClass cls = (PsiClass)resolved;
+          annotations = getAllAnnotations(cls);
+          for (PsiAnnotation a : annotations) {
+            qualifiedName = a.getQualifiedName();
+            if (qualifiedName != null && qualifiedName.endsWith(PERMISSION_ANNOTATION)) {
+              checkPermissionRequirement(methodCall, holder, method, a);
+            }
+          }
+
+          continue;
+        }
+      }
+
+      if (PERMISSION_ANNOTATION.equals(qualifiedName)) {
+        checkPermissionRequirement(methodCall, holder, method, annotation);
+      } else if (CHECK_RESULT_ANNOTATION.equals(qualifiedName)) {
+        checkReturnValueUsage(methodCall, holder, method);
+      } else if (qualifiedName.endsWith(THREAD_SUFFIX)) {
+        checkThreadAnnotation(methodCall, holder, method, qualifiedName);
+      }
+    }
+
+    PsiClass cls = method.getContainingClass();
+    if (cls != null) {
+      annotations = getAllAnnotations(cls);
+      for (PsiAnnotation annotation : annotations) {
+        String qualifiedName = annotation.getQualifiedName();
+        if (qualifiedName != null && qualifiedName.endsWith(THREAD_SUFFIX)) {
+          checkThreadAnnotation(methodCall, holder, method, qualifiedName);
+        } else if (qualifiedName != null && !qualifiedName.startsWith(DEFAULT_PACKAGE)) {
+          // Look for annotation that itself is annotated; we allow this for the @RequiresPermission annotation
+          PsiJavaCodeReferenceElement ref = annotation.getNameReferenceElement();
+          PsiElement resolved = ref == null ? null : ref.resolve();
+          if (!(resolved instanceof PsiClass) || !((PsiClass)resolved).isAnnotationType()) {
+            continue;
+          }
+          cls = (PsiClass)resolved;
+          annotations = getAllAnnotations(cls);
+          for (PsiAnnotation a : annotations) {
+            qualifiedName = a.getQualifiedName();
+            if (qualifiedName != null && qualifiedName.endsWith(PERMISSION_ANNOTATION)) {
+              checkPermissionRequirement(methodCall, holder, method, a);
             }
           }
         }
-        holder.registerProblem(methodCall, message);
       }
+    }
+  }
+
+  private static void checkThreadAnnotation(PsiCallExpression methodCall, ProblemsHolder holder, PsiMethod method, String qualifiedName) {
+    String threadContext = getThreadContext(methodCall);
+    if (threadContext != null && !isCompatibleThread(threadContext, qualifiedName)) {
+      String message = String.format("Method %1$s must be called from the %2$s thread, currently inferred thread is %3$s",
+        method.getName(), describeThread(qualifiedName), describeThread(threadContext));
+      holder.registerProblem(methodCall, message);
+    }
+  }
+
+  /** Attempts to infer the current thread context at the site of the given method call */
+  @Nullable
+  private static String getThreadContext(PsiCallExpression methodCall) {
+    PsiMethod method = PsiTreeUtil.getParentOfType(methodCall, PsiMethod.class, true);
+    if (method != null) {
+      PsiAnnotation[] annotations = getAllAnnotations(method);
+      for (PsiAnnotation annotation : annotations) {
+        String qualifiedName = annotation.getQualifiedName();
+        if (qualifiedName == null) {
+          continue;
+        }
+
+        if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX) && qualifiedName.endsWith(THREAD_SUFFIX)) {
+          return qualifiedName;
+        }
+      }
+
+      // See if we're extending a class with a known threading context
+      PsiClass cls = method.getContainingClass();
+      if (cls != null) {
+        annotations = getAllAnnotations(cls);
+        for (PsiAnnotation annotation : annotations) {
+          String qualifiedName = annotation.getQualifiedName();
+          if (qualifiedName == null) {
+            continue;
+          }
+
+          if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX) && qualifiedName.endsWith(THREAD_SUFFIX)) {
+            return qualifiedName;
+          }
+        }
+      }
+    }
+
+    // TODO: Other heuristics I could use here are:
+    // - if extending view, use @UiThread
+    // - look at other calls in the method, and try to infer it based on those? (risky since if I have a method with two thread
+    //   annotated calls and one of them is wrong, who do I choose as the authority?
+
+    return null;
+  }
+
+  private static void checkPermissionRequirement(PsiCallExpression methodCall,
+                                                 ProblemsHolder holder,
+                                                 PsiMethod method,
+                                                 PsiAnnotation annotation) {
+    PermissionRequirement requirement = PermissionRequirement.create(null, LombokPsiParser.createResolvedAnnotation(annotation));
+    if (!requirement.isConditional()) {
+      Project project = methodCall.getProject();
+      final AndroidFacet facet = AndroidFacet.getInstance(methodCall);
+      assert facet != null; // already checked early on in the inspection visitor
+      PermissionHolder lookup = DeclaredPermissionsLookup.getPermissionHolder(facet.getModule());
+      if (!requirement.isSatisfied(lookup)) {
+        PsiClass containingClass = method.getContainingClass();
+        String methodName = containingClass != null ? containingClass.getName() + "." + method.getName() : method.getName();
+        String message = getMissingPermissionMessage(requirement, methodName, lookup);
+        LocalQuickFix[] fixes = LocalQuickFix.EMPTY_ARRAY;
+        List<LocalQuickFix> list = Lists.newArrayList();
+        for (String permissionName : requirement.getMissingPermissions(lookup)) {
+          list.add(new AddPermissionFix(facet, permissionName));
+        }
+        if (!list.isEmpty()) {
+          fixes = list.toArray(new LocalQuickFix[list.size()]);
+        }
+        holder.registerProblem(methodCall, message, fixes);
+      } else if (requirement.isRevocable() && AndroidModuleInfo.get(facet).getTargetSdkVersion().getFeatureLevel() >= 23) {
+        JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
+        PsiClass securityException = psiFacade.findClass("java.lang.SecurityException", GlobalSearchScope.allScope(project));
+        if (securityException != null && ExceptionUtil.isHandled(PsiTypesUtil.getClassType(securityException), methodCall)) {
+          return;
+        }
+
+        PsiMethod methodNode = PsiTreeUtil.getParentOfType(methodCall, PsiMethod.class, true);
+        if (methodNode != null) {
+          //noinspection unchecked
+          for (PsiMethodCallExpression call : PsiTreeUtil.collectElementsOfType(methodNode, PsiMethodCallExpression.class)) {
+            String name = call.getMethodExpression().getReferenceName();
+            if (name != null && name.endsWith("Permission") && (name.startsWith("check") || name.startsWith("enforce"))) {
+              return;
+            }
+          }
+
+          holder.registerProblem(methodCall, getUnhandledPermissionMessage(), new AddCheckPermissionFix(facet, requirement, methodCall));
+        }
+      }
+    }
+  }
+
+  private static void checkReturnValueUsage(PsiCallExpression methodCall, ProblemsHolder holder, PsiMethod method) {
+    if (methodCall.getParent() instanceof PsiExpressionStatement) {
+      PsiAnnotation annotation = AnnotationUtil.findAnnotation(method, CHECK_RESULT_ANNOTATION);
+      if (annotation == null) {
+        return;
+      }
+      String message = String.format("The result '%1$s' is not used", method.getName());
+      PsiAnnotationMemberValue value = annotation.findAttributeValue(ATTR_SUGGEST);
+      if (value instanceof PsiLiteral) {
+        PsiLiteral literal = (PsiLiteral)value;
+        Object literalValue = literal.getValue();
+        if (literalValue instanceof String) {
+          String suggest = (String)literalValue;
+          // TODO: Resolve suggest attribute (e.g. prefix annotation class if it starts
+          // with "#" etc)?
+          if (!suggest.isEmpty()) {
+            String name = suggest;
+            if (name.startsWith("#")) {
+              name = name.substring(1);
+            }
+            message = String.format("The result of '%1$s' is not used; did you mean to call '%2$s'?", method.getName(), name);
+            if (suggest.startsWith("#") && methodCall instanceof PsiMethodCallExpression) {
+              holder.registerProblem(methodCall, message, new ReplaceCallFix((PsiMethodCallExpression)methodCall, suggest));
+              return;
+            }
+          }
+        }
+      }
+      holder.registerProblem(methodCall, message);
+    }
+  }
+
+  private static class AddPermissionFix implements LocalQuickFix {
+    private final AndroidFacet myFacet;
+    private final String myPermissionName;
+
+    public AddPermissionFix(AndroidFacet facet, String permissionName) {
+      myFacet = facet;
+      myPermissionName = permissionName;
+    }
+
+    @Nls
+    @NotNull
+    @Override
+    public String getName() {
+      return String.format("Add Permission %1$s", myPermissionName.substring(myPermissionName.lastIndexOf('.')+1));
+    }
+
+    @NotNull
+    @Override
+    public String getFamilyName() {
+      return "Add Permissions";
+    }
+
+    @Override
+    public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+      final VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(myFacet);
+      if (manifestFile == null || !ReadonlyStatusHandler.ensureFilesWritable(myFacet.getModule().getProject(), manifestFile)) {
+        return;
+      }
+
+      final Manifest manifest = AndroidUtils.loadDomElement(myFacet.getModule(), manifestFile, Manifest.class);
+      if (manifest == null) {
+        return;
+      }
+
+      // I tried manipulating the file using DOM apis, using this:
+      //    Permission permission = manifest.addPermission();
+      //    permission.getName().setValue(myPermissionName);
+      // (which required adding
+      //      Permission addPermission();
+      // to org.jetbrains.android.dom.manifest.Manifest).
+      //
+      // However, that will append a <permission name="something"/> element to the
+      // *end* of the manifest, which is not right (and will trigger a lint warning).
+      // So, instead we manipulate the XML document directly via PSI. (This is
+      // incidentally also how the AndroidModuleBuilder#configureManifest method works.)
+      final XmlTag manifestTag = manifest.getXmlTag();
+      if (manifestTag == null) {
+        return;
+      }
+
+      XmlTag permissionTag = manifestTag.createChildTag(TAG_USES_PERMISSION, "", null, false);
+      if (permissionTag != null) {
+
+        XmlTag before = null;
+        // Find best insert position:
+        //   (1) attempt to insert alphabetically among any permission tags
+        //   (2) if no permission tags are found, put it before the application tag
+        for (XmlTag tag : manifestTag.getSubTags()) {
+          String tagName = tag.getName();
+          if (tagName.equals(TAG_APPLICATION)) {
+            before = tag;
+            break;
+          } else if (tagName.equals(TAG_USES_PERMISSION)) {
+            String name = tag.getAttributeValue(ATTR_NAME, ANDROID_URI);
+            if (name != null && name.compareTo(myPermissionName) > 0) {
+              before = tag;
+              break;
+            }
+          }
+        }
+        if (before == null) {
+          permissionTag = manifestTag.addSubTag(permissionTag, false);
+        } else {
+          permissionTag = (XmlTag)manifestTag.addBefore(permissionTag, before);
+        }
+
+        // Do this *after* adding the tag to the document; otherwise, setting the
+        // namespace prefix will not work correctly
+        permissionTag.setAttribute(ATTR_NAME, ANDROID_URI, myPermissionName);
+
+        CodeStyleManager.getInstance(project).reformat(permissionTag);
+
+        DeclaredPermissionsLookup.getInstance(project).reset();
+        FileDocumentManager.getInstance().saveAllDocuments();
+        PsiFile containingFile = permissionTag.getContainingFile();
+        // No edits were made to the current document, so trigger a rescan to ensure
+        // that the inspection discovers that there is now a new available inspection
+        if (containingFile != null) {
+          DaemonCodeAnalyzer.getInstance(project).restart();
+        }
+      }
+    }
+  }
+
+  private static class AddCheckPermissionFix implements LocalQuickFix {
+    private final AndroidFacet myFacet;
+    private final PermissionRequirement myRequirement;
+    private final PsiCallExpression myCall;
+
+    public AddCheckPermissionFix(AndroidFacet facet, PermissionRequirement requirement, PsiCallExpression call) {
+      myFacet = facet;
+      myRequirement = requirement;
+      myCall = call;
+    }
+
+    @Nls
+    @NotNull
+    @Override
+    public String getName() {
+      return "Add Permission Check";
+    }
+
+    @NotNull
+    @Override
+    public String getFamilyName() {
+      return getName();
+    }
+
+    @Override
+    public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+      // Find the statement containing the method call;
+      PsiStatement statement = PsiTreeUtil.getParentOfType(myCall, PsiStatement.class, true);
+      if (statement == null) {
+        return;
+      }
+      PsiElement parent = statement.getParent();
+      if (parent == null) {
+        return; // highly unlikely
+      }
+
+      Set<String> revocablePermissions = myRequirement.getRevocablePermissions();
+
+
+      JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+      PsiClass manifest = facade.findClass("android.Manifest.permission", GlobalSearchScope.moduleWithLibrariesScope(myFacet.getModule()));
+      Map<String, PsiField> permissionNames;
+
+      if (manifest != null) {
+        PsiField[] fields = manifest.getFields();
+        permissionNames = Maps.newHashMapWithExpectedSize(fields.length);
+        for (PsiField field : fields) {
+          PsiExpression initializer = field.getInitializer();
+          if (initializer instanceof PsiLiteralExpression) {
+            Object value = ((PsiLiteralExpression)initializer).getValue();
+            if (value instanceof String) {
+              permissionNames.put((String)value, field);
+            }
+          }
+        }
+      } else {
+        permissionNames = Collections.emptyMap();
+      }
+
+      // Look up the operator combining the requirements, and *reverse it*.
+      // That's because we're adding a check to exit if the permissions are *not* met.
+      // For example, take the case of location permissions: you need COARSE OR FINE.
+      // In that case, we check that you do not have COARSE, *and* that you do not have FINE,
+      // before we exit.
+      BinaryOperator operator = myRequirement.getOperator();
+      if (operator == null) {
+        operator = BinaryOperator.LOGICAL_OR;
+      } else if (operator == BinaryOperator.LOGICAL_AND) {
+        operator = BinaryOperator.LOGICAL_OR;
+      } else if (operator == BinaryOperator.LOGICAL_OR) {
+        operator = BinaryOperator.LOGICAL_AND;
+      }
+
+      PsiElementFactory factory = facade.getElementFactory();
+      StringBuilder sb = new StringBuilder(200);
+      sb.append("if (");
+      boolean first = true;
+      for (String permission : revocablePermissions) {
+        if (first) {
+          first = false;
+        } else {
+          sb.append(' ');
+          sb.append(operator.getSymbol());
+          sb.append(' ');
+        }
+        sb.append("checkSelfPermission(");
+
+        // Try to map permission strings back to field references!
+        PsiField field = permissionNames.get(permission);
+        if (field != null && field.getContainingClass() != null) {
+          sb.append(field.getContainingClass().getQualifiedName()).append('.').append(field.getName());
+        } else {
+          sb.append('"').append(permission).append('"');
+        }
+        sb.append(") != android.content.pm.PackageManager.PERMISSION_GRANTED");
+      }
+      sb.append(") {\n");
+      sb.append(" // TODO: Consider calling\n" +
+                " //    public void requestPermissions(@NonNull String[] permissions, int requestCode)\n" +
+                " // here to request the missing permissions, and then overriding\n" +
+                " //   public void onRequestPermissionsResult(int requestCode, String[] permissions,\n" +
+                " //                                          int[] grantResults)\n" +
+                " // to handle the case where the user grants the permission. See the documentation\n" +
+                " // for Activity#requestPermissions for more details.\n");
+      PsiMethod method = PsiTreeUtil.getParentOfType(myCall, PsiMethod.class, true);
+      if (method != null && !PsiType.VOID.equals(method.getReturnType())) {
+        sb.append("return TODO;\n");
+      } else {
+        sb.append("return;\n");
+      }
+      sb.append("}\n");
+      String code = sb.toString();
+
+      PsiStatement check = factory.createStatementFromText(code, myCall);
+      JavaCodeStyleManager.getInstance(project).shortenClassReferences(check);
+      parent.addBefore(check, statement);
+
+      // Reformat from start of newly added element to end of statement following it
+      CodeStyleManager.getInstance(project).reformatRange(parent, check.getTextOffset(),
+                                                          statement.getTextOffset() + statement.getTextLength());
     }
   }
 
@@ -512,6 +908,16 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         Object v = JavaConstantExpressionEvaluator.computeConstantExpression(argument, false);
         if (v instanceof Number) {
           return (Number)v;
+        }
+      } else if (argument instanceof PsiReferenceExpression) {
+        PsiReferenceExpression ref = (PsiReferenceExpression)argument;
+        PsiElement resolved = ref.resolve();
+        if (resolved instanceof PsiField) {
+          PsiField field = (PsiField)resolved;
+          PsiExpression initializer = field.getInitializer();
+          if (initializer != null) {
+            return guessSize(initializer);
+          }
         }
       }
       return null;
@@ -752,6 +1158,16 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (v instanceof String) {
           return ((String)v).length();
         }
+      } else if (argument instanceof PsiReferenceExpression) {
+        PsiReferenceExpression ref = (PsiReferenceExpression)argument;
+        PsiElement resolved = ref.resolve();
+        if (resolved instanceof PsiField) {
+          PsiField field = (PsiField)resolved;
+          PsiExpression initializer = field.getInitializer();
+          if (initializer != null) {
+            return guessSize(initializer);
+          }
+        }
       }
       return -1;
     }
@@ -843,38 +1259,45 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   }
 
   @Nullable
-  private static ResourceType getResourceTypeFromAnnotation(@NotNull String qualifiedName) {
+  public static ResourceType getResourceTypeFromAnnotation(@NotNull String qualifiedName) {
     String resourceTypeName =
       Character.toLowerCase(qualifiedName.charAt(SUPPORT_ANNOTATIONS_PREFIX.length())) +
-      qualifiedName.substring(SUPPORT_ANNOTATIONS_PREFIX.length() + 1, qualifiedName.length() - RESOURCE_TYPE_ANNOTATIONS_SUFFIX.length());
+      qualifiedName.substring(SUPPORT_ANNOTATIONS_PREFIX.length() + 1, qualifiedName.length() - RES_SUFFIX.length());
     return ResourceType.getEnum(resourceTypeName);
   }
 
   @Nullable
-  static Constraints getAllowedValues(@NotNull PsiModifierListOwner element, @Nullable PsiType type, @Nullable Set<PsiClass> visited) {
+  public static Constraints getAllowedValues(@NotNull PsiModifierListOwner element, @Nullable PsiType type, @Nullable Set<PsiClass> visited) {
     PsiAnnotation[] annotations = getAllAnnotations(element);
     PsiManager manager = element.getManager();
     List<ResourceType> resourceTypes = null;
     for (PsiAnnotation annotation : annotations) {
       Constraints values;
-      if (type != null) {
-        String qualifiedName = annotation.getQualifiedName();
-        if (qualifiedName == null) {
-          continue;
-        }
+      String qualifiedName = annotation.getQualifiedName();
+      if (qualifiedName == null) {
+        continue;
+      }
 
+      if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX)) {
         if (INT_DEF_ANNOTATION.equals(qualifiedName) || STRING_DEF_ANNOTATION.equals(qualifiedName)) {
-          values = getAllowedValuesFromTypedef(type, annotation, manager);
-          if (values != null) return values;
-        } else if (INT_RANGE_ANNOTATION.equals(qualifiedName)) {
+          if (type != null) {
+            values = getAllowedValuesFromTypedef(type, annotation, manager);
+            if (values != null) return values;
+          }
+        }
+        else if (INT_RANGE_ANNOTATION.equals(qualifiedName)) {
           return new IntRangeConstraint(annotation);
-        } else if (FLOAT_RANGE_ANNOTATION.equals(qualifiedName)) {
+        }
+        else if (FLOAT_RANGE_ANNOTATION.equals(qualifiedName)) {
           return new FloatRangeConstraint(annotation);
-        } else if (SIZE_ANNOTATION.equals(qualifiedName)) {
+        }
+        else if (SIZE_ANNOTATION.equals(qualifiedName)) {
           return new SizeConstraint(annotation);
-        } else if (COLOR_INT_ANNOTATION.equals(qualifiedName)) {
+        }
+        else if (COLOR_INT_ANNOTATION.equals(qualifiedName)) {
           return new ResourceTypeAllowedValues(Collections.<ResourceType>emptyList());
-        } else if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX) && qualifiedName.endsWith(RESOURCE_TYPE_ANNOTATIONS_SUFFIX)) {
+        }
+        else if (qualifiedName.endsWith(RES_SUFFIX)) {
           ResourceType resourceType = getResourceTypeFromAnnotation(qualifiedName);
           if (resourceType != null) {
             if (resourceTypes == null) {
@@ -902,13 +1325,12 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return null;
   }
 
-  private static PsiAnnotation[] getAllAnnotations(final PsiModifierListOwner element) {
+  public static PsiAnnotation[] getAllAnnotations(final PsiModifierListOwner element) {
     return CachedValuesManager.getCachedValue(element, new CachedValueProvider<PsiAnnotation[]>() {
       @Nullable
       @Override
       public Result<PsiAnnotation[]> compute() {
-        return Result.create(AnnotationUtil.getAllAnnotations(element, true, null),
-                             PsiModificationTracker.MODIFICATION_COUNT);
+        return Result.create(AnnotationUtil.getAllAnnotations(element, true, null), PsiModificationTracker.MODIFICATION_COUNT);
       }
     });
   }

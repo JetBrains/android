@@ -24,6 +24,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.avdmanager.EmulatorRunner;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -64,6 +65,7 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.file.PsiPackageImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
@@ -124,6 +126,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   private AvdManager myAvdManager = null;
   private AndroidSdkData mySdkData;
+  private boolean myDataBindingEnabled = false;
 
   private SystemResourceManager myPublicSystemResourceManager;
   private SystemResourceManager myFullSystemResourceManager;
@@ -153,6 +156,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private IdeaSourceProvider myMainIdeaSourceSet;
   private final AndroidModuleInfo myAndroidModuleInfo = AndroidModuleInfo.create(this);
   private RenderService myRenderService;
+  private DataBindingUtil.LightBrClass myLightBrClass;
 
   public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
     //noinspection ConstantConditions
@@ -1123,6 +1127,25 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   public void setIdeaAndroidProject(@Nullable IdeaAndroidProject project) {
     myIdeaAndroidProject = project;
+    DataBindingUtil.onIdeaProjectSet(this);
+  }
+
+  /**
+   * Returns true if this facet includes data binding library
+   *
+   * @return True if data binding is enabled for this Facet
+   */
+  public boolean isDataBindingEnabled() {
+    return myDataBindingEnabled;
+  }
+
+  /**
+   * Called by the {@linkplain DataBindingUtil} to update whether this facet includes data binding or not.
+   *
+   * @param dataBindingEnabled True if Facet includes data binding, false otherwise.
+   */
+  public void setDataBindingEnabled(boolean dataBindingEnabled) {
+    myDataBindingEnabled = dataBindingEnabled;
   }
 
   public void addListener(@NotNull GradleSyncListener listener) {
@@ -1216,6 +1239,26 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       myRenderService = new RenderService(this);
     }
     return myRenderService;
+  }
+
+  /**
+   * Set by {@linkplain DataBindingUtil} the first time we need it.
+   *
+   * @param lightBrClass
+   * @see DataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
+   */
+  public void setLightBrClass(DataBindingUtil.LightBrClass lightBrClass) {
+    myLightBrClass = lightBrClass;
+  }
+
+  /**
+   * Returns the light BR class for this facet if it is aready set.
+   *
+   * @return The BR class for this facet, if exists
+   * @see DataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
+   */
+  public DataBindingUtil.LightBrClass getLightBrClass() {
+    return myLightBrClass;
   }
 
   // Compatibility bridge for old (non-Gradle) projects. Also used in Gradle projects before the module has been synced.

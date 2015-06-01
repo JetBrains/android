@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.security.keystore.KeyGenParameterSpec boolean isDigestsSpecified()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec int getPurposes()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.PURPOSE_ENCRYPT, android.security.keystore.KeyProperties.PURPOSE_DECRYPT, android.security.keystore.KeyProperties.PURPOSE_SIGN, android.security.keystore.KeyProperties.PURPOSE_VERIFY}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec java.lang.String[] getBlockModes()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.BLOCK_MODE_ECB, android.security.keystore.KeyProperties.BLOCK_MODE_CBC, android.security.keystore.KeyProperties.BLOCK_MODE_CTR, android.security.keystore.KeyProperties.BLOCK_MODE_GCM}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec java.lang.String[] getDigests()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.DIGEST_NONE, android.security.keystore.KeyProperties.DIGEST_MD5, android.security.keystore.KeyProperties.DIGEST_SHA1, android.security.keystore.KeyProperties.DIGEST_SHA224, android.security.keystore.KeyProperties.DIGEST_SHA256, android.security.keystore.KeyProperties.DIGEST_SHA384, android.security.keystore.KeyProperties.DIGEST_SHA512}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec java.lang.String[] getEncryptionPaddings()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_PKCS7, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_OAEP}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec java.lang.String[] getSignaturePaddings()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.SIGNATURE_PADDING_RSA_PKCS1, android.security.keystore.KeyProperties.SIGNATURE_PADDING_RSA_PSS}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec java.math.BigInteger getCertificateSerialNumber()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec java.security.spec.AlgorithmParameterSpec getAlgorithmParameterSpec()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec java.util.Date getCertificateNotAfter()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec java.util.Date getCertificateNotBefore()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec java.util.Date getKeyValidityForConsumptionEnd()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec java.util.Date getKeyValidityForOriginationEnd()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec java.util.Date getKeyValidityStart()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec javax.security.auth.x500.X500Principal getCertificateSubject()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder Builder(java.lang.String, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder Builder(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.PURPOSE_ENCRYPT, android.security.keystore.KeyProperties.PURPOSE_DECRYPT, android.security.keystore.KeyProperties.PURPOSE_SIGN, android.security.keystore.KeyProperties.PURPOSE_VERIFY}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setAlgorithmParameterSpec(java.security.spec.AlgorithmParameterSpec) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setBlockModes(java.lang.String...)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setBlockModes(java.lang.String...) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.BLOCK_MODE_ECB, android.security.keystore.KeyProperties.BLOCK_MODE_CBC, android.security.keystore.KeyProperties.BLOCK_MODE_CTR, android.security.keystore.KeyProperties.BLOCK_MODE_GCM}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setCertificateNotAfter(java.util.Date)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setCertificateNotAfter(java.util.Date) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setCertificateNotBefore(java.util.Date)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setCertificateNotBefore(java.util.Date) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setCertificateSerialNumber(java.math.BigInteger)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setCertificateSerialNumber(java.math.BigInteger) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setCertificateSubject(javax.security.auth.x500.X500Principal)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setCertificateSubject(javax.security.auth.x500.X500Principal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setDigests(java.lang.String...)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setDigests(java.lang.String...) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.DIGEST_NONE, android.security.keystore.KeyProperties.DIGEST_MD5, android.security.keystore.KeyProperties.DIGEST_SHA1, android.security.keystore.KeyProperties.DIGEST_SHA224, android.security.keystore.KeyProperties.DIGEST_SHA256, android.security.keystore.KeyProperties.DIGEST_SHA384, android.security.keystore.KeyProperties.DIGEST_SHA512}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setEncryptionPaddings(java.lang.String...)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setEncryptionPaddings(java.lang.String...) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_PKCS7, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_OAEP}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setKeySize(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setKeyValidityEnd(java.util.Date)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setKeyValidityForConsumptionEnd(java.util.Date)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setKeyValidityForOriginationEnd(java.util.Date)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setKeyValidityStart(java.util.Date)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setRandomizedEncryptionRequired(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setSignaturePaddings(java.lang.String...)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setSignaturePaddings(java.lang.String...) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.SIGNATURE_PADDING_RSA_PKCS1, android.security.keystore.KeyProperties.SIGNATURE_PADDING_RSA_PSS}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setUserAuthenticationRequired(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setUserAuthenticationValidityDurationSeconds(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setUserAuthenticationValidityDurationSeconds(int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="-1" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyInfo int getOrigin()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.ORIGIN_GENERATED, android.security.keystore.KeyProperties.ORIGIN_IMPORTED, android.security.keystore.KeyProperties.ORIGIN_UNKNOWN}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyInfo int getPurposes()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.PURPOSE_ENCRYPT, android.security.keystore.KeyProperties.PURPOSE_DECRYPT, android.security.keystore.KeyProperties.PURPOSE_SIGN, android.security.keystore.KeyProperties.PURPOSE_VERIFY}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyInfo java.lang.String[] getBlockModes()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.BLOCK_MODE_ECB, android.security.keystore.KeyProperties.BLOCK_MODE_CBC, android.security.keystore.KeyProperties.BLOCK_MODE_CTR, android.security.keystore.KeyProperties.BLOCK_MODE_GCM}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyInfo java.lang.String[] getDigests()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.DIGEST_NONE, android.security.keystore.KeyProperties.DIGEST_MD5, android.security.keystore.KeyProperties.DIGEST_SHA1, android.security.keystore.KeyProperties.DIGEST_SHA224, android.security.keystore.KeyProperties.DIGEST_SHA256, android.security.keystore.KeyProperties.DIGEST_SHA384, android.security.keystore.KeyProperties.DIGEST_SHA512}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyInfo java.lang.String[] getEncryptionPaddings()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_PKCS7, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_OAEP}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyInfo java.lang.String[] getSignaturePaddings()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.SIGNATURE_PADDING_RSA_PKCS1, android.security.keystore.KeyProperties.SIGNATURE_PADDING_RSA_PSS}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyInfo java.util.Date getKeyValidityForConsumptionEnd()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.keystore.KeyInfo java.util.Date getKeyValidityForOriginationEnd()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.keystore.KeyInfo java.util.Date getKeyValidityStart()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.keystore.KeyProtection int getPurposes()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.PURPOSE_ENCRYPT, android.security.keystore.KeyProperties.PURPOSE_DECRYPT, android.security.keystore.KeyProperties.PURPOSE_SIGN, android.security.keystore.KeyProperties.PURPOSE_VERIFY}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyProtection java.lang.String[] getBlockModes()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.BLOCK_MODE_ECB, android.security.keystore.KeyProperties.BLOCK_MODE_CBC, android.security.keystore.KeyProperties.BLOCK_MODE_CTR, android.security.keystore.KeyProperties.BLOCK_MODE_GCM}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyProtection java.lang.String[] getDigests()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.DIGEST_NONE, android.security.keystore.KeyProperties.DIGEST_MD5, android.security.keystore.KeyProperties.DIGEST_SHA1, android.security.keystore.KeyProperties.DIGEST_SHA224, android.security.keystore.KeyProperties.DIGEST_SHA256, android.security.keystore.KeyProperties.DIGEST_SHA384, android.security.keystore.KeyProperties.DIGEST_SHA512}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyProtection java.lang.String[] getEncryptionPaddings()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_PKCS7, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_OAEP}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyProtection java.lang.String[] getSignaturePaddings()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.SIGNATURE_PADDING_RSA_PKCS1, android.security.keystore.KeyProperties.SIGNATURE_PADDING_RSA_PSS}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyProtection java.util.Date getKeyValidityForConsumptionEnd()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.keystore.KeyProtection java.util.Date getKeyValidityForOriginationEnd()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.keystore.KeyProtection java.util.Date getKeyValidityStart()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder Builder(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.PURPOSE_ENCRYPT, android.security.keystore.KeyProperties.PURPOSE_DECRYPT, android.security.keystore.KeyProperties.PURPOSE_SIGN, android.security.keystore.KeyProperties.PURPOSE_VERIFY}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setBlockModes(java.lang.String...)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setBlockModes(java.lang.String...) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.BLOCK_MODE_ECB, android.security.keystore.KeyProperties.BLOCK_MODE_CBC, android.security.keystore.KeyProperties.BLOCK_MODE_CTR, android.security.keystore.KeyProperties.BLOCK_MODE_GCM}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setDigests(java.lang.String...)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setDigests(java.lang.String...) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.DIGEST_NONE, android.security.keystore.KeyProperties.DIGEST_MD5, android.security.keystore.KeyProperties.DIGEST_SHA1, android.security.keystore.KeyProperties.DIGEST_SHA224, android.security.keystore.KeyProperties.DIGEST_SHA256, android.security.keystore.KeyProperties.DIGEST_SHA384, android.security.keystore.KeyProperties.DIGEST_SHA512}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setEncryptionPaddings(java.lang.String...)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setEncryptionPaddings(java.lang.String...) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_PKCS7, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_OAEP}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setKeyValidityEnd(java.util.Date)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setKeyValidityForConsumptionEnd(java.util.Date)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setKeyValidityForOriginationEnd(java.util.Date)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setKeyValidityStart(java.util.Date)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setRandomizedEncryptionRequired(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setSignaturePaddings(java.lang.String...)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setSignaturePaddings(java.lang.String...) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.SIGNATURE_PADDING_RSA_PKCS1, android.security.keystore.KeyProperties.SIGNATURE_PADDING_RSA_PSS}" />
+    </annotation>
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setUserAuthenticationRequired(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setUserAuthenticationValidityDurationSeconds(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setUserAuthenticationValidityDurationSeconds(int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="-1" />
+    </annotation>
+  </item>
+</root>
+

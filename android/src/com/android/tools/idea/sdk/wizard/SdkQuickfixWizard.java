@@ -164,7 +164,12 @@ public class SdkQuickfixWizard extends DynamicWizard {
     state.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, false);
     Set<String> available = Sets.newHashSet();
     for (UpdatablePkgInfo update : state.getPackages().getUpdatedPkgs()) {
-      available.add(update.getRemote().getPkgDesc().getInstallId());
+      if (update.hasRemote(false)) {
+        available.add(update.getRemote(false).getPkgDesc().getInstallId());
+      }
+      if (update.hasPreview()) {
+        available.add(update.getRemote(true).getPkgDesc().getInstallId());
+      }
     }
     for (IPkgDesc request : myRequestedPackages) {
       if (available.contains(request.getInstallId())) {

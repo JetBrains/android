@@ -18,13 +18,16 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
+import com.android.tools.idea.sdk.SdkPaths;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
@@ -52,6 +55,7 @@ public final class SdkSync {
 
   public static void syncIdeAndProjectAndroidSdks(@NotNull LocalProperties localProperties) {
     syncIdeAndProjectAndroidSdks(localProperties, new FindValidSdkPathTask());
+    syncIdeAndProjectAndroidNdk(localProperties);
   }
 
   @VisibleForTesting
@@ -109,17 +113,17 @@ public final class SdkSync {
 
     if (!filesEqual(ideAndroidSdkPath, projectAndroidSdkPath)) {
       final String msg = String.format("The project and Android Studio point to different Android SDKs.\n\n" +
-                                 "Android Studio's default SDK is in:\n" +
-                                 "%1$s\n\n" +
-                                 "The project's SDK (specified in local.properties) is in:\n" +
-                                 "%2$s\n\n" +
-                                 "To keep results consistent between IDE and command line builds, only one path can be used. " +
-                                 "Do you want to:\n\n" +
-                                 "[1] Use Android Studio's default SDK (modifies the project's local.properties file.)\n\n" +
-                                 "[2] Use the project's SDK (modifies Android Studio's default.)\n\n" +
-                                 "Note that switching SDKs could cause compile errors if the selected SDK doesn't have the " +
-                                 "necessary Android platforms or build tools.",
-                                 ideAndroidSdkPath.getPath(), projectAndroidSdkPath.getPath());
+                                       "Android Studio's default SDK is in:\n" +
+                                       "%1$s\n\n" +
+                                       "The project's SDK (specified in local.properties) is in:\n" +
+                                       "%2$s\n\n" +
+                                       "To keep results consistent between IDE and command line builds, only one path can be used. " +
+                                       "Do you want to:\n\n" +
+                                       "[1] Use Android Studio's default SDK (modifies the project's local.properties file.)\n\n" +
+                                       "[2] Use the project's SDK (modifies Android Studio's default.)\n\n" +
+                                       "Note that switching SDKs could cause compile errors if the selected SDK doesn't have the " +
+                                       "necessary Android platforms or build tools.",
+                                       ideAndroidSdkPath.getPath(), projectAndroidSdkPath.getPath());
       invokeAndWaitIfNeeded(new Runnable() {
         @Override
         public void run() {
@@ -138,6 +142,40 @@ public final class SdkSync {
           }
         }
       });
+    }
+  }
+
+  @VisibleForTesting
+  static void syncIdeAndProjectAndroidNdk(@NotNull final LocalProperties localProperties) {
+    File projectAndroidNdkPath = localProperties.getAndroidNdkPath();
+    File ideAndroidNdkPath = IdeSdks.getAndroidNdkPath();
+
+    if (projectAndroidNdkPath != null) {
+      if (!SdkPaths.validateAndroidNdk(projectAndroidNdkPath, false).success) {
+        if (ideAndroidNdkPath != null) {
+          Logger.getInstance(SdkSync.class).warn(String.format("Replacing invalid NDK path %1$s with %2$s",
+                                                               projectAndroidNdkPath, ideAndroidNdkPath));
+          setProjectNdk(localProperties, ideAndroidNdkPath);
+        }
+        else {
+          Logger.getInstance(SdkSync.class).warn(String.format("Removing invalid NDK path: %s", projectAndroidNdkPath));
+          setProjectNdk(localProperties, null);
+        }
+      }
+    }
+    else {
+      setProjectNdk(localProperties, ideAndroidNdkPath);
+    }
+  }
+
+  private static void setProjectNdk(@NotNull LocalProperties localProperties, @Nullable File ndkPath) {
+    localProperties.setAndroidNdkPath(ndkPath);
+    try {
+      localProperties.save();
+    }
+    catch (IOException e) {
+      String msg = String.format("Unable to save '%1$s'", localProperties.getFilePath().getPath());
+      throw new ExternalSystemException(msg, e);
     }
   }
 

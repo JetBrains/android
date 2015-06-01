@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.res2.DataBindingResourceType;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -34,12 +37,15 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -55,6 +61,7 @@ import static com.android.tools.idea.rendering.ResourceFolderRepository.ourFullR
 public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT1 = "resourceRepository/layout.xml";
   private static final String LAYOUT2 = "resourceRepository/layout2.xml";
+  private static final String LAYOUT_WITH_DATA_BINDING = "resourceRepository/layout_with_data_binding.xml";
   private static final String VALUES1 = "resourceRepository/values.xml";
   private static final String VALUES_EMPTY = "resourceRepository/empty.xml";
   private static final String XLIFF = "resourceRepository/xliff.xml";
@@ -2137,6 +2144,44 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         assertFalse(resources.isScanPending(psiFile1));
       }
     });
+  }
+
+  public void testDataBindingVariables() {
+    VirtualFile file1 = myFixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml");
+    final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    AndroidFacet facet = resources.getFacet();
+    assertEquals(1, resources.getDataBindingResourceFiles().size());
+    final String appPackage = DataBindingUtil.getGeneratedPackageName(facet);
+    final DataBindingInfo info = resources.getDataBindingResourceFiles().get(appPackage + ".databinding.LayoutWithDataBindingBinding");
+    assertNotNull(info);
+    List<PsiDataBindingResourceItem> variables = info.getItems(DataBindingResourceType.VARIABLE);
+    assertEquals(1, variables.size());
+    final PsiDataBindingResourceItem variable1 = variables.get(0);
+    assertEquals("variable1", variable1.getName());
+    assertEquals("String", variable1.getExtra(SdkConstants.ATTR_TYPE));
+    assertNotNull(variable1.getXmlTag());
+    List<DataBindingInfo.ViewWithId> viewsWithIds = info.getViewsWithIds();
+    assertEquals(6, viewsWithIds.size());
+    Collections.sort(viewsWithIds, new Comparator<DataBindingInfo.ViewWithId>() {
+      @Override
+      public int compare(DataBindingInfo.ViewWithId v1, DataBindingInfo.ViewWithId v2) {
+        return v1.name.compareTo(v2.name);
+      }
+    });
+    validateViewWithId(facet, viewsWithIds.get(0), "foo.bar.Magic", "magicView");
+    validateViewWithId(facet, viewsWithIds.get(1), "android.view.View", "normalViewTag");
+    validateViewWithId(facet, viewsWithIds.get(2), "android.view.SurfaceView", "surfaceView1");
+    validateViewWithId(facet, viewsWithIds.get(3), "android.widget.TextView", "textView1");
+    validateViewWithId(facet, viewsWithIds.get(4), "android.view.ViewGroup", "viewTag");
+    validateViewWithId(facet, viewsWithIds.get(5), "android.webkit.WebView", "webView1");
+  }
+
+  private void validateViewWithId(AndroidFacet facet, DataBindingInfo.ViewWithId viewWithId, String qualified, String variableName) {
+    assertTrue(DataBindingUtil.resolveViewPsiType(viewWithId, facet).equalsToText(qualified));
+    assertEquals(variableName, viewWithId.name);
   }
 
   @Nullable

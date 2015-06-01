@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.service.carrier.CarrierMessagingService android.os.IBinder onBind(android.content.Intent)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService android.os.IBinder onBind(android.content.Intent) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onDownloadMms(android.net.Uri, int, android.net.Uri, android.service.carrier.CarrierMessagingService.ResultCallback&lt;java.lang.Integer&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onDownloadMms(android.net.Uri, int, android.net.Uri, android.service.carrier.CarrierMessagingService.ResultCallback&lt;java.lang.Integer&gt;) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onDownloadMms(android.net.Uri, int, android.net.Uri, android.service.carrier.CarrierMessagingService.ResultCallback&lt;java.lang.Integer&gt;) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onFilterSms(android.service.carrier.MessagePdu, java.lang.String, int, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;java.lang.Boolean&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onFilterSms(android.service.carrier.MessagePdu, java.lang.String, int, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;java.lang.Boolean&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onFilterSms(android.service.carrier.MessagePdu, java.lang.String, int, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;java.lang.Boolean&gt;) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendDataSms(byte[], int, java.lang.String, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendSmsResult&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendDataSms(byte[], int, java.lang.String, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendSmsResult&gt;) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendDataSms(byte[], int, java.lang.String, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendSmsResult&gt;) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendDataSms(byte[], int, java.lang.String, int, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendSmsResult&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendDataSms(byte[], int, java.lang.String, int, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendSmsResult&gt;) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendDataSms(byte[], int, java.lang.String, int, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendSmsResult&gt;) 5">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendMms(android.net.Uri, int, android.net.Uri, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendMmsResult&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendMms(android.net.Uri, int, android.net.Uri, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendMmsResult&gt;) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendMms(android.net.Uri, int, android.net.Uri, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendMmsResult&gt;) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendMultipartTextSms(java.util.List&lt;java.lang.String&gt;, int, java.lang.String, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendMultipartSmsResult&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendMultipartTextSms(java.util.List&lt;java.lang.String&gt;, int, java.lang.String, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendMultipartSmsResult&gt;) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendMultipartTextSms(java.util.List&lt;java.lang.String&gt;, int, java.lang.String, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendMultipartSmsResult&gt;) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendMultipartTextSms(java.util.List&lt;java.lang.String&gt;, int, java.lang.String, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendMultipartSmsResult&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendMultipartTextSms(java.util.List&lt;java.lang.String&gt;, int, java.lang.String, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendMultipartSmsResult&gt;) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendMultipartTextSms(java.util.List&lt;java.lang.String&gt;, int, java.lang.String, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendMultipartSmsResult&gt;) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendTextSms(java.lang.String, int, java.lang.String, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendSmsResult&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendTextSms(java.lang.String, int, java.lang.String, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendSmsResult&gt;) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendTextSms(java.lang.String, int, java.lang.String, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendSmsResult&gt;) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendTextSms(java.lang.String, int, java.lang.String, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendSmsResult&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendTextSms(java.lang.String, int, java.lang.String, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendSmsResult&gt;) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService void onSendTextSms(java.lang.String, int, java.lang.String, int, android.service.carrier.CarrierMessagingService.ResultCallback&lt;android.service.carrier.CarrierMessagingService.SendSmsResult&gt;) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService.ResultCallback void onReceiveResult(T) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService.SendMmsResult SendMmsResult(int, byte[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService.SendMmsResult byte[] getSendConfPdu()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService.SendMultipartSmsResult SendMultipartSmsResult(int, int[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.CarrierMessagingService.SendMultipartSmsResult int[] getMessageRefs()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.carrier.MessagePdu MessagePdu(java.util.List&lt;byte[]&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.carrier.MessagePdu java.util.List&lt;byte[]&gt; getPdus()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

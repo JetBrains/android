@@ -17,6 +17,8 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.res2.DataBindingResourceType;
+import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
@@ -24,6 +26,8 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -33,10 +37,12 @@ import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.*;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
@@ -72,6 +78,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   private final VirtualFile myResourceDir;
   private final Map<ResourceType, ListMultimap<String, ResourceItem>> myItems = Maps.newEnumMap(ResourceType.class);
   private final Map<PsiFile, PsiResourceFile> myResourceFiles = Maps.newHashMap();
+  // qualifiedName -> PsiResourceFile
+  private Map<String, DataBindingInfo> myDataBindingResourceFiles = Maps.newHashMap();
+  private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
   private final Object SCAN_LOCK = new Object();
   private Set<PsiFile> myPendingScans;
 
@@ -200,12 +209,139 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       addIds(items, file);
 
       PsiResourceFile resourceFile = new PsiResourceFile(file, items, qualifiers, folderType, folderConfiguration);
+      scanDataBinding(resourceFile, getModificationCount());
       myResourceFiles.put(file, resourceFile);
     } else {
       PsiResourceFile resourceFile = new PsiResourceFile(file, item, qualifiers, folderType, folderConfiguration);
       myResourceFiles.put(file, resourceFile);
       map.put(name, item);
     }
+  }
+
+  @Nullable
+  @Override
+  public DataBindingInfo getDataBindingInfoForLayout(String layoutName) {
+    List<ResourceItem> resourceItems = getResourceItem(ResourceType.LAYOUT, layoutName);
+    if (resourceItems == null) {
+      return null;
+    }
+    for (ResourceItem item : resourceItems) {
+      final ResourceFile source = item.getSource();
+      if (source instanceof PsiResourceFile && ((PsiResourceFile) source).getDataBindingInfo() != null) {
+        return ((PsiResourceFile) source).getDataBindingInfo();
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public Map<String, DataBindingInfo> getDataBindingResourceFiles() {
+    long modificationCount = getModificationCount();
+    if (myDataBindingResourceFilesModificationCount == modificationCount) {
+      return myDataBindingResourceFiles;
+    }
+    Map<String, DataBindingInfo> selected = Maps.newHashMap();
+    for (PsiResourceFile file : myResourceFiles.values()) {
+      DataBindingInfo info = file.getDataBindingInfo();
+      if (info != null) {
+        selected.put(info.getQualifiedName(), info);
+      }
+    }
+    myDataBindingResourceFiles = Collections.unmodifiableMap(selected);
+    myDataBindingResourceFilesModificationCount = modificationCount;
+    return myDataBindingResourceFiles;
+  }
+
+  @Nullable
+  private static XmlTag getLayoutTag(PsiElement element) {
+    if (!(element instanceof XmlFile)) {
+      return null;
+    }
+    final XmlTag rootTag = ((XmlFile) element).getRootTag();
+    if (rootTag != null && TAG_LAYOUT.equals(rootTag.getName())) {
+      return rootTag;
+    }
+    return null;
+  }
+
+  @Nullable
+  private static XmlTag getDataTag(XmlTag layoutTag) {
+    return layoutTag.findFirstSubTag(TAG_DATA);
+  }
+
+  private static void scanDataBindingVariables(PsiResourceFile resourceFile, @Nullable XmlTag dataTag, long modificationCount) {
+    DataBindingInfo info = resourceFile.getDataBindingInfo();
+    assert info != null;
+    List<PsiDataBindingResourceItem> items = Lists.newArrayList();
+    if (dataTag == null) {
+      info.replaceItems(items, modificationCount);
+      return;
+    }
+    Set<String> usedNames = Sets.newHashSet();
+    for (XmlTag tag : dataTag.findSubTags(TAG_VARIABLE)) {
+      String nameValue = tag.getAttributeValue(ATTR_NAME);
+      if (nameValue == null) {
+        continue;
+      }
+      String name = StringUtil.unescapeXml(nameValue);
+      if (StringUtil.isNotEmpty(name)) {
+        if (usedNames.add(name)) {
+          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(name, DataBindingResourceType.VARIABLE, tag);
+          item.setSource(resourceFile);
+          items.add(item);
+        }
+      }
+    }
+    info.replaceItems(items, modificationCount);
+  }
+
+  private void scanDataBinding(PsiResourceFile resourceFile, long modificationCount) {
+    if (resourceFile.getFolderType() != LAYOUT) {
+      resourceFile.setDataBindingInfo(null);
+      return;
+    }
+    XmlTag layout = getLayoutTag(resourceFile.getPsiFile());
+    if (layout == null) {
+      resourceFile.setDataBindingInfo(null);
+      return;
+    }
+    XmlTag dataTag = getDataTag(layout);
+    String className;
+    String classPackage;
+    String modulePackage = ManifestInfo.get(myFacet.getModule(), false).getPackage();
+    String classAttrValue = null;
+    if (dataTag != null) {
+      classAttrValue = dataTag.getAttributeValue(ATTR_CLASS);
+      if (classAttrValue != null) {
+        classAttrValue = StringUtil.unescapeXml(classAttrValue);
+      }
+    }
+    if (StringUtil.isEmpty(classAttrValue)) {
+      className = DataBindingUtil.convertToJavaClassName(resourceFile.getName()) + "Binding";
+      classPackage = modulePackage + ".databinding";
+    } else {
+      int firstDotIndex = classAttrValue.indexOf('.');
+
+      if (firstDotIndex < 0) {
+        classPackage = modulePackage + ".databinding";
+        className = classAttrValue;
+      } else {
+        int lastDotIndex = classAttrValue.lastIndexOf('.');
+        if (firstDotIndex == 0) {
+          classPackage = modulePackage + classAttrValue.substring(0, lastDotIndex);
+        } else {
+          classPackage = classAttrValue.substring(0, lastDotIndex);
+        }
+        className = classAttrValue.substring(lastDotIndex + 1);
+      }
+    }
+    if (resourceFile.getDataBindingInfo() == null) {
+      resourceFile.setDataBindingInfo(new DataBindingInfo(myFacet, resourceFile, className, classPackage));
+    } else {
+      resourceFile.getDataBindingInfo().update(className, classPackage, modificationCount);
+    }
+    scanDataBindingVariables(resourceFile, dataTag, modificationCount);
   }
 
   @NonNull
@@ -252,7 +388,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     String id = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
     if (id != null && id.startsWith(NEW_ID_PREFIX)) {
       String name = id.substring(NEW_ID_PREFIX.length());
-      PsiResourceItem item = new PsiResourceItem(name, ResourceType.ID, null, file);
+      PsiResourceItem item = new PsiResourceItem(name, ResourceType.ID, tag, file);
       items.add(item);
 
       ListMultimap<String, ResourceItem> map = myItems.get(ResourceType.ID);
@@ -567,6 +703,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           if (!idsBefore.equals(idsAfter)) {
             myGeneration++;
           }
+          scanDataBinding(resourceFile, myGeneration);
           // Identities may have changed even if the ids are the same, so update maps
           invalidateItemCaches(ResourceType.ID);
         }
@@ -784,6 +921,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 if (ATTR_ID.equals(attribute.getLocalName()) &&
                     ANDROID_URI.equals(attribute.getNamespace())) {
                   // TODO: Update it incrementally
+                  rescan(psiFile, folderType);
+                } else if (ArrayUtil.contains(attribute.getLocalName(), ATTRS_DATA_BINDING)
+                           && ArrayUtil.contains(attribute.getParent().getLocalName(), TAGS_DATA_BINDING)) {
                   rescan(psiFile, folderType);
                 }
               }
@@ -1125,6 +1265,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   }
 
                   rescan(psiFile, folderType);
+                } else if (ArrayUtil.contains(attribute.getLocalName(), ATTRS_DATA_BINDING)
+                           && ArrayUtil.contains(attribute.getParent().getLocalName(), TAGS_DATA_BINDING)) {
+                  PsiResourceFile resourceFile = myResourceFiles.get(psiFile);
+                  if (resourceFile != null) {
+                    myGeneration++;
+                    scanDataBinding(resourceFile, myGeneration);
+                  }
                 }
               }
 

@@ -26,6 +26,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -47,7 +48,7 @@ import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static com.android.tools.idea.templates.Template.processFreemarkerTemplate;
+import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
 import static com.android.tools.idea.templates.TemplateUtils.*;
 
 /**
@@ -92,6 +93,23 @@ public final class RecipeContext {
     mySyncGradleIfNeeded = syncGradleIfNeeded;
   }
 
+  public RecipeContext(@NotNull Module module,
+                                @NotNull PrefixTemplateLoader loader,
+                                @NotNull Configuration freemarker,
+                                @NotNull Map<String, Object> paramMap,
+                                @NotNull File templateRoot) {
+    File moduleRoot = new File(module.getModuleFilePath()).getParentFile();
+
+    myProject = module.getProject();
+    myLoader = loader;
+    myFreemarker = freemarker;
+    myParamMap = paramMap;
+    myTemplateRoot = templateRoot;
+    myOutputRoot = moduleRoot;
+    myModuleRoot = moduleRoot;
+    mySyncGradleIfNeeded = true;
+  }
+
   /**
    * Add a library dependency into the project.
    */
@@ -131,7 +149,7 @@ public final class RecipeContext {
       else {
         from = getSourceFile(from);
         myLoader.setTemplateFile(from);
-        String contents = processFreemarkerTemplate(myFreemarker, myParamMap, from.getName());
+        String contents = processFreemarkerTemplate(myFreemarker, myParamMap, from);
 
         contents = format(contents, to);
         File targetFile = getTargetFile(to);
@@ -187,7 +205,7 @@ public final class RecipeContext {
       if (hasExtension(from, DOT_FTL)) {
         // Perform template substitution of the template prior to merging
         myLoader.setTemplateFile(from);
-        sourceText = processFreemarkerTemplate(myFreemarker, myParamMap, from.getName());
+        sourceText = processFreemarkerTemplate(myFreemarker, myParamMap, from);
       }
       else {
         sourceText = readTextFile(from);
@@ -271,8 +289,11 @@ public final class RecipeContext {
     }
   }
 
+  /**
+   * Returns the absolute path to the file which will get read from.
+   */
   @NotNull
-  private File getSourceFile(@NotNull File file) {
+  public File getSourceFile(@NotNull File file) {
     if (file.isAbsolute()) {
       return file;
     }
@@ -282,8 +303,11 @@ public final class RecipeContext {
     }
   }
 
+  /**
+   * Returns the absolute path to the file which will get written to.
+   */
   @NotNull
-  private File getTargetFile(@NotNull File file) throws IOException {
+  public File getTargetFile(@NotNull File file) throws IOException {
     if (file.isAbsolute()) {
       return file;
     }
@@ -298,7 +322,7 @@ public final class RecipeContext {
     String templateRoot = TemplateManager.getTemplateRootFolder().getPath();
     File gradleTemplate = new File(templateRoot, FileUtil.join("gradle", "utils", "dependencies.gradle.ftl"));
     myLoader.setTemplateFile(gradleTemplate);
-    String contents = processFreemarkerTemplate(myFreemarker, myParamMap, gradleTemplate.getName());
+    String contents = processFreemarkerTemplate(myFreemarker, myParamMap, gradleTemplate);
     String destinationContents = null;
     if (gradleBuildFile.exists()) {
       destinationContents = readTextFile(gradleBuildFile);

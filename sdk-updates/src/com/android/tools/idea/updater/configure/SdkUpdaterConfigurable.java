@@ -20,13 +20,17 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.updater.SdkComponentSource;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.updateSettings.impl.UpdateSettings;
+import com.intellij.ui.AncestorListenerAdapter;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -35,16 +39,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.AncestorEvent;
 import java.io.File;
 import java.util.List;
 
 /**
  * Configurable for the Android SDK Manager.
  * TODO(jbakermalone): implement the searchable interface more completely. Unfortunately it seems that this involves not using forms
- *                     for the UI?
+ * for the UI?
  */
 public class SdkUpdaterConfigurable implements SearchableConfigurable {
   SdkUpdaterConfigPanel myPanel;
+  boolean myIncludePreview;
 
   @NotNull
   @Override
@@ -79,8 +85,27 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       errorPanel.add(new JBLabel("Failed to find android sdk"));
       return errorPanel;
     }
+    final Runnable channelChangedCallback = new Runnable() {
+      @Override
+      public void run() {
+        boolean newIncludePreview =
+          SdkComponentSource.PREVIEW_CHANNEL.equals(UpdateSettings.getInstance().getExternalUpdateChannels().get(SdkComponentSource.NAME));
+        if (newIncludePreview != myIncludePreview) {
+          myIncludePreview = newIncludePreview;
+          myPanel.setIncludePreview(myIncludePreview);
+        }
+      }
+    };
     SdkState state = SdkState.getInstance(data);
-    myPanel = new SdkUpdaterConfigPanel(state);
+    myPanel = new SdkUpdaterConfigPanel(state, channelChangedCallback);
+    JComponent component = myPanel.getComponent();
+    component.addAncestorListener(new AncestorListenerAdapter() {
+      @Override
+      public void ancestorAdded(AncestorEvent event) {
+        channelChangedCallback.run();
+      }
+    });
+
     return myPanel.getComponent();
   }
 
@@ -92,11 +117,11 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Override
   public void apply() throws ConfigurationException {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                                                         @Override
-                                                         public void run() {
-                                                           IdeSdks.setAndroidSdkPath(new File(myPanel.getSdkPath()), null);
-                                                         }
-                                                       });
+      @Override
+      public void run() {
+        IdeSdks.setAndroidSdkPath(new File(myPanel.getSdkPath()), null);
+      }
+    });
 
     myPanel.saveSources();
 
@@ -111,11 +136,13 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
         }
       }
       else if (holder.getState() == NodeStateHolder.SelectedState.INSTALLED &&
-               (holder.getPkg().isUpdate() || !holder.getPkg().hasLocal())) {
-        requestedPackages.add(holder.getPkg().getPkgDesc());
+               (holder.getPkg().isUpdate(myIncludePreview) || !holder.getPkg().hasLocal())) {
+        requestedPackages.add(holder.getPkg().getRemote(myIncludePreview).getPkgDesc());
       }
     }
+    boolean found = false;
     if (!toDelete.isEmpty()) {
+      found = true;
       message.add("The following components will be deleted: \n");
       message.beginList();
       for (UpdatablePkgInfo item : toDelete) {
@@ -125,6 +152,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       message.endList();
     }
     if (!requestedPackages.isEmpty()) {
+      found = true;
       message.add("The following components will be installed: \n");
       message.beginList();
       for (IPkgDesc item : requestedPackages) {
@@ -133,9 +161,9 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       message.endList();
     }
     message.closeHtmlBody();
-    String messageStr = message.getHtml();
-    if (!messageStr.isEmpty()) {
-      if (Messages.showOkCancelDialog(myPanel.getComponent(), messageStr, "Confirm Delete", AllIcons.General.Warning) == Messages.OK) {
+    if (found) {
+      if (Messages.showOkCancelDialog((Project)null, message.getHtml(), "Confirm Change", AllIcons.General.Warning) ==
+          Messages.OK) {
         for (UpdatablePkgInfo item : toDelete) {
           item.getLocalInfo().delete();
         }
