@@ -404,7 +404,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       }
     }
 
-    if (value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF)) {
+    if ((value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF)) && !value.startsWith(PREFIX_BINDING_EXPR)) {
       return new MyResourceElement(element, value);
     }
 

@@ -27,6 +27,7 @@ import com.google.common.collect.Multimap;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -40,6 +41,7 @@ class PsiResourceFile extends ResourceFile implements Iterable<ResourceItem> {
   private ResourceFolderType myFolderType;
   private FolderConfiguration myFolderConfiguration;
   private Multimap<String, ResourceItem> myDuplicates;
+  private DataBindingInfo myDataBindingInfo;
 
   public PsiResourceFile(@NonNull PsiFile file, @NonNull ResourceItem item, @NonNull String qualifiers,
                          @NonNull ResourceFolderType folderType, @NonNull FolderConfiguration folderConfiguration) {
@@ -174,5 +176,14 @@ class PsiResourceFile extends ResourceFile implements Iterable<ResourceItem> {
     }
 
     return Iterators.concat(mItems.values().iterator(), myDuplicates.values().iterator());
+  }
+
+  public void setDataBindingInfo(DataBindingInfo dataBindingInfo) {
+    myDataBindingInfo = dataBindingInfo;
+  }
+
+  @Nullable
+  public DataBindingInfo getDataBindingInfo() {
+    return myDataBindingInfo;
   }
 }

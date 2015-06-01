@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.security.EcIesParameterSpec int getKemPointFormat()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.security.EcIesParameterSpec.POINT_FORMAT_UNSPECIFIED, android.security.EcIesParameterSpec.POINT_FORMAT_UNCOMPRESSED, android.security.EcIesParameterSpec.POINT_FORMAT_COMPRESSED}" />
+    </annotation>
+  </item>
+  <item name="android.security.EcIesParameterSpec java.lang.String getDemCipherTransformation()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.EcIesParameterSpec java.lang.String getDemMacAlgorithm()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.EcIesParameterSpec java.lang.String getKemKdfAlgorithm()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setDemCipherKeySize(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setDemCipherTransformation(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setDemCipherTransformation(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setDemMacAlgorithm(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setDemMacAlgorithm(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setDemMacKeySize(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setKemKdfAlgorithm(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setKemKdfAlgorithm(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setKemPointFormat(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.security.EcIesParameterSpec.POINT_FORMAT_UNSPECIFIED, android.security.EcIesParameterSpec.POINT_FORMAT_UNCOMPRESSED, android.security.EcIesParameterSpec.POINT_FORMAT_COMPRESSED}" />
+    </annotation>
+  </item>
+  <item name="android.security.KeyChain android.content.Intent createInstallIntent()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyChain boolean isBoundKeyAlgorithm(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.KEY_ALGORITHM_RSA, android.security.keystore.KeyProperties.KEY_ALGORITHM_EC, android.security.keystore.KeyProperties.KEY_ALGORITHM_AES, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA1, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA224, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA256, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA384, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA512}" />
+    </annotation>
+  </item>
+  <item name="android.security.KeyChain boolean isKeyAlgorithmSupported(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.KEY_ALGORITHM_RSA, android.security.keystore.KeyProperties.KEY_ALGORITHM_EC, android.security.keystore.KeyProperties.KEY_ALGORITHM_AES, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA1, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA224, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA256, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA384, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA512}" />
+    </annotation>
+  </item>
+  <item name="android.security.KeyChain java.security.PrivateKey getPrivateKey(android.content.Context, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.KeyChain java.security.PrivateKey getPrivateKey(android.content.Context, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyChain java.security.PrivateKey getPrivateKey(android.content.Context, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyChain java.security.cert.X509Certificate[] getCertificateChain(android.content.Context, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.KeyChain java.security.cert.X509Certificate[] getCertificateChain(android.content.Context, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyChain java.security.cert.X509Certificate[] getCertificateChain(android.content.Context, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyChain void choosePrivateKeyAlias(android.app.Activity, android.security.KeyChainAliasCallback, java.lang.String[], java.security.Principal[], java.lang.String, int, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyChain void choosePrivateKeyAlias(android.app.Activity, android.security.KeyChainAliasCallback, java.lang.String[], java.security.Principal[], java.lang.String, int, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyChain void choosePrivateKeyAlias(android.app.Activity, android.security.KeyChainAliasCallback, java.lang.String[], java.security.Principal[], java.lang.String, int, java.lang.String) 2">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.KEY_ALGORITHM_RSA, android.security.keystore.KeyProperties.KEY_ALGORITHM_EC, android.security.keystore.KeyProperties.KEY_ALGORITHM_AES, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA1, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA224, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA256, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA384, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA512}" />
+    </annotation>
+  </item>
+  <item name="android.security.KeyChain void choosePrivateKeyAlias(android.app.Activity, android.security.KeyChainAliasCallback, java.lang.String[], java.security.Principal[], java.lang.String, int, java.lang.String) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.KeyChain void choosePrivateKeyAlias(android.app.Activity, android.security.KeyChainAliasCallback, java.lang.String[], java.security.Principal[], java.lang.String, int, java.lang.String) 6">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.KeyChainAliasCallback void alias(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec java.lang.String getKeyType()">
+    <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.KEY_ALGORITHM_RSA, android.security.keystore.KeyProperties.KEY_ALGORITHM_EC, android.security.keystore.KeyProperties.KEY_ALGORITHM_AES, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA1, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA224, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA256, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA384, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA512}" />
+    </annotation>
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec java.math.BigInteger getSerialNumber()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec java.security.spec.AlgorithmParameterSpec getAlgorithmParameterSpec()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec java.util.Date getEndDate()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec java.util.Date getStartDate()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec javax.security.auth.x500.X500Principal getSubjectDN()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder Builder(android.content.Context) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setAlgorithmParameterSpec(java.security.spec.AlgorithmParameterSpec) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setAlias(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setAlias(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setEncryptionRequired()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setEndDate(java.util.Date)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setEndDate(java.util.Date) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setKeySize(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setKeyType(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setKeyType(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.KEY_ALGORITHM_RSA, android.security.keystore.KeyProperties.KEY_ALGORITHM_EC, android.security.keystore.KeyProperties.KEY_ALGORITHM_AES, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA1, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA224, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA256, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA384, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA512}" />
+    </annotation>
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setSerialNumber(java.math.BigInteger)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setSerialNumber(java.math.BigInteger) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setStartDate(java.util.Date)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setStartDate(java.util.Date) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setSubject(javax.security.auth.x500.X500Principal)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyPairGeneratorSpec.Builder android.security.KeyPairGeneratorSpec.Builder setSubject(javax.security.auth.x500.X500Principal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyStoreParameter.Builder Builder(android.content.Context) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyStoreParameter.Builder android.security.KeyStoreParameter build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyStoreParameter.Builder android.security.KeyStoreParameter.Builder setEncryptionRequired(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

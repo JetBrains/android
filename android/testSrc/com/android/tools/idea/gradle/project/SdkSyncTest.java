@@ -19,7 +19,9 @@ import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -39,6 +41,12 @@ public class SdkSyncTest extends IdeaTestCase {
     myAndroidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
 
     assertNull(IdeSdks.getAndroidSdkPath());
+  }
+
+  @Override
+  protected CompositeException checkForSettingsDamage() throws Exception {
+    // For this test we don't care about checking for settings damage.
+    return new CompositeException();
   }
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndNoProjectSdk() throws Exception {

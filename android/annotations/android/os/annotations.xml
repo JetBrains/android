@@ -18,6 +18,42 @@
   <item name="android.os.AsyncTask void execute(java.lang.Runnable) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.os.AsyncTask Result doInBackground(Params...)">
+    <annotation name="android.support.annotation.WorkerThread" />
+  </item>
+  <item name="android.os.AsyncTask android.os.AsyncTask&lt;Params,Progress,Result&gt; execute(Params...)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask android.os.AsyncTask&lt;Params,Progress,Result&gt; executeOnExecutor(java.util.concurrent.Executor, Params...)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void execute(java.lang.Runnable)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void onCancelled()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void onCancelled(Result)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void onPostExecute(Result)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void onPreExecute()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void onProgressUpdate(Progress...)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void publishProgress(Progress...)">
+    <annotation name="android.support.annotation.WorkerThread" />
+  </item>
+  <item name="android.os.BaseBundle boolean[] getBooleanArray(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle boolean[] getBooleanArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.os.BaseBundle double[] getDoubleArray(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -52,6 +88,15 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.os.BaseBundle long[] getLongArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putBoolean(java.lang.String, boolean) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putBooleanArray(java.lang.String, boolean[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putBooleanArray(java.lang.String, boolean[]) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.os.BaseBundle void putDouble(java.lang.String, double) 0">
@@ -437,6 +482,9 @@
   </item>
   <item name="android.os.Looper android.os.Looper myLooper()">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Looper android.os.MessageQueue getQueue()">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Looper android.os.MessageQueue myQueue()">
     <annotation name="android.support.annotation.NonNull" />

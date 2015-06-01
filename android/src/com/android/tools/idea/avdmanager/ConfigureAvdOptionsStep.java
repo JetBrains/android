@@ -32,6 +32,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
@@ -830,7 +831,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
           String codeName = SystemImagePreview.getCodeName(newValue);
           component.setText(codeName);
           try {
-            Icon icon = IconLoader.getIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);
+            Icon icon = IconLoader.findIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);
             component.setIcon(icon);
           }
           catch (RuntimeException e) {

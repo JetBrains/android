@@ -84,7 +84,7 @@ public final class WelcomeUIUtils {
     }
     final double space = size * 1.0 / unit.getNumberOfBytes();
     String formatted = roundToNumberOfDigits(space, 3);
-    return String.format("%s %s", formatted, unit.toString());
+    return String.format("%s %s", formatted, unit.getDisplayValue());
   }
 
   /**
