@@ -27,6 +27,8 @@ import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
@@ -34,7 +36,9 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -59,6 +63,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.text.Collator;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -68,12 +73,14 @@ import static com.android.sdklib.repository.PreciseRevision.parseRevision;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.EXTRA_GENERATED_SOURCES;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.messages.Message.Type.*;
+import static com.android.tools.idea.gradle.parser.BuildFileKey.BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static java.util.Collections.sort;
 
 /**
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
@@ -149,6 +156,9 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         String nonMatchingModelEncodingFound = null;
         String modelVersionWithLayoutRenderingIssue = null;
 
+        // Module name, build
+        List<BuildToolsIncompatibility> buildToolsIncompatibilities = Lists.newArrayList();
+
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         for (Module module : moduleManager.getModules()) {
           IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
@@ -156,6 +166,8 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           customizeModule(module, project, androidProject);
           if (androidProject != null) {
             AndroidProject delegate = androidProject.getDelegate();
+
+            checkBuildToolsCompatibility(module, delegate, buildToolsIncompatibilities);
 
             // Verify that if Gradle is 2.4 (or newer,) the model is at least version 1.2.0.
             if (modelVersionWithLayoutRenderingIssue == null && hasLayoutRenderingIssue(delegate)) {
@@ -201,6 +213,10 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           }
         }
 
+        if (!buildToolsIncompatibilities.isEmpty()) {
+          report(buildToolsIncompatibilities, project);
+        }
+
         if (incompatibleModelVersionFound != null) {
           addModelVersionIncompatibilityMessage(incompatibleModelVersionFound, project);
         }
@@ -244,6 +260,52 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     Throwable error = result.getThrowable();
     if (error != null) {
       throw error;
+    }
+  }
+
+  // Build Tools 23 only works with Android plugin 1.3 or newer. Verify that the project is using compatible Build Tools/Android plugin
+  // versions.
+  private static void checkBuildToolsCompatibility(@NotNull Module module,
+                                                   @NotNull AndroidProject project,
+                                                   @NotNull List<BuildToolsIncompatibility> incompatibilities) {
+    if (isOneDotThreeOrLater(project)) {
+      return;
+    }
+    GradleBuildFile buildFile = GradleBuildFile.get(module);
+    if (buildFile != null) {
+      Object value = buildFile.getValue(BUILD_TOOLS_VERSION);
+      if (value instanceof String) {
+        try {
+          FullRevision buildToolsVersion = PreciseRevision.parseRevision((String)value);
+          if (buildToolsVersion.getMajor() >= 23) {
+            incompatibilities.add(new BuildToolsIncompatibility(module, project, buildToolsVersion));
+          }
+        } catch (NumberFormatException e) {
+          LOG.info("Failed to obtain 'buildToolsVersion' from the build.gradle file in module '" + module.getName() + "'", e);
+        }
+      }
+    }
+  }
+
+  private static boolean isOneDotThreeOrLater(@NotNull AndroidProject project) {
+    String modelVersion = project.getModelVersion();
+    // getApiVersion doesn't work prior to 1.2, and API level must be at least 3
+    return !(modelVersion.startsWith("1.0") || modelVersion.startsWith("1.1")) && project.getApiVersion() >= 3;
+  }
+
+  private static void report(@NotNull List<BuildToolsIncompatibility> incompatibilities, @NotNull Project project) {
+    if (!incompatibilities.isEmpty()) {
+      sort(incompatibilities);
+
+      StringBuilder msg = new StringBuilder();
+      msg.append("Found incompatible Build Tools and Android plugin versions:");
+      for (BuildToolsIncompatibility incompatibility : incompatibilities) {
+        msg.append("<br>\n * ").append(incompatibility);
+      }
+      msg.append("<br>\n<br>\nPlease use Android plugin 1.3 or newer, or an older Build Tools version.<br>\nOtherwise the project won't build. ");
+
+      AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
+      notification.showBalloon("Android Build Tools", msg.toString(), NotificationType.ERROR);
     }
   }
 
@@ -306,5 +368,28 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
   @Override
   public void removeData(@NotNull Collection<? extends Void> toRemove, @NotNull Project project, boolean synchronous) {
+  }
+
+  private static class BuildToolsIncompatibility implements Comparable<BuildToolsIncompatibility> {
+    @NotNull private final String myModuleName;
+    @NotNull private final String myModelVersion;
+    @NotNull private final String myBuildToolsVersion;
+
+    BuildToolsIncompatibility(@NotNull Module module, @NotNull AndroidProject androidProject, @NotNull FullRevision buildToolsVersion) {
+      myModuleName = module.getName();
+      myModelVersion = androidProject.getModelVersion();
+      myBuildToolsVersion = buildToolsVersion.toString();
+    }
+
+    @Override
+    public int compareTo(BuildToolsIncompatibility other) {
+      return Collator.getInstance().compare(myModuleName, other.myModuleName);
+    }
+
+    @Override
+    public String toString() {
+      return String.format("Module '%1$s' is using Android plugin %2$s and Build Tools %3$s",
+                           myModuleName, myModelVersion, myBuildToolsVersion);
+    }
   }
 }

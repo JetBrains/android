@@ -24,10 +24,17 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
+import com.android.tools.idea.structure.services.DeveloperService;
+import com.android.tools.idea.structure.services.DeveloperServices;
+import com.android.tools.idea.structure.services.ServiceCategory;
+import com.android.tools.idea.structure.services.view.ServiceCategoryConfigurable;
 import com.android.tools.idea.structure.gradle.AndroidModuleConfigurable;
 import com.android.tools.idea.structure.gradle.AndroidProjectConfigurable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
+import com.intellij.diagnostic.Developer;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -66,6 +73,7 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -76,8 +84,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.io.File;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -283,13 +290,56 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       if (myUiInitialized) {
         validateState();
 
-        // Populate the "Modules" section.
+        // Prepare module entries but don't add them until after developer services
         ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-        removeModules();
-
         Module[] modules = moduleManager.getModules();
         Arrays.sort(modules, ModuleTypeComparator.INSTANCE);
 
+        List<AndroidModuleConfigurable> moduleConfigurables = Lists.newArrayList();
+        for (Module module : modules) {
+          AndroidModuleConfigurable configurable = addModule(module);
+          if (configurable != null) {
+            moduleConfigurables.add(configurable);
+          }
+        }
+
+        // Populate the "Developer Services" section
+        removeServices();
+
+        DefaultComboBoxModel moduleList = new DefaultComboBoxModel();
+        for (AndroidModuleConfigurable moduleConfigurable : moduleConfigurables) {
+          // Collect only Android modules
+          if (AndroidFacet.getInstance(moduleConfigurable.getModule()) != null) {
+            moduleList.addElement(moduleConfigurable.getModule());
+          }
+        }
+
+        if (!myProject.isDefault() && moduleList.getSize() > 0) {
+          // We may have modified service values previous but then cancelled this dialog. To be
+          // safe, we restore our old values now.
+          // TODO: We really should do this on cancel but it doesn't look like we have any hooks
+          // into that event.
+          for (int i = 0; i < moduleList.getSize(); i++) {
+            Module module = (Module)moduleList.getElementAt(i);
+            for (DeveloperService service : DeveloperServices.getAll(module)) {
+              service.getContext().restore();
+            }
+          }
+
+          Module module = (Module)moduleList.getSelectedItem();
+          Set<ServiceCategory> categories = Sets.newHashSet();
+          for (DeveloperService s : DeveloperServices.getAll(module)) {
+            categories.add(s.getCategory());
+          }
+          ArrayList<ServiceCategory> categoriesSorted = Lists.newArrayList(categories);
+          Collections.sort(categoriesSorted);
+          for (ServiceCategory category : categoriesSorted) {
+            myConfigurables.add(new ServiceCategoryConfigurable(moduleList, category));
+          }
+        }
+
+        // Populate the "Modules" section.
+        removeModules();
         Module toSelect = null;
         for (Module module : modules) {
           AndroidModuleConfigurable configurable = addModule(module);
@@ -315,6 +365,14 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     }
     finally {
       token.finish();
+    }
+  }
+
+  private void removeServices() {
+    for (Iterator<Configurable> it = myConfigurables.iterator(); it.hasNext(); ) {
+      if (it.next() instanceof ServiceCategoryConfigurable) {
+        it.remove();
+      }
     }
   }
 
@@ -473,12 +531,11 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   private class SidePanel extends JPanel {
     @NotNull private final JBList myList;
     @NotNull private final DefaultListModel myListModel;
-    private int myFirstModuleIndex;
+    @NotNull private final Map<Object, String> mySectionHeaderMap = Maps.newHashMap();
 
     SidePanel() {
       super(new BorderLayout());
       myListModel = new DefaultListModel();
-      myFirstModuleIndex = 0;
       myList = new JBList(myListModel);
       ListItemDescriptor descriptor = new ListItemDescriptor() {
         @Override
@@ -512,13 +569,13 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
         @Override
         public boolean hasSeparatorAboveOf(Object value) {
-          return myListModel.indexOf(value) == myFirstModuleIndex;
+          return mySectionHeaderMap.containsKey(value);
         }
 
         @Override
         @Nullable
         public String getCaptionAboveOf(Object value) {
-          return hasSeparatorAboveOf(value) ? "Modules" : null;
+          return hasSeparatorAboveOf(value) ? mySectionHeaderMap.get(value) : null;
         }
       };
 
@@ -550,11 +607,20 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
     private void reset() {
       myListModel.clear();
-      myFirstModuleIndex = 0;
+      mySectionHeaderMap.clear();
+      Class<? extends Configurable> activeSection = null;
       for (Configurable configurable : myConfigurables) {
         myListModel.addElement(configurable);
-        if (!(configurable instanceof AndroidModuleConfigurable)) {
-          myFirstModuleIndex = myListModel.size();
+
+        if (activeSection == configurable.getClass()) {
+          continue;
+        }
+        activeSection = configurable.getClass();
+        if (configurable instanceof AndroidModuleConfigurable) {
+          mySectionHeaderMap.put(configurable, "Modules");
+        }
+        else if (configurable instanceof ServiceCategoryConfigurable) {
+          mySectionHeaderMap.put(configurable, "Developer Services");
         }
       }
     }

@@ -32,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
+
 public class ClassLoadingErrorHandler extends AbstractSyncErrorHandler {
   @Override
   public boolean handleError(@NotNull List<String> message,
@@ -60,7 +62,7 @@ public class ClassLoadingErrorHandler extends AbstractSyncErrorHandler {
             jdkVersion = JavaSdk.getJdkVersion(jdkHomePath);
           }
           JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdk);
-          isJdk7 = version == JavaSdkVersion.JDK_1_7;
+          isJdk7 = version == JDK_1_7;
         }
       }
 
@@ -87,7 +89,9 @@ public class ClassLoadingErrorHandler extends AbstractSyncErrorHandler {
                       "<li>Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)\n" +
                       syncProjectHyperlink.toHtml() + "</li>" +
                       "<li>The state of a Gradle build process (daemon) may be corrupt. Stopping all Gradle daemons may solve this problem.\n" +
-                      stopDaemonsHyperlink.toHtml() + "</li></ul>" +
+                      stopDaemonsHyperlink.toHtml() + "</li>" +
+                      "<li>Your project may be using a third-party plugin which is not compatible with the other plugins in the project " +
+                      "or the version of Gradle requested by the project.</li></ul>" +
                       "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.";
 
       String title = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, project.getName());

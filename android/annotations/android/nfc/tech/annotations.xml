@@ -3,6 +3,21 @@
   <item name="android.nfc.tech.IsoDep android.nfc.tech.IsoDep get(android.nfc.Tag) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.nfc.tech.IsoDep byte[] transceive(byte[])">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.NFC&quot;" />
+    </annotation>
+  </item>
+  <item name="android.nfc.tech.IsoDep int getTimeout()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.NFC&quot;" />
+    </annotation>
+  </item>
+  <item name="android.nfc.tech.IsoDep void setTimeout(int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.NFC&quot;" />
+    </annotation>
+  </item>
   <item name="android.nfc.tech.MifareClassic android.nfc.tech.MifareClassic get(android.nfc.Tag) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -15,11 +30,26 @@
   <item name="android.nfc.tech.MifareUltralight void writePage(int, byte[]) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.nfc.tech.Ndef android.nfc.NdefMessage getNdefMessage()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.NFC&quot;" />
+    </annotation>
+  </item>
   <item name="android.nfc.tech.Ndef android.nfc.tech.Ndef get(android.nfc.Tag) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.nfc.tech.Ndef boolean makeReadOnly()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.NFC&quot;" />
+    </annotation>
+  </item>
   <item name="android.nfc.tech.Ndef java.lang.String getType()">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.nfc.tech.Ndef void writeNdefMessage(android.nfc.NdefMessage)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.NFC&quot;" />
+    </annotation>
   </item>
   <item name="android.nfc.tech.NdefFormatable android.nfc.tech.NdefFormatable get(android.nfc.Tag) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -38,6 +68,16 @@
   </item>
   <item name="android.nfc.tech.NfcV android.nfc.tech.NfcV get(android.nfc.Tag) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.nfc.tech.TagTechnology void close()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.NFC&quot;" />
+    </annotation>
+  </item>
+  <item name="android.nfc.tech.TagTechnology void connect()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.NFC&quot;" />
+    </annotation>
   </item>
 </root>
 

@@ -48,6 +48,10 @@
       <implementation-class>com.android.tools.idea.rendering.ResourceNotificationManager</implementation-class>
       <skipForDefaultProject/>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.model.DeclaredPermissionsLookup</implementation-class>
+      <skipForDefaultProject/>
+    </component>
   </project-components>
   <actions>
     <group id="Project.Subview" text="Project Subview" class="com.android.tools.idea.gradle.project.subset.ProjectSubsetGroup">
@@ -236,21 +240,27 @@
 
     <fileTypeFactory implementation="org.jetbrains.android.fileTypes.AndroidFileTypeFactory"/>
     <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory" />
+    <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.DbFileTypeFactory" />
     <lang.parserDefinition language="AIDL" implementationClass="org.jetbrains.android.fileTypes.AndroidIdlParserDefinition"/>
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition" />
+    <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition" />
 
     <lang.syntaxHighlighterFactory key="AIDL" implementationClass="org.jetbrains.android.fileTypes.AndroidIdlSyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory key="Renderscript" implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory key="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory" />
+    <lang.syntaxHighlighterFactory key="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighterFactory" />
 
     <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter" />
+
+    <lang.braceMatcher language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbPairedBraceMatcher"/>
 
     <!--
     <lang.formatter language="AIDL" implementationClass="com.intellij.lang.java.JavaFormattingModelBuilder"/>
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
     -->
+    <languageInjector implementation="com.android.tools.idea.lang.databinding.DbLanguageInjector" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.navigation.NavigationEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorProvider" />
@@ -439,7 +449,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingId" displayName="Fragments should specify an id or tag" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingIdInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingPrefix" displayName="Missing Android XML namespace" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingPrefixInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingQuantity" displayName="Missing quantity translation" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingQuantityInspection"/>
-    <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingSuperCall" displayName="Missing Super Call" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingSuperCallInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingSuperCall" displayName="Missing Super Call" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingSuperCallInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingTranslation" displayName="Incomplete translation" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingTranslationInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingVersion" displayName="Missing application name/version" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingVersionInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMockLocation" displayName="Using mock location provider in production" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMockLocationInspection"/>
@@ -613,6 +623,7 @@
                     serviceImplementation="com.android.tools.idea.structure.gradle.AndroidProjectSettingsService"
                     overrides="true"/>
     <projectService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureService"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.ResourceIdResolver" />
 
     <applicationConfigurable groupId="build" groupWeight="200" instance="com.android.tools.idea.run.CloudTestingConfigurable"/>
 
@@ -700,8 +711,10 @@
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
     <testSrcLocator implementation="org.jetbrains.android.run.testing.AndroidTestLocationProvider"/>
     <junitPatcher implementation="com.android.tools.idea.gradle.AndroidJunitPatcher" />
+
     <debugger.nodeRenderer implementation="com.android.tools.idea.run.BitmapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.run.BitmapDrawableRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.run.AndroidTypedIntegerRenderer" />
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
   </extensions>
@@ -732,6 +745,8 @@
                     interface="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUi"/>
     <extensionPoint qualifiedName="com.android.tools.idea.run.cloudConfigurationProvider"
                     interface="com.android.tools.idea.run.CloudConfigurationProvider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.structure.services.developerServiceCreators"
+                    interface="com.android.tools.idea.structure.services.DeveloperServiceCreators"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
@@ -804,5 +819,18 @@
   <extensions defaultExtensionNs="Designer">
     <customizations implementation="com.intellij.android.designer.AndroidDesignerCustomizations" />
   </extensions>
+
+  <!-- data binding-->
+  <extensions defaultExtensionNs="com.intellij">
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.BrShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.BrClassFinder"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingClassFinder"/>
+  </extensions>
+  <project-components>
+    <component>
+      <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
+    </component>
+  </project-components>
 
 </idea-plugin>

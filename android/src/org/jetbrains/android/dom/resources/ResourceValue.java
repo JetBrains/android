@@ -25,6 +25,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.SdkConstants.PREFIX_BINDING_EXPR;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.SdkConstants.PREFIX_THEME_REF;
 
@@ -78,7 +79,7 @@ public class ResourceValue {
     if (s == null) {
       return null;
     }
-    if (s.startsWith(PREFIX_RESOURCE_REF) || s.startsWith(PREFIX_THEME_REF)) {
+    if ((s.startsWith(PREFIX_RESOURCE_REF) || s.startsWith(PREFIX_THEME_REF)) && !s.startsWith(PREFIX_BINDING_EXPR)) {
       ResourceValue reference = reference(s, true);
       return reference != null && (!requireValid || reference.isValidReference()) ? reference : null;
     }

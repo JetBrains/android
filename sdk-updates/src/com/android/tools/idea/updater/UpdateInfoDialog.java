@@ -16,6 +16,7 @@
 package com.android.tools.idea.updater;
 
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
@@ -70,7 +71,9 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
         SdkQuickfixWizard sdkQuickfixWizard =
           new SdkQuickfixWizard(null, null, myPackages, new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));
         sdkQuickfixWizard.init();
-        sdkQuickfixWizard.show();
+        if (sdkQuickfixWizard.showAndGet()) {
+          close(0);
+        }
       }
     });
 
@@ -116,7 +119,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
       packageHtmlBuilder.openHtmlBody();
       packageHtmlBuilder.beginList();
       for (IPkgDesc desc : packages) {
-        packageHtmlBuilder.listItem().add(desc.getListDescription());
+        packageHtmlBuilder.listItem().add(desc.getListDescription() + " revision " + desc.getPreciseRevision());
       }
       packageHtmlBuilder.closeHtmlBody();
       myPackages.setText(packageHtmlBuilder.getHtml());
@@ -133,8 +136,16 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
       state.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, false);
       Map<String, UpdatablePkgInfo> sdkPackages = state.getPackages().getConsolidatedPkgs();
       long size = 0;
+      boolean preview =
+        SdkComponentSource.PREVIEW_CHANNEL.equals(UpdateSettings.getInstance().getExternalUpdateChannels().get(SdkComponentSource.NAME));
       for (IPkgDesc pkg : packages) {
-        size += sdkPackages.get(pkg.getInstallId()).getRemote().getDownloadSize();
+        String iid = pkg.getInstallId();
+        UpdatablePkgInfo updatablePkgInfo = sdkPackages.get(iid);
+        if (updatablePkgInfo == null && iid.endsWith(PkgDesc.PREVIEW_SUFFIX)) {
+          iid = iid.substring(0, iid.indexOf(PkgDesc.PREVIEW_SUFFIX));
+          updatablePkgInfo = sdkPackages.get(iid);
+        }
+        size += updatablePkgInfo.getRemote(preview).getDownloadSize();
       }
       return size;
     }

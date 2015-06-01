@@ -1,0 +1,924 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CGBMV(int, int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, int, android.renderscript.Float2, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CGEMM(int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Float2, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CGEMM(int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Float2, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CGEMV(int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, int, android.renderscript.Float2, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CHBMV(int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, int, android.renderscript.Float2, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CHEMM(int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Float2, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CHEMM(int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Float2, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CHEMV(int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, int, android.renderscript.Float2, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CHER(int, float, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CHER2(int, android.renderscript.Float2, android.renderscript.Allocation, int, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CHER2K(int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, float, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CHER2K(int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, float, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CHERK(int, int, float, android.renderscript.Allocation, float, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CHERK(int, int, float, android.renderscript.Allocation, float, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CHPMV(int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, int, android.renderscript.Float2, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CHPR(int, float, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CHPR2(int, android.renderscript.Float2, android.renderscript.Allocation, int, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CSYMM(int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Float2, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CSYMM(int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Float2, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CSYR2K(int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Float2, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CSYR2K(int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Float2, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CSYRK(int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Float2, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CSYRK(int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Float2, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTBMV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTBMV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTBMV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTBSV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTBSV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTBSV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTPMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTPMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTPMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTPSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTPSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTPSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRMM(int, int, int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRMM(int, int, int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRMM(int, int, int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRMM(int, int, int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRSM(int, int, int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRSM(int, int, int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRSM(int, int, int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRSM(int, int, int, int, android.renderscript.Float2, android.renderscript.Allocation, android.renderscript.Allocation) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void CTRSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DGBMV(int, int, int, double, android.renderscript.Allocation, android.renderscript.Allocation, int, double, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DGEMM(int, int, double, android.renderscript.Allocation, android.renderscript.Allocation, double, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DGEMM(int, int, double, android.renderscript.Allocation, android.renderscript.Allocation, double, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DGEMV(int, double, android.renderscript.Allocation, android.renderscript.Allocation, int, double, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DSBMV(int, int, double, android.renderscript.Allocation, android.renderscript.Allocation, int, double, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DSPMV(int, double, android.renderscript.Allocation, android.renderscript.Allocation, int, double, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DSPR(int, double, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DSPR2(int, double, android.renderscript.Allocation, int, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DSYMM(int, int, double, android.renderscript.Allocation, android.renderscript.Allocation, double, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DSYMM(int, int, double, android.renderscript.Allocation, android.renderscript.Allocation, double, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DSYMV(int, double, android.renderscript.Allocation, android.renderscript.Allocation, int, double, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DSYR(int, double, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DSYR2(int, double, android.renderscript.Allocation, int, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DSYR2K(int, int, double, android.renderscript.Allocation, android.renderscript.Allocation, double, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DSYR2K(int, int, double, android.renderscript.Allocation, android.renderscript.Allocation, double, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DSYRK(int, int, double, android.renderscript.Allocation, double, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DSYRK(int, int, double, android.renderscript.Allocation, double, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTBMV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTBMV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTBMV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTBSV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTBSV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTBSV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTPMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTPMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTPMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTPSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTPSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTPSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRMM(int, int, int, int, double, android.renderscript.Allocation, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRMM(int, int, int, int, double, android.renderscript.Allocation, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRMM(int, int, int, int, double, android.renderscript.Allocation, android.renderscript.Allocation) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRMM(int, int, int, int, double, android.renderscript.Allocation, android.renderscript.Allocation) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRSM(int, int, int, int, double, android.renderscript.Allocation, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRSM(int, int, int, int, double, android.renderscript.Allocation, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRSM(int, int, int, int, double, android.renderscript.Allocation, android.renderscript.Allocation) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRSM(int, int, int, int, double, android.renderscript.Allocation, android.renderscript.Allocation) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void DTRSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SGBMV(int, int, int, float, android.renderscript.Allocation, android.renderscript.Allocation, int, float, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SGEMM(int, int, float, android.renderscript.Allocation, android.renderscript.Allocation, float, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SGEMM(int, int, float, android.renderscript.Allocation, android.renderscript.Allocation, float, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SGEMV(int, float, android.renderscript.Allocation, android.renderscript.Allocation, int, float, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SSBMV(int, int, float, android.renderscript.Allocation, android.renderscript.Allocation, int, float, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SSPMV(int, float, android.renderscript.Allocation, android.renderscript.Allocation, int, float, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SSPR(int, float, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SSPR2(int, float, android.renderscript.Allocation, int, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SSYMM(int, int, float, android.renderscript.Allocation, android.renderscript.Allocation, float, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SSYMM(int, int, float, android.renderscript.Allocation, android.renderscript.Allocation, float, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SSYMV(int, float, android.renderscript.Allocation, android.renderscript.Allocation, int, float, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SSYR(int, float, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SSYR2(int, float, android.renderscript.Allocation, int, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SSYR2K(int, int, float, android.renderscript.Allocation, android.renderscript.Allocation, float, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SSYR2K(int, int, float, android.renderscript.Allocation, android.renderscript.Allocation, float, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SSYRK(int, int, float, android.renderscript.Allocation, float, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void SSYRK(int, int, float, android.renderscript.Allocation, float, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STBMV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STBMV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STBMV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STBSV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STBSV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STBSV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STPMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STPMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STPMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STPSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STPSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STPSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRMM(int, int, int, int, float, android.renderscript.Allocation, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRMM(int, int, int, int, float, android.renderscript.Allocation, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRMM(int, int, int, int, float, android.renderscript.Allocation, android.renderscript.Allocation) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRMM(int, int, int, int, float, android.renderscript.Allocation, android.renderscript.Allocation) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRSM(int, int, int, int, float, android.renderscript.Allocation, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRSM(int, int, int, int, float, android.renderscript.Allocation, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRSM(int, int, int, int, float, android.renderscript.Allocation, android.renderscript.Allocation) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRSM(int, int, int, int, float, android.renderscript.Allocation, android.renderscript.Allocation) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void STRSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZGBMV(int, int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, int, android.renderscript.Double2, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZGEMM(int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Double2, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZGEMM(int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Double2, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZGEMV(int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, int, android.renderscript.Double2, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZHBMV(int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, int, android.renderscript.Double2, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZHEMM(int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Double2, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZHEMM(int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Double2, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZHEMV(int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, int, android.renderscript.Double2, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZHER(int, double, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZHER2(int, android.renderscript.Double2, android.renderscript.Allocation, int, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZHER2K(int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, double, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZHER2K(int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, double, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZHERK(int, int, double, android.renderscript.Allocation, double, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZHERK(int, int, double, android.renderscript.Allocation, double, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZHPMV(int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, int, android.renderscript.Double2, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZHPR(int, double, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZHPR2(int, android.renderscript.Double2, android.renderscript.Allocation, int, android.renderscript.Allocation, int, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZSYMM(int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Double2, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZSYMM(int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Double2, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZSYR2K(int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Double2, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZSYR2K(int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation, android.renderscript.Double2, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZSYRK(int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Double2, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZSYRK(int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Double2, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTBMV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTBMV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTBMV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTBSV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTBSV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTBSV(int, int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTPMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTPMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTPMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTPSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTPSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTPSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRMM(int, int, int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRMM(int, int, int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRMM(int, int, int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRMM(int, int, int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRMV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRSM(int, int, int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.LEFT, android.renderscript.ScriptIntrinsicBLAS.RIGHT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRSM(int, int, int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRSM(int, int, int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRSM(int, int, int, int, android.renderscript.Double2, android.renderscript.Allocation, android.renderscript.Allocation) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.UPPER, android.renderscript.ScriptIntrinsicBLAS.LOWER}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NO_TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.TRANSPOSE, android.renderscript.ScriptIntrinsicBLAS.CONJ_TRANSPOSE}" />
+    </annotation>
+  </item>
+  <item name="android.renderscript.ScriptIntrinsicBLAS void ZTRSV(int, int, int, android.renderscript.Allocation, android.renderscript.Allocation, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.renderscript.ScriptIntrinsicBLAS.NON_UNIT, android.renderscript.ScriptIntrinsicBLAS.UNIT}" />
+    </annotation>
+  </item>
+</root>
+
