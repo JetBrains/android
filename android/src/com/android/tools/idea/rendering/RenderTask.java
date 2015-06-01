@@ -197,6 +197,10 @@ public class RenderTask implements IImageFactory {
     return myFolderType;
   }
 
+  public void setFolderType(@NotNull ResourceFolderType folderType) {
+    myFolderType = folderType;
+  }
+
   @NotNull
   public Module getModule() {
     return myRenderService.getModule();

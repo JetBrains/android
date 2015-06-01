@@ -457,12 +457,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       if (state.isStopped()) return LaunchResult.STOP;
       processHandler.notifyTextAvailable("Launching application: " + activityPath + ".\n", STDOUT);
       AndroidRunningState.MyReceiver receiver = state.new MyReceiver();
-      boolean debug = state.isDebugMode();
       while (true) {
         if (state.isStopped()) return LaunchResult.STOP;
         String command = "am start " +
-                         (debug ? "-D " : "") +
-                         "-n \"" + activityPath + "\" " +
+                         getDebugFlags(state) +
+                         " -n \"" + activityPath + "\" " +
                          "-a android.intent.action.MAIN " +
                          "-c android.intent.category.LAUNCHER";
         boolean deviceNotResponding = false;
@@ -494,6 +493,12 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
         processHandler.notifyTextAvailable(receiver.getOutput().toString(), STDERR);
       }
       return success ? LaunchResult.SUCCESS : LaunchResult.STOP;
+    }
+
+    /** Returns the flags used to the "am start" command for launching in debug mode. */
+    @NotNull
+    protected String getDebugFlags(@NotNull AndroidRunningState state) {
+      return state.isDebugMode() ? "-D" : "";
     }
   }
 }

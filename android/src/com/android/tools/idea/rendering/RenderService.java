@@ -251,10 +251,10 @@ public class RenderService {
   }
 
   private static boolean ourWarnAboutObsoleteLayoutLibVersions = true;
-  protected static void warnIfObsoleteLayoutLib(final Module module,
-                                                RenderLogger logger,
-                                                final RenderContext renderContext,
-                                                IAndroidTarget target) {
+  protected static void warnIfObsoleteLayoutLib(@NotNull final Module module,
+                                                @NotNull RenderLogger logger,
+                                                @Nullable final RenderContext renderContext,
+                                                @NotNull IAndroidTarget target) {
     if (!ourWarnAboutObsoleteLayoutLibVersions) {
       return;
     }
