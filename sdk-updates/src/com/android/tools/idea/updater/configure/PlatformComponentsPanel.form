@@ -58,7 +58,7 @@
           </grid>
         </constraints>
         <properties>
-          <text value="&lt;html&gt;Each Android SDK Platfrom package includes the Android platform and sources pertainint to an API level by default. Once installed, Android Studio will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components.&lt;/html&gt;"/>
+          <text value="&lt;html&gt;Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, Android Studio will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components.&lt;/html&gt;"/>
         </properties>
       </component>
       <grid id="f2223" binding="myPlatformPanel" layout-manager="CardLayout" hgap="0" vgap="0">
