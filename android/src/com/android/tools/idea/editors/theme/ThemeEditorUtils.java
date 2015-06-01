@@ -32,11 +32,17 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -45,6 +51,9 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -58,11 +67,20 @@ import java.util.TreeSet;
  * Utility class for static methods which are used in different classes of theme editor
  */
 public class ThemeEditorUtils {
+  private static final Logger LOG = Logger.getInstance(ThemeEditorUtils.class);
+
   private static final Cache<String, String> ourTooltipCache = CacheBuilder.newBuilder().weakValues().maximumSize(30) // To be able to cache roughly one screen of attributes
     .build();
   private static final Set<String> DEFAULT_THEMES = ImmutableSet.of("Theme.AppCompat.NoActionBar", "Theme.AppCompat.Light.NoActionBar");
   private static final Set<String> DEFAULT_THEMES_FALLBACK =
     ImmutableSet.of("Theme.Material.NoActionBar", "Theme.Material.Light.NoActionBar");
+
+  private static final String[] CUSTOM_WIDGETS_JAR_PATHS = {
+    // Bundled path
+    "/plugins/android/lib/androidWidgets/theme-editor-widgets.jar",
+    // Development path
+    "/../adt/idea/android/lib/androidWidgets/theme-editor-widgets.jar"
+  };
 
   public static final Comparator<ThemeEditorStyle> STYLE_COMPARATOR = new Comparator<ThemeEditorStyle>() {
     @Override
@@ -271,5 +289,38 @@ public class ThemeEditorUtils {
     }
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     return moduleInfo.getMinSdkVersion().getApiLevel();
+  }
+
+  /**
+   * Returns the URL for the theme editor custom widgets jar
+   */
+  @Nullable
+  public static URL getCustomWidgetsJarUrl() {
+    String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
+
+    StringBuilder notFoundPaths = new StringBuilder();
+    for(String path : CUSTOM_WIDGETS_JAR_PATHS) {
+      String jarPath = homePath + path;
+      VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(jarPath));
+
+      if (root != null) {
+        File rootFile = VfsUtilCore.virtualToIoFile(root);
+        if (rootFile.exists()) {
+          try {
+            LOG.debug("Theme editor custom widgets found at " + jarPath);
+            return rootFile.toURI().toURL();
+          }
+          catch (MalformedURLException e) {
+            LOG.error(e);
+          }
+        }
+      }
+      else {
+        notFoundPaths.append(jarPath).append('\n');
+      }
+    }
+
+    LOG.error("Unable to find theme-editor-widgets.jar in paths:\n" + notFoundPaths.toString());
+    return null;
   }
 }
