@@ -223,6 +223,7 @@ public class InstancesTree {
         new ColumnTreeBuilder.ColumnBuilder()
           .setName("Instance")
           .setPreferredWidth(600)
+          .setHeaderAlignment(SwingConstants.LEFT)
           .setComparator(new Comparator<DebuggerTreeNodeImpl>() {
             @Override
             public int compare(@NotNull DebuggerTreeNodeImpl a, @NotNull DebuggerTreeNodeImpl b) {
@@ -233,7 +234,9 @@ public class InstancesTree {
       )
       .addColumn(
         new ColumnTreeBuilder.ColumnBuilder()
-          .setName("Depth").setPreferredWidth(60)
+          .setName("Depth")
+          .setPreferredWidth(60)
+          .setHeaderAlignment(SwingConstants.RIGHT)
           .setComparator(new Comparator<DebuggerTreeNodeImpl>() {
             @Override
             public int compare(DebuggerTreeNodeImpl a, DebuggerTreeNodeImpl b) {
@@ -285,6 +288,7 @@ public class InstancesTree {
         new ColumnTreeBuilder.ColumnBuilder()
           .setName("Shallow Size")
           .setPreferredWidth(80)
+          .setHeaderAlignment(SwingConstants.RIGHT)
           .setComparator(new Comparator<DebuggerTreeNodeImpl>() {
             @Override
             public int compare(@NotNull DebuggerTreeNodeImpl a, @NotNull DebuggerTreeNodeImpl b) {
@@ -336,29 +340,30 @@ public class InstancesTree {
         new ColumnTreeBuilder.ColumnBuilder()
           .setName("Dominating Size")
           .setPreferredWidth(80)
+          .setHeaderAlignment(SwingConstants.RIGHT)
           .setComparator(new Comparator<DebuggerTreeNodeImpl>() {
             @Override
             public int compare(@NotNull DebuggerTreeNodeImpl a, @NotNull DebuggerTreeNodeImpl b) {
-             long sizeA = 0;
-             long sizeB = 0;
-             if (a.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
-               Instance instanceA = (Instance)((InstanceFieldDescriptorImpl)a.getDescriptor()).getValueData();
-               if (instanceA != null && instanceA.getDistanceToGcRoot() != Integer.MAX_VALUE) {
-                 sizeA = instanceA.getTotalRetainedSize();
-               }
-             }
-             if (b.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
-               Instance instanceB = (Instance)((InstanceFieldDescriptorImpl)b.getDescriptor()).getValueData();
-               if (instanceB != null && instanceB.getDistanceToGcRoot() != Integer.MAX_VALUE) {
-                 sizeB = instanceB.getTotalRetainedSize();
-               }
-             }
-             if (sizeA != sizeB) {
-               return (int)(sizeA - sizeB);
-             }
-             else {
-               return getDefaultOrdering(a, b);
-             }
+              long sizeA = 0;
+              long sizeB = 0;
+              if (a.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
+                Instance instanceA = (Instance)((InstanceFieldDescriptorImpl)a.getDescriptor()).getValueData();
+                if (instanceA != null && instanceA.getDistanceToGcRoot() != Integer.MAX_VALUE) {
+                  sizeA = instanceA.getTotalRetainedSize();
+                }
+              }
+              if (b.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
+                Instance instanceB = (Instance)((InstanceFieldDescriptorImpl)b.getDescriptor()).getValueData();
+                if (instanceB != null && instanceB.getDistanceToGcRoot() != Integer.MAX_VALUE) {
+                  sizeB = instanceB.getTotalRetainedSize();
+                }
+              }
+              if (sizeA != sizeB) {
+                return (int)(sizeA - sizeB);
+              }
+              else {
+                return getDefaultOrdering(a, b);
+              }
             }
           })
           .setRenderer(new ColoredTreeCellRenderer() {
