@@ -62,6 +62,17 @@ public class ScreenView {
         });
       }
     });
+    myModel.getSelectionModel().addListener(new ChangeListener() {
+      @Override
+      public void stateChanged(ChangeEvent changeEvent) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            mySurface.repaint();
+          }
+        });
+      }
+    });
   }
 
   @Nullable

@@ -660,14 +660,14 @@ public class InteractionManager {
       }
       else if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
         String xml = (String)transferable.getTransferData(DataFlavor.stringFlavor);
-        item = new DnDTransferItem(new NlPaletteItem("", "", "", xml, ""), 200, 100);
+        item = new DnDTransferItem(new NlPaletteItem("", "", "", xml, "", "", ""), 200, 100);
       }
     } catch (InvalidDnDOperationException ex) {
       if (!allowPlaceholder) {
         throw ex;
       }
       String defaultXml = "<placeholder xmlns:android=\"http://schemas.android.com/apk/res/android\"/>";
-      item = new DnDTransferItem(new NlPaletteItem("", "", "", defaultXml, ""), 200, 100);
+      item = new DnDTransferItem(new NlPaletteItem("", "", "", defaultXml, "", "", ""), 200, 100);
     }
     if (item == null || item.getRepresentation().isEmpty()) {
       throw new UnsupportedFlavorException(null);
