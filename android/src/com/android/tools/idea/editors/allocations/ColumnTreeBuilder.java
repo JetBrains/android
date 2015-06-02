@@ -319,11 +319,15 @@ public class ColumnTreeBuilder {
     public void create(DefaultTableModel model) {
       model.addColumn(myName);
     }
+
     public void configure(JTable table, TableRowSorter<TableModel> sorter, ColumnTreeCellRenderer renderer) {
       TableColumn column = table.getColumn(myName);
       column.setPreferredWidth(myWidth);
       if (myComparator != null) {
         sorter.setComparator(column.getModelIndex(), myComparator);
+      }
+      else {
+        sorter.setSortable(column.getModelIndex(), false);
       }
       assert myRenderer != null;
       renderer.add(myRenderer);
