@@ -133,6 +133,18 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestHighlighting("missing_attrs.xml");
   }
 
+  public void testDataBindingHighlighting() throws Throwable {
+    doTestHighlighting("binding1.xml");
+  }
+
+  public void testDataBindingCompletion1() throws Throwable {
+    doTestCompletionVariants("binding2.xml", "name", "type");
+  }
+
+  public void testDataBindingCompletion2() throws Throwable {
+    toTestCompletion("binding3.xml", "binding3_after.xml");
+  }
+
   public void testCustomTagCompletion() throws Throwable {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
     toTestCompletion("ctn.xml", "ctn_after.xml");
