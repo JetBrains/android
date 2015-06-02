@@ -34,6 +34,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,7 +47,7 @@ public class MergedManifestInfo extends ManifestInfo {
 
   private Set<VirtualFile> myManifestFiles = Sets.newHashSet();
   private final AtomicLong myLastChecked = new AtomicLong(0);
-  private AtomicReference<List<Manifest>> myManifestsRef = new AtomicReference<List<Manifest>>(null);
+  private AtomicReference<List<Manifest>> myManifestsRef = new AtomicReference<List<Manifest>>(Collections.<Manifest>emptyList());
 
   private static final String MERGING_UNSUPPORTED =
     "This class does not perform a proper manifest merge algorithm, and so the requested information "
@@ -60,7 +61,8 @@ public class MergedManifestInfo extends ManifestInfo {
     myFacet = facet;
   }
 
-  private Set<VirtualFile> getAllManifests(@NotNull AndroidFacet facet) {
+  @NotNull
+  private static Set<VirtualFile> getAllManifests(@NotNull AndroidFacet facet) {
     Set<VirtualFile> allManifests = Sets.newHashSet();
     allManifests.addAll(IdeaSourceProvider.getManifestFiles(facet));
 
@@ -150,31 +152,31 @@ public class MergedManifestInfo extends ManifestInfo {
   }
 
   private void sync() {
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        boolean needsRefresh = false;
+    boolean needsRefresh = false;
 
-        // needs a refresh if the list of manifests changed due to a variant change or a sync with new build script
-        Set<VirtualFile> currentManifests = getAllManifests(myFacet);
-        if (!currentManifests.equals(myManifestFiles)) {
-          myManifestFiles = currentManifests;
-          myLastChecked.set(0);
-          needsRefresh = true;
-        }
+    // needs a refresh if the list of manifests changed due to a variant change or a sync with new build script
+    Set<VirtualFile> currentManifests = getAllManifests(myFacet);
+    if (!currentManifests.equals(myManifestFiles)) {
+      myManifestFiles = currentManifests;
+      myLastChecked.set(0);
+      needsRefresh = true;
+    }
 
-        // needs a refresh if one of the manifests has a newer timestamp
-        long maxLastModified = getMaxLastModified();
-        if (myLastChecked.get() < maxLastModified) {
-          myLastChecked.set(maxLastModified);
-          needsRefresh = true;
-        }
+    // needs a refresh if one of the manifests has a newer timestamp
+    long maxLastModified = getMaxLastModified();
+    if (myLastChecked.get() < maxLastModified) {
+      myLastChecked.set(maxLastModified);
+      needsRefresh = true;
+    }
 
-        if (needsRefresh) {
+    if (needsRefresh) {
+      ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
+        public void run() {
           syncWithReadPermission();
         }
-      }
-    });
+      });
+    }
   }
 
   private long getMaxLastModified() {
