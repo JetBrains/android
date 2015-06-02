@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -45,18 +46,6 @@ public class StyleResolver {
 
   public StyleResolver(@NotNull Configuration configuration) {
     myConfiguration = configuration;
-
-    IAndroidTarget target = configuration.getTarget();
-    if (target == null) {
-      LOG.error("Unable to get IAndroidTarget.");
-      return;
-    }
-
-    AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, configuration.getModule());
-    if (androidTargetData == null) {
-      LOG.error("Unable to get AndroidTargetData.");
-      return;
-    }
   }
 
   /**
@@ -102,19 +91,27 @@ public class StyleResolver {
 
   @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull Configuration configuration, @NotNull ItemResourceValue itemResValue) {
-    AttributeDefinitions defs;
+    AttributeDefinitions definitions;
+    Module module = configuration.getModule();
+
     if (itemResValue.isFrameworkAttr()) {
       IAndroidTarget target = configuration.getTarget();
-      AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, configuration.getModule());
-      defs = androidTargetData.getAllAttrDefs(configuration.getModule().getProject());
+      assert target != null;
+
+      AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, module);
+      assert androidTargetData != null;
+
+      definitions = androidTargetData.getAllAttrDefs(module.getProject());
     }
     else {
-      AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
-      defs = facet.getLocalResourceManager().getAttributeDefinitions();
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      assert facet != null : String.format("Module %s is not an Android module", module.getName());
+
+      definitions = facet.getLocalResourceManager().getAttributeDefinitions();
     }
-    if (defs == null) {
+    if (definitions == null) {
       return null;
     }
-    return defs.getAttrDefByName(itemResValue.getName());
+    return definitions.getAttrDefByName(itemResValue.getName());
   }
 }
