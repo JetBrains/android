@@ -29,15 +29,13 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.List;
 
-import static org.fest.swing.edt.GuiActionRunner.execute;
-
 public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, ThemeEditorComponent> {
   public ThemeEditorFixture(@NotNull Robot robot, @NotNull ThemeEditor themeEditor) {
     super(ThemeEditorFixture.class, robot, (ThemeEditorComponent)themeEditor.getComponent());
   }
 
   @NotNull
-  protected JComboBoxFixture findThemesComboBox() {
+  public JComboBoxFixture getThemesComboBox() {
     return new JComboBoxFixture(robot(), robot().finder().findByType(this.target().getSecondComponent(), JComboBox.class));
   }
 
@@ -54,7 +52,7 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
 
   @NotNull
   public List<String> getThemesList() {
-    JComboBoxFixture themesCombo = findThemesComboBox();
+    JComboBoxFixture themesCombo = getThemesComboBox();
 
     return ImmutableList.copyOf(themesCombo.contents());
   }
