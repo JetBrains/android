@@ -183,7 +183,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       Recipe recipe = Recipe.parse(new StringReader(xml));
 
       if (executeRecipe) {
-        RecipeContext recipeContext = new RecipeContext(myModule, myLoader, freemarker, paramMap, myRootPath);
+        RecipeContext recipeContext = new RecipeContext(myModule, myLoader, freemarker, paramMap, myRootPath, false);
         recipe.execute(recipeContext);
 
         // Convert relative paths to absolute paths, so TemplateUtils.openEditors can find them
