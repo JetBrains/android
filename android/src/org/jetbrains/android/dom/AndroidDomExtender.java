@@ -94,6 +94,10 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
             !TABLE_ROW.equals(tagName) &&
             !VIEW_INCLUDE.equals(tagName) &&
             !REQUEST_FOCUS.equals(tagName) &&
+            !TAG_LAYOUT.equals(tagName) &&
+            !TAG_DATA.equals(tagName) &&
+            !TAG_VARIABLE.equals(tagName) &&
+            !TAG_IMPORT.equals(tagName) &&
             !TAG.equals(tagName) &&
             (tag == null || tag.getAttribute(ATTR_STYLE) == null)) {
           XmlTag parentTag = tag != null ? tag.getParentTag() : null;
