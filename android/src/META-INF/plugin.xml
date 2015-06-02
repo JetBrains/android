@@ -716,6 +716,8 @@
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapDrawableRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.AndroidTypedIntegerRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.ArrayMapRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.SupportArrayMapRenderer" />
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
   </extensions>
