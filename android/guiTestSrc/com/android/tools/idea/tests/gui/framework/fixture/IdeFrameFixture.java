@@ -788,6 +788,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public AvdManagerDialogFixture invokeAvdManager() {
     ActionButtonFixture button = findActionButtonByActionId("Android.RunAndroidAvdManager");
+    button.requireVisible();
+    button.requireEnabled();
     button.click();
     return AvdManagerDialogFixture.find(robot());
   }

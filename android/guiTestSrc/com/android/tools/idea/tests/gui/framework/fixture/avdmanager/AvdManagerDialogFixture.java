@@ -24,6 +24,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
@@ -58,7 +59,10 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
 
   public AvdEditWizardFixture createNew() {
     JButton newAvdButton = findButtonByText("Create Virtual Device...");
-    robot().click(newAvdButton);
+    final JButtonFixture button = new JButtonFixture(robot(), newAvdButton);
+    button.requireEnabled();
+    button.requireVisible();
+    button.click();
     return AvdEditWizardFixture.find(robot());
   }
 
