@@ -16,9 +16,13 @@
 package com.android.tools.idea.structure.gradle;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.SdkMavenRepository;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.gradle.parser.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.structure.EditorPanel;
+import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -39,10 +43,12 @@ import com.intellij.openapi.roots.ui.util.SimpleTextCellAppearance;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ComboBoxTableRenderer;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
@@ -62,6 +68,8 @@ import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.EnumSet;
 import java.util.List;
+
+import static com.android.tools.idea.templates.RepositoryUrlManager.REVISION_ANY;
 
 /**
  * A GUI object that displays and modifies dependencies for an Android-Gradle module.
@@ -283,10 +291,52 @@ public class ModuleDependenciesPanel extends EditorPanel {
     dialog.show();
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
       String coordinateText = dialog.getSearchText();
-      myModel.addItem(new ModuleDependenciesTableItem(
-          new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, coordinateText)));
+      coordinateText = installRepositoryIfNeeded(coordinateText);
+      if (coordinateText != null) {
+        myModel.addItem(new ModuleDependenciesTableItem(
+            new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, coordinateText)));
+      }
     }
     myModel.fireTableDataChanged();
+  }
+
+  private String installRepositoryIfNeeded(String coordinateText) {
+    GradleCoordinate gradleCoordinate = GradleCoordinate.parseCoordinateString(coordinateText);
+    assert gradleCoordinate != null;  // Only allowed to click ok when the string is valid.
+    if (!REVISION_ANY.equals(gradleCoordinate.getFullRevision()) ||
+        !RepositoryUrlManager.EXTRAS_REPOSITORY.containsKey(gradleCoordinate.getArtifactId())) {
+      // No installation needed, or it's not a local repository.
+      return coordinateText;
+    }
+    String message = "Library " + gradleCoordinate.getArtifactId() + " is not installed. Install repository?";
+    if (Messages.showYesNoDialog(myProject, message, "Install Repository", Messages.getQuestionIcon()) != Messages.YES) {
+      // User cancelled installation.
+      return null;
+    }
+    List<IPkgDesc> requested = Lists.newArrayList();
+    SdkMavenRepository repository;
+    if (coordinateText.startsWith("com.android.support")) {
+      repository = SdkMavenRepository.ANDROID;
+    }
+    else if (coordinateText.startsWith("com.google.android")) {
+      repository = SdkMavenRepository.GOOGLE;
+    }
+    else {
+      // Not a local repository.
+      assert false;  // EXTRAS_REPOSITORY.containsKey() should have returned false.
+      return coordinateText + ':' + REVISION_ANY;
+    }
+    requested.add(repository.getPackageDescription());
+    SdkQuickfixWizard wizard = new SdkQuickfixWizard(myProject, null, requested);
+    wizard.init();
+    wizard.setTitle("Install Missing Components");
+    if (wizard.showAndGet()) {
+      return RepositoryUrlManager.get().getLibraryCoordinate(gradleCoordinate.getArtifactId());
+    }
+    else {
+      // Installation wizard didn't complete - skip adding the dependency.
+      return null;
+    }
   }
 
   private void addFileDependency() {
