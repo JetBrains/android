@@ -49,7 +49,7 @@ public class ImageButtonHandler extends ViewHandler {
 
     // Fallback if dismissed or during previews etc
     if (insertType.isCreate()) {
-      newChild.setAttribute(ANDROID_URI, ATTR_SRC, ImageViewHandler.getSampleImageSrc());
+      newChild.setAttribute(ANDROID_URI, ATTR_SRC, getSampleImageSrc());
     }
 
     return true;

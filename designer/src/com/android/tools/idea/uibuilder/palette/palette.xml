@@ -1367,6 +1367,27 @@
     </creation>
   </meta>
 
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
+        class="android.support.design.widget.FloatingActionButton"
+        tag="FloatingActionButton">
+
+    <palette title="Floating Action Button" icon="AndroidIcons.Views.ToggleButton"/>
+
+    <properties important="fabSize clickable"/>
+
+    <creation>
+      <![CDATA[
+        <android.support.design.widget.FloatingActionButton
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:clickable="true">
+        </android.support.design.widget.FloatingActionButton>
+      ]]>
+    </creation>
+  </meta>
+
+
+
   <!-- ================= Layouts ================= -->
 
   <meta model="com.intellij.android.designer.model.RadViewContainer"
@@ -1422,6 +1443,47 @@
           </FrameLayout>
       ]]>
     </creation>
+
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewContainer"
+        class="android.support.design.widget.CoordinatorLayout"
+        tag="CoordinatorLayout">
+
+    <palette title="CoordinatorLayout" icon="AndroidIcons.Views.AbsoluteLayout"
+             tooltip="CoordinatorLayout is a super-powered FrameLayout."/>
+
+    <morphing to="FrameLayout"/>
+
+    <creation>
+      <![CDATA[
+          <android.support.design.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+          </android.support.design.widget.CoordinatorLayout>
+      ]]>
+    </creation>
+
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewContainer"
+        class="android.support.design.widget.AppBarLayout"
+        tag="AppBarLayout">
+
+    <palette title="AppBarLayout" icon="AndroidIcons.Views.LinearLayout"
+             tooltip="AppBarLayout is a super-powered vertical LinearLayout."/>
+
+    <morphing to="LinearLayout"/>
+
+    <creation>
+      <![CDATA[
+          <android.support.design.widget.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+          </android.support.design.widget.AppBarLayout>
+      ]]>
+    </creation>
+
   </meta>
 
   <meta model="com.intellij.android.designer.model.RadViewContainer"
@@ -1583,6 +1645,8 @@
   <palette>
     <group name="Layouts">
       <item tag="FrameLayout"/>
+      <item tag="CoordinatorLayout"/>
+      <item tag="AppBarLayout"/>
       <item tag="LinearLayout"
             title="LinearLayout (Horizontal)"
             icon="AndroidIcons.Views.LinearLayout"
@@ -1664,6 +1728,7 @@
       <item tag="CheckBox"/>
       <item tag="Switch"/>
       <item tag="ToggleButton"/>
+      <item tag="FloatingActionButton"/>
       <item tag="ProgressBar"
             title="ProgressBar (Large)"
             id="ProgressBarLarge">

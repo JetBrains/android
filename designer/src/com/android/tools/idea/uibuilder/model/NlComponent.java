@@ -38,7 +38,6 @@ import com.intellij.lang.refactoring.NamesValidator;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -212,6 +211,13 @@ public class NlComponent {
     return !(myTag.getParent() instanceof XmlTag);
   }
 
+  public NlComponent getRoot() {
+    NlComponent component = this;
+    while (component != null && !component.isRoot()) {
+      component = component.getParent();
+    }
+    return component;
+  }
 
   public static String toTree(@NonNull List<NlComponent> roots) {
     StringBuilder sb = new StringBuilder(200);
@@ -267,7 +273,6 @@ public class NlComponent {
    * not including the {@code <include>} and {@code <merge>} tags. Note that
    * {@code <fragment>} tags <b>should</b> specify an id.
    *
-   * @param component the new component to check
    * @return true if the component should have a default id
    */
   public boolean needsDefaultId() {
@@ -465,6 +470,27 @@ public class NlComponent {
     }
 
     return Collections.emptyList();
+  }
+
+  public String ensureNamespace(@NonNull String prefix, @NonNull String namespace) {
+    //todo: Merge with functionality in {@link SuppressLintIntentionAction#ensureNamespaceImported}
+    assert isRoot();
+    // Handle validity
+    String existingPrefix = myTag.getPrefixByNamespace(namespace);
+    if (existingPrefix != null) {
+      return existingPrefix;
+    }
+    if (myTag.getAttribute(XMLNS_PREFIX + prefix) != null) {
+      String base = prefix;
+      for (int i = 2; ; i++) {
+        prefix = base + Integer.toString(i);
+        if (myTag.getAttribute(XMLNS_PREFIX + prefix) == null) {
+          break;
+        }
+      }
+    }
+    myTag.setAttribute(XMLNS_PREFIX + prefix, namespace);
+    return prefix;
   }
 
   public boolean isShowing() {

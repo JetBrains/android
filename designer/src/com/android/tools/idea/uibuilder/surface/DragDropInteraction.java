@@ -31,7 +31,7 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -247,7 +247,8 @@ public class DragDropInteraction extends Interaction {
     final ScreenView screenView = myDesignSurface.getScreenView(x, y);
     NlModel model = screenView.getModel();
     NlComponent component = model.findLeafAt(x, y, true);
-    if (component == myCachedComponent) {
+    component = excludeDraggedComponents(component);
+    if (component == myCachedComponent && myCachedHandler != null) {
       return myCachedHandler;
     }
 
@@ -257,7 +258,7 @@ public class DragDropInteraction extends Interaction {
     ViewHandlerManager handlerManager = ViewHandlerManager.get(model.getFacet());
     while (component != null) {
       ViewHandler handler = handlerManager.getHandler(component);
-      if (handler instanceof ViewGroupHandler) {
+      if (handler instanceof ViewGroupHandler && dropIsPossible(handlerManager, component, (ViewGroupHandler)handler)) {
         myCachedHandler = (ViewGroupHandler)handler;
         myDragReceiver = component; // HACK: This method should not side-effect set this; instead the method should compute it!
         return myCachedHandler;
@@ -269,6 +270,31 @@ public class DragDropInteraction extends Interaction {
     return null;
   }
 
+  private boolean dropIsPossible(@NonNull ViewHandlerManager handlerManager, @NonNull NlComponent component, @NonNull ViewGroupHandler layout) {
+    for (NlComponent dragged : myDraggedComponents) {
+      if (!layout.acceptsChild(component, dragged)) {
+        return false;
+      }
+      ViewHandler handler = handlerManager.getHandler(dragged);
+      if (handler != null && !handler.acceptsParent(component, dragged)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Nullable
+  private NlComponent excludeDraggedComponents(@Nullable NlComponent component) {
+    NlComponent receiver = component;
+    while (component != null) {
+      if (myDraggedComponents.contains(component)) {
+        receiver = component.getParent();
+      }
+      component = component.getParent();
+    }
+    return receiver;
+  }
+
   @Override
   public List<Layer> createOverlays() {
     return Collections.<Layer>singletonList(new DragLayer());
@@ -277,6 +303,11 @@ public class DragDropInteraction extends Interaction {
   @NonNull
   public List<NlComponent> getDraggedComponents() {
     return myDraggedComponents;
+  }
+
+  @Nullable
+  public NlComponent getDragReceiver() {
+    return myDragReceiver;
   }
 
   /**

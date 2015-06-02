@@ -169,6 +169,15 @@ public class ViewHandlerManager implements ProjectComponent {
     if (TABLE_ROW.equals(viewTag)) {
       return new TableRowHandler();
     }
+    if (COORDINATOR_LAYOUT.equals(viewTag)) {
+      return new CoordinatorLayoutHandler();
+    }
+    if (APP_BAR_LAYOUT.equals(viewTag)) {
+      return new AppBarLayoutHandler();
+    }
+    if (FLOATING_ACTION_BUTTON.equals(viewTag)) {
+      return new FloatingActionButtonHandler();
+    }
 
     // Look for other handlers via reflection; first built into the IDE:
     try {
