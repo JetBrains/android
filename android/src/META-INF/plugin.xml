@@ -624,7 +624,8 @@
                     serviceImplementation="com.android.tools.idea.structure.gradle.AndroidProjectSettingsService"
                     overrides="true"/>
     <projectService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureService"/>
-    <projectService serviceImplementation="com.android.tools.idea.debug.ResourceIdResolver" />
+    <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
+                    serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
 
     <applicationConfigurable groupId="build" groupWeight="200" instance="com.android.tools.idea.run.CloudTestingConfigurable"/>
 

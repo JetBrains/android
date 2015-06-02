@@ -15,62 +15,9 @@
  */
 package com.android.tools.idea.debug;
 
-import com.android.sdklib.IAndroidTarget;
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
-import gnu.trove.TIntObjectHashMap;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ResourceIdResolver {
-  private final Project myProject;
-
-  private TIntObjectHashMap<String> myIdMap;
-  private boolean myInitialized;
-
-  @NotNull
-  public static ResourceIdResolver getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, ResourceIdResolver.class);
-  }
-
-  private ResourceIdResolver(@NotNull Project project) {
-    myProject = project;
-  }
-
-  /** Returns the resource name corresponding to a given id if the id is present in the Android framework's exported ids (in public.xml) */
+public interface ResourceIdResolver {
   @Nullable
-  public String getAndroidResourceName(int resId) {
-    if (!myInitialized) {
-      myIdMap = getIdMap();
-      myInitialized = true;
-    }
-
-    return myIdMap == null ? null : myIdMap.get(resId);
-  }
-
-  private TIntObjectHashMap<String> getIdMap() {
-    AndroidFacet facet = null;
-    for (Module m : ModuleManager.getInstance(myProject).getModules()) {
-      facet = AndroidFacet.getInstance(m);
-      if (facet != null) {
-        break;
-      }
-    }
-
-    AndroidSdkData sdkData = facet == null ? null : facet.getSdkData();
-    if (sdkData == null) {
-      return null;
-    }
-
-    IAndroidTarget[] targets = sdkData.getTargets();
-    if (targets.length == 0) {
-      return null;
-    }
-
-    return sdkData.getTargetData(targets[targets.length - 1]).getPublicIdMap();
-  }
+  String getAndroidResourceName(int resId);
 }
