@@ -20,7 +20,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
-import com.android.tools.idea.run.ArrayMapRenderer;
+import com.android.tools.idea.debug.ArrayMapRenderer;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
