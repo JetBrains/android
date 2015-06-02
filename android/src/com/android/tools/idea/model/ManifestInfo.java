@@ -22,6 +22,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.*;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
@@ -335,12 +336,17 @@ public abstract class ManifestInfo {
   }
 
   private <T> List<T> getApplicationComponents(final Function<Application, List<T>> accessor) {
+    final List<Manifest> manifests = getManifests();
+    if (manifests.isEmpty()) {
+      Logger.getInstance(ManifestInfo.class).warn("List of manifests is empty, possibly needs a gradle sync.");
+    }
+
     return ApplicationManager.getApplication().runReadAction(new Computable<List<T>>() {
       @Override
       public List<T> compute() {
         List<T> components = Lists.newArrayList();
 
-        for (Manifest m : getManifests()) {
+        for (Manifest m : manifests) {
           Application application = m.getApplication();
           if (application != null) {
             components.addAll(accessor.fun(application));
@@ -354,12 +360,17 @@ public abstract class ManifestInfo {
 
   @NotNull
   public List<UsesFeature> getRequiredFeatures() {
+    final List<Manifest> manifests = getManifests();
+    if (manifests.isEmpty()) {
+      Logger.getInstance(ManifestInfo.class).warn("List of manifests is empty, possibly needs a gradle sync.");
+    }
+
     return ApplicationManager.getApplication().runReadAction(new Computable<List<UsesFeature>>() {
       @Override
       public List<UsesFeature> compute() {
         List<UsesFeature> usesFeatures = Lists.newArrayList();
 
-        for (Manifest m : getManifests()) {
+        for (Manifest m : manifests) {
           usesFeatures.addAll(m.getUsesFeatures());
         }
 
