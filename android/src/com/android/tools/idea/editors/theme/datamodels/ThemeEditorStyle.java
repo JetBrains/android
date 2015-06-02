@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
@@ -90,7 +91,13 @@ public class ThemeEditorStyle {
 
   @NotNull
   private StyleResourceValue getStyleResourceValue() {
-    return myConfiguration.getResourceResolver().getStyle(myStyleName, myIsFrameworkStyle);
+    ResourceResolver resolver = myConfiguration.getResourceResolver();
+    assert resolver != null;
+
+    StyleResourceValue result = resolver.getStyle(myStyleName, myIsFrameworkStyle);
+    assert result != null;
+
+    return result;
   }
 
   @NotNull
@@ -143,7 +150,10 @@ public class ThemeEditorStyle {
    */
   @Nullable
   public ThemeEditorStyle getParent() {
-    StyleResourceValue parent = myConfiguration.getResourceResolver().getParent(getStyleResourceValue());
+    ResourceResolver resolver = myConfiguration.getResourceResolver();
+    assert resolver != null;
+
+    StyleResourceValue parent = resolver.getParent(getStyleResourceValue());
     if (parent == null) {
       return null;
     }
