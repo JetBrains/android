@@ -17,9 +17,12 @@ package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
@@ -27,6 +30,8 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
 import org.fest.assertions.Index;
 import org.fest.swing.annotation.GUITest;
+import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -36,7 +41,8 @@ import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Fail.fail;
+import static org.fest.swing.timing.Pause.pause;
+import static org.junit.Assert.assertNotNull;
 
 
 /**
@@ -107,5 +113,70 @@ public class ThemeEditorTest extends GuiTestCase {
 
     editor.close();
     checkNoErrors(projectFrame.getProject());
+  }
+
+  @Test @IdeGuiTest
+  public void testRenameTheme() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR);
+    EditorNotificationPanelFixture notificationPanel =
+      projectFrame.requireEditorNotification("Edit all themes in the project in the theme editor.");
+    notificationPanel.performAction("Open editor");
+
+    ThemeEditorFixture themeEditor = editor.getThemeEditor();
+    assertNotNull(themeEditor);
+
+    final JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
+    themesComboBox.selectItem("Rename AppTheme");
+
+    RenameRefactoringDialogFixture renameRefactoringDialog = RenameRefactoringDialogFixture.find(myRobot);
+    renameRefactoringDialog.setNewName("NewAppTheme").clickRefactor();
+
+    pause(new Condition("Waiting for renaming to be finished") {
+      @Override
+      public boolean test() {
+        return "[NewAppTheme]".equals(themesComboBox.selectedItem());
+      }
+    }, GuiTests.SHORT_TIMEOUT);
+
+    themesComboBox.requireSelection("[NewAppTheme]");
+
+    List<String> themeList = themeEditor.getThemesList();
+    assertThat(themeList)
+      .hasSize(8)
+      .contains("[NewAppTheme]", Index.atIndex(0))
+      .contains("Theme.AppCompat.Light.NoActionBar", Index.atIndex(2))
+      .contains("Theme.AppCompat.NoActionBar", Index.atIndex(3))
+      .contains("Show all themes", Index.atIndex(4))
+      .contains("Create New Theme", Index.atIndex(6))
+      .contains("Rename NewAppTheme", Index.atIndex(7));
+  }
+
+  @Test @IdeGuiTest
+  public void testNoRenameForReadOnlyTheme() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR);
+    EditorNotificationPanelFixture notificationPanel =
+      projectFrame.requireEditorNotification("Edit all themes in the project in the theme editor.");
+    notificationPanel.performAction("Open editor");
+
+    ThemeEditorFixture themeEditor = editor.getThemeEditor();
+    assertNotNull(themeEditor);
+
+    JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
+    themesComboBox.selectItem("Theme.AppCompat.NoActionBar"); // AppCompat is read-only, being a library theme
+
+    List<String> themeList = themeEditor.getThemesList();
+    assertThat(themeList)
+      .hasSize(7)
+      .contains("[AppTheme]", Index.atIndex(0))
+      .contains("Theme.AppCompat.Light.NoActionBar", Index.atIndex(2))
+      .contains("Theme.AppCompat.NoActionBar", Index.atIndex(3))
+      .contains("Show all themes", Index.atIndex(4))
+      .contains("Create New Theme", Index.atIndex(6));
   }
 }
