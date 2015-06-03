@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.debug;
 
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.components.ServiceManager;
@@ -26,7 +26,7 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ResourceIdResolver {
+public class ProjectResourceIdResolver implements ResourceIdResolver {
   private final Project myProject;
 
   private TIntObjectHashMap<String> myIdMap;
@@ -37,11 +37,12 @@ public class ResourceIdResolver {
     return ServiceManager.getService(project, ResourceIdResolver.class);
   }
 
-  private ResourceIdResolver(@NotNull Project project) {
+  private ProjectResourceIdResolver(@NotNull Project project) {
     myProject = project;
   }
 
   /** Returns the resource name corresponding to a given id if the id is present in the Android framework's exported ids (in public.xml) */
+  @Override
   @Nullable
   public String getAndroidResourceName(int resId) {
     if (!myInitialized) {

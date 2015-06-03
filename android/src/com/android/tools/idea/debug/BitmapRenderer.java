@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.debug;
 
 import com.intellij.debugger.engine.FullValueEvaluatorProvider;
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
@@ -25,12 +25,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
 
-public class BitmapDrawableRenderer extends ToStringBasedRenderer implements FullValueEvaluatorProvider {
-  public static final String BITMAP_DRAWABLE_FQCN = "android.graphics.drawable.BitmapDrawable";
+public class BitmapRenderer extends ToStringBasedRenderer implements FullValueEvaluatorProvider {
+  private static final String BITMAP_FQCN = "android.graphics.Bitmap";
 
-  public BitmapDrawableRenderer(NodeRendererSettings rendererSettings) {
-    super(rendererSettings, "BitmapDrawable", null, null);
-    setClassName(BITMAP_DRAWABLE_FQCN);
+  public BitmapRenderer(NodeRendererSettings rendererSettings) {
+    super(rendererSettings, "Bitmap", null, null);
+    setClassName(BITMAP_FQCN);
     setEnabled(true);
   }
 

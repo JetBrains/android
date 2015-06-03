@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.debug;
 
 import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.DebugProcessImpl;
@@ -26,6 +26,7 @@ import com.intellij.debugger.ui.tree.ValueDescriptor;
 import com.intellij.debugger.ui.tree.render.DescriptorLabelListener;
 import com.intellij.debugger.ui.tree.render.ToStringCommand;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
@@ -84,7 +85,9 @@ public class ResolveTypedIntegerCommand extends ToStringCommand {
     });
 
     if (annotation != null) {
-      myResult = AnnotationsRenderer.render(myEvaluationContext.getProject(), annotation, ((IntegerValue)myValue).value());
+      ResourceIdResolver resolver = ServiceManager.getService(myEvaluationContext.getProject(), ResourceIdResolver.class);
+      DynamicResourceIdResolver resolver1 = new DynamicResourceIdResolver(myEvaluationContext, resolver);
+      myResult = AnnotationsRenderer.render(resolver1, annotation, ((IntegerValue)myValue).value());
     }
 
     evaluationResult("");
