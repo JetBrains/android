@@ -481,7 +481,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     private boolean setAttributeValue(@NotNull String strValue, boolean forceReload) {
       EditedStyleItem rv = myAttributes.get(myRowIndex);
-      if (strValue.equals(rv.getRawXmlValue()) && !forceReload) {
+      if (strValue.equals(rv.getValue()) && !forceReload) {
         return false;
       }
       String propertyName = rv.getQualifiedName();

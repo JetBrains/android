@@ -95,7 +95,7 @@ public class AttributeReferenceRendererEditor extends TypedCellEditor<EditedStyl
   @Override
   public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
     myEditValue = value;
-    myStringValue = value.getRawXmlValue();
+    myStringValue = value.getValue();
 
     myTextField.setText(myStringValue);
     myTextField.setFont(table.getFont());

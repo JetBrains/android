@@ -532,7 +532,7 @@ public class ThemeEditorComponent extends Splitter {
    * @param strValue The new value.
    */
   private void createNewThemeWithAttributeValue(@NotNull EditedStyleItem rv, @NotNull String strValue) {
-    if (strValue.equals(rv.getRawXmlValue())) {
+    if (strValue.equals(rv.getValue())) {
       // No modification required.
       return;
     }
