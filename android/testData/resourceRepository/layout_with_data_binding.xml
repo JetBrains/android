@@ -17,6 +17,8 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
   <data>
     <variable name="variable1" type="String"/>
+    <import type="p1.p2.import1"/>
+    <import type="p1.p2.import2" alias="i2"/>
   </data>
   <LinearLayout
       android:orientation="vertical"

@@ -43,10 +43,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.rendering.ResourceFolderRepository.ourFullRescans;
@@ -2163,6 +2160,28 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("variable1", variable1.getName());
     assertEquals("String", variable1.getExtra(SdkConstants.ATTR_TYPE));
     assertNotNull(variable1.getXmlTag());
+
+    List<PsiDataBindingResourceItem> imports = new ArrayList<PsiDataBindingResourceItem>();// clone to be able to sort
+    imports.addAll(info.getItems(DataBindingResourceType.IMPORT));
+    assertEquals(2, imports.size());
+
+    Collections.sort(imports, new Comparator<PsiDataBindingResourceItem>() {
+      @Override
+      public int compare(PsiDataBindingResourceItem item1, PsiDataBindingResourceItem item2) {
+        return item1.getExtra(SdkConstants.ATTR_TYPE).compareTo(item2.getExtra(SdkConstants.ATTR_TYPE));
+      }
+    });
+
+    PsiDataBindingResourceItem import1 = imports.get(0);
+    assertEquals("p1.p2.import1", import1.getExtra(SdkConstants.ATTR_TYPE));
+    assertNull(import1.getExtra(SdkConstants.ATTR_ALIAS));
+    assertNotNull(import1.getXmlTag());
+
+    PsiDataBindingResourceItem import2 = imports.get(1);
+    assertEquals("p1.p2.import2", import2.getExtra(SdkConstants.ATTR_TYPE));
+    assertEquals("i2", import2.getExtra(SdkConstants.ATTR_ALIAS));
+    assertNotNull(import2.getXmlTag());
+
     List<DataBindingInfo.ViewWithId> viewsWithIds = info.getViewsWithIds();
     assertEquals(6, viewsWithIds.size());
     Collections.sort(viewsWithIds, new Comparator<DataBindingInfo.ViewWithId>() {
