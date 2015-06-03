@@ -112,5 +112,15 @@ public class Message {
     public int getValue() {
       return myValue;
     }
+
+    @Nullable
+    public static Type find(@NotNull String value) {
+      for (Type type : values()) {
+        if (type.name().equalsIgnoreCase(value)) {
+          return type;
+        }
+      }
+      return null;
+    }
   }
 }
