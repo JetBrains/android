@@ -25,6 +25,8 @@ import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.base.Predicate;
+
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.*;
@@ -198,6 +200,19 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       }
     }
     return state;
+  }
+
+  @Override
+  @NotNull
+  protected ApkProvider getApkProvider() {
+    Module module = getConfigurationModule().getModule();
+    assert module != null;
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null;
+    if (facet.getIdeaAndroidProject() != null && Projects.isBuildWithGradle(module)) {
+      return new GradleApkProvider(facet, true);
+    }
+    return new NonGradleApkProvider(facet, null);
   }
   
   private static int getTestSourceRootCount(@NotNull Module module) {

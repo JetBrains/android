@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.ClassField;
@@ -25,24 +26,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 
 public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArtifact {
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
+  @NotNull private final String myApplicationId;
+  @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
 
   AndroidArtifactStub(@NotNull String name, String dirName, @NotNull String buildType, @NotNull FileStructure fileStructure) {
     super(name, dirName, new DependenciesStub(), buildType, fileStructure);
+    myApplicationId = "app." + buildType.toLowerCase();
+    myOutputs = Arrays.<AndroidArtifactOutput>asList(
+      new AndroidArtifactOutputStub(Arrays.<OutputFile>asList(
+        new OutputFileStub(new File(name + "-" + buildType + ".apk")))));
   }
 
   @Override
   @NotNull
   public Collection<AndroidArtifactOutput> getOutputs() {
-    throw new UnsupportedOperationException();
+    return myOutputs;
   }
 
   @Override
@@ -59,7 +63,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   @Override
   @NotNull
   public String getApplicationId() {
-    throw new UnsupportedOperationException();
+    return myApplicationId;
   }
 
   @Override
