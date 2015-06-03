@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.debug;
 
 import com.intellij.debugger.DebuggerBundle;
 import com.intellij.debugger.DebuggerContext;
@@ -47,7 +47,7 @@ import java.util.List;
  * Similar to {@link ArrayRenderer}, it iterates over all of its children, and displays the first {@link #MAX_CHILDREN}
  * mappings. Each mapping is displayed as an array containing the key and the value.
  */
-public class ArrayMapRenderer extends NodeRendererImpl {
+public class ArrayMapRendererBase extends NodeRendererImpl {
   private static final int MAX_CHILDREN = 10;
   @NonNls private final static String MORE_ELEMENTS = "...";
 
@@ -55,7 +55,7 @@ public class ArrayMapRenderer extends NodeRendererImpl {
   private final LabelRenderer myLabelRenderer = new LabelRenderer();
   private final MyArrayMapSizeEvaluator mySizeEvaluator = new MyArrayMapSizeEvaluator();
 
-  public ArrayMapRenderer(@NotNull String mapFqn) {
+  public ArrayMapRendererBase(@NotNull String mapFqn) {
     myProperties.setEnabled(true);
     myProperties.setName(mapFqn);
 
@@ -128,7 +128,7 @@ public class ArrayMapRenderer extends NodeRendererImpl {
 
   @Override
   public String getUniqueId() {
-    return "ArrayMapRenderer";
+    return myFqn;
   }
 
   @Override
