@@ -28,6 +28,7 @@ import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -588,14 +589,31 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
         final JBList list = new JBList(files.keySet());
         int width = WindowManager.getInstance().getFrame(myProject).getSize().width;
         list.setCellRenderer(new GotoFileCellRenderer(width));
-        JBPopupFactory.getInstance().createListPopupBuilder(list).setTitle("Choose Target File").setItemChoosenCallback(new Runnable() {
-          @Override
-          public void run() {
-            PsiFile psiFile = (PsiFile)list.getSelectedValue();
-            VirtualFile file = psiFile.getVirtualFile();
-            new OpenFileHyperlinkInfo(myProject, file, files.get(psiFile)).navigate(myProject);
-          }
-        }).createPopup().showInFocusCenter();
+        Rectangle rect;
+        Component owner;
+        if (ActionPlaces.UPDATE_POPUP.equals(e.getPlace())) {
+          owner = myInfoTable;
+          rect = myInfoTable.getCellRect(myInfoTable.getSelectedRow(), 0, true);
+        } else {
+          owner = myTree;
+          rect = myTree.getPathBounds(myTree.getSelectionPath());
+        }
+        JBPopup popup =
+          JBPopupFactory.getInstance().createListPopupBuilder(list).setTitle("Choose Target File").setItemChoosenCallback(new Runnable() {
+            @Override
+            public void run() {
+              PsiFile psiFile = (PsiFile)list.getSelectedValue();
+              VirtualFile file = psiFile.getVirtualFile();
+              new OpenFileHyperlinkInfo(myProject, file, files.get(psiFile)).navigate(myProject);
+            }
+          }).createPopup();
+        if (rect != null) {
+          Point location = new Point(0, (int)rect.getCenterY());
+          SwingUtilities.convertPointToScreen(location, owner);
+          popup.showInScreenCoordinates(owner, location);
+        } else {
+          popup.showInFocusCenter();
+        }
       }
       else {
         Map.Entry<PsiFile, Integer> entry = files.entrySet().iterator().next();
