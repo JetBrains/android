@@ -22,17 +22,23 @@ import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.SdkConstants.FQCN_TARGET_API;
+import java.util.Locale;
+
+import static com.android.SdkConstants.*;
 
 /** Fix which adds a {@code @TargetApi} annotation at the nearest surrounding method or class */
 class AddTargetApiQuickFix implements AndroidLintQuickFix {
   private int myApi;
+  private PsiElement myElement;
 
-  AddTargetApiQuickFix(int api) {
+  AddTargetApiQuickFix(int api, PsiElement element) {
     myApi = api;
+    myElement = element;
   }
 
   private String getAnnotationValue() {
@@ -49,6 +55,16 @@ class AddTargetApiQuickFix implements AndroidLintQuickFix {
   public String getName() {
     String value = getAnnotationValue();
     String key = value.substring(value.lastIndexOf('.') + 1);
+
+    final PsiFile file = PsiTreeUtil.getParentOfType(myElement, PsiFile.class);
+    if (file instanceof XmlFile) {
+      // The quickfixes are sorted alphabetically, but for resources we really don't want
+      // this quickfix (Add Target API) to appear before Override Resource, which is
+      // usually the better solution. So instead of "Add tools:targetApi" we use a label
+      // which sorts later alphabetically.
+      return "Suppress With tools:targetApi Attribute";
+    }
+
     return AndroidBundle.message("android.lint.fix.add.target.api", key);
   }
 
@@ -56,7 +72,8 @@ class AddTargetApiQuickFix implements AndroidLintQuickFix {
   public boolean isApplicable(@NotNull PsiElement startElement,
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
-    return PsiTreeUtil.getParentOfType(startElement, PsiModifierListOwner.class, false) != null;
+    return PsiTreeUtil.getParentOfType(startElement, PsiModifierListOwner.class, false) != null
+           || PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false) != null;
   }
 
   @SuppressWarnings("unchecked")
@@ -65,6 +82,26 @@ class AddTargetApiQuickFix implements AndroidLintQuickFix {
     // Find nearest method or class; can't add @TargetApi on modifier list owners like variable declarations
     @SuppressWarnings("unchecked")
     PsiModifierListOwner container = PsiTreeUtil.getParentOfType(startElement, PsiMethod.class, PsiClass.class);
+
+    if (container == null) {
+      // XML file? Set attribute
+      XmlTag element = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
+      if (element != null) {
+        XmlFile file = PsiTreeUtil.getParentOfType(element, XmlFile.class, false);
+        if (file != null) {
+          SuppressLintIntentionAction.ensureNamespaceImported(element.getProject(), file, TOOLS_URI);
+          String codeName = SdkVersionInfo.getBuildCode(myApi);
+          if (codeName == null) {
+            codeName = Integer.toString(myApi);
+          } else {
+            codeName = codeName.toLowerCase(Locale.US);
+          }
+          element.setAttribute(ATTR_TARGET_API, TOOLS_URI, codeName);
+        }
+      }
+      return;
+    }
+
     while (container != null && container instanceof PsiAnonymousClass) {
       container = PsiTreeUtil.getParentOfType(container, PsiMethod.class, true, PsiClass.class);
     }

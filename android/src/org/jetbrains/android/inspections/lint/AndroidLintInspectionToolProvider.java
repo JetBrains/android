@@ -1088,7 +1088,7 @@ public class AndroidLintInspectionToolProvider {
         }
       }
 
-      list.add(new AddTargetApiQuickFix(api));
+      list.add(new AddTargetApiQuickFix(api, startElement));
 
       return list.toArray(new AndroidLintQuickFix[list.size()]);
     }
