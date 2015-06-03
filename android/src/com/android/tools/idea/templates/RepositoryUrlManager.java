@@ -179,14 +179,7 @@ public class RepositoryUrlManager {
 
     File supportMetadataFile = new File(String.format(library.basePath, sdkLocation, library.id), MAVEN_METADATA_FILE_NAME);
     if (!fileExists(supportMetadataFile)) {
-      String revision;
-      if (DESIGN.equals(libraryId)) {
-        // Hardcode the version number for the preview release.
-        revision = "22.2.0";
-      } else {
-        revision = REVISION_ANY;
-      }
-      return String.format(library.baseCoordinate, library.id, revision);
+      return String.format(library.baseCoordinate, library.id, REVISION_ANY);
     }
 
     String version = getLatestVersionFromMavenMetadata(supportMetadataFile, filterPrefix, includePreviews);
