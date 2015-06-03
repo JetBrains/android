@@ -121,7 +121,7 @@ public class InstanceReferenceTree {
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree).addColumn(
       new ColumnTreeBuilder.ColumnBuilder()
         .setName("Reference Tree")
-        .setPreferredWidth(600)
+        .setPreferredWidth(1200)
         .setHeaderAlignment(SwingConstants.LEFT)
         .setRenderer(
         new ColoredTreeCellRenderer() {
