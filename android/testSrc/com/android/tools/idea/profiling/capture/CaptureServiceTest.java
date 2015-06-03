@@ -54,10 +54,10 @@ public class CaptureServiceTest extends IdeaTestCase {
     assertTrue(service.getCaptures().isEmpty());
 
     ExtensionsArea area = Extensions.getRootArea();
-    Element element = readElement("  <extensions defaultExtensionNs=\"org.jetbrains.android\">\n" +
+    Element element = readElement("  <extensions defaultExtensionNs=\"com.android\">\n" +
                                   "    <captureType implementation=\"" + MyCaptureType.class.getName() +
                                   "\"/>\n  </extensions>");
-    area.registerExtension(new DefaultPluginDescriptor(PluginId.getId("org.jetbrains.android")), element.getChild("captureType"));
+    area.registerExtension(new DefaultPluginDescriptor(PluginId.getId("com.android")), element.getChild("captureType"));
     MyCaptureType type = CaptureTypeService.getInstance().getType(MyCaptureType.class);
 
     service.update();
