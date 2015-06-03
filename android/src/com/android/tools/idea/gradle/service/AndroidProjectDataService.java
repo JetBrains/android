@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
@@ -67,13 +68,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.sdklib.repository.PreciseRevision.parseRevision;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.EXTRA_GENERATED_SOURCES;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
-import static com.android.tools.idea.gradle.messages.Message.Type.*;
-import static com.android.tools.idea.gradle.parser.BuildFileKey.BUILD_TOOLS_VERSION;
-import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.messages.Message.Type.INFO;
+import static com.android.tools.idea.gradle.messages.Message.Type.WARNING;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
@@ -142,16 +143,9 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
         Map<String, IdeaAndroidProject> androidProjectsByModuleName = indexByModuleName(toImport);
 
-        FullRevision gradleVersion = getGradleVersion(project);
-        boolean checkGradleCompatibility = false;
-        if (gradleVersion != null) {
-          checkGradleCompatibility = gradleVersion.compareTo(new PreciseRevision(2, 4, 0), PreviewComparison.IGNORE) >= 0;
-        }
-
         Charset ideEncoding = EncodingProjectManager.getInstance(project).getDefaultCharset();
         FullRevision oneDotTwoModelVersion = new PreciseRevision(1, 2, 0);
 
-        String incompatibleModelVersionFound = null;
         String nonMatchingModelEncodingFound = null;
         String modelVersionWithLayoutRenderingIssue = null;
 
@@ -175,10 +169,6 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
             FullRevision modelVersion = parseRevision(delegate.getModelVersion());
             boolean isModelVersionOneDotTwoOrNewer = modelVersion.compareTo(oneDotTwoModelVersion, PreviewComparison.IGNORE) >= 0;
-
-            if (checkGradleCompatibility && incompatibleModelVersionFound == null && !isModelVersionOneDotTwoOrNewer) {
-              incompatibleModelVersionFound = delegate.getModelVersion();
-            }
 
             // Verify that the encoding in the model is the same as the encoding in the IDE's project settings.
             Charset modelEncoding = null;
@@ -214,10 +204,6 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
         if (!modulesUsingBuildTools23rc1.isEmpty()) {
           reportBuildTools23rc1Usage(modulesUsingBuildTools23rc1, project);
-        }
-
-        if (incompatibleModelVersionFound != null) {
-          addModelVersionIncompatibilityMessage(incompatibleModelVersionFound, project);
         }
 
         if (nonMatchingModelEncodingFound != null) {
@@ -272,7 +258,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     }
     GradleBuildFile buildFile = GradleBuildFile.get(module);
     if (buildFile != null) {
-      Object value = buildFile.getValue(BUILD_TOOLS_VERSION);
+      Object value = buildFile.getValue(BuildFileKey.BUILD_TOOLS_VERSION);
       if ("23.0.0 rc1".equals(value)) {
         moduleNames.add(module.getName());
       }
@@ -300,16 +286,6 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
       AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
       notification.showBalloon("Android Build Tools", msg.toString(), NotificationType.ERROR);
     }
-  }
-
-  private static void addModelVersionIncompatibilityMessage(@NotNull String modelVersion, @NotNull Project project) {
-    NotificationHyperlink quickFix = new FixGradleModelVersionHyperlink(GRADLE_PLUGIN_RECOMMENDED_VERSION,
-                                                                        null /* do not update Gradle version */, false);
-    String[] text = {
-      String.format("Android plugin version %1$s is not compatible with Gradle version 2.4 (or newer.)", modelVersion),
-      "Please use Android plugin version 1.2 or newer."
-    };
-    ProjectSyncMessages.getInstance(project).add(new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, text), quickFix);
   }
 
   private static void setIdeEncodingAndAddEncodingMismatchMessage(@NotNull String newEncoding, @NotNull Project project) {

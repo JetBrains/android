@@ -70,7 +70,7 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
                                         @Nullable String gradleVersion,
                                         boolean openMigrationGuide) {
     super("fixGradleElements",
-          openMigrationGuide ? "Open migration guide, fix plug-in version and sync project" : "Fix plug-in version and sync project");
+          openMigrationGuide ? "Open migration guide, fix plugin version and sync project" : "Fix plugin version and sync project");
     myModelVersion = modelVersion;
     myGradleVersion = gradleVersion;
     myOpenMigrationGuide = openMigrationGuide;
