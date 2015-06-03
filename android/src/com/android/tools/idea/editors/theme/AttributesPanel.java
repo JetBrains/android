@@ -57,7 +57,7 @@ public class AttributesPanel {
     myAttributesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myAttributesTable.setTableHeader(null);
 
-    // TODO: TableSpeedSearch does not really support filtered tables since it incorrectly uses the model to calculate the numberbu
+    // TODO: TableSpeedSearch does not really support filtered tables since it incorrectly uses the model to calculate the number
     // of available cells. Fix this.
     new TableSpeedSearch(myAttributesTable) {
       @Override
