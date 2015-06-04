@@ -57,6 +57,8 @@ public class ProjectThemeResolver {
    * TODO(ddrone):
    * This class should be got rid of (Module can be stored in ThemeEditorStyle directly),
    * however, this required a fair bit of refactoring of ThemeEditorStyle.
+   *
+   * TODO(ddrone): After getting rid of this class, move getEditableProjectThemes to ThemeEditorUtils
    */
   public static class ThemeWithSource {
     final @NotNull ThemeEditorStyle myTheme;
@@ -78,9 +80,7 @@ public class ProjectThemeResolver {
     }
   }
 
-  private final ImmutableList<ThemeWithSource> myAllThemes;
-
-  public ProjectThemeResolver(@NotNull final Project project) {
+  public static ImmutableList<ThemeWithSource> getEditableProjectThemes(@NotNull final Project project) {
     final VirtualFile projectFile = project.getProjectFile();
     assert projectFile != null : String.format("Project %s doesn't have project file", project.getName());
 
@@ -110,12 +110,7 @@ public class ProjectThemeResolver {
       }
     }
 
-    myAllThemes = builder.build();
-  }
-
-  @NotNull
-  public ImmutableList<ThemeWithSource> getAllThemes() {
-    return myAllThemes;
+    return builder.build();
   }
 
   @NotNull
