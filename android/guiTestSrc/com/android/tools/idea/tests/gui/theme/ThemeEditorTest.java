@@ -69,15 +69,7 @@ public class ThemeEditorTest extends GuiTestCase {
   public void testOpenProject() throws IOException {
     // Test that we can open the simple application and the theme editor opens correctly
     IdeFrameFixture projectFrame = importSimpleApplication();
-
-    EditorFixture editor = projectFrame.getEditor();
-    editor.open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR);
-    EditorNotificationPanelFixture notificationPanel =
-      projectFrame.requireEditorNotification("Edit all themes in the project in the theme editor.");
-    notificationPanel.performAction("Open editor");
-
-    ThemeEditorFixture themeEditor = editor.getThemeEditor();
-    assertThat(themeEditor).isNotNull();
+    ThemeEditorFixture themeEditor = openThemeEditor(projectFrame);
 
     // Check something has been rendered
     themeEditor.getThemePreviewPanel().getPreviewPanel().requireRendered();
@@ -111,22 +103,14 @@ public class ThemeEditorTest extends GuiTestCase {
     // Check the attributes table is populated
     assertThat(themeEditor.getPropertiesTable().rowCount()).isGreaterThan(0);
 
-    editor.close();
+    projectFrame.getEditor().close();
     checkNoErrors(projectFrame.getProject());
   }
 
   @Test @IdeGuiTest
   public void testRenameTheme() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
-
-    EditorFixture editor = projectFrame.getEditor();
-    editor.open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR);
-    EditorNotificationPanelFixture notificationPanel =
-      projectFrame.requireEditorNotification("Edit all themes in the project in the theme editor.");
-    notificationPanel.performAction("Open editor");
-
-    ThemeEditorFixture themeEditor = editor.getThemeEditor();
-    assertNotNull(themeEditor);
+    ThemeEditorFixture themeEditor = openThemeEditor(projectFrame);
 
     final JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     themesComboBox.selectItem("Rename AppTheme");
@@ -157,15 +141,7 @@ public class ThemeEditorTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testNoRenameForReadOnlyTheme() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
-
-    EditorFixture editor = projectFrame.getEditor();
-    editor.open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR);
-    EditorNotificationPanelFixture notificationPanel =
-      projectFrame.requireEditorNotification("Edit all themes in the project in the theme editor.");
-    notificationPanel.performAction("Open editor");
-
-    ThemeEditorFixture themeEditor = editor.getThemeEditor();
-    assertNotNull(themeEditor);
+    ThemeEditorFixture themeEditor = openThemeEditor(projectFrame);
 
     JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     themesComboBox.selectItem("Theme.AppCompat.NoActionBar"); // AppCompat is read-only, being a library theme
@@ -178,5 +154,18 @@ public class ThemeEditorTest extends GuiTestCase {
       .contains("Theme.AppCompat.NoActionBar", Index.atIndex(3))
       .contains("Show all themes", Index.atIndex(4))
       .contains("Create New Theme", Index.atIndex(6));
+  }
+
+  @NotNull
+  public static ThemeEditorFixture openThemeEditor(@NotNull IdeFrameFixture projectFrame) {
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR);
+    EditorNotificationPanelFixture notificationPanel =
+      projectFrame.requireEditorNotification("Edit all themes in the project in the theme editor.");
+    notificationPanel.performAction("Open editor");
+
+    ThemeEditorFixture themeEditor = editor.getThemeEditor();
+    assertNotNull(themeEditor);
+    return themeEditor;
   }
 }
