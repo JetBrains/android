@@ -30,6 +30,7 @@ import java.util.List;
 
 public class NlPropertiesModel extends PTableModel {
   @Nullable private NlComponent myComponent;
+  private boolean myShowingExpertProperties;
 
   public void update(@NotNull Iterable<NlComponent> selection, @Nullable final Runnable postUpdateRunnable) {
     // TODO: handle multiple selections: show properties common to all selections
@@ -42,8 +43,6 @@ public class NlPropertiesModel extends PTableModel {
       }
       return;
     }
-
-    final String tagName = first.getTagName();
 
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
@@ -65,5 +64,13 @@ public class NlPropertiesModel extends PTableModel {
         });
       }
     });
+  }
+
+  public boolean isShowingExpertProperties() {
+    return myShowingExpertProperties;
+  }
+
+  public void setShowExpertProperties(boolean en) {
+    myShowingExpertProperties = en;
   }
 }

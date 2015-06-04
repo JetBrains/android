@@ -15,46 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.intellij.ui.ColoredTableCellRenderer;
-import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import java.util.Set;
 
-public class NlPropertyRenderer extends ColoredTableCellRenderer {
-  @Override
-  protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
-    if (!(value instanceof NlProperty)) {
-      return;
-    }
-
-    setPaintFocusBorder(false);
-    setFocusBorderAroundIcon(true);
-
-    customize((NlProperty)value, column);
-  }
-
-  @VisibleForTesting
-  void customize(NlProperty property, int column) {
-    if (column == 0) {
-      appendName(property);
-    } else {
-      appendValue(property);
-    }
-  }
-
-  private void appendValue(@NotNull NlProperty property) {
-    String value = property.getValue();
-    if (value == null) {
-      value = "";
-    }
-    append(value, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-  }
-
-  private void appendName(@NotNull NlProperty property) {
-    append(property.getName());
-    setToolTipText(property.getTooltipText());
-  }
+public interface NlPropertyRenderer {
+  boolean canRender(@NotNull NlProperty p, @NotNull Set<AttributeFormat> formats);
 }

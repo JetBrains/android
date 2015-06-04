@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class NlPropertyRendererTest extends LayoutTestCase {
+public class NlDefaultRendererTest extends LayoutTestCase {
   public void testSimple() {
     @Language("XML")
     String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -41,7 +41,7 @@ public class NlPropertyRendererTest extends LayoutTestCase {
 
     List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
 
-    NlPropertyRenderer renderer = new NlPropertyRenderer();
+    NlDefaultRenderer renderer = new NlDefaultRenderer();
 
     NlProperty property = NlPropertiesTest.getPropertyByName(properties, "id");
     validateRendering(renderer, property, "id", "@+id/textView");
@@ -53,16 +53,16 @@ public class NlPropertyRendererTest extends LayoutTestCase {
     validateRendering(renderer, property, "focusable", "");
   }
 
-  private static void validateRendering(@NotNull NlPropertyRenderer renderer,
+  private static void validateRendering(@NotNull NlDefaultRenderer renderer,
                                         @NotNull NlProperty property,
                                         @NotNull String name,
                                         @NotNull String value) {
-    renderer.clear();
+    renderer.getLabel().clear();
     renderer.customize(property, 0);
-    assertEquals(name, renderer.getCharSequence(true));
+    assertEquals(name, renderer.getLabel().getCharSequence(true));
 
-    renderer.clear();
+    renderer.getLabel().clear();
     renderer.customize(property, 1);
-    assertEquals(value, renderer.getCharSequence(true));
+    assertEquals(value, renderer.getLabel().getCharSequence(true));
   }
 }
