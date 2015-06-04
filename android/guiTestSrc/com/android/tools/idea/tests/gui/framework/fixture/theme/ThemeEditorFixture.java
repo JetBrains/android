@@ -26,7 +26,7 @@ import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import javax.swing.JComboBox;
 import java.util.List;
 
 public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, ThemeEditorComponent> {
@@ -55,5 +55,10 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
     JComboBoxFixture themesCombo = getThemesComboBox();
 
     return ImmutableList.copyOf(themesCombo.contents());
+  }
+
+  @NotNull
+  public JTableFixture getThemeEditorTable() {
+    return new JTableFixture(robot(), robot().finder().findByType(this.target().getSecondComponent(), ThemeEditorTable.class));
   }
 }
