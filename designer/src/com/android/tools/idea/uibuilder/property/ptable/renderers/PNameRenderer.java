@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.ptable.renderers;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.intellij.openapi.util.Couple;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -34,14 +32,10 @@ public class PNameRenderer implements TableCellRenderer {
     myRenderer.clear();
     PTableItem item = (PTableItem)value;
 
-    Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-    boolean tableHasFocus = focusOwner != null && SwingUtilities.isDescendingFrom(focusOwner, table);
-
-    Color background = table.getBackground();
     Icon icon = UIUtil.getTreeNodeIcon(item.isExpanded(), isSelected, cellHasFocus);
 
     myRenderer.getTableCellRendererComponent(table, value, isSelected, cellHasFocus, row, column);
-    myRenderer.setBackground(isSelected ? UIUtil.getTreeSelectionBackground(tableHasFocus) : background);
+    myRenderer.setBackground(isSelected ? UIUtil.getTableSelectionBackground() : table.getBackground());
 
     int beforeIcon = getBeforeIconSpacing(getDepth(item), icon.getIconWidth());
     int afterIcon = getAfterIconSpacing(icon.getIconWidth());

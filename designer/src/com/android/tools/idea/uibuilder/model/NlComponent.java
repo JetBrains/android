@@ -445,6 +445,9 @@ public class NlComponent {
   public void setAttribute(@Nullable String namespace, @NonNull String attribute, @Nullable String value) {
     // Handle validity
     myTag.setAttribute(attribute, namespace, value);
+    if (snapshot != null) {
+      snapshot.setAttribute(attribute, namespace, null, value);
+    }
   }
 
   @Nullable

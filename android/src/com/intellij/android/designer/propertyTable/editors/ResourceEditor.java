@@ -210,7 +210,7 @@ public class ResourceEditor extends PropertyEditor {
     return new Dimension(Math.max(size1.width, 25) + 5 + size2.width, size1.height);
   }
 
-  private static ResourceType[] convertTypes(Set<AttributeFormat> formats) {
+  public static ResourceType[] convertTypes(Set<AttributeFormat> formats) {
     Set<ResourceType> types = EnumSet.noneOf(ResourceType.class);
     for (AttributeFormat format : formats) {
       switch (format) {
