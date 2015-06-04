@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.util.Collections;
 import java.util.List;
@@ -61,7 +62,18 @@ public abstract class PTableItem {
 
   public abstract String getName();
 
+  public void setValue(Object value) {
+  }
+
   public String getTooltipText() {
     return null;
+  }
+
+  public TableCellEditor getCellEditor() {
+    return null;
+  }
+
+  public boolean isEditable(int col) {
+    return false;
   }
 }

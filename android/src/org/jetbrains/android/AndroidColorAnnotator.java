@@ -273,7 +273,7 @@ public class AndroidColorAnnotator implements Annotator {
   }
 
   @Nullable
-  private static File pickBestBitmap(@Nullable File bitmap) {
+  public static File pickBestBitmap(@Nullable File bitmap) {
     if (bitmap != null && bitmap.exists()) {
       // Pick the smallest resolution, if possible! E.g. if the theme resolver located
       // drawable-hdpi/foo.png, and drawable-mdpi/foo.png pick that one instead (and ditto
