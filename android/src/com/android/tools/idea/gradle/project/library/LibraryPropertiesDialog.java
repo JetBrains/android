@@ -73,7 +73,18 @@ public class LibraryPropertiesDialog extends DialogWrapper {
     myNameLabel.setText(myLibrary.getName());
 
     LibraryEditor editor = new SourcesAndDocsOnlyEditor(myLibrary);
-    myLibraryEditorComponent = new LibraryRootsComponent(myProject, editor);
+    myLibraryEditorComponent = new LibraryRootsComponent(myProject, editor) {
+      @Override
+      public void updatePropertiesLabel() {
+        JComponent c = getComponent();
+        if (c != null) {
+          MultiLineLabel propertiesLabel = findComponentOfType(c, MultiLineLabel.class);
+          if (propertiesLabel != null) {
+            propertiesLabel.setText("Add or remove source/Javadoc attachments");
+          }
+        }
+      }
+    };
     myLibraryEditorComponent.updatePropertiesLabel();
 
     JComponent c = myLibraryEditorComponent.getComponent();
@@ -88,10 +99,8 @@ public class LibraryPropertiesDialog extends DialogWrapper {
       }
     }
 
-    // Add text to the library editor.
     MultiLineLabel propertiesLabel = findComponentOfType(c, MultiLineLabel.class);
     if (propertiesLabel != null) {
-      propertiesLabel.setText("Add or remove source/Javadoc attachments");
       propertiesLabel.setBorder(BorderFactory.createEmptyBorder(1, 1, 0, 1));
     }
 
