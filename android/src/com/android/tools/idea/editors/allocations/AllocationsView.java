@@ -172,6 +172,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
             .setName("Size")
             .setPreferredWidth(150)
             .setHeaderAlignment(SwingConstants.RIGHT)
+            .setInitialOrder(SortOrder.DESCENDING)
             .setComparator(new Comparator<AbstractTreeNode>() {
                 @Override
                 public int compare(AbstractTreeNode a, AbstractTreeNode b) {
