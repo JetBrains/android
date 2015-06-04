@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -127,8 +128,12 @@ public class ThemeEditorComponent extends Splitter {
   public ThemeEditorComponent(@NotNull final Project project) {
     myProject = project;
 
-    ProjectThemeResolver resolver = new ProjectThemeResolver(project);
-    ProjectThemeResolver.ThemeWithSource firstTheme = Iterables.getFirst(resolver.getAllThemes(), null);
+    // TODO(ddrone):
+    // The expensive call is done here only to acquire initial instance of Configuration and Module
+    // This should be optimized somehow, maybe setting Configuration and Module to null in the context initially?
+    final ImmutableList<ProjectThemeResolver.ThemeWithSource> editableProjectThemes =
+      ProjectThemeResolver.getEditableProjectThemes(project);
+    ProjectThemeResolver.ThemeWithSource firstTheme = Iterables.getFirst(editableProjectThemes, null);
 
     // TODO(ddrone): get non-project theme (e.g. Theme.Material) here in case there are no project themes
     assert firstTheme != null : "Trying to launch Theme Editor without any themes";
@@ -641,7 +646,7 @@ public class ThemeEditorComponent extends Splitter {
     mySubStyleSourceAttribute = null;
 
     final ThemeResolver themeResolver = new ThemeResolver(configuration, myStyleResolver);
-    myPanel.getThemeCombo().setModel(new ThemesListModel(new ProjectThemeResolver(myProject), themeResolver, defaultThemeName));
+    myPanel.getThemeCombo().setModel(new ThemesListModel(myProject, themeResolver, defaultThemeName));
     loadStyleAttributes();
     mySelectedTheme = myPanel.getSelectedTheme();
     saveCurrentSelectedTheme();
