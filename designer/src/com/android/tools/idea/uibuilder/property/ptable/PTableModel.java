@@ -48,6 +48,17 @@ public class PTableModel extends AbstractTableModel {
     return myItems.get(row);
   }
 
+  @Override
+  public void setValueAt(Object value, int row, int col) {
+    myItems.get(row).setValue(value);
+    fireTableCellUpdated(row, col);
+  }
+
+  @Override
+  public boolean isCellEditable(int row, int col) {
+    return col == 1 && myItems.get(row).isEditable(col);
+  }
+
   // TODO: if we want to support multiple levels of hierarchy, then this should
   // be updated to collapse children recursively
   public void collapse(int row) {

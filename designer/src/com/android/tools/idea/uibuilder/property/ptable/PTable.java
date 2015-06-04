@@ -21,6 +21,7 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
@@ -31,11 +32,20 @@ public class PTable extends JBTable {
   private final PNameRenderer myNameRenderer = new PNameRenderer();
   private PTableModel myModel;
 
+  private int myMouseHoverRow;
+  private int myMouseHoverCol;
+
   public PTable(@NotNull PTableModel model) {
     super(model);
     myModel = model;
 
-    setMaxItemsForSizeCalculation(20);
+    // since the row heights are uniform, there is no need to look at more than a few items
+    setMaxItemsForSizeCalculation(5);
+
+    // When a label cannot be fully displayed, hovering over it results in a popup that extends beyond the
+    // cell bounds to show the full value. We don't need this feature as it'll end up covering parts of the
+    // cell we don't want covered.
+    setExpandableItemsEnabled(false);
 
     setShowColumns(false);
     setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
@@ -50,6 +60,10 @@ public class PTable extends JBTable {
     setRowSelectionAllowed(true);
 
     addMouseListener(new MouseTableListener());
+
+    HoverListener hoverListener = new HoverListener();
+    addMouseMotionListener(hoverListener);
+    addMouseListener(hoverListener);
   }
 
   @Override
@@ -68,6 +82,17 @@ public class PTable extends JBTable {
     return value.getCellRenderer();
   }
 
+  @Override
+  public TableCellEditor getCellEditor(int row, int column) {
+    PTableItem value = (PTableItem)getValueAt(row, column);
+    return value.getCellEditor();
+  }
+
+  public boolean isHover(int row, int col) {
+    return row == myMouseHoverRow && col == myMouseHoverCol;
+  }
+
+  // Expand/Collapse group items if necessary
   private class MouseTableListener extends MouseAdapter {
     @Override
     public void mousePressed(MouseEvent e) {
@@ -94,6 +119,45 @@ public class PTable extends JBTable {
       }
       else {
         myModel.expand(row);
+      }
+    }
+  }
+
+  // Repaint cells on mouse hover
+  private class HoverListener extends MouseAdapter {
+    private int myPreviousHoverRow = -1;
+    private int myPreviousHoverCol = -1;
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+      myMouseHoverRow = rowAtPoint(e.getPoint());
+      if (myMouseHoverRow >= 0) {
+        myMouseHoverCol = columnAtPoint(e.getPoint());
+      }
+
+      // remove hover from the previous cell
+      if (myPreviousHoverRow != -1 && (myPreviousHoverRow != myMouseHoverRow || myPreviousHoverCol != myMouseHoverCol)) {
+        repaint(getCellRect(myPreviousHoverRow, myPreviousHoverCol, true));
+        myPreviousHoverRow = -1;
+      }
+
+      if (myMouseHoverCol < 0) {
+        return;
+      }
+
+      // repaint cell that has the hover
+      repaint(getCellRect(myMouseHoverRow, myMouseHoverCol, true));
+
+      myPreviousHoverRow = myMouseHoverRow;
+      myPreviousHoverCol = myMouseHoverCol;
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+      if (myMouseHoverRow != -1 && myMouseHoverCol != -1) {
+        Rectangle cellRect = getCellRect(myMouseHoverRow, 1, true);
+        myMouseHoverRow = myMouseHoverCol = -1;
+        repaint(cellRect);
       }
     }
   }

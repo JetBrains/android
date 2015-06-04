@@ -18,16 +18,19 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.util.Collections;
 import java.util.List;
@@ -63,6 +66,11 @@ public class NlProperty extends PTableItem {
     myDefinition = attributeDefinition;
   }
 
+  @NotNull
+  public NlComponent getComponent() {
+    return myComponent;
+  }
+
   @Override
   @NotNull
   public String getName() {
@@ -73,6 +81,19 @@ public class NlProperty extends PTableItem {
   public String getValue() {
     ApplicationManager.getApplication().assertIsDispatchThread();
     return myComponent.getAttribute(myNamespace, myName);
+  }
+
+  @Override
+  public void setValue(Object value) {
+    assert ApplicationManager.getApplication().isDispatchThread();
+    final String attrValue = value == null ? null : value.toString();
+    String msg = String.format("Set %1$s.%2$s to %3$s", myComponent.getTagName(), myName, attrValue);
+    new WriteCommandAction.Simple(myComponent.getModel().getProject(), msg, myComponent.getTag().getContainingFile()) {
+      @Override
+      protected void run() throws Throwable {
+        myComponent.setAttribute(myNamespace, myName, attrValue);
+      }
+    }.execute();
   }
 
   @NotNull
@@ -89,6 +110,16 @@ public class NlProperty extends PTableItem {
   @Override
   public TableCellRenderer getCellRenderer() {
     return NlPropertyRenderers.get(this);
+  }
+
+  @Override
+  public boolean isEditable(int col) {
+    return NlPropertyEditors.get(this) != null;
+  }
+
+  @Override
+  public TableCellEditor getCellEditor() {
+    return NlPropertyEditors.get(this);
   }
 
   @Override

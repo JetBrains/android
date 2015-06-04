@@ -24,7 +24,7 @@ import javax.swing.table.TableCellRenderer;
 import java.util.Set;
 
 public class NlPropertyRenderers {
-  private static NlPropertyRenderer ourDefaultRenderer;
+  private static NlDefaultRenderer ourDefaultRenderer;
   private static NlBooleanRenderer ourBooleanRenderer;
 
   @NotNull
@@ -36,14 +36,17 @@ public class NlPropertyRenderers {
 
     Set<AttributeFormat> formats = definition.getFormats();
     if (formats.size() == 1 && formats.contains(AttributeFormat.Boolean)) {
-      return getBooleanRenderer();
+      NlBooleanRenderer renderer = getBooleanRenderer();
+      if (renderer.canRender(p, formats)) {
+        return renderer;
+      }
     }
 
     return getDefaultRenderer();
   }
 
   @NotNull
-  private static TableCellRenderer getBooleanRenderer() {
+  private static NlBooleanRenderer getBooleanRenderer() {
     if (ourBooleanRenderer == null) {
       ourBooleanRenderer = new NlBooleanRenderer();
     }
@@ -52,9 +55,9 @@ public class NlPropertyRenderers {
   }
 
   @NotNull
-  private static TableCellRenderer getDefaultRenderer() {
+  private static NlDefaultRenderer getDefaultRenderer() {
     if (ourDefaultRenderer == null) {
-      ourDefaultRenderer = new NlPropertyRenderer();
+      ourDefaultRenderer = new NlDefaultRenderer();
     }
 
     return ourDefaultRenderer;
