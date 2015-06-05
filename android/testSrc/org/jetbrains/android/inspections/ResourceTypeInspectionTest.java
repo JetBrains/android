@@ -398,6 +398,14 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printMinMultiple(/*Size must be at least 4 and a multiple of 3 (was 3)*/new int[]{1, 2, 3}/**/); // ERROR\n" +
             "    }\n" +
             "\n" +
+            "    public void testSize2(int[] unknownSize) {\n" +
+            "        int[] location1 = new int[5];\n" +
+            "        printExact(location1);\n" +
+            "        int[] location2 = new int[6];\n" +
+            "        printExact(/*Size must be exactly 5*/location2/**/);\n" +
+            "        printExact(unknownSize);\n" +
+            "    }\n" +
+            "\n" +
             "    public void testIntRange() {\n" +
             "        printAtLeast(/*Value must be ≥ 4 (was 3)*/3/**/); // ERROR\n" +
             "        printAtLeast(4); // OK\n" +
@@ -414,6 +422,8 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printBetween(6); // OK\n" +
             "        printBetween(7); // OK\n" +
             "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 8)*/8/**/); // ERROR\n" +
+            "        int value = 8;\n" +
+            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 8)*/value/**/); // ERROR\n" +
             "    }\n" +
             "\n" +
             "    public void testFloatRange() {\n" +
