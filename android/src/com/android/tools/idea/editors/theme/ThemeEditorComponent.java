@@ -145,11 +145,10 @@ public class ThemeEditorComponent extends Splitter {
     assert facet != null : String.format("Module %s is not Android module", module.getName());
 
     ConfigurationManager configurationManager = facet.getConfigurationManager();
-    final VirtualFile moduleFile = module.getModuleFile();
-    assert moduleFile != null : String.format("Module file for module %s is null", module.getName());
+    final VirtualFile projectFile = project.getProjectFile();
+    assert projectFile != null;
 
-    // TODO(ddrone): check whether that gives us configuration with current output level
-    final Configuration configuration = configurationManager.getConfiguration(moduleFile);
+    final Configuration configuration = configurationManager.getConfiguration(projectFile);
 
     myThemeEditorContext = new ThemeEditorContext(configuration, module);
     myThemeEditorContext.addConfigurationListener(new ConfigurationListener() {
