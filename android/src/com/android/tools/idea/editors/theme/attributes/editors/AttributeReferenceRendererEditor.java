@@ -33,7 +33,13 @@ import java.util.List;
  */
 public class AttributeReferenceRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
   protected final Box myBox = new Box(BoxLayout.LINE_AXIS);
-  protected final JLabel myLabel = new JLabel();
+  /** Renderer component, with isShowing overridden because of the use of a {@link CellRendererPane} */
+  protected final JLabel myLabel = new JLabel() {
+    @Override
+    public boolean isShowing() {
+      return true;
+    }
+  };
   protected final TextFieldWithAutoCompletion<String> myTextField;
   protected final CompletionProvider myCompletionProvider;
   protected EditedStyleItem myEditValue;

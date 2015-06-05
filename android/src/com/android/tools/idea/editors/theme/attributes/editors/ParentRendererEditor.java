@@ -47,7 +47,13 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
 
   public ParentRendererEditor(@NotNull ThemeEditorContext context) {
     myContext = context;
-    myComboBox = new ComboBox();
+    // Override isShowing because of the use of a {@link CellRendererPane}
+    myComboBox = new ComboBox() {
+      @Override
+      public boolean isShowing() {
+        return true;
+      }
+    };
     //noinspection GtkPreferredJComboBoxRenderer
     myComboBox.setRenderer(new StyleListCellRenderer(context));
     myComboBox.addActionListener(new ParentChoiceListener());
@@ -62,7 +68,6 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
       myReadOnlyLabel.setText(style.getName());
       return myReadOnlyLabel;
     }
-
     myComboBox.removeAllItems();
     myComboBox.addItem(value);
 
