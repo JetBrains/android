@@ -10,12 +10,14 @@ import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.DataExternalizer;
+import com.intellij.util.io.DataInputOutputUtil;
+import com.intellij.util.io.IOUtil;
 import com.intellij.util.io.KeyDescriptor;
 import com.intellij.util.text.CharArrayUtil;
 import com.intellij.util.xml.NanoXmlUtil;
+import gnu.trove.THashSet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.annotations.NonNls;
@@ -124,7 +126,7 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
     Set<MyResourceInfo> set = result.get(marker);
 
     if (set == null) {
-      set = new HashSet<MyResourceInfo>();
+      set = new THashSet<MyResourceInfo>();
       result.put(marker, set);
     }
     set.add(info);
@@ -166,16 +168,16 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
   private final KeyDescriptor<ResourceEntry> myKeyDescriptor = new KeyDescriptor<ResourceEntry>() {
     @Override
     public void save(@NotNull DataOutput out, ResourceEntry value) throws IOException {
-      out.writeUTF(value.getType());
-      out.writeUTF(value.getName());
-      out.writeUTF(value.getContext());
+      IOUtil.writeUTF(out, value.getType());
+      IOUtil.writeUTF(out, value.getName());
+      IOUtil.writeUTF(out, value.getContext());
     }
 
     @Override
     public ResourceEntry read(@NotNull DataInput in) throws IOException {
-      final String resType = in.readUTF();
-      final String resName = in.readUTF();
-      final String resContext = in.readUTF();
+      final String resType = IOUtil.readUTF(in);
+      final String resName = IOUtil.readUTF(in);
+      final String resContext = IOUtil.readUTF(in);
       return new ResourceEntry(resType, resName, resContext);
     }
 
@@ -189,24 +191,24 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
       return val1.equals(val2);
     }
   };
-  
+
   private final DataExternalizer<Set<MyResourceInfo>> myValueExternalizer = new DataExternalizer<Set<MyResourceInfo>>() {
     @Override
     public void save(@NotNull DataOutput out, Set<MyResourceInfo> value) throws IOException {
-      out.writeInt(value.size());
+      DataInputOutputUtil.writeINT(out, value.size());
 
       for (MyResourceInfo entry : value) {
-        out.writeUTF(entry.getResourceEntry().getType());
-        out.writeUTF(entry.getResourceEntry().getName());
-        out.writeUTF(entry.getResourceEntry().getContext());
-        out.writeInt(entry.getOffset());
+        IOUtil.writeUTF(out, entry.getResourceEntry().getType());
+        IOUtil.writeUTF(out, entry.getResourceEntry().getName());
+        IOUtil.writeUTF(out, entry.getResourceEntry().getContext());
+        DataInputOutputUtil.writeINT(out, entry.getOffset());
       }
     }
 
     @Nullable
     @Override
     public Set<MyResourceInfo> read(@NotNull DataInput in) throws IOException {
-      final int size = in.readInt();
+      final int size = DataInputOutputUtil.readINT(in);
 
       if (size < 0 || size > 65535) {
         // Something is very wrong; trigger an index rebuild
@@ -219,10 +221,10 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
       final Set<MyResourceInfo> result = Sets.newHashSetWithExpectedSize(size);
 
       for (int i = 0; i < size; i++) {
-        final String type = in.readUTF();
-        final String name = in.readUTF();
-        final String context = in.readUTF();
-        final int offset = in.readInt();
+        final String type = IOUtil.readUTF(in);
+        final String name = IOUtil.readUTF(in);
+        final String context = IOUtil.readUTF(in);
+        final int offset = DataInputOutputUtil.readINT(in);
         result.add(new MyResourceInfo(new ResourceEntry(type, name, context), offset));
       }
       return result;
@@ -238,7 +240,7 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
   @NotNull
   @Override
   public DataIndexer<ResourceEntry, Set<MyResourceInfo>, FileContent> getIndexer() {
-    return myIndexer;  
+    return myIndexer;
   }
 
   @NotNull
@@ -271,7 +273,7 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
 
   @Override
   public int getVersion() {
-    return 5;
+    return 6;
   }
 
   public static class MyResourceInfo {
