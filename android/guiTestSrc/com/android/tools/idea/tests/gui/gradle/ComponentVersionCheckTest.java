@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.project.compatibility.ComponentsCompatibilityService;
+import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
@@ -40,7 +40,7 @@ import static org.fest.assertions.Assertions.assertThat;
 public class ComponentVersionCheckTest extends GuiTestCase {
   @After
   public void removeTestMetadata() {
-    ComponentsCompatibilityService.getInstance().reloadMetadata();
+    VersionCompatibilityService.getInstance().reloadMetadata();
   }
 
   @Test
@@ -59,7 +59,7 @@ public class ComponentVersionCheckTest extends GuiTestCase {
                       "    </component>\n" +
                       "  </check>\n" +
                       "</compatibility>";
-    ComponentsCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
+    VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
     IdeFrameFixture projectFrame = importSimpleApplication();
 
     projectFrame.updateAndroidModelVersion("1.0.0")
@@ -91,7 +91,7 @@ public class ComponentVersionCheckTest extends GuiTestCase {
                       "    </component>\n" +
                       "  </check>\n" +
                       "</compatiblity>\n";
-    ComponentsCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
+    VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
     IdeFrameFixture projectFrame = importSimpleApplication();
 
     ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();

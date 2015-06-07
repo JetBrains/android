@@ -28,9 +28,12 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.util.SystemProperties;
 import org.intellij.lang.annotations.Language;
+import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +52,7 @@ import static com.android.tools.idea.gradle.project.compatibility.ComponentVersi
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.io.Closeables.close;
 import static com.intellij.openapi.util.JDOMUtil.load;
+import static com.intellij.openapi.util.JDOMUtil.writeDocument;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.ArrayUtil.toStringArray;
 
@@ -77,33 +81,30 @@ import static com.intellij.util.ArrayUtil.toStringArray;
  * </pre>
  * </p>
  */
-public class ComponentsCompatibilityService {
-  private static Logger LOG = Logger.getInstance(ComponentsCompatibilityService.class);
+public class VersionCompatibilityService {
+  private static Logger LOG = Logger.getInstance(VersionCompatibilityService.class);
 
   @NonNls private static final String BUILD_FILE_PREFIX = "buildFile:";
   @NonNls private static final String METADATA_FILE_NAME = "android-component-compatibility.xml";
 
-  @NotNull private final List<CompatibilityCheck> myCompatibilityChecks = Lists.newArrayList();
-  @NotNull private final Map<String, ComponentVersionReader> myVersionReadersByComponentName = Maps.newConcurrentMap();
+  @NotNull private VersionMetadata myMetadata = new VersionMetadata(1);
 
   @NotNull
-  public static ComponentsCompatibilityService getInstance() {
-    return ServiceManager.getService(ComponentsCompatibilityService.class);
+  public static VersionCompatibilityService getInstance() {
+    return ServiceManager.getService(VersionCompatibilityService.class);
   }
 
-  public ComponentsCompatibilityService() {
+  public VersionCompatibilityService() {
     reloadMetadata();
-    myVersionReadersByComponentName.put("gradle", GRADLE);
-    myVersionReadersByComponentName.put("android-gradle-plugin", ANDROID_GRADLE_PLUGIN);
   }
 
+  @VisibleForTesting
   public void reloadMetadata() {
-    myCompatibilityChecks.clear();
     File metadataFilePath = getMetadataFilePath();
     if (metadataFilePath.isFile()) {
       try {
         Element root = load(metadataFilePath);
-        loadMetadata(root);
+        myMetadata = loadMetadata(root);
       }
       catch (Throwable e) {
         LOG.info("Failed to load/parse file '" + metadataFilePath.getPath() + "'. Loading metadata from local file.", e);
@@ -117,9 +118,33 @@ public class ComponentsCompatibilityService {
 
   @VisibleForTesting
   public void reloadMetadataForTesting(@NotNull @Language("XML") String metadata) throws JDOMException, IOException {
-    myCompatibilityChecks.clear();
     Element root = load(new StringReader(metadata));
-    loadMetadata(root);
+    myMetadata = loadMetadata(root);
+  }
+
+  /**
+   * Updates the version metadata with the given XML document.
+   *
+   * @param metadata the XML document containing the new metadata.
+   * @return {@code true} if the metadata was updated, {@code false} otherwise.
+   */
+  @Contract(pure = true)
+  boolean updateMetadata(@NotNull Document metadata) {
+    try {
+      VersionMetadata updated = loadMetadata(metadata.getRootElement());
+      if (updated.dataVersion > myMetadata.dataVersion) {
+        myMetadata = updated;
+
+        File metadataFilePath = getMetadataFilePath();
+        writeDocument(metadata, metadataFilePath, SystemProperties.getLineSeparator());
+        LOG.info("Saved component version metadata to: " + metadataFilePath);
+        return true;
+      }
+    }
+    catch (Throwable e) {
+      LOG.info("Failed to update component version metadata", e);
+    }
+    return false;
   }
 
   @VisibleForTesting
@@ -130,13 +155,12 @@ public class ComponentsCompatibilityService {
   }
 
   private void loadLocalMetadata() {
-    myCompatibilityChecks.clear();
     InputStream inputStream = null;
     try {
       //noinspection IOResourceOpenedButNotSafelyClosed
       inputStream = getClass().getResourceAsStream(METADATA_FILE_NAME);
       Element root = load(inputStream);
-      loadMetadata(root);
+      myMetadata = loadMetadata(root);
     }
     catch (Throwable e) {
       // Impossible to happen.
@@ -151,18 +175,29 @@ public class ComponentsCompatibilityService {
     }
   }
 
-  private void loadMetadata(@NotNull Element root) {
+  @NotNull
+  private static VersionMetadata loadMetadata(@NotNull Element root) {
+    String dataVersionText = root.getAttributeValue("version");
+    int dataVersion = 1;
+    try {
+      dataVersion = Integer.parseInt(dataVersionText);
+    }
+    catch (NumberFormatException ignored) {
+    }
+
+    VersionMetadata metadata = new VersionMetadata(dataVersion);
     for (Element checkElement : root.getChildren("check")) {
       Element componentElement = checkElement.getChild("component");
-      ComponentVersion version = createComponentVersion(componentElement);
+      ComponentVersion version = createComponentVersion(componentElement, metadata);
       for (Element requirementElement : componentElement.getChildren("requires")) {
-        version.requirements.add(createComponentVersion(requirementElement));
+        version.requirements.add(createComponentVersion(requirementElement, metadata));
       }
 
       String type = checkElement.getAttributeValue("failureType");
       CompatibilityCheck check = new CompatibilityCheck(version, getFailureType(type));
-      myCompatibilityChecks.add(check);
+      metadata.compatibilityChecks.add(check);
     }
+    return metadata;
   }
 
   @NotNull
@@ -172,13 +207,13 @@ public class ComponentsCompatibilityService {
   }
 
   @NotNull
-  private ComponentVersion createComponentVersion(@NotNull Element xmlElement) {
+  private static ComponentVersion createComponentVersion(@NotNull Element xmlElement, @NotNull VersionMetadata metadata) {
     String name = xmlElement.getAttribute("name").getValue();
     if (name.startsWith(BUILD_FILE_PREFIX)) {
       name = name.substring(BUILD_FILE_PREFIX.length());
-      ComponentVersionReader reader = myVersionReadersByComponentName.get(name);
+      ComponentVersionReader reader = metadata.versionReadersByComponentName.get(name);
       if (reader == null) {
-        myVersionReadersByComponentName.put(name, new BuildFileComponentVersionReader(name));
+        metadata.versionReadersByComponentName.put(name, new BuildFileComponentVersionReader(name));
       }
     }
     String version = xmlElement.getAttributeValue("version");
@@ -192,12 +227,13 @@ public class ComponentsCompatibilityService {
 
   @NotNull
   public List<VersionIncompatibilityMessage> checkComponentCompatibility(@NotNull Project project) {
-    CompatibilityChecker checker = new CompatibilityChecker(project);
+    CompatibilityChecker checker = new CompatibilityChecker(project, myMetadata);
     return checker.execute();
   }
 
-  private class CompatibilityChecker {
+  private static class CompatibilityChecker {
     @NotNull private final Project myProject;
+    @NotNull private final VersionMetadata myMetadata;
 
     // [ Component name -> Version reader, Component version ]
     @NotNull private final Map<String, Pair<ComponentVersionReader, String>> myProjectComponentVersionCache = Maps.newHashMap();
@@ -205,8 +241,9 @@ public class ComponentsCompatibilityService {
     // [ Component name -> [ Module Name -> Version reader, Component version ] ]
     @NotNull private final Map<String, Map<String, Pair<ComponentVersionReader, String>>> myModuleComponentVersionCache = Maps.newHashMap();
 
-    CompatibilityChecker(@NotNull Project project) {
+    CompatibilityChecker(@NotNull Project project, @NotNull VersionMetadata metadata) {
       myProject = project;
+      myMetadata = metadata;
     }
 
     @NotNull
@@ -215,7 +252,7 @@ public class ComponentsCompatibilityService {
 
       Module[] modules = ModuleManager.getInstance(myProject).getModules();
       for (Module module : modules) {
-        for (CompatibilityCheck check : myCompatibilityChecks) {
+        for (CompatibilityCheck check : myMetadata.compatibilityChecks) {
           ComponentVersion componentVersion = check.myComponentVersion;
           Pair<ComponentVersionReader, String> readerAndVersion = getComponentVersion(componentVersion, module);
           if (readerAndVersion == null) {
@@ -352,7 +389,7 @@ public class ComponentsCompatibilityService {
       }
       if (readerAndVersion == null) {
         // There is no cached value for this component's version. Go ahead and read it from project.
-        ComponentVersionReader reader = myVersionReadersByComponentName.get(componentName);
+        ComponentVersionReader reader = myMetadata.versionReadersByComponentName.get(componentName);
         if (reader == null) {
           LOG.info(String.format("Failed to find version reader for component '%1$s'", componentName));
           return null;
@@ -392,6 +429,19 @@ public class ComponentsCompatibilityService {
       }
 
       return readerAndVersion;
+    }
+  }
+
+  private static class VersionMetadata {
+    final int dataVersion;
+
+    @NotNull private final List<CompatibilityCheck> compatibilityChecks = Lists.newArrayList();
+    @NotNull private final Map<String, ComponentVersionReader> versionReadersByComponentName = Maps.newConcurrentMap();
+
+    VersionMetadata(int dataVersion) {
+      this.dataVersion = dataVersion;
+      versionReadersByComponentName.put("gradle", GRADLE);
+      versionReadersByComponentName.put("android-gradle-plugin", ANDROID_GRADLE_PLUGIN);
     }
   }
 
