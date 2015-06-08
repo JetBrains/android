@@ -918,6 +918,12 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           if (initializer != null) {
             return guessSize(initializer);
           }
+        } else if (resolved instanceof PsiLocalVariable) {
+          PsiLocalVariable variable = (PsiLocalVariable) resolved;
+          PsiExpression initializer = variable.getInitializer();
+          if (initializer != null) {
+            return guessSize(initializer);
+          }
         }
       }
       return null;
@@ -1147,6 +1153,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (initializer != null) {
           return initializer.getInitializers().length;
         }
+        PsiExpression[] dimensions = pne.getArrayDimensions();
+        if (dimensions.length > 0) {
+          PsiExpression dimension = dimensions[0];
+          return super.guessSize(dimension);
+        }
       } else if (argument instanceof PsiLiteral) {
         PsiLiteral literal = (PsiLiteral)argument;
         Object o = literal.getValue();
@@ -1167,9 +1178,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           if (initializer != null) {
             return guessSize(initializer);
           }
+        } else if (resolved instanceof PsiLocalVariable) {
+          PsiLocalVariable variable = (PsiLocalVariable) resolved;
+          PsiExpression initializer = variable.getInitializer();
+          if (initializer != null) {
+            return guessSize(initializer);
+          }
         }
       }
-      return -1;
+      return null;
     }
 
     @NotNull
