@@ -3,7 +3,7 @@
   <grid id="cbd77" binding="myContentPane" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="10" left="10" bottom="10" right="10"/>
     <constraints>
-      <xy x="48" y="54" width="506" height="426"/>
+      <xy x="48" y="54" width="578" height="447"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -108,13 +108,13 @@
                       </component>
                       <component id="16781" class="javax.swing.JCheckBox" binding="myWithTabs">
                         <constraints>
-                          <grid row="4" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <grid row="5" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
                           <text value="With Tabs"/>
                         </properties>
                       </component>
-                      <grid id="ec21a" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                      <grid id="ec21a" layout-manager="GridLayoutManager" row-count="2" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                         <margin top="0" left="12" bottom="0" right="0"/>
                         <constraints>
                           <grid row="2" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -122,47 +122,23 @@
                         <properties/>
                         <border type="none"/>
                         <children>
-                          <component id="251e" class="javax.swing.JRadioButton" binding="myTitleOnBackground">
+                          <component id="f0bdc" class="javax.swing.JCheckBox" binding="myFitStatusBar">
                             <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                              <grid row="0" column="0" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                             </constraints>
                             <properties>
-                              <selected value="true"/>
-                              <text value="Text on Toolbar Background"/>
+                              <actionCommand value=""/>
+                              <text value="Fit Status Bar on Image"/>
+                              <toolTipText value="Makes the toolbar with the image appear below the status bar. The status bar can be set to draw transparent by setting the theme value for: statusBarColor to color/transparent."/>
                             </properties>
                           </component>
-                          <component id="5e9a1" class="javax.swing.JRadioButton" binding="myTitlePartlyOnImage">
+                          <component id="3dc40" class="javax.swing.JCheckBox" binding="myParallax">
                             <constraints>
-                              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                             </constraints>
                             <properties>
-                              <text value="Text Partly on Image"/>
-                            </properties>
-                          </component>
-                          <component id="f715c" class="javax.swing.JRadioButton" binding="myTitlePartlyOnContent">
-                            <constraints>
-                              <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                            </constraints>
-                            <properties>
-                              <text value="Text partly on Content"/>
-                            </properties>
-                          </component>
-                        </children>
-                      </grid>
-                      <grid id="bd171" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                        <margin top="0" left="12" bottom="0" right="0"/>
-                        <constraints>
-                          <grid row="5" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                        <border type="none"/>
-                        <children>
-                          <component id="18183" class="javax.swing.JCheckBox" binding="myCollapsingTabs">
-                            <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                            </constraints>
-                            <properties>
-                              <text value="Collapsing Tabs"/>
+                              <text value="Parallax Scrolling"/>
+                              <toolTipText value="Makes the image scroll slower than the TabBar (only visible at runtime)."/>
                             </properties>
                           </component>
                         </children>
@@ -185,6 +161,24 @@
                           <text value="..."/>
                         </properties>
                       </component>
+                      <component id="fa6a0" class="javax.swing.JCheckBox" binding="myContentOverlap">
+                        <constraints>
+                          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="Overlapping content"/>
+                        </properties>
+                      </component>
+                      <component id="2d24e" class="javax.swing.JTextField" binding="myContentOverlapAmount">
+                        <constraints>
+                          <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                            <preferred-size width="60" height="-1"/>
+                          </grid>
+                        </constraints>
+                        <properties>
+                          <text value="32dp"/>
+                        </properties>
+                      </component>
                     </children>
                   </grid>
                   <vspacer id="7ca15">
@@ -194,7 +188,7 @@
                   </vspacer>
                 </children>
               </grid>
-              <grid id="d3c7d" binding="myPreviewPanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="d3c7d" binding="myPreviewPanel" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
                   <splitpane position="right"/>
@@ -202,14 +196,49 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="bb9b2" class="com.intellij.ui.components.JBLabel" binding="myPreview">
+                  <component id="3c538" class="com.intellij.ui.components.JBLabel" binding="myPreview">
                     <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="7" hsize-policy="7" anchor="2" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="   Generating preview..."/>
+                      <text value="Preview:"/>
                     </properties>
                   </component>
+                  <component id="d628d" class="com.intellij.ui.components.JBLabel" binding="myExpandedLabel">
+                    <constraints>
+                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="1" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <alignmentX value="0.0"/>
+                      <text value="Expanded"/>
+                    </properties>
+                  </component>
+                  <component id="2ce7e" class="com.intellij.ui.components.JBLabel" binding="myCollapsedLabel">
+                    <constraints>
+                      <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="1" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <alignmentX value="0.0"/>
+                      <text value="Collapsed"/>
+                    </properties>
+                  </component>
+                  <component id="c8d58" class="com.intellij.ui.components.JBLabel" binding="myExpandedPreview">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="7fbe7" class="com.intellij.ui.components.JBLabel" binding="myCollapsedPreview">
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="0" indent="1" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <vspacer id="4ba9">
+                    <constraints>
+                      <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                  </vspacer>
                 </children>
               </grid>
             </children>

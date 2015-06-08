@@ -30,6 +30,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,10 +76,12 @@ public class AppBarConfigurationDialog extends JDialog {
     "  <android.support.v4.widget.NestedScrollView\n" +
     "      %1$s:layout_width=\"match_parent\"\n" +
     "      %1$s:layout_height=\"match_parent\"\n" +
+    "%8$s" +                                                        // 8 = behavior_overlapTop
+    "%9$s" +                                                        // 9 = scrollY position
     "      %2$s:layout_behavior=\"android.support.design.widget.AppBarLayout$ScrollingViewBehavior\">\n" +
-    "%8$s" +                                                        // 8 = Page content as xml
+    "%10$s" +                                                       //10 = Page content as xml
     "  </android.support.v4.widget.NestedScrollView>\n" +
-    "%9$s" +                                                        // 9 = Optional FAB
+    "%11$s" +                                                       //11 = Optional FAB
     "</android.support.design.widget.CoordinatorLayout>\n";
 
   private static final String TAG_COORDINATOR_WITH_TABS_LAYOUT =    // 1 = Prefix for android namespace
@@ -106,9 +109,11 @@ public class AppBarConfigurationDialog extends JDialog {
     "  <android.support.v4.widget.NestedScrollView\n" +
     "      %1$s:layout_width=\"match_parent\"\n" +
     "      %1$s:layout_height=\"match_parent\"\n" +
+    "%5$s" +                                                        // 5 = scrollY position
     "      %2$s:layout_behavior=\"android.support.design.widget.AppBarLayout$ScrollingViewBehavior\">\n" +
-    "    %5$s\n" +                                                  // 5 = Page content as xml
+    "    %6$s\n" +                                                  // 6 = Page content as xml
     "  </android.support.v4.widget.NestedScrollView>\n" +
+    "%7$s" +                                                        // 7 = Optional FAB
     "</android.support.design.widget.CoordinatorLayout>\n";
 
   private static final String TAG_FLOATING_ACTION_BUTTON =          // 1 = Prefix for android namespace
@@ -139,13 +144,19 @@ public class AppBarConfigurationDialog extends JDialog {
     "    android:padding=\"16dp\"/>";
 
   private static final String DIALOG_TITLE = "Configure App Bar";
-  private static final String DEFAULT_BACKGROUND_IMAGE = "@android:drawable/zoom_plate";
+  private static final String DEFAULT_BACKGROUND_IMAGE = "@android:drawable/sym_def_app_icon";
   private static final String DEFAULT_FAB_IMAGE = "@android:drawable/ic_input_add";
   private static final String PREVIEW_PLACEHOLDER_FILE = "preview.xml";
   private static final String DUMMY_TEXT = "This text is present to test the Application Bar. ";
   private static final int DUMMY_REPETITION = 200;
+  private static final String PREVIEW_HEADER = "Preview:";
   private static final String RENDER_ERROR = "An error happened during rendering...";
+  private static final String OVERLAP_TOP_FORMAT = "%1$s:behavior_overlapTop=\"%2$s\"";
   private static final double FUDGE_FACTOR = 0.95;
+  private static final int MIN_WIDTH = 40;
+  private static final int MIN_HEIGHT = 60;
+  private static final int START_WIDTH = 225;
+  private static final int START_HEIGHT = 400;
 
   private ViewEditor myEditor;
   private JPanel myContentPane;
@@ -155,16 +166,21 @@ public class AppBarConfigurationDialog extends JDialog {
   private JCheckBox myCollapsing;
   private JCheckBox myShowBackgroundImage;
   private JCheckBox myFloatingActionButton;
-  private JRadioButton myTitleOnBackground;
-  private JRadioButton myTitlePartlyOnImage;
-  private JRadioButton myTitlePartlyOnContent;
+  private JCheckBox myFitStatusBar;
+  private JCheckBox myContentOverlap;
   private JCheckBox myWithTabs;
-  private JCheckBox myCollapsingTabs;
   private JButton myBackgroundImageSelector;
   private JButton myFloatingActionButtonImageSelector;
   private JPanel myPreviewPanel;
+  private JBLabel myCollapsedPreview;
+  private JBLabel myExpandedPreview;
+  private JBLabel myExpandedLabel;
+  private JBLabel myCollapsedLabel;
+  private JCheckBox myParallax;
+  private JTextField myContentOverlapAmount;
   private boolean myWasAccepted;
-  private BufferedImage myImage;
+  private BufferedImage myExpandedImage;
+  private BufferedImage myCollapsedImage;
   private String myBackgroundImage;
   private String myFloatingActionButtonImage;
 
@@ -180,17 +196,18 @@ public class AppBarConfigurationDialog extends JDialog {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
         updateControls();
-        generatePreview();
+        generatePreviews();
       }
     };
     myWithTabs.addActionListener(updatePreviewListener);
     myCollapsing.addActionListener(updatePreviewListener);
     myShowBackgroundImage.addActionListener(updatePreviewListener);
     myFloatingActionButton.addActionListener(updatePreviewListener);
-    myTitleOnBackground.addActionListener(updatePreviewListener);
-    myTitlePartlyOnImage.addActionListener(updatePreviewListener);
-    myTitlePartlyOnContent.addActionListener(updatePreviewListener);
-    myCollapsingTabs.addActionListener(updatePreviewListener);
+    myFitStatusBar.addActionListener(updatePreviewListener);
+    myParallax.addActionListener(updatePreviewListener);
+    myContentOverlap.addActionListener(updatePreviewListener);
+    myContentOverlapAmount.addActionListener(updatePreviewListener);
+    ((GridLayoutManager)myPreviewPanel.getLayout()).setRowStretch(0, 2);
 
     final ActionListener actionListener = new ActionListener() {
       @Override
@@ -199,19 +216,18 @@ public class AppBarConfigurationDialog extends JDialog {
           String src = myEditor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE), null);
           if (src != null) {
             myBackgroundImage = src;
-            generatePreview();
+            generatePreviews();
           }
         } else if (e.getSource() == myFloatingActionButtonImageSelector) {
           String src = myEditor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE), null);
           if (src != null) {
             myFloatingActionButtonImage = src;
-            generatePreview();
+            generatePreviews();
           }
         } else if (e.getSource() == myButtonOK) {
           onOK();
-        } else if (e.getSource() == myButtonCancel) {
-          onCancel();
-        } else if (e.getSource() == myContentPane) {
+        } else if (e.getSource() == myButtonCancel ||
+                   e.getSource() == myContentPane) {
           onCancel();
         }
       }
@@ -226,7 +242,7 @@ public class AppBarConfigurationDialog extends JDialog {
     myPreviewPanel.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(final ComponentEvent e) {
-        updatePreviewImage();
+        updatePreviewImages();
       }
     });
 
@@ -240,12 +256,16 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   public boolean open(@NotNull XmlFile file) {
+    myCollapsedPreview.setMinimumSize(new Dimension(START_WIDTH, START_HEIGHT));
+    myExpandedPreview.setMinimumSize(new Dimension(START_WIDTH, START_HEIGHT));
     pack();
+    myCollapsedPreview.setMinimumSize(null);
+    myExpandedPreview.setMinimumSize(null);
     Dimension size = getSize();
     Rectangle screen = getGraphicsConfiguration().getBounds();
     setLocation(screen.x + (screen.width - size.width)/2, screen.y + (screen.height - size.height)/2);
     updateControls();
-    generatePreview();
+    generatePreviews();
     setVisible(true);
     if (myWasAccepted) {
       applyChanges(file);
@@ -263,52 +283,66 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   private void updateControls() {
-    myCollapsing.setEnabled(!myWithTabs.isSelected());
     myShowBackgroundImage.setEnabled(!myWithTabs.isSelected());
     myBackgroundImageSelector.setEnabled(!myWithTabs.isSelected() && myShowBackgroundImage.isSelected());
-    myTitleOnBackground.setEnabled(!myWithTabs.isSelected() && myShowBackgroundImage.isSelected());
-    myTitlePartlyOnImage.setEnabled(!myWithTabs.isSelected() && myShowBackgroundImage.isSelected());
-    myTitlePartlyOnContent.setEnabled(!myWithTabs.isSelected() && myShowBackgroundImage.isSelected());
-    myFloatingActionButton.setEnabled(!myWithTabs.isSelected());
-    myFloatingActionButtonImageSelector.setEnabled(!myWithTabs.isSelected() && myFloatingActionButton.isSelected());
-    myCollapsingTabs.setEnabled(myWithTabs.isSelected());
+    myFitStatusBar.setEnabled(!myWithTabs.isSelected() && myShowBackgroundImage.isSelected());
+    myParallax.setEnabled(!myWithTabs.isSelected() && myShowBackgroundImage.isSelected());
+    myFitStatusBar.setEnabled(!myWithTabs.isSelected() && myShowBackgroundImage.isSelected());
+    myContentOverlap.setEnabled(!myWithTabs.isSelected() && myShowBackgroundImage.isSelected());
+    myContentOverlapAmount.setEnabled(!myWithTabs.isSelected() && myShowBackgroundImage.isSelected() && myContentOverlap.isSelected());
+    myFloatingActionButtonImageSelector.setEnabled(myFloatingActionButton.isSelected());
   }
 
-  private void generatePreview() {
+  private void generatePreviews() {
+    myCollapsedImage = generatePreview(true);
+    myExpandedImage = generatePreview(false);
+    updatePreviewImages();
+  }
+
+  private BufferedImage generatePreview(boolean collapsed) {
     StringBuilder text = new StringBuilder(DUMMY_REPETITION * DUMMY_TEXT.length());
     for (int i=0; i<DUMMY_REPETITION; i++) {
       text.append(DUMMY_TEXT);
     }
     String content = String.format(TAG_TEXTVIEW, text.toString());
 
-    Map<String, String> namespaces = getNameSpaces(null);
-    String xml = getXml(content, namespaces);
+    Map<String, String> namespaces = getNameSpaces(null, collapsed);
+    String xml = getXml(content, collapsed, namespaces);
     BufferedImage image = renderImage(xml, myEditor.getConfiguration());
-    myImage = image;
-    if (image == null || image.getHeight() < 10 || image.getWidth() < 10) {
-      myPreview.setIcon(null);
-      myPreview.setText(RENDER_ERROR);
-    } else {
-      myPreview.setText("");
-      updatePreviewImage();
+    if (image != null && (image.getHeight() < MIN_HEIGHT || image.getWidth() < MIN_WIDTH)) {
+      image = null;
     }
+    return image;
   }
 
-  private void updatePreviewImage() {
-    BufferedImage image = myImage;
+  private void updatePreviewImages() {
+    if (myExpandedImage == null || myCollapsedImage == null) {
+      myPreview.setText(RENDER_ERROR);
+    } else {
+      myPreview.setText(PREVIEW_HEADER);
+    }
+    updatePreviewImage(myCollapsedImage, myCollapsedPreview);
+    updatePreviewImage(myExpandedImage, myExpandedPreview);
+  }
+
+  private void updatePreviewImage(BufferedImage image, JBLabel view) {
     if (image == null) {
+      view.setIcon(null);
       return;
     }
-    double width = myPreviewPanel.getWidth();
-    double height = myPreviewPanel.getHeight();
+    double width = myPreviewPanel.getWidth() / 2;
+    double height = myPreviewPanel.getHeight() - myPreview.getHeight() - Math.max(myExpandedLabel.getHeight(), myCollapsedLabel.getHeight());
+    if (width < MIN_WIDTH || height < MIN_HEIGHT) {
+      view.setIcon(null);
+    }
     double scale = Math.min(width / image.getWidth(), height / image.getHeight()) * FUDGE_FACTOR;
     image = ImageUtils.scale(image, scale, scale);
-    myPreview.setIcon(new ImageIcon(image));
+    view.setIcon(new ImageIcon(image));
   }
 
   private void applyChanges(@NotNull XmlFile file) {
-    Map<String, String> namespaces = getNameSpaces(file.getRootTag());
-    String xml = getXml(getDesignContent(file), namespaces);
+    Map<String, String> namespaces = getNameSpaces(file.getRootTag(), false);
+    String xml = getXml(getDesignContent(file), false, namespaces);
     XmlElementFactory elementFactory = XmlElementFactory.getInstance(file.getProject());
     XmlTag tag = elementFactory.createTagFromText(xml);
     if (file.getRootTag() == null) {
@@ -319,41 +353,43 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   @NotNull
-  private String getXml(@NotNull String content, @NotNull Map<String, String> namespaces) {
-    return myWithTabs.isSelected() ? getXmlWithTabs(content, namespaces) : getXmlWithoutTabs(content, namespaces);
+  private String getXml(@NotNull String content, boolean collapsed, @NotNull Map<String, String> namespaces) {
+    return myWithTabs.isSelected() ? getXmlWithTabs(content, collapsed, namespaces) : getXmlWithoutTabs(content, collapsed, namespaces);
   }
 
   @NotNull
-  private String getXmlWithoutTabs(@NotNull String content, @NotNull Map<String, String> namespaces) {
-    String scroll = myCollapsing.isSelected() ? "scroll|enterAlways|enterAlwaysCollapsed" : "scroll|exitUntilCollapsed";
-
+  private String getXmlWithoutTabs(@NotNull String content, boolean collapsed, @NotNull Map<String, String> namespaces) {
     return String.format(
       TAG_COORDINATOR_LAYOUT,
       namespaces.get(ANDROID_URI),
       namespaces.get(AUTO_URI),
       formatNamespaces(namespaces),
       getFitsSystemWindows(namespaces),
-      scroll,
+      getToolbarScrollBehavior(),
       getInterpolator(namespaces),
       getBackgroundImage(namespaces),
+      getBehaviorOverlapTop(namespaces),
+      getScrollPos(collapsed, namespaces),
       content,
       getFloatingActionButton(namespaces));
   }
 
   @NotNull
-  private String getXmlWithTabs(@NotNull String content, @NotNull Map<String, String> namespaces) {
+  private String getXmlWithTabs(@NotNull String content, boolean collapsed, @NotNull Map<String, String> namespaces) {
     return String.format(
       TAG_COORDINATOR_WITH_TABS_LAYOUT,
       namespaces.get(ANDROID_URI),
       namespaces.get(AUTO_URI),
       formatNamespaces(namespaces),
       getTabLayoutScroll(namespaces),
-      content);
+      getScrollPos(collapsed, namespaces),
+      content,
+      getFloatingActionButton(namespaces));
   }
 
   @NotNull
   private String getFitsSystemWindows(@NotNull Map<String, String> namespaces) {
-    if (!myShowBackgroundImage.isSelected() || !myTitlePartlyOnImage.isSelected()) {
+    if (!myShowBackgroundImage.isSelected() || !myFitStatusBar.isSelected()) {
       return "";
     }
     return String.format("    %1$s:fitsSystemWindows=\"true\"\n",
@@ -361,8 +397,13 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   @NotNull
+  private String getToolbarScrollBehavior() {
+    return myCollapsing.isSelected() ? "scroll|enterAlways|enterAlwaysCollapsed" : "scroll|exitUntilCollapsed";
+  }
+
+  @NotNull
   private String getTabLayoutScroll(@NotNull Map<String, String> namespaces) {
-    if (!myCollapsingTabs.isSelected()) {
+    if (!myCollapsing.isSelected()) {
       return "";
     }
     return String.format("        %1$s:layout_scrollFlags=\"scroll|enterAlways\"\n",
@@ -371,7 +412,7 @@ public class AppBarConfigurationDialog extends JDialog {
 
   @NotNull
   private String getInterpolator(@NotNull Map<String, String> namespaces) {
-    if (!myShowBackgroundImage.isSelected() || !myTitlePartlyOnContent.isSelected()) {
+    if (!myShowBackgroundImage.isSelected()) {
       return "";
     }
     return String.format("        %2$s:layout_scrollInterpolator=\"@%1$s:anim/decelerate_interpolator\"\n",
@@ -391,8 +432,27 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   @NotNull
+  private String getBehaviorOverlapTop(@NotNull Map<String, String> namespaces) {
+    if (!myContentOverlap.isSelected()) {
+      return "";
+    }
+    return String.format(OVERLAP_TOP_FORMAT,
+                         namespaces.get(AUTO_URI),
+                         myContentOverlapAmount.getText());
+  }
+
+  @NotNull
+  private static String getScrollPos(boolean collapsed, @NotNull Map<String, String> namespaces) {
+    if (!collapsed) {
+      return "";
+    }
+    return String.format("        %1$s:scrollY=\"830px\"\n",
+                         namespaces.get(TOOLS_URI));
+  }
+
+  @NotNull
   private String getBackgroundImageCollapseMode(@NotNull Map<String, String> namespaces) {
-    if (myTitlePartlyOnContent.isSelected()) {
+    if (myParallax.isSelected()) {
       return "";
     }
     return String.format("    %1$s:layout_collapseMode=\"parallax\"\n",
@@ -410,7 +470,7 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   @NotNull
-  private static Map<String, String> getNameSpaces(@Nullable XmlTag root) {
+  private static Map<String, String> getNameSpaces(@Nullable XmlTag root, boolean includeToolsNamespace) {
     Map<String, String> reverse = new HashMap<String, String>();
     if (root != null) {
       Map<String, String> namespaces = root.getLocalNamespaceDeclarations();
@@ -423,6 +483,9 @@ public class AppBarConfigurationDialog extends JDialog {
     }
     if (!reverse.containsKey(AUTO_URI)) {
       reverse.put(AUTO_URI, APP_PREFIX);
+    }
+    if (includeToolsNamespace && !reverse.containsKey(TOOLS_URI)) {
+      reverse.put(TOOLS_URI, TOOLS_PREFIX);
     }
     return reverse;
   }
@@ -441,11 +504,12 @@ public class AppBarConfigurationDialog extends JDialog {
   @NotNull
   private static String getDesignContent(@NotNull XmlFile file) {
     XmlTag content = file.getRootTag();
-    if (content != null && content.getName().equals(COORDINATOR_LAYOUT)) {
+    if (content != null && content.getName() != null && content.getName().equals(COORDINATOR_LAYOUT)) {
       XmlTag root = content;
       content = null;
       for (XmlTag tag : root.getSubTags()) {
-        if (!tag.getName().equals(APP_BAR_LAYOUT) &&
+        if (tag.getName() != null &&
+            !tag.getName().equals(APP_BAR_LAYOUT) &&
             !tag.getName().equals(FLOATING_ACTION_BUTTON)) {
           if (tag.getName().equals(CLASS_NESTED_SCROLL_VIEW)) {
             content = tag.getSubTags().length > 0 ? tag.getSubTags()[0] : null;
@@ -461,7 +525,7 @@ public class AppBarConfigurationDialog extends JDialog {
     }
     // Remove any xmlns: attributes since this element will be added into the document
     for (XmlAttribute attribute : content.getAttributes()) {
-      if (attribute.getName().startsWith(XMLNS_PREFIX)) {
+      if (attribute != null && attribute.getName() != null && attribute.getName().startsWith(XMLNS_PREFIX)) {
         attribute.delete();
       }
     }
