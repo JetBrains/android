@@ -18,6 +18,8 @@ package com.android.tools.idea.editors.theme;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
@@ -43,6 +45,8 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -113,7 +117,6 @@ public class ThemeEditorComponent extends Splitter {
   private final AttributesPanel myPanel = new AttributesPanel();
   private final ThemeEditorTable myAttributesTable = myPanel.getAttributesTable();
 
-  private final AttributeReferenceRendererEditor myStyleEditor;
   private final GoToListener myGoToListener;
 
   public interface GoToListener {
@@ -191,15 +194,9 @@ public class ThemeEditorComponent extends Splitter {
 
           EditedStyleItem editedStyleItem = new EditedStyleItem(resourceValue, getSelectedStyle());
 
-          assert editedStyleItem.getValue() != null;
           myCurrentSubStyle = myStyleResolver.getStyle(editedStyleItem.getValue());
         }
         else {
-          if (value.getValue() == null) {
-            LOG.error("null value for " + value.getName());
-            return;
-          }
-
           myCurrentSubStyle = myStyleResolver.getStyle(value.getValue());
         }
         mySubStyleSourceAttribute = value;
@@ -211,7 +208,7 @@ public class ThemeEditorComponent extends Splitter {
         ThemeEditorComponent.this.goToParent();
       }
     };
-    myStyleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
+    AttributeReferenceRendererEditor styleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
 
 
     final JScrollPane scroll = myPanel.getAttributesScrollPane();
@@ -255,7 +252,7 @@ public class ThemeEditorComponent extends Splitter {
     myAttributesTable.setDefaultEditor(AttributesTableModel.ParentAttribute.class, new DelegatingCellEditor(false, new ParentRendererEditor(myThemeEditorContext), myThemeEditorContext));
 
     // We allow to edit style pointers as Strings.
-    myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, myStyleEditor, myThemeEditorContext));
+    myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, styleEditor, myThemeEditorContext));
     myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableEditor(myThemeEditorContext), myThemeEditorContext));
     updateUiParameters();
 
@@ -477,34 +474,52 @@ public class ThemeEditorComponent extends Splitter {
       return null;
     }
 
+    int minModuleApi = ThemeEditorUtils.getMinApiLevel(myThemeEditorContext.getCurrentThemeModule());
+    int themeParentApiLevel = ThemeEditorUtils.getOriginalApiLevel(dialog.getStyleParentName(), myThemeEditorContext.getProject());
+    int newAttributeApiLevel = ThemeEditorUtils.getOriginalApiLevel(newAttributeName, myThemeEditorContext.getProject());
+    int newValueApiLevel = ThemeEditorUtils.getOriginalApiLevel(newAttributeValue, myThemeEditorContext.getProject());
+    int minAcceptableApi = Math.max(Math.max(themeParentApiLevel, newAttributeApiLevel), newValueApiLevel);
+
     final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STYLE);
-    final List<String> dirNames = Collections.singletonList(ResourceFolderType.VALUES.getName());
+    FolderConfiguration config = new FolderConfiguration();
+    if (minModuleApi < minAcceptableApi) {
+      VersionQualifier qualifier = new VersionQualifier(minAcceptableApi);
+      config.setVersionQualifier(qualifier);
+    }
+    final List<String> dirNames = Collections.singletonList(config.getFolderName(ResourceFolderType.VALUES));
 
     if (fileName == null) {
       LOG.error("Couldn't find a default filename for ResourceType.STYLE");
       return null;
     }
-    boolean isCreated = AndroidResourceUtil
-      .createValueResource(myThemeEditorContext.getCurrentThemeModule(), dialog.getStyleName(), ResourceType.STYLE, fileName, dirNames, new Processor<ResourceElement>() {
-        @Override
-        public boolean process(ResourceElement element) {
-          assert element instanceof Style;
-          final Style style = (Style)element;
 
-          style.getParentStyle().setStringValue(dialog.getStyleParentName());
+    boolean isCreated = new WriteCommandAction<Boolean>(myThemeEditorContext.getProject(), "Create new theme " + dialog.getStyleName()) {
+      @Override
+      protected void run(@NotNull Result<Boolean> result) {
+        result.setResult(AndroidResourceUtil.
+          createValueResource(myThemeEditorContext.getCurrentThemeModule(), dialog.getStyleName(),
+                              ResourceType.STYLE, fileName, dirNames, new Processor<ResourceElement>() {
+              @Override
+              public boolean process(ResourceElement element) {
+                assert element instanceof Style;
+                final Style style = (Style)element;
 
-          if (!Strings.isNullOrEmpty(newAttributeName)) {
-            StyleItem newItem = style.addItem();
-            newItem.getName().setStringValue(newAttributeName);
+                style.getParentStyle().setStringValue(dialog.getStyleParentName());
 
-            if (!Strings.isNullOrEmpty(newAttributeValue)) {
-              newItem.setStringValue(newAttributeValue);
-            }
-          }
+                if (!Strings.isNullOrEmpty(newAttributeName)) {
+                  StyleItem newItem = style.addItem();
+                  newItem.getName().setStringValue(newAttributeName);
 
-          return true;
-        }
-      });
+                  if (!Strings.isNullOrEmpty(newAttributeValue)) {
+                    newItem.setStringValue(newAttributeValue);
+                  }
+                }
+
+                return true;
+              }
+            }));
+      }
+    }.execute().getResultObject();
 
     if (isCreated) {
       AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
