@@ -26,8 +26,9 @@ import java.util.List;
  * Obtains the version of a component in a project (e.g. Gradle, Android Gradle plugin, etc.)
  */
 interface ComponentVersionReader {
-  ComponentVersionReader GRADLE = new GradleVersionReader();
+  ComponentVersionReader IDE = new IdeVersionReader();
   ComponentVersionReader ANDROID_GRADLE_PLUGIN = new AndroidGradlePluginVersionReader();
+  ComponentVersionReader GRADLE = new GradleVersionReader();
 
   /**
    * Indicates whether this reader can obtain a component's version from the given module.
