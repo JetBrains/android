@@ -35,9 +35,18 @@ import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.TreePath;
 import java.util.*;
+import java.util.List;
 
 public class InstanceReferenceTree {
   private static final int MAX_AUTO_EXPANSION_DEPTH = 5;
+  private static final SimpleTextAttributes SOFT_REFERENCE_TEXT_ATTRIBUTE =
+    new SimpleTextAttributes(SimpleTextAttributes.STYLE_ITALIC, XDebuggerUIConstants.VALUE_NAME_ATTRIBUTES.getFgColor());
+  private static final Comparator<Instance> DEPTH_COMPARATOR = new Comparator<Instance>() {
+    @Override
+    public int compare(Instance o1, Instance o2) {
+      return o1.getDistanceToGcRoot() - o2.getDistanceToGcRoot();
+    }
+  };
 
   @NotNull private Tree myTree;
   @NotNull private JComponent myColumnTree;
@@ -63,7 +72,7 @@ public class InstanceReferenceTree {
         }
         else {
           Instance instance = (Instance)node.getUserObject();
-          return instance.getReferences().size() > 0;
+          return instance.getHardReferences().size() > 0 || instance.getSoftReferences() != null;
         }
       }
     };
@@ -124,82 +133,86 @@ public class InstanceReferenceTree {
         .setPreferredWidth(1200)
         .setHeaderAlignment(SwingConstants.LEFT)
         .setRenderer(
-        new ColoredTreeCellRenderer() {
-          @Override
-          public void customizeCellRenderer(@NotNull JTree tree,
-                                            Object value,
-                                            boolean selected,
-                                            boolean expanded,
-                                            boolean leaf,
-                                            int row,
-                                            boolean hasFocus) {
-            if (value instanceof InstanceNode) {
-              InstanceNode node = (InstanceNode)value;
-              Instance instance = node.getInstance();
+          new ColoredTreeCellRenderer() {
+            @Override
+            public void customizeCellRenderer(@NotNull JTree tree,
+                                              Object value,
+                                              boolean selected,
+                                              boolean expanded,
+                                              boolean leaf,
+                                              int row,
+                                              boolean hasFocus) {
+              if (value instanceof InstanceNode) {
+                InstanceNode node = (InstanceNode)value;
+                Instance instance = node.getInstance();
 
-              String[] referenceVarNames = node.getVarNames();
-              if (referenceVarNames.length > 0) {
-                if (instance instanceof ArrayInstance) {
-                  append(StringUtil.pluralize("Index", referenceVarNames.length), SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
-                  append(" ", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+                String[] referenceVarNames = node.getVarNames();
+                if (referenceVarNames.length > 0) {
+                  if (instance instanceof ArrayInstance) {
+                    append(StringUtil.pluralize("Index", referenceVarNames.length), SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
+                    append(" ", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+                  }
+
+                  StringBuilder builder = new StringBuilder();
+                  builder.append(referenceVarNames[0]);
+                  for (int i = 1; i < referenceVarNames.length; ++i) {
+                    builder.append(", ");
+                    builder.append(referenceVarNames[i]);
+                  }
+                  append(builder.toString(),
+                         instance.getIsSoftReference() ? SOFT_REFERENCE_TEXT_ATTRIBUTE : XDebuggerUIConstants.VALUE_NAME_ATTRIBUTES);
+                  append(" in ", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
                 }
 
-                StringBuilder builder = new StringBuilder();
-                builder.append(referenceVarNames[0]);
-                for (int i = 1; i < referenceVarNames.length; ++i) {
-                  builder.append(", ");
-                  builder.append(referenceVarNames[i]);
-                }
-                append(builder.toString(), XDebuggerUIConstants.VALUE_NAME_ATTRIBUTES);
-                append(" in ", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
-              }
-
-              SimpleTextAttributes attributes;
-              if (myInstance.getImmediateDominator() == instance) {
-                attributes = SimpleTextAttributes.SYNTHETIC_ATTRIBUTES;
-              }
-              else if (instance.getDistanceToGcRoot() == 0) {
-                attributes = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
-              }
-              else if (instance.getImmediateDominator() == null) {
-                attributes = SimpleTextAttributes.ERROR_ATTRIBUTES;
-              }
-              else {
-                attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
-              }
-
-              if (instance instanceof ArrayInstance) {
-                setIcon(AllIcons.Debugger.Db_array);
-              }
-              else if (instance instanceof ClassObj) {
-                setIcon(PlatformIcons.CLASS_ICON);
-              }
-              else {
-                setIcon(AllIcons.Debugger.Value);
-              }
-
-              if (myInstance.getImmediateDominator() == instance || instance.getDistanceToGcRoot() == 0) {
-                int totalIcons = 1 + (myInstance.getImmediateDominator() == instance ? 1 : 0) + (instance.getDistanceToGcRoot() == 0 ? 1 : 0);
-                RowIcon icons = new RowIcon(totalIcons);
-                icons.setIcon(getIcon(), 0);
-
-                int currentIcon = 1;
+                SimpleTextAttributes classTextAttributes;
                 if (myInstance.getImmediateDominator() == instance) {
-                  icons.setIcon(AllIcons.Hierarchy.Class, currentIcon++);
+                  classTextAttributes = SimpleTextAttributes.SYNTHETIC_ATTRIBUTES;
                 }
-                if (instance.getDistanceToGcRoot() == 0) {
-                  icons.setIcon(AllIcons.Hierarchy.Subtypes, currentIcon);
+                else if (instance.getIsSoftReference()) {
+                  classTextAttributes = SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES;
                 }
-                setIcon(icons);
-              }
+                else if (instance.getDistanceToGcRoot() == 0) {
+                  classTextAttributes = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
+                }
+                else if (instance.getImmediateDominator() == null) {
+                  classTextAttributes = SimpleTextAttributes.ERROR_ATTRIBUTES;
+                }
+                else {
+                  classTextAttributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
+                }
 
-              append(instance.toString(), attributes);
+                if (instance instanceof ArrayInstance) {
+                  setIcon(AllIcons.Debugger.Db_array);
+                }
+                else if (instance instanceof ClassObj) {
+                  setIcon(PlatformIcons.FIELD_ICON);
+                }
+                else {
+                  setIcon(AllIcons.Debugger.Value);
+                }
+
+                if (myInstance.getImmediateDominator() == instance || instance.getDistanceToGcRoot() == 0) {
+                  int totalIcons = 1 + (myInstance.getImmediateDominator() == instance ? 1 : 0) + (instance.getDistanceToGcRoot() == 0 ? 1 : 0);
+                  RowIcon icons = new RowIcon(totalIcons);
+                  icons.setIcon(getIcon(), 0);
+
+                  int currentIcon = 1;
+                  if (myInstance.getImmediateDominator() == instance) {
+                    icons.setIcon(AllIcons.Hierarchy.Class, currentIcon++);
+                  }
+                  if (instance.getDistanceToGcRoot() == 0) {
+                    icons.setIcon(AllIcons.Hierarchy.Subtypes, currentIcon);
+                  }
+                  setIcon(icons);
+                }
+
+                append(instance.toString(), classTextAttributes);
+              }
+              else {
+                append(value.toString(), SimpleTextAttributes.ERROR_ATTRIBUTES);
+              }
             }
-            else {
-              append(value.toString(), SimpleTextAttributes.ERROR_ATTRIBUTES);
-            }
-          }
-        })
+          })
       ).addColumn(
         new ColumnTreeBuilder.ColumnBuilder()
           .setName("Depth")
@@ -247,29 +260,25 @@ public class InstanceReferenceTree {
             }
           })
       ).addColumn(
-        new ColumnTreeBuilder.ColumnBuilder()
-          .setName("Dominating Size")
-          .setPreferredWidth(80)
-          .setHeaderAlignment(SwingConstants.RIGHT)
-          .setRenderer(new ColoredTreeCellRenderer() {
-            @Override
-            public void customizeCellRenderer(@NotNull JTree tree,
-                                              Object value,
-                                              boolean selected,
-                                              boolean expanded,
-                                              boolean leaf,
-                                              int row,
-                                              boolean hasFocus) {
-              if (value instanceof InstanceNode) {
-                Instance instance = ((InstanceNode)value).getInstance();
-                if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
-                  append(String.valueOf(instance.getTotalRetainedSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-                }
-                setTextAlign(SwingConstants.RIGHT);
+      new ColumnTreeBuilder.ColumnBuilder().setName("Dominating Size").setPreferredWidth(80).setHeaderAlignment(SwingConstants.RIGHT)
+        .setRenderer(new ColoredTreeCellRenderer() {
+          @Override
+          public void customizeCellRenderer(@NotNull JTree tree,
+                                            Object value,
+                                            boolean selected,
+                                            boolean expanded,
+                                            boolean leaf,
+                                            int row,
+                                            boolean hasFocus) {
+            if (value instanceof InstanceNode) {
+              Instance instance = ((InstanceNode)value).getInstance();
+              if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
+                append(String.valueOf(instance.getTotalRetainedSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
               }
+              setTextAlign(SwingConstants.RIGHT);
             }
-          })
-      );
+          }
+        }));
 
     myColumnTree = builder.build();
 
@@ -323,13 +332,15 @@ public class InstanceReferenceTree {
       return;
     }
 
-    List<Instance> sortedReferences = new ArrayList<Instance>(instance.getReferences());
-    Collections.sort(sortedReferences, new Comparator<Instance>() {
-      @Override
-      public int compare(Instance o1, Instance o2) {
-        return o1.getDistanceToGcRoot() - o2.getDistanceToGcRoot();
-      }
-    });
+    List<Instance> sortedReferences = new ArrayList<Instance>(instance.getHardReferences());
+    Collections.sort(sortedReferences, DEPTH_COMPARATOR);
+
+    List<Instance> sortedSoftReferences;
+    if (instance.getSoftReferences() != null) {
+      sortedSoftReferences = new ArrayList<Instance>(instance.getSoftReferences());
+      Collections.sort(sortedSoftReferences, DEPTH_COMPARATOR);
+      sortedReferences.addAll(sortedSoftReferences); // Soft references should always appear after hard references.
+    }
 
     for (Instance reference : sortedReferences) {
       List<String> scratchList = new ArrayList<String>(3);
