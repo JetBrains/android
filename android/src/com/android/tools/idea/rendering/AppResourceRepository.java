@@ -289,14 +289,14 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @VisibleForTesting
   void updateRoots(List<LocalResourceRepository> resources, List<LocalResourceRepository> libraries) {
-    mResourceVisibility = null;
+    myResourceVisibility = null;
 
     if (resources.equals(myChildren)) {
       // Nothing changed (including order); nothing to do
       return;
     }
 
-    mResourceVisibility = null;
+    myResourceVisibility = null;
     myLibraries = libraries;
     setChildren(resources);
   }
@@ -328,19 +328,19 @@ public class AppResourceRepository extends MultiResourceRepository {
     return null;
   }
 
-  private ResourceVisibilityLookup mResourceVisibility;
-  private ResourceVisibilityLookup.Provider mResourceVisibilityProvider;
+  private ResourceVisibilityLookup myResourceVisibility;
+  private ResourceVisibilityLookup.Provider myResourceVisibilityProvider;
 
   @Nullable
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
-    if (mResourceVisibilityProvider == null) {
+    if (myResourceVisibilityProvider == null) {
       if (!myFacet.isGradleProject() || myFacet.getIdeaAndroidProject() == null) {
         return null;
       }
-      mResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
+      myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
     }
 
-    return mResourceVisibilityProvider;
+    return myResourceVisibilityProvider;
   }
 
   @NonNull
@@ -366,17 +366,17 @@ public class AppResourceRepository extends MultiResourceRepository {
    * @return true if the given resource is private
    */
   public boolean isPrivate(@NonNull ResourceType type, @NonNull String name) {
-    if (mResourceVisibility == null) {
+    if (myResourceVisibility == null) {
       ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
       if (provider == null) {
         return false;
       }
       assert myFacet.getIdeaAndroidProject() != null; // enforced in getResourceVisibility()
-      mResourceVisibility = provider.get(myFacet.getIdeaAndroidProject().getDelegate(),
+      myResourceVisibility = provider.get(myFacet.getIdeaAndroidProject().getDelegate(),
                                          myFacet.getIdeaAndroidProject().getSelectedVariant());
     }
 
-    return mResourceVisibility.isPrivate(type, name);
+    return myResourceVisibility.isPrivate(type, name);
   }
 
   // For LayoutlibCallback
