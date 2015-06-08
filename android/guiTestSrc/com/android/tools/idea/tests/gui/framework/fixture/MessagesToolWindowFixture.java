@@ -16,15 +16,16 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.intellij.ide.errorTreeView.*;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
 import com.intellij.openapi.externalSystem.service.notification.NotificationMessageElement;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.pom.Navigatable;
 import com.intellij.ui.content.Content;
-import com.intellij.util.Consumer;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -35,13 +36,13 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.tree.TreeCellEditor;
 import java.io.File;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static javax.swing.event.HyperlinkEvent.EventType.ACTIVATED;
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.awt.AWT.visibleCenterOf;
@@ -54,23 +55,23 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
   }
 
   @NotNull
-  public AbstractContentFixture getGradleSyncContent() {
+  public ContentFixture getGradleSyncContent() {
     Content content = getContent("Gradle Sync");
     assertNotNull(content);
     return new SyncContentFixture(content);
   }
 
   @NotNull
-  public AbstractContentFixture getGradleBuildContent() {
+  public ContentFixture getGradleBuildContent() {
     Content content = getContent("Gradle Build");
     assertNotNull(content);
     return new BuildContentFixture(content);
   }
 
-  public abstract static class AbstractContentFixture {
+  public abstract static class ContentFixture {
     @NotNull private final Content myContent;
 
-    private AbstractContentFixture(@NotNull Content content) {
+    private ContentFixture(@NotNull Content content) {
       myContent = content;
     }
 
@@ -145,6 +146,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       return new MessageMatcher() {
         @Override
         public boolean matches(@NotNull String[] text) {
+          assertThat(text).isNotEmpty();
           return text[0].startsWith(prefix);
         }
 
@@ -156,7 +158,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
     }
   }
 
-  public class SyncContentFixture extends AbstractContentFixture {
+  public class SyncContentFixture extends ContentFixture {
     SyncContentFixture(@NotNull Content content) {
       super(content);
     }
@@ -168,37 +170,31 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
     }
   }
 
-  public class BuildContentFixture extends AbstractContentFixture {
-
-    public BuildContentFixture(@NotNull Content content) {
+  public class BuildContentFixture extends ContentFixture {
+    BuildContentFixture(@NotNull Content content) {
       super(content);
     }
 
     @Override
     @NotNull
     protected MessageFixture createFixture(@NotNull ErrorTreeElement element) {
-      return new BuildMessageFixture(myRobot, element);
+      throw new UnsupportedOperationException();
     }
   }
 
-  public interface MessageFixture {
-    @NotNull
-    HyperlinkFixture findHyperlink(@NotNull String hyperlinkText);
-
-    @NotNull
-    MessageFixture requireLocation(@NotNull File filePath, int line);
-  }
-
-  public abstract static class AbstractMessageFixture implements MessageFixture {
+  public abstract static class MessageFixture {
     private static final Pattern ANCHOR_TAG_PATTERN = Pattern.compile("<a href=\"(.*?)\">([^<]+)</a>");
 
     @NotNull protected final Robot myRobot;
     @NotNull protected final ErrorTreeElement myTarget;
 
-    protected AbstractMessageFixture(@NotNull Robot robot, @NotNull ErrorTreeElement target) {
+    protected MessageFixture(@NotNull Robot robot, @NotNull ErrorTreeElement target) {
       myRobot = robot;
       myTarget = target;
     }
+
+    @NotNull
+    public abstract HyperlinkFixture findHyperlink(@NotNull String hyperlinkText);
 
     @NotNull
     protected String extractUrl(@NotNull String wholeText, @NotNull String hyperlinkText) {
@@ -219,7 +215,13 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       return url;
     }
 
-    protected void doRequireLocation(@NotNull File filePath, int line) {
+    @NotNull
+    public MessageFixture requireLocation(@NotNull File filePath, int line) {
+      doRequireLocation(filePath, line);
+      return this;
+    }
+
+    protected void doRequireLocation(@NotNull File expectedFilePath, int line) {
       assertThat(myTarget).isInstanceOf(NotificationMessageElement.class);
       NotificationMessageElement element = (NotificationMessageElement)myTarget;
 
@@ -227,38 +229,62 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       assertThat(navigatable).isInstanceOf(OpenFileDescriptor.class);
 
       OpenFileDescriptor descriptor = (OpenFileDescriptor)navigatable;
-      File actualPath = virtualToIoFile(descriptor.getFile());
-      assertTrue(String.format("Expected:'%1$s' but was:'%2$s'", filePath.getPath(), actualPath.getPath()),
-                 filesEqual(filePath, actualPath));
+      File actualFilePath = virtualToIoFile(descriptor.getFile());
+      assertThat(actualFilePath).isEqualTo(expectedFilePath);
 
       assertThat((descriptor.getLine() + 1)).as("line").isEqualTo(line); // descriptor line is zero-based.
     }
+
+    @NotNull
+    public abstract String getText();
   }
 
-  public static class SyncMessageFixture extends AbstractMessageFixture {
-    public SyncMessageFixture(@NotNull Robot robot, @NotNull ErrorTreeElement target) {
+  public static class SyncMessageFixture extends MessageFixture {
+    SyncMessageFixture(@NotNull Robot robot, @NotNull ErrorTreeElement target) {
       super(robot, target);
     }
 
     @Override
     @NotNull
-    public SyncHyperlinkFixture findHyperlink(@NotNull String hyperlinkText) {
+    public HyperlinkFixture findHyperlink(@NotNull String hyperlinkText) {
+      Pair<JEditorPane, String> cellEditorAndText = getCellEditorAndText();
+      String url = extractUrl(cellEditorAndText.getSecond(), hyperlinkText);
+      return new SyncHyperlinkFixture(myRobot, url, cellEditorAndText.getFirst());
+    }
+
+    @Override
+    @NotNull
+    public String getText() {
+      String html = getCellEditorAndText().getSecond();
+
+      int startBodyIndex = html.indexOf("<body>");
+      assertThat(startBodyIndex).isGreaterThanOrEqualTo(0);
+
+      int endBodyIndex = html.indexOf("</body>");
+      assertThat(endBodyIndex).isGreaterThan(startBodyIndex);
+
+      String body = html.substring(startBodyIndex + 6 /* 6 = length of '<body>' */, endBodyIndex);
+      List<String> lines = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(body);
+      body = Joiner.on(' ').join(lines);
+
+      return body;
+    }
+
+    @NotNull
+    private Pair<JEditorPane, String> getCellEditorAndText() {
       // There is no specific UI component for a hyperlink in the "Messages" window. Instead we have a JEditorPane with HTML. This method
       // finds the anchor tags, and matches the text of each of them against the given text. If a matching hyperlink is found, we fire a
       // HyperlinkEvent, simulating a click on the actual hyperlink.
       assertThat(myTarget).isInstanceOf(EditableNotificationMessageElement.class);
 
-      // Find the URL of the hyperlink.
-      final EditableNotificationMessageElement message = (EditableNotificationMessageElement)myTarget;
-
       final JEditorPane editorComponent = execute(new GuiQuery<JEditorPane>() {
         @Override
         protected JEditorPane executeInEDT() throws Throwable {
+          EditableNotificationMessageElement message = (EditableNotificationMessageElement)myTarget;
           TreeCellEditor cellEditor = message.getRightSelfEditor();
           return field("editorComponent").ofType(JEditorPane.class).in(cellEditor).get();
         }
       });
-
       assertNotNull(editorComponent);
 
       String text = execute(new GuiQuery<String>() {
@@ -268,72 +294,20 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
         }
       });
       assertNotNull(text);
-      String url = extractUrl(text, hyperlinkText);
-      return new SyncHyperlinkFixture(myRobot, url, editorComponent);
-    }
 
-    @Override
-    @NotNull
-    public SyncMessageFixture requireLocation(@NotNull File filePath, int line) {
-      doRequireLocation(filePath, line);
-      return this;
+      return Pair.create(editorComponent, text);
     }
   }
 
-  public static class BuildMessageFixture extends AbstractMessageFixture {
-    public BuildMessageFixture(@NotNull Robot robot, @NotNull ErrorTreeElement target) {
-      super(robot, target);
-    }
-
-    @Override
-    @NotNull
-    public HyperlinkFixture findHyperlink(@NotNull String hyperlinkText) {
-      String wholeText = Joiner.on('\n').join(myTarget.getText());
-      String url = extractUrl(wholeText, hyperlinkText);
-      Object data = myTarget.getData();
-      if (!(data instanceof Consumer)) {
-        fail(String.format("Can't create hyperlink fixture for a link with text '%s' from message '%s'. Reason: link action is undefined",
-                           hyperlinkText, wholeText));
-      }
-      //noinspection unchecked
-      return new BuildHyperlinkFixture(myRobot, url, (Consumer<String>)data);
-    }
-
-    @Override
-    @NotNull
-    public BuildMessageFixture requireLocation(@NotNull File filePath, int line) {
-      doRequireLocation(filePath, line);
-      return this;
-    }
-  }
-
-  public interface HyperlinkFixture {
-    /**
-     * Emulates target link's click
-     *
-     * @param synchronous  a flag which determines if current method call should wait until UI actions triggered by the link click
-     *                     are finished. For example, suppose that the click opens particular dialog. Test execution flow continues
-     *                     only after the dialog is hidden if this argument is set to <code>true</code>; execution proceeds immediately
-     *                     if the flag is set to <code>false</code>
-     * @return
-     */
-    @NotNull
-    HyperlinkFixture click(boolean synchronous);
-
-    @NotNull
-    HyperlinkFixture requireUrl(@NotNull String expected);
-  }
-
-  public abstract static class AbstractHyperlinkFixture implements HyperlinkFixture {
-    @NotNull protected final Robot  myRobot;
+  public abstract static class HyperlinkFixture {
+    @NotNull protected final Robot myRobot;
     @NotNull protected final String myUrl;
 
-    protected AbstractHyperlinkFixture(@NotNull Robot robot, @NotNull String url) {
+    protected HyperlinkFixture(@NotNull Robot robot, @NotNull String url) {
       myRobot = robot;
       myUrl = url;
     }
 
-    @Override
     @NotNull
     public HyperlinkFixture requireUrl(@NotNull String expected) {
       assertThat(myUrl).as("URL").isEqualTo(expected);
@@ -341,36 +315,52 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
     }
 
     @NotNull
-    @Override
-    public HyperlinkFixture click(boolean synchronous) {
-      final Runnable action = new Runnable() {
-        @Override
-        public void run() {
-          doClick();
-        }
-      };
+    public HyperlinkFixture click() {
+      click(true);
+      return this;
+    }
+
+    /**
+     * Simulates a click on the hyperlink. This method returns immediately and does not wait for any UI actions triggered by the click to be
+     * finished.
+     */
+    public HyperlinkFixture clickAndContinue() {
+      click(false);
+      return this;
+    }
+
+    private void click(boolean synchronous) {
       if (synchronous) {
         execute(new GuiTask() {
           @Override
-          protected void executeInEDT() throws Throwable {
-            action.run();
+          protected void executeInEDT() {
+            new Runnable() {
+              @Override
+              public void run() {
+                doClick();
+              }
+            }.run();
           }
         });
       }
       else {
         //noinspection SSBasedInspection
-        SwingUtilities.invokeLater(action);
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            doClick();
+          }
+        });
       }
-      return this;
     }
 
     protected abstract void doClick();
   }
 
-  public static class SyncHyperlinkFixture extends AbstractHyperlinkFixture {
+  public static class SyncHyperlinkFixture extends HyperlinkFixture {
     @NotNull private final JEditorPane myTarget;
 
-    public SyncHyperlinkFixture(@NotNull Robot robot, @NotNull String url, @NotNull JEditorPane target) {
+    SyncHyperlinkFixture(@NotNull Robot robot, @NotNull String url, @NotNull JEditorPane target) {
       super(robot, url);
       myTarget = target;
     }
@@ -380,21 +370,6 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       // at least move the mouse where the message is, so we can know that something is happening.
       myRobot.moveMouse(visibleCenterOf(myTarget));
       myTarget.fireHyperlinkUpdate(new HyperlinkEvent(this, ACTIVATED, null, myUrl));
-    }
-  }
-
-  public static class BuildHyperlinkFixture extends AbstractHyperlinkFixture {
-
-    @NotNull private final Consumer<String> myUrlAction;
-
-    public BuildHyperlinkFixture(@NotNull Robot robot, @NotNull String url, @NotNull Consumer<String> urlAction) {
-      super(robot, url);
-      myUrlAction = urlAction;
-    }
-
-    @Override
-    protected void doClick() {
-      myUrlAction.consume(myUrl);
     }
   }
 }
