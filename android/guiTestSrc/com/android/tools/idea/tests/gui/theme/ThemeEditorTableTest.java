@@ -128,6 +128,12 @@ public class ThemeEditorTableTest extends GuiTestCase {
 
     parentValueCell.requireValue(newParent);
 
+    pause(new Condition("Wait for potential tooltips to disappear") {
+      @Override
+      public boolean test() {
+        return myRobot.findActivePopupMenu() == null;
+      }
+    });
     testParentPopup(parentValueCell, newParent, themeEditor);
   }
 
