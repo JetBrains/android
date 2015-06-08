@@ -103,6 +103,8 @@ public class GradleSyncState {
   }
 
   public void syncSkipped(long lastSyncTimestamp) {
+    LOG.info(String.format("Skipped sync with Gradle for project '%1$s'. Data model(s) loaded from cache.", myProject.getName()));
+
     cleanUpProjectPreferences();
     setLastGradleSyncTimestamp(lastSyncTimestamp);
     syncPublisher(new Runnable() {
@@ -117,6 +119,8 @@ public class GradleSyncState {
   }
 
   public void syncStarted(boolean notifyUser) {
+    LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
+
     addInfoToEventLog("Gradle sync started");
 
     cleanUpProjectPreferences();
@@ -137,6 +141,8 @@ public class GradleSyncState {
   }
 
   public void syncFailed(@NotNull final String message) {
+    LOG.info(String.format("Sync with Gradle for project '%1$s' failed: %2$s", myProject.getName(), message));
+
     String logMsg = "Gradle sync failed";
     if (isNotEmpty(message)) {
       logMsg += String.format(": %1$s", message);
@@ -155,6 +161,8 @@ public class GradleSyncState {
   }
 
   public void syncEnded() {
+    LOG.info(String.format("Sync with Gradle successful for project '%1$s'.", myProject.getName()));
+
     addInfoToEventLog("Gradle sync completed");
 
     // Temporary: Clear resourcePrefix flag in case it was set to false when working with
