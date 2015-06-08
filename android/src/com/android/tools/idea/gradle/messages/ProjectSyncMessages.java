@@ -24,8 +24,8 @@ import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
 import com.android.tools.idea.gradle.dependency.DependencySetupErrors.MissingModule;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.compatibility.ComponentsCompatibilityService;
-import com.android.tools.idea.gradle.project.compatibility.ComponentsCompatibilityService.VersionIncompatibilityMessage;
+import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService;
+import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService.VersionIncompatibilityMessage;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
@@ -98,7 +98,7 @@ public class ProjectSyncMessages {
   }
 
   public void reportComponentIncompatibilities() {
-    ComponentsCompatibilityService compatibilityService = ComponentsCompatibilityService.getInstance();
+    VersionCompatibilityService compatibilityService = VersionCompatibilityService.getInstance();
     List<VersionIncompatibilityMessage> messages = compatibilityService.checkComponentCompatibility(myProject);
     for (VersionIncompatibilityMessage message : messages) {
       add(message.getMessage(), message.getQuickFixes());
