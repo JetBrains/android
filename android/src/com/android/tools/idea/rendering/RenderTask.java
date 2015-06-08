@@ -670,17 +670,29 @@ public class RenderTask implements IImageFactory {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     Module module = myRenderService.getModule();
-    DrawableParams params =
+    final DrawableParams params =
       new DrawableParams(drawableResourceValue, module, hardwareConfig, getResourceResolver(), myLayoutlibCallback,
                          myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger);
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
-    Result result = myLayoutLib.renderDrawable(params);
-    if (result != null && result.isSuccess()) {
-      Object data = result.getData();
-      if (data instanceof BufferedImage) {
-        return (BufferedImage)data;
+
+    try {
+      Result result = RenderService.runRenderAction(new Callable<Result>() {
+        @Override
+        public Result call() throws Exception {
+          return myLayoutLib.renderDrawable(params);
+        }
+      });
+
+      if (result != null && result.isSuccess()) {
+        Object data = result.getData();
+        if (data instanceof BufferedImage) {
+          return (BufferedImage)data;
+        }
       }
+    }
+    catch (final Exception e) {
+      // ignore
     }
 
     return null;
@@ -703,7 +715,7 @@ public class RenderTask implements IImageFactory {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     Module module = myRenderService.getModule();
-    DrawableParams params =
+    final DrawableParams params =
       new DrawableParams(drawableResourceValue, module, hardwareConfig, getResourceResolver(), myLayoutlibCallback,
                          myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger);
     params.setForceNoDecor();
@@ -713,14 +725,25 @@ public class RenderTask implements IImageFactory {
       params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
     }
 
-    final Result result = myLayoutLib.renderDrawable(params);
-    if (result != null && result.isSuccess()) {
-      Object data = result.getData();
-      if (supportsMultipleStates && data instanceof List) {
-        return (List<BufferedImage>)data;
-      } else if (!supportsMultipleStates && data instanceof BufferedImage) {
-        return Collections.singletonList((BufferedImage) data);
+    try {
+      Result result = RenderService.runRenderAction(new Callable<Result>() {
+        @Override
+        public Result call() throws Exception {
+          return myLayoutLib.renderDrawable(params);
+        }
+      });
+
+      if (result != null && result.isSuccess()) {
+        Object data = result.getData();
+        if (supportsMultipleStates && data instanceof List) {
+          return (List<BufferedImage>)data;
+        } else if (!supportsMultipleStates && data instanceof BufferedImage) {
+          return Collections.singletonList((BufferedImage) data);
+        }
       }
+    }
+    catch (final Exception e) {
+      // ignore
     }
 
     return Collections.emptyList();
