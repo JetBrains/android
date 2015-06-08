@@ -33,12 +33,11 @@ import java.awt.event.WindowEvent;
 import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.not;
 
 /**
- * Project and activity name
+ * Keep project and activity name in sync
  * <p/>
- * This panel presents a list of input fields, allowing the user to specify a project name and
- * activity name. The activity name is, by default, linked to the project name, unless the user
- * explicitly breaks the link or chooses not to create an activity at all. Binding values
- * conditionally comes up in UIs a fair bit.
+ * This panel presents two input fields, allowing the user to specify a project name and activity
+ * name. By default, the activity name should always be "(projectName)Activity", unless the user
+ * explicitly breaks the link or chooses not to create an activity at all.
  * <p/>
  * Demonstrates:
  * - Setting up and binding swing properties to one another
