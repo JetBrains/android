@@ -18,10 +18,11 @@ package com.android.tools.swing.layoutlib;
 import com.android.ide.common.rendering.api.IImageFactory;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.Graphics2DDelegate;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.NoninvertibleTransformException;
@@ -35,13 +36,18 @@ import java.awt.image.BufferedImage;
  */
 public class FakeImageFactory implements IImageFactory {
   private static final Logger LOG = Logger.getInstance(FakeImageFactory.class);
+  private static final Graphics2D NOP_GRAPHICS2D = new NopGraphics2D();
 
-  private Graphics myGraphics;
+  private Graphics myGraphics = NOP_GRAPHICS2D;
   private int myRequestedHeight;
   private int myRequestedWidth;
 
-  public void setGraphics(@NotNull Graphics graphics) {
-    myGraphics = graphics;
+  /**
+   * Set the Graphics object to be used in the factory.
+   * @param graphics The Graphics object or null to remove the current value.
+   */
+  public void setGraphics(@Nullable Graphics graphics) {
+    myGraphics = graphics != null ? graphics : NOP_GRAPHICS2D;
   }
 
   public int getRequestedHeight() {
@@ -62,7 +68,7 @@ public class FakeImageFactory implements IImageFactory {
         myRequestedHeight = h;
         myRequestedWidth = w;
 
-        // TODO: Check if we can stop layoutlib from reseting the transforms.
+        // TODO: Check if we can stop layoutlib from resetting the transforms.
         final Shape originalClip = myGraphics.getClip();
         final AffineTransform originalTx = ((Graphics2D)myGraphics).getTransform();
 
@@ -76,7 +82,7 @@ public class FakeImageFactory implements IImageFactory {
 
         final AffineTransform originalTxInverse = inverse;
 
-        final Graphics2D g = new Graphics2DDelegate((Graphics2D)myGraphics.create()) {
+        return new Graphics2DDelegate((Graphics2D)myGraphics.create()) {
           @Nullable
           private Shape intersect(@Nullable Shape s1, @Nullable Shape s2) {
             if (s1 == null || s2 == null) {
@@ -110,7 +116,7 @@ public class FakeImageFactory implements IImageFactory {
           }
 
           @Override
-          public void setTransform(@Nullable AffineTransform Tx) {
+          public void setTransform(AffineTransform Tx) {
             AffineTransform transform = (AffineTransform)originalTx.clone();
             transform.concatenate(Tx);
             super.setTransform(transform);
@@ -119,13 +125,14 @@ public class FakeImageFactory implements IImageFactory {
           @Override
           public AffineTransform getTransform() {
             AffineTransform currentTransform = super.getTransform();
-            currentTransform.concatenate(originalTxInverse);
+
+            if (originalTxInverse != null) {
+              currentTransform.concatenate(originalTxInverse);
+            }
 
             return currentTransform;
           }
         };
-
-        return g;
       }
 
       @Override
