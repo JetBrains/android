@@ -20,8 +20,12 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.SmartList;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Represents a (revisionless) package, either local, remote, or both. If both a local and remote package are specified,
@@ -132,5 +136,16 @@ public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
     RemotePkgInfo remote = getRemote(alwaysIncludePreview);
     return myLocalInfo != null && remote != null &&
            remote.getPkgDesc().getPreciseRevision().compareTo(myLocalInfo.getDesc().getPreciseRevision()) > 0;
+  }
+
+  public List<RemotePkgInfo> getAllRemotes() {
+    List<RemotePkgInfo> result = new SmartList<RemotePkgInfo>();
+    if (myRemoteInfo != null) {
+      result.add(myRemoteInfo);
+    }
+    if (myRemotePreviewInfo != null) {
+      result.add(myRemotePreviewInfo);
+    }
+    return result;
   }
 }
