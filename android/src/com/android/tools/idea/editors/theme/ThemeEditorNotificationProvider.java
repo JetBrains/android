@@ -19,7 +19,6 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -34,13 +33,14 @@ import java.awt.*;
 
 public class ThemeEditorNotificationProvider extends EditorNotifications.Provider<ThemeEditorNotificationProvider.InfoPanel> {
   private static final Key<InfoPanel> KEY = Key.create("android.editors.theme");
-  private final Project myProject;
+  private final @NotNull Project myProject;
   private boolean myDismissed = false;
 
   public ThemeEditorNotificationProvider(final @NotNull Project project) {
     myProject = project;
   }
 
+  @NotNull
   @Override
   public Key<InfoPanel> getKey() {
     return KEY;
@@ -54,8 +54,7 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
     }
 
     final PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myProject, file);
-    final Module module = AndroidPsiUtils.getModuleSafely(myProject, file);
-    if (!ThemeEditorProvider.isAndroidTheme(psiFile) || module == null) {
+    if (!ThemeEditorProvider.isAndroidTheme(psiFile)) {
       return null;
     }
 
@@ -64,7 +63,7 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
     panel.createActionLabel("Open editor", new Runnable() {
       @Override
       public void run() {
-        ThemeEditorUtils.openThemeEditor(module);
+        ThemeEditorUtils.openThemeEditor(myProject);
       }
     });
     panel.createActionLabel("Hide notification", new Runnable() {

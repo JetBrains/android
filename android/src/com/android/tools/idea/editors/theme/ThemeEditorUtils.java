@@ -127,16 +127,11 @@ public class ThemeEditorUtils {
     return item.isDeprecated() ? "<html><body><strike>" + item.getQualifiedName() + "</strike></body></html>" : item.getQualifiedName();
   }
 
-  public static void openThemeEditor(@NotNull final Module module) {
+  public static void openThemeEditor(@NotNull final Project project) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
         ThemeEditorVirtualFile file = null;
-        final Project project = module.getProject();
-        if (module.getModuleFile() == null) {
-          // Saving the project makes sure the module virtual file is created
-          project.save();
-        }
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
 
         for (final FileEditor editor : fileEditorManager.getAllEditors()) {
@@ -145,7 +140,7 @@ public class ThemeEditorUtils {
           }
 
           ThemeEditor themeEditor = (ThemeEditor)editor;
-          if (themeEditor.getVirtualFile().getModule() == module) {
+          if (themeEditor.getVirtualFile().getProject() == project) {
             file = themeEditor.getVirtualFile();
             break;
           }
@@ -155,7 +150,7 @@ public class ThemeEditorUtils {
         // show existing editor (without creating a new tab). If we haven't found any existing
         // virtual file, we're creating one here (new tab with theme editor will be opened).
         if (file == null) {
-          file = ThemeEditorVirtualFile.getThemeEditorFile(module);
+          file = ThemeEditorVirtualFile.getThemeEditorFile(project);
         }
         final OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file);
         fileEditorManager.openEditor(descriptor, true);

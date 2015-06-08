@@ -31,7 +31,7 @@ public class ThemeEditorVirtualFileTest extends AndroidTestCase {
     assertNotNull(otherProject);
     ProjectManagerEx.getInstanceEx().openProject(otherProject);
 
-    ThemeEditorVirtualFile themeEditorVirtualFile = ThemeEditorVirtualFile.getThemeEditorFile(myModule);
+    ThemeEditorVirtualFile themeEditorVirtualFile = ThemeEditorVirtualFile.getThemeEditorFile(myModule.getProject());
     VirtualFile virtualFile = themeEditorVirtualFile.getFileSystem().findFileByPath(themeEditorVirtualFile.getPath());
 
     assertEquals(themeEditorVirtualFile, virtualFile);
