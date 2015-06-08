@@ -177,7 +177,7 @@ public class ConflictSet {
         new NotificationHyperlink("select.conflict.in.variants.window", hyperlinkText) {
           @Override
           protected void execute(@NotNull Project project) {
-            BuildVariantView.getInstance(project).selectAndScrollTo(source);
+            BuildVariantView.getInstance(project).findAndSelect(source);
           }
         };
 
