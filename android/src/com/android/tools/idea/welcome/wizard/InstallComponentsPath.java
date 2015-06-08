@@ -45,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -60,7 +61,7 @@ import java.util.*;
 public class InstallComponentsPath extends DynamicWizardPath implements LongRunningOperationPath {
   public static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
     ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.PATH, Boolean.class);
-  public static final AndroidVersion LATEST_ANDROID_VERSION = new AndroidVersion(21, null);
+  public static final AndroidVersion LATEST_ANDROID_VERSION = new AndroidVersion(22, null);
   private static final ScopedStateStore.Key<String> KEY_SDK_INSTALL_LOCATION =
     ScopedStateStore.createKey("download.sdk.location", ScopedStateStore.Scope.PATH, String.class);
   private final ProgressStep myProgressStep;
@@ -198,7 +199,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     if (handoffSource != null) {
       return new MergeOperation(handoffSource, installContext, progressRatio);
     }
-    if (destination.isDirectory()) {
+    if (isNonEmptyDirectory(destination)) {
       SdkManager manager = SdkManager.createManager(destination.getAbsolutePath(), new NullLogger());
       if (manager != null) {
         // We have SDK, first operation simply passes path through
@@ -206,6 +207,16 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       }
     }
     return downloadAndUnzipSdkSeed(installContext, destination, progressRatio);
+  }
+
+  private static boolean isNonEmptyDirectory(File file) {
+    String[] contents = !file.isDirectory() ? null : file.list(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        return !(name.equalsIgnoreCase(".DS_Store") || name.equalsIgnoreCase("thumbs.db") || name.equalsIgnoreCase("desktop.ini"));
+      }
+    });
+    return contents != null && contents.length > 0;
   }
 
   @Override
