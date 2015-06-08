@@ -41,8 +41,6 @@ import java.util.List;
 import static org.junit.Assert.assertNotNull;
 
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
-  private Class<? extends Annotation> myBeforeClass;
-  private Class<? extends Annotation> myAfterClass;
 
   private TestClass myTestClass;
 
@@ -102,12 +100,12 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
     Statement statement = methodInvoker(newMethod, test);
 
-    List<FrameworkMethod> beforeMethods = myTestClass.getAnnotatedMethods(myBeforeClass);
+    List<FrameworkMethod> beforeMethods = myTestClass.getAnnotatedMethods(Before.class);
     if (!beforeMethods.isEmpty()) {
       statement = new RunBefores(statement, beforeMethods, test);
     }
 
-    List<FrameworkMethod> afterMethods = myTestClass.getAnnotatedMethods(myAfterClass);
+    List<FrameworkMethod> afterMethods = myTestClass.getAnnotatedMethods(After.class);
     if (!afterMethods.isEmpty()) {
       statement = new RunAfters(statement, afterMethods, test);
     }
@@ -125,16 +123,6 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
     Class<?> testClass = getTestClass().getJavaClass();
     myTestClass = new TestClass(ideClassLoader.loadClass(testClass.getName()));
-    myBeforeClass = loadAnnotation(ideClassLoader, Before.class);
-    myAfterClass = loadAnnotation(ideClassLoader, After.class);
-  }
-
-  @NotNull
-  @SuppressWarnings("unchecked")
-  private static Class<? extends Annotation> loadAnnotation(@NotNull ClassLoader classLoader,
-                                                            @NotNull Class<? extends Annotation> annotationType)
-  throws ClassNotFoundException {
-    return (Class<? extends Annotation>)classLoader.loadClass(annotationType.getCanonicalName());
   }
 
   @Override

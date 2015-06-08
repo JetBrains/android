@@ -159,12 +159,12 @@ public class IdeTestApplication implements Disposable {
   @NotNull
   private static ClassLoader createClassLoader() throws MalformedURLException, URISyntaxException {
     Collection<URL> classpath = Sets.newLinkedHashSet();
-    addParentClassPath(classpath);
     addIdeaLibraries(classpath);
     addAdditionalClassPath(classpath);
 
     UrlClassLoader.Builder builder = UrlClassLoader.build()
                                                    .urls(filterClassPath(Lists.newArrayList(classpath)))
+                                                   .parent(IdeTestApplication.class.getClassLoader())
                                                    .allowLock(false)
                                                    .usePersistentClasspathIndexForLocalClassDirectories();
     if (SystemProperties.getBooleanProperty(PROPERTY_ALLOW_BOOTSTRAP_RESOURCES, true)) {
@@ -183,44 +183,6 @@ public class IdeTestApplication implements Disposable {
 
     Thread.currentThread().setContextClassLoader(newClassLoader);
     return newClassLoader;
-  }
-
-  private static void addParentClassPath(@NotNull Collection<URL> classpath) throws MalformedURLException, URISyntaxException {
-    List<ClassLoader> urlClassLoaders = Lists.newArrayList();
-
-    for (ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-         classLoader != null;
-         classLoader = classLoader.getParent()) {
-      if (classLoader instanceof URLClassLoader || classLoader instanceof UrlClassLoader || isUrlClassLoader(classLoader)) {
-        urlClassLoaders.add(0, classLoader);
-      }
-    }
-    for (ClassLoader classLoader : urlClassLoaders) {
-      if (classLoader instanceof URLClassLoader) {
-        addAll(classpath, ((URLClassLoader)classLoader).getURLs());
-      }
-      else if (classLoader instanceof UrlClassLoader) {
-        addAll(classpath, ((UrlClassLoader)classLoader).getUrls());
-      }
-      else if (isUrlClassLoader(classLoader)) {
-        addAll(classpath, getUrlsFrom(classLoader));
-      }
-    }
-  }
-
-  private static boolean isUrlClassLoader(@NotNull ClassLoader classLoader) {
-    return classLoader.getClass().getName().equals(UrlClassLoader.class.getName());
-  }
-
-  @NotNull
-  private static List<URL> getUrlsFrom(@NotNull ClassLoader classLoader) throws URISyntaxException, MalformedURLException {
-    // We need to use reflection because the given classLoader was loaded using another ClassLoader and 'instanceof UrlClassLoader' returns
-    // false.
-    List<URL> urls = field("myURLs").ofType(new TypeRef<List<URL>>() {})
-                                    .in(classLoader)
-                                    .get();
-    assertNotNull(urls);
-    return urls;
   }
 
   private static void addIdeaLibraries(@NotNull Collection<URL> classpath) throws MalformedURLException {
