@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.allocations;
 
 import com.android.annotations.Nullable;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBViewport;
@@ -306,6 +307,7 @@ public class ColumnTreeBuilder {
     private int myHeaderAlignment;
     private Comparator<?> myComparator;
     private ColoredTreeCellRenderer myRenderer;
+    private SortOrder myInitialOrder = SortOrder.UNSORTED;
 
     public ColumnBuilder setName(String name) {
       myName = name;
@@ -345,6 +347,9 @@ public class ColumnTreeBuilder {
 
       if (myComparator != null) {
         sorter.setComparator(column.getModelIndex(), myComparator);
+        if (myInitialOrder != SortOrder.UNSORTED) {
+          sorter.setSortKeys(ImmutableList.of(new RowSorter.SortKey(column.getModelIndex(), myInitialOrder)));
+        }
       }
       else {
         sorter.setSortable(column.getModelIndex(), false);
@@ -360,6 +365,11 @@ public class ColumnTreeBuilder {
 
     public ColumnBuilder setRenderer(@NotNull ColoredTreeCellRenderer renderer) {
       myRenderer = renderer;
+      return this;
+    }
+
+    public ColumnBuilder setInitialOrder(@NotNull SortOrder initialOrder) {
+      myInitialOrder = initialOrder;
       return this;
     }
   }
