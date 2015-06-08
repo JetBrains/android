@@ -88,8 +88,9 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
 
     myTree = new Tree(myTreeModel);
     myTree.setRootVisible(false);
-    myTree.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this.new TreeDataProvider());
+    myTree.setShowsRootHandles(true);
 
+    myTree.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this.new TreeDataProvider());
     final DefaultActionGroup popupGroup = new DefaultActionGroup();
     popupGroup.add(new EditMultipleSourcesAction());
     myTree.addMouseListener(new PopupHandler() {
