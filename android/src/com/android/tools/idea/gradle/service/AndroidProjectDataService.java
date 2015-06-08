@@ -63,7 +63,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
-import java.text.Collator;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -157,7 +156,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         String modelVersionWithLayoutRenderingIssue = null;
 
         // Module name, build
-        List<BuildToolsIncompatibility> buildToolsIncompatibilities = Lists.newArrayList();
+        List<String> modulesUsingBuildTools23rc1 = Lists.newArrayList();
 
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         for (Module module : moduleManager.getModules()) {
@@ -167,7 +166,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           if (androidProject != null) {
             AndroidProject delegate = androidProject.getDelegate();
 
-            checkBuildToolsCompatibility(module, delegate, buildToolsIncompatibilities);
+            checkBuildToolsCompatibility(module, delegate, modulesUsingBuildTools23rc1);
 
             // Verify that if Gradle is 2.4 (or newer,) the model is at least version 1.2.0.
             if (modelVersionWithLayoutRenderingIssue == null && hasLayoutRenderingIssue(delegate)) {
@@ -213,8 +212,8 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           }
         }
 
-        if (!buildToolsIncompatibilities.isEmpty()) {
-          report(buildToolsIncompatibilities, project);
+        if (!modulesUsingBuildTools23rc1.isEmpty()) {
+          reportBuildTools23rc1Usage(modulesUsingBuildTools23rc1, project);
         }
 
         if (incompatibleModelVersionFound != null) {
@@ -267,22 +266,15 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   // versions.
   private static void checkBuildToolsCompatibility(@NotNull Module module,
                                                    @NotNull AndroidProject project,
-                                                   @NotNull List<BuildToolsIncompatibility> incompatibilities) {
+                                                   @NotNull List<String> moduleNames) {
     if (isOneDotThreeOrLater(project)) {
       return;
     }
     GradleBuildFile buildFile = GradleBuildFile.get(module);
     if (buildFile != null) {
       Object value = buildFile.getValue(BUILD_TOOLS_VERSION);
-      if (value instanceof String) {
-        try {
-          FullRevision buildToolsVersion = PreciseRevision.parseRevision((String)value);
-          if (buildToolsVersion.getMajor() >= 23) {
-            incompatibilities.add(new BuildToolsIncompatibility(module, project, buildToolsVersion));
-          }
-        } catch (NumberFormatException e) {
-          LOG.info("Failed to obtain 'buildToolsVersion' from the build.gradle file in module '" + module.getName() + "'", e);
-        }
+      if ("23.0.0 rc1".equals(value)) {
+        moduleNames.add(module.getName());
       }
     }
   }
@@ -293,16 +285,17 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     return !(modelVersion.startsWith("1.0") || modelVersion.startsWith("1.1")) && project.getApiVersion() >= 3;
   }
 
-  private static void report(@NotNull List<BuildToolsIncompatibility> incompatibilities, @NotNull Project project) {
-    if (!incompatibilities.isEmpty()) {
-      sort(incompatibilities);
+  private static void reportBuildTools23rc1Usage(@NotNull List<String> moduleNames, @NotNull Project project) {
+    if (!moduleNames.isEmpty()) {
+      sort(moduleNames);
 
       StringBuilder msg = new StringBuilder();
-      msg.append("Found incompatible Build Tools and Android plugin versions:");
-      for (BuildToolsIncompatibility incompatibility : incompatibilities) {
-        msg.append("<br>\n * ").append(incompatibility);
+      msg.append("Build Tools 23.0.0 rc1 is <b>deprecated</b>.<br>\n")
+         .append("Please update these modules to use Build Tools 23.0.0 rc2 instead:");
+      for (String moduleName : moduleNames) {
+        msg.append("<br>\n * ").append(moduleName);
       }
-      msg.append("<br>\n<br>\nPlease use Android plugin 1.3 or newer, or an older Build Tools version.<br>\nOtherwise the project won't build. ");
+      msg.append("<br>\n<br>\nOtherwise the project won't build. ");
 
       AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
       notification.showBalloon("Android Build Tools", msg.toString(), NotificationType.ERROR);
@@ -368,28 +361,5 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
   @Override
   public void removeData(@NotNull Collection<? extends Void> toRemove, @NotNull Project project, boolean synchronous) {
-  }
-
-  private static class BuildToolsIncompatibility implements Comparable<BuildToolsIncompatibility> {
-    @NotNull private final String myModuleName;
-    @NotNull private final String myModelVersion;
-    @NotNull private final String myBuildToolsVersion;
-
-    BuildToolsIncompatibility(@NotNull Module module, @NotNull AndroidProject androidProject, @NotNull FullRevision buildToolsVersion) {
-      myModuleName = module.getName();
-      myModelVersion = androidProject.getModelVersion();
-      myBuildToolsVersion = buildToolsVersion.toString();
-    }
-
-    @Override
-    public int compareTo(BuildToolsIncompatibility other) {
-      return Collator.getInstance().compare(myModuleName, other.myModuleName);
-    }
-
-    @Override
-    public String toString() {
-      return String.format("Module '%1$s' is using Android plugin %2$s and Build Tools %3$s",
-                           myModuleName, myModelVersion, myBuildToolsVersion);
-    }
   }
 }
