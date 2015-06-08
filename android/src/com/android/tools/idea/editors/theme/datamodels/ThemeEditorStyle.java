@@ -22,10 +22,8 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
-import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
@@ -33,7 +31,6 @@ import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
-import com.android.tools.lint.checks.ApiLookup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -44,14 +41,10 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
-import org.jetbrains.android.inspections.lint.IntellijLintClient;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -212,68 +205,26 @@ public class ThemeEditorStyle {
       throw new UnsupportedOperationException("Non project styles can not be modified");
     }
 
-    int minApiLevel = ThemeEditorUtils.getMinApiLevel(myConfiguration.getModule());
-    int attributeMinApi = minApiLevel;
-    if (attribute.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
-      ApiLookup apiLookup = IntellijLintClient.getApiLookup(myProject);
-      assert apiLookup != null;
-      attributeMinApi = apiLookup.getFieldVersion("android/R$attr", attribute.substring(SdkConstants.ANDROID_NS_NAME_PREFIX_LEN));
-    }
+    final int minAcceptableApi = Math.max(ThemeEditorUtils.getOriginalApiLevel(attribute, myProject),
+                                          ThemeEditorUtils.getOriginalApiLevel(value, myProject));
+    final ApiInformation apiInformation = new ApiInformation(minAcceptableApi);
 
-    boolean createAtMinLevel = true;
-    XmlTag closestNonAllowedVersion = null;
-    int closestNonAllowedApi = 0;
-
-    final Collection<XmlTag> sources = new HashSet<XmlTag>();
-
-    for (ResourceItem resourceItem : getResources()) {
-      FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForQualifierString(resourceItem.getQualifiers());
-      int version = minApiLevel;
-      if (folderConfiguration != null) {
-        VersionQualifier versionQualifier = folderConfiguration.getVersionQualifier();
-        if (versionQualifier != null && versionQualifier.isValid()) {
-          version = versionQualifier.getVersion();
-        }
-      }
-
-      final XmlTag sourceXml = LocalResourceRepository.getItemTag(myProject, resourceItem);
-      assert sourceXml != null;
-      if (version < attributeMinApi) {
-        // attribute not defined for api levels less than attributeMinApi
-        if (version > closestNonAllowedApi) {
-          closestNonAllowedApi = version;
-          closestNonAllowedVersion = sourceXml;
-        }
-        continue;
-      }
-      if (version == attributeMinApi) {
-        createAtMinLevel = false;
-      }
-      sources.add(sourceXml);
-    }
-
-    writeValues(sources, attribute, value, createAtMinLevel, attributeMinApi, closestNonAllowedVersion);
-  }
-
-  private void writeValues(@NotNull final Collection<XmlTag> sources, @NotNull final String attribute, @NotNull final String value,
-                           final boolean createAtMinLevel, final int attributeMinApi, @Nullable final XmlTag closestNonAllowedVersion) {
     Collection<PsiFile> toBeEdited = new HashSet<PsiFile>();
-    for (XmlTag sourceXml : sources) {
+    for (XmlTag sourceXml : apiInformation.sources) {
       toBeEdited.add(sourceXml.getContainingFile());
     }
 
     new WriteCommandAction.Simple(myProject, "Setting value of " + attribute, toBeEdited.toArray(new PsiFile[toBeEdited.size()])) {
       @Override
       protected void run() {
-        boolean createNewTheme = createAtMinLevel;
-        for (XmlTag sourceXml : sources) {
+        for (XmlTag sourceXml : apiInformation.sources) {
           // TODO: Check if the current value is defined by one of the parents and remove the attribute.
           XmlTag tag = getValueTag(sourceXml, attribute);
           if (tag != null) {
             tag.getValue().setEscapedText(value);
             // If the attribute has already been overridden, assume it has been done everywhere the user deemed necessary.
             // So do not create new api folders in that case.
-            createNewTheme = false;
+            apiInformation.toBeCopied = null;
           }
           else {
             // The value didn't exist, add it.
@@ -283,9 +234,27 @@ public class ThemeEditorStyle {
           }
         }
 
-        if (createNewTheme) {
+        if (apiInformation.toBeCopied != null) {
           // copy this theme at the minimum api level for this attribute
-          copyTheme(attributeMinApi, closestNonAllowedVersion, attribute, value);
+          ThemeEditorUtils.copyTheme(minAcceptableApi, apiInformation.toBeCopied);
+
+          AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
+          if (facet != null) {
+            facet.refreshResources();
+          }
+          List<ResourceItem> newResources = getResources();
+          VersionQualifier qualifier = new VersionQualifier(minAcceptableApi);
+          for (ResourceItem resourceItem : newResources) {
+            if (resourceItem.getQualifiers().contains(qualifier.getFolderSegment())) {
+              final XmlTag sourceXml = LocalResourceRepository.getItemTag(myProject, resourceItem);
+              assert sourceXml != null;
+
+              final XmlTag child = sourceXml.createChildTag(SdkConstants.TAG_ITEM, sourceXml.getNamespace(), value, false);
+              child.setAttribute(SdkConstants.ATTR_NAME, attribute);
+              sourceXml.addSubTag(child, false);
+              break;
+            }
+          }
         }
       }
     }.execute();
@@ -301,20 +270,38 @@ public class ThemeEditorStyle {
       throw new UnsupportedOperationException("Non project styles can not be modified");
     }
 
+    final int minAcceptableApi = ThemeEditorUtils.getOriginalApiLevel(newParent, myProject);
+    final ApiInformation apiInformation = new ApiInformation(minAcceptableApi);
     Collection<PsiFile> toBeEdited = new HashSet<PsiFile>();
-    final Collection<XmlTag> sources = new HashSet<XmlTag>();
-    for (ResourceItem resourceItem : getResources()) {
-      final XmlTag sourceXml = LocalResourceRepository.getItemTag(myProject, resourceItem);
-      assert sourceXml != null;
+    for (XmlTag sourceXml : apiInformation.sources) {
       toBeEdited.add(sourceXml.getContainingFile());
-      sources.add(sourceXml);
     }
 
     new WriteCommandAction.Simple(myProject, "Updating parent to " + newParent, toBeEdited.toArray(new PsiFile[toBeEdited.size()])) {
       @Override
       protected void run() {
-        for (XmlTag sourceXml : sources) {
+        for (XmlTag sourceXml : apiInformation.sources) {
           sourceXml.setAttribute(SdkConstants.ATTR_PARENT, newParent);
+        }
+        if (apiInformation.toBeCopied != null) {
+          // copy this theme at the minimum api level for this parent
+          ThemeEditorUtils.copyTheme(minAcceptableApi, apiInformation.toBeCopied);
+
+          AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
+          if (facet != null) {
+            facet.refreshResources();
+          }
+          List<ResourceItem> newResources = getResources();
+          VersionQualifier qualifier = new VersionQualifier(minAcceptableApi);
+          for (ResourceItem resourceItem : newResources) {
+            if (resourceItem.getQualifiers().contains(qualifier.getFolderSegment())) {
+              final XmlTag sourceXml = LocalResourceRepository.getItemTag(myProject, resourceItem);
+              assert sourceXml != null;
+
+              sourceXml.setAttribute(SdkConstants.ATTR_PARENT, newParent);
+              break;
+            }
+          }
         }
       }
     }.execute();
@@ -410,50 +397,52 @@ public class ThemeEditorStyle {
   }
 
   /**
-   * Copies a theme to a values folder with api version apiLevel
-   * Adds a new attribute to that copied theme
-   * @param apiLevel api level of the folder the theme is copied to
-   * @param toBeCopied theme to be copied
-   * @param attribute name of the new attribute
-   * @param value value of the new attribute
+   * Class containing all the information needed to correctly set attributes with respect to api levels
    */
-  private void copyTheme(int apiLevel, @Nullable final XmlTag toBeCopied, @NotNull String attribute, @NotNull final String value) {
-    if (toBeCopied == null) {
-      // No Theme is defined under the min allowed api level
-      return;
-    }
+  private class ApiInformation {
+    /** Sources to be edited when setting the attribute */
+    private final Collection<XmlTag> sources = new HashSet<XmlTag>();
+    /** Theme to be copied to a new file if needed */
+    private XmlTag toBeCopied = null;
 
-    PsiFile file = toBeCopied.getContainingFile();
-    assert file instanceof XmlFile : file;
-    ResourceFolderType folderType = ResourceHelper.getFolderType(file);
-    assert folderType != null : file;
-    FolderConfiguration config = ResourceHelper.getFolderConfiguration(file);
-    assert config != null : file;
+    private ApiInformation(int minAcceptableApi) {
+      int minApiLevel = ThemeEditorUtils.getMinApiLevel(myConfiguration.getModule());
+      int closestNonAllowedApi = 0;
+      boolean createNewTheme = true;
 
-    VersionQualifier qualifier = new VersionQualifier(apiLevel);
-    config.setVersionQualifier(qualifier);
-    String folder = config.getFolderName(folderType);
-    final AndroidLintQuickFix action = OverrideResourceAction.createFix(folder);
-    // Context needed for calls on action, but has no effect, simply has to be non null
-    final AndroidQuickfixContexts.DesignerContext context = AndroidQuickfixContexts.DesignerContext.getInstance();
+      if (minAcceptableApi < minApiLevel) {
+        // Do not create a theme for an api level inferior to the min api level of the project
+        createNewTheme = false;
+      }
 
-    // Copies the theme to the new file
-    action.apply(toBeCopied, toBeCopied, context);
+      for (ResourceItem resourceItem : getResources()) {
+        FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForQualifierString(resourceItem.getQualifiers());
+        int version = minApiLevel;
+        if (folderConfiguration != null) {
+          VersionQualifier versionQualifier = folderConfiguration.getVersionQualifier();
+          if (versionQualifier != null && versionQualifier.isValid()) {
+            version = versionQualifier.getVersion();
+          }
+        }
 
-    AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
-    if (facet != null) {
-      facet.refreshResources();
-    }
-    List<ResourceItem> newResources = getResources();
-    for (ResourceItem resourceItem : newResources) {
-      if (resourceItem.getQualifiers().contains(qualifier.getFolderSegment())) {
         final XmlTag sourceXml = LocalResourceRepository.getItemTag(myProject, resourceItem);
         assert sourceXml != null;
-
-        final XmlTag child = sourceXml.createChildTag(SdkConstants.TAG_ITEM, sourceXml.getNamespace(), value, false);
-        child.setAttribute(SdkConstants.ATTR_NAME, attribute);
-        sourceXml.addSubTag(child, false);
-        break;
+        if (version < minAcceptableApi) {
+          // attribute not defined for api levels less than minAcceptableApi
+          if (version > closestNonAllowedApi) {
+            closestNonAllowedApi = version;
+            toBeCopied = sourceXml;
+          }
+          continue;
+        }
+        if (version == minAcceptableApi) {
+          // This theme already exists at its minimum api level, no need to create it
+          createNewTheme = false;
+        }
+        sources.add(sourceXml);
+      }
+      if (!createNewTheme) {
+        toBeCopied = null;
       }
     }
   }

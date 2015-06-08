@@ -64,7 +64,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     assertEquals(false, theme.hasItem(new EditedStyleItem(hasInParent, theme.getParent())));
   }
 
-  private void doTest(@NotNull String attribute, @NotNull String afterDirectoryName) {
+  private void doTestForAttributeValuePairApi(@NotNull String attribute, @NotNull String value, @NotNull String afterDirectoryName) {
     VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v14.xml", "res/values-v14/styles.xml");
     myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
@@ -76,7 +76,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     ThemeEditorStyle theme = themeResolver.getTheme("@style/Theme.MyTheme");
 
     assertNotNull(theme);
-    theme.setValue(attribute, "myValue");
+    theme.setValue(attribute, value);
 
     myFixture.checkResultByFile("res/values/styles.xml", "themeEditor/" + afterDirectoryName + "/stylesApi.xml", true);
     myFixture.checkResultByFile("res/values-v14/styles.xml", "themeEditor/" + afterDirectoryName + "/stylesApi-v14.xml", true);
@@ -84,32 +84,60 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     myFixture.checkResultByFile("res/values-v21/styles.xml", "themeEditor/" + afterDirectoryName + "/stylesApi-v21.xml", true);
   }
 
+  private void doTestForAttributeApi(@NotNull String attribute, @NotNull String afterDirectoryName) {
+    doTestForAttributeValuePairApi(attribute, "myValue", afterDirectoryName);
+  }
+
+  private void doTestForParentApi(@NotNull String newParent, @NotNull String afterDirectoryName) {
+    VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi.xml", "res/values/styles.xml");
+    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v14.xml", "res/values-v14/styles.xml");
+    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
+    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v21.xml", "res/values-v21/styles.xml");
+
+    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    Configuration configuration = configurationManager.getConfiguration(virtualFile);
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+    ThemeEditorStyle theme = themeResolver.getTheme("@style/Theme.MyTheme");
+
+    assertNotNull(theme);
+    theme.setParent(newParent);
+
+    myFixture.checkResultByFile("res/values/styles.xml", "themeEditor/" + afterDirectoryName + "/stylesApi.xml", true);
+    myFixture.checkResultByFile("res/values-v14/styles.xml", "themeEditor/" + afterDirectoryName + "/stylesApi-v14.xml", true);
+    myFixture.checkResultByFile("res/values-v19/styles.xml", "themeEditor/" + afterDirectoryName + "/stylesApi-v19.xml", true);
+    myFixture.checkResultByFile("res/values-v21/styles.xml", "themeEditor/" + afterDirectoryName + "/stylesApi-v21.xml", true);
+  }
+
+  private void doTestForValueApi(@NotNull String value, @NotNull String afterDirectoryName) {
+    doTestForAttributeValuePairApi("android:colorBackground", value, afterDirectoryName);
+  }
+
   /**
    * Tests setting a non-framework attribute
    */
   public void testNonFrameworkAttribute() {
-    doTest("myAttribute", "apiTestAfter1");
+    doTestForAttributeApi("myAttribute", "apiTestAfter1");
   }
 
   /**
    * Tests modifying an attribute defined for api < projectMinApi
    */
   public void testSmallApiAttribute() {
-    doTest("android:windowIsFloating", "apiTestAfter2");
+    doTestForAttributeApi("android:windowIsFloating", "apiTestAfter2");
   }
 
   /**
    * Tests setting an attribute = projectMinApi
    */
   public void testMinApiAttribute() {
-    doTest("android:actionBarSize", "apiTestAfter3");
+    doTestForAttributeApi("android:actionBarSize", "apiTestAfter3");
   }
 
   /**
    * Tests setting an attribute with api that has no associated values folder
    */
   public void testHighNewApiAttribute() {
-    doTest("android:windowOverscan", "apiTestAfter4");
+    doTestForAttributeApi("android:windowOverscan", "apiTestAfter4");
     myFixture.checkResultByFile("res/values-v18/styles.xml", "themeEditor/apiTestAfter4/stylesApi-v18.xml", true);
   }
 
@@ -117,7 +145,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
    * Tests setting an attribute with api that has an associated values folder
    */
   public void testHighExistingApiAttribute() {
-    doTest("android:windowTranslucentStatus", "apiTestAfter5");
+    doTestForAttributeApi("android:windowTranslucentStatus", "apiTestAfter5");
   }
 
   /**
@@ -127,14 +155,94 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
    * where it is not.
    */
   public void testModifyingOverriddenAttribute() {
-    doTest("android:checkedTextViewStyle", "apiTestAfter6");
+    doTestForAttributeApi("android:checkedTextViewStyle", "apiTestAfter6");
   }
 
   /**
    * Tests modifying an attribute defined for api > projectMinApi
    */
   public void testModifyingHighApiAttribute() {
-    doTest("android:actionModeStyle", "apiTestAfter7");
+    doTestForAttributeApi("android:actionModeStyle", "apiTestAfter7");
+  }
+
+  /**
+   * Tests setting a non-framework parent
+   */
+  public void testNonFrameworkParent() {
+    doTestForParentApi("@style/MyStyle", "apiParentTestAfter1");
+  }
+
+  /**
+   * Tests setting a parent defined for api < projectMinApi
+   */
+  public void testSmallApiParent() {
+    doTestForParentApi("@android:style/Theme.Light", "apiParentTestAfter2");
+  }
+
+  /**
+   * Tests setting a parent with api = projectMinApi
+   */
+  public void testMinApiParent() {
+    doTestForParentApi("@android:style/Theme.Holo", "apiParentTestAfter3");
+  }
+
+  /**
+   * Tests setting a parent with api that has no associated values folder
+   */
+  public void testHighNewApiParent() {
+    doTestForParentApi("@android:style/Theme.Holo.NoActionBar.Overscan", "apiParentTestAfter4");
+    myFixture.checkResultByFile("res/values-v18/styles.xml", "themeEditor/apiParentTestAfter4/stylesApi-v18.xml", true);
+  }
+
+  /**
+   * Tests setting a parent with api that has an associated values folder
+   */
+  public void testHighExistingApiParent() {
+    doTestForParentApi("@android:style/Theme.Holo.NoActionBar.TranslucentDecor", "apiParentTestAfter5");
+  }
+
+  /**
+   * Tests setting a value defined for api < projectMinApi
+   */
+  public void testSmallApiValue() {
+    doTestForValueApi("@android:color/darker_gray", "apiValueTestAfter1");
+  }
+
+  /**
+   * Tests setting a value with api = projectMinApi
+   */
+  public void testMinApiValue() {
+    doTestForValueApi("@android:drawable/dialog_holo_dark_frame", "apiValueTestAfter2");
+  }
+
+  /**
+   * Tests setting a value with api that has no associated values folder
+   */
+  public void testHighNewApiValue() {
+    doTestForValueApi("@android:style/Theme.Holo.NoActionBar.Overscan", "apiValueTestAfter3");
+    myFixture.checkResultByFile("res/values-v18/styles.xml", "themeEditor/apiValueTestAfter3/stylesApi-v18.xml", true);
+  }
+
+  /**
+   * Tests setting a value with api that has an associated values folder
+   */
+  public void testHighExistingApiValue() {
+    doTestForValueApi("@android:style/Theme.Holo.NoActionBar.TranslucentDecor", "apiValueTestAfter4");
+  }
+
+  /**
+   * Tests with attribute api < value api
+   */
+  public void testSmallerAttribute() {
+    doTestForAttributeValuePairApi("android:mediaRouteButtonStyle",
+                                   "@android:style/Theme.Holo.NoActionBar.TranslucentDecor", "apiPairTestAfter1");
+  }
+
+  /**
+   * Tests with attribute api > value api
+   */
+  public void testSmallerValue() {
+    doTestForAttributeValuePairApi("android:windowOverscan", "@android:color/holo_red_dark", "apiPairTestAfter2");
   }
 
   /**
