@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.editors.hprof;
 
+import com.android.tools.idea.editors.hprof.tables.ClassesTreeView;
 import com.android.tools.idea.editors.hprof.tables.InstanceReferenceTree;
 import com.android.tools.idea.editors.hprof.tables.InstancesTree;
 import com.android.tools.idea.editors.hprof.tables.SelectionModel;
-import com.android.tools.idea.editors.hprof.tables.classtable.ClassTable;
-import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Snapshot;
 import com.intellij.openapi.Disposable;
@@ -29,19 +28,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 
 public class HprofViewPanel implements Disposable {
   private static final int DIVIDER_WIDTH = 4;
-  @NotNull private JPanel myContainer;
-  @NotNull private SelectionModel mySelectionModel;
+  @SuppressWarnings("NullableProblems") @NotNull private JPanel myContainer;
+  @SuppressWarnings("NullableProblems") @NotNull private SelectionModel mySelectionModel;
 
   public HprofViewPanel(@NotNull final Project project, @NotNull HprofEditor editor, @NotNull final Snapshot snapshot) {
     JBPanel treePanel = new JBPanel(new BorderLayout());
@@ -69,10 +65,8 @@ public class HprofViewPanel implements Disposable {
     treePanel.add(referenceTree.getComponent(), BorderLayout.CENTER);
 
     final InstancesTree instancesTree = new InstancesTree(project, mySelectionModel);
-    final ClassTable classTable = createClassTable(mySelectionModel);
-    JBScrollPane classTableScrollPane = new JBScrollPane();
-    classTableScrollPane.setViewportView(classTable);
-    JBSplitter splitter = createNavigationSplitter(classTableScrollPane, instancesTree.getComponent());
+    final ClassesTreeView classesTreeView = new ClassesTreeView(mySelectionModel);
+    JBSplitter splitter = createNavigationSplitter(classesTreeView.getComponent(), instancesTree.getComponent());
 
     JBPanel classPanel = new JBPanel(new BorderLayout());
     classPanel.add(splitter, BorderLayout.CENTER);
@@ -114,30 +108,6 @@ public class HprofViewPanel implements Disposable {
 
     myContainer = new JPanel(new BorderLayout());
     myContainer.add(mainSplitter);
-
-    // TODO Determine if the processing of hprof is good enough, and integrate this call if it is.
-    classTable.notifyDominatorsComputed();
-  }
-
-  @NotNull
-  private ClassTable createClassTable(@NotNull SelectionModel selectionModel) {
-    final ClassTable classTable = new ClassTable(selectionModel);
-    ListSelectionModel listSelectionModel = classTable.getSelectionModel();
-    listSelectionModel.addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        if (!e.getValueIsAdjusting()) {
-          e.getFirstIndex();
-          int row = classTable.getSelectedRow();
-          if (row >= 0) {
-            int modelRow = classTable.getRowSorter().convertRowIndexToModel(row);
-            ClassObj classObj = (ClassObj)classTable.getModel().getValueAt(modelRow, 0);
-            mySelectionModel.setClassObj(classObj);
-          }
-        }
-      }
-    });
-    return classTable;
   }
 
   @NotNull
