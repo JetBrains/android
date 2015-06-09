@@ -26,6 +26,7 @@ import com.android.sdklib.repository.License;
 import com.android.sdklib.util.LineUtil;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.*;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.archives.ArchiveInstaller;
@@ -606,11 +607,13 @@ public class UpdaterData implements IUpdaterData {
     SdkState state = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
     state.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, false);
     List<ArchiveInfo> result = Lists.newArrayList();
-    for (RemotePkgInfo remote : state.getPackages().getRemotePkgInfos().values()) {
-      if (includeAll || !remote.isObsolete()) {
-        for (Archive archive : remote.getArchives()) {
-          if (archive.isCompatible()) {
-            result.add(new ArchiveInfo(archive, null, null));
+    for (UpdatablePkgInfo update : state.getPackages().getConsolidatedPkgs().values()) {
+      for (RemotePkgInfo remote : update.getAllRemotes()) {
+        if (includeAll || !remote.isObsolete()) {
+          for (Archive archive : remote.getArchives()) {
+            if (archive.isCompatible()) {
+              result.add(new ArchiveInfo(archive, update.getLocalInfo(), null));
+            }
           }
         }
       }
