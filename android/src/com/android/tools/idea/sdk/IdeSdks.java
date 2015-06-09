@@ -156,6 +156,9 @@ public final class IdeSdks {
     return null;
   }
 
+  /**
+   * Must run inside a WriteAction
+   */
   public static void setJdkPath(@NotNull File path) {
     if (checkForJdk(path)) {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
