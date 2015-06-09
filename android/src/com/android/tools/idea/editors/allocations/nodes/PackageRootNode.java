@@ -67,6 +67,6 @@ public class PackageRootNode extends PackageNode implements MainTreeNode {
       ix = glob.indexOf("*");
     }
     regex += Pattern.quote(glob);
-    return Pattern.compile(regex);
+    return Pattern.compile(".*" + regex + ".*");
   }
 }
