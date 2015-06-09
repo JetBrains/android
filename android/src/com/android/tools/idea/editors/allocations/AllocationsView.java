@@ -309,6 +309,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     myTreeNode = generateTree();
     myTreeModel.setRoot(myTreeNode);
     myLayout.setData(myTreeNode);
+    myLayout.resetZoom();
     myTreeModel.nodeStructureChanged(myTreeNode);
     myPackageFilter.setVisible(groupBy instanceof GroupByAllocator);
   }
