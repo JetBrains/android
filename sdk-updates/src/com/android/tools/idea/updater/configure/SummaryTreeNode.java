@@ -151,7 +151,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
     boolean foundUpdate = false;
     for (UpdaterTreeNode child : myAllChildren) {
       if (child.getInitialState() != NodeStateHolder.SelectedState.NOT_INSTALLED) {
-        PkgType type = ((PlatformDetailsTreeNode)child).getItem().getPkgDesc().getType();
+        PkgType type = ((PlatformDetailsTreeNode)child).getItemDesc().getType();
         if (type == PkgType.PKG_SOURCE) {
           foundSources = true;
         } else if (type == PkgType.PKG_PLATFORM) {

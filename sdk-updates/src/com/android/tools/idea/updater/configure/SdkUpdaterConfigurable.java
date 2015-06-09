@@ -146,8 +146,8 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       message.add("The following components will be deleted: \n");
       message.beginList();
       for (UpdatablePkgInfo item : toDelete) {
-        message.listItem().add(item.getPkgDesc().getListDescription()).add(", Revision: ")
-          .add(item.getPkgDesc().getPreciseRevision().toString());
+        message.listItem().add(item.getPkgDesc(myIncludePreview).getListDescription()).add(", Revision: ")
+          .add(item.getPkgDesc(myIncludePreview).getPreciseRevision().toString());
       }
       message.endList();
     }
