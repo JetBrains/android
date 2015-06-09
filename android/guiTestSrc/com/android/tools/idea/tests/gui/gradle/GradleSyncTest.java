@@ -1273,6 +1273,19 @@ public class GradleSyncTest extends GuiTestCase {
     assertEquals(JDK_1_7, getJavaLanguageLevel(javaLib));
   }
 
+  @Test @IdeGuiTest
+  public void testWithPreReleasePlugin() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    projectFrame.updateAndroidModelVersion("1.2.0-beta1")
+                .requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    MessageFixture message =
+      syncMessages.findMessage(ERROR, firstLineStartingWith("Plugin is too old, please update to a more recent version"));
+    // Verify that the "quick fix" is added.
+    message.findHyperlink("Fix plugin version and sync project");
+  }
+
   @Nullable
   private static LanguageLevel getJavaLanguageLevel(@NotNull Module module) {
     return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
