@@ -80,6 +80,9 @@ public class ThemeEditorContext {
     VirtualFile projectFile = module.getProject().getProjectFile();
     assert projectFile != null;
 
+    // Using the project virtual file to set up configuration for the theme editor
+    // That fact is hard-coded in computeBestDevice() method in Configuration.java
+    // BEWARE if attempting to modify to use a different virtual file
     Configuration configuration = facet.getConfigurationManager().getConfiguration(projectFile);
     setConfiguration(configuration);
   }
