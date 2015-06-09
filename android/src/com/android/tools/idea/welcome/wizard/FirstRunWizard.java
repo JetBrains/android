@@ -110,6 +110,12 @@ public class FirstRunWizard extends DynamicWizard {
     }
   }
 
+  @NotNull
+  @Override
+  protected String getProgressTitle() {
+    return "Finishing setup...";
+  }
+
   private void doLongRunningOperation(@NotNull final ProgressStep progressStep) throws WizardException {
     for (AndroidStudioWizardPath path : myPaths) {
       if (progressStep.isCanceled()) {

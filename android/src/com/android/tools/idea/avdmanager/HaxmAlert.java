@@ -325,6 +325,12 @@ public class HaxmAlert extends JPanel {
       // Nothing. Handled by SetupProgressStep.
     }
 
+    @NotNull
+    @Override
+    protected String getProgressTitle() {
+      return "Finishing install...";
+    }
+
     @Override
     protected String getWizardActionDescription() {
       return "HAXM Installation";

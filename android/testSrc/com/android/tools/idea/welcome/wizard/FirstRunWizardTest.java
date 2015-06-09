@@ -193,6 +193,11 @@ public final class FirstRunWizardTest extends AndroidTestBase {
     }
 
     @Override
+    protected String getProgressTitle() {
+      return "test";
+    }
+
+    @Override
     protected String getWizardActionDescription() {
       return "Test Wizard";
     }
