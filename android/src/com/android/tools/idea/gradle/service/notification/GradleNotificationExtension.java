@@ -18,13 +18,11 @@ package com.android.tools.idea.gradle.service.notification;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationExtension;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 public class GradleNotificationExtension implements ExternalSystemNotificationExtension {
   private final List<AbstractSyncErrorHandler> myHandlers;
@@ -74,19 +73,14 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
 
   private void handleError(ExternalSystemException error, NotificationData notification, Project project) {
     String msg = error.getMessage();
-    if (StringUtil.isEmpty(msg)) {
+    if (isEmpty(msg)) {
       return;
     }
-    List<String> lines = splitLines(msg);
+    List<String> lines = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(msg);
     for (AbstractSyncErrorHandler handler : myHandlers) {
       if (handler.handleError(lines, error, notification, project)) {
         return;
       }
     }
-  }
-
-  @NotNull
-  private static List<String> splitLines(@NotNull String s) {
-    return Lists.newArrayList(Splitter.on('\n').split(s));
   }
 }
