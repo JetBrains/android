@@ -489,7 +489,7 @@ public class Configuration implements Disposable, ModificationTracker {
               }
             } else if ("Kotlin".equals(myFile.getFileType().getName())) {
               return device;
-            } else if (ThemeEditorVirtualFile.FILENAME.equals(myFile.getName())) {
+            } else if (myFile.equals(myManager.getProject().getProjectFile())) {
               return device;              // takes care of correct device selection for Theme Editor
             }
           }
