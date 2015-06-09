@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.inspections;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.collect.Lists;
@@ -60,6 +61,28 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
       ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
       sdkModificator.commitChanges();
     }
+
+    // Required by testLibraryRevocablePermissions (but placing it there leads to
+    // test ordering issues)
+    myFixture.addFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML,
+                               "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                               "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                               "    package=\"test.pkg.permissiontest\">\n" +
+                               "\n" +
+                               "    <uses-sdk android:minSdkVersion=\"17\" android:targetSdkVersion=\"23\" />" +
+                               "\n" +
+                               "    <permission\n" +
+                               "        android:name=\"my.normal.P1\"\n" +
+                               "        android:protectionLevel=\"normal\" />\n" +
+                               "\n" +
+                               "    <permission\n" +
+                               "        android:name=\"my.dangerous.P2\"\n" +
+                               "        android:protectionLevel=\"dangerous\" />\n" +
+                               "\n" +
+                               "    <uses-permission android:name=\"my.normal.P1\" />\n" +
+                               "    <uses-permission android:name=\"my.dangerous.P2\" />\n" +
+                               "\n" +
+                               "</manifest>\n");
   }
 
   public void testTypes() {
@@ -569,6 +592,27 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        }\n" +
             "    }\n" +
             "}");
+  }
+
+  public void testLibraryRevocablePermission() {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.RequiresPermission;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    public void something() {\n" +
+            "        /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or handle a potential `SecurityException`*/methodRequiresDangerous()/**/;\n" +
+            "        methodRequiresNormal();\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresPermission(\"my.normal.P1\")\n" +
+            "    public void methodRequiresNormal() {\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresPermission(\"my.dangerous.P2\")\n" +
+            "    public void methodRequiresDangerous() {\n" +
+            "    }\n" +
+            "}\n");
   }
 
   public void testWrongThread() {
