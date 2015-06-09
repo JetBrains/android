@@ -19,8 +19,9 @@ import com.android.tools.idea.profiling.capture.CaptureType;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.SimpleNode;
+import com.intellij.util.containers.SortedList;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class CaptureTypeNode extends SimpleNode {
@@ -29,7 +30,12 @@ public class CaptureTypeNode extends SimpleNode {
 
   public CaptureTypeNode(CaptureType type) {
     myType = type;
-    myCaptureNodes = new ArrayList<CaptureNode>();
+    myCaptureNodes = new SortedList<CaptureNode>(new Comparator<CaptureNode>() {
+      @Override
+      public int compare(CaptureNode a, CaptureNode b) {
+        return a.getName().compareToIgnoreCase(b.getName());
+      }
+    });
 
     getTemplatePresentation().addText(type.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
     setIcon(AllIcons.Modules.SourceFolder);
