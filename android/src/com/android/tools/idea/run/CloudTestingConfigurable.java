@@ -74,7 +74,31 @@ public class CloudTestingConfigurable implements SearchableConfigurable, Configu
     warningPane.setFont(enableCloudTesting.getFont());
     warningPane.setEditable(false);
     warningPane.setBackground(panel.getBackground());
-    warningPane.addHyperlinkListener(new HyperlinkListener() {
+    HyperlinkListener hyperlinkListener = getHyperlinkListener();
+    warningPane.addHyperlinkListener(hyperlinkListener);
+    content.add(warningPane, BorderLayout.NORTH);
+    if (CloudConfigurationProvider.canEnable()) {
+      enableCloudTesting.setText("Enable testing and debugging in the cloud");
+      content.add(enableCloudTesting, BorderLayout.WEST);
+
+      JEditorPane legalDisclaimer =
+        new JEditorPane(UIUtil.HTML_MIME,
+                        "<html><br><br><br>The Google Cloud Platform Terms of Service notwithstanding, your use of "
+                        + "Google Cloud Test Lab is governed by the "
+                        + "<a href='https://drive.google.com/open?id=0B9D68w_vPl-dX01mQzF2SEM4VE0'>Trusted Testers Agreement</a> and "
+                        + "by using Google Cloud Test Lab, you agree to its terms.");
+      legalDisclaimer.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+      legalDisclaimer.setFont(enableCloudTesting.getFont().deriveFont(Font.ITALIC));
+      legalDisclaimer.setEditable(false);
+      legalDisclaimer.setBackground(panel.getBackground());
+      legalDisclaimer.addHyperlinkListener(hyperlinkListener);
+      panel.add(legalDisclaimer, BorderLayout.SOUTH);
+    }
+    return panel;
+  }
+
+  private HyperlinkListener getHyperlinkListener() {
+    return new HyperlinkListener() {
       @Override
       public void hyperlinkUpdate(final HyperlinkEvent linkEvent) {
         if (linkEvent.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -94,13 +118,7 @@ public class CloudTestingConfigurable implements SearchableConfigurable, Configu
           });
         }
       }
-    });
-    content.add(warningPane, BorderLayout.NORTH);
-    if (CloudConfigurationProvider.canEnable()) {
-      enableCloudTesting.setText("Enable testing and debugging in the cloud");
-      content.add(enableCloudTesting, BorderLayout.WEST);
-    }
-    return panel;
+    };
   }
 
   @Override
