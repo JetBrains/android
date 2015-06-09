@@ -20,13 +20,14 @@ import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.io.FileUtil;
 
 import java.io.File;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.NewProjectWizardState.*;
+import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_CREATE_ACTIVITY;
+import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_PROJECT_LOCATION;
 import static org.mockito.Mockito.*;
 
 /**
@@ -54,7 +55,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
 
   @Override
   public void tearDown() throws Exception {
-    Disposer.dispose(myWizard.getDisposable());
+    myWizard.close(DialogWrapper.OK_EXIT_CODE);
     super.tearDown();
   }
 
