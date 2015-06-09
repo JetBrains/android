@@ -18,27 +18,17 @@ package com.android.tools.idea.editors.allocations;
 import com.android.ddmlib.AllocationInfo;
 import com.android.tools.chartlib.SunburstComponent;
 import com.android.tools.chartlib.ValuedTreeNode;
+import com.android.tools.idea.actions.EditMultipleSourcesAction;
+import com.android.tools.idea.actions.PsiFileAndLineNavigation;
 import com.android.tools.idea.editors.allocations.nodes.*;
 import com.android.utils.HtmlBuilder;
-import com.google.common.collect.Maps;
-import com.intellij.execution.filters.OpenFileHyperlinkInfo;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.util.gotoByName.GotoFileCellRenderer;
-import com.intellij.idea.ActionsBundle;
+import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.WindowManager;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.*;
-import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.ui.treeStructure.Tree;
@@ -46,7 +36,9 @@ import com.intellij.util.Alarm;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.Convertor;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -57,35 +49,26 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Comparator;
-import java.util.Map;
 
 public class AllocationsView implements SunburstComponent.SliceSelectionListener {
 
-  @NotNull
-  private final Project myProject;
+  @NotNull private final Project myProject;
 
-  @NotNull
-  private final AllocationInfo[] myAllocations;
+  @NotNull private final AllocationInfo[] myAllocations;
   private final DefaultTableModel myInfoTableModel;
   private final SearchTextFieldWithStoredHistory myPackageFilter;
 
-  @NotNull
-  private MainTreeNode myTreeNode;
+  @NotNull private MainTreeNode myTreeNode;
 
-  @NotNull
-  private final JTree myTree;
+  @NotNull private final JTree myTree;
 
-  @NotNull
-  private final DefaultTreeModel myTreeModel;
+  @NotNull private final DefaultTreeModel myTreeModel;
 
-  @NotNull
-  private JBSplitter mySplitter;
+  @NotNull private JBSplitter mySplitter;
 
-  @NotNull
-  private JComponent myChartPane;
+  @NotNull private JComponent myChartPane;
 
-  @NotNull
-  private final Component myComponent;
+  @NotNull private final Component myComponent;
 
   private GroupBy myGroupBy;
   private final SunburstComponent myLayout;
@@ -116,6 +99,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
         popupMenu.getComponent().show(comp, x, y);
       }
     });
+
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
         .addColumn(new ColumnTreeBuilder.ColumnBuilder()
             .setName("Method")
@@ -197,6 +181,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
                 }
               }
             }));
+
     builder.setTreeSorter(new ColumnTreeBuilder.TreeSorter<AbstractTreeNode>() {
       @Override
       public void sort(Comparator<AbstractTreeNode> comparator, SortOrder sortOrder) {
@@ -309,6 +294,9 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     chartSplitter.setProportion(0.7f);
 
     myComponent = mySplitter;
+
+    myTree.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this.new TreeDataProvider());
+    myInfoTable.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this.new TableDataProvider());
   }
 
   @NotNull
@@ -351,6 +339,17 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     return group;
   }
 
+  @Nullable
+  public Object getData(@NonNls String dataId, Object selectionData) {
+    if (CommonDataKeys.NAVIGATABLE_ARRAY.is(dataId)) {
+      return getTargetFiles(selectionData);
+    }
+    else if (CommonDataKeys.PROJECT.is(dataId)) {
+      return myProject;
+    }
+    return null;
+  }
+
   private ActionGroup getChartActions() {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new ComboBoxAction() {
@@ -374,6 +373,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
         });
         return group;
       }
+
       @Override
       public void update(AnActionEvent e) {
         super.update(e);
@@ -402,6 +402,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
         });
         return group;
       }
+
       @Override
       public void update(AnActionEvent e) {
         super.update(e);
@@ -429,15 +430,8 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     if (node == null) {
       node = myTreeNode;
     }
-    builder
-        .add("Total allocations:")
-        .addNbsp()
-        .addBold("" + node.getCount())
-        .newline()
-        .add("Total size:")
-        .addNbsp()
-        .addBold(StringUtil.formatFileSize(node.getValue()))
-        .newline().newline();
+    builder.add("Total allocations:").addNbsp().addBold("" + node.getCount()).newline().add("Total size:").addNbsp()
+      .addBold(StringUtil.formatFileSize(node.getValue())).newline().newline();
     if (node instanceof AbstractTreeNode) {
       TreeNode[] path = myTreeModel.getPathToRoot(node);
       myInfoTableModel.setRowCount(path.length);
@@ -493,13 +487,44 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     }
     else if (value instanceof StackTraceNode) {
       // Do nothing
-    } else if (value != null) {
+    }
+    else if (value != null) {
       renderer.append(value.toString());
     }
   }
 
-  public class NodeTableCellRenderer extends ColoredTableCellRenderer {
+  @Nullable
+  private PsiFileAndLineNavigation[] getTargetFiles(Object node) {
+    String className = null;
+    int lineNumber = 0;
+    if (node instanceof ClassNode) {
+      className = ((ClassNode)node).getQualifiedName();
+    }
+    else {
+      StackTraceElement element = null;
+      if (node instanceof StackNode) {
+        element = ((StackNode)node).getStackTraceElement();
+      }
+      else if (node instanceof AllocNode) {
+        StackTraceElement[] stack = ((AllocNode)node).getAllocation().getStackTrace();
+        if (stack.length > 0) {
+          element = stack[0];
+        }
+      }
+      if (element != null) {
+        lineNumber = element.getLineNumber();
+        className = element.getClassName();
+        int ix = className.indexOf("$");
+        if (ix >= 0) {
+          className = className.substring(0, ix);
+        }
+      }
+    }
 
+    return PsiFileAndLineNavigation.wrappersForClassName(myProject, className, lineNumber);
+  }
+
+  public class NodeTableCellRenderer extends ColoredTableCellRenderer {
     @Override
     protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
       customizeColoredRenderer(this, value);
@@ -525,107 +550,9 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     }
   }
 
-  private class EditMultipleSourcesAction extends AnAction {
-    public EditMultipleSourcesAction() {
-      Presentation presentation = getTemplatePresentation();
-      presentation.setText(ActionsBundle.actionText("EditSource"));
-      presentation.setIcon(AllIcons.Actions.EditSource);
-      presentation.setDescription(ActionsBundle.actionDescription("EditSource"));
-      // TODO shortcuts
-      // setShortcutSet(ActionManager.getInstance().getAction(IdeActions.ACTION_EDIT_SOURCE).getShortcutSet());
-    }
-
-    Map<PsiFile, Integer> getTargetFiles(AnActionEvent e) {
-      Map<PsiFile, Integer> files = Maps.newHashMap();
-      Object node;
-      if (ActionPlaces.UPDATE_POPUP.equals(e.getPlace())) {
-        node = myInfoTable.getValueAt(myInfoTable.getSelectedRow(), 0);
-      } else {
-        node = myTree.getLastSelectedPathComponent();
-      }
-      String className = null;
-      int lineNumber = 0;
-      if (node instanceof ClassNode) {
-        className = ((ClassNode)node).getQualifiedName();
-      } else {
-        StackTraceElement element = null;
-        if (node instanceof StackNode) {
-          element =  ((StackNode)node).getStackTraceElement();
-        } else if (node instanceof AllocNode) {
-          StackTraceElement[] stack = ((AllocNode)node).getAllocation().getStackTrace();
-          if (stack.length > 0) {
-            element = stack[0];
-          }
-        }
-        if (element != null) {
-          lineNumber = element.getLineNumber();
-          className = element.getClassName();
-          int ix = className.indexOf("$");
-          if (ix >= 0) {
-            className = className.substring(0, ix);
-          }
-        }
-      }
-
-      if (className != null) {
-        PsiClass[] classes = JavaPsiFacade.getInstance(myProject).findClasses(className, GlobalSearchScope.allScope(myProject));
-        for (PsiClass c : classes) {
-          files.put((PsiFile)c.getContainingFile().getNavigationElement(), lineNumber);
-        }
-      }
-      return files;
-    }
-
-    @Override
-    public void update(AnActionEvent e) {
-      super.update(e);
-      e.getPresentation().setEnabled(!getTargetFiles(e).isEmpty());
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      final Map<PsiFile, Integer> files = getTargetFiles(e);
-      assert !files.isEmpty();
-      if (files.size() > 1) {
-        final JBList list = new JBList(files.keySet());
-        int width = WindowManager.getInstance().getFrame(myProject).getSize().width;
-        list.setCellRenderer(new GotoFileCellRenderer(width));
-        Rectangle rect;
-        Component owner;
-        if (ActionPlaces.UPDATE_POPUP.equals(e.getPlace())) {
-          owner = myInfoTable;
-          rect = myInfoTable.getCellRect(myInfoTable.getSelectedRow(), 0, true);
-        } else {
-          owner = myTree;
-          rect = myTree.getPathBounds(myTree.getSelectionPath());
-        }
-        JBPopup popup =
-          JBPopupFactory.getInstance().createListPopupBuilder(list).setTitle("Choose Target File").setItemChoosenCallback(new Runnable() {
-            @Override
-            public void run() {
-              PsiFile psiFile = (PsiFile)list.getSelectedValue();
-              VirtualFile file = psiFile.getVirtualFile();
-              new OpenFileHyperlinkInfo(myProject, file, files.get(psiFile)).navigate(myProject);
-            }
-          }).createPopup();
-        if (rect != null) {
-          Point location = new Point(0, (int)rect.getCenterY());
-          SwingUtilities.convertPointToScreen(location, owner);
-          popup.showInScreenCoordinates(owner, location);
-        } else {
-          popup.showInFocusCenter();
-        }
-      }
-      else {
-        Map.Entry<PsiFile, Integer> entry = files.entrySet().iterator().next();
-        VirtualFile file = entry.getKey().getVirtualFile();
-        new OpenFileHyperlinkInfo(myProject, file, entry.getValue()).navigate(myProject);
-      }
-    }
-  }
-
   interface GroupBy {
     String getName();
+
     MainTreeNode create();
   }
 
@@ -682,10 +609,27 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     public void setSelected(AnActionEvent e, boolean state) {
       if (state) {
         mySplitter.setSecondComponent(myChartPane);
-      } else {
+      }
+      else {
         mySplitter.setSecondComponent(null);
       }
       valueChanged(null);
+    }
+  }
+
+  private class TreeDataProvider implements DataProvider {
+    @Nullable
+    @Override
+    public Object getData(@NonNls String dataId) {
+      return AllocationsView.this.getData(dataId, myTree.getLastSelectedPathComponent());
+    }
+  }
+
+  private class TableDataProvider implements DataProvider {
+    @Nullable
+    @Override
+    public Object getData(@NonNls String dataId) {
+      return AllocationsView.this.getData(dataId, myInfoTable.getValueAt(myInfoTable.getSelectedRow(), 0));
     }
   }
 }
