@@ -598,7 +598,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
 
   class ShowChartAction extends ToggleAction {
     public ShowChartAction() {
-      super("", "", AndroidIcons.Themes); // TODO: Customize icon
+      super("", "", AndroidIcons.Sunburst);
     }
 
     @Override
