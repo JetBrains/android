@@ -150,6 +150,12 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     @Override
     public void actionPerformed(ActionEvent e) {
       DynamicWizard wizard = new SingleStepWizard(getProject(), getModule(), myStep, new SingleStepDialogWrapperHost(getProject())) {
+        @NotNull
+        @Override
+        protected String getProgressTitle() {
+          return "Updating AVD...";
+        }
+
         @Override
         protected String getWizardActionDescription() {
           return myDescription;

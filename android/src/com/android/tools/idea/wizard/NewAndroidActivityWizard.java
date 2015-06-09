@@ -69,4 +69,10 @@ public final class NewAndroidActivityWizard extends DynamicWizard {
   public void performFinishingActions() {
     // Do nothing
   }
+
+  @NotNull
+  @Override
+  protected String getProgressTitle() {
+    return "Creating activity...";
+  }
 }

@@ -159,4 +159,10 @@ public class NewModuleWizardDynamic extends DynamicWizard {
       }
     });
   }
+
+  @NotNull
+  @Override
+  protected String getProgressTitle() {
+    return "Creating module...";
+  }
 }

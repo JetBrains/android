@@ -213,6 +213,12 @@ public class DynamicWizardPathTest extends AndroidTestBase {
       // Do nothing
     }
 
+    @NotNull
+    @Override
+    protected String getProgressTitle() {
+      return "dummy";
+    }
+
     @Override
     protected String getWizardActionDescription() {
       return "Dummy action";
