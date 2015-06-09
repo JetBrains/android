@@ -34,7 +34,7 @@ class ApiLevelColumnInfo extends ColumnInfo<UpdaterTreeNode, String> {
   public String valueOf(UpdaterTreeNode node) {
     AndroidVersion version;
     if (node instanceof PlatformDetailsTreeNode) {
-      version = ((PlatformDetailsTreeNode)node).getItem().getPkgDesc().getAndroidVersion();
+      version = ((PlatformDetailsTreeNode)node).getItemDesc().getAndroidVersion();
     }
     else if (node instanceof SummaryTreeNode) {
       version = ((SummaryTreeNode)node).getVersion();

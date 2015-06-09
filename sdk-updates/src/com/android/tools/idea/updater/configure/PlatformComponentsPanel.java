@@ -34,8 +34,9 @@ import com.intellij.util.ui.tree.TreeUtil;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Panel that shows all the packages corresponding to an AndroidVersion.
@@ -93,7 +94,7 @@ public class PlatformComponentsPanel {
         UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview);
         marker.add(node);
         versionNodes.add(node);
-        if (info.getPkgDesc().isObsolete() && info.getPkgDesc().getType() == PkgType.PKG_PLATFORM) {
+        if (info.getPkgDesc(myIncludePreview).isObsolete() && info.getPkgDesc(myIncludePreview).getType() == PkgType.PKG_PLATFORM) {
           obsolete = true;
         }
       }
