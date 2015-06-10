@@ -18,6 +18,7 @@ package org.jetbrains.android.run;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.ManifestInfo;
 import com.google.common.base.Predicates;
 import com.intellij.execution.ExecutionException;
@@ -223,11 +224,23 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     AndroidRunningState state = super.getState(executor, env);
     if (state != null) {
       state.setDeploy(DEPLOY);
-      state.setArtifactName(ARTIFACT_NAME);
       state.setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
       state.setFilterLogcatAutomatically(FILTER_LOGCAT_AUTOMATICALLY);
     }
     return state;
+  }
+
+  @Override
+  @NotNull
+  protected ApkProvider getApkProvider() {
+    Module module = getConfigurationModule().getModule();
+    assert module != null;
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null;
+    if (facet.getIdeaAndroidProject() != null && Projects.isBuildWithGradle(module)) {
+      return new GradleApkProvider(facet, false);
+    }
+    return new NonGradleApkProvider(facet, ARTIFACT_NAME);
   }
 
   @NotNull
@@ -350,7 +363,15 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
     File manifestCopy = null;
     try {
-      final Pair<File, String> pair = getCopyOfCompilerManifestFile(facet, processHandler);
+      Pair<File, String> pair;
+      try {
+        pair = getCopyOfCompilerManifestFile(facet);
+      } catch (IOException e) {
+        pair = null;
+        if (processHandler != null) {
+          processHandler.notifyTextAvailable("I/O error: " + e.getMessage(), STDERR);
+        }
+      }
       manifestCopy = pair != null ? pair.getFirst() : null;
       VirtualFile manifestVFile = manifestCopy != null ? LocalFileSystem.getInstance().findFileByIoFile(manifestCopy) : null;
       final Manifest manifest =
