@@ -50,6 +50,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.checks.PermissionRequirement.ATTR_PROTECTION_LEVEL;
+import static com.android.tools.lint.checks.PermissionRequirement.VALUE_DANGEROUS;
 
 /**
  * A database which records (and responds to queries about) which permissions
@@ -156,20 +158,34 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
     return "PermissionsLookup";
   }
 
+  private static class PermissionStrings {
+    @NotNull public final Set<String> granted;
+    @NotNull public final Set<String> revocable;
+
+    public PermissionStrings(@NotNull Set<String> granted, @NotNull Set<String> revocable) {
+      this.granted = granted;
+      this.revocable = revocable;
+    }
+  }
+
   private abstract static class ManifestPermissions {
     protected long myLastChecked;
     protected long myTimeStamp;
 
-    private Set<String> myPermissions;
+    private PermissionStrings myPermissions;
 
     public ManifestPermissions() {
     }
 
     public boolean hasPermission(@NonNull String permission) {
-      return getPermissions().contains(permission);
+      return getPermissions().granted.contains(permission);
     }
 
-    protected Set<String> getPermissions() {
+    public boolean isRevocable(@NonNull String permission) {
+      return getPermissions().revocable.contains(permission);
+    }
+
+    protected PermissionStrings getPermissions() {
       // If it's been more than a second since the last time we looked, check the file timestamps
       long time = System.currentTimeMillis();
       if (myPermissions != null && myLastChecked < time - CACHE_MS) {
@@ -186,7 +202,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
       return myPermissions;
     }
 
-    protected abstract Set<String> readPermissions();
+    protected abstract PermissionStrings readPermissions();
     protected abstract long getTimeStamp();
   }
 
@@ -198,11 +214,12 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
     }
 
     @Override
-    protected Set<String> readPermissions() {
+    protected PermissionStrings readPermissions() {
       Set<String> permissions = Sets.newHashSetWithExpectedSize(30);
-      addPermissions(permissions, myFile);
+      Set<String> revocable = Sets.newHashSetWithExpectedSize(2);
+      addPermissions(permissions, revocable, myFile);
       myLastChecked = myFile.lastModified();
-      return permissions;
+      return new PermissionStrings(permissions, revocable);
     }
 
     @Override
@@ -211,7 +228,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
     }
   }
 
-  private static class ManifestVirtualFilePermissions extends ManifestPermissions implements Computable<Set<String>> {
+  private static class ManifestVirtualFilePermissions extends ManifestPermissions implements Computable<PermissionStrings> {
     private @NonNull final Project myProject;
     private @NonNull final VirtualFile myFile;
 
@@ -221,8 +238,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
     }
 
     @Override
-    protected Set<String> readPermissions() {
-      //
+    protected PermissionStrings readPermissions() {
       return ApplicationManager.getApplication().runReadAction(this);
     }
 
@@ -236,17 +252,18 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
      * it can be directly passed as a read action since it needs PSI access
      */
     @Override
-    public Set<String> compute() {
+    public PermissionStrings compute() {
       Set<String> permissions = Sets.newHashSetWithExpectedSize(30);
+      Set<String> revocable = Sets.newHashSetWithExpectedSize(2);
       // First look for the PSI file and attempt to use it instead (since it will pick up on edited but
       // not yet saved to disk changes)
       PsiFile file = PsiManager.getInstance(myProject).findFile(myFile);
       if (file != null) {
-        addPermissions(permissions, file);
+        addPermissions(permissions, revocable, file);
       } else {
-        addPermissions(permissions, myFile);
+        addPermissions(permissions, revocable, myFile);
       }
-      return permissions;
+      return new PermissionStrings(permissions, revocable);
     }
   }
 
@@ -254,7 +271,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
     @NonNull private final AndroidLibrary myLibrary;
     @Nullable private final ManifestFilePermissions myManifest;
 
-    public LibraryPermissions(AndroidLibrary library) {
+    public LibraryPermissions(@NonNull AndroidLibrary library) {
       myLibrary = library;
       File manifest = library.getManifest();
       if (manifest.exists()) {
@@ -275,6 +292,18 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
       }
       return false;
     }
+
+    public boolean isRevocable(@NonNull String permission) {
+      if (myManifest != null) {
+        return myManifest.isRevocable(permission);
+      }
+      for (AndroidLibrary library : myLibrary.getLibraryDependencies()) {
+        if (getLibraryPermissions(library).isRevocable(permission)) {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
   private class ModulePermissions implements PermissionHolder {
@@ -283,6 +312,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
     private List<LibraryPermissions> myLibraries;
     private List<ModulePermissions> myDependencies;
     private Set<String> myFoundCache = Sets.newHashSet();
+    private Map<String,Boolean> myRevocableCache = Maps.newHashMap();
 
     public ModulePermissions(Module module) {
       myFacet = AndroidFacet.getInstance(module);
@@ -295,8 +325,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
           }
         }
         if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
-          Collection<AndroidLibrary> libraries = myFacet.getIdeaAndroidProject().getSelectedVariant().getMainArtifact()
-            .getDependencies().getLibraries();
+          Collection<AndroidLibrary> libraries = myFacet.getIdeaAndroidProject().getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
           myLibraries = Lists.newArrayList();
           for (AndroidLibrary library : libraries) {
             myLibraries.add(getLibraryPermissions(library));
@@ -367,35 +396,82 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
 
       return false;
     }
+
+    @Override
+    public boolean isRevocable(@NonNull String permission) {
+      // Permission already found to be available?
+      Boolean cached = myRevocableCache.get(permission);
+      if (cached != null) {
+        return cached;
+      }
+
+      boolean isRevocable = computeRevocable(permission);
+      myRevocableCache.put(permission, isRevocable);
+      return isRevocable;
+    }
+
+    private boolean computeRevocable(@NonNull String permission) {
+      if (myFacet == null) {
+        return false;
+      }
+
+      for (ManifestPermissions manifest : myManifests) {
+        if (manifest.isRevocable(permission)) {
+          return true;
+        }
+      }
+
+      if (myDependencies != null) {
+        for (ModulePermissions module : myDependencies) {
+          if (module.isRevocable(permission)) {
+            return true;
+          }
+        }
+      }
+
+      if (myLibraries != null) {
+        for (LibraryPermissions library : myLibraries) {
+          if (library.isRevocable(permission)) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    }
   }
 
   private static void addPermissions(@NonNull Set<String> permissions,
+                                     @NonNull Set<String> revocable,
                                      @NonNull PsiFile manifest) {
     String xml = manifest.getText();
-    addPermissions(permissions, xml);
+    addPermissions(permissions, revocable, xml);
   }
 
   private static void addPermissions(@NonNull Set<String> permissions,
+                                     @NonNull Set<String> revocable,
                                      @NonNull VirtualFile manifest) {
     try {
       String xml = new String(manifest.contentsToByteArray());
-      addPermissions(permissions, xml);
+      addPermissions(permissions, revocable, xml);
     }
     catch (IOException ignore) {
     }
   }
 
   private static void addPermissions(@NonNull Set<String> permissions,
+                                     @NonNull Set<String> revocable,
                                      @NonNull File manifest) {
     try {
       String xml = Files.toString(manifest, Charsets.UTF_8);
-      addPermissions(permissions, xml);
+      addPermissions(permissions, revocable, xml);
     }
     catch (IOException ignore) {
     }
   }
 
   private static void addPermissions(@NonNull Set<String> permissions,
+                                     @NonNull Set<String> revocable,
                                      @NonNull String xml) {
     Document document = XmlUtils.parseDocumentSilently(xml, true);
     if (document == null) {
@@ -408,12 +484,25 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
     NodeList children = root.getChildNodes();
     for (int i = 0, n = children.getLength(); i < n; i++) {
       Node item = children.item(i);
-      if (item.getNodeType() == Node.ELEMENT_NODE
-          && item.getNodeName().equals(TAG_USES_PERMISSION)) {
+      if (item.getNodeType() != Node.ELEMENT_NODE) {
+        continue;
+      }
+      String nodeName = item.getNodeName();
+      if (nodeName.equals(TAG_USES_PERMISSION)) {
         Element element = (Element)item;
         String name = element.getAttributeNS(ANDROID_URI, ATTR_NAME);
         if (!name.isEmpty()) {
           permissions.add(name);
+        }
+      } else if (nodeName.equals(TAG_PERMISSION)) {
+        Element element = (Element)item;
+        String protectionLevel = element.getAttributeNS(ANDROID_URI,
+                                                        ATTR_PROTECTION_LEVEL);
+        if (VALUE_DANGEROUS.equals(protectionLevel)) {
+          String name = element.getAttributeNS(ANDROID_URI, ATTR_NAME);
+          if (!name.isEmpty()) {
+            revocable.add(name);
+          }
         }
       }
     }
