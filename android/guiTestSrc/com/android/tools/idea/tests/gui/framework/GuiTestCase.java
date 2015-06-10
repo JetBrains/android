@@ -18,8 +18,10 @@ package com.android.tools.idea.tests.gui.framework;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
@@ -58,8 +60,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.createGradleWrapper;
-import static com.android.tools.idea.templates.AndroidGradleTestCase.updateGradleVersions;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
@@ -320,7 +321,7 @@ public abstract class GuiTestCase {
     }
 
     if (gradleVersion == null) {
-      createGradleWrapper(projectPath);
+      createGradleWrapper(projectPath, GRADLE_LATEST_VERSION);
     }
     else {
       createGradleWrapper(projectPath, gradleVersion);
@@ -370,6 +371,10 @@ public abstract class GuiTestCase {
     return projectPath;
   }
 
+  protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
+    return GradleUtil.createGradleWrapper(projectDirPath, gradleVersion);
+  }
+
   protected void updateLocalProperties(File projectPath) throws IOException {
     File androidHomePath = IdeSdks.getAndroidSdkPath();
     assertNotNull(androidHomePath);
@@ -377,6 +382,10 @@ public abstract class GuiTestCase {
     LocalProperties localProperties = new LocalProperties(projectPath);
     localProperties.setAndroidSdkPath(androidHomePath);
     localProperties.save();
+  }
+
+  protected void updateGradleVersions(@NotNull File projectPath) throws IOException {
+    AndroidGradleTestCase.updateGradleVersions(projectPath);
   }
 
   @NotNull
