@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
@@ -62,6 +63,18 @@ public class StyleResolver {
   @NotNull
   public static String getQualifiedItemName(@NotNull ItemResourceValue item) {
     return (item.isFrameworkAttr() ? SdkConstants.PREFIX_ANDROID : "") + item.getName();
+  }
+
+  /**
+   * Returns item value, maybe with "android:" qualifier,
+   * If item is inside of the framework style, "android:" qualifier will be added
+   * For example: For a value "@color/black" which is inside the "Theme.Holo.Light.DarkActionBar" style,
+   * will be returned as "@android:color/black"
+   */
+  @NotNull
+  public static String getQualifiedValue(@NotNull ItemResourceValue item) {
+    ResourceUrl url = ResourceUrl.parse(item.getRawXmlValue(), item.isFramework());
+    return url == null ? item.getRawXmlValue() : url.toString();
   }
 
   @NotNull

@@ -17,16 +17,15 @@ package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.StyleResolver;
 import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,9 +40,7 @@ public class EditedStyleItem {
 
   private final ThemeEditorStyle mySourceTheme;
   private ItemResourceValue myItemResourceValue;
-  private String myNormalizedValue;
-  private boolean myModified;
-  private boolean isAttr;
+  private String myQualifiedValue;
   private final String myAttrGroup;
 
   public EditedStyleItem(@NotNull ItemResourceValue itemResourceValue, @NotNull ThemeEditorStyle sourceTheme) {
@@ -54,16 +51,12 @@ public class EditedStyleItem {
     String attrGroup = (attrDef == null) ? null : attrDef.getAttrGroup();
     myAttrGroup = (attrGroup == null) ? "Other non-theme attributes." : attrGroup;
 
-    parseValue(myItemResourceValue.getRawXmlValue(), myItemResourceValue.isFramework());
+    myQualifiedValue = StyleResolver.getQualifiedValue(myItemResourceValue);
   }
 
-  public void setValue(@Nullable String value) {
-    boolean isFramework =
-      value != null && (value.startsWith(SdkConstants.ANDROID_PREFIX) || value.startsWith(SdkConstants.ANDROID_THEME_PREFIX));
-
-    myItemResourceValue = new ItemResourceValue(myItemResourceValue.getName(), myItemResourceValue.isFrameworkAttr(), value, isFramework);
-    parseValue(myItemResourceValue.getRawXmlValue(), isFramework);
-    myModified = true;
+  public void setValue(@NotNull String value) {
+    myItemResourceValue = new ItemResourceValue(myItemResourceValue.getName(), myItemResourceValue.isFrameworkAttr(), value, false);
+    myQualifiedValue = value;
   }
 
   @NotNull
@@ -71,46 +64,9 @@ public class EditedStyleItem {
     return myAttrGroup;
   }
 
-  /**
-   * Parses the passed value and sets the normalized value string.
-   * @param value The possibly non normalized value.
-   * @param isFramework True if this value is a framework reference.
-   */
-  void parseValue(@Nullable String value, boolean isFramework) {
-    if (SdkConstants.NULL_RESOURCE.equals(value)) {
-      myNormalizedValue = value;
-      return;
-    }
-
-    ResourceValue resource = ResourceValue.parse(value, true, true, true);
-    if (resource == null || !resource.isValidReference()) {
-      myNormalizedValue = value;
-      return;
-    }
-
-    isAttr = SdkConstants.RESOURCE_CLZ_ATTR.equals(resource.getResourceType());
-    StringBuilder valueBuilder = new StringBuilder().append(resource.getPrefix());
-    if (Strings.isNullOrEmpty(resource.getPackage())) {
-      // Sometimes framework values won't include the package so we add it here.
-      if (isFramework) {
-        valueBuilder.append(SdkConstants.ANDROID_PKG).append(':');
-      }
-    } else {
-      valueBuilder.append(resource.getPackage()).append(':');
-    }
-    valueBuilder.append(resource.getResourceType()).append('/').append(resource.getResourceName());
-
-    myNormalizedValue = valueBuilder.toString();
-  }
-
-  @Nullable
+  @NotNull
   public String getValue() {
-    return myNormalizedValue;
-  }
-
-  @Nullable
-  public String getRawXmlValue() {
-    return myNormalizedValue;
+    return myQualifiedValue;
   }
 
   @NotNull
@@ -120,13 +76,6 @@ public class EditedStyleItem {
 
   public boolean isFrameworkAttr() {
     return myItemResourceValue.isFrameworkAttr();
-  }
-
-  /**
-   * Returns whether this value has been modified since this resource value was loaded.
-   */
-  public boolean isModified() {
-    return myModified;
   }
 
   @NotNull
@@ -143,7 +92,8 @@ public class EditedStyleItem {
    * Returns whether this attribute value points to an attr reference.
    */
   public boolean isAttr() {
-    return isAttr;
+    ResourceUrl url = ResourceUrl.parse(myItemResourceValue.getRawXmlValue(), myItemResourceValue.isFramework());
+    return url != null && url.type == ResourceType.ATTR;
   }
 
   @Override
