@@ -83,7 +83,7 @@ public class VersionMetadataUpdater extends ApplicationComponent.Adapter {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        String url = "TBD";
+        String url = "https://dl.google.com/android/studio/metadata/android-component-compatibility.xml";
         try {
           Document metadata = HttpRequests.request(url).connect(new HttpRequests.RequestProcessor<Document>() {
             @Override
@@ -93,15 +93,13 @@ public class VersionMetadataUpdater extends ApplicationComponent.Adapter {
               }
               catch (JDOMException e) {
                 LOG.info("Failed to parse XML metadata", e);
+                return null;
               }
-              return null;
             }
           });
           if (metadata != null) {
-            boolean updated = VersionCompatibilityService.getInstance().updateMetadata(metadata);
-            if (updated) {
-              callback.setDone();
-            }
+            VersionCompatibilityService.getInstance().updateMetadata(metadata);
+            callback.setDone();
           }
         }
         catch (IOException e) {
@@ -115,7 +113,7 @@ public class VersionMetadataUpdater extends ApplicationComponent.Adapter {
 
   @VisibleForTesting
   enum CheckInterval {
-    NONE(Long.MAX_VALUE), DAILY(MILLISECONDS.convert(1, DAYS)), WEEKLY(MILLISECONDS.convert(7, DAYS));
+    NONE(Long.MAX_VALUE), DAILY(MILLISECONDS.convert(1, DAYS)), WEEKLY(MILLISECONDS.convert(7, DAYS)), TESTING(-1L);
 
     private final long myIntervalInMs;
 
