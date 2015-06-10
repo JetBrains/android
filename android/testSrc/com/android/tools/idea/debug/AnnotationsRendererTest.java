@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.debug;
 
 import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.psi.PsiAnnotation;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -27,23 +28,24 @@ import static org.mockito.Mockito.when;
 public class AnnotationsRendererTest extends AndroidTestCase {
   public void testColorIntRendering() {
     AnnotationsRenderer.Result result =
-      AnnotationsRenderer.render(getProject(), createFakeAnnotation(SupportAnnotationDetector.COLOR_INT_ANNOTATION), 0x112233);
+      AnnotationsRenderer.render(null, createFakeAnnotation(SupportAnnotationDetector.COLOR_INT_ANNOTATION), 0x112233);
     assertEquals("0x00112233 {a=255 r=17 g=34 b=51}", result.label);
     assertNotNull(result.icon);
 
-    result = AnnotationsRenderer.render(getProject(), createFakeAnnotation(SupportAnnotationDetector.COLOR_INT_ANNOTATION), 0x55112233);
+    result = AnnotationsRenderer.render(null, createFakeAnnotation(SupportAnnotationDetector.COLOR_INT_ANNOTATION), 0x55112233);
     assertEquals("0x55112233 {a=85 r=17 g=34 b=51}", result.label);
     assertNotNull(result.icon);
   }
 
   public void testResourceRefRendering() {
+    ResourceIdResolver resolver = ServiceManager.getService(getProject(), ResourceIdResolver.class);
     AnnotationsRenderer.Result result =
-      AnnotationsRenderer.render(getProject(), createFakeAnnotation(SupportAnnotationDetector.RES_SUFFIX), 0x01080074);
+      AnnotationsRenderer.render(resolver, createFakeAnnotation(SupportAnnotationDetector.RES_SUFFIX), 0x01080074);
     assertEquals("0x01080074 {@android:drawable/star_on}", result.label);
     assertNull(result.icon);
 
     result =
-      AnnotationsRenderer.render(getProject(), createFakeAnnotation(SupportAnnotationDetector.RES_SUFFIX), 0xf1080074);
+      AnnotationsRenderer.render(resolver, createFakeAnnotation(SupportAnnotationDetector.RES_SUFFIX), 0xf1080074);
     assertEquals("0xf1080074 {@Res ?}", result.label);
   }
 
