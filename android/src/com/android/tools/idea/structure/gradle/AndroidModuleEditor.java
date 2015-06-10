@@ -52,6 +52,8 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
                      BuildFileKey.TARGET_COMPATIBILITY);
 
   private static final String SIGNING_TAB_TITLE = "Signing";
+  private static final String BUILD_TYPES_TAB_TITLE = "Build Types";
+  private static final String FLAVORS_TAB_TITLE = "Flavors";
 
   private final Project myProject;
   private final String myName;
@@ -93,7 +95,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
             return panel;
           }
         }));
-        myEditors.add(new GenericEditor<NamedObjectPanel>("Flavors", new Callable<NamedObjectPanel>() {
+        myEditors.add(new GenericEditor<NamedObjectPanel>(FLAVORS_TAB_TITLE, new Callable<NamedObjectPanel>() {
           @Override
           public NamedObjectPanel call() {
             NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.FLAVORS, "flavor", panelGroup);
@@ -101,7 +103,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
             return panel;
           }
         }));
-        myEditors.add(new GenericEditor<NamedObjectPanel>("Build Types", new Callable<NamedObjectPanel>() {
+        myEditors.add(new GenericEditor<NamedObjectPanel>(BUILD_TYPES_TAB_TITLE, new Callable<NamedObjectPanel>() {
           @Override
           public NamedObjectPanel call() {
             NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.BUILD_TYPES, "buildType", panelGroup);
@@ -160,12 +162,29 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
     return myName;
   }
 
+  public void selectBuildTypesTab() {
+    selectAndGetTabComponent(BUILD_TYPES_TAB_TITLE);
+  }
+
+  public void selectFlavorsTab() {
+    selectAndGetTabComponent(FLAVORS_TAB_TITLE);
+  }
+
   public void selectDependency(@NotNull GradleCoordinate dependency) {
-    Component selected = selectAndGetTabComponent(ProjectBundle.message("modules.classpath.title"));
+    Component selected = selectAndGetDependenciesTab();
     if (selected instanceof ModuleDependenciesPanel) {
       ModuleDependenciesPanel dependenciesPanel = (ModuleDependenciesPanel)selected;
       dependenciesPanel.select(dependency);
     }
+  }
+
+  public void selectDependenciesTab() {
+    selectAndGetDependenciesTab();
+  }
+
+  @Nullable
+  private Component selectAndGetDependenciesTab() {
+    return selectAndGetTabComponent(ProjectBundle.message("modules.classpath.title"));
   }
 
   @Override

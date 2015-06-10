@@ -116,6 +116,18 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
     myModuleEditor.selectDependency(dependency);
   }
 
+  public void selectDependenciesTab() {
+    myModuleEditor.selectDependenciesTab();
+  }
+
+  public void selectBuildTypesTab() {
+    myModuleEditor.selectBuildTypesTab();
+  }
+
+  public void selectFlavorsTab() {
+    myModuleEditor.selectFlavorsTab();
+  }
+
   public void openSigningConfiguration() {
     myModuleEditor.openSigningConfiguration();
   }
