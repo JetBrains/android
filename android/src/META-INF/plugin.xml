@@ -774,6 +774,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.gradle">
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.OldAndroidPluginErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.Gradle2RequiredErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.DaemonContextMismatchErrorHandler"/>
