@@ -47,28 +47,37 @@ import static com.intellij.psi.CommonClassNames.JAVA_UTIL_LIST;
  */
 public class ParcelableQuickFix implements AndroidLintQuickFix {
   private static final String CREATOR =
-    "public static final android.os.Parcelable.Creator<%1$s> CREATOR = new android.os.Parcelable.Creator<%1$s>() {\n" +
-    "  @Override\n" +
-    "  public %1$s createFromParcel(android.os.Parcel in) {\n" +
-    "    return new %1$s(in);\n" +
-    "  }\n\n" +
-    "  @Override\n" +
-    "  public %1$s[] newArray(int size) {\n" +
-    "    return new %1$s[size];\n" +
-    "  }\n" +
-    "};\n";
+          "public static final android.os.Parcelable.Creator<%1$s> CREATOR = new android.os.Parcelable.Creator<%1$s>() {\n" +
+                  "  @Override\n" +
+                  "  public %1$s createFromParcel(android.os.Parcel in) {\n" +
+                  "    return new %1$s(in);\n" +
+                  "  }\n\n" +
+                  "  @Override\n" +
+                  "  public %1$s[] newArray(int size) {\n" +
+                  "    return new %1$s[size];\n" +
+                  "  }\n" +
+                  "};\n";
   private static final String CONSTRUCTOR =
-    "private %1$s(android.os.Parcel in) {\n" +
-    "}\n";
+          "protected %1$s(android.os.Parcel in) {\n" +
+                  "}\n";
+  private static final String CONSTRUCTOR_WITH_SUPER =
+          "protected %1$s(android.os.Parcel in) {\n" +
+                  "  super(in);\n" +
+                  "}\n";
   private static final String DESCRIBE_CONTENTS =
-    "@Override\n" +
-    "public int describeContents() {\n" +
-    "  return 0;\n" +
-    "}\n";
+          "@Override\n" +
+                  "public int describeContents() {\n" +
+                  "  return 0;\n" +
+                  "}\n";
   private static final String WRITE_TO_PARCEL =
-    "@Override\n" +
-    "public void writeToParcel(android.os.Parcel dest, int flags) {\n" +
-    "}\n";
+          "@Override\n" +
+                  "public void writeToParcel(android.os.Parcel dest, int flags) {\n" +
+                  "}\n";
+  private static final String WRITE_TO_PARCEL_WITH_SUPER =
+          "@Override\n" +
+                  "public void writeToParcel(android.os.Parcel dest, int flags) {\n" +
+                  "  super.writeToParcel(dest, flags);\n" +
+                  "}\n";
   private static final String CLASS_T = "T";
   private static final String CLASS_T_ARRAY = "T[]";
 
@@ -142,8 +151,8 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
     if (element instanceof PsiJavaCodeReferenceElement) {
       PsiJavaCodeReferenceElement reference = (PsiJavaCodeReferenceElement)element;
       if (reference.getCanonicalText().equals(CLASS_PARCELABLE) &&
-          reference.getParent() instanceof PsiReferenceList &&
-          reference.getParent().getParent() instanceof PsiClass) {
+              reference.getParent() instanceof PsiReferenceList &&
+              reference.getParent().getParent() instanceof PsiClass) {
         return (PsiClass)reference.getParent().getParent();
       }
     }
@@ -221,7 +230,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
       delete(findWriteToParcel());
       delete(findDescribeContents());
       delete(findCreator());
-      delete(findParcelableFromImplementsList());
+      delete(findParcelableFromImplementsList(myParcelable));
       delete(findImportOfClass(CLASS_PARCEL));
       delete(findImportOfClass(CLASS_PARCELABLE));
 
@@ -274,7 +283,8 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
     private PsiMethod findOrCreateConstructor() {
       PsiMethod method = findConstructor();
       if (method == null) {
-        method = createMethodWithShortClassReferences(String.format(CONSTRUCTOR, myParcelable.getName()));
+        String fmt = doesSuperClassImplementParcelable() ? CONSTRUCTOR_WITH_SUPER : CONSTRUCTOR;
+        method = createMethodWithShortClassReferences(String.format(fmt, myParcelable.getName()));
       }
       return method;
     }
@@ -313,31 +323,19 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
     private PsiMethod findOrCreateWriteToParcel() {
       PsiMethod method = findWriteToParcel();
       if (method == null) {
-        method = createMethodWithShortClassReferences(WRITE_TO_PARCEL);
+        String text = doesSuperClassImplementParcelable() ? WRITE_TO_PARCEL_WITH_SUPER : WRITE_TO_PARCEL;
+        method = createMethodWithShortClassReferences(text);
       }
       return method;
     }
 
-    @Nullable
-    private PsiElement findParcelableFromImplementsList() {
-      PsiReferenceList implementsList = myParcelable.getImplementsList();
-      if (implementsList != null) {
-        for (PsiJavaCodeReferenceElement element : implementsList.getReferenceElements()) {
-          if (CLASS_PARCELABLE.equals(element.getQualifiedName())) {
-            return element;
-          }
-        }
-      }
-      return null;
-    }
-
     private void findOrCreateParcelableFromImplementsList() {
-      PsiElement element = findParcelableFromImplementsList();
+      PsiElement element = findParcelableFromImplementsList(myParcelable);
       if (element == null) {
         PsiReferenceList implementsList = myParcelable.getImplementsList();
         if (implementsList != null) {
           PsiJavaCodeReferenceElement implementsParcelable =
-            myFactory.createReferenceElementByFQClassName(CLASS_PARCELABLE, myParcelable.getResolveScope());
+                  myFactory.createReferenceElementByFQClassName(CLASS_PARCELABLE, myParcelable.getResolveScope());
           implementsList.add(implementsParcelable);
         }
       }
@@ -369,9 +367,17 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
     private static boolean isWriteToParcelMethod(@NotNull PsiMethod method) {
       PsiParameterList params = method.getParameterList();
       return method.getName().equals("writeToParcel") &&
-             params.getParametersCount() == 2 &&
-             params.getParameters()[0].getType().equalsToText(CLASS_PARCEL) &&
-             params.getParameters()[1].getType().equalsToText(PsiType.INT.getCanonicalText());
+              params.getParametersCount() == 2 &&
+              params.getParameters()[0].getType().equalsToText(CLASS_PARCEL) &&
+              params.getParameters()[1].getType().equalsToText(PsiType.INT.getCanonicalText());
+    }
+
+    private boolean doesSuperClassImplementParcelable() {
+      PsiClass superClass = myParcelable.getSuperClass();
+      if (superClass == null) {
+        return false;
+      }
+      return findParcelableFromImplementsList(superClass) != null;
     }
 
     private void addFieldReadsToConstructor(@NotNull PsiMethod constructor) {
@@ -410,8 +416,9 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
       }
     }
 
-    private static boolean isEmptyMethod(@NotNull PsiMethod method) {
-      return method.getBody() == null || method.getBody().getStatements().length == 0;
+    private boolean isEmptyMethod(@NotNull PsiMethod method) {
+      int expectedStatementCount = doesSuperClassImplementParcelable() ? 1 : 0;
+      return method.getBody() == null || method.getBody().getStatements().length <= expectedStatementCount;
     }
 
     private void removeInitialBlankLines(@NotNull PsiMethod method) {
@@ -431,7 +438,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
     @Nullable
     private FieldPersistence findFieldPersistence(@NotNull PsiField field) {
       if (field.hasModifierProperty(PsiModifier.TRANSIENT) ||
-          field.hasModifierProperty(PsiModifier.STATIC)) {
+              field.hasModifierProperty(PsiModifier.STATIC)) {
         return null;
       }
       PsiType type = field.getType();
@@ -547,7 +554,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
         PsiClassReferenceType refType = (PsiClassReferenceType)type;
         PsiType[] elemTypes = refType.getParameters();
         if (elemTypes.length == 1 &&
-            (type.getCanonicalText().startsWith(JAVA_UTIL_LIST) || type.getCanonicalText().startsWith(JAVA_UTIL_ARRAY_LIST))) {
+                (type.getCanonicalText().startsWith(JAVA_UTIL_LIST) || type.getCanonicalText().startsWith(JAVA_UTIL_ARRAY_LIST))) {
           return elemTypes[0];
         }
       }
@@ -568,7 +575,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
 
     private static boolean isSimpleRead(@NotNull PsiMethod method) {
       return (method.getName().startsWith("read") || method.getName().startsWith("create")) &&
-             method.getParameterList().getParametersCount() == 0;
+              method.getParameterList().getParametersCount() == 0;
     }
 
     private interface FieldPersistence {
@@ -611,7 +618,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
       @Override
       public String[] formatWrite(@NotNull PsiField field, @NotNull String parcelVariableName, @NotNull String flagsVariableName) {
         return new String[]{
-          String.format("%1$s.%2$s(%3$s, %4$s);\n", parcelVariableName, myWriteMethodName, field.getName(), flagsVariableName)
+                String.format("%1$s.%2$s(%3$s, %4$s);\n", parcelVariableName, myWriteMethodName, field.getName(), flagsVariableName)
         };
       }
     }
@@ -620,14 +627,14 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
       @Override
       public String[] formatWrite(@NotNull PsiField field, @NotNull String parcelVariableName, @NotNull String flagsVariableName) {
         return new String[]{
-          String.format("%1$s.writeParcelable(%2$s, %3$s);\n", parcelVariableName, field.getName(), flagsVariableName)
+                String.format("%1$s.writeParcelable(%2$s, %3$s);\n", parcelVariableName, field.getName(), flagsVariableName)
         };
       }
 
       @Override
       public String[] formatRead(@NotNull PsiField field, @NotNull String parcelVariableName) {
         return new String[]{
-          String.format("%1$s = %2$s.readParcelable(%3$s.class.getClassLoader());\n",
+                String.format("%1$s = %2$s.readParcelable(%3$s.class.getClassLoader());\n",
                         field.getName(), parcelVariableName, field.getType().getCanonicalText())
         };
       }
@@ -650,7 +657,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
       @Override
       public String[] formatWrite(@NotNull PsiField field, @NotNull String parcelVariableName, @NotNull String flagsVariableName) {
         return new String[]{
-          String.format("%1$s.writeTypedList(%2$s);\n", parcelVariableName, field.getName()),
+                String.format("%1$s.writeTypedList(%2$s);\n", parcelVariableName, field.getName()),
         };
       }
 
@@ -659,7 +666,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
         PsiType elemType = getListElementType(field.getType());
         assert elemType != null;
         return new String[]{
-          String.format("%1$s = %2$s.createTypedArrayList(%3$s.CREATOR);\n",
+                String.format("%1$s = %2$s.createTypedArrayList(%3$s.CREATOR);\n",
                         field.getName(), parcelVariableName, elemType.getCanonicalText())
         };
       }
