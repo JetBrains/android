@@ -326,12 +326,20 @@ public class BuildVariantView {
     updateContents();
   }
 
-  public void selectAndScrollTo(@NotNull Module module) {
+  public void findAndSelect(@NotNull Module module) {
+    findAndSelect(module, MODULE_COLUMN_INDEX);
+  }
+
+  public void findAndSelectVariantEditor(@NotNull Module module) {
+    findAndSelect(module, VARIANT_COLUMN_INDEX);
+  }
+
+  private void findAndSelect(@NotNull Module module, int columnIndex) {
     int rowCount = myVariantsTable.getRowCount();
     for (int row = 0; row < rowCount; row++) {
       if (module.equals(myVariantsTable.getValueAt(row, MODULE_COLUMN_INDEX))) {
         myVariantsTable.getSelectionModel().setSelectionInterval(row, row);
-        myVariantsTable.getColumnModel().getSelectionModel().setSelectionInterval(MODULE_COLUMN_INDEX, MODULE_COLUMN_INDEX);
+        myVariantsTable.getColumnModel().getSelectionModel().setSelectionInterval(columnIndex, columnIndex);
         TableUtil.scrollSelectionToVisible(myVariantsTable);
         myVariantsTable.requestFocusInWindow();
         break;
@@ -419,7 +427,7 @@ public class BuildVariantView {
         }
       }
       Conflict conflict = myConflicts.get(myCurrentConflictIndex);
-      selectAndScrollTo(conflict.getSource());
+      findAndSelect(conflict.getSource());
     }
   }
 

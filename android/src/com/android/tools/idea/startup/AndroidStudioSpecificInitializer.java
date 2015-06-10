@@ -18,6 +18,10 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
+import com.android.tools.idea.gradle.actions.EditBuildTypesAction;
+import com.android.tools.idea.gradle.actions.EditFlavorsAction;
+import com.android.tools.idea.gradle.actions.EditLibraryAndDependenciesAction;
+import com.android.tools.idea.gradle.actions.SelectBuildVariantAction;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
@@ -533,6 +537,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       LOG.error("Unexpected error while setting up SDKs: ", e);
     }
 
+    addExtraBuildActions();
+
     registerAppClosing();
 
     // Always reset the Default scheme to match Android standards
@@ -553,5 +559,18 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
 
     checkAndSetAndroidSdkSources();
+  }
+
+  private static void addExtraBuildActions() {
+    ActionManager actionManager = ActionManager.getInstance();
+    AnAction buildMenu = actionManager.getAction("BuildMenu");
+    if (buildMenu instanceof DefaultActionGroup) {
+      DefaultActionGroup buildMenuGroup = (DefaultActionGroup)buildMenu;
+      buildMenuGroup.addSeparator();
+      buildMenuGroup.add(new EditBuildTypesAction());
+      buildMenuGroup.add(new EditFlavorsAction());
+      buildMenuGroup.add(new EditLibraryAndDependenciesAction());
+      buildMenuGroup.add(new SelectBuildVariantAction());
+    }
   }
 }
