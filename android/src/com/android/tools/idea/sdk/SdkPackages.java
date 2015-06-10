@@ -124,13 +124,15 @@ public final class SdkPackages {
     for (UpdatablePkgInfo info : updatablePkgInfos) {
       IPkgDesc localDesc = info.getLocalInfo().getDesc();
       for (RemotePkgInfo remote : myRemotePkgInfos.get(localDesc.getType())) {
-        if (remote.getPkgDesc().isUpdateFor(localDesc)) {
+        if (remote.getPkgDesc().isUpdateFor(localDesc, FullRevision.PreviewComparison.IGNORE)) {
           info.addRemote(remote);
           myUpdatedPkgs.add(info);
           updates.add(remote);
         }
       }
-      newConsolidatedPkgs.put(info.getPkgDesc().getInstallId(), info);
+      // the consolidated packages map is always keyed by the non-preview installid, whether or not the UpdatablePackage happens to
+      // contain a preview package.
+      newConsolidatedPkgs.put(info.getPkgDesc(true).getBaseInstallId(), info);
     }
 
     // Find new packages not yet installed
@@ -142,8 +144,8 @@ public final class SdkPackages {
       IPkgDesc remoteDesc = remote.getPkgDesc();
       for (UpdatablePkgInfo info : updatablePkgInfos) {
         IPkgDesc localDesc = info.getLocalInfo().getDesc();
-        if (remoteDesc.compareTo(localDesc) == 0 || remoteDesc.isUpdateFor(localDesc) ||
-            localDesc.isUpdateFor(remoteDesc) /* shouldn't happen in the normal case */) {
+        if (remoteDesc.compareTo(localDesc) == 0 || remoteDesc.isUpdateFor(localDesc, FullRevision.PreviewComparison.IGNORE) ||
+            localDesc.isUpdateFor(remoteDesc, FullRevision.PreviewComparison.IGNORE) /* shouldn't happen in the normal case */) {
           // if package is same as an installed or is an update for an installed
           // one, then it's not new.
           continue nextRemote;
@@ -151,7 +153,14 @@ public final class SdkPackages {
       }
 
       myNewPkgs.add(remote);
-      newConsolidatedPkgs.put(remoteDesc.getInstallId(), new UpdatablePkgInfo(remote));
+      String key = remoteDesc.getBaseInstallId();
+      UpdatablePkgInfo existing = newConsolidatedPkgs.get(key);
+      if (existing != null) {
+        existing.addRemote(remote);
+      }
+      else {
+        newConsolidatedPkgs.put(key, new UpdatablePkgInfo(remote));
+      }
     }
     myConsolidatedPkgs = newConsolidatedPkgs;
   }
