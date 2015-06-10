@@ -35,6 +35,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.android.facet.AndroidRootUtil.getFileByRelativeModulePath;
+
 /**
  * Like {@link SourceProvider}, but for IntelliJ, which means it provides
  * {@link VirtualFile} references rather than {@link File} references.
@@ -227,7 +231,18 @@ public abstract class IdeaSourceProvider {
     @Nullable
     @Override
     public VirtualFile getManifestFile() {
-      return AndroidRootUtil.getFileByRelativeModulePath(myFacet.getModule(), myFacet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
+      Module module = myFacet.getModule();
+      VirtualFile file = AndroidRootUtil.getFileByRelativeModulePath(module, myFacet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
+      if (file != null) {
+        return file;
+      }
+
+      VirtualFile root = AndroidRootUtil.getMainContentRoot(myFacet);
+      if (root != null) {
+        return root.findChild(ANDROID_MANIFEST_XML);
+      }
+
+      return null;
     }
 
     @NotNull
@@ -567,6 +582,10 @@ public abstract class IdeaSourceProvider {
    */
   @NotNull
   public static List<IdeaSourceProvider> getAllIdeaSourceProviders(@NotNull AndroidFacet facet) {
+    if (!facet.isGradleProject() || facet.getIdeaAndroidProject() == null) {
+      return Collections.singletonList(facet.getMainIdeaSourceProvider());
+    }
+
     List<IdeaSourceProvider> ideaSourceProviders = Lists.newArrayList();
     for (SourceProvider sourceProvider : getAllSourceProviders(facet)) {
       ideaSourceProviders.add(create(sourceProvider));
