@@ -530,6 +530,38 @@ public class AndroidLintTest extends AndroidTestCase {
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection());
   }
 
+  public void testApiCheck1b() throws Exception {
+    // Check adding a @TargetApi annotation in a Java file to suppress
+    createManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection(),
+                  "Add @TargetApi(HONEYCOMB) Annotation",
+                  "/src/p1/p2/MyActivity.java", "java");
+  }
+
+  public void testApiCheck1c() throws Exception {
+    // Check adding a @SuppressLint annotation in a Java file to suppress
+    createManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection(),
+                  "Suppress: Add @SuppressLint(\"NewApi\") annotation",
+                  "/src/p1/p2/MyActivity.java", "java");
+  }
+
+  public void testApiCheck1d() throws Exception {
+    // Check adding a tools:targetApi attribute in an XML file to suppress
+    createManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection(),
+                  "Suppress With tools:targetApi Attribute",
+                  "/res/layout/layout.xml", "xml");
+  }
+
+  public void testApiCheck1e() throws Exception {
+    // Check adding a tools:suppress attribute in an XML file to suppress
+    createManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection(),
+                  "Suppress: Add tools:ignore=\"NewApi\" attribute",
+                  "/res/layout/layout.xml", "xml");
+  }
+
   public void testImlFileOutsideContentRoot() throws Exception {
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "additionalModules/module1/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "additionalModules/module2/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
