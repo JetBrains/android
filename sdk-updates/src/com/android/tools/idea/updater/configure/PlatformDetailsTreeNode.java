@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPlatformPkgInfo;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
@@ -73,13 +74,13 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
 
   @Override
   public boolean includeInSummary() {
-    return myStateHolder.getPkg().getPkgDesc().getType() == PkgType.PKG_SOURCE ||
-           myStateHolder.getPkg().getPkgDesc().getType() == PkgType.PKG_PLATFORM;
+    return myStateHolder.getPkg().getPkgDesc(true).getType() == PkgType.PKG_SOURCE ||
+           myStateHolder.getPkg().getPkgDesc(true).getType() == PkgType.PKG_PLATFORM;
   }
 
   @Override
   public boolean isPrimary() {
-    return myStateHolder.getPkg().getPkgDesc().getType() == PkgType.PKG_PLATFORM;
+    return myStateHolder.getPkg().getPkgDesc(true).getType() == PkgType.PKG_PLATFORM;
   }
 
   @Override
@@ -93,7 +94,7 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
     SimpleTextAttributes attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
     UpdatablePkgInfo p = myStateHolder.getPkg();
     String result;
-    if (p.getPkgDesc().getType() == PkgType.PKG_PLATFORM) {
+    if (p.getPkgDesc(true).getType() == PkgType.PKG_PLATFORM) {
       String versionName;
       if (p.hasLocal()) {
         versionName = ((LocalPlatformPkgInfo)p.getLocalInfo()).getAndroidTarget().getVersionName();
@@ -102,12 +103,12 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
         versionName = ((RemotePlatformPkgInfo)p.getRemote(myIncludePreview)).getVersionName();
       }
       result = String.format("Android %s Platform", versionName);
-      if (p.getPkgDesc().isObsolete()) {
+      if (p.getPkgDesc(myIncludePreview).isObsolete()) {
         result += " (Obsolete)";
       }
     }
     else {
-      result = p.getPkgDesc().getListDescription();
+      result = p.getPkgDesc(myIncludePreview).getListDescription();
     }
     renderer.getTextRenderer().append(result, attributes);
   }
@@ -133,5 +134,9 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
     else {
       return "Installed";
     }
+  }
+
+  public IPkgDesc getItemDesc() {
+    return getItem().getPkgDesc(myIncludePreview);
   }
 }

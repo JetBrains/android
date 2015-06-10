@@ -20,7 +20,6 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.SmartList;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +53,9 @@ public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
   private void init(@Nullable LocalPkgInfo localPkg, @Nullable RemotePkgInfo remotePkg) {
     assert localPkg != null || remotePkg != null;
     myLocalInfo = localPkg;
-    myRemoteInfo = remotePkg;
+    if (remotePkg != null) {
+      addRemote(remotePkg);
+    }
   }
 
   /**
@@ -125,11 +126,27 @@ public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
 
   @Override
   public int compareTo(UpdatablePkgInfo o) {
-    return getPkgDesc().compareTo(o.getPkgDesc());
+    return getPkgDesc(true).compareTo(o.getPkgDesc(true));
   }
 
-  public IPkgDesc getPkgDesc() {
-    return myLocalInfo == null ? myRemoteInfo.getPkgDesc() : myLocalInfo.getDesc();
+  /**
+   * Gets a IPkgDesc corresponding to this updatable package. This will be:
+   * - The local pkg desc if the package is installed
+   * - The remote preview package if there is a remote preview and includePreview is true
+   * - The remote package otherwise, or null if there is no non-preview remote.
+   * @param includePreview
+   */
+  public IPkgDesc getPkgDesc(boolean includePreview) {
+    if (hasLocal()) {
+      return myLocalInfo.getDesc();
+    }
+    if (includePreview && hasPreview()) {
+      return myRemotePreviewInfo.getPkgDesc();
+    }
+    if (hasRemote(false)) {
+      return getRemote(false).getPkgDesc();
+    }
+    return null;
   }
 
   public boolean isUpdate(boolean alwaysIncludePreview) {

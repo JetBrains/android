@@ -36,7 +36,7 @@ class RevisionColumnInfo extends ColumnInfo<UpdaterTreeNode, FullRevision> {
       node = ((SummaryTreeNode)node).getPrimaryChild();
     }
     if (node instanceof PlatformDetailsTreeNode) {
-      return ((PlatformDetailsTreeNode)node).getItem().getPkgDesc().getPreciseRevision();
+      return ((PlatformDetailsTreeNode)node).getItemDesc().getPreciseRevision();
     }
     return null;
   }
