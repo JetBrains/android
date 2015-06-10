@@ -133,71 +133,71 @@ public class InstanceReferenceTree {
                                             boolean leaf,
                                             int row,
                                             boolean hasFocus) {
-            if (tree.getModel().getRoot() == value) {
-              append("Dummy root node. This should not show up in view.");
-              return;
-            }
+            if (value instanceof InstanceNode) {
+              InstanceNode node = (InstanceNode)value;
+              Instance instance = node.getInstance();
 
-            InstanceNode node = (InstanceNode)value;
-            Instance instance = node.getInstance();
+              String[] referenceVarNames = node.getVarNames();
+              if (referenceVarNames.length > 0) {
+                if (instance instanceof ArrayInstance) {
+                  append(StringUtil.pluralize("Index", referenceVarNames.length), SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
+                  append(" ", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+                }
 
-            String[] referenceVarNames = node.getVarNames();
-            if (referenceVarNames.length > 0) {
-              if (instance instanceof ArrayInstance) {
-                append(StringUtil.pluralize("Index", referenceVarNames.length), SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
-                append(" ", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+                StringBuilder builder = new StringBuilder();
+                builder.append(referenceVarNames[0]);
+                for (int i = 1; i < referenceVarNames.length; ++i) {
+                  builder.append(", ");
+                  builder.append(referenceVarNames[i]);
+                }
+                append(builder.toString(), XDebuggerUIConstants.VALUE_NAME_ATTRIBUTES);
+                append(" in ", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
               }
 
-              StringBuilder builder = new StringBuilder();
-              builder.append(referenceVarNames[0]);
-              for (int i = 1; i < referenceVarNames.length; ++i) {
-                builder.append(", ");
-                builder.append(referenceVarNames[i]);
-              }
-              append(builder.toString(), XDebuggerUIConstants.VALUE_NAME_ATTRIBUTES);
-              append(" in ", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
-            }
-
-            SimpleTextAttributes attributes;
-            if (myInstance.getImmediateDominator() == instance) {
-              attributes = SimpleTextAttributes.SYNTHETIC_ATTRIBUTES;
-            }
-            else if (instance.getDistanceToGcRoot() == 0) {
-              attributes = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
-            }
-            else if (instance.getImmediateDominator() == null) {
-              attributes = SimpleTextAttributes.ERROR_ATTRIBUTES;
-            }
-            else {
-              attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
-            }
-
-            if (instance instanceof ArrayInstance) {
-              setIcon(AllIcons.Debugger.Db_array);
-            }
-            else if (instance instanceof ClassObj) {
-              setIcon(PlatformIcons.CLASS_ICON);
-            }
-            else {
-              setIcon(AllIcons.Debugger.Value);
-            }
-
-            if (myInstance.getImmediateDominator() == instance || instance.getDistanceToGcRoot() == 0) {
-              int totalIcons = 1 + (myInstance.getImmediateDominator() == instance ? 1 : 0) + (instance.getDistanceToGcRoot() == 0 ? 1 : 0);
-              RowIcon icons = new RowIcon(totalIcons);
-              icons.setIcon(getIcon(), 0);
-
-              int currentIcon = 1;
+              SimpleTextAttributes attributes;
               if (myInstance.getImmediateDominator() == instance) {
-                icons.setIcon(AllIcons.Hierarchy.Class, currentIcon++);
+                attributes = SimpleTextAttributes.SYNTHETIC_ATTRIBUTES;
               }
-              if (instance.getDistanceToGcRoot() == 0) {
-                icons.setIcon(AllIcons.Hierarchy.Subtypes, currentIcon);
+              else if (instance.getDistanceToGcRoot() == 0) {
+                attributes = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
               }
-              setIcon(icons);
-            }
+              else if (instance.getImmediateDominator() == null) {
+                attributes = SimpleTextAttributes.ERROR_ATTRIBUTES;
+              }
+              else {
+                attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
+              }
 
-            append(instance.toString(), attributes);
+              if (instance instanceof ArrayInstance) {
+                setIcon(AllIcons.Debugger.Db_array);
+              }
+              else if (instance instanceof ClassObj) {
+                setIcon(PlatformIcons.CLASS_ICON);
+              }
+              else {
+                setIcon(AllIcons.Debugger.Value);
+              }
+
+              if (myInstance.getImmediateDominator() == instance || instance.getDistanceToGcRoot() == 0) {
+                int totalIcons = 1 + (myInstance.getImmediateDominator() == instance ? 1 : 0) + (instance.getDistanceToGcRoot() == 0 ? 1 : 0);
+                RowIcon icons = new RowIcon(totalIcons);
+                icons.setIcon(getIcon(), 0);
+
+                int currentIcon = 1;
+                if (myInstance.getImmediateDominator() == instance) {
+                  icons.setIcon(AllIcons.Hierarchy.Class, currentIcon++);
+                }
+                if (instance.getDistanceToGcRoot() == 0) {
+                  icons.setIcon(AllIcons.Hierarchy.Subtypes, currentIcon);
+                }
+                setIcon(icons);
+              }
+
+              append(instance.toString(), attributes);
+            }
+            else {
+              append(value.toString(), SimpleTextAttributes.ERROR_ATTRIBUTES);
+            }
           }
         })
       ).addColumn(
@@ -214,11 +214,13 @@ public class InstanceReferenceTree {
                                               boolean leaf,
                                               int row,
                                               boolean hasFocus) {
-              Instance instance = ((InstanceNode)value).getInstance();
-              if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
-                append(String.valueOf(instance.getDistanceToGcRoot()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+              if (value instanceof InstanceNode) {
+                Instance instance = ((InstanceNode)value).getInstance();
+                if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
+                  append(String.valueOf(instance.getDistanceToGcRoot()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+                }
+                setTextAlign(SwingConstants.RIGHT);
               }
-              setTextAlign(SwingConstants.RIGHT);
             }
           })
       ).addColumn(
@@ -235,11 +237,13 @@ public class InstanceReferenceTree {
                                               boolean leaf,
                                               int row,
                                               boolean hasFocus) {
-              Instance instance = ((InstanceNode)value).getInstance();
-              if (instance != null) {
-                append(String.valueOf(instance.getSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+              if (value instanceof InstanceNode) {
+                Instance instance = ((InstanceNode)value).getInstance();
+                if (instance != null) {
+                  append(String.valueOf(instance.getSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+                }
+                setTextAlign(SwingConstants.RIGHT);
               }
-              setTextAlign(SwingConstants.RIGHT);
             }
           })
       ).addColumn(
@@ -256,11 +260,13 @@ public class InstanceReferenceTree {
                                               boolean leaf,
                                               int row,
                                               boolean hasFocus) {
-              Instance instance = ((InstanceNode)value).getInstance();
-              if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
-                append(String.valueOf(instance.getTotalRetainedSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+              if (value instanceof InstanceNode) {
+                Instance instance = ((InstanceNode)value).getInstance();
+                if (instance != null && instance.getDistanceToGcRoot() != Integer.MAX_VALUE) {
+                  append(String.valueOf(instance.getTotalRetainedSize()), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+                }
+                setTextAlign(SwingConstants.RIGHT);
               }
-              setTextAlign(SwingConstants.RIGHT);
             }
           })
       );
