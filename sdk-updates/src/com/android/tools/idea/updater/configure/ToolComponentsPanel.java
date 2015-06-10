@@ -74,6 +74,7 @@ public class ToolComponentsPanel {
   private void updateToolsItems() {
     myToolsDetailsRootNode.removeAllChildren();
     myToolsSummaryRootNode.removeAllChildren();
+    myStates.clear();
 
     Set<UpdaterTreeNode> buildToolsNodes = Sets.newHashSet();
     UpdaterTreeNode buildToolsParent = new ParentTreeNode(null) {
@@ -108,7 +109,7 @@ public class ToolComponentsPanel {
         myToolsSummaryRootNode.add(new PlatformDetailsTreeNode(holder, myIncludePreview));
       }
     }
-
+    refreshModified();
     myToolsDetailTable.updateUI();
     myToolsSummaryTable.updateUI();
     TreeUtil.expandAll(myToolsDetailTable.getTree());
