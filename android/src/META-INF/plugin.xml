@@ -624,7 +624,8 @@
                     serviceImplementation="com.android.tools.idea.structure.gradle.AndroidProjectSettingsService"
                     overrides="true"/>
     <projectService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureService"/>
-    <projectService serviceImplementation="com.android.tools.idea.run.ResourceIdResolver" />
+    <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
+                    serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
 
     <applicationConfigurable groupId="build" groupWeight="200" instance="com.android.tools.idea.run.CloudTestingConfigurable"/>
 
@@ -713,9 +714,11 @@
     <testSrcLocator implementation="org.jetbrains.android.run.testing.AndroidTestLocationProvider"/>
     <junitPatcher implementation="com.android.tools.idea.gradle.AndroidJunitPatcher" />
 
-    <debugger.nodeRenderer implementation="com.android.tools.idea.run.BitmapRenderer" />
-    <debugger.nodeRenderer implementation="com.android.tools.idea.run.BitmapDrawableRenderer" />
-    <debugger.nodeRenderer implementation="com.android.tools.idea.run.AndroidTypedIntegerRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapDrawableRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.AndroidTypedIntegerRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.ArrayMapRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.SupportArrayMapRenderer" />
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
   </extensions>

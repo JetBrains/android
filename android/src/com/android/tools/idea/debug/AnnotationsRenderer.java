@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.debug;
 
 import com.android.SdkConstants;
 import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
@@ -45,7 +46,9 @@ public class AnnotationsRenderer {
   }
 
   @NotNull
-  public static Result render(@NotNull Project project, @NotNull PsiAnnotation annotation, int value) {
+  public static Result render(@Nullable ResourceIdResolver resolver,
+                              @NotNull PsiAnnotation annotation,
+                              int value) {
     String qualifiedName = getQualifiedName(annotation);
     if (qualifiedName == null) {
       return renderUnknown(null, value);
@@ -55,7 +58,7 @@ public class AnnotationsRenderer {
       return renderColorInt(value);
     }
     else if (qualifiedName.endsWith(SupportAnnotationDetector.RES_SUFFIX)) {
-      return renderResourceRefAnnotation(project, value, qualifiedName);
+      return renderResourceRefAnnotation(resolver, value, qualifiedName);
     }
     else if (qualifiedName.equals(SdkConstants.INT_DEF_ANNOTATION)) {
       return renderIntDefAnnotation(annotation, value);
@@ -109,10 +112,13 @@ public class AnnotationsRenderer {
   }
 
   @NotNull
-  private static Result renderResourceRefAnnotation(@NotNull Project project, int value, String qualifiedName) {
-    String androidRes = ResourceIdResolver.getInstance(project).getAndroidResourceName(value);
+  private static Result renderResourceRefAnnotation(@Nullable ResourceIdResolver resolver, int value, String qualifiedName) {
+    String androidRes = null;
+    if (resolver != null) {
+      androidRes = resolver.getAndroidResourceName(value);
+    }
+
     if (androidRes == null) {
-      // TODO: check app/lib resource
       return renderUnknown(qualifiedName, value);
     } else {
       String result = String.format(Locale.US, "0x%1$08x {%2$s}", value, androidRes);
@@ -127,8 +133,8 @@ public class AnnotationsRenderer {
 
     //noinspection UseJBColor
     final Color color = new Color(value, hasAlpha);
-    String result = String.format(Locale.US, "0x%1$08x {a=%2$02d r=%3$02d g=%4$02d b=%5$02d}",
-                                  value, color.getAlpha(), color.getRed(), color.getGreen(), color.getBlue());
+    String result = String.format(Locale.US, "0x%1$08x {a=%2$02d r=%3$02d g=%4$02d b=%5$02d}", value, color.getAlpha(), color.getRed(),
+                                  color.getGreen(), color.getBlue());
     return new Result(result, new ColorIcon(16, 12, color, true));
   }
 
