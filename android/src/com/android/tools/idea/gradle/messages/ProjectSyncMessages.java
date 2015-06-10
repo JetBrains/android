@@ -50,6 +50,7 @@ import com.intellij.pom.Navigatable;
 import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.util.Collection;
 import java.util.List;
@@ -179,6 +180,16 @@ public class ProjectSyncMessages {
     }
     else {
       group = UNRESOLVED_DEPENDENCIES;
+      if (isOfflineBuildModeEnabled(myProject)) {
+        NotificationHyperlink disableOfflineModeHyperlink = new NotificationHyperlink("disable.gradle.offline.mode", "Disable offline mode and Sync") {
+          @Override
+          protected void execute(@NotNull Project project) {
+            GradleSettings.getInstance(myProject).setOfflineWork(false);
+            GradleProjectImporter.getInstance().requestProjectSync(project, null);
+          }
+        };
+        hyperlinks.add(disableOfflineModeHyperlink);
+      }
     }
 
     String text = "Failed to resolve: " + dependency;
