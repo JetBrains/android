@@ -395,7 +395,13 @@ public class InstancesTree {
           DebuggerTreeNodeImpl root = (DebuggerTreeNodeImpl)mutableModel.getRoot();
 
           sortTree(root);
+
+          selectionModel.setSelectionLocked(true);
+          TreePath selectionPath = myDebuggerTree.getSelectionPath();
           mutableModel.nodeStructureChanged(root);
+          myDebuggerTree.setSelectionPath(selectionPath);
+          myDebuggerTree.scrollPathToVisible(selectionPath);
+          selectionModel.setSelectionLocked(false);
         }
       }
     });
