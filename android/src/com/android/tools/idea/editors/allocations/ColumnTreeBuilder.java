@@ -303,6 +303,7 @@ public class ColumnTreeBuilder {
   public static class ColumnBuilder {
     private String myName;
     private int myWidth;
+    private int myHeaderAlignment;
     private Comparator<?> myComparator;
     private ColoredTreeCellRenderer myRenderer;
 
@@ -316,6 +317,11 @@ public class ColumnTreeBuilder {
       return this;
     }
 
+    public ColumnBuilder setHeaderAlignment(int alignment) {
+      myHeaderAlignment = alignment;
+      return this;
+    }
+
     public void create(DefaultTableModel model) {
       model.addColumn(myName);
     }
@@ -323,6 +329,20 @@ public class ColumnTreeBuilder {
     public void configure(JTable table, TableRowSorter<TableModel> sorter, ColumnTreeCellRenderer renderer) {
       TableColumn column = table.getColumn(myName);
       column.setPreferredWidth(myWidth);
+
+      final TableCellRenderer tableCellRenderer = table.getTableHeader().getDefaultRenderer();
+      column.setHeaderRenderer(new DefaultTableCellRenderer() {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus, int row, int column) {
+          Component component = tableCellRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+          if (component instanceof JLabel) {
+            ((JLabel)component).setHorizontalAlignment(myHeaderAlignment);
+          }
+          return component;
+        }
+      });
+
       if (myComparator != null) {
         sorter.setComparator(column.getModelIndex(), myComparator);
       }
