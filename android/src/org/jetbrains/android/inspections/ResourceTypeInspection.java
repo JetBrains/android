@@ -417,7 +417,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           fixes = list.toArray(new LocalQuickFix[list.size()]);
         }
         holder.registerProblem(methodCall, message, fixes);
-      } else if (requirement.isRevocable() && AndroidModuleInfo.get(facet).getTargetSdkVersion().getFeatureLevel() >= 23) {
+      } else if (requirement.isRevocable(lookup) && AndroidModuleInfo.get(facet).getTargetSdkVersion().getFeatureLevel() >= 23) {
         JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
         PsiClass securityException = psiFacade.findClass("java.lang.SecurityException", GlobalSearchScope.allScope(project));
         if (securityException != null && ExceptionUtil.isHandled(PsiTypesUtil.getClassType(securityException), methodCall)) {
@@ -434,7 +434,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
             }
           }
 
-          holder.registerProblem(methodCall, getUnhandledPermissionMessage(), new AddCheckPermissionFix(facet, requirement, methodCall));
+          Set<String> revocablePermissions = requirement.getRevocablePermissions(lookup);
+          AddCheckPermissionFix fix = new AddCheckPermissionFix(facet, requirement, methodCall, revocablePermissions);
+          holder.registerProblem(methodCall, getUnhandledPermissionMessage(), fix);
         }
       }
     }
@@ -569,12 +571,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   private static class AddCheckPermissionFix implements LocalQuickFix {
     private final AndroidFacet myFacet;
     private final PermissionRequirement myRequirement;
+    private final Set<String> myRevocablePermissions;
     private final PsiCallExpression myCall;
 
-    public AddCheckPermissionFix(AndroidFacet facet, PermissionRequirement requirement, PsiCallExpression call) {
+    public AddCheckPermissionFix(AndroidFacet facet, PermissionRequirement requirement, PsiCallExpression call,
+                                 Set<String> revocablePermissions) {
       myFacet = facet;
       myRequirement = requirement;
       myCall = call;
+      myRevocablePermissions = revocablePermissions;
     }
 
     @Nls
@@ -602,9 +607,6 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         return; // highly unlikely
       }
 
-      Set<String> revocablePermissions = myRequirement.getRevocablePermissions();
-
-
       JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
       PsiClass manifest = facade.findClass("android.Manifest.permission", GlobalSearchScope.moduleWithLibrariesScope(myFacet.getModule()));
       Map<String, PsiField> permissionNames;
@@ -631,9 +633,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       // In that case, we check that you do not have COARSE, *and* that you do not have FINE,
       // before we exit.
       BinaryOperator operator = myRequirement.getOperator();
-      if (operator == null) {
-        operator = BinaryOperator.LOGICAL_OR;
-      } else if (operator == BinaryOperator.LOGICAL_AND) {
+      if (operator == null || operator == BinaryOperator.LOGICAL_AND) {
         operator = BinaryOperator.LOGICAL_OR;
       } else if (operator == BinaryOperator.LOGICAL_OR) {
         operator = BinaryOperator.LOGICAL_AND;
@@ -643,7 +643,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       StringBuilder sb = new StringBuilder(200);
       sb.append("if (");
       boolean first = true;
-      for (String permission : revocablePermissions) {
+      for (String permission : myRevocablePermissions) {
         if (first) {
           first = false;
         } else {
