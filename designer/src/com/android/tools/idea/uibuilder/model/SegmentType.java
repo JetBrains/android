@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 
 import java.awt.*;
 
@@ -27,43 +27,43 @@ public enum SegmentType {
   /**
    * Segment is on start side (left if LTR, right if RTL).
    */
-  @NotNull START,
+  @NonNull START,
   /**
    * Segment is on end side (right if LTR, left if RTL).
    */
-  @NotNull END,
+  @NonNull END,
   /**
    * Segment is on the left edge
    */
-  @NotNull LEFT,
+  @NonNull LEFT,
   /**
    * Segment is on the top edge
    */
-  @NotNull TOP,
+  @NonNull TOP,
   /**
    * Segment is on the right edge
    */
-  @NotNull RIGHT,
+  @NonNull RIGHT,
   /**
    * Segment is on the bottom edge
    */
-  @NotNull BOTTOM,
+  @NonNull BOTTOM,
   /**
    * Segment is along the baseline
    */
-  @NotNull BASELINE,
+  @NonNull BASELINE,
   /**
    * Segment is along the center vertically
    */
-  @NotNull CENTER_VERTICAL,
+  @NonNull CENTER_VERTICAL,
   /**
    * Segment is along the center horizontally
    */
-  @NotNull CENTER_HORIZONTAL,
+  @NonNull CENTER_HORIZONTAL,
   /**
    * Segment is on an unknown edge
    */
-  @NotNull UNKNOWN;
+  @NonNull UNKNOWN;
 
   public boolean isHorizontal() {
     return this == TOP || this == BOTTOM || this == BASELINE || this == CENTER_HORIZONTAL;
@@ -76,9 +76,9 @@ public enum SegmentType {
    * @param bounds the bounds of the node
    * @return the X coordinate for an edge of this type given its bounds
    */
-  public int getX(@NotNull TextDirection textDirection,
+  public int getX(@NonNull TextDirection textDirection,
                   @SuppressWarnings("UnusedParameters") @Nullable NlComponent node,
-                  @NotNull Rectangle bounds) {
+                  @NonNull Rectangle bounds) {
     SegmentType me = this;
     switch(this) {
       case START:
@@ -116,7 +116,7 @@ public enum SegmentType {
    * @param bounds the bounds of the node
    * @return the Y coordinate for an edge of this type given its bounds
    */
-  public int getY(@Nullable NlComponent node, @NotNull Rectangle bounds) {
+  public int getY(@Nullable NlComponent node, @NonNull Rectangle bounds) {
     switch (this) {
       case TOP:
         return bounds.y;

@@ -67,7 +67,7 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
   @NonNull
   @Override
   public String getName() {
-    return "Nele";
+    return "Design";
   }
 
   @Override

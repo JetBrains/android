@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import org.jetbrains.annotations.NotNull;
+import com.android.annotations.NonNull;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -43,7 +43,7 @@ public enum FillPolicy {
   /** This view wants to fill vertically, but only in a horizontal context */
   HEIGHT_IN_HORIZONTAL;
 
-  static Map<String, FillPolicy> ourNameToPolicy = new HashMap<String, FillPolicy>();
+  static final Map<String, FillPolicy> ourNameToPolicy = new HashMap<String, FillPolicy>();
   static {
     for (FillPolicy pref : FillPolicy.values()) {
       ourNameToPolicy.put(pref.toString().toLowerCase(Locale.US), pref);
@@ -92,8 +92,8 @@ public enum FillPolicy {
    * @param component the component to look up a resize policy for
    * @return a suitable {@linkplain com.android.tools.idea.designer.ResizePolicy}
    */
-  @NotNull
-  public static FillPolicy getFillPreference(@NotNull NlComponent component) {
+  @NonNull
+  public static FillPolicy getFillPreference(@NonNull NlComponent component) {
     return BOTH;
   }
 }

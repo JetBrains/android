@@ -32,8 +32,7 @@ import com.intellij.ide.PasteProvider;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
@@ -41,7 +40,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -57,13 +55,13 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     super(new BorderLayout());
     setOpaque(true);
 
-    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(facet.getModule().getProject(), file);
+    final Project project = facet.getModule().getProject();
+    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
     assert xmlFile != null : file;
 
-    NlModel model = NlModel.create(editor, facet, xmlFile);
-    Disposer.register(editor, model);
-
-    mySurface = new DesignSurface(model);
+    mySurface = new DesignSurface(project);
+    NlModel model = NlModel.create(mySurface, editor, facet, xmlFile);
+    mySurface.setModel(model);
 
     myContentSplitter = new ThreeComponentsSplitter();
     Disposer.register(editor, myContentSplitter);
@@ -81,7 +79,8 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     myContentSplitter.setInnerComponent(contentPanel);
     add(myContentSplitter, BorderLayout.CENTER);
 
-    model.requestRender();
+    // When you're opening the layout editor we don't want to delay anything
+    model.requestRenderAsap();
   }
 
   @Nullable
@@ -128,60 +127,66 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     }
 
     @Override
-    public void performCopy(@NotNull DataContext dataContext) {
+    public void performCopy(@NonNull DataContext dataContext) {
     }
 
     @Override
-    public boolean isCopyEnabled(@NotNull DataContext dataContext) {
-      return !myEditor.getSurface().getCurrentScreenView().getSelectionModel().isEmpty();
+    public boolean isCopyEnabled(@NonNull DataContext dataContext) {
+      ScreenView screenView = myEditor.getSurface().getCurrentScreenView();
+      return screenView != null && !screenView.getSelectionModel().isEmpty();
     }
 
     @Override
-    public boolean isCopyVisible(@NotNull DataContext dataContext) {
+    public boolean isCopyVisible(@NonNull DataContext dataContext) {
       return false;
     }
 
     @Override
-    public void performCut(@NotNull DataContext dataContext) {
+    public void performCut(@NonNull DataContext dataContext) {
     }
 
     @Override
-    public boolean isCutEnabled(@NotNull DataContext dataContext) {
-      return !myEditor.getSurface().getCurrentScreenView().getSelectionModel().isEmpty();
+    public boolean isCutEnabled(@NonNull DataContext dataContext) {
+      ScreenView screenView = myEditor.getSurface().getCurrentScreenView();
+      return screenView != null && !screenView.getSelectionModel().isEmpty();
     }
 
     @Override
-    public boolean isCutVisible(@NotNull DataContext dataContext) {
+    public boolean isCutVisible(@NonNull DataContext dataContext) {
       return false;
     }
 
     @Override
-    public void deleteElement(@NotNull DataContext dataContext) {
+    public void deleteElement(@NonNull DataContext dataContext) {
       DesignSurface surface = myEditor.getSurface();
       ScreenView screenView = surface.getCurrentScreenView();
+      if (screenView == null) {
+        return;
+      }
       SelectionModel selectionModel = screenView.getSelectionModel();
       NlModel model = screenView.getModel();
-      model.delete(Lists.newArrayList(selectionModel.getSelection()));
+      model.delete(selectionModel.getSelection());
       model.requestRender();
     }
 
     @Override
-    public boolean canDeleteElement(@NotNull DataContext dataContext) {
-      return !myEditor.getSurface().getCurrentScreenView().getSelectionModel().isEmpty();
+    public boolean canDeleteElement(@NonNull DataContext dataContext) {
+      ScreenView screenView = myEditor.getSurface().getCurrentScreenView();
+      return screenView != null && !screenView.getSelectionModel().isEmpty();
     }
 
     @Override
-    public void performPaste(@NotNull DataContext dataContext) {
+    public void performPaste(@NonNull DataContext dataContext) {
     }
 
     @Override
-    public boolean isPastePossible(@NotNull DataContext dataContext) {
+    public boolean isPastePossible(@NonNull DataContext dataContext) {
       // TODO: Look at clipboard
       return false;
     }
 
     @Override
-    public boolean isPasteEnabled(@NotNull DataContext dataContext) {
+    public boolean isPasteEnabled(@NonNull DataContext dataContext) {
       // TODO: Look at clipboard
       return false;
     }

@@ -22,14 +22,11 @@ import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.*;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.MAX_MATCH_DISTANCE;
 
 /**
@@ -80,7 +77,7 @@ public class DefaultResizeHandler extends ResizeHandler {
 
     Map<NlComponent, Dimension> sizes = editor.measureChildren(layout, new RenderTask.AttributeFilter() {
       @Override
-      public String getAttribute(@NotNull XmlTag n, @Nullable String namespace, @NotNull String localName) {
+      public String getAttribute(@NonNull XmlTag n, @Nullable String namespace, @NonNull String localName) {
         // Change attributes to wrap_content
         if (ATTR_LAYOUT_WIDTH.equals(localName) && ANDROID_URI.equals(namespace)) {
           return VALUE_WRAP_CONTENT;

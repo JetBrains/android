@@ -36,6 +36,12 @@
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.handlers.ViewHandlerManager</implementation-class>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.uibuilder.editor.NlPreviewManager</implementation-class>
+      <skipForDefaultProject/>
+      <headless-implementation-class/>
+    </component>
+
   </project-components>
 
 </idea-plugin>

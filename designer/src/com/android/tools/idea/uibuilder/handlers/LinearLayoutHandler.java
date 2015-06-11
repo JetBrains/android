@@ -25,7 +25,6 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -259,11 +258,6 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       myNumPositions = layout.getChildCount() + 1;
     }
 
-    @Override
-    public void start(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
-      super.start(x, y, modifiers);
-    }
-
     @Nullable
     @Override
     public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
@@ -463,9 +457,9 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   /** A possible match position */
   private static class MatchPos {
     /** The pixel distance */
-    private int myDistance;
+    private final int myDistance;
     /** The position among siblings */
-    private int myPosition;
+    private final int myPosition;
 
     public MatchPos(int distance, int position) {
       myDistance = distance;
@@ -580,9 +574,9 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
       unweightedSizes = editor.measureChildren(layout, new RenderTask.AttributeFilter() {
                                                  @Override
-                                                 public String getAttribute(@NotNull XmlTag n,
+                                                 public String getAttribute(@NonNull XmlTag n,
                                                                             @Nullable String namespace,
-                                                                            @NotNull String localName) {
+                                                                            @NonNull String localName) {
                                                    // Clear out layout weights; we need to measure the unweighted sizes
                                                    // of the children
                                                    if (ATTR_LAYOUT_WEIGHT.equals(localName) && ANDROID_URI.equals(namespace)) {
@@ -762,10 +756,10 @@ public class LinearLayoutHandler extends ViewGroupHandler {
      * layout_height (for vertical LinearLayouts).
      */
     @Override
-    protected void setNewSizeBounds(@NotNull NlComponent component,
-                                    @NotNull NlComponent layout,
-                                    @NotNull Rectangle oldBounds,
-                                    @NotNull Rectangle newBounds,
+    protected void setNewSizeBounds(@NonNull NlComponent component,
+                                    @NonNull NlComponent layout,
+                                    @NonNull Rectangle oldBounds,
+                                    @NonNull Rectangle newBounds,
                                     @Nullable SegmentType horizontalEdge,
                                     @Nullable SegmentType verticalEdge) {
       updateResizeState(component, layout, oldBounds, newBounds, horizontalEdge, verticalEdge);
@@ -793,9 +787,9 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
 
     @Override
-    protected String getResizeUpdateMessage(@NotNull NlComponent child,
-                                            @NotNull NlComponent parent,
-                                            @NotNull Rectangle newBounds,
+    protected String getResizeUpdateMessage(@NonNull NlComponent child,
+                                            @NonNull NlComponent parent,
+                                            @NonNull Rectangle newBounds,
                                             @Nullable SegmentType horizontalEdge,
                                             @Nullable SegmentType verticalEdge) {
       updateResizeState(child, parent, newBounds, newBounds,

@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.intellij.psi.xml.XmlFile;
 import org.intellij.lang.annotations.Language;
@@ -41,7 +42,9 @@ public class InteractionManagerTest extends LayoutTestCase {
                     "</LinearLayout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
 
-    ScreenView screenView = createScreen(createModel(myFacet, xmlFile), new SelectionModel());
+    DesignSurface surface = createSurface();
+    NlModel model = createModel(surface, myFacet, xmlFile);
+    ScreenView screenView = createScreen(surface, model, new SelectionModel());
     DesignSurface designSurface = screenView.getSurface();
     InteractionManager manager = createManager(designSurface);
 

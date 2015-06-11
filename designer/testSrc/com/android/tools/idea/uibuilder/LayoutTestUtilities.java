@@ -122,15 +122,15 @@ public class LayoutTestUtilities {
     verify(context, times(1)).dropComplete(true);
   }
 
-  public static NlModel createModel(AndroidFacet facet, XmlFile xmlFile) {
-    return NlModel.create(null, facet, xmlFile);
+  public static NlModel createModel(DesignSurface surface, AndroidFacet facet, XmlFile xmlFile) {
+    return NlModel.create(surface, null, facet, xmlFile);
   }
 
-  public static ScreenView createScreen(NlModel model, SelectionModel selectionModel) {
-    return createScreen(model, selectionModel, 1, 0, 0, Density.MEDIUM);
+  public static ScreenView createScreen(DesignSurface surface, NlModel model, SelectionModel selectionModel) {
+    return createScreen(surface, model, selectionModel, 1, 0, 0, Density.MEDIUM);
   }
 
-  public static ScreenView createScreen(NlModel model, SelectionModel selectionModel, double scale,
+  public static ScreenView createScreen(DesignSurface surface, NlModel model, SelectionModel selectionModel, double scale,
                                         @SwingCoordinate int x, @SwingCoordinate int y, Density density) {
     Configuration configuration = mock(Configuration.class);
     when(configuration.getDensity()).thenReturn(density);
@@ -144,17 +144,16 @@ public class LayoutTestUtilities {
     when(screenView.getX()).thenReturn(x);
     when(screenView.getY()).thenReturn(y);
     when(screenView.getConfiguration()).thenReturn(configuration);
-    DesignSurface surface = createSurface(screenView);
+    when(surface.getScreenView(anyInt(), anyInt())).thenReturn(screenView);
     when(screenView.getSurface()).thenReturn(surface);
 
     return screenView;
   }
 
-  public static DesignSurface createSurface(ScreenView screenView) {
+  public static DesignSurface createSurface() {
     JComponent layeredPane = new JPanel();
     DesignSurface surface = mock(DesignSurface.class);
     when(surface.getLayeredPane()).thenReturn(layeredPane);
-    when(surface.getScreenView(anyInt(), anyInt())).thenReturn(screenView);
     return surface;
   }
 
