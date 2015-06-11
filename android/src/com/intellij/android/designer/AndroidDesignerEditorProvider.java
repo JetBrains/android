@@ -16,6 +16,7 @@
 package com.intellij.android.designer;
 
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.rendering.RenderService;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -32,9 +33,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.SdkConstants.VALUE_FALSE;
-
 /**
  * @author Alexander Lobas
  */
@@ -43,13 +41,13 @@ public final class AndroidDesignerEditorProvider implements FileEditorProvider, 
   public static final String ANDROID_DESIGNER_ID = "android-designer";
 
   public static boolean acceptLayout(final @NotNull Project project, final @NotNull VirtualFile file) {
+    if (RenderService.NELE_ENABLED) {
+      return false;
+    }
     PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
     return psiFile instanceof XmlFile &&
            AndroidFacet.getInstance(psiFile) != null &&
-           LayoutDomFileDescription.isLayoutFile((XmlFile)psiFile) &&
-           // Only show if not deliberately intended for Nele for now
-           (AndroidPsiUtils.getRootTagAttributeSafely((XmlFile)psiFile, "nele", TOOLS_URI) == null ||
-           VALUE_FALSE.equals(AndroidPsiUtils.getRootTagAttributeSafely((XmlFile)psiFile, "nele", TOOLS_URI)));
+           LayoutDomFileDescription.isLayoutFile((XmlFile)psiFile);
   }
 
   @Override

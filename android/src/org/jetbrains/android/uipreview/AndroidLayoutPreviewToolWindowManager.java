@@ -106,6 +106,11 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     myProject = project;
     myFileEditorManager = fileEditorManager;
 
+    if (RenderService.NELE_ENABLED) {
+      myToolWindowUpdateQueue = null;
+      return;
+    }
+
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.preview", 100, true, null, project);
 
     final MessageBusConnection connection = project.getMessageBus().connect(project);
@@ -295,6 +300,10 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
   @Override
   public void projectOpened() {
+    if (RenderService.NELE_ENABLED) {
+      return;
+    }
+
     StartupManager.getInstance(myProject).registerPostStartupActivity(new Runnable() {
       @Override
       public void run() {
