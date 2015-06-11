@@ -124,7 +124,7 @@ public class RemoteSdk {
     // It must end with a / and its the location where the updater will look for
     // the repository.xml, addons_list.xml and such files.
 
-    if (expired || !mSdkSources.hasSources(SdkSourceCategory.ANDROID_REPO)) {
+    if (expired || !mSdkSources.sourcesLoaded(SdkSourceCategory.ANDROID_REPO)) {
       String baseUrl = System.getenv("SDK_TEST_BASE_URL");                        //$NON-NLS-1$
       if (baseUrl == null || baseUrl.length() <= 0 || !baseUrl.endsWith("/")) {   //$NON-NLS-1$
         baseUrl = SdkRepoConstants.URL_GOOGLE_SDK_SITE;
@@ -137,11 +137,11 @@ public class RemoteSdk {
     // Load user sources (this will also notify change listeners but this operation is
     // done early enough that there shouldn't be any anyway.)
     // Don't refresh sources, as this doesn't really change except within the sdk manager, which manages refreshes separately.
-    if (!mSdkSources.hasSources(SdkSourceCategory.USER_ADDONS)) {
+    if (!mSdkSources.sourcesLoaded(SdkSourceCategory.USER_ADDONS)) {
       mSdkSources.loadUserAddons(logger);
     }
 
-    if (expired || !mSdkSources.hasSources(SdkSourceCategory.ADDONS_3RD_PARTY)) {
+    if (expired || !mSdkSources.sourcesLoaded(SdkSourceCategory.ADDONS_3RD_PARTY)) {
       ITaskMonitor tempMonitor = new NullTaskMonitor(logger);
 
       String url = SdkAddonsListConstants.URL_ADDON_LIST;
