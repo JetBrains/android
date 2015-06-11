@@ -205,7 +205,7 @@ public class ThemeEditorUtils {
     if (desiredClass == Boolean.class && ("true".equals(value) || "false".equals(value))) {
       return Boolean.valueOf(value);
     }
-    if (desiredClass == Integer.class && value != null) {
+    if (desiredClass == Integer.class) {
       try {
         return Integer.parseInt(value);
       } catch (NumberFormatException e) {
@@ -333,9 +333,12 @@ public class ThemeEditorUtils {
 
   /**
    * Returns the Api level at which was defined the attribute or value with the name passed as argument.
-   * Returns -1 if the argument is not the name of a framework attribute or resource.
+   * Returns -1 if the name argument is null or not the name of a framework attribute or resource.
    */
-  public static int getOriginalApiLevel(@NotNull String name, @NotNull Project project) {
+  public static int getOriginalApiLevel(@Nullable String name, @NotNull Project project) {
+    if (name == null) {
+      return -1;
+    }
     boolean isAttribute;
     if (name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
       isAttribute = true;
