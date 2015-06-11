@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.components.JBLabel;
@@ -31,28 +33,26 @@ import com.intellij.util.Alarm;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.util.Collections;
 
 public class NlPropertiesPanel extends JPanel implements ChangeListener {
   private final PTable myTable;
-  private final ScreenView myScreenView;
   private final NlPropertiesModel myModel;
+  private ScreenView myScreenView;
   private MergingUpdateQueue myUpdateQueue;
   private JBLabel mySelectedComponentLabel;
 
-  public NlPropertiesPanel(@NotNull ScreenView screenView) {
+  public NlPropertiesPanel(@NonNull DesignSurface designSurface) {
     super(new BorderLayout());
     setOpaque(true);
     setFocusable(true);
     setRequestFocusEnabled(true);
     setBackground(UIUtil.TRANSPARENT_COLOR);
-
-    myScreenView = screenView;
 
     myModel = new NlPropertiesModel();
     myTable = new PTable(myModel);
@@ -63,10 +63,10 @@ public class NlPropertiesPanel extends JPanel implements ChangeListener {
     add(headerPanel, BorderLayout.NORTH);
     add(new JBScrollPane(myTable), BorderLayout.CENTER);
 
-    myScreenView.getSelectionModel().addListener(this);
+    setDesignSurface(designSurface);
   }
 
-  @NotNull
+  @NonNull
   private JPanel createHeaderPanel() {
     JBPanel panel = new JBPanel(new BorderLayout());
 
@@ -81,17 +81,31 @@ public class NlPropertiesPanel extends JPanel implements ChangeListener {
     return panel;
   }
 
+  public void setDesignSurface(@Nullable DesignSurface designSurface) {
+    if (myScreenView != null) {
+      myScreenView.getSelectionModel().removeListener(this);
+    }
+    myScreenView = designSurface != null ? designSurface.getCurrentScreenView() : null;
+    if (myScreenView != null) {
+      myScreenView.getSelectionModel().addListener(this);
+    }
+    stateChanged(null);
+  }
+
   @Override
   public void stateChanged(ChangeEvent e) {
     myTable.setPaintBusy(true);
     getUpdateQueue().queue(new Update("updateProperties") {
       @Override
       public void run() {
-        myModel.update(myScreenView.getSelectionModel().getSelection(), new Runnable() {
+        final Iterable<NlComponent> selection =
+          myScreenView != null ? myScreenView.getSelectionModel().getSelection() : Collections.EMPTY_LIST;
+
+        myModel.update(selection, new Runnable() {
           @Override
           public void run() {
             // TODO: handle multiple selections
-            final NlComponent first = Iterables.getFirst(myScreenView.getSelectionModel().getSelection(), null);
+            final NlComponent first = Iterables.getFirst(selection, null);
             if (first != null) {
               mySelectedComponentLabel.setText(first.getTagName());
             }
@@ -107,7 +121,7 @@ public class NlPropertiesPanel extends JPanel implements ChangeListener {
     });
   }
 
-  @NotNull
+  @NonNull
   private MergingUpdateQueue getUpdateQueue() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
