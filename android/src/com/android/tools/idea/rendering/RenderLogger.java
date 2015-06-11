@@ -406,6 +406,10 @@ public class RenderLogger extends LayoutLog {
   public void warning(@Nullable String tag, @NotNull String message, @Nullable Object data) {
     String description = describe(message);
 
+    if (TAG_INFO.equals(tag)) {
+      Logger.getInstance(getClass()).info(description);
+      return;
+    }
     if (TAG_RESOURCES_FORMAT.equals(tag)) {
       // TODO: Accumulate multiple hits of this form and synthesize into one
       if (description.equals("You must supply a layout_width attribute.")       //$NON-NLS-1$
