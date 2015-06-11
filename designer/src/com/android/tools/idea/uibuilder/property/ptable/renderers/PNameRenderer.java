@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.property.ptable.renderers;
 
+import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,7 +55,11 @@ public class PNameRenderer implements TableCellRenderer {
     }
 
     myRenderer.setIpad(new Insets(0, indent, 0, 0));
-    myRenderer.append(item.getName());
+
+    SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
+    SearchUtil.appendFragments(((PTable)table).getSpeedSearch().getEnteredPrefix(), item.getName(), attr.getStyle(), attr.getFgColor(),
+                               attr.getBgColor(), myRenderer);
+
     myRenderer.setToolTipText(item.getTooltipText());
     return myRenderer;
   }
