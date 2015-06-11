@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.graphics;
 
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 
 import java.awt.*;
 
@@ -28,6 +30,8 @@ public class NlConstants {
 
   public static final int DEFAULT_SCREEN_OFFSET_X = 50;
   public static final int DEFAULT_SCREEN_OFFSET_Y = 50;
+  /** Distance between blueprint screen and regular screen */
+  public static final int SCREEN_DELTA = 10;
 
   /**
    * The maximum number of pixels will be considered a "match" when snapping
@@ -35,23 +39,24 @@ public class NlConstants {
    */
   public static final int MAX_MATCH_DISTANCE = 20;
 
-  // Colors are not Darcula sensitive yet: using same color for dark & light
   @SuppressWarnings("UseJBColor")
-  public static JBColor RULER_BG = new JBColor(Color.WHITE, Color.WHITE);
+  public static final JBColor RULER_BG = new JBColor(Color.WHITE, ColorUtil.brighter(UIUtil.getListBackground(), 1));
   @SuppressWarnings("UseJBColor")
-  public static JBColor BOUNDS_RECT_COLOR = new JBColor(Color.GRAY, Color.GRAY);
-  public static JBColor RULER_TICK_COLOR = new JBColor(0xdbdbdb, 0xdbdbdb);
-  public static JBColor RULER_TEXT_COLOR = new JBColor(0x959595, 0x959595);
-  public static Font RULER_TEXT_FONT = JBUI.Fonts.miniFont();
+  public static final JBColor BOUNDS_RECT_COLOR = new JBColor(Color.GRAY, UIUtil.getListForeground());
+  public static final JBColor RULER_TICK_COLOR = new JBColor(0xdbdbdb, UIUtil.getListForeground().darker().getRGB());
+  public static final JBColor RULER_TEXT_COLOR = new JBColor(0x959595, UIUtil.getListForeground().getRGB());
+  public static final Font RULER_TEXT_FONT = JBUI.Fonts.miniFont();
 
-  public static Font BLUEPRINT_TEXT_FONT = RULER_TEXT_FONT;
-  public static Color BLUEPRINT_BG_COLOR = new Color(0x133572);
-  public static Color BLUEPRINT_GRID_COLOR = new Color(0x17397b);
-  public static Color BLUEPRINT_FG_COLOR = new Color(0x6196c8);
-  public static Stroke BLUEPRINT_COMPONENT_STROKE = NlDrawingStyle.THICK_SOLID_STROKE;
+  public static final Font BLUEPRINT_TEXT_FONT = RULER_TEXT_FONT;
+  @SuppressWarnings("UseJBColor")
+  public static final Color BLUEPRINT_BG_COLOR = new Color(0x133572);
+  @SuppressWarnings("UseJBColor")
+  public static final Color BLUEPRINT_GRID_COLOR = new Color(0x17397b);
+  @SuppressWarnings("UseJBColor") public static final Color BLUEPRINT_FG_COLOR = new Color(0x6196c8);
+  public static final Stroke BLUEPRINT_COMPONENT_STROKE = NlDrawingStyle.THIN_SOLID_STROKE;
 
 
-  public static JBColor DESIGN_SURFACE_BG = new JBColor(0xf2f2f2, 0xf2f2f2);
+  public static final JBColor DESIGN_SURFACE_BG = new JBColor(0xf2f2f2, UIUtil.getListBackground().getRGB());
 
   public static final BasicStroke SOLID_STROKE = new BasicStroke(1.0f);
   public static final BasicStroke THICK_SOLID_STROKE = new BasicStroke(2.0f);

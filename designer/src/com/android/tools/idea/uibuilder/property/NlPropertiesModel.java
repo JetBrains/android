@@ -18,9 +18,7 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,9 +30,9 @@ public class NlPropertiesModel extends PTableModel {
   @Nullable private NlComponent myComponent;
   private boolean myShowingExpertProperties;
 
-  public void update(@NotNull Iterable<NlComponent> selection, @Nullable final Runnable postUpdateRunnable) {
+  public void update(@NotNull List<NlComponent> selection, @Nullable final Runnable postUpdateRunnable) {
     // TODO: handle multiple selections: show properties common to all selections
-    final NlComponent first = Iterables.getFirst(selection, null);
+    final NlComponent first = selection.isEmpty() ? null : selection.get(0);
     myComponent = first;
     if (first == null) {
       setItems(Collections.<PTableItem>emptyList());

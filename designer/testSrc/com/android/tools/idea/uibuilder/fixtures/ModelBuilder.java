@@ -33,6 +33,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import java.util.List;
 
 import static com.android.SdkConstants.DOT_XML;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
 
 /** Fixture for building up models for tests */
 public class ModelBuilder {
@@ -79,14 +80,11 @@ public class ModelBuilder {
         infos.add(myRoot.createViewInfo(null, rootTag));
         XmlDocument document = xmlFile.getDocument();
         TestCase.assertNotNull(document);
-        NlModel model = new NlModel(null, myFacet, xmlFile) {
+        NlModel model = new NlModel(createSurface(), null, myFacet, xmlFile) {
           @Override
-          public boolean requestRender() {
+          public void requestRender() {
             // Never do async rendering from these tests
-            return false;
           }
-
-          ;
         };
         model.updateHierarchy(infos);
         return model;

@@ -27,7 +27,6 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.Collections;
@@ -87,6 +86,9 @@ public class ResizeInteraction extends Interaction {
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
     moveTo(x, y, modifiers, !canceled);
+    if (!canceled) {
+      myScreenView.getModel().renderImmediately();
+    }
   }
 
   private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, final int modifiers, boolean commit) {
@@ -108,7 +110,7 @@ public class ResizeInteraction extends Interaction {
       String label = "Resize";
       WriteCommandAction action = new WriteCommandAction(project, label, file) {
         @Override
-        protected void run(@NotNull Result result) throws Throwable {
+        protected void run(@NonNull Result result) throws Throwable {
           myResizeHandler.commit(ax, ay, modifiers, newBounds);
         }
       };

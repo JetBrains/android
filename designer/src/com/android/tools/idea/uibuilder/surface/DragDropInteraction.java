@@ -28,7 +28,6 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.*;
@@ -109,10 +108,17 @@ public class DragDropInteraction extends Interaction {
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
     moveTo(x, y, modifiers, !canceled);
+    myScreenView = myDesignSurface.getScreenView(x, y);
+    if (myScreenView != null && !canceled) {
+      myScreenView.getModel().renderImmediately();
+    }
   }
 
   private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, final int modifiers, boolean commit) {
     myScreenView = myDesignSurface.getScreenView(x, y);
+    if (myScreenView == null) {
+      return;
+    }
     final int ax = Coordinates.getAndroidX(myScreenView, x);
     final int ay = Coordinates.getAndroidY(myScreenView, y);
 
@@ -163,7 +169,7 @@ public class DragDropInteraction extends Interaction {
         String label = myType.getDescription();
         WriteCommandAction action = new WriteCommandAction(project, label, file) {
           @Override
-          protected void run(@NotNull Result result) throws Throwable {
+          protected void run(@NonNull Result result) throws Throwable {
             myDragHandler.commit(ax, ay, modifiers); // TODO: Run this *after* making a copy
 
             NlComponent before = null;
@@ -245,6 +251,9 @@ public class DragDropInteraction extends Interaction {
   @Nullable
   private ViewGroupHandler findViewGroupHandlerAt(@AndroidCoordinate int x, @AndroidCoordinate int y) {
     final ScreenView screenView = myDesignSurface.getScreenView(x, y);
+    if (screenView == null) {
+      return null;
+    }
     NlModel model = screenView.getModel();
     NlComponent component = model.findLeafAt(x, y, true);
     component = excludeDraggedComponents(component);

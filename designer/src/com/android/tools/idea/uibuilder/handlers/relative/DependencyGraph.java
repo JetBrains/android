@@ -47,7 +47,7 @@ public class DependencyGraph {
   private static final String DEPENDENCY_FORMAT = "%1$s %2$s %3$s"; //$NON-NLS-1$
 
   /** Cache for {@link DependencyGraph} */
-  private static WeakHashMap<NlComponent, DependencyGraph> ourCache = new WeakHashMap<NlComponent, DependencyGraph>();
+  private static final WeakHashMap<NlComponent, DependencyGraph> ourCache = new WeakHashMap<NlComponent, DependencyGraph>();
 
   private final Map<NlComponent, ViewData> myNodeToView = new HashMap<NlComponent, ViewData>();
   private final long myModelVersion;
