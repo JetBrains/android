@@ -16,15 +16,14 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -41,6 +40,7 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
   // TODO(ddrone): replace untyped list to an explicit union type
   private SeparatedList myAllItems;
   private Object mySelectedObject;
+  private Module mySelectedModule;
 
   private final ArrayList<String> myEditThemeOptions = new ArrayList<String>();
 
@@ -95,10 +95,12 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
   @NotNull
   @Override
   public Object getElementAt(int index) {
-    return myAllItems.get(index);
+    Object item = myAllItems.get(index);
+    ThemeEditorStyle style = getStyle(item);
+    return style != null ? style : item;
   }
 
-  public static ThemeEditorStyle getStyle(final Object object) {
+  private static ThemeEditorStyle getStyle(final Object object) {
     if (object instanceof ThemeEditorStyle) {
       return (ThemeEditorStyle)object;
     }
@@ -113,18 +115,21 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     if (anItem instanceof JSeparator) {
       return;
     }
-    if (!Objects.equal(mySelectedObject, anItem)) {
+
+    ThemeEditorStyle selectedStyle = getStyle(anItem);
+    if (selectedStyle == null) {
       mySelectedObject = anItem;
-
-      ThemeEditorStyle selectedStyle = getStyle(mySelectedObject);
-
-      if (selectedStyle != null) {
-        if (myEditThemeOptions.size() == 2) {
-          myEditThemeOptions.remove(1);
-        }
-        if (selectedStyle.isProjectStyle()) {
-          myEditThemeOptions.add(renameOption());
-        }
+    }
+    else {
+      mySelectedObject = selectedStyle;
+      if (myEditThemeOptions.size() == 2) {
+        myEditThemeOptions.remove(1);
+      }
+      if (selectedStyle.isProjectStyle()) {
+        myEditThemeOptions.add(renameOption());
+      }
+      if (anItem instanceof ProjectThemeResolver.ThemeWithSource) {
+        mySelectedModule = ((ProjectThemeResolver.ThemeWithSource)anItem).getSourceModule();
       }
     }
 
@@ -143,5 +148,10 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     assert theme != null : "Theme should be selected to call renameOption()";
     assert theme.isProjectStyle();
     return RENAME + theme.getSimpleName();
+  }
+
+  @Nullable
+  public Module getSelectedModule() {
+    return mySelectedModule;
   }
 }

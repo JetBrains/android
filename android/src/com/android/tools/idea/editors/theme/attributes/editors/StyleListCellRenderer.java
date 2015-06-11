@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.editors.theme.ProjectThemeResolver;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
@@ -76,9 +75,6 @@ public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
       myStyleNameLabel.append((String)value);
       myDefaultLabel.setVisible(false);
       return this;
-    }
-    if (value instanceof ProjectThemeResolver.ThemeWithSource) {
-      value = ((ProjectThemeResolver.ThemeWithSource)value).getTheme();
     }
     if (!(value instanceof ThemeEditorStyle)) {
       return null;
