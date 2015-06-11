@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -31,8 +33,6 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -62,20 +62,21 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
   private final StructureTreeDecorator myDecorator;
   private final Map<XmlTag, DefaultMutableTreeNode> myTag2Node;
   private final AtomicBoolean mySelectionIsUpdating;
+  private final NlPropertiesPanel myPropertiesPanel;
 
   private NlModel myModel;
   private boolean myWasExpanded;
 
-  public NlStructurePanel(@NotNull DesignSurface designSurface) {
+  public NlStructurePanel(@NonNull DesignSurface designSurface) {
     myDecorator = StructureTreeDecorator.get();
     myTree = new DnDAwareTree();
     myTag2Node = new HashMap<XmlTag, DefaultMutableTreeNode>();
     mySelectionIsUpdating = new AtomicBoolean(false);
     JScrollPane pane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-    NlPropertiesPanel propertiesPanel = new NlPropertiesPanel(designSurface.getCurrentScreenView());
+    myPropertiesPanel = new NlPropertiesPanel(designSurface);
     Splitter splitter = new Splitter(true, 0.4f);
     splitter.setFirstComponent(pane);
-    splitter.setSecondComponent(propertiesPanel);
+    splitter.setSecondComponent(myPropertiesPanel);
     initTree();
     setLayout(new BorderLayout());
     add(splitter, BorderLayout.CENTER);
@@ -83,6 +84,8 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
   }
 
   public void setDesignSurface(@Nullable DesignSurface designSurface) {
+    myPropertiesPanel.setDesignSurface(designSurface);
+
     if (myModel != null) {
       myModel.removeListener(this);
       myModel.getSelectionModel().removeListener(this);
@@ -133,10 +136,10 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
 //todo:    enableDnD(myTree);
   }
 
-  private void createCellRenderer(@NotNull JTree tree) {
+  private void createCellRenderer(@NonNull JTree tree) {
     tree.setCellRenderer(new ColoredTreeCellRenderer() {
       @Override
-      public void customizeCellRenderer(@NotNull JTree tree,
+      public void customizeCellRenderer(@NonNull JTree tree,
                                         Object value,
                                         boolean selected,
                                         boolean expanded,
@@ -177,7 +180,7 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
     invalidateUI();
   }
 
-  private void replaceChildNodes(@NotNull DefaultMutableTreeNode node, @Nullable List<NlComponent> subComponents) {
+  private void replaceChildNodes(@NonNull DefaultMutableTreeNode node, @Nullable List<NlComponent> subComponents) {
     node.removeAllChildren();
     if (subComponents != null) {
       for (NlComponent child : subComponents) {
@@ -186,8 +189,8 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
     }
   }
 
-  @NotNull
-  private DefaultMutableTreeNode makeNode(@NotNull NlComponent component) {
+  @NonNull
+  private DefaultMutableTreeNode makeNode(@NonNull NlComponent component) {
     DefaultMutableTreeNode node = myTag2Node.get(component.getTag());
     if (node == null) {
       node = new DefaultMutableTreeNode(component);
@@ -288,12 +291,14 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
     }
     try {
       myTree.clearSelection();
-      for (NlComponent component : myModel.getSelectionModel().getSelection()) {
-        DefaultMutableTreeNode node = myTag2Node.get(component.getTag());
-        if (node != null) {
-          TreePath path = new TreePath(node.getPath());
-          myTree.expandPath(path);
-          myTree.addSelectionPath(path);
+      if (myModel != null) {
+        for (NlComponent component : myModel.getSelectionModel().getSelection()) {
+          DefaultMutableTreeNode node = myTag2Node.get(component.getTag());
+          if (node != null) {
+            TreePath path = new TreePath(node.getPath());
+            myTree.expandPath(path);
+            myTree.addSelectionPath(path);
+          }
         }
       }
     } finally {
