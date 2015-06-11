@@ -23,10 +23,8 @@ import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
-import com.google.common.collect.TreeMultimap;
+import com.google.common.base.Predicate;
+import com.google.common.collect.*;
 
 import java.util.Map;
 import java.util.Set;
@@ -108,7 +106,12 @@ public final class SdkPackages {
   }
 
   void setRemotePkgInfos(Multimap<PkgType, RemotePkgInfo> packages) {
-    myRemotePkgInfos = packages;
+    myRemotePkgInfos = Multimaps.filterValues(packages, new Predicate<RemotePkgInfo>() {
+      @Override
+      public boolean apply(RemotePkgInfo input) {
+        return input.hasCompatibleArchive();
+      }
+    });
     computeUpdates();
   }
 
