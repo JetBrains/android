@@ -16,7 +16,11 @@
 package com.android.tools.idea.uibuilder.property.ptable;
 
 import com.android.tools.idea.uibuilder.property.ptable.renderers.PNameRenderer;
+import com.intellij.ui.Cell;
+import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.PairFunction;
+import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +34,7 @@ import java.awt.event.MouseEvent;
 
 public class PTable extends JBTable {
   private final PNameRenderer myNameRenderer = new PNameRenderer();
+  private final TableSpeedSearch mySpeedSearch;
   private PTableModel myModel;
 
   private int myMouseHoverRow;
@@ -64,6 +69,14 @@ public class PTable extends JBTable {
     HoverListener hoverListener = new HoverListener();
     addMouseMotionListener(hoverListener);
     addMouseListener(hoverListener);
+
+    mySpeedSearch = new TableSpeedSearch(this, new PairFunction<Object, Cell, String>() {
+      @Override
+      public String fun(Object object, Cell cell) {
+        if (cell.column != 0) return null; // only match property names, not values
+        return object instanceof PTableItem ? ((PTableItem)object).getName() : null;
+      }
+    });
   }
 
   @Override
@@ -86,6 +99,10 @@ public class PTable extends JBTable {
   public TableCellEditor getCellEditor(int row, int column) {
     PTableItem value = (PTableItem)getValueAt(row, column);
     return value.getCellEditor();
+  }
+
+  public TableSpeedSearch getSpeedSearch() {
+    return mySpeedSearch;
   }
 
   public boolean isHover(int row, int col) {
