@@ -13,24 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.fixtures;
+package com.android.tools.idea.uibuilder.model;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
 
-public class SurfaceFixture {
-  private DesignSurface mySurface;
+import java.util.List;
 
-  public DesignSurface getSurface() {
-    if (mySurface == null) {
-      mySurface = LayoutTestUtilities.createSurface();
-    }
-    return mySurface;
-  }
-
-  public ScreenFixture screen(@NonNull NlModel model) {
-    return new ScreenFixture(this, model);
-  }
+/**
+ * Interface implemented by listeners on selection changes
+ */
+public interface SelectionListener {
+  void selectionChanged(@NonNull SelectionModel model, @NonNull List<NlComponent> selection);
 }

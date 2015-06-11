@@ -53,7 +53,7 @@ public class ViewGroupHandler extends ViewHandler {
    *         a RelativeLayout handler could remove constraints pointing to now deleted components,
    *         but leave the overall deletion of the elements to the core designer.
    */
-  public boolean deleteChildren(@NonNull NlComponent parent, @NonNull List<NlComponent> deleted) throws Exception {
+  public boolean deleteChildren(@NonNull NlComponent parent, @NonNull List<NlComponent> deleted) {
     return false;
   }
 

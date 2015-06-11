@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindow;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -54,7 +55,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     }
     else {
       if (myPalette == null) {
-        myPalette = new NlPalettePanel();
+        myPalette = new NlPalettePanel(designer);
         createWindowContent(myPalette, myPalette.getFocusedComponent(), myPalette.getActions());
       }
       myPalette.setDesignSurface(getDesignSurface(designer));
@@ -70,24 +71,42 @@ public class NlPaletteManager extends NlAbstractWindowManager {
 
   @NotNull
   private static DesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
-    assert designer instanceof NlEditorPanel;
-    NlEditorPanel editor = (NlEditorPanel)designer;
-    return editor.getSurface();
+    if (designer instanceof NlEditorPanel) {
+      NlEditorPanel editor = (NlEditorPanel)designer;
+      return editor.getSurface();
+    } else if (designer instanceof NlPreviewForm) {
+      NlPreviewForm form = (NlPreviewForm)designer;
+      return form.getSurface();
+    }
+
+    // Unexpected facade
+    throw new RuntimeException(designer.getClass().getName());
+  }
+
+  public String getVisibilityKeyName(@NotNull DesignerEditorPanelFacade designer) {
+    return getComponentName()+ "-" + designer.getClass().getSimpleName();
   }
 
   @Override
   protected LightToolWindow createContent(@NotNull DesignerEditorPanelFacade designer) {
-    NlPalettePanel palette = new NlPalettePanel();
+    NlPalettePanel palette = new NlPalettePanel(designer);
     palette.setDesignSurface(getDesignSurface(designer));
 
-    return createContent(designer,
-                         palette,
-                         "Palette",
-                         AllIcons.Toolwindows.ToolWindowPalette,
-                         palette,
-                         palette.getFocusedComponent(),
-                         180,
-                         palette.getActions());
+    PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
+    // When LightToolWindowManager#getEditorMode() is public (or a constructor which lets
+    // me not specify it) is available and upstreamed, replace the following with just
+    // anchor = getEditorMode() :
+    String value = propertiesComponent.getValue(myEditorModeKey);
+    ToolWindowAnchor anchor;
+    if (value == null) {
+      anchor = getAnchor();
+    } else {
+      anchor = value.equals("ToolWindow") ? null : ToolWindowAnchor.fromText(value);
+    }
+
+    return new LightToolWindow(palette, "Palette", AllIcons.Toolwindows.ToolWindowPalette, palette, palette.getFocusedComponent(),
+                               designer.getContentSplitter(), anchor, this, myProject, propertiesComponent,
+                               getVisibilityKeyName(designer), 180, palette.getActions());
   }
 
   @NotNull

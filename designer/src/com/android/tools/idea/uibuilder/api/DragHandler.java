@@ -20,9 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 
-import java.awt.*;
 import java.util.List;
 
 /**

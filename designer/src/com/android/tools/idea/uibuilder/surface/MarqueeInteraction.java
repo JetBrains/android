@@ -37,10 +37,10 @@ public class MarqueeInteraction extends Interaction {
   private MarqueeLayer myOverlay;
 
   /** The surface associated with this interaction. */
-  private ScreenView myScreenView;
+  private final ScreenView myScreenView;
 
   /** A copy of the initial selection, when we're toggling the marquee. */
-  private Collection<NlComponent> myInitialSelection;
+  private final Collection<NlComponent> myInitialSelection;
 
   /**
    * Creates a new marquee selection (selection swiping).
@@ -53,7 +53,7 @@ public class MarqueeInteraction extends Interaction {
     myScreenView = surface;
 
     if (toggle) {
-      myInitialSelection = Lists.newArrayList(myScreenView.getSelectionModel().getSelection());
+      myInitialSelection = myScreenView.getSelectionModel().getSelection();
     } else {
       myInitialSelection = Collections.emptySet();
     }

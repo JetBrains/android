@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.rendering.RenderService;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -34,7 +35,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 
 public class NlEditorProvider implements FileEditorProvider, DumbAware {
-  public static final boolean ENABLED = Boolean.getBoolean("nele.enabled");
+  public static final boolean ENABLED = RenderService.NELE_ENABLED;
 
   /** FileEditorProvider ID for the layout editor */
   public static final String DESIGNER_ID = "android-designer2";

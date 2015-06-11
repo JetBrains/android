@@ -24,7 +24,6 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.EnumSet;
@@ -71,7 +70,7 @@ public abstract class ViewEditor {
    * @param px the pixel dimension
    * @return the corresponding dp dimension string
    */
-  @NotNull
+  @NonNull
   public String pxToDpWithUnits(int px) {
     return String.format(Locale.US, VALUE_N_DP, pxToDp(px));
   }

@@ -35,8 +35,11 @@ public class DeleteAction extends AnAction {
   @Override
   public void actionPerformed(AnActionEvent e) {
     ScreenView screenView = mySurface.getCurrentScreenView();
+    if (screenView == null) {
+      return;
+    }
     SelectionModel selectionModel = screenView.getSelectionModel();
     NlModel model = screenView.getModel();
-    model.delete(Lists.newArrayList(selectionModel.getSelection()));
+    model.delete(selectionModel.getSelection());
   }
 }
