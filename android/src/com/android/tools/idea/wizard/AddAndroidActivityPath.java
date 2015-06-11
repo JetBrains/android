@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -38,6 +39,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.RecentsManager;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -378,11 +380,11 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   @Override
   public boolean performFinishingActions() {
     TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
-    Project project = getProject();
+    final Project project = getProject();
     Module module = getModule();
     assert templateEntry != null;
     assert project != null && module != null;
-    Template template = templateEntry.getTemplate();
+    final Template template = templateEntry.getTemplate();
     File moduleRoot = getModuleRoot(module);
     if (moduleRoot == null) {
       return false;
@@ -392,7 +394,12 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     template.render(VfsUtilCore.virtualToIoFile(project.getBaseDir()), moduleRoot, parameterMap, project);
     myAssetStudioStep.createAssets();
     if (Boolean.TRUE.equals(myState.get(KEY_OPEN_EDITORS))) {
-      TemplateUtils.openEditors(project, template.getFilesToOpen(), true);
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          TemplateUtils.openEditors(project, template.getFilesToOpen(), true);
+        }
+      });
     }
     return true;
   }
