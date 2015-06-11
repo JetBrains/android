@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profiling.capture;
 
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -43,6 +44,9 @@ public class CaptureEditorProvider implements FileEditorProvider, DumbAware {
     if (type == null) {
       throw new IllegalStateException("Type has been removed between accept and createEditor");
     }
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_PROFILING, UsageTracker.ACTION_PROFILING_OPEN, type.getName(), null);
+
     return type.createEditor(project, file);
   }
 
