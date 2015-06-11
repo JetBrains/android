@@ -101,6 +101,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintFullBackupContentInspection extends AndroidLintInspectionBase {
+    public AndroidLintFullBackupContentInspection() {
+      super(AndroidBundle.message("android.lint.inspections.full.backup.content"), FullBackupContentDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintGetInstanceInspection extends AndroidLintInspectionBase {
     public AndroidLintGetInstanceInspection() {
       super(AndroidBundle.message("android.lint.inspections.get.instance"), CipherGetInstanceDetector.ISSUE);
