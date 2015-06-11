@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
-import static com.android.tools.idea.tests.gui.theme.ThemeEditorTest.openThemeEditor;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.data.TableCell.row;
 import static org.fest.swing.timing.Pause.pause;
@@ -54,13 +53,13 @@ import static org.junit.Assert.assertTrue;
 public class ThemeEditorTableTest extends GuiTestCase {
   @BeforeClass
   public static void runBeforeClass() {
-    System.setProperty("enable.theme.editor", "true");
+    ThemeEditorTestUtils.enableThemeEditor();
   }
 
   @Test @IdeGuiTest
   public void testParentLabelCell() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = openThemeEditor(projectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
 
     JTableFixture themeEditorTable = themeEditor.getThemeEditorTable();
     assertNotNull(themeEditorTable);
@@ -78,7 +77,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testParentValueCell() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = openThemeEditor(projectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
 
     JTableFixture themeEditorTable = themeEditor.getThemeEditorTable();
     assertNotNull(themeEditorTable);

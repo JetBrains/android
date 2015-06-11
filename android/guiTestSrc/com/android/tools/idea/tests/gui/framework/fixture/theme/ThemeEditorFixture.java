@@ -19,24 +19,31 @@ import com.android.tools.idea.editors.theme.ThemeEditor;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.ThemeEditorTable;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.google.common.collect.ImmutableList;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTableFixture;
+import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.JComboBox;
 import java.util.List;
 
+import static org.fest.swing.timing.Pause.pause;
+
 public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, ThemeEditorComponent> {
+  private JComboBoxFixture myThemesComboBox;
+
   public ThemeEditorFixture(@NotNull Robot robot, @NotNull ThemeEditor themeEditor) {
     super(ThemeEditorFixture.class, robot, (ThemeEditorComponent)themeEditor.getComponent());
+    myThemesComboBox = new JComboBoxFixture(robot(), robot().finder().findByType(this.target().getSecondComponent(), JComboBox.class));
   }
 
   @NotNull
   public JComboBoxFixture getThemesComboBox() {
-    return new JComboBoxFixture(robot(), robot().finder().findByType(this.target().getSecondComponent(), JComboBox.class));
+    return myThemesComboBox;
   }
 
   @NotNull
@@ -60,5 +67,14 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
   @NotNull
   public JTableFixture getThemeEditorTable() {
     return new JTableFixture(robot(), robot().finder().findByType(this.target().getSecondComponent(), ThemeEditorTable.class));
+  }
+
+  public void waitForThemeSelection(@NotNull final String themeName) {
+    pause(new Condition("Waiting for " + themeName + " to be selected") {
+      @Override
+      public boolean test() {
+        return themeName.equals(myThemesComboBox.selectedItem());
+      }
+    }, GuiTests.SHORT_TIMEOUT);
   }
 }
