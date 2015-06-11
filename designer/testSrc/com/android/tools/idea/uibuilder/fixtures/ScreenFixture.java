@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.fixtures;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.resources.Density;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
@@ -202,7 +201,7 @@ public class ScreenFixture {
   @NonNull
   public ScreenView getScreen() {
     if (myScreen == null) {
-      myScreen = createScreen(myModel, new SelectionModel(), myScale, myTranslateX, myTranslateY, myDensity);
+      myScreen = createScreen(mySurface.getSurface(), myModel, new SelectionModel(), myScale, myTranslateX, myTranslateY, myDensity);
     }
     return myScreen;
   }

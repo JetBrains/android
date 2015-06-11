@@ -23,6 +23,9 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.dnd.DnDAction;
@@ -35,6 +38,7 @@ import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
 import com.intellij.openapi.actionSystem.impl.MenuItemPresentationFactory;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -63,11 +67,13 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   @NonNull private final DnDAwareTree myTree;
   @NonNull private final NlPaletteModel myModel;
   @NonNull private final IconPreviewFactory myIconFactory;
+  @NonNull private final DesignerEditorPanelFacade myDesigner;
   @NonNull private Mode myMode;
   @Nullable private ScalableDesignSurface myDesignSurface;
   @Nullable private BufferedImage myLastDragImage;
 
-  public NlPalettePanel() {
+  public NlPalettePanel(@NonNull DesignerEditorPanelFacade designer) {
+    myDesigner = designer;
     myModel = NlPaletteModel.get();
     myTree = new DnDAwareTree();
     myIconFactory = IconPreviewFactory.get();
@@ -102,12 +108,16 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   public void setDesignSurface(@Nullable ScalableDesignSurface designSurface) {
     if (myDesignSurface != null) {
       Configuration configuration = myDesignSurface.getConfiguration();
-      configuration.removeListener(this);
+      if (configuration != null) {
+        configuration.removeListener(this);
+      }
     }
     myDesignSurface = designSurface;
     if (myDesignSurface != null) {
       Configuration configuration = myDesignSurface.getConfiguration();
-      configuration.addListener(this);
+      if (configuration != null) {
+        configuration.addListener(this);
+      }
     }
     setMode(myMode);
   }
@@ -220,13 +230,15 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     myMode = mode;
     if (mode == Mode.PREVIEW && myDesignSurface != null) {
       Configuration configuration = myDesignSurface.getConfiguration();
-      myIconFactory.load(configuration, new Runnable() {
-        @Override
-        public void run() {
-          setColors();
-          invalidateUI();
-        }
-      });
+      if (configuration != null) {
+        myIconFactory.load(configuration, new Runnable() {
+          @Override
+          public void run() {
+            setColors();
+            invalidateUI();
+          }
+        });
+      }
     } else {
       setColors();
       invalidateUI();
@@ -285,7 +297,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
         if (content instanceof NlPaletteItem) {
           NlPaletteItem item = (NlPaletteItem)content;
           Image image = null;
-          if (myMode == Mode.PREVIEW && myDesignSurface != null) {
+          if (myMode == Mode.PREVIEW && myDesignSurface != null && myDesignSurface.getConfiguration() != null) {
             image = myIconFactory.getImage(item, myDesignSurface.getConfiguration(), PREVIEW_SCALE);
           }
           if (image != null) {
@@ -325,7 +337,9 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   public void dispose() {
     if (myDesignSurface != null) {
       Configuration configuration = myDesignSurface.getConfiguration();
-      configuration.removeListener(this);
+      if (configuration != null) {
+        configuration.removeListener(this);
+      }
     }
     updateColorsAfterColorThemeChange(false);
   }
@@ -354,7 +368,8 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       NlPaletteItem item = (NlPaletteItem)content;
       Dimension size = null;
       if (myDesignSurface != null) {
-        BufferedImage image = myIconFactory.renderDragImage(item, myDesignSurface.getCurrentScreenView(), 1.0);
+        ScreenView screenView = myDesignSurface.getCurrentScreenView();
+        BufferedImage image = screenView != null ? myIconFactory.renderDragImage(item, screenView, 1.0) : null;
         if (image != null) {
           size = new Dimension(image.getWidth(), image.getHeight());
           myLastDragImage = image;
@@ -367,6 +382,14 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
           double scale = myDesignSurface.getScale();
           size.setSize(size.getWidth() / scale, size.getHeight() / scale);
         }
+      }
+      if (myDesigner instanceof NlPreviewForm) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            ((NlPreviewForm)myDesigner).minimizePalette();
+          }
+        });
       }
       return new DnDDragStartBean(new ItemTransferable(new DnDTransferItem(item, size.width, size.height)));
     }

@@ -23,7 +23,6 @@ import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.List;
@@ -104,9 +103,9 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
       }
 
       @Override
-      protected String getResizeUpdateMessage(@NotNull NlComponent child,
-                                              @NotNull NlComponent parent,
-                                              @NotNull Rectangle newBounds,
+      protected String getResizeUpdateMessage(@NonNull NlComponent child,
+                                              @NonNull NlComponent parent,
+                                              @NonNull Rectangle newBounds,
                                               @Nullable SegmentType horizontalEdge,
                                               @Nullable SegmentType verticalEdge) {
         Rectangle parentBounds = new Rectangle(layout.x, layout.y, layout.w, layout.h);

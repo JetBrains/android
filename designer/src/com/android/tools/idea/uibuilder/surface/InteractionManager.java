@@ -41,7 +41,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -242,6 +241,10 @@ public class InteractionManager {
   void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
     // We don't hover on the root since it's not a widget per see and it is always there.
     ScreenView screenView = mySurface.getScreenView(x, y);
+    if (screenView == null) {
+      mySurface.setCursor(null);
+      return;
+    }
     SelectionModel selectionModel = screenView.getSelectionModel();
     if (!selectionModel.isEmpty()) {
       int mx = Coordinates.getAndroidX(screenView, x);
@@ -291,10 +294,12 @@ public class InteractionManager {
         // double-clicked widget
         int x = event.getX();
         int y = event.getY();
-        ScreenView myScreenView = mySurface.getScreenView(x, y);
-        NlComponent component = Coordinates.findComponent(myScreenView, x, y);
-        if (component != null) {
-          PsiNavigateUtil.navigate(component.getTag());
+        ScreenView screenView = mySurface.getScreenView(x, y);
+        if (screenView != null) {
+          NlComponent component = Coordinates.findComponent(screenView, x, y);
+          if (component != null) {
+            PsiNavigateUtil.navigate(component.getTag());
+          }
         }
       }
     }
@@ -322,6 +327,9 @@ public class InteractionManager {
       if (myCurrentInteraction == null) {
         // Just a click, select
         ScreenView screenView = mySurface.getScreenView(x, y);
+        if (screenView == null) {
+          return;
+        }
         SelectionModel selectionModel = screenView.getSelectionModel();
         NlComponent component = Coordinates.findComponent(screenView, x, y);
 
@@ -373,6 +381,9 @@ public class InteractionManager {
         int modifiers = event.getModifiersEx();
         boolean toggle = (modifiers & (InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK)) != 0;
         ScreenView screenView = mySurface.getScreenView(x, y);
+        if (screenView == null) {
+          return;
+        }
         Interaction interaction;
         SelectionModel selectionModel = screenView.getSelectionModel();
         // Dragging on top of a selection handle: start a resize operation
@@ -483,28 +494,40 @@ public class InteractionManager {
       if (keyChar == '1') {
         mySurface.zoomActual();
       } else if (keyChar == 'r') {
-        mySurface.getCurrentScreenView().getModel().requestRender();
+        ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
+        if (screenView != null) {
+          screenView.getModel().requestRender();
+        }
         mySurface.zoomIn();
       } else if (keyChar == '+') {
         mySurface.zoomIn();
+      } else if (keyChar == 'b') {
+        DesignSurface.ScreenMode nextMode = mySurface.getScreenMode().next();
+        mySurface.setScreenMode(nextMode);
       } else if (keyChar == '-') {
         mySurface.zoomOut();
       } else if (keyChar == '0') {
         mySurface.zoomToFit();
       } else if (keyChar == 'd') {
         ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-        screenView.switchDevice();
+        if (screenView != null) {
+          screenView.switchDevice();
+        }
       } else if (keyChar == 'o') {
         ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-        screenView.toggleOrientation();
+        if (screenView != null) {
+          screenView.toggleOrientation();
+        }
       } else if (keyChar == 'f') {
         mySurface.toggleDeviceFrames();
       } else if (keyCode == KeyEvent.VK_DELETE || keyCode == KeyEvent.VK_BACK_SPACE) {
         ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-        SelectionModel model = screenView.getSelectionModel();
-        if (!model.isEmpty()) {
-          Iterable<NlComponent> selection = model.getSelection();
-          screenView.getModel().delete(Lists.newArrayList(selection));
+        if (screenView != null) {
+          SelectionModel model = screenView.getSelectionModel();
+          if (!model.isEmpty()) {
+            List<NlComponent> selection = model.getSelection();
+            screenView.getModel().delete(selection);
+          }
         }
       }
     }
@@ -543,6 +566,9 @@ public class InteractionManager {
               flavor.getMimeType().startsWith("text/plain;") || flavor.getMimeType().equals("text/plain")) {
             event.acceptDrag(DnDConstants.ACTION_COPY);
             ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
+            if (screenView == null) {
+              continue;
+            }
             final NlModel model = screenView.getModel();
             try {
               DnDTransferItem item = getTransferItem(event.getTransferable(), true /* allow placeholders */);
@@ -601,6 +627,10 @@ public class InteractionManager {
       myLastMouseY = location.y;
 
       final ScreenView screenView = mySurface.getScreenView(location.x, location.y);
+      if (screenView == null) {
+        event.rejectDrop();
+        return;
+      }
 
       try {
         final DnDTransferItem item = getTransferItem(event.getTransferable(), false /* do not allow placeholders */);
@@ -610,7 +640,7 @@ public class InteractionManager {
         final XmlFile file = model.getFile();
         WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Drop", file) {
           @Override
-          protected void run(@NotNull Result<Void> result) throws Throwable {
+          protected void run(@NonNull Result<Void> result) throws Throwable {
             XmlTag tag = createTagFromTransferItem(item);
 
             if (myCurrentInteraction instanceof DragDropInteraction) {
@@ -668,8 +698,8 @@ public class InteractionManager {
     }
   }
 
-  @NotNull
-  private static DnDTransferItem getTransferItem(@NotNull Transferable transferable, boolean allowPlaceholder)
+  @NonNull
+  private static DnDTransferItem getTransferItem(@NonNull Transferable transferable, boolean allowPlaceholder)
     throws IOException, UnsupportedFlavorException {
     DnDTransferItem item = null;
     try {
@@ -693,8 +723,12 @@ public class InteractionManager {
     return item;
   }
 
-  @NotNull XmlTag createTagFromTransferItem(@NotNull DnDTransferItem item) {
+  @Nullable
+  private XmlTag createTagFromTransferItem(@NonNull DnDTransferItem item) {
     ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
+    if (screenView == null) {
+      return null;
+    }
     NlModel model = screenView.getModel();
     Project project = model.getFacet().getModule().getProject();
     XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
@@ -722,7 +756,7 @@ public class InteractionManager {
     return tag;
   }
 
-  private static String addAndroidNamespaceIfMissing(@NotNull String xml) {
+  private static String addAndroidNamespaceIfMissing(@NonNull String xml) {
     // TODO: Remove this temporary hack, which adds an Android namespace if necessary
     // (this is such that the resulting tag is namespace aware, and attempts to manipulate it from
     // a component handler will correctly set namespace prefixes)

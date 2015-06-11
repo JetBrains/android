@@ -19,10 +19,11 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,8 +37,6 @@ import com.intellij.util.ui.tree.TreeUtil;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -45,6 +44,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
+import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,7 +55,7 @@ import static com.android.SdkConstants.*;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-public class NlStructurePanel extends JPanel implements LightToolWindowContent, ChangeListener {
+public class NlStructurePanel extends JPanel implements LightToolWindowContent, DesignSurfaceListener, ModelListener, SelectionListener {
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
 
   private final DnDAwareTree myTree;
@@ -85,16 +85,16 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
 
   public void setDesignSurface(@Nullable DesignSurface designSurface) {
     myPropertiesPanel.setDesignSurface(designSurface);
+    setModel(designSurface != null && designSurface.getCurrentScreenView() != null
+             ? designSurface.getCurrentScreenView().getModel() : null);
+  }
 
+  private void setModel(@Nullable NlModel model) {
     if (myModel != null) {
       myModel.removeListener(this);
       myModel.getSelectionModel().removeListener(this);
     }
-    if (designSurface == null) {
-      myModel = null;
-    } else {
-      myModel = designSurface.getCurrentScreenView().getModel();
-    }
+    myModel = model;
     if (myModel != null) {
       myModel.addListener(this);
       myModel.getSelectionModel().addListener(this);
@@ -262,29 +262,6 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
     return childOfInterest.children.get(childOfInterest.children.size() - 1);
   }
 
-  @Override
-  public void stateChanged(@Nullable ChangeEvent changeEvent) {
-    if (changeEvent == null) {
-      return;
-    }
-    if (changeEvent.getSource() == myModel) {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          updateHierarchy();
-        }
-      });
-    }
-    if (changeEvent.getSource() == myModel.getSelectionModel()) {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          updateSelection();
-        }
-      });
-    }
-  }
-
   private void updateSelection() {
     if (!mySelectionIsUpdating.compareAndSet(false, true)) {
       return;
@@ -303,6 +280,50 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
       }
     } finally {
       mySelectionIsUpdating.set(false);
+    }
+  }
+
+  // ---- Implemented SelectionListener ----
+  @Override
+  public void selectionChanged(@NonNull SelectionModel model, @NonNull List<NlComponent> selection) {
+    UIUtil.invokeLaterIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        updateSelection();
+      }
+    });
+  }
+
+  // ---- Implemented ModelListener ----
+  @Override
+  public void modelChanged(@NonNull NlModel model) {
+  }
+
+  @Override
+  public void modelRendered(@NonNull NlModel model) {
+    UIUtil.invokeLaterIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        updateHierarchy();
+      }
+    });
+  }
+
+  // ---- Implemented DesignSurfaceListener ----
+
+  @Override
+  public void componentSelectionChanged(@NonNull DesignSurface surface, @NonNull List<NlComponent> newSelection) {
+  }
+
+  @Override
+  public void screenChanged(@NonNull DesignSurface surface, @Nullable ScreenView screenView) {
+    setModel(screenView != null ? screenView.getModel() : null);
+  }
+
+  @Override
+  public void modelChanged(@NonNull DesignSurface surface, @Nullable NlModel model) {
+    if (model != null) {
+      modelRendered(model);
     }
   }
 

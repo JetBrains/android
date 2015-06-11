@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 
 /**
  * A segment is a straight horizontal or vertical line between two points, typically an
@@ -42,14 +42,14 @@ public class Segment {
   /**
    * Whether the edge is a top edge, a baseline edge, a left edge, etc
    */
-  @NotNull
+  @NonNull
   public final SegmentType edgeType;
 
   /**
    * Whether the edge is offset from the node by a margin or not, or whether it has no
    * margin
    */
-  @NotNull
+  @NonNull
   public final MarginType marginType;
 
   /**
@@ -70,8 +70,8 @@ public class Segment {
                  int to,
                  @Nullable NlComponent component,
                  @Nullable String id,
-                 @NotNull SegmentType edgeType,
-                 @NotNull MarginType marginType) {
+                 @NonNull SegmentType edgeType,
+                 @NonNull MarginType marginType) {
     this.at = at;
     this.from = from;
     this.to = to;
@@ -81,7 +81,7 @@ public class Segment {
     this.marginType = marginType;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public String toString() {
     String componentStr = component == null ? "null" : component.getTagName().substring(

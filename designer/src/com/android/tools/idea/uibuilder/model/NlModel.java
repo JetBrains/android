@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -40,22 +41,25 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
 
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.Timer;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
 
@@ -68,36 +72,53 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @AndroidCoordinate public static final int EMPTY_COMPONENT_SIZE = 5;
   @AndroidCoordinate public static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
 
-  private final AndroidFacet myFacet;
+  @NonNull private final DesignSurface mySurface;
+  @NonNull private final AndroidFacet myFacet;
   private final XmlFile myFile;
   private RenderResult myRenderResult;
-  private Configuration myConfiguration;
-  private final List<ChangeListener> myListeners = Lists.newArrayList();
+  private final Configuration myConfiguration;
+  private final List<ModelListener> myListeners = Lists.newArrayList();
   private List<NlComponent> myComponents = Lists.newArrayList();
   private final SelectionModel mySelectionModel;
   private Disposable myParent;
   private boolean myActive;
   private ResourceVersion myRenderedVersion;
   private long myModificationCount;
+  private int myRenderDelay = 10;
+  private AndroidPreviewProgressIndicator myCurrentIndicator;
+  private static final Object PROGRESS_LOCK = new Object();
+
 
   @NonNull
-  public static NlModel create(@Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
-    return new NlModel(parent, facet, file);
+  public static NlModel create(@NonNull DesignSurface surface, @Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
+    return new NlModel(surface, parent, facet, file);
   }
 
   @VisibleForTesting
-  protected NlModel(@Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
+  protected NlModel(@NonNull DesignSurface surface, @Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
+    mySurface = surface;
     myParent = parent;
     myFacet = facet;
     myFile = file;
     myConfiguration = facet.getConfigurationManager().getConfiguration(myFile.getVirtualFile());
     mySelectionModel = new SelectionModel();
+    if (parent != null) {
+      Disposer.register(parent, this);
+    }
   }
 
   public void setParentDisposable(Disposable parent) {
     synchronized (myRenderingQueueLock) {
       myParent = parent;
     }
+  }
+
+  public int getRenderDelay() {
+    return myRenderDelay;
+  }
+
+  public void setRenderDelay(int renderDelay) {
+    myRenderDelay = renderDelay;
   }
 
   /** Notify model that it's active. A model is active by default. */
@@ -131,10 +152,41 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return mySelectionModel;
   }
 
-  public boolean requestRender() {
+  /** Like {@link #requestRender()}, but tries to do it as quickly as possible (flushes rendering queue) */
+  public void requestRenderAsap() {
+    requestRender();
+    getRenderingQueue().sendFlush();
+  }
+
+  /** Renders immediately and synchronously */
+  public void renderImmediately() {
+    getRenderingQueue().cancelAllUpdates();
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
+        public void run() {
+          requestRenderAsap();
+        }
+      });
+      return;
+    }
+
+    doRender();
+  }
+
+  public void requestRender() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
-    getRenderingQueue().queue(new Update("render") {
+    synchronized (PROGRESS_LOCK) {
+      if (myCurrentIndicator == null) {
+        myCurrentIndicator = new AndroidPreviewProgressIndicator(0);
+        myCurrentIndicator.start();
+      }
+    }
+
+    MergingUpdateQueue renderingQueue = getRenderingQueue();
+    renderingQueue.cancelAllUpdates();
+    renderingQueue.queue(new Update("render") {
       @Override
       public void run() {
         DumbService.getInstance(myFacet.getModule().getProject()).waitForSmartMode();
@@ -144,6 +196,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         catch (Throwable e) {
           Logger.getInstance(NlModel.class).error(e);
         }
+
+        synchronized (PROGRESS_LOCK) {
+          if (myCurrentIndicator != null) {
+            myCurrentIndicator.stop();
+            myCurrentIndicator = null;
+          }
+        }
       }
 
       @Override
@@ -151,14 +210,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         return true;
       }
     });
-    return true;
   }
 
-  @NotNull
+  @NonNull
   private MergingUpdateQueue getRenderingQueue() {
+    int delay = myRenderDelay;
     synchronized (myRenderingQueueLock) {
       if (myRenderingQueue == null) {
-        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", 10, true, null, myParent, null,
+        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", delay, true, null, myParent, null,
                                                   Alarm.ThreadToUse.OWN_THREAD);
       }
       return myRenderingQueue;
@@ -213,26 +272,27 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
     myRenderResult = result;
     updateHierarchy(result);
-    notifyListeners();
+    notifyListenersRenderComplete();
   }
 
-  public void addListener(@NonNull ChangeListener listener) {
+  public void addListener(@NonNull ModelListener listener) {
     synchronized (myListeners) {
       myListeners.remove(listener); // prevent duplicate registration
       myListeners.add(listener);
     }
   }
 
-  public void removeListener(@NonNull ChangeListener listener) {
+  public void removeListener(@NonNull ModelListener listener) {
     synchronized (myListeners) {
       myListeners.remove(listener);
     }
   }
 
-  private void notifyListeners() {
+  private void notifyListenersRenderComplete() {
     synchronized (myListeners) {
-      for (ChangeListener listener : myListeners) {
-        listener.stateChanged(new ChangeEvent(this));
+      List<ModelListener> listeners = Lists.newArrayList(myListeners);
+      for (ModelListener listener : listeners) {
+        listener.modelRendered(this);
       }
     }
   }
@@ -314,6 +374,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     assert component.getTag() == snapshot.tag;
     component.setSnapshot(snapshot);
     if (!snapshot.children.isEmpty()) {
+      if (snapshot.children.size() != component.getChildCount()) {
+        // TODO: Investigate this; some layouts in iosched triggers this.
+        return;
+      }
       assert snapshot.children.size() == component.getChildCount();
       for (int i = 0, n = component.getChildCount(); i < n; i++) {
         NlComponent child = component.getChild(i);
@@ -376,6 +440,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           return null;
         }
       }
+    }
+    if (tag != null && parent != null && parent.getTag() == tag) {
+      tag = null;
     }
     if (tag != null) {
       component = myTagToComponentMap.get(tag);
@@ -539,22 +606,22 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return true;
   }
 
-  public void delete() {
-  }
-
-
   public void delete(final Collection<NlComponent> components) {
     // Group by parent and ask each one to participate
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(myFacet.getModule().getProject(), "Delete Component", myFile) {
       @Override
-      protected void run(@NotNull Result<Void> result) throws Throwable {
+      protected void run(@NonNull Result<Void> result) throws Throwable {
         handleDeletion(components);
       }
     };
     action.execute();
+
+    List<NlComponent> remaining = Lists.newArrayList(mySelectionModel.getSelection());
+    remaining.removeAll(components);
+    mySelectionModel.setSelection(remaining);
   }
 
-  private void handleDeletion(@NotNull Collection<NlComponent> components) throws Exception {
+  private void handleDeletion(@NonNull Collection<NlComponent> components) throws Exception {
     // Segment the deleted components into lists of siblings
     Map<NlComponent, List<NlComponent>> siblingLists = groupSiblings(components);
 
@@ -597,8 +664,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @param components the components to be grouped
    * @return a map from parents (or null) to a list of components with the corresponding parent
    */
-  @NotNull
-  public static Map<NlComponent, List<NlComponent>> groupSiblings(@NotNull Collection<? extends NlComponent> components) {
+  @NonNull
+  public static Map<NlComponent, List<NlComponent>> groupSiblings(@NonNull Collection<? extends NlComponent> components) {
     Map<NlComponent, List<NlComponent>> siblingLists = new HashMap<NlComponent, List<NlComponent>>();
 
     if (components.isEmpty()) {
@@ -728,7 +795,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   // ---- Implements ResourceNotificationManager.ResourceChangeListener ----
 
   @Override
-  public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
+  public void resourcesChanged(@NonNull Set<ResourceNotificationManager.Reason> reason) {
     requestRender();
   }
 
@@ -741,5 +808,49 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public void notifyModified() {
     myModificationCount++;
+  }
+
+  private class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {
+    private final Object myLock = new Object();
+    private final int myDelay;
+
+    public AndroidPreviewProgressIndicator(int delay) {
+      myDelay = delay;
+    }
+
+    @Override
+    public void start() {
+      super.start();
+      UIUtil.invokeLaterIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          final Timer timer = UIUtil.createNamedTimer("Android rendering progress timer", myDelay, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              synchronized (myLock) {
+                if (isRunning()) {
+                  mySurface.registerIndicator(AndroidPreviewProgressIndicator.this);
+                }
+              }
+            }
+          });
+          timer.setRepeats(false);
+          timer.start();
+        }
+      });
+    }
+
+    @Override
+    public void stop() {
+      synchronized (myLock) {
+        super.stop();
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            mySurface.unregisterIndicator(AndroidPreviewProgressIndicator.this);
+          }
+        });
+      }
+    }
   }
 }

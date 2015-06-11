@@ -41,6 +41,7 @@ public class NlDrawingStyle {
    */
   public static final int MAX_MATCH_DISTANCE = 20;
 
+  public static final BasicStroke THIN_SOLID_STROKE = new BasicStroke(0.5f);
   public static final BasicStroke SOLID_STROKE = new BasicStroke(1.0f);
   public static final BasicStroke THICK_SOLID_STROKE = new BasicStroke(2.0f);
   public static final BasicStroke DOTTED_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,

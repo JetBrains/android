@@ -48,11 +48,6 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
                                        @NonNull DragType type) {
     final RelativeDragHandler moveHandler = new RelativeDragHandler(editor, layout, components);
     return new DragHandler(editor, this, layout, components, type) {
-      @Override
-      public void start(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
-        super.start(x, y, modifiers);
-      }
-
       @Nullable
       @Override
       public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {

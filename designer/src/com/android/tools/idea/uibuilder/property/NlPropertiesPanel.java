@@ -18,10 +18,11 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
@@ -35,15 +36,14 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.util.Collections;
+import java.util.List;
 
-public class NlPropertiesPanel extends JPanel implements ChangeListener {
+public class NlPropertiesPanel extends JPanel implements DesignSurfaceListener {
   private final PTable myTable;
   private final NlPropertiesModel myModel;
-  private ScreenView myScreenView;
+  private DesignSurface mySurface;
   private MergingUpdateQueue myUpdateQueue;
   private JBLabel mySelectedComponentLabel;
 
@@ -82,30 +82,42 @@ public class NlPropertiesPanel extends JPanel implements ChangeListener {
   }
 
   public void setDesignSurface(@Nullable DesignSurface designSurface) {
-    if (myScreenView != null) {
-      myScreenView.getSelectionModel().removeListener(this);
+    if (designSurface == mySurface) {
+      return;
     }
-    myScreenView = designSurface != null ? designSurface.getCurrentScreenView() : null;
-    if (myScreenView != null) {
-      myScreenView.getSelectionModel().addListener(this);
+    if (mySurface != null) {
+      mySurface.removeListener(this);
     }
-    stateChanged(null);
+    mySurface = designSurface;
+    if (mySurface != null) {
+      mySurface.addListener(this);
+      ScreenView screenView = mySurface.getCurrentScreenView();
+      List<NlComponent> selection = screenView != null ?
+                                    screenView.getSelectionModel().getSelection() : Collections.<NlComponent>emptyList();
+      componentSelectionChanged(mySurface, selection);
+    }
   }
 
+  // ---- Implements DesignSurfaceListener ----
+
   @Override
-  public void stateChanged(ChangeEvent e) {
+  public void componentSelectionChanged(@NonNull DesignSurface surface, @NonNull final List<NlComponent> newSelection) {
+    if (surface != mySurface) {
+      return;
+    }
     myTable.setPaintBusy(true);
-    getUpdateQueue().queue(new Update("updateProperties") {
+    MergingUpdateQueue queue = getUpdateQueue();
+    if (queue == null) {
+      return;
+    }
+    queue.queue(new Update("updateProperties") {
       @Override
       public void run() {
-        final Iterable<NlComponent> selection =
-          myScreenView != null ? myScreenView.getSelectionModel().getSelection() : Collections.EMPTY_LIST;
-
-        myModel.update(selection, new Runnable() {
+        myModel.update(newSelection, new Runnable() {
           @Override
           public void run() {
             // TODO: handle multiple selections
-            final NlComponent first = Iterables.getFirst(selection, null);
+            NlComponent first = newSelection.size() == 1 ? newSelection.get(0) : null;
             if (first != null) {
               mySelectedComponentLabel.setText(first.getTagName());
             }
@@ -121,12 +133,20 @@ public class NlPropertiesPanel extends JPanel implements ChangeListener {
     });
   }
 
-  @NonNull
+  @Override
+  public void screenChanged(@NonNull DesignSurface surface, @Nullable ScreenView screenView) {
+  }
+
+  @Override
+  public void modelChanged(@NonNull DesignSurface surface, @Nullable NlModel model) {
+  }
+
+  @Nullable
   private MergingUpdateQueue getUpdateQueue() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     if (myUpdateQueue == null) {
-      myUpdateQueue = new MergingUpdateQueue("android.layout.propertysheet", 250, true, null, myScreenView.getModel(), null,
+      myUpdateQueue = new MergingUpdateQueue("android.layout.propertysheet", 250, true, null, mySurface, null,
                                              Alarm.ThreadToUse.SWING_THREAD);
     }
     return myUpdateQueue;

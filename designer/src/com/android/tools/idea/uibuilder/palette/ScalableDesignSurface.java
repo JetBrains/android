@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.annotations.Nullable;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 
@@ -22,7 +23,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
  * Defines an design surface for a palette that has a scale.
  */
 public interface ScalableDesignSurface {
-  Configuration getConfiguration();
-  ScreenView getCurrentScreenView();
+  @Nullable Configuration getConfiguration();
+  @Nullable ScreenView getCurrentScreenView();
   double getScale();
 }

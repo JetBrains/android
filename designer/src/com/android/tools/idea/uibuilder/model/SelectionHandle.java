@@ -63,7 +63,7 @@ public class SelectionHandle {
     public final double alignY;
 
     /** Predefined AWT cursor constant */
-    private int myAwtCursor;
+    private final int myAwtCursor;
 
     Position(@MagicConstant(valuesFromClass = Cursor.class) int awtCursor, double alignX, double alignY) {
       myAwtCursor = awtCursor;

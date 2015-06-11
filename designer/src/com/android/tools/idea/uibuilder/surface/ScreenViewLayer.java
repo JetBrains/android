@@ -16,12 +16,11 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -53,7 +52,7 @@ public class ScreenViewLayer extends Layer {
     }
   }
 
-  public void paintLoDpi(@NotNull Graphics g, @NonNull BufferedImage originalImage) {
+  public void paintLoDpi(@NonNull Graphics g, @NonNull BufferedImage originalImage) {
     double scale = myScreenView.getScale();
     int x = myScreenView.getX();
     int y = myScreenView.getY();
@@ -66,7 +65,7 @@ public class ScreenViewLayer extends Layer {
     g.drawImage(myScaledImage, x, y, null);
   }
 
-  public boolean paintHiDpi(@NotNull Graphics g, @NonNull BufferedImage originalImage) {
+  public boolean paintHiDpi(@NonNull Graphics g, @NonNull BufferedImage originalImage) {
     if (!ImageUtils.supportsRetina()) {
       return false;
     }

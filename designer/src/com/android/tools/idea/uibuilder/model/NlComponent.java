@@ -35,12 +35,13 @@ import com.google.common.collect.Lists;
 import com.intellij.lang.LanguageNamesValidation;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -60,7 +61,7 @@ public class NlComponent {
   @AndroidCoordinate public int w;
   @AndroidCoordinate public int h;
   private NlComponent myParent;
-  @NonNull private NlModel myModel;
+  @NonNull private final NlModel myModel;
   @NonNull private XmlTag myTag;
   @NonNull private String myTagName; // for non-read lock access elsewhere
   @Nullable private TagSnapshot snapshot;
@@ -365,7 +366,7 @@ public class NlComponent {
     return value == Integer.MIN_VALUE ? 0 : value;
   }
 
-  @NotNull
+  @NonNull
   public Insets getMargins() {
     if (myMargins == null) {
       if (viewInfo == null) {
@@ -395,7 +396,7 @@ public class NlComponent {
     return myMargins;
   }
 
-  @NotNull
+  @NonNull
   public Insets getPadding() {
     if (myPadding == null) {
       if (viewInfo == null) {
@@ -469,6 +470,14 @@ public class NlComponent {
     }
 
     if (myTag.isValid()) {
+      if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+        return ApplicationManager.getApplication().runReadAction(new Computable<List<AttributeSnapshot>>() {
+          @Override
+          public List<AttributeSnapshot> compute() {
+            return AttributeSnapshot.createAttributesForTag(myTag);
+          }
+        });
+      }
       return AttributeSnapshot.createAttributesForTag(myTag);
     }
 
