@@ -100,15 +100,16 @@ public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
     return myLocalInfo;
   }
 
-  public RemotePkgInfo getRemote(boolean alwaysIncludePreview) {
-    // If the local is preview or we're always including previews, and we don't have a non-preview remote or the preview is newer than
+  public RemotePkgInfo getRemote(boolean includePreview) {
+    // If includePreview is true, and we don't have a non-preview remote or the preview is newer than
     // the non-preview, return the preview.
-    if ((alwaysIncludePreview || (myLocalInfo != null && myLocalInfo.getDesc().isPreview())) &&
+    if (includePreview &&
         (!hasRemote(false) ||
          (hasPreview() &&
           myRemotePreviewInfo.getPkgDesc().isUpdateFor(myRemoteInfo.getPkgDesc(), FullRevision.PreviewComparison.IGNORE)))) {
       return myRemotePreviewInfo;
     }
+    // Else return the non-preview, possibly null.
     return myRemoteInfo;
   }
 
@@ -149,8 +150,8 @@ public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
     return null;
   }
 
-  public boolean isUpdate(boolean alwaysIncludePreview) {
-    RemotePkgInfo remote = getRemote(alwaysIncludePreview);
+  public boolean isUpdate(boolean includePreview) {
+    RemotePkgInfo remote = getRemote(includePreview);
     return myLocalInfo != null && remote != null &&
            remote.getPkgDesc().getPreciseRevision().compareTo(myLocalInfo.getDesc().getPreciseRevision()) > 0;
   }
