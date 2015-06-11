@@ -211,7 +211,7 @@ public class LocaleMenuAction extends FlatComboAction {
    */
   @NotNull
   public static String getLocaleLabel(@Nullable Locale locale, boolean brief) {
-    return getLocaleLabel(locale, brief, true);
+    return getLocaleLabel(locale, brief, !RenderService.NELE_ENABLED);
   }
 
   /**

@@ -914,7 +914,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     return text;
   }
 
-  private static class ResourceGroup {
+  public static class ResourceGroup {
     private List<ResourceItem> myItems = new ArrayList<ResourceItem>();
     private final ResourceType myType;
 
@@ -975,7 +975,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     }
   }
 
-  private static class ResourceItem {
+  public static class ResourceItem {
     private final ResourceGroup myGroup;
     private final String myName;
     private final VirtualFile myFile;
