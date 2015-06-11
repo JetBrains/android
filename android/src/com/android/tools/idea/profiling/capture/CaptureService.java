@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profiling.capture;
 
+import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.components.ServiceManager;
@@ -129,6 +130,8 @@ public class CaptureService {
 
     CaptureType type = CaptureTypeService.getInstance().getType(clazz);
     assert type != null;
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_PROFILING, UsageTracker.ACTION_PROFILING_CAPTURE, type.getName(), null);
 
     VirtualFile dir = createCapturesDirectory();
     File file = new File(dir.createChildData(null, type.createCaptureFileName()).getPath());
