@@ -24,6 +24,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -91,7 +92,8 @@ public class NlProperty extends PTableItem {
     new WriteCommandAction.Simple(myComponent.getModel().getProject(), msg, myComponent.getTag().getContainingFile()) {
       @Override
       protected void run() throws Throwable {
-        myComponent.setAttribute(myNamespace, myName, attrValue);
+        String v = StringUtil.isEmpty(attrValue) ? null : attrValue;
+        myComponent.setAttribute(myNamespace, myName, v);
       }
     }.execute();
   }
