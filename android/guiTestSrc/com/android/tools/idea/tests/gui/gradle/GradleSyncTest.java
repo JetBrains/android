@@ -30,12 +30,10 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.AbstractContentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.ContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
-import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -85,8 +83,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
@@ -100,7 +96,6 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPO
 import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture.findImportProjectDialog;
 import static com.android.tools.idea.tests.gui.framework.fixture.FileFixture.getDocument;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
-import static com.google.common.io.Files.write;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.*;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
@@ -156,14 +151,14 @@ public class GradleSyncTest extends GuiTestCase {
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
     projectFrame.waitForGradleProjectSyncToFinish();
 
-    AbstractContentFixture messages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture messages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     String expectedError = "Unable to find module with Gradle path ':javalib1' (needed by modules: 'androidlib1', 'app'.)";
     messages.findMessageContainingText(ERROR, expectedError);
 
     // Click "quick fix" to find and include any missing modules.
     MessageFixture quickFixMsg = messages.findMessageContainingText(INFO, "The missing modules may have been excluded");
     HyperlinkFixture quickFix = quickFixMsg.findHyperlink("Find and include missing modules");
-    quickFix.click(true);
+    quickFix.click();
 
     projectFrame.waitForBackgroundTasksToFinish();
     projectFrame.getModule("javalib1"); // Fails if the module is not found.
@@ -195,7 +190,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
-    AbstractContentFixture messages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture messages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     String expectedError = "Project with path ':fakeLibrary' could not be found";
     MessageFixture msg = messages.findMessageContainingText(ERROR, expectedError);
     msg.findHyperlink("Open File"); // Now it is possible to open the build.gradle where the missing dependency is declared.
@@ -258,7 +253,7 @@ public class GradleSyncTest extends GuiTestCase {
       projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
 
     HyperlinkFixture hyperlink = message.findHyperlink("Install Repository and sync project");
-    hyperlink.click(false);
+    hyperlink.clickAndContinue();
 
     // TODO implement a proper "SDK Quick Fix wizard" fixture that wraps a SdkQuickfixWizard
     DialogFixture quickFixDialog = findDialog(new GenericTypeMatcher<Dialog>(Dialog.class) {
@@ -398,12 +393,12 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
-    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     String errorPrefix = "The minimum supported version of the Android Gradle plugin";
     MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith(errorPrefix));
 
     MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlink("Fix plugin version");
-    hyperlink.click(true);
+    hyperlink.click();
 
     projectFrame.waitForGradleProjectSyncToFinish();
   }
@@ -510,7 +505,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
-    AbstractContentFixture gradleSyncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture gradleSyncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message = gradleSyncMessages.findMessage(ERROR, firstLineStartingWith("Gradle DSL method not found: 'asdf()'"));
 
     final EditorFixture editor = projectFrame.getEditor();
@@ -530,7 +525,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
-    AbstractContentFixture gradleSyncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture gradleSyncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message = gradleSyncMessages.findMessage(ERROR, firstLineStartingWith("Gradle DSL method not found: 'incude()'"));
 
     // Ensure the error message contains the location of the error.
@@ -669,8 +664,8 @@ public class GradleSyncTest extends GuiTestCase {
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
 
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith(prefix));
-    HyperlinkFixture hyperlink = message.findHyperlink("Re-download dependencies and sync project (requires network)");
-    hyperlink.click(true);
+    HyperlinkFixture quickFix = message.findHyperlink("Re-download dependencies and sync project (requires network)");
+    quickFix.click();
 
     projectFrame.waitForGradleProjectSyncToFinish();
 
@@ -774,7 +769,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
-    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(ERROR, firstLineStartingWith("Failed to resolve: com.android.support:appcompat-v7:"));
   }
 
@@ -934,14 +929,14 @@ public class GradleSyncTest extends GuiTestCase {
 
     // Set the plugin version to 1.0.0. This version is incompatible with Gradle 2.4.
     // We expect the IDE to warn the user about this incompatibility.
-    updateAndroidModelVersion(projectFrame.getProjectPath(), "1.0.0");
+    projectFrame.updateAndroidModelVersion("1.0.0");
 
     projectFrame.useLocalGradleDistribution(gradleTwoDotFourHome)
                 .requestProjectSync()
                 .waitForGradleProjectSyncToFinish();
 
-    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
-    syncMessages.findMessage(ERROR, firstLineStartingWith("Android plugin version 1.0.0 is not compatible with Gradle version 2.4"));
+    ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    syncMessages.findMessage(ERROR, firstLineStartingWith("Gradle 2.4 requires Android Gradle plugin 1.2.0 (or newer)"));
   }
 
   // See https://code.google.com/p/android/issues/detail?id=165576
@@ -1103,7 +1098,7 @@ public class GradleSyncTest extends GuiTestCase {
     projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     String expectedMessage = "The project encoding (ISO-8859-1) has been reset to the encoding specified in the Gradle build files (UTF-8).";
-    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(INFO, firstLineStartingWith(expectedMessage));
 
     assertEquals("UTF-8", EncodingProjectManager.getInstance(project).getDefaultCharsetName());
@@ -1195,10 +1190,10 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testModelWithLayoutRenderingIssue() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
-    updateAndroidModelVersion(projectFrame.getProjectPath(), "1.2.0");
-    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    projectFrame.updateAndroidModelVersion("1.2.0")
+                .requestProjectSync().waitForGradleProjectSyncToFinish();
 
-    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(WARNING, firstLineStartingWith("Using an obsolete version of the Gradle plugin (1.2.0)"));
   }
 
@@ -1233,7 +1228,7 @@ public class GradleSyncTest extends GuiTestCase {
     projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     // Verify user was warned.
-    AbstractContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(ERROR, firstLineStartingWith("The module 'app' is an Android project without build variants"));
 
     // Verify AndroidFacet was removed.
@@ -1264,21 +1259,5 @@ public class GradleSyncTest extends GuiTestCase {
   @Nullable
   private static LanguageLevel getJavaLanguageLevel(@NotNull Module module) {
     return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
-  }
-
-  private static void updateAndroidModelVersion(@NotNull File projectPath, @NotNull String modelVersion) throws IOException {
-    File buildFile = new File(projectPath, FN_BUILD_GRADLE);
-    assertThat(buildFile).isFile();
-
-    String contents = Files.toString(buildFile, Charsets.UTF_8);
-    Pattern pattern = Pattern.compile("classpath ['\"]com.android.tools.build:gradle:(.+)['\"]");
-    Matcher matcher = pattern.matcher(contents);
-    if (matcher.find()) {
-      contents = contents.substring(0, matcher.start(1)) + modelVersion + contents.substring(matcher.end(1));
-      write(contents, buildFile, Charsets.UTF_8);
-    }
-    else {
-      fail("Cannot find declaration of Android plugin");
-    }
   }
 }

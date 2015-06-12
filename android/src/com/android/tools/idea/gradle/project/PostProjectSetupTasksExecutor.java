@@ -133,6 +133,7 @@ public class PostProjectSetupTasksExecutor {
   public void onProjectSyncCompletion() {
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
     messages.reportDependencySetupErrors();
+    messages.reportComponentIncompatibilities();
 
     findAndReportStructureIssues(myProject);
 
