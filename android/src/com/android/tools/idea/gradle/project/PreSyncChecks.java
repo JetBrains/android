@@ -19,13 +19,13 @@ import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.util.GradleProperties;
+import com.intellij.CommonBundle;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper.DoNotAskOption;
-import com.intellij.openapi.ui.DialogWrapper.PropertyDoNotAskOption;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.net.HttpConfigurable;
@@ -55,7 +55,8 @@ final class PreSyncChecks {
   private static final String GRADLE_SYNC_MSG_TITLE = "Gradle Sync";
   private static final String PROJECT_SYNCING_ERROR_GROUP = "Project syncing error";
 
-  @NonNls private static final String SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME = "show.do.not.copy.http.proxy.settings.to.gradle";
+  @NonNls private static final String SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME =
+    "show.do.not.copy.http.proxy.settings.to.gradle";
 
   private PreSyncChecks() {
   }
@@ -270,6 +271,50 @@ final class PreSyncChecks {
     @Nullable
     public String getFailureCause() {
       return myFailureCause;
+    }
+  }
+
+  /**
+   * Implementation of "Do not show this dialog in the future" option. This option is displayed as a checkbox in a {@code Messages} dialog.
+   * The state of such checkbox is stored in the IDE's {@code PropertiesComponent} under the name passed in the constructor.
+   */
+  private static class PropertyDoNotAskOption implements DoNotAskOption {
+    /** The name of the property storing the value of the "Do not show this dialog in the future" option.  */
+    @NotNull private final String myProperty;
+
+    PropertyDoNotAskOption(@NotNull String property) {
+      myProperty = property;
+    }
+
+    @Override
+    public boolean isToBeShown() {
+      // Read the stored value. If none is found, return "true" to display the checkbox the first time.
+      return PropertiesComponent.getInstance().getBoolean(myProperty, true);
+    }
+
+    @Override
+    public void setToBeShown(boolean toBeShown, int exitCode) {
+      // Stores the state of the checkbox into the property.
+      PropertiesComponent.getInstance().setValue(myProperty, String.valueOf(toBeShown));
+    }
+
+    @Override
+    public boolean canBeHidden() {
+      // By returning "true", the Messages dialog can hide the checkbox if the user previously set the checkbox as "selected".
+      return true;
+    }
+
+    @Override
+    public boolean shouldSaveOptionsOnCancel() {
+      // We always want to save the value of the checkbox, regardless of the button pressed in the Messages dialog.
+      return true;
+    }
+
+    @NotNull
+    @Override
+    public String getDoNotShowMessage() {
+      // This is the text to set in the checkbox.
+      return CommonBundle.message("dialog.options.do.not.show");
     }
   }
 }

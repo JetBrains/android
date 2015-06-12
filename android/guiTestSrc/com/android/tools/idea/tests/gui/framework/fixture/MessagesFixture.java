@@ -117,6 +117,11 @@ public class MessagesFixture {
     return getHtmlBody(titleTextPane.getText());
   }
 
+  @Nullable
+  public <T extends JComponent> T find(GenericTypeMatcher<T> matcher) {
+    return myDelegate.robot().finder().find(myDelegate.target(), matcher);
+  }
+
   interface Delegate {
     @NotNull String getMessage();
   }
