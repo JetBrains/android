@@ -48,11 +48,13 @@ public class GraphicsLayoutRendererTest extends AndroidTestCase {
     BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
     GraphicsLayoutRenderer renderer = GraphicsLayoutRenderer.create(configuration, parser, false, false);
 
-    // Before the first render, the preferred size is not initialized.
-    assertEquals("Expected (0,0) before render", EMPTY_DIMENSION, renderer.getPreferredSize());
+    // The first render triggers a render (to a NOP Graphics object) so we expect sizes to have been initialized.
+    Dimension initialSize = renderer.getPreferredSize();
+    assertNotEquals("Expected layout dimensions after create", EMPTY_DIMENSION, initialSize);
     assertTrue(renderer.render((Graphics2D)image.getGraphics()));
 
-    assertNotEquals(EMPTY_DIMENSION, renderer.getPreferredSize());
+    // We haven't changed the layout so, after the render, we expect the same dimensions.
+    assertEquals(initialSize, renderer.getPreferredSize());
 
     renderer.setSize(new Dimension(50, 50));
     assertTrue(renderer.render((Graphics2D)image.getGraphics()));
