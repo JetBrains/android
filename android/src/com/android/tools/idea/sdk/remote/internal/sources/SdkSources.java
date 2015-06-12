@@ -19,6 +19,7 @@ package com.android.tools.idea.sdk.remote.internal.sources;
 import com.android.prefs.AndroidLocation;
 import com.android.prefs.AndroidLocation.AndroidLocationException;
 import com.android.utils.ILogger;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +29,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * A list of sdk-repository and sdk-addon sources, sorted by {@link SdkSourceCategory}.
@@ -41,8 +41,10 @@ public class SdkSources {
 
   private static final String SRC_FILENAME = "repositories.cfg"; //$NON-NLS-1$
 
-  @GuardedBy("itself") private final EnumMap<SdkSourceCategory, ArrayList<SdkSource>> mySources =
-    new EnumMap<SdkSourceCategory, ArrayList<SdkSource>>(SdkSourceCategory.class);
+  private static final List<SdkSource> EMPTY_LIST = ImmutableList.of();
+
+  @GuardedBy("itself") private final EnumMap<SdkSourceCategory, List<SdkSource>> mySources =
+    new EnumMap<SdkSourceCategory, List<SdkSource>>(SdkSourceCategory.class);
 
   private final ArrayList<Runnable> mChangeListeners = new ArrayList<Runnable>();
 
@@ -59,8 +61,8 @@ public class SdkSources {
    */
   public void add(SdkSourceCategory category, SdkSource source) {
     synchronized (mySources) {
-      ArrayList<SdkSource> list = mySources.get(category);
-      if (list == null) {
+      List<SdkSource> list = mySources.get(category);
+      if (list == null || list == EMPTY_LIST) {
         list = new ArrayList<SdkSource>();
         mySources.put(category, list);
       }
@@ -91,15 +93,13 @@ public class SdkSources {
    */
   public void remove(SdkSource source) {
     synchronized (mySources) {
-      Iterator<Entry<SdkSourceCategory, ArrayList<SdkSource>>> it = mySources.entrySet().iterator();
-      while (it.hasNext()) {
-        Entry<SdkSourceCategory, ArrayList<SdkSource>> entry = it.next();
-        ArrayList<SdkSource> list = entry.getValue();
+      for (SdkSourceCategory category : mySources.keySet()) {
+        List<SdkSource> list = mySources.get(category);
 
         if (list.remove(source)) {
           if (list.isEmpty()) {
-            // remove the entry since the source list became empty
-            it.remove();
+            // Set to the marker so we know not to reload it
+            mySources.put(category, EMPTY_LIST);
           }
         }
       }
@@ -119,38 +119,12 @@ public class SdkSources {
   }
 
   /**
-   * Returns a set of all categories that must be displayed. This includes all
-   * categories that are to be always displayed as well as all categories which
-   * have at least one source.
-   * Might return a empty array, but never returns null.
-   */
-  public SdkSourceCategory[] getCategories() {
-    ArrayList<SdkSourceCategory> cats = new ArrayList<SdkSourceCategory>();
-
-    for (SdkSourceCategory cat : SdkSourceCategory.values()) {
-      if (cat.getAlwaysDisplay()) {
-        cats.add(cat);
-      }
-      else {
-        synchronized (mySources) {
-          ArrayList<SdkSource> list = mySources.get(cat);
-          if (list != null && !list.isEmpty()) {
-            cats.add(cat);
-          }
-        }
-      }
-    }
-
-    return cats.toArray(new SdkSourceCategory[cats.size()]);
-  }
-
-  /**
    * Returns a new array of sources attached to the given category.
    * Might return an empty array, but never returns null.
    */
   public SdkSource[] getSources(SdkSourceCategory category) {
     synchronized (mySources) {
-      ArrayList<SdkSource> list = mySources.get(category);
+      List<SdkSource> list = mySources.get(category);
       if (list == null) {
         return new SdkSource[0];
       }
@@ -163,10 +137,10 @@ public class SdkSources {
   /**
    * Returns true if there are sources for the given category.
    */
-  public boolean hasSources(SdkSourceCategory category) {
+  public boolean sourcesLoaded(SdkSourceCategory category) {
     synchronized (mySources) {
-      ArrayList<SdkSource> list = mySources.get(category);
-      return list != null && !list.isEmpty();
+      List<SdkSource> list = mySources.get(category);
+      return list == EMPTY_LIST || (list != null && !list.isEmpty());
     }
   }
 
@@ -177,14 +151,14 @@ public class SdkSources {
     synchronized (mySources) {
       int n = 0;
 
-      for (ArrayList<SdkSource> list : mySources.values()) {
+      for (List<SdkSource> list : mySources.values()) {
         n += list.size();
       }
 
       SdkSource[] sources = new SdkSource[n];
 
       int i = 0;
-      for (ArrayList<SdkSource> list : mySources.values()) {
+      for (List<SdkSource> list : mySources.values()) {
         for (SdkSource source : list) {
           sources[i++] = source;
         }
@@ -194,44 +168,7 @@ public class SdkSources {
     }
   }
 
-  /**
-   * Each source keeps a local cache of whatever it loaded recently.
-   * This calls {@link SdkSource#clearPackages()} on all the available sources,
-   * and the next call to {@link SdkSource#getPackages()} will actually reload
-   * the remote package list.
-   */
-  public void clearAllPackages() {
-    synchronized (mySources) {
-      for (ArrayList<SdkSource> list : mySources.values()) {
-        for (SdkSource source : list) {
-          source.clearPackages();
-        }
-      }
-    }
-  }
-
-  /**
-   * Returns the category of a given source, or null if the source is unknown.
-   * <p/>
-   * Note that this method uses object identity to find a given source, and does
-   * not identify sources by their URL like {@link #hasSourceUrl(SdkSource)} does.
-   * <p/>
-   * The search is O(N), which should be acceptable on the expectedly small source list.
-   */
-  public SdkSourceCategory getCategory(SdkSource source) {
-    if (source != null) {
-      synchronized (mySources) {
-        for (Entry<SdkSourceCategory, ArrayList<SdkSource>> entry : mySources.entrySet()) {
-          if (entry.getValue().contains(source)) {
-            return entry.getKey();
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
+ /**
    * Returns true if there's already a similar source in the sources list
    * under any category.
    * <p/>
@@ -243,31 +180,7 @@ public class SdkSources {
    */
   public boolean hasSourceUrl(SdkSource source) {
     synchronized (mySources) {
-      for (ArrayList<SdkSource> list : mySources.values()) {
-        for (SdkSource s : list) {
-          if (s.equals(source)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-  }
-
-  /**
-   * Returns true if there's already a similar source in the sources list
-   * under the specified category.
-   * <p/>
-   * Important: The match is NOT done on object identity.
-   * Instead, this searches for a <em>similar</em> source, based on
-   * {@link SdkSource#equals(Object)} which compares the source URLs.
-   * <p/>
-   * The search is O(N), which should be acceptable on the expectedly small source list.
-   */
-  public boolean hasSourceUrl(SdkSourceCategory category, SdkSource source) {
-    synchronized (mySources) {
-      ArrayList<SdkSource> list = mySources.get(category);
-      if (list != null) {
+      for (List<SdkSource> list : mySources.values()) {
         for (SdkSource s : list) {
           if (s.equals(source)) {
             return true;
