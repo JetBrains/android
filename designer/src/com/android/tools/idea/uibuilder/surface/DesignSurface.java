@@ -105,7 +105,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   private List<DesignSurfaceListener> myListeners;
   private boolean myCentered;
 
-  public DesignSurface(Project project) {
+  public DesignSurface(@NonNull Project project) {
     super(new BorderLayout());
     myProject = project;
 
@@ -163,6 +163,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
     AnAction selectAllAction = new SelectAllAction(this);
     registerAction(selectAllAction, "$SelectAll");
+
+    Disposer.register(project, this);
   }
 
   public boolean isCentered() {
