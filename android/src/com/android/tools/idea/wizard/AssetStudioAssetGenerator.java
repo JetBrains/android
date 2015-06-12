@@ -534,7 +534,9 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   @NotNull
   private static BufferedImage getSvgImage(@NotNull String path, StringBuilder errorLog) {
     String xmlFileContent = generateVectorXml(new File(path), errorLog);
-    BufferedImage image = VdPreview.getPreviewFromVectorXml(SVG_PREVIEW_WIDTH, xmlFileContent,
+
+    final VdPreview.Size imageSize = VdPreview.Size.createSizeFromWidth(SVG_PREVIEW_WIDTH);
+    BufferedImage image = VdPreview.getPreviewFromVectorXml(imageSize, xmlFileContent,
                                                             errorLog);
 
     if (image == null) {
