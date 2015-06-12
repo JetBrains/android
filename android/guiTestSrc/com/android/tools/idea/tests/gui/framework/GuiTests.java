@@ -41,6 +41,7 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Pause;
 import org.fest.swing.timing.Timeout;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
@@ -342,17 +343,34 @@ public final class GuiTests {
 
   public static void findAndClickButton(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
     Robot robot = container.robot();
-    JButton button = robot.finder().find(container.target(), new GenericTypeMatcher<JButton>(JButton.class) {
+    JButton button = findButton(container, text, robot);
+    robot.click(button);
+  }
+
+  public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
+    Robot robot = container.robot();
+    final JButton button = findButton(container, text, robot);
+    Pause.pause(new Condition("Wait for button " + text + " to be enabled.") {
       @Override
-      protected boolean isMatching(@NotNull JButton button) {
-        String buttonText = button.getText();
-        if (buttonText != null) {
-          return buttonText.trim().equals(text) && button.isShowing();
-        }
-        return false;
+      public boolean test() {
+        return button.isEnabled();
       }
     });
     robot.click(button);
+  }
+
+  @NotNull
+  private static JButton findButton(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text, Robot robot) {
+    return robot.finder().find(container.target(), new GenericTypeMatcher<JButton>(JButton.class) {
+        @Override
+        protected boolean isMatching(@NotNull JButton button) {
+          String buttonText = button.getText();
+          if (buttonText != null) {
+            return buttonText.trim().equals(text) && button.isShowing();
+          }
+          return false;
+        }
+      });
   }
 
   /** Returns a full path to the GUI data directory in the user's AOSP source tree, if known, or null */
