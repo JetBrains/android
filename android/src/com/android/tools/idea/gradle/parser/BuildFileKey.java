@@ -266,4 +266,14 @@ public enum BuildFileKey {
       myType.setValue(arg, value);
     }
   }
+
+  @Nullable
+  public static BuildFileKey findByPath(@NotNull String path) {
+    for (BuildFileKey key : values()) {
+      if (path.equals(key.myPath)) {
+        return key;
+      }
+    }
+    return null;
+  }
 }
