@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.ResourceNotificationManager.Reason;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
@@ -26,12 +26,15 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -62,8 +65,21 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
           "<resources>\n" +
           "    <string name=\"hello\">Hello</string>\n" +
+          "\n" +
+          "    <!-- Base application theme. -->\n" +
+          "    <style name=\"AppTheme\" parent=\"Theme.AppCompat.Light.DarkActionBar\">\n" +
+          "        <!-- Customize your theme here. -->\n" +
+          "        <item name=\"android:colorBackground\">#ff0000</item>\n" +
+          "    </style>" +
           "</resources>";
     final XmlFile values1 = (XmlFile)myFixture.addFileToProject("res/values/my_values1.xml", xml);
+
+    xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+          "<resources>\n" +
+          "    \n" +
+          "</resources>";
+    myFixture.addFileToProject("res/values/colors.xml", xml);
+
     final Configuration configuration1 = myFacet.getConfigurationManager().getConfiguration(layout1.getVirtualFile());
     final ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
 
@@ -92,6 +108,32 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     manager.addListener(listener1, myFacet, layout1, configuration1);
     manager.addListener(listener2, myFacet, null, null);
 
+    // Make sure that when we're modifying multiple files, with complicated
+    // edits (that trigger full file rescans), we handle that scenario correctly.
+    clear(called1, calledValue1, called2, calledValue2);
+    // There's actually some special optimizations done via PsiResourceItem#recomputeValue
+    // to only mark the resource repository changed if the value has actually been looked
+    // up. This allows us to not recompute layout if you're editing some string that
+    // hasn't actually been looked up and rendered in a layout. In order to make sure
+    // that that optimization doesn't kick in here, we need to look up the value of
+    // the resource item first:
+    //noinspection ConstantConditions
+    assertEquals("#ff0000", configuration1.getResourceResolver().getStyle("AppTheme", false).getItem("colorBackground", true).getValue());
+    AndroidResourceUtil.createValueResource(myModule, "color2", ResourceType.COLOR, "colors.xml", Collections.singletonList("values"),
+                                            "#fa2395");
+    ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
+    clear(called1, calledValue1, called2, calledValue2);
+    @SuppressWarnings("ConstantConditions")
+    final XmlTag tag = values1.getDocument().getRootTag().getSubTags()[1].getSubTags()[0];
+    assertEquals("item", tag.getName());
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+      @Override
+      public void run() {
+        tag.getValue().setEscapedText("@color/color2");
+      }
+    });
+    ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
+
     // First check: Modify the layout by changing @string/hello to @string/hello_world
     // and verify that our listeners are called.
     ResourceVersion version1 = manager.getCurrentVersion(myFacet, layout1, configuration1);
@@ -118,16 +160,20 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     clear(called1, calledValue1, called2, calledValue2);
     addText(layout1, " ^ <TextView", "abc");
     ensureNotCalled(called1, called2);
-    // Check that editing text in a *layout* -does- have an effect
-    // There's actually some special optimizations done via PsiResourceItem#recomputeValue
-    // to only mark the resource repository changed if the value has actually been looked
-    // up. This allows us to not recompute layout if you're editing some string that
-    // hasn't actually been looked up and rendered in a layout. In order to make sure
-    // that that optimization doesn't kick in here, we need to look up the value of
-    // the resource item first:
-    ResourceResolver resourceResolver = configuration1.getResourceResolver();
+
+    // Make sure that's true for replacements too
+    replaceText(layout1, "^abc", "abc".length(), "def");
+    ensureNotCalled(called1, called2);
+
+    // ...and for deletions
+    removeText(layout1, "^def", "def".length());
+    ensureNotCalled(called1, called2);
+
+    // Check that editing text in a *values file* -does- have an effect
+    // Read the value first to ensure that we trigger it as a read (see comment above for previous
+    // resource resolver lookup)
     //noinspection ConstantConditions
-    assertEquals("Hello", resourceResolver.findResValue("@string/hello_world", false).getValue());
+    assertEquals("Hello", configuration1.getResourceResolver().findResValue("@string/hello_world", false).getValue());
     addText(values1, "Hello^</string>", " World");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
 
