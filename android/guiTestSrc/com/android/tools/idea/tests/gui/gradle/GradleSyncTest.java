@@ -59,6 +59,7 @@ import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
+import junit.framework.AssertionFailedError;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiQuery;
@@ -1276,14 +1277,45 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testWithPreReleasePlugin() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
-    projectFrame.updateAndroidModelVersion("1.2.0-beta1")
-                .requestProjectSync().waitForGradleProjectSyncToFinish();
+    projectFrame.updateAndroidModelVersion("1.2.0-beta1").requestProjectSync().waitForGradleProjectSyncToFinish();
 
     ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message =
       syncMessages.findMessage(ERROR, firstLineStartingWith("Plugin is too old, please update to a more recent version"));
     // Verify that the "quick fix" is added.
     message.findHyperlink("Fix plugin version and sync project");
+  }
+
+  @Test @IdeGuiTest
+  public void testSyncDuringOfflineMode() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+
+    File buildFile = new File(projectFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
+    assertThat(buildFile).isFile();
+    appendToFile(buildFile, "dependencies { compile 'something:not:exists' }");
+
+    GradleSettings gradleSettings = GradleSettings.getInstance(projectFrame.getProject());
+    gradleSettings.setOfflineWork(true);
+
+    projectFrame.requestProjectSync();
+
+    MessageFixture message =
+      projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
+
+    HyperlinkFixture hyperlink = message.findHyperlink("Disable offline mode and Sync");
+    hyperlink.click();
+
+    assertFalse(gradleSettings.isOfflineWork());
+
+    message = projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
+
+    try {
+      message.findHyperlink("Disable offline mode and Sync");
+      fail("Expecting AssertionFailedError");
+    }
+    catch (AssertionFailedError expected) {
+      // After offline mode is disable, the previous hyperlink will disappear after next sync
+    }
   }
 
   @Nullable
