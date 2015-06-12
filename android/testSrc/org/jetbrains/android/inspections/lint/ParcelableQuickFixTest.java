@@ -114,79 +114,79 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
 
   @Language("JAVA")
   private static final String SIMPLE_SOURCE =
-    "package com.example;\n" +
-    "\n" +
-    "import android.os.Parcel;\n" +
-    "import android.os.Parcelable;\n" +
-    "\n" +
-    "public class Simple implements Parcelable {\n" +
-    "    private final String name;\n" +
-    "    private final int age;\n" +
-    "    private Simple manager;\n" +
-    "\n" +
-    "    public Simple(String name, int age) {\n" +
-    "        this.name = name;\n" +
-    "        this.age = age;\n" +
-    "    }\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public int describeContents() {\n" +
-    "        return 0;\n" +
-    "    }\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public void writeToParcel(Parcel dest, int flags) {\n" +
-    "\n" +
-    "    }\n" +
-    "}\n";
+          "package com.example;\n" +
+                  "\n" +
+                  "import android.os.Parcel;\n" +
+                  "import android.os.Parcelable;\n" +
+                  "\n" +
+                  "public class Simple implements Parcelable {\n" +
+                  "    private final String name;\n" +
+                  "    private final int age;\n" +
+                  "    private Simple manager;\n" +
+                  "\n" +
+                  "    public Simple(String name, int age) {\n" +
+                  "        this.name = name;\n" +
+                  "        this.age = age;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public int describeContents() {\n" +
+                  "        return 0;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public void writeToParcel(Parcel dest, int flags) {\n" +
+                  "\n" +
+                  "    }\n" +
+                  "}\n";
 
   @Language("JAVA")
   private static final String SIMPLE_EXPECTED =
-    "package com.example;\n" +
-    "\n" +
-    "import android.os.Parcel;\n" +
-    "import android.os.Parcelable;\n" +
-    "\n" +
-    "public class Simple implements Parcelable {\n" +
-    "    private final String name;\n" +
-    "    private final int age;\n" +
-    "    private Simple manager;\n" +
-    "\n" +
-    "    public Simple(String name, int age) {\n" +
-    "        this.name = name;\n" +
-    "        this.age = age;\n" +
-    "    }\n" +
-    "\n" +
-    "    private Simple(Parcel in) {\n" +
-    "        name = in.readString();\n" +
-    "        age = in.readInt();\n" +
-    "        manager = in.readParcelable(Simple.class.getClassLoader());\n" +
-    "    }\n" +
-    "\n" +
-    "    public static final Creator<Simple> CREATOR = new Creator<Simple>() {\n" +
-    "        @Override\n" +
-    "        public Simple createFromParcel(Parcel in) {\n" +
-    "            return new Simple(in);\n" +
-    "        }\n" +
-    "\n" +
-    "        @Override\n" +
-    "        public Simple[] newArray(int size) {\n" +
-    "            return new Simple[size];\n" +
-    "        }\n" +
-    "    };\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public int describeContents() {\n" +
-    "        return 0;\n" +
-    "    }\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public void writeToParcel(Parcel dest, int flags) {\n" +
-    "        dest.writeString(name);\n" +
-    "        dest.writeInt(age);\n" +
-    "        dest.writeParcelable(manager, flags);\n" +
-    "    }\n" +
-    "}\n";
+          "package com.example;\n" +
+                  "\n" +
+                  "import android.os.Parcel;\n" +
+                  "import android.os.Parcelable;\n" +
+                  "\n" +
+                  "public class Simple implements Parcelable {\n" +
+                  "    private final String name;\n" +
+                  "    private final int age;\n" +
+                  "    private Simple manager;\n" +
+                  "\n" +
+                  "    public Simple(String name, int age) {\n" +
+                  "        this.name = name;\n" +
+                  "        this.age = age;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    protected Simple(Parcel in) {\n" +
+                  "        name = in.readString();\n" +
+                  "        age = in.readInt();\n" +
+                  "        manager = in.readParcelable(Simple.class.getClassLoader());\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    public static final Creator<Simple> CREATOR = new Creator<Simple>() {\n" +
+                  "        @Override\n" +
+                  "        public Simple createFromParcel(Parcel in) {\n" +
+                  "            return new Simple(in);\n" +
+                  "        }\n" +
+                  "\n" +
+                  "        @Override\n" +
+                  "        public Simple[] newArray(int size) {\n" +
+                  "            return new Simple[size];\n" +
+                  "        }\n" +
+                  "    };\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public int describeContents() {\n" +
+                  "        return 0;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public void writeToParcel(Parcel dest, int flags) {\n" +
+                  "        dest.writeString(name);\n" +
+                  "        dest.writeInt(age);\n" +
+                  "        dest.writeParcelable(manager, flags);\n" +
+                  "    }\n" +
+                  "}\n";
 
   public void testSimple() throws Exception {
     doTestApply(IMPLEMENT, SIMPLE_SOURCE, SIMPLE_EXPECTED, "Simple");
@@ -196,208 +196,208 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
 
   @Language("JAVA")
   private static final String ALLTYPES_SOURCE =
-    "package com.example;\n" +
-    "\n" +
-    "import android.os.Bundle;\n" +
-    "import android.os.IBinder;\n" +
-    "import android.os.Parcel;\n" +
-    "import android.os.Parcelable;\n" +
-    "import android.os.PersistableBundle;\n" +
-    "import android.util.Size;\n" +
-    "import android.util.SizeF;\n" +
-    "import android.util.SparseBooleanArray;\n" +
-    "\n" +
-    "import java.util.ArrayList;\n" +
-    "import java.util.List;\n" +
-    "\n" +
-    "public class AllTypes implements Parcelable {\n" +
-    "    // Primitives:\n" +
-    "    private byte myByte;\n" +
-    "    private double myDouble;\n" +
-    "    private float myFloat;\n" +
-    "    private int myInt;\n" +
-    "    private long myLong;\n" +
-    "    private String myString;\n" +
-    "\n" +
-    "    // Primitive Arrays:\n" +
-    "    private boolean[] myBooleans;\n" +
-    "    private byte[] myBytes;\n" +
-    "    private char[] myChars;\n" +
-    "    private double[] myDoubles;\n" +
-    "    private float[] myFloats;\n" +
-    "    private int[] myInts;\n" +
-    "    private long[] myLongs;\n" +
-    "    private String[] myStrings;\n" +
-    "    private SparseBooleanArray mySparseBooleans;\n" +
-    "\n" +
-    "    // Primitive Lists:\n" +
-    "    private List<String> myStringList;\n" +
-    "    private ArrayList<String> myStringArrayList;\n" +
-    "\n" +
-    "    // Known composites:\n" +
-    "    private Size mySize;\n" +
-    "    private SizeF mySizeF;\n" +
-    "\n" +
-    "    // Parcelables:\n" +
-    "    private AllTypes myReference;\n" +
-    "    private AllTypes[] myReferences;\n" +
-    "    private List<AllTypes> myReferenceList;\n" +
-    "    private ArrayList<AllTypes> myReferenceArrayList;\n" +
-    "\n" +
-    "    // Bundles:\n" +
-    "    private Bundle myBundle;\n" +
-    "    private PersistableBundle myPersistableBundle;\n" +
-    "\n" +
-    "    // Active Objects:\n" +
-    "    private IBinder myBinder;\n" +
-    "    private IBinder[] myBinders;\n" +
-    "    private List<IBinder> myBinderList;\n" +
-    "    private List<IBinder> myBinderArrayList;\n" +
-    "\n" +
-    "}\n";
+          "package com.example;\n" +
+                  "\n" +
+                  "import android.os.Bundle;\n" +
+                  "import android.os.IBinder;\n" +
+                  "import android.os.Parcel;\n" +
+                  "import android.os.Parcelable;\n" +
+                  "import android.os.PersistableBundle;\n" +
+                  "import android.util.Size;\n" +
+                  "import android.util.SizeF;\n" +
+                  "import android.util.SparseBooleanArray;\n" +
+                  "\n" +
+                  "import java.util.ArrayList;\n" +
+                  "import java.util.List;\n" +
+                  "\n" +
+                  "public class AllTypes implements Parcelable {\n" +
+                  "    // Primitives:\n" +
+                  "    private byte myByte;\n" +
+                  "    private double myDouble;\n" +
+                  "    private float myFloat;\n" +
+                  "    private int myInt;\n" +
+                  "    private long myLong;\n" +
+                  "    private String myString;\n" +
+                  "\n" +
+                  "    // Primitive Arrays:\n" +
+                  "    private boolean[] myBooleans;\n" +
+                  "    private byte[] myBytes;\n" +
+                  "    private char[] myChars;\n" +
+                  "    private double[] myDoubles;\n" +
+                  "    private float[] myFloats;\n" +
+                  "    private int[] myInts;\n" +
+                  "    private long[] myLongs;\n" +
+                  "    private String[] myStrings;\n" +
+                  "    private SparseBooleanArray mySparseBooleans;\n" +
+                  "\n" +
+                  "    // Primitive Lists:\n" +
+                  "    private List<String> myStringList;\n" +
+                  "    private ArrayList<String> myStringArrayList;\n" +
+                  "\n" +
+                  "    // Known composites:\n" +
+                  "    private Size mySize;\n" +
+                  "    private SizeF mySizeF;\n" +
+                  "\n" +
+                  "    // Parcelables:\n" +
+                  "    private AllTypes myReference;\n" +
+                  "    private AllTypes[] myReferences;\n" +
+                  "    private List<AllTypes> myReferenceList;\n" +
+                  "    private ArrayList<AllTypes> myReferenceArrayList;\n" +
+                  "\n" +
+                  "    // Bundles:\n" +
+                  "    private Bundle myBundle;\n" +
+                  "    private PersistableBundle myPersistableBundle;\n" +
+                  "\n" +
+                  "    // Active Objects:\n" +
+                  "    private IBinder myBinder;\n" +
+                  "    private IBinder[] myBinders;\n" +
+                  "    private List<IBinder> myBinderList;\n" +
+                  "    private List<IBinder> myBinderArrayList;\n" +
+                  "\n" +
+                  "}\n";
 
   @Language("JAVA")
   private static final String ALLTYPES_EXPECTED =
-    "package com.example;\n" +
-    "\n" +
-    "import android.os.Bundle;\n" +
-    "import android.os.IBinder;\n" +
-    "import android.os.Parcel;\n" +
-    "import android.os.Parcelable;\n" +
-    "import android.os.PersistableBundle;\n" +
-    "import android.util.Size;\n" +
-    "import android.util.SizeF;\n" +
-    "import android.util.SparseBooleanArray;\n" +
-    "\n" +
-    "import java.util.ArrayList;\n" +
-    "import java.util.List;\n" +
-    "\n" +
-    "public class AllTypes implements Parcelable {\n" +
-    "    // Primitives:\n" +
-    "    private byte myByte;\n" +
-    "    private double myDouble;\n" +
-    "    private float myFloat;\n" +
-    "    private int myInt;\n" +
-    "    private long myLong;\n" +
-    "    private String myString;\n" +
-    "\n" +
-    "    // Primitive Arrays:\n" +
-    "    private boolean[] myBooleans;\n" +
-    "    private byte[] myBytes;\n" +
-    "    private char[] myChars;\n" +
-    "    private double[] myDoubles;\n" +
-    "    private float[] myFloats;\n" +
-    "    private int[] myInts;\n" +
-    "    private long[] myLongs;\n" +
-    "    private String[] myStrings;\n" +
-    "    private SparseBooleanArray mySparseBooleans;\n" +
-    "\n" +
-    "    // Primitive Lists:\n" +
-    "    private List<String> myStringList;\n" +
-    "    private ArrayList<String> myStringArrayList;\n" +
-    "\n" +
-    "    // Known composites:\n" +
-    "    private Size mySize;\n" +
-    "    private SizeF mySizeF;\n" +
-    "\n" +
-    "    // Parcelables:\n" +
-    "    private AllTypes myReference;\n" +
-    "    private AllTypes[] myReferences;\n" +
-    "    private List<AllTypes> myReferenceList;\n" +
-    "    private ArrayList<AllTypes> myReferenceArrayList;\n" +
-    "\n" +
-    "    // Bundles:\n" +
-    "    private Bundle myBundle;\n" +
-    "    private PersistableBundle myPersistableBundle;\n" +
-    "\n" +
-    "    // Active Objects:\n" +
-    "    private IBinder myBinder;\n" +
-    "    private IBinder[] myBinders;\n" +
-    "    private List<IBinder> myBinderList;\n" +
-    "    private List<IBinder> myBinderArrayList;\n" +
-    "\n" +
-    "    private AllTypes(Parcel in) {\n" +
-    "        myByte = in.readByte();\n" +
-    "        myDouble = in.readDouble();\n" +
-    "        myFloat = in.readFloat();\n" +
-    "        myInt = in.readInt();\n" +
-    "        myLong = in.readLong();\n" +
-    "        myString = in.readString();\n" +
-    "        myBooleans = in.createBooleanArray();\n" +
-    "        myBytes = in.createByteArray();\n" +
-    "        myChars = in.createCharArray();\n" +
-    "        myDoubles = in.createDoubleArray();\n" +
-    "        myFloats = in.createFloatArray();\n" +
-    "        myInts = in.createIntArray();\n" +
-    "        myLongs = in.createLongArray();\n" +
-    "        myStrings = in.createStringArray();\n" +
-    "        mySparseBooleans = in.readSparseBooleanArray();\n" +
-    "        myStringList = in.createStringArrayList();\n" +
-    "        myStringArrayList = in.createStringArrayList();\n" +
-    "        mySize = in.readSize();\n" +
-    "        mySizeF = in.readSizeF();\n" +
-    "        myReference = in.readParcelable(AllTypes.class.getClassLoader());\n" +
-    "        myReferences = in.createTypedArray(AllTypes.CREATOR);\n" +
-    "        myReferenceList = in.createTypedArrayList(AllTypes.CREATOR);\n" +
-    "        myReferenceArrayList = in.createTypedArrayList(AllTypes.CREATOR);\n" +
-    "        myBundle = in.readBundle();\n" +
-    "        myPersistableBundle = in.readPersistableBundle();\n" +
-    "        myBinder = in.readStrongBinder();\n" +
-    "        myBinders = in.createBinderArray();\n" +
-    "        myBinderList = in.createBinderArrayList();\n" +
-    "        myBinderArrayList = in.createBinderArrayList();\n" +
-    "    }\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public void writeToParcel(Parcel dest, int flags) {\n" +
-    "        dest.writeByte(myByte);\n" +
-    "        dest.writeDouble(myDouble);\n" +
-    "        dest.writeFloat(myFloat);\n" +
-    "        dest.writeInt(myInt);\n" +
-    "        dest.writeLong(myLong);\n" +
-    "        dest.writeString(myString);\n" +
-    "        dest.writeBooleanArray(myBooleans);\n" +
-    "        dest.writeByteArray(myBytes);\n" +
-    "        dest.writeCharArray(myChars);\n" +
-    "        dest.writeDoubleArray(myDoubles);\n" +
-    "        dest.writeFloatArray(myFloats);\n" +
-    "        dest.writeIntArray(myInts);\n" +
-    "        dest.writeLongArray(myLongs);\n" +
-    "        dest.writeStringArray(myStrings);\n" +
-    "        dest.writeSparseBooleanArray(mySparseBooleans);\n" +
-    "        dest.writeStringList(myStringList);\n" +
-    "        dest.writeStringList(myStringArrayList);\n" +
-    "        dest.writeSize(mySize);\n" +
-    "        dest.writeSizeF(mySizeF);\n" +
-    "        dest.writeParcelable(myReference, flags);\n" +
-    "        dest.writeTypedArray(myReferences, flags);\n" +
-    "        dest.writeTypedList(myReferenceList);\n" +
-    "        dest.writeTypedList(myReferenceArrayList);\n" +
-    "        dest.writeBundle(myBundle);\n" +
-    "        dest.writePersistableBundle(myPersistableBundle);\n" +
-    "        dest.writeStrongBinder(myBinder);\n" +
-    "        dest.writeBinderArray(myBinders);\n" +
-    "        dest.writeBinderList(myBinderList);\n" +
-    "        dest.writeBinderList(myBinderArrayList);\n" +
-    "    }\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public int describeContents() {\n" +
-    "        return 0;\n" +
-    "    }\n" +
-    "\n" +
-    "    public static final Creator<AllTypes> CREATOR = new Creator<AllTypes>() {\n" +
-    "        @Override\n" +
-    "        public AllTypes createFromParcel(Parcel in) {\n" +
-    "            return new AllTypes(in);\n" +
-    "        }\n" +
-    "\n" +
-    "        @Override\n" +
-    "        public AllTypes[] newArray(int size) {\n" +
-    "            return new AllTypes[size];\n" +
-    "        }\n" +
-    "    };\n" +
-    "}\n";
+          "package com.example;\n" +
+                  "\n" +
+                  "import android.os.Bundle;\n" +
+                  "import android.os.IBinder;\n" +
+                  "import android.os.Parcel;\n" +
+                  "import android.os.Parcelable;\n" +
+                  "import android.os.PersistableBundle;\n" +
+                  "import android.util.Size;\n" +
+                  "import android.util.SizeF;\n" +
+                  "import android.util.SparseBooleanArray;\n" +
+                  "\n" +
+                  "import java.util.ArrayList;\n" +
+                  "import java.util.List;\n" +
+                  "\n" +
+                  "public class AllTypes implements Parcelable {\n" +
+                  "    // Primitives:\n" +
+                  "    private byte myByte;\n" +
+                  "    private double myDouble;\n" +
+                  "    private float myFloat;\n" +
+                  "    private int myInt;\n" +
+                  "    private long myLong;\n" +
+                  "    private String myString;\n" +
+                  "\n" +
+                  "    // Primitive Arrays:\n" +
+                  "    private boolean[] myBooleans;\n" +
+                  "    private byte[] myBytes;\n" +
+                  "    private char[] myChars;\n" +
+                  "    private double[] myDoubles;\n" +
+                  "    private float[] myFloats;\n" +
+                  "    private int[] myInts;\n" +
+                  "    private long[] myLongs;\n" +
+                  "    private String[] myStrings;\n" +
+                  "    private SparseBooleanArray mySparseBooleans;\n" +
+                  "\n" +
+                  "    // Primitive Lists:\n" +
+                  "    private List<String> myStringList;\n" +
+                  "    private ArrayList<String> myStringArrayList;\n" +
+                  "\n" +
+                  "    // Known composites:\n" +
+                  "    private Size mySize;\n" +
+                  "    private SizeF mySizeF;\n" +
+                  "\n" +
+                  "    // Parcelables:\n" +
+                  "    private AllTypes myReference;\n" +
+                  "    private AllTypes[] myReferences;\n" +
+                  "    private List<AllTypes> myReferenceList;\n" +
+                  "    private ArrayList<AllTypes> myReferenceArrayList;\n" +
+                  "\n" +
+                  "    // Bundles:\n" +
+                  "    private Bundle myBundle;\n" +
+                  "    private PersistableBundle myPersistableBundle;\n" +
+                  "\n" +
+                  "    // Active Objects:\n" +
+                  "    private IBinder myBinder;\n" +
+                  "    private IBinder[] myBinders;\n" +
+                  "    private List<IBinder> myBinderList;\n" +
+                  "    private List<IBinder> myBinderArrayList;\n" +
+                  "\n" +
+                  "    protected AllTypes(Parcel in) {\n" +
+                  "        myByte = in.readByte();\n" +
+                  "        myDouble = in.readDouble();\n" +
+                  "        myFloat = in.readFloat();\n" +
+                  "        myInt = in.readInt();\n" +
+                  "        myLong = in.readLong();\n" +
+                  "        myString = in.readString();\n" +
+                  "        myBooleans = in.createBooleanArray();\n" +
+                  "        myBytes = in.createByteArray();\n" +
+                  "        myChars = in.createCharArray();\n" +
+                  "        myDoubles = in.createDoubleArray();\n" +
+                  "        myFloats = in.createFloatArray();\n" +
+                  "        myInts = in.createIntArray();\n" +
+                  "        myLongs = in.createLongArray();\n" +
+                  "        myStrings = in.createStringArray();\n" +
+                  "        mySparseBooleans = in.readSparseBooleanArray();\n" +
+                  "        myStringList = in.createStringArrayList();\n" +
+                  "        myStringArrayList = in.createStringArrayList();\n" +
+                  "        mySize = in.readSize();\n" +
+                  "        mySizeF = in.readSizeF();\n" +
+                  "        myReference = in.readParcelable(AllTypes.class.getClassLoader());\n" +
+                  "        myReferences = in.createTypedArray(AllTypes.CREATOR);\n" +
+                  "        myReferenceList = in.createTypedArrayList(AllTypes.CREATOR);\n" +
+                  "        myReferenceArrayList = in.createTypedArrayList(AllTypes.CREATOR);\n" +
+                  "        myBundle = in.readBundle();\n" +
+                  "        myPersistableBundle = in.readPersistableBundle();\n" +
+                  "        myBinder = in.readStrongBinder();\n" +
+                  "        myBinders = in.createBinderArray();\n" +
+                  "        myBinderList = in.createBinderArrayList();\n" +
+                  "        myBinderArrayList = in.createBinderArrayList();\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public void writeToParcel(Parcel dest, int flags) {\n" +
+                  "        dest.writeByte(myByte);\n" +
+                  "        dest.writeDouble(myDouble);\n" +
+                  "        dest.writeFloat(myFloat);\n" +
+                  "        dest.writeInt(myInt);\n" +
+                  "        dest.writeLong(myLong);\n" +
+                  "        dest.writeString(myString);\n" +
+                  "        dest.writeBooleanArray(myBooleans);\n" +
+                  "        dest.writeByteArray(myBytes);\n" +
+                  "        dest.writeCharArray(myChars);\n" +
+                  "        dest.writeDoubleArray(myDoubles);\n" +
+                  "        dest.writeFloatArray(myFloats);\n" +
+                  "        dest.writeIntArray(myInts);\n" +
+                  "        dest.writeLongArray(myLongs);\n" +
+                  "        dest.writeStringArray(myStrings);\n" +
+                  "        dest.writeSparseBooleanArray(mySparseBooleans);\n" +
+                  "        dest.writeStringList(myStringList);\n" +
+                  "        dest.writeStringList(myStringArrayList);\n" +
+                  "        dest.writeSize(mySize);\n" +
+                  "        dest.writeSizeF(mySizeF);\n" +
+                  "        dest.writeParcelable(myReference, flags);\n" +
+                  "        dest.writeTypedArray(myReferences, flags);\n" +
+                  "        dest.writeTypedList(myReferenceList);\n" +
+                  "        dest.writeTypedList(myReferenceArrayList);\n" +
+                  "        dest.writeBundle(myBundle);\n" +
+                  "        dest.writePersistableBundle(myPersistableBundle);\n" +
+                  "        dest.writeStrongBinder(myBinder);\n" +
+                  "        dest.writeBinderArray(myBinders);\n" +
+                  "        dest.writeBinderList(myBinderList);\n" +
+                  "        dest.writeBinderList(myBinderArrayList);\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public int describeContents() {\n" +
+                  "        return 0;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    public static final Creator<AllTypes> CREATOR = new Creator<AllTypes>() {\n" +
+                  "        @Override\n" +
+                  "        public AllTypes createFromParcel(Parcel in) {\n" +
+                  "            return new AllTypes(in);\n" +
+                  "        }\n" +
+                  "\n" +
+                  "        @Override\n" +
+                  "        public AllTypes[] newArray(int size) {\n" +
+                  "            return new AllTypes[size];\n" +
+                  "        }\n" +
+                  "    };\n" +
+                  "}\n";
 
   public void testAllTypes() throws Exception {
     doTestApply(IMPLEMENT, ALLTYPES_SOURCE, ALLTYPES_EXPECTED, "AllTypes");
@@ -407,71 +407,71 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
 
   @Language("JAVA")
   private static final String LONG_CLASS_NAMES_SOURCE =
-    "package com.example;\n" +
-    "\n" +
-    "import android.os.Parcelable;\n" +
-    "\n" +
-    "public class LongClassNames implements Parcelable {\n" +
-    "    private com.example.Simple simple;\n" +
-    "    private com.example.Simple[] simples;\n" +
-    "    private java.util.List<com.example.Simple> simpleList;\n" +
-    "    private java.util.ArrayList<com.example.Simple> simpleArrayList;\n" +
-    "\n" +
-    "    private static class Parcel{}\n" +
-    "    private static class Parcelable{}\n" +
-    "    private static class Creator{}\n" +
-    "    private static class Simple{}\n" +
-    "}";
+          "package com.example;\n" +
+                  "\n" +
+                  "import android.os.Parcelable;\n" +
+                  "\n" +
+                  "public class LongClassNames implements Parcelable {\n" +
+                  "    private com.example.Simple simple;\n" +
+                  "    private com.example.Simple[] simples;\n" +
+                  "    private java.util.List<com.example.Simple> simpleList;\n" +
+                  "    private java.util.ArrayList<com.example.Simple> simpleArrayList;\n" +
+                  "\n" +
+                  "    private static class Parcel{}\n" +
+                  "    private static class Parcelable{}\n" +
+                  "    private static class Creator{}\n" +
+                  "    private static class Simple{}\n" +
+                  "}";
 
   @Language("JAVA")
   private static final String LONG_CLASS_NAMES_EXPECTED =
-    "package com.example;\n" +
-    "\n" +
-    "import android.os.Parcelable;\n" +
-    "\n" +
-    "public class LongClassNames implements Parcelable {\n" +
-    "    private com.example.Simple simple;\n" +
-    "    private com.example.Simple[] simples;\n" +
-    "    private java.util.List<com.example.Simple> simpleList;\n" +
-    "    private java.util.ArrayList<com.example.Simple> simpleArrayList;\n" +
-    "\n" +
-    "    private static class Parcel{}\n" +
-    "    private static class Parcelable{}\n" +
-    "    private static class Creator{}\n" +
-    "    private static class Simple{}\n" +
-    "\n" +
-    "    private LongClassNames(android.os.Parcel in) {\n" +
-    "        simple = in.readParcelable(com.example.Simple.class.getClassLoader());\n" +
-    "        simples = in.createTypedArray(com.example.Simple.CREATOR);\n" +
-    "        simpleList = in.createTypedArrayList(com.example.Simple.CREATOR);\n" +
-    "        simpleArrayList = in.createTypedArrayList(com.example.Simple.CREATOR);\n" +
-    "    }\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public void writeToParcel(android.os.Parcel dest, int flags) {\n" +
-    "        dest.writeParcelable(simple, flags);\n" +
-    "        dest.writeTypedArray(simples, flags);\n" +
-    "        dest.writeTypedList(simpleList);\n" +
-    "        dest.writeTypedList(simpleArrayList);\n" +
-    "    }\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public int describeContents() {\n" +
-    "        return 0;\n" +
-    "    }\n" +
-    "\n" +
-    "    public static final android.os.Parcelable.Creator<LongClassNames> CREATOR = new android.os.Parcelable.Creator<LongClassNames>() {\n" +
-    "        @Override\n" +
-    "        public LongClassNames createFromParcel(android.os.Parcel in) {\n" +
-    "            return new LongClassNames(in);\n" +
-    "        }\n" +
-    "\n" +
-    "        @Override\n" +
-    "        public LongClassNames[] newArray(int size) {\n" +
-    "            return new LongClassNames[size];\n" +
-    "        }\n" +
-    "    };\n" +
-    "}";
+          "package com.example;\n" +
+                  "\n" +
+                  "import android.os.Parcelable;\n" +
+                  "\n" +
+                  "public class LongClassNames implements Parcelable {\n" +
+                  "    private com.example.Simple simple;\n" +
+                  "    private com.example.Simple[] simples;\n" +
+                  "    private java.util.List<com.example.Simple> simpleList;\n" +
+                  "    private java.util.ArrayList<com.example.Simple> simpleArrayList;\n" +
+                  "\n" +
+                  "    private static class Parcel{}\n" +
+                  "    private static class Parcelable{}\n" +
+                  "    private static class Creator{}\n" +
+                  "    private static class Simple{}\n" +
+                  "\n" +
+                  "    protected LongClassNames(android.os.Parcel in) {\n" +
+                  "        simple = in.readParcelable(com.example.Simple.class.getClassLoader());\n" +
+                  "        simples = in.createTypedArray(com.example.Simple.CREATOR);\n" +
+                  "        simpleList = in.createTypedArrayList(com.example.Simple.CREATOR);\n" +
+                  "        simpleArrayList = in.createTypedArrayList(com.example.Simple.CREATOR);\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public void writeToParcel(android.os.Parcel dest, int flags) {\n" +
+                  "        dest.writeParcelable(simple, flags);\n" +
+                  "        dest.writeTypedArray(simples, flags);\n" +
+                  "        dest.writeTypedList(simpleList);\n" +
+                  "        dest.writeTypedList(simpleArrayList);\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public int describeContents() {\n" +
+                  "        return 0;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    public static final android.os.Parcelable.Creator<LongClassNames> CREATOR = new android.os.Parcelable.Creator<LongClassNames>() {\n" +
+                  "        @Override\n" +
+                  "        public LongClassNames createFromParcel(android.os.Parcel in) {\n" +
+                  "            return new LongClassNames(in);\n" +
+                  "        }\n" +
+                  "\n" +
+                  "        @Override\n" +
+                  "        public LongClassNames[] newArray(int size) {\n" +
+                  "            return new LongClassNames[size];\n" +
+                  "        }\n" +
+                  "    };\n" +
+                  "}";
 
   public void testLongClassNames() throws Exception {
     myFixture.addFileToProject("src/com/example/Simple.java", SIMPLE_SOURCE);
@@ -482,67 +482,67 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
 
   @Language("JAVA")
   private static final String REMOVAL_SOURCE =
-    "package com.example;\n" +
-    "\n" +
-    "import android.os.Parcel;\n" +
-    "import android.os.Parcelable;\n" +
-    "\n" +
-    "public class Removal implements Parcelable {\n" +
-    "    private final String name;\n" +
-    "    private final int age;\n" +
-    "    private Removal manager;\n" +
-    "\n" +
-    "    public Removal(String name, int age) {\n" +
-    "        this.name = name;\n" +
-    "        this.age = age;\n" +
-    "    }\n" +
-    "\n" +
-    "    private Removal(Parcel in) {\n" +
-    "        name = in.readString();\n" +
-    "        age = in.readInt();\n" +
-    "        manager = Removal.CREATOR.createFromParcel(in);\n" +
-    "    }\n" +
-    "\n" +
-    "    public static final Creator<Removal> CREATOR = new Creator<Removal>() {\n" +
-    "        @Override\n" +
-    "        public Removal createFromParcel(Parcel in) {\n" +
-    "            Removal s = new Removal(in);\n" +
-    "        }\n" +
-    "\n" +
-    "        @Override\n" +
-    "        public Removal[] newArray(int size) {\n" +
-    "            return new Simple[size];\n" +
-    "        }\n" +
-    "    };\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public int describeContents() {\n" +
-    "        return 0;\n" +
-    "    }\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public void writeToParcel(Parcel dest, int flags) {\n" +
-    "        dest.writeString(name);\n" +
-    "        dest.writeInt(age);\n" +
-    "        manager.writeToParcel(dest, flags);\n" +
-    "    }\n" +
-    "}\n";
+          "package com.example;\n" +
+                  "\n" +
+                  "import android.os.Parcel;\n" +
+                  "import android.os.Parcelable;\n" +
+                  "\n" +
+                  "public class Removal implements Parcelable {\n" +
+                  "    private final String name;\n" +
+                  "    private final int age;\n" +
+                  "    private Removal manager;\n" +
+                  "\n" +
+                  "    public Removal(String name, int age) {\n" +
+                  "        this.name = name;\n" +
+                  "        this.age = age;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    private Removal(Parcel in) {\n" +
+                  "        name = in.readString();\n" +
+                  "        age = in.readInt();\n" +
+                  "        manager = Removal.CREATOR.createFromParcel(in);\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    public static final Creator<Removal> CREATOR = new Creator<Removal>() {\n" +
+                  "        @Override\n" +
+                  "        public Removal createFromParcel(Parcel in) {\n" +
+                  "            Removal s = new Removal(in);\n" +
+                  "        }\n" +
+                  "\n" +
+                  "        @Override\n" +
+                  "        public Removal[] newArray(int size) {\n" +
+                  "            return new Simple[size];\n" +
+                  "        }\n" +
+                  "    };\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public int describeContents() {\n" +
+                  "        return 0;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public void writeToParcel(Parcel dest, int flags) {\n" +
+                  "        dest.writeString(name);\n" +
+                  "        dest.writeInt(age);\n" +
+                  "        manager.writeToParcel(dest, flags);\n" +
+                  "    }\n" +
+                  "}\n";
 
   @Language("JAVA")
   private static final String REMOVAL_EXPECTED =
-    "package com.example;\n" +
-    "\n" +
-    "public class Removal {\n" +
-    "    private final String name;\n" +
-    "    private final int age;\n" +
-    "    private Removal manager;\n" +
-    "\n" +
-    "    public Removal(String name, int age) {\n" +
-    "        this.name = name;\n" +
-    "        this.age = age;\n" +
-    "    }\n" +
-    "\n" +
-    "}\n";
+          "package com.example;\n" +
+                  "\n" +
+                  "public class Removal {\n" +
+                  "    private final String name;\n" +
+                  "    private final int age;\n" +
+                  "    private Removal manager;\n" +
+                  "\n" +
+                  "    public Removal(String name, int age) {\n" +
+                  "        this.name = name;\n" +
+                  "        this.age = age;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "}\n";
 
   public void testRemoval() throws Exception {
     doTestApply(REMOVE, REMOVAL_SOURCE, REMOVAL_EXPECTED, "Removal");
@@ -552,102 +552,168 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
 
   @Language("JAVA")
   private static final String REDO_SOURCE =
-    "package com.example;\n" +
-    "\n" +
-    "import android.os.Parcel;\n" +
-    "import android.os.Parcelable;\n" +
-    "\n" +
-    "public class Redo implements Parcelable {\n" +
-    "    private final String name;\n" +
-    "    private final int age;\n" +
-    "    private Redo manager;\n" +
-    "\n" +
-    "    public Redo(String name, int age) {\n" +
-    "        this.name = name;\n" +
-    "        this.age = age;\n" +
-    "    }\n" +
-    "\n" +
-    "    private Redo(Parcel in) {\n" +
-    "        // not used \n" +
-    "        name = \"Wrong\";\n" +
-    "        age = in.readInt();\n" +
-    "        manager = Redo.CREATOR.createFromParcel(in);\n" +
-    "    }\n" +
-    "\n" +
-    "    public static final Creator<Redo> CREATOR = new Creator<Redo>() {\n" +
-    "        public Redo createFromParcel(Parcel in) {\n" +
-    "            int age = in.readInt();\n" +
-    "            String name = in.readValue().toString();\n" +
-    "            Redo s = new Redo(name, age);\n" +
-    "        }\n" +
-    "\n" +
-    "        public Redo[] newArray(int size) {\n" +
-    "            return new Redo[size];\n" +
-    "        }\n" +
-    "    };\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public int describeContents() {\n" +
-    "        return 0;\n" +
-    "    }\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public void writeToParcel(Parcel dest, int flags) {\n" +
-    "        dest.writeString(name);\n" +
-    "        dest.writeInt(age);\n" +
-    "    }\n" +
-    "}\n";
+          "package com.example;\n" +
+                  "\n" +
+                  "import android.os.Parcel;\n" +
+                  "import android.os.Parcelable;\n" +
+                  "\n" +
+                  "public class Redo implements Parcelable {\n" +
+                  "    private final String name;\n" +
+                  "    private final int age;\n" +
+                  "    private Redo manager;\n" +
+                  "\n" +
+                  "    public Redo(String name, int age) {\n" +
+                  "        this.name = name;\n" +
+                  "        this.age = age;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    private Redo(Parcel in) {\n" +
+                  "        // not used \n" +
+                  "        name = \"Wrong\";\n" +
+                  "        age = in.readInt();\n" +
+                  "        manager = Redo.CREATOR.createFromParcel(in);\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    public static final Creator<Redo> CREATOR = new Creator<Redo>() {\n" +
+                  "        public Redo createFromParcel(Parcel in) {\n" +
+                  "            int age = in.readInt();\n" +
+                  "            String name = in.readValue().toString();\n" +
+                  "            Redo s = new Redo(name, age);\n" +
+                  "        }\n" +
+                  "\n" +
+                  "        public Redo[] newArray(int size) {\n" +
+                  "            return new Redo[size];\n" +
+                  "        }\n" +
+                  "    };\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public int describeContents() {\n" +
+                  "        return 0;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public void writeToParcel(Parcel dest, int flags) {\n" +
+                  "        dest.writeString(name);\n" +
+                  "        dest.writeInt(age);\n" +
+                  "    }\n" +
+                  "}\n";
 
   @Language("JAVA")
   private static final String REDO_EXPECTED =
-    "package com.example;\n" +
-    "\n" +
-    "import android.os.Parcel;\n" +
-    "import android.os.Parcelable;\n" +
-    "\n" +
-    "public class Redo implements Parcelable {\n" +
-    "    private final String name;\n" +
-    "    private final int age;\n" +
-    "    private Redo manager;\n" +
-    "\n" +
-    "    public Redo(String name, int age) {\n" +
-    "        this.name = name;\n" +
-    "        this.age = age;\n" +
-    "    }\n" +
-    "\n" +
-    "    private Redo(Parcel in) {\n" +
-    "        name = in.readString();\n" +
-    "        age = in.readInt();\n" +
-    "        manager = in.readParcelable(Redo.class.getClassLoader());\n" +
-    "    }\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public void writeToParcel(Parcel dest, int flags) {\n" +
-    "        dest.writeString(name);\n" +
-    "        dest.writeInt(age);\n" +
-    "        dest.writeParcelable(manager, flags);\n" +
-    "    }\n" +
-    "\n" +
-    "    @Override\n" +
-    "    public int describeContents() {\n" +
-    "        return 0;\n" +
-    "    }\n" +
-    "\n" +
-    "    public static final Creator<Redo> CREATOR = new Creator<Redo>() {\n" +
-    "        @Override\n" +
-    "        public Redo createFromParcel(Parcel in) {\n" +
-    "            return new Redo(in);\n" +
-    "        }\n" +
-    "\n" +
-    "        @Override\n" +
-    "        public Redo[] newArray(int size) {\n" +
-    "            return new Redo[size];\n" +
-    "        }\n" +
-    "    };\n" +
-    "}\n";
+          "package com.example;\n" +
+                  "\n" +
+                  "import android.os.Parcel;\n" +
+                  "import android.os.Parcelable;\n" +
+                  "\n" +
+                  "public class Redo implements Parcelable {\n" +
+                  "    private final String name;\n" +
+                  "    private final int age;\n" +
+                  "    private Redo manager;\n" +
+                  "\n" +
+                  "    public Redo(String name, int age) {\n" +
+                  "        this.name = name;\n" +
+                  "        this.age = age;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    protected Redo(Parcel in) {\n" +
+                  "        name = in.readString();\n" +
+                  "        age = in.readInt();\n" +
+                  "        manager = in.readParcelable(Redo.class.getClassLoader());\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public void writeToParcel(Parcel dest, int flags) {\n" +
+                  "        dest.writeString(name);\n" +
+                  "        dest.writeInt(age);\n" +
+                  "        dest.writeParcelable(manager, flags);\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public int describeContents() {\n" +
+                  "        return 0;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    public static final Creator<Redo> CREATOR = new Creator<Redo>() {\n" +
+                  "        @Override\n" +
+                  "        public Redo createFromParcel(Parcel in) {\n" +
+                  "            return new Redo(in);\n" +
+                  "        }\n" +
+                  "\n" +
+                  "        @Override\n" +
+                  "        public Redo[] newArray(int size) {\n" +
+                  "            return new Redo[size];\n" +
+                  "        }\n" +
+                  "    };\n" +
+                  "}\n";
 
   public void testRedo() throws Exception {
     doTestApply(REIMPLEMENT, REDO_SOURCE, REDO_EXPECTED, "Redo");
   }
-}
 
+  // ------------------------------------------------------------------------------ //
+
+  @Language("JAVA")
+  private static final String INHERIT_SOURCE =
+          "package com.example;\n" +
+                  "\n" +
+                  "import android.os.Parcel;\n" +
+                  "import android.os.Parcelable;\n" +
+                  "\n" +
+                  "public class Inherit extends Simple implements Parcelable {\n" +
+                  "    private final int startYear;\n" +
+                  "\n" +
+                  "    public Inherit(String name, int age, int startYear) {\n" +
+                  "        super(name, age);\n" +
+                  "        this.startYear = startYear;\n" +
+                  "    }\n" +
+                  "}\n";
+
+  @Language("JAVA")
+  private static final String INHERIT_EXPECTED =
+          "package com.example;\n" +
+                  "\n" +
+                  "import android.os.Parcel;\n" +
+                  "import android.os.Parcelable;\n" +
+                  "\n" +
+                  "public class Inherit extends Simple implements Parcelable {\n" +
+                  "    private final int startYear;\n" +
+                  "\n" +
+                  "    public Inherit(String name, int age, int startYear) {\n" +
+                  "        super(name, age);\n" +
+                  "        this.startYear = startYear;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    protected Inherit(Parcel in) {\n" +
+                  "        super(in);\n" +
+                  "        startYear = in.readInt();\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public void writeToParcel(Parcel dest, int flags) {\n" +
+                  "        super.writeToParcel(dest, flags);\n" +
+                  "        dest.writeInt(startYear);\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    @Override\n" +
+                  "    public int describeContents() {\n" +
+                  "        return 0;\n" +
+                  "    }\n" +
+                  "\n" +
+                  "    public static final Creator<Inherit> CREATOR = new Creator<Inherit>() {\n" +
+                  "        @Override\n" +
+                  "        public Inherit createFromParcel(Parcel in) {\n" +
+                  "            return new Inherit(in);\n" +
+                  "        }\n" +
+                  "\n" +
+                  "        @Override\n" +
+                  "        public Inherit[] newArray(int size) {\n" +
+                  "            return new Inherit[size];\n" +
+                  "        }\n" +
+                  "    };\n" +
+                  "}\n";
+
+  public void testInheritance() throws Exception {
+    myFixture.addFileToProject("src/com/expected/Simple.java", SIMPLE_EXPECTED);
+    doTestApply(IMPLEMENT, INHERIT_SOURCE, INHERIT_EXPECTED, "Inherit");
+  }
+}
