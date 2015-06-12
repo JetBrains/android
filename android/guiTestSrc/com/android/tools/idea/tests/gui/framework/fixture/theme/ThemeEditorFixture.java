@@ -64,11 +64,6 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
     return ImmutableList.copyOf(themesCombo.contents());
   }
 
-  @NotNull
-  public JTableFixture getThemeEditorTable() {
-    return new JTableFixture(robot(), robot().finder().findByType(this.target().getSecondComponent(), ThemeEditorTable.class));
-  }
-
   public void waitForThemeSelection(@NotNull final String themeName) {
     pause(new Condition("Waiting for " + themeName + " to be selected") {
       @Override

@@ -22,10 +22,14 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.google.common.collect.ImmutableList;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JTableCellFixture;
+import org.fest.swing.fixture.JTableFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -36,7 +40,10 @@ import java.util.List;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Index.atIndex;
+import static org.fest.swing.data.TableCell.row;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * UI tests for the theme selector in the Theme Editor
@@ -123,5 +130,72 @@ public class ThemeSelectorTest extends GuiTestCase {
     themeSelectionDialog.clickOk();
 
     themeEditor.waitForThemeSelection("Theme.AppCompat.NoActionBar");
+  }
+
+  @Test @IdeGuiTest
+  public void testCreateNewTheme() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+
+    JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
+    String selectedTheme = themesComboBox.selectedItem();
+    assertNotNull(selectedTheme);
+
+    themesComboBox.selectItem("Create New Theme");
+    NewStyleDialogFixture newStyleDialog = NewStyleDialogFixture.find(myRobot);
+    newStyleDialog.clickCancel();
+    themeEditor.waitForThemeSelection(selectedTheme);
+
+    themesComboBox.selectItem("Create New Theme");
+    newStyleDialog = NewStyleDialogFixture.find(myRobot);
+    JTextComponentFixture newNameTextField = newStyleDialog.getNewNameTextField();
+    JComboBoxFixture parentComboBox = newStyleDialog.getParentComboBox();
+
+    parentComboBox.requireSelection("[AppTheme]");
+    ImmutableList<String> parentsList = ImmutableList.copyOf(parentComboBox.contents());
+    // The expected elements are:
+    // 0. AppTheme
+    // 1. -- Separator
+    // 2. AppCompat Light
+    // 3. AppCompat
+    // 4. -- Separator
+    // 5. Show all themes
+    assertThat(parentsList).hasSize(6)
+      .contains("[AppTheme]", atIndex(0))
+      .contains("Theme.AppCompat.Light.NoActionBar", atIndex(2))
+      .contains("Theme.AppCompat.NoActionBar", atIndex(3))
+      .contains("Show all themes", atIndex(5));
+    assertThat(parentsList.get(1)).startsWith("javax.swing.JSeparator");
+    assertThat(parentsList.get(4)).startsWith("javax.swing.JSeparator");
+
+    parentComboBox.selectItem("Theme.AppCompat.NoActionBar");
+    newNameTextField.requireText("Theme.AppTheme.NoActionBar");
+
+    parentComboBox.selectItem("Show all themes");
+    ThemeSelectionDialogFixture themeSelectionDialog = ThemeSelectionDialogFixture.find(myRobot);
+    JTreeFixture categoriesTree = themeSelectionDialog.getCategoriesTree();
+    JListFixture themeList = themeSelectionDialog.getThemeList();
+
+    categoriesTree.clickRow(5);
+    themeList.clickItem(0);
+    themeList.requireSelection("@android:style/Theme.Holo");
+    themeSelectionDialog.clickOk();
+
+    parentComboBox.requireSelection("Theme.Holo");
+    newNameTextField.requireText("Theme.AppTheme");
+    newNameTextField.deleteText().enterText("NewTheme");
+
+    newStyleDialog.clickOk();
+    themeEditor.waitForThemeSelection("[NewTheme]");
+    JTableFixture propertiesTable = themeEditor.getPropertiesTable();
+    JTableCellFixture parentValue = propertiesTable.cell(row(0).column(1));
+    assertEquals("Theme.Holo", parentValue.value());
+
+    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    EditorFixture editor = projectFrame.getEditor();
+    assertNotEquals(-1, editor.findOffset(null, "name=\"AppTheme", true));
+    editor.moveTo(editor.findOffset(null, "name=\"NewTheme", true));
+    assertEquals("<style ^name=\"NewTheme\" parent=\"@android:style/Theme.Holo\" />",
+                 editor.getCurrentLineContents(true, true, 0));
   }
 }
