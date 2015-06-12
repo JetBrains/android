@@ -20,6 +20,8 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +51,8 @@ public class ThemeEditorContext {
   // e.g., resolution of resources available as a value for attribute in currently
   // selected theme. Configuration field would point to one that is used for as a
   // rendering context.
-  private final @NotNull Module myCurrentThemeModule;
+  private @NotNull Module myCurrentThemeModule;
+
   private final List<ChangeListener> myChangeListeners = new ArrayList<ChangeListener>();
   private final List<ConfigurationListener> myConfigurationListeners = new ArrayList<ConfigurationListener>();
 
@@ -66,6 +69,19 @@ public class ThemeEditorContext {
   @NotNull
   public Module getCurrentThemeModule() {
     return myCurrentThemeModule;
+  }
+
+  public void setCurrentThemeModule(final @NotNull Module module) {
+    myCurrentThemeModule = module;
+
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null;
+
+    VirtualFile projectFile = module.getProject().getProjectFile();
+    assert projectFile != null;
+
+    Configuration configuration = facet.getConfigurationManager().getConfiguration(projectFile);
+    setConfiguration(configuration);
   }
 
   @Nullable

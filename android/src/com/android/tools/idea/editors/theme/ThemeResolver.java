@@ -20,14 +20,25 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
 
 /**
  * Class that provides methods to resolve themes for a given configuration.
+ *
+ * TODO(ddrone): get rid of this class
+ * @deprecated this class is supposed to be replaced by ProjectThemeResolver
  */
+@Deprecated
 public class ThemeResolver {
   @SuppressWarnings("ConstantNamingConvention")
   private static final Logger LOG = Logger.getInstance(ThemeResolver.class);
