@@ -272,13 +272,23 @@ public class ResourceNotificationManager implements ProjectComponent {
           }
           myPendingNotify = false;
         }
-        EnumSet<Reason> reason = myEvents;
-        myEvents = EnumSet.noneOf(Reason.class);
-        notifyListeners(reason);
-        synchronized (CHANGE_PENDING_LOCK) {
-          myPendingNotify = false;
-        }
-        myEvents.clear();
+        // Ensure that the notify happens after all pending Swing Runnables
+        // have been processed, including any created *after* the initial notice()
+        // call which scheduled this runnable, since they could for example be
+        // ResourceFolderRepository#rescan() Runnables, and we want those to finish
+        // before the final notify. Notice how we clear the pending notify flag
+        // above though, such that if another event appears between the first
+        // invoke later and the second, it will schedule another complete notification
+        // event.
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            EnumSet<Reason> reason = myEvents;
+            myEvents = EnumSet.noneOf(Reason.class);
+            notifyListeners(reason);
+            myEvents.clear();
+          }
+        });
       }
     });
   }
@@ -607,9 +617,11 @@ public class ResourceNotificationManager implements ProjectComponent {
 
     @Override
     public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
-      if (isRelevantFile(event) && !myIgnoreChildrenChanged && event.getParent() != event.getChild()) {
-        check(event);
+      if (myIgnoreChildrenChanged) {
+        return;
       }
+
+      check(event);
     }
 
     @Override
@@ -656,6 +668,7 @@ public class ResourceNotificationManager implements ProjectComponent {
         final PsiFile file = event.getFile();
         if (file != null) {
           notice(Reason.EDIT);
+          return;
         }
       }
 

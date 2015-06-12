@@ -1318,7 +1318,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
               if (parent instanceof XmlText) {
                 XmlText text = (XmlText)parent;
-                handleValueXmlTextEdit(text.getParentTag(),  psiFile);
+                handleValueXmlTextEdit(text.getParentTag(), psiFile);
                 return;
               } else if (parent instanceof XmlComment) {
                 // Nothing to do
@@ -1608,6 +1608,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         if (file != null) {
           ResourceFolderType folderType = getFolderType(psiFile);
           if (folderType != null && isResourceFile(psiFile)) {
+            // TODO: If I get an XmlText change and the parent is the resources tag or it's a layout, nothing to do.
             rescan(psiFile, folderType);
           }
         }
