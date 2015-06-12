@@ -115,6 +115,21 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
     configurable.showDialogAndSelectDependency(module, dependency);
   }
 
+  public void openAndSelectBuildTypesEditor(@NotNull Module module) {
+    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+    configurable.showDialogAndSelectBuildTypesEditor(module);
+  }
+
+  public void openAndSelectFlavorsEditor(@NotNull Module module) {
+    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+    configurable.showDialogAndSelectFlavorsEditor(module);
+  }
+
+  public void openAndSelectDependenciesEditor(@NotNull Module module) {
+    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+    configurable.showDialogAndSelectDependenciesEditor(module);
+  }
+
   @Override
   public boolean canOpenModuleLibrarySettings() {
     if (isGradleProjectInAndroidStudio()) {
