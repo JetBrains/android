@@ -28,6 +28,7 @@ import com.android.sdklib.repository.PreciseRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
+import com.android.tools.idea.sdk.remote.internal.archives.ArchFilter;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.packages.RemotePackageParserUtils;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
@@ -121,7 +122,9 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
   public long getDownloadSize() {
     long size = 0;
     for (Archive archive : mArchives) {
-      size += archive.getSize();
+      if (archive.isCompatible()) {
+        size += archive.getSize();
+      }
     }
     return size;
   }
@@ -315,6 +318,18 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
     return mArchives;
   }
 
+  /**
+   * @return true if any of the archives in this package are compatible with the current
+   * architecture.
+   */
+  public boolean hasCompatibleArchive() {
+    for (Archive archive : mArchives) {
+      if (archive.isCompatible()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Returns a short, reasonably unique string identifier that can be used
