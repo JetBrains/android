@@ -60,6 +60,8 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.android.tools.idea.templates.RepositoryUrlManager.REVISION_ANY;
+
 public class MavenDependencyLookupDialog extends DialogWrapper {
   private static final String AAR_PACKAGING = "@" + SdkConstants.EXT_AAR;
   private static final String JAR_PACKAGING = "@" + SdkConstants.EXT_JAR;
@@ -149,7 +151,8 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
 
     @NotNull
     public String getCoordinates() {
-      return getGroupId() + ":" + getArtifactId() + ":" + getVersion();
+      String version = REVISION_ANY.equals(getVersion()) ? "" : ':' + getVersion();
+      return getGroupId() + ":" + getArtifactId() + version;
     }
   }
 
@@ -263,7 +266,35 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       }
     });
 
+    myOKAction = new OkAction() {
+      @Override
+      protected void doAction(ActionEvent e) {
+        String text = mySearchField.getText();
+        if (text != null &&
+            !hasVersion(text) &&
+            RepositoryUrlManager.EXTRAS_REPOSITORY.containsKey(getArtifact(text))) {
+          // If it's a known library that doesn't exist in the local repository, we don't display the version for it. Add it back so that
+          // final string is a valid gradle coordinate.
+          mySearchField.setText(text + ':' + REVISION_ANY);
+        }
+        super.doAction(e);
+      }
+    };
     init();
+  }
+
+  private static String getArtifact(String coordinate) {
+    int i = coordinate.indexOf(':');
+    if (i >= 0 && i + 1 < coordinate.length()) {
+      // There's at least one char after the first ':'
+      coordinate = coordinate.substring(i + 1);
+      i = coordinate.indexOf(':');
+      if (i < 0) {
+        i = coordinate.length();
+      }
+      return coordinate.substring(0, i);
+    }
+    return null;
   }
 
   @NotNull
@@ -452,5 +483,9 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
 
   private void createUIComponents() {
     myProgressIcon = new AsyncProcessIcon("Progress");
+  }
+
+  public static boolean hasVersion(String coordinateText) {
+    return StringUtil.countChars(coordinateText, ':') > 1;
   }
 }
