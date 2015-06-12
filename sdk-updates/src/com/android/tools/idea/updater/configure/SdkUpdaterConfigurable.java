@@ -156,14 +156,14 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       message.add("The following components will be installed: \n");
       message.beginList();
       for (IPkgDesc item : requestedPackages) {
-        message.listItem().add(item.getListDescription());
+        message.listItem().add(String.format("%1$s %2$s %3$s", item.getListDescription(), item.hasAndroidVersion() ? "revision" : "version",
+                                             item.getPreciseRevision()));
       }
       message.endList();
     }
     message.closeHtmlBody();
     if (found) {
-      if (Messages.showOkCancelDialog((Project)null, message.getHtml(), "Confirm Change", AllIcons.General.Warning) ==
-          Messages.OK) {
+      if (Messages.showOkCancelDialog((Project)null, message.getHtml(), "Confirm Change", AllIcons.General.Warning) == Messages.OK) {
         for (UpdatablePkgInfo item : toDelete) {
           item.getLocalInfo().delete();
         }
