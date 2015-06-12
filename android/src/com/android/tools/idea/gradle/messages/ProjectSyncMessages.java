@@ -160,7 +160,7 @@ public class ProjectSyncMessages {
       group = UNRESOLVED_ANDROID_DEPENDENCIES;
       hyperlinks.add(new InstallRepositoryHyperlink(SdkMavenRepository.ANDROID));
     }
-    else if (dependency.startsWith("com.google.android.gms")) {
+    else if (dependency.startsWith("com.google.android")) {
       group = UNRESOLVED_ANDROID_DEPENDENCIES;
       hyperlinks.add(new InstallRepositoryHyperlink(SdkMavenRepository.GOOGLE));
     }
