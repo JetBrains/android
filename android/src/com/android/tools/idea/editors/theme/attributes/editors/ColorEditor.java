@@ -18,31 +18,21 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
-import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.rendering.ResourceHelper;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.JTable;
-import javax.swing.SwingUtilities;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class ColorEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> {
-  private static final Logger LOG = Logger.getInstance(ColorEditor.class);
-
   private final ThemeEditorContext myContext;
   private final ColorComponent myComponent;
   private AttributeEditorValue myEditorValue = null;
@@ -104,45 +94,15 @@ public class ColorEditor extends TypedCellEditor<EditedStyleItem, AttributeEdito
 
       final String oldValue = myItem.getItemResourceValue().getValue();
 
-      final ScheduledExecutorService changeScheduler = Executors.newSingleThreadScheduledExecutor();
-      final AtomicReference<ScheduledFuture> nextTimer = new AtomicReference<ScheduledFuture>();
       dialog.setResourcePickerListener(new ChooseResourceDialog.ResourcePickerListener() {
         @Override
         public void resourceChanged(final @Nullable String resource) {
-          // We make the change in a separate thread and delay it by 150ms to prevent the dialog from
-          // blocking and issuing a change and a repaint for every mouse movement.
-          // TODO: This is a temporary workaround to the problem of paintComponent in the AndroidPreviewPanel being a slow operation.
-          //       Remove once the inflating of the layout has been removed from the paintComponent.
-          ScheduledFuture previousTimer = nextTimer.getAndSet(changeScheduler.schedule(new Runnable() {
-            @Override
-            public void run() {
-              try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                  @Override
-                  public void run() {
-                    myItem.getItemResourceValue().setValue(resource == null ? oldValue : resource);
-                    myPreviewPanel.invalidateGraphicsRenderer();
-                  }
-                });
-              }
-              catch (InterruptedException e1) {
-                // Timer cancelled. We just ignore the latest change.
-              }
-              catch (InvocationTargetException e1) {
-                LOG.error("Exception updating resource", e1);
-              }
-            }
-          }, 150, TimeUnit.MILLISECONDS));
-
-          if (previousTimer != null) {
-            previousTimer.cancel(true);
-          }
+          myItem.getItemResourceValue().setValue(resource == null ? oldValue : resource);
+          myPreviewPanel.invalidateGraphicsRenderer();
         }
       });
 
       dialog.show();
-
-      changeScheduler.shutdown();
 
       // Restore the old value in the properties model
       myItem.getItemResourceValue().setValue(oldValue);
