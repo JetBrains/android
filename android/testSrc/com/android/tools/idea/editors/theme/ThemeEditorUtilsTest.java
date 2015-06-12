@@ -15,17 +15,27 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.res2.ResourceItem;
+import com.android.resources.ResourceType;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Scanner;
 
 public class ThemeEditorUtilsTest extends AndroidTestCase {
@@ -34,6 +44,10 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   @Override
   protected boolean requireRecentSdk() {
     return true;
+  }
+
+  public ThemeEditorUtilsTest() {
+    super(false);
   }
 
   private void compareWithAns(String doc, String ansPath) throws FileNotFoundException {
@@ -58,7 +72,9 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     sdkPlatformPath = getTestSdkPath();
     if (!sdkPlatformPath.endsWith("/")) sdkPlatformPath += "/";
-    sdkPlatformPath += "platforms/android-" + configuration.getTarget().getVersion().getApiLevel();
+    IAndroidTarget androidTarget = configuration.getTarget();
+    assertNotNull(androidTarget);
+    sdkPlatformPath += "platforms/android-" + androidTarget.getVersion().getApiLevel();
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
@@ -92,5 +108,48 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
         assertEquals(item.getName(), displayHtml);
       }
     }
+  }
+
+  public void testMinApiLevel() {
+    myFixture.copyFileToProject("themeEditor/manifestWithApi.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    assertEquals(11, ThemeEditorUtils.getMinApiLevel(myModule));
+  }
+
+  /**
+   * Tests that the method getOriginalApiLevel correctly returns the api level
+   * in which a particular framework attribute or value was defined
+   */
+  private void assertOriginalApiLevel(@NotNull String name, int expectedApiLevel) {
+    assertEquals(expectedApiLevel, ThemeEditorUtils.getOriginalApiLevel(name, getProject()));
+  }
+
+  public void testOriginalApi() {
+    assertOriginalApiLevel("android:statusBarColor", 21); // framework attribute
+    assertOriginalApiLevel("@android:color/holo_purple", 14); // framework value
+    assertOriginalApiLevel("myString", -1); // random string
+    assertOriginalApiLevel("statusBarColor", -1); // no prefix attribute
+    assertOriginalApiLevel("@color/holo_purple", -1); // no prefix value
+  }
+
+  public void testCopyTheme() {
+    myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
+    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
+
+    LocalResourceRepository repository = AppResourceRepository.getAppResources(myModule, true);
+    assertNotNull(repository);
+    List<ResourceItem> resources = repository.getResourceItem(ResourceType.STYLE, "AppTheme");
+    assertNotNull(resources);
+    assertFalse(resources.isEmpty());
+    final XmlTag sourceXml = LocalResourceRepository.getItemTag(getProject(), resources.get(0));
+    assertNotNull(sourceXml);
+    new WriteCommandAction.Simple(myModule.getProject(), "Copy a theme") {
+      @Override
+      protected void run() throws Throwable {
+        ThemeEditorUtils.copyTheme(16, sourceXml);
+        ThemeEditorUtils.copyTheme(19, sourceXml);
+      }
+    }.execute();
+    myFixture.checkResultByFile("res/values-v16/styles.xml", "themeEditor/testCopyTheme/styles-v16.xml", true);
+    myFixture.checkResultByFile("res/values-v19/styles.xml", "themeEditor/testCopyTheme/styles-v19.xml", true);
   }
 }
