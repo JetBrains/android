@@ -33,7 +33,6 @@ import org.intellij.lang.annotations.Language;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,9 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
-import static com.android.tools.idea.gradle.project.compatibility.ComponentVersionReader.ANDROID_GRADLE_PLUGIN;
-import static com.android.tools.idea.gradle.project.compatibility.ComponentVersionReader.GRADLE;
-import static com.android.tools.idea.gradle.project.compatibility.ComponentVersionReader.IDE;
+import static com.android.tools.idea.gradle.project.compatibility.ComponentVersionReader.*;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.io.Closeables.close;
@@ -131,7 +128,6 @@ public class VersionCompatibilityService {
    * @param metadata the XML document containing the new metadata.
    * @return {@code true} if the metadata was updated, {@code false} otherwise.
    */
-  @Contract(pure = true)
   boolean updateMetadata(@NotNull Document metadata) {
     try {
       VersionMetadata updated = loadMetadata(metadata.getRootElement());
