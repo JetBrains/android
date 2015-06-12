@@ -34,6 +34,7 @@ import org.junit.runners.model.TestClass;
 import java.awt.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertNotNull;
@@ -94,6 +95,9 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     Statement statement = methodInvoker(newMethod, test);
 
     List<FrameworkMethod> beforeMethods = myTestClass.getAnnotatedMethods(myBeforeClass);
+    // Call @Before methods from superclasses first, as specified by JUnit. Normally, TestClass reverses the list automatically for @Before,
+    // but since we use a custom class loader, myBeforeClass is not equal to Before.class and we have to fix the order manually.
+    Collections.reverse(beforeMethods);
     if (!beforeMethods.isEmpty()) {
       statement = new RunBefores(statement, beforeMethods, test);
     }
