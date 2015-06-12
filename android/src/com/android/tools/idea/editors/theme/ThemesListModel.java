@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,9 +44,9 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
 
   private final ArrayList<String> myEditThemeOptions = new ArrayList<String>();
 
-  public ThemesListModel(@NotNull ProjectThemeResolver projectThemeResolver, @NotNull ThemeResolver themeResolver, @Nullable String defaultThemeName) {
+  public ThemesListModel(@NotNull Project project, @NotNull ThemeResolver themeResolver, @Nullable String defaultThemeName) {
     myEditThemeOptions.add(CREATE_NEW_THEME);
-    setThemeResolver(projectThemeResolver, themeResolver, defaultThemeName);
+    setThemeResolver(project, themeResolver, defaultThemeName);
   }
 
   /**
@@ -53,12 +54,12 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
    * @param themeResolver The new {@link ThemeResolver}.
    * @param defaultThemeName If not null and the model still exists, the model will try to keep this theme selected.
    */
-  public void setThemeResolver(ProjectThemeResolver projectThemeResolver, @NotNull ThemeResolver themeResolver, @Nullable String defaultThemeName) {
+  public void setThemeResolver(Project project, @NotNull ThemeResolver themeResolver, @Nullable String defaultThemeName) {
     // We sort the themes, displaying the local project themes at the top sorted alphabetically. The non local themes are sorted
     // alphabetically right below the project themes.
     ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(themeResolver);
 
-    ImmutableList<ProjectThemeResolver.ThemeWithSource> editableThemes = projectThemeResolver.getAllThemes();
+    ImmutableList<ProjectThemeResolver.ThemeWithSource> editableThemes = ProjectThemeResolver.getEditableProjectThemes(project);
     Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(ThemeEditorUtils.STYLE_COMPARATOR);
     for (ProjectThemeResolver.ThemeWithSource theme : editableThemes) {
       temporarySet.add(theme.getTheme());
