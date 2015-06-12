@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
@@ -25,6 +29,8 @@ import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.lint.checks.ApiLookup;
 import com.google.common.base.Predicate;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -42,11 +48,17 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
+import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
+import org.jetbrains.android.inspections.lint.IntellijLintClient;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -294,7 +306,7 @@ public class ThemeEditorUtils {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
 
     StringBuilder notFoundPaths = new StringBuilder();
-    for(String path : CUSTOM_WIDGETS_JAR_PATHS) {
+    for (String path : CUSTOM_WIDGETS_JAR_PATHS) {
       String jarPath = homePath + path;
       VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(jarPath));
 
@@ -317,5 +329,62 @@ public class ThemeEditorUtils {
 
     LOG.error("Unable to find theme-editor-widgets.jar in paths:\n" + notFoundPaths.toString());
     return null;
+  }
+
+  /**
+   * Returns the Api level at which was defined the attribute or value with the name passed as argument.
+   * Returns -1 if the argument is not the name of a framework attribute or resource.
+   */
+  public static int getOriginalApiLevel(@NotNull String name, @NotNull Project project) {
+    boolean isAttribute;
+    if (name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
+      isAttribute = true;
+    }
+    else if (name.startsWith(SdkConstants.ANDROID_PREFIX)) {
+      isAttribute = false;
+    }
+    else {
+      // Not a framework attribute or resource
+      return -1;
+    }
+
+    ApiLookup apiLookup = IntellijLintClient.getApiLookup(project);
+    assert apiLookup != null;
+
+    if (isAttribute) {
+      return apiLookup.getFieldVersion("android/R$attr", name.substring(SdkConstants.ANDROID_NS_NAME_PREFIX_LEN));
+    }
+
+    String[] namePieces = name.substring(SdkConstants.ANDROID_PREFIX.length()).split("/");
+    if (namePieces.length == 2) {
+      // If dealing with a value, it should be of the form "type/value"
+      return apiLookup.getFieldVersion("android/R$" + namePieces[0], AndroidResourceUtil.getFieldNameByResourceName(namePieces[1]));
+    }
+    return -1;
+  }
+
+  /**
+   * Copies a theme to a values folder with api version apiLevel,
+   * potentially creating the necessary folder or file.
+   * @param apiLevel api level of the folder the theme is copied to
+   * @param toBeCopied theme to be copied
+   */
+  public static void copyTheme(int apiLevel, @NotNull final XmlTag toBeCopied) {
+    PsiFile file = toBeCopied.getContainingFile();
+    assert file instanceof XmlFile : file;
+    ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+    assert folderType != null : file;
+    FolderConfiguration config = ResourceHelper.getFolderConfiguration(file);
+    assert config != null : file;
+
+    VersionQualifier qualifier = new VersionQualifier(apiLevel);
+    config.setVersionQualifier(qualifier);
+    String folder = config.getFolderName(folderType);
+    final AndroidLintQuickFix action = OverrideResourceAction.createFix(folder);
+    // Context needed for calls on action, but has no effect, simply has to be non null
+    final AndroidQuickfixContexts.DesignerContext context = AndroidQuickfixContexts.DesignerContext.getInstance();
+
+    // Copies the theme to the new file
+    action.apply(toBeCopied, toBeCopied, context);
   }
 }
