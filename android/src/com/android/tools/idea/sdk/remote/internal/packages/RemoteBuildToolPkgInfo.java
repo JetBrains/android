@@ -71,7 +71,15 @@ public class RemoteBuildToolPkgInfo extends RemotePkgInfo {
    */
   @Override
   public String installId() {
-    return INSTALL_ID_BASE + getRevision().toString().replace(' ', '_');
+    StringBuilder sb = new StringBuilder(INSTALL_ID_BASE);
+    int[] version = getRevision().toIntArray(false);
+    for (int i = 0; i < version.length; i++) {
+      sb.append(version[i]);
+      if (i != version.length - 1) {
+        sb.append('.');
+      }
+    }
+    return sb.toString();
   }
 
   /**
