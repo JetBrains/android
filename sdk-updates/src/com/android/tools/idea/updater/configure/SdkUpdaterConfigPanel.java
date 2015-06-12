@@ -16,6 +16,7 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.DispatchRunnable;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -177,8 +178,13 @@ public class SdkUpdaterConfigPanel {
     Set<UpdatablePkgInfo> buildToolsPackages = Sets.newTreeSet();
     Set<UpdatablePkgInfo> toolsPackages = Sets.newTreeSet();
     for (UpdatablePkgInfo info : mySdkState.getPackages().getConsolidatedPkgs().values()) {
-      AndroidVersion version = info.getPkgDesc().getAndroidVersion();
-      PkgType type = info.getPkgDesc().getType();
+      IPkgDesc desc = info.getPkgDesc(myIncludePreview);
+      if (desc == null) {
+        // We're not looking for previews, and this only has a preview available.
+        continue;
+      }
+      AndroidVersion version = desc.getAndroidVersion();
+      PkgType type = info.getPkgDesc(myIncludePreview).getType();
       if (type == PkgType.PKG_SAMPLE) {
         continue;
       }
