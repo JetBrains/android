@@ -102,6 +102,7 @@ public class PlatformComponentsPanel {
         myPlatformSummaryRootNode.add(new SummaryTreeNode(version, versionNodes));
       }
     }
+    refreshModified();
     myPlatformDetailTable.updateUI();
     myPlatformSummaryTable.updateUI();
     TreeUtil.expandAll(myPlatformDetailTable.getTree());
