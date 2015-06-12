@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import org.jetbrains.annotations.NotNull;
+import com.android.annotations.NonNull;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
 
 public class ItemTransferable implements Transferable {
   public static final DataFlavor PALETTE_FLAVOR = new DataFlavor(DnDTransferItem.class, "Palette Item");
 
   private final DnDTransferItem myItem;
 
-  public ItemTransferable(@NotNull DnDTransferItem item) {
+  public ItemTransferable(@NonNull DnDTransferItem item) {
     myItem = item;
   }
 

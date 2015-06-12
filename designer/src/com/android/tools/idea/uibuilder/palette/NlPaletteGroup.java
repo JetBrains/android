@@ -15,30 +15,30 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import org.jetbrains.annotations.NotNull;
+import com.android.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class NlPaletteGroup {
-  @NotNull private final String myTitle;
-  @NotNull private final List<NlPaletteItem> myItems;
+  @NonNull private final String myTitle;
+  @NonNull private final List<NlPaletteItem> myItems;
 
-  public NlPaletteGroup(@NotNull String title) {
+  public NlPaletteGroup(@NonNull String title) {
     myTitle = title;
     myItems = new ArrayList<NlPaletteItem>();
   }
 
-  public void add(@NotNull NlPaletteItem item) {
+  public void add(@NonNull NlPaletteItem item) {
     myItems.add(item);
   }
 
-  @NotNull
+  @NonNull
   public String getTitle() {
     return myTitle;
   }
 
-  @NotNull
+  @NonNull
   public List<NlPaletteItem> getItems() {
     return myItems;
   }
