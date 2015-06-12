@@ -325,7 +325,7 @@ public class ThemeEditorComponent extends Splitter {
         }
         else {
           Object item = myPanel.getThemeCombo().getSelectedItem();
-          final ThemeEditorStyle theme = ThemesListModel.getStyle(item);
+          final ThemeEditorStyle theme = (ThemeEditorStyle)item;
           assert theme != null;
 
           mySelectedTheme = theme;
@@ -334,8 +334,9 @@ public class ThemeEditorComponent extends Splitter {
           mySubStyleSourceAttribute = null;
 
           myThemeEditorContext.getConfiguration().setTheme(theme.getName());
-          if (item instanceof ProjectThemeResolver.ThemeWithSource) {
-            myThemeEditorContext.setCurrentThemeModule(((ProjectThemeResolver.ThemeWithSource)item).getSourceModule());
+          Module selectedModule = ((ThemesListModel)(myPanel.getThemeCombo().getModel())).getSelectedModule();
+          if (selectedModule != null) {
+            myThemeEditorContext.setCurrentThemeModule(selectedModule);
           }
           loadStyleAttributes();
         }
