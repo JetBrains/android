@@ -105,10 +105,14 @@ public class AttributesPanel {
 
   public ThemeEditorStyle getSelectedTheme() {
     Object item = myThemeCombo.getSelectedItem();
-    if (item != null && !(item instanceof ThemeEditorStyle)) {
-      throw new IllegalStateException("getSelectedTheme() is requested on themes combo while selected item is not theme");
+    if (item instanceof ThemeEditorStyle) {
+      return (ThemeEditorStyle)item;
     }
-    return (ThemeEditorStyle)item;
+    else if (item instanceof ProjectThemeResolver.ThemeWithSource) {
+      return ((ProjectThemeResolver.ThemeWithSource)item).getTheme();
+    }
+
+    throw new IllegalStateException("getSelectedTheme() is requested on themes combo while selected item is not theme");
   }
 
   public void setAdvancedMode(final boolean isAdvanced) {

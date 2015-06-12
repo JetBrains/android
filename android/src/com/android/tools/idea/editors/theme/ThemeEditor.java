@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
-import com.android.tools.idea.rendering.AppResourceRepository;
 import com.intellij.ProjectTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
@@ -25,55 +23,33 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 import java.beans.PropertyChangeListener;
 
 public class ThemeEditor extends UserDataHolderBase implements FileEditor {
   private final ThemeEditorVirtualFile myVirtualFile;
-  private final Configuration myConfiguration;
   private final ThemeEditorComponent myComponent;
-  private long myModificationCount;
 
   public ThemeEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myVirtualFile = (ThemeEditorVirtualFile)file;
-    Module module = myVirtualFile.getModule();
 
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
-    myConfiguration = facet.getConfigurationManager().getConfiguration(myVirtualFile);
-    myModificationCount = getModificationCount();
-
-    myComponent = new ThemeEditorComponent(myConfiguration, module);
+    myComponent = new ThemeEditorComponent(project);
 
     // If project roots change, reload the themes. This happens for example once the libraries have finished loading.
     project.getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
-        long newModificationCount = getModificationCount();
-        if (myModificationCount != newModificationCount) {
-          myModificationCount = newModificationCount;
-          myComponent.reload(myComponent.getPreviousSelectedTheme());
-        }
+        myComponent.reload(myComponent.getPreviousSelectedTheme());
       }
     });
-  }
-
-  /**
-   * Returns the modification count of the app resources repository or -1 if it fails to get the count.
-   */
-  private long getModificationCount() {
-    AppResourceRepository resourceRepository = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
-    return resourceRepository != null ? resourceRepository.getModificationCount() : -1;
   }
 
   @NotNull
@@ -131,11 +107,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public void selectNotify() {
-    long newModificationCount = getModificationCount();
-    if (myModificationCount != newModificationCount) {
-      myModificationCount = newModificationCount;
-      myComponent.reload(myComponent.getPreviousSelectedTheme());
-    }
+    myComponent.reload(myComponent.getPreviousSelectedTheme());
   }
 
   @Override
