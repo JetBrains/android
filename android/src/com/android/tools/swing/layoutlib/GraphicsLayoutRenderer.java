@@ -447,8 +447,13 @@ public class GraphicsLayoutRenderer {
 
       p = viewToModel(p);
 
+      List<ViewInfo> rootViews = myRenderSession.getRootViews();
+      if (rootViews == null) {
+        return null;
+      }
+
       Point base = new Point();
-      for (ViewInfo view : myRenderSession.getRootViews()) {
+      for (ViewInfo view : rootViews) {
         ViewInfo hitView = viewAtPoint(base, view, p);
         if (hitView != null) {
           return hitView;
