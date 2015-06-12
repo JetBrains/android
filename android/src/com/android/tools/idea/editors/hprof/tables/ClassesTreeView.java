@@ -132,8 +132,13 @@ public class ClassesTreeView {
         .setComparator(new Comparator<DefaultMutableTreeNode>() {
           @Override
           public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
-            return ((HeapClassObj)a.getUserObject()).getSimpleName()
+            int comparisonResult = ((HeapClassObj)a.getUserObject()).getSimpleName()
               .compareToIgnoreCase(((HeapClassObj)b.getUserObject()).getSimpleName());
+            if (comparisonResult == 0) {
+              return ((HeapClassObj)a.getUserObject()).getClassObj().getClassName()
+                .compareToIgnoreCase(((HeapClassObj)b.getUserObject()).getClassObj().getClassName());
+            }
+            return comparisonResult;
           }
         })
         .setRenderer(new ColoredTreeCellRenderer() {
