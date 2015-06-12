@@ -132,8 +132,8 @@ public class ClassesTreeView {
         .setComparator(new Comparator<DefaultMutableTreeNode>() {
           @Override
           public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
-            return ((HeapClassObj)a.getUserObject()).getClassObj().getClassName()
-              .compareTo(((HeapClassObj)b.getUserObject()).getClassObj().getClassName());
+            return ((HeapClassObj)a.getUserObject()).getSimpleName()
+              .compareToIgnoreCase(((HeapClassObj)b.getUserObject()).getSimpleName());
           }
         })
         .setRenderer(new ColoredTreeCellRenderer() {
@@ -355,11 +355,18 @@ public class ClassesTreeView {
   private static class HeapClassObj {
     @NotNull private ClassObj myClassObj;
     private long myRetainedSize;
+    private String mySimpleName;
 
     private HeapClassObj(@NotNull ClassObj classObj, int heapId) {
       myClassObj = classObj;
       for (Instance instance : myClassObj.getHeapInstances(heapId)) {
         myRetainedSize += instance.getTotalRetainedSize();
+      }
+
+      mySimpleName = myClassObj.getClassName();
+      int index = mySimpleName.lastIndexOf('.');
+      if (index >= 0 && index < mySimpleName.length() - 1) {
+        mySimpleName = mySimpleName.substring(index + 1, mySimpleName.length());
       }
     }
 
@@ -370,6 +377,10 @@ public class ClassesTreeView {
 
     public long getRetainedSize() {
       return myRetainedSize;
+    }
+
+    public String getSimpleName() {
+      return mySimpleName;
     }
   }
 }
