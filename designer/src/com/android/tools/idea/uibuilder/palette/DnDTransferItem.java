@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
-import org.jetbrains.annotations.NotNull;
 
 public class DnDTransferItem {
   private final String myTag;
@@ -32,12 +31,12 @@ public class DnDTransferItem {
     myHeight = height;
   }
 
-  @NotNull
+  @NonNull
   public String getTag() {
     return myTag;
   }
 
-  @NotNull
+  @NonNull
   public String getRepresentation() {
     return myRepresentation;
   }
