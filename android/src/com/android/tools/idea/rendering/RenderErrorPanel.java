@@ -25,6 +25,7 @@ import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -146,31 +147,36 @@ public class RenderErrorPanel extends JPanel {
   public String showErrors(@NotNull final RenderResult result) {
     RenderLogger logger = result.getLogger();
     if (!logger.hasProblems()) {
-      showEmpty();
-      myResult = null;
-      myLinkManager = null;
+      showErrors(null, null, null);
       return null;
     }
-    myResult = result;
-    myLinkManager = result.getLogger().getLinkManager();
 
     try {
-      // Generate HTML under a read lock, since many errors require peeking into the PSI
-      // to for example find class names to suggest as typo replacements
-      String html = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-        @Override
-        public String compute() {
-          return generateHtml(result);
-        }
-      });
-      myHTMLViewer.read(new StringReader(html), null);
-      setupStyle();
-      myHTMLViewer.setCaretPosition(0);
+      String html = generateHtml(result, result.getLogger().getLinkManager());
+      showErrors(html, result, logger.getLinkManager());
       return html;
     }
     catch (Exception e) {
       showEmpty();
       return null;
+    }
+  }
+
+  public void showErrors(@Nullable String html, @Nullable RenderResult result, @Nullable HtmlLinkManager linkManager) {
+    if (html == null) {
+      myResult = null;
+      showEmpty();
+      return;
+    }
+    try {
+      myHTMLViewer.read(new StringReader(html), null);
+      setupStyle();
+      myHTMLViewer.setCaretPosition(0);
+      myResult = result;
+      myLinkManager = linkManager;
+    }
+    catch (Exception e) {
+      showEmpty();
     }
   }
 
@@ -265,7 +271,10 @@ public class RenderErrorPanel extends JPanel {
     return myHTMLViewer.getPreferredSize().height;
   }
 
-  private String generateHtml(@NotNull RenderResult result) {
+  public String generateHtml(@NotNull RenderResult result, @NotNull HtmlLinkManager linkManager) {
+    myResult = result;
+    myLinkManager = linkManager;
+
     RenderLogger logger = result.getLogger();
     RenderTask renderTask = result.getRenderTask();
     assert logger.hasProblems();
@@ -348,6 +357,10 @@ public class RenderErrorPanel extends JPanel {
         foundCustomView |= addTypoSuggestions(builder, className, customViews, false);
         addTypoSuggestions(builder, className, customViews, true);
         addTypoSuggestions(builder, className, androidViewClassNames, false);
+
+        if (myLinkManager == null) {
+          return;
+        }
 
         builder.addLink("Fix Build Path", myLinkManager.createEditClassPathUrl());
 
@@ -449,7 +462,7 @@ public class RenderErrorPanel extends JPanel {
     return false;
   }
 
-  private void reportUnknownFragments(@NotNull RenderLogger logger, @NotNull HtmlBuilder builder) {
+  private void reportUnknownFragments(@NotNull final RenderLogger logger, @NotNull final HtmlBuilder builder) {
     List<String> fragmentNames = logger.getMissingFragments();
     if (fragmentNames != null && !fragmentNames.isEmpty()) {
 
@@ -461,7 +474,7 @@ public class RenderErrorPanel extends JPanel {
 
       // TODO: Add link to not warn any more for this session
 
-      for (String className : fragmentNames) {
+      for (final String className : fragmentNames) {
         builder.listItem();
         boolean isIdentified = className != null && !className.isEmpty();
         boolean isActivityKnown = isIdentified && !className.startsWith(PREFIX_RESOURCE_REF);
@@ -475,48 +488,53 @@ public class RenderErrorPanel extends JPanel {
         builder.add(" (");
 
         if (isActivityKnown) {
-          // TODO: Look up layout references in the given layout, if possible
-          // Find activity class
-          // Look for R references in the layout
-          Module module = logger.getModule();
-          assert module != null;
-          Project project = module.getProject();
-          GlobalSearchScope scope = GlobalSearchScope.allScope(project);
-          PsiClass clz = JavaPsiFacade.getInstance(project).findClass(className, scope);
-          String layoutName = myResult.getFile().getName();
-          boolean separate = false;
-          if (clz != null) {
-            // TODO: Should instead find all R.layout elements
-            // HACK AHEAD!
-            String matchText = clz.getText();
-            final Pattern LAYOUT_FIELD_PATTERN = Pattern.compile("R\\.layout\\.([a-z0-9_]+)"); //$NON-NLS-1$
-            Matcher matcher = LAYOUT_FIELD_PATTERN.matcher(matchText);
-            Set<String> layouts = Sets.newTreeSet();
-            int index = 0;
-            while (true) {
-              if (matcher.find(index)) {
-                layouts.add(matcher.group(1));
-                index = matcher.end();
-              } else {
-                break;
+          final Module module = logger.getModule();
+          ApplicationManager.getApplication().runReadAction(new Runnable() {
+            @Override
+            public void run() {
+              // TODO: Look up layout references in the given layout, if possible
+              // Find activity class
+              // Look for R references in the layout
+              assert module != null;
+              Project project = module.getProject();
+              GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+              PsiClass clz = JavaPsiFacade.getInstance(project).findClass(className, scope);
+              String layoutName = myResult.getFile().getName();
+              boolean separate = false;
+              if (clz != null) {
+                // TODO: Should instead find all R.layout elements
+                // HACK AHEAD!
+                String matchText = clz.getText();
+                final Pattern LAYOUT_FIELD_PATTERN = Pattern.compile("R\\.layout\\.([a-z0-9_]+)"); //$NON-NLS-1$
+                Matcher matcher = LAYOUT_FIELD_PATTERN.matcher(matchText);
+                Set<String> layouts = Sets.newTreeSet();
+                int index = 0;
+                while (true) {
+                  if (matcher.find(index)) {
+                    layouts.add(matcher.group(1));
+                    index = matcher.end();
+                  } else {
+                    break;
+                  }
+                }
+                for (String layout : layouts) {
+                  if (layout.equals(layoutName)) { // Don't include self
+                    continue;
+                  }
+                  if (separate) {
+                    builder.add(", ");
+                  }
+                  builder.addLink("Use @layout/" + layout, myLinkManager.createAssignLayoutUrl(className, layout));
+                  separate = true;
+                }
               }
-            }
-            for (String layout : layouts) {
-              if (layout.equals(layoutName)) { // Don't include self
-                continue;
-              }
+
               if (separate) {
                 builder.add(", ");
               }
-              builder.addLink("Use @layout/" + layout, myLinkManager.createAssignLayoutUrl(className, layout));
-              separate = true;
+              builder.addLink("Pick Layout...", myLinkManager.createPickLayoutUrl(className));
             }
-          }
-
-          if (separate) {
-            builder.add(", ");
-          }
-          builder.addLink("Pick Layout...", myLinkManager.createPickLayoutUrl(className));
+          });
         } else {
           builder.addLink("Choose Fragment Class...", myLinkManager.createAssignFragmentUrl(className));
         }
@@ -531,7 +549,19 @@ public class RenderErrorPanel extends JPanel {
   }
 
   @NotNull
-  private static Collection<String> getAllViews(@NotNull Module module) {
+  private static Collection<String> getAllViews(@Nullable final Module module) {
+    if (module == null) {
+      return Collections.emptyList();
+    }
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return ApplicationManager.getApplication().runReadAction(new Computable<Collection<String>>() {
+        @Override
+        public Collection<String> compute() {
+          return getAllViews(module);
+        }
+      });
+    }
+
     Set<String> names = new java.util.HashSet<String>();
     for (PsiClass psiClass : findInheritors(module, CLASS_VIEW)) {
       String name = psiClass.getQualifiedName();
@@ -544,7 +574,16 @@ public class RenderErrorPanel extends JPanel {
   }
 
   @NotNull
-  private static Collection<PsiClass> findInheritors(@NotNull Module module, @NotNull String name) {
+  private static Collection<PsiClass> findInheritors(@NotNull final Module module, @NotNull final String name) {
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return ApplicationManager.getApplication().runReadAction(new Computable<Collection<PsiClass>>() {
+        @Override
+        public Collection<PsiClass> compute() {
+          return findInheritors(module, name);
+        }
+      });
+    }
+
     Project project = module.getProject();
     try {
       PsiClass base = JavaPsiFacade.getInstance(project).findClass(name, GlobalSearchScope.allScope(project));
@@ -798,14 +837,14 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  private void reportMissingSizeAttributes(@NotNull RenderLogger logger, HtmlBuilder builder, RenderTask renderTask) {
+  private void reportMissingSizeAttributes(@NotNull final RenderLogger logger, final HtmlBuilder builder, RenderTask renderTask) {
     Module module = logger.getModule();
     Project project = module.getProject();
     if (logger.isMissingSize()) {
       // Emit hyperlink about missing attributes; the action will operate on all of them
       builder.addBold("NOTE: One or more layouts are missing the layout_width or layout_height attributes. " +
                       "These are required in most layouts.").newline();
-      ResourceResolver resourceResolver = renderTask.getResourceResolver();
+      final ResourceResolver resourceResolver = renderTask.getResourceResolver();
       XmlFile psiFile = renderTask.getPsiFile();
       if (psiFile == null) {
         LOG.error("PsiFile is missing in RenderTask used in RenderErrorPanel!");
@@ -815,32 +854,37 @@ public class RenderErrorPanel extends JPanel {
 
       List<XmlTag> missing = fix.findViewsMissingSizes();
 
-      String fill = VALUE_FILL_PARENT;
       // See whether we should offer match_parent instead of fill_parent
-      AndroidPlatform platform = renderTask.getPlatform();
-      if (platform != null && platform.getTarget().getVersion().getApiLevel() >= 8) {
-        fill = VALUE_MATCH_PARENT;
-      }
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+      final String fill = moduleInfo == null
+                          ||  moduleInfo.getBuildSdkVersion() == null
+                          || moduleInfo.getBuildSdkVersion().getApiLevel() >= 8
+                          ? VALUE_MATCH_PARENT : VALUE_FILL_PARENT;
 
-      for (XmlTag tag : missing) {
-        boolean missingWidth = !AddMissingAttributesFix.definesWidth(tag, resourceResolver);
-        boolean missingHeight = !AddMissingAttributesFix.definesHeight(tag, resourceResolver);
-        assert missingWidth || missingHeight;
+      for (final XmlTag tag : missing) {
+        ApplicationManager.getApplication().runReadAction(new Runnable() {
+          @Override
+          public void run() {
+            boolean missingWidth = !AddMissingAttributesFix.definesWidth(tag, resourceResolver);
+            boolean missingHeight = !AddMissingAttributesFix.definesHeight(tag, resourceResolver);
+            assert missingWidth || missingHeight;
 
-        String id = tag.getAttributeValue(ATTR_ID);
-        if (id == null || id.length() == 0) {
-          id = '<' + tag.getName() + '>';
-        }
-        else {
-          id = '"' + stripIdPrefix(id) + '"';
-        }
+            String id = tag.getAttributeValue(ATTR_ID);
+            if (id == null || id.length() == 0) {
+              id = '<' + tag.getName() + '>';
+            }
+            else {
+              id = '"' + stripIdPrefix(id) + '"';
+            }
 
-        if (missingWidth) {
-          reportMissingSize(builder, logger, fill, tag, id, ATTR_LAYOUT_WIDTH);
-        }
-        if (missingHeight) {
-          reportMissingSize(builder, logger, fill, tag, id, ATTR_LAYOUT_HEIGHT);
-        }
+            if (missingWidth) {
+              reportMissingSize(builder, logger, fill, tag, id, ATTR_LAYOUT_WIDTH);
+            }
+            if (missingHeight) {
+              reportMissingSize(builder, logger, fill, tag, id, ATTR_LAYOUT_HEIGHT);
+            }
+          }
+        });
       }
 
       builder.newline();
