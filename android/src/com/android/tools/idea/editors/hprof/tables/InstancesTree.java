@@ -483,7 +483,7 @@ public class InstancesTree {
       if (myHeap.getInstance(instance.getId()) != null) {
         descriptors.add(new InstanceFieldDescriptorImpl(
           myDebuggerTree.getProject(),
-          new Field(Type.OBJECT, String.format("0x%x (%d)", instance.getUniqueId(), currentIndex)),
+          new Field(Type.OBJECT, Integer.toString(currentIndex)),
           instance,
           currentIndex));
         ++currentIndex;
