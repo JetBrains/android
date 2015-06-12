@@ -45,7 +45,7 @@ public class ToolComponentsPanel {
   private Set<UpdatablePkgInfo> myToolsPackages = Sets.newTreeSet(new Comparator<UpdatablePkgInfo>() {
     @Override
     public int compare(UpdatablePkgInfo o1, UpdatablePkgInfo o2) {
-      return o1.getPkgDesc().getListDescription().compareTo(o2.getPkgDesc().getListDescription());
+      return o1.getPkgDesc(myIncludePreview).getListDescription().compareTo(o2.getPkgDesc(myIncludePreview).getListDescription());
     }
   });
   private Set<UpdatablePkgInfo> myBuildToolsPackages = Sets.newTreeSet();
@@ -104,7 +104,7 @@ public class ToolComponentsPanel {
       myStates.add(holder);
       UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview);
       myToolsDetailsRootNode.add(node);
-      if (!info.getPkgDesc().isObsolete()) {
+      if (!info.getPkgDesc(myIncludePreview).isObsolete()) {
         myToolsSummaryRootNode.add(new PlatformDetailsTreeNode(holder, myIncludePreview));
       }
     }
