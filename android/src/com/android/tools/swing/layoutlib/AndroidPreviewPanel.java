@@ -58,31 +58,39 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
       do {
         myRunningInvalidates.set(true);
         myPendingInvalidates.set(false);
-        ILayoutPullParser parser = new DomPullParser(myDocument.getDocumentElement());
-        try {
-          synchronized (myGraphicsLayoutRendererLock) {
-            // The previous GraphicsLayoutRenderer needs to be disposed before we create a new one since there is static state that
-            // can not shared.
-            if (myGraphicsLayoutRenderer != null) {
-              myGraphicsLayoutRenderer.dispose();
-              myGraphicsLayoutRenderer = null;
+
+        // We can only inflate views when the project has been indexed
+        myDumbService.runReadActionInSmartMode(new Runnable() {
+          @Override
+          public void run() {
+            ILayoutPullParser parser = new DomPullParser(myDocument.getDocumentElement());
+            try {
+              synchronized (myGraphicsLayoutRendererLock) {
+                // The previous GraphicsLayoutRenderer needs to be disposed before we create a new one since there is static state that
+                // can not shared.
+                if (myGraphicsLayoutRenderer != null) {
+                  myGraphicsLayoutRenderer.dispose();
+                  myGraphicsLayoutRenderer = null;
+                }
+              }
+
+              GraphicsLayoutRenderer graphicsLayoutRenderer = GraphicsLayoutRenderer.create(myConfiguration, parser, false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
+              graphicsLayoutRenderer.setScale(myScale);
+              graphicsLayoutRenderer.setSize(getWidth(), getHeight());
+
+              synchronized (myGraphicsLayoutRendererLock) {
+                myGraphicsLayoutRenderer = graphicsLayoutRenderer;
+              }
+            }
+            catch (UnsupportedLayoutlibException e) {
+              notifyUnsupportedLayoutlib();
+            }
+            catch (InitializationException e) {
+              LOG.error(e);
             }
           }
+        });
 
-          GraphicsLayoutRenderer graphicsLayoutRenderer = GraphicsLayoutRenderer.create(myConfiguration, parser, false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
-          graphicsLayoutRenderer.setScale(myScale);
-          graphicsLayoutRenderer.setSize(getWidth(), getHeight());
-
-          synchronized (myGraphicsLayoutRendererLock) {
-            myGraphicsLayoutRenderer = graphicsLayoutRenderer;
-          }
-        }
-        catch (UnsupportedLayoutlibException e) {
-          notifyUnsupportedLayoutlib();
-        }
-        catch (InitializationException e) {
-          LOG.error(e);
-        }
         myRunningInvalidates.set(false);
       } while (myPendingInvalidates.get());
 
@@ -143,17 +151,6 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
   }
 
   public void invalidateGraphicsRenderer() {
-    if (myDumbService.isDumb()) {
-      // We avoid inflating views when running on dumb mode. Layoutlib might try to access the PSI and it would fail.
-      myDumbService.runWhenSmart(new Runnable() {
-        @Override
-        public void run() {
-          invalidateGraphicsRenderer();
-        }
-      });
-      return;
-    }
-
     if (myDocument != null) {
       myPendingInvalidates.set(true);
       if (!myRunningInvalidates.get()) {

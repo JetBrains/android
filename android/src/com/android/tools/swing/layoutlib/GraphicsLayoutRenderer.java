@@ -134,9 +134,15 @@ public class GraphicsLayoutRenderer {
                                                  @NotNull SessionParams.RenderingMode renderingMode) throws InitializationException {
     Module module = facet.getModule();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
-
     LayoutLibrary layoutLib;
     try {
+      IAndroidTarget latestTarget = configuration.getConfigurationManager().getHighestApiTarget();
+      if (latestTarget != null && latestTarget != target) {
+        target = new CompatibilityRenderTarget(
+          latestTarget,
+          target.getVersion().getFeatureLevel(),
+          target);
+      }
       layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
 
       if (layoutLib == null) {
@@ -362,7 +368,7 @@ public class GraphicsLayoutRenderer {
                                   @NotNull final RenderSecurityManager securityManager,
                                   final @NotNull Object credential) {
     try {
-      return RenderService.runRenderAction(new Callable<RenderSession>() {
+      RenderSession session = RenderService.runRenderAction(new Callable<RenderSession>() {
         @Override
         public RenderSession call() {
           securityManager.setActive(true, credential);
@@ -382,6 +388,23 @@ public class GraphicsLayoutRenderer {
           }
         }
       });
+
+      if (session == null) {
+        LOG.error("initRenderSession failed (returned null)");
+        return null;
+      }
+
+      Result result = session.getResult();
+      if (result != null && result.getStatus() != Result.Status.SUCCESS) {
+        //noinspection ThrowableResultOfMethodCallIgnored
+        if (result.getException() != null) {
+          LOG.error(result.getException());
+        }
+        else {
+          LOG.error("Render error (no exception). Status=" + result.getStatus().name());
+        }
+      }
+      return session;
     }
     catch (Exception e) {
       LOG.error("initRenderSession failed", e);
