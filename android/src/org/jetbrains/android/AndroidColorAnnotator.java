@@ -82,7 +82,6 @@ import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
  */
 public class AndroidColorAnnotator implements Annotator {
   private static final int ICON_SIZE = 8;
-  private static final String ANDROID_COLOR_RESOURCE_PREFIX = "@android:color/";
   private static final int MAX_ICON_SIZE = 5000;
 
   @Override
