@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,24 @@ package org.jetbrains.android.run;
 
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 
-public class AndroidRunConfigurationTest extends AndroidGradleTestCase {
+/**
+ * Tests for {@link org.jetbrains.android.run.DefaultActivityLauncher}.
+ */
+public class DefaultActivityLauncherTest extends AndroidGradleTestCase {
   public void testActivity() throws Exception {
     loadProject("projects/runConfig/activity");
-    assertFalse(AndroidRunConfiguration.isWatchFaceApp(myAndroidFacet));
+    assertEquals("com.example.unittest.Launcher", DefaultActivityLauncher.computeDefaultActivity(myAndroidFacet));
   }
 
   public void testActivityAlias() throws Exception {
     loadProject("projects/runConfig/alias");
-    assertFalse(AndroidRunConfiguration.isWatchFaceApp(myAndroidFacet));
+    assertEquals("LauncherAlias", DefaultActivityLauncher.computeDefaultActivity(myAndroidFacet));
   }
 
-  public void testWatchFaceService() throws Exception {
-    loadProject("projects/runConfig/watchface");
-    assertTrue(AndroidRunConfiguration.isWatchFaceApp(myAndroidFacet));
+  // tests that when there are multiple activities that with action MAIN and category LAUNCHER, then give
+  // preference to the one that also has category DEFAULT
+  public void testPreferDefaultCategoryActivity() throws Exception {
+    loadProject("projects/runConfig/default");
+    assertEquals("com.example.unittest.LauncherAlias", DefaultActivityLauncher.computeDefaultActivity(myAndroidFacet));
   }
 }
