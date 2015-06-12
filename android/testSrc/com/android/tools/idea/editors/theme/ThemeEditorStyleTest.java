@@ -54,10 +54,9 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
     assertNotNull(theme);
 
-    ItemResourceValue hasItem = new ItemResourceValue("myColor", false, false);
-    ItemResourceValue hasNotItem = new ItemResourceValue("myHasNot", false, false);
-    ItemResourceValue hasInParent = new ItemResourceValue("editTextStyle", true, true);
-
+    ItemResourceValue hasItem = new ItemResourceValue("myColor", false, "?android:attr/colorBackground", false);
+    ItemResourceValue hasNotItem = new ItemResourceValue("myHasNot", false, "?android:attr/colorBackground", false);
+    ItemResourceValue hasInParent = new ItemResourceValue("editTextStyle", true, "?android:attr/colorBackground", true);
     assertEquals(true, theme.hasItem(new EditedStyleItem(hasItem, theme)));
     assertEquals(false, theme.hasItem(new EditedStyleItem(hasNotItem, theme)));
     assertEquals(true, theme.getParent().hasItem(new EditedStyleItem(hasInParent, theme.getParent())));
