@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.annotations.NonNull;
 import junit.framework.TestCase;
 import org.intellij.lang.annotations.Language;
 import org.jdom.Document;
 import org.jdom.input.SAXBuilder;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.StringReader;
 import java.util.Collections;
@@ -226,7 +226,7 @@ public class NlPaletteModelTest extends TestCase {
     assertGroupsEquals(GROUP_WITH_MISSING_DATA, model.getGroups());
   }
 
-  @NotNull
+  @NonNull
   private static NlPaletteGroup makeGroup(String title, NlPaletteItem... items) {
     NlPaletteGroup group = new NlPaletteGroup(title);
     for (NlPaletteItem item : items) {
