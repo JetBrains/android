@@ -812,6 +812,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public RunConfigurationsDialogFixture invokeRunConfigurationsDialog() {
+    invokeMenuPath("Run", "Edit Configurations...");
+    return RunConfigurationsDialogFixture.find(robot());
+  }
+
+  @NotNull
   public InspectionsFixture inspectCode() {
     invokeMenuPath("Analyze", "Inspect Code...");
 
