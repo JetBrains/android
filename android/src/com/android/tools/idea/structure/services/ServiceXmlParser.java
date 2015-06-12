@@ -97,7 +97,6 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   @NotNull private final ServiceContext myContext;
   @NotNull private final Stack<String> myTagStack = new Stack<String>();
 
-  @NotNull private PrefixTemplateLoader myLoader;
   @NotNull private ServicePanelBuilder myPanelBuilder;
   @NotNull private ServiceCategory myServiceCategory;
   @NotNull private DeveloperServiceMetadata myDeveloperServiceMetadata;
@@ -108,7 +107,6 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     myRootPath = rootPath;
     myContext = serviceContext;
     myPanelBuilder = new ServicePanelBuilder();
-    myLoader = new PrefixTemplateLoader(rootPath.getPath());
   }
 
   @NotNull
@@ -175,15 +173,16 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   @NotNull
   public Recipe createRecipe(boolean executeRecipe) {
     Configuration freemarker = new FreemarkerConfiguration();
+    PrefixTemplateLoader loader = new PrefixTemplateLoader(myRootPath.getPath());
     Map<String, Object> paramMap = FreemarkerUtils.createParameterMap(myContext.toValueMap());
 
     try {
-      freemarker.setTemplateLoader(myLoader);
+      freemarker.setTemplateLoader(loader);
       String xml = FreemarkerUtils.processFreemarkerTemplate(freemarker, paramMap, myRecipeFile);
       Recipe recipe = Recipe.parse(new StringReader(xml));
 
       if (executeRecipe) {
-        RecipeContext recipeContext = new RecipeContext(myModule, myLoader, freemarker, paramMap, myRootPath, false);
+        RecipeContext recipeContext = new RecipeContext(myModule, loader, freemarker, paramMap, myRootPath, false);
         recipe.execute(recipeContext);
 
         // Convert relative paths to absolute paths, so TemplateUtils.openEditors can find them
