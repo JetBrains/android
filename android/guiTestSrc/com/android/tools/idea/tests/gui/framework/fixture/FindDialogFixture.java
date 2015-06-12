@@ -21,7 +21,10 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
 
@@ -35,15 +38,19 @@ public class FindDialogFixture extends IdeaDialogFixture<FindDialog> {
     super(robot, dialogAndWrapper);
   }
 
-  public void setTextToFind(@NotNull final String text) {
-    final ComboBox input = (ComboBox)getDialogWrapper().getPreferredFocusedComponent();
-    assertNotNull(input);
+  @NotNull
+  public FindDialogFixture setTextToFind(@NotNull final String text) {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
+        JComponent c = getDialogWrapper().getPreferredFocusedComponent();
+        assertThat(c).isInstanceOf(ComboBox.class);
+        ComboBox input = (ComboBox)c;
+        assertNotNull(input);
         input.setSelectedItem(text);
       }
     });
+    return this;
   }
 
   @NotNull
