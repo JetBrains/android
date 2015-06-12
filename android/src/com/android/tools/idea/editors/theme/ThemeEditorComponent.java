@@ -27,8 +27,25 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
-import com.android.tools.idea.editors.theme.attributes.*;
-import com.android.tools.idea.editors.theme.attributes.editors.*;
+import com.android.tools.idea.editors.theme.attributes.AttributesGrouper;
+import com.android.tools.idea.editors.theme.attributes.AttributesModelColorPaletteModel;
+import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.attributes.ShowJavadocAction;
+import com.android.tools.idea.editors.theme.attributes.TableLabel;
+import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.BooleanRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.ColorComponent;
+import com.android.tools.idea.editors.theme.attributes.editors.ColorEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.ColorRenderer;
+import com.android.tools.idea.editors.theme.attributes.editors.DelegatingCellEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.DelegatingCellRenderer;
+import com.android.tools.idea.editors.theme.attributes.editors.DrawableEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.DrawableRenderer;
+import com.android.tools.idea.editors.theme.attributes.editors.EnumRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.FlagRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.IntegerRenderer;
+import com.android.tools.idea.editors.theme.attributes.editors.ParentRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.StyleListCellRenderer;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
@@ -316,6 +333,7 @@ public class ThemeEditorComponent extends Splitter {
           myCurrentSubStyle = null;
           mySubStyleSourceAttribute = null;
 
+          myThemeEditorContext.getConfiguration().setTheme(theme.getName());
           if (item instanceof ProjectThemeResolver.ThemeWithSource) {
             myThemeEditorContext.setCurrentThemeModule(((ProjectThemeResolver.ThemeWithSource)item).getSourceModule());
           }
@@ -720,7 +738,6 @@ public class ThemeEditorComponent extends Splitter {
             }
 
             myPreviewPanel.invalidateGraphicsRenderer();
-            myPreviewPanel.revalidate();
             myAttributesTable.repaint();
           }
         });
