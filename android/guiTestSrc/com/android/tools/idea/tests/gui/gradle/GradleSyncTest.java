@@ -65,6 +65,7 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -76,6 +77,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -1054,6 +1056,8 @@ public class GradleSyncTest extends GuiTestCase {
   // See https://code.google.com/p/android/issues/detail?id=65325
   @Test @IdeGuiTest
   public void testWithIdeProxySettings() throws IOException {
+    System.getProperties().setProperty("show.do.not.copy.http.proxy.settings.to.gradle", "true");
+
     IdeFrameFixture projectFrame = importSimpleApplication();
     File gradlePropertiesPath = new File(projectFrame.getProjectPath(), "gradle.properties");
     createIfNotExists(gradlePropertiesPath);
@@ -1070,6 +1074,16 @@ public class GradleSyncTest extends GuiTestCase {
 
     // Expect IDE to ask user to copy proxy settings.
     MessagesFixture message = projectFrame.findMessageDialog("Proxy Settings");
+    JCheckBox checkBox = message.find(new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
+      @Override
+      protected boolean isMatching(@NotNull JCheckBox c) {
+        return c.isVisible() && c.isShowing() && "Do not show this dialog in the future".equals(c.getText());
+      }
+    });
+    assertNotNull(checkBox);
+    JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(myRobot, checkBox);
+    checkBoxFixture.setSelected(true);
+
     message.clickYes();
 
     projectFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
@@ -1080,6 +1094,9 @@ public class GradleSyncTest extends GuiTestCase {
     Properties gradleProperties = getProperties(gradlePropertiesPath);
     assertEquals(host, gradleProperties.getProperty("systemProp.http.proxyHost"));
     assertEquals(String.valueOf(port), gradleProperties.getProperty("systemProp.http.proxyPort"));
+
+    // Verifies that the "Do not show this dialog in the future" does not show up. If it does show up the test will timeout and fail.
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
   }
 
   @Test @IdeGuiTest
