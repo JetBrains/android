@@ -16,15 +16,26 @@
 package com.android.tools.idea.profiling.view.nodes;
 
 import com.intellij.ui.treeStructure.SimpleNode;
+import com.intellij.util.containers.SortedList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class CaptureRootNode extends SimpleNode {
 
   @NotNull
-  private final List<CaptureTypeNode> myTypes = new ArrayList<CaptureTypeNode>();
+  private final List<CaptureTypeNode> myTypes;
+
+  public CaptureRootNode() {
+    myTypes = new SortedList<CaptureTypeNode>(new Comparator<CaptureTypeNode>() {
+      @Override
+      public int compare(CaptureTypeNode a, CaptureTypeNode b) {
+        return a.getName().compareToIgnoreCase(b.getName());
+      }
+    });
+  }
+
 
   @Override
   public SimpleNode[] getChildren() {
