@@ -229,6 +229,12 @@ public class AvdEditWizard extends DynamicWizard {
     createAvd(myAvdInfo, getState(), myForceCreate);
   }
 
+  @NotNull
+  @Override
+  protected String getProgressTitle() {
+    return "Saving AVD...";
+  }
+
   @Nullable
   public static AvdInfo createAvd(@Nullable AvdInfo avdInfo, @NotNull ScopedStateStore state, boolean forceCreate) {
     Device device = state.get(DEVICE_DEFINITION_KEY);

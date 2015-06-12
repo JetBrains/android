@@ -25,6 +25,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -260,6 +262,10 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
   @Override
   public boolean performFinishingActions() {
+    ProgressIndicator progress = ProgressManager.getInstance().getProgressIndicator();
+    if (progress != null) {
+      progress.setText("Initializing " + myFormFactor.toString());
+    }
     String projectLocation = myState.get(PROJECT_LOCATION_KEY);
     if (projectLocation != null) {
       File projectRoot = new File(projectLocation);
