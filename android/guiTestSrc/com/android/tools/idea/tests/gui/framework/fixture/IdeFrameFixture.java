@@ -923,7 +923,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   /**
    * Sets the "Before Launch" tasks in the "JUnit Run Configuration" template.
    * @param taskName the name of the "Before Launch" task (e.g. "Make", "Gradle-aware Make")
-   * @param project the project currently opened in the IDE.
    */
   @NotNull
   public IdeFrameFixture setJUnitDefaultBeforeRunTask(@NotNull String taskName) {
@@ -953,6 +952,17 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       runManager.setBeforeRunTasks(runConfiguration, Collections.singletonList(task), false);
     }
     return this;
+  }
+
+  @NotNull
+  public FindDialogFixture invokeFindInPathDialog() {
+    invokeMenuPath("Edit", "Find", "Find in Path...");
+    return FindDialogFixture.find(robot());
+  }
+
+  @NotNull
+  public FindToolWindowFixture getFindToolWindow() {
+    return new FindToolWindowFixture(this);
   }
 
   private static class NoOpDisposable implements Disposable {

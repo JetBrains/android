@@ -19,94 +19,45 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.FindDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.FindToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.intellij.ui.treeStructure.Tree;
-import com.intellij.usages.impl.GroupNode;
-import com.intellij.usages.impl.UsageViewImpl;
-import com.intellij.usages.impl.UsageViewTreeModelBuilder.TargetsRootNode;
-import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.edt.GuiQuery;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import javax.swing.tree.TreeModel;
-
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
-import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class FindInPathTest extends GuiTestCase {
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testResultsOnlyInGeneratedCode() throws Exception {
-    IdeFrameFixture project = importSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
-    Tree usageTree = triggerFindInPath(project, "ActionBarDivider");
-    TreeModel treeModel = usageTree.getModel();
+    FindDialogFixture findDialog = projectFrame.invokeFindInPathDialog();
+    findDialog.setTextToFind("ActionBarDivider")
+              .clickFind();
 
-    assertGroupCount(treeModel, 1);
-    assertGroup(treeModel, 1, "UsagesInGeneratedCode");
+    projectFrame.waitForBackgroundTasksToFinish();
+
+    FindToolWindowFixture findToolWindow = projectFrame.getFindToolWindow();
+    FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
+
+    selectedContext.findUsagesInGeneratedCodeGroup();
   }
 
-  @Test
-  @IdeGuiTest
-  public void testResultsInBothProdAndGeneratedCode() throws Exception {
-    IdeFrameFixture project = importSimpleApplication();
+  @Test @IdeGuiTest
+  public void testResultsInBothProductionAndGeneratedCode() throws Exception {
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
-    Tree usageTree = triggerFindInPath(project, "DarkActionBar");
-    TreeModel treeModel = usageTree.getModel();
+    FindDialogFixture findDialog = projectFrame.invokeFindInPathDialog();
+    findDialog.setTextToFind("DarkActionBar")
+              .clickFind();
 
-    assertGroupCount(treeModel, 2);
-    assertGroup(treeModel, 1, "UsagesInGeneratedCode");
-    assertGroup(treeModel, 2, "CodeUsages");
-  }
+    projectFrame.waitForBackgroundTasksToFinish();
 
-  @NotNull
-  private Tree triggerFindInPath(@NotNull IdeFrameFixture project, String text) {
-    project.invokeMenuPath("Edit", "Find", "Find in Path...");
-    FindDialogFixture findDialog = FindDialogFixture.find(myRobot);
-    findDialog.setTextToFind(text);
-    findDialog.clickFind();
-    project.waitForBackgroundTasksToFinish();
+    FindToolWindowFixture findToolWindow = projectFrame.getFindToolWindow();
+    FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
 
-    return myRobot.finder().find(new GenericTypeMatcher<Tree>(Tree.class) {
-      @Override
-      protected boolean isMatching(@NotNull Tree tree) {
-        // The usage tree is created as anonymous class inside UsageViewImpl
-        return tree.getClass().getName().startsWith(UsageViewImpl.class.getName());
-      }
-    });
-  }
-
-  private static void assertGroupCount(@NotNull final TreeModel treeModel, final int groupCount) {
-    //noinspection ConstantConditions
-    assertTrue(groupCount == execute(new GuiQuery<Integer>() {
-      @Override
-      protected Integer executeInEDT() throws Throwable {
-        return treeModel.getChildCount(treeModel.getRoot()) - 1;
-      }
-    }).intValue());
-
-    // The first node of tree should always be "Targets" node
-    assertEquals("Targets", execute(new GuiQuery<Object>() {
-      @Override
-      protected Object executeInEDT() throws Throwable {
-        TargetsRootNode node = (TargetsRootNode)treeModel.getChild(treeModel.getRoot(), 0);
-        return node.getUserObject();
-      }
-    }));
-  }
-
-  private static void assertGroup(@NotNull final TreeModel treeModel, final int nodeIndex, @NotNull String groupText) {
-    assertEquals(groupText, execute(new GuiQuery<String>() {
-      @Override
-      protected String executeInEDT() throws Throwable {
-        GroupNode groupNode = (GroupNode)treeModel.getChild(treeModel.getRoot(), nodeIndex);
-        return groupNode.getGroup().toString();
-      }
-    }));
+    selectedContext.findUsagesInGeneratedCodeGroup();
+    selectedContext.findUsageGroup("Code usages");
   }
 }
