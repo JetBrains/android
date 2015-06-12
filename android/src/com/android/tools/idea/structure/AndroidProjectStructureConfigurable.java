@@ -24,17 +24,16 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
+import com.android.tools.idea.structure.gradle.AndroidModuleConfigurable;
+import com.android.tools.idea.structure.gradle.AndroidProjectConfigurable;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServices;
 import com.android.tools.idea.structure.services.ServiceCategory;
 import com.android.tools.idea.structure.services.view.ServiceCategoryConfigurable;
-import com.android.tools.idea.structure.gradle.AndroidModuleConfigurable;
-import com.android.tools.idea.structure.gradle.AndroidProjectConfigurable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
-import com.intellij.diagnostic.Developer;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -163,6 +162,42 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         AndroidModuleConfigurable configurable = mySidePanel.select(module);
         if (configurable != null) {
           configurable.selectDependency(dependency);
+        }
+      }
+    });
+  }
+
+  public boolean showDialogAndSelectBuildTypesEditor(@NotNull final Module module) {
+    return doShowDialog(new Runnable() {
+      @Override
+      public void run() {
+        AndroidModuleConfigurable configurable = mySidePanel.select(module);
+        if (configurable != null) {
+          configurable.selectBuildTypesTab();
+        }
+      }
+    });
+  }
+
+  public boolean showDialogAndSelectFlavorsEditor(@NotNull final Module module) {
+    return doShowDialog(new Runnable() {
+      @Override
+      public void run() {
+        AndroidModuleConfigurable configurable = mySidePanel.select(module);
+        if (configurable != null) {
+          configurable.selectFlavorsTab();
+        }
+      }
+    });
+  }
+
+  public boolean showDialogAndSelectDependenciesEditor(@NotNull final Module module) {
+    return doShowDialog(new Runnable() {
+      @Override
+      public void run() {
+        AndroidModuleConfigurable configurable = mySidePanel.select(module);
+        if (configurable != null) {
+          configurable.selectDependenciesTab();
         }
       }
     });
