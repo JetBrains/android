@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.intellij.openapi.util.IconLoader;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -31,8 +31,8 @@ public class NlPaletteItem {
   private String myFormat;
   private Icon myIcon;
 
-  public NlPaletteItem(@NotNull String title, @NotNull String iconPath, @NotNull String tooltip, @NotNull String representation,
-                       @NotNull String id, @NotNull String structureTitle, @Nullable String format) {
+  public NlPaletteItem(@NonNull String title, @NonNull String iconPath, @NonNull String tooltip, @NonNull String representation,
+                       @NonNull String id, @NonNull String structureTitle, @Nullable String format) {
     myTitle = title;
     myIconPath = iconPath;
     myTooltip = tooltip;
@@ -42,7 +42,7 @@ public class NlPaletteItem {
     myFormat = format;
   }
 
-  @NotNull
+  @NonNull
   public String getTitle() {
     return myTitle;
   }
@@ -55,27 +55,27 @@ public class NlPaletteItem {
     return myIcon;
   }
 
-  @NotNull
+  @NonNull
   public String getIconPath() {
     return myIconPath;
   }
 
-  @NotNull
+  @NonNull
   public String getTooltip() {
     return myTooltip;
   }
 
-  @NotNull
+  @NonNull
   public String getRepresentation() {
     return myRepresentation;
   }
 
-  @NotNull
+  @NonNull
   public String getId() {
     return myId;
   }
 
-  @NotNull
+  @NonNull
   public String getStructureTitle() {
     return myStructureTitle;
   }

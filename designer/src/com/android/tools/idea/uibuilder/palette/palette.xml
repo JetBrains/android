@@ -136,6 +136,23 @@
     </creation>
   </meta>
 
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
+        class="android.support.v7.widget.Toolbar"
+        tag="android.support.v7.widget.Toolbar">
+
+    <palette title="Toolbar" icon="AndroidIcons.Views.Button"
+             tooltip="A toolbar on a page."/>
+
+    <creation>
+      <![CDATA[
+          <android.support.v7.widget.Toolbar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+          />
+      ]]>
+    </creation>
+  </meta>
+
   <meta class="android.widget.CompoundButton">
     <properties inplace="text checked"
                 important="checked button"/>
@@ -1369,7 +1386,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.support.design.widget.FloatingActionButton"
-        tag="FloatingActionButton">
+        tag="android.support.design.widget.FloatingActionButton">
 
     <palette title="Floating Action Button" icon="AndroidIcons.Views.ToggleButton"/>
 
@@ -1448,7 +1465,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewContainer"
         class="android.support.design.widget.CoordinatorLayout"
-        tag="CoordinatorLayout">
+        tag="android.support.design.widget.CoordinatorLayout">
 
     <palette title="CoordinatorLayout" icon="AndroidIcons.Views.AbsoluteLayout"
              tooltip="CoordinatorLayout is a super-powered FrameLayout."/>
@@ -1467,13 +1484,31 @@
   </meta>
 
   <meta model="com.intellij.android.designer.model.RadViewContainer"
+        class="android.support.design.widget.CollapsingToolbarLayout"
+        tag="android.support.design.widget.CollapsingToolbarLayout">
+
+    <palette title="CollapsingToolbarLayout" icon="AndroidIcons.Views.VerticalLinearLayout"
+             tooltip="CollapsingToolbarLayout is a special purpose layout."/>
+
+    <creation>
+      <![CDATA[
+          <android.support.design.widget.CollapsingToolbarLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+          </android.support.design.widget.CollapsingToolbarLayout>
+      ]]>
+    </creation>
+
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewContainer"
         class="android.support.design.widget.AppBarLayout"
-        tag="AppBarLayout">
+        tag="android.support.design.widget.AppBarLayout">
 
-    <palette title="AppBarLayout" icon="AndroidIcons.Views.LinearLayout"
-             tooltip="AppBarLayout is a super-powered vertical LinearLayout."/>
+    <palette title="AppBarLayout" icon="AndroidIcons.Views.FrameLayout"
+             tooltip="AppBarLayout is a super-powered FrameLayout."/>
 
-    <morphing to="LinearLayout"/>
+    <morphing to="FrameLayout"/>
 
     <creation>
       <![CDATA[
@@ -1645,8 +1680,8 @@
   <palette>
     <group name="Layouts">
       <item tag="FrameLayout"/>
-      <item tag="CoordinatorLayout"/>
-      <item tag="AppBarLayout"/>
+      <item tag="android.support.design.widget.CoordinatorLayout"/>
+      <item tag="android.support.design.widget.AppBarLayout"/>
       <item tag="LinearLayout"
             title="LinearLayout (Horizontal)"
             icon="AndroidIcons.Views.LinearLayout"
@@ -1728,7 +1763,7 @@
       <item tag="CheckBox"/>
       <item tag="Switch"/>
       <item tag="ToggleButton"/>
-      <item tag="FloatingActionButton"/>
+      <item tag="android.support.design.widget.FloatingActionButton"/>
       <item tag="ProgressBar"
             title="ProgressBar (Large)"
             id="ProgressBarLarge">

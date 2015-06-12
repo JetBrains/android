@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
@@ -42,8 +44,6 @@ import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -60,10 +60,10 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
   private static final double PREVIEW_SCALE = 0.5;
 
-  @NotNull private final DnDAwareTree myTree;
-  @NotNull private final NlPaletteModel myModel;
-  @NotNull private final IconPreviewFactory myIconFactory;
-  @NotNull private Mode myMode;
+  @NonNull private final DnDAwareTree myTree;
+  @NonNull private final NlPaletteModel myModel;
+  @NonNull private final IconPreviewFactory myIconFactory;
+  @NonNull private Mode myMode;
   @Nullable private ScalableDesignSurface myDesignSurface;
   @Nullable private BufferedImage myLastDragImage;
 
@@ -78,7 +78,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     add(pane, BorderLayout.CENTER);
   }
 
-  @NotNull
+  @NonNull
   public JComponent getFocusedComponent() {
     return myTree;
   }
@@ -93,7 +93,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       myMenuText = menuText;
     }
 
-    @NotNull
+    @NonNull
     public String getMenuText() {
       return myMenuText;
     }
@@ -173,7 +173,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     return true;
   }
 
-  @NotNull
+  @NonNull
   public AnAction[] getActions() {
     return new AnAction[]{new OptionAction()};
   }
@@ -187,7 +187,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     }
 
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
+    public void actionPerformed(@NonNull AnActionEvent e) {
       int x = 0;
       int y = 0;
       InputEvent inputEvent = e.getInputEvent();
@@ -200,7 +200,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     }
   }
 
-  private void showOptionPopup(@NotNull Component component, int x, int y) {
+  private void showOptionPopup(@NonNull Component component, int x, int y) {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new TogglePaletteModeAction(this, Mode.ICON_AND_TEXT));
     group.add(new TogglePaletteModeAction(this, Mode.PREVIEW));
@@ -211,12 +211,12 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     popupMenu.getComponent().show(component, x, y);
   }
 
-  @NotNull
+  @NonNull
   public Mode getMode() {
     return myMode;
   }
 
-  public void setMode(@NotNull Mode mode) {
+  public void setMode(@NonNull Mode mode) {
     myMode = mode;
     if (mode == Mode.PREVIEW && myDesignSurface != null) {
       Configuration configuration = myDesignSurface.getConfiguration();
@@ -260,7 +260,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   }
 
 
-  private static void expandAll(@NotNull JTree tree, @NotNull DefaultMutableTreeNode rootNode) {
+  private static void expandAll(@NonNull JTree tree, @NonNull DefaultMutableTreeNode rootNode) {
     TreePath rootPath = new TreePath(rootNode);
     tree.expandPath(rootPath);
     TreeNode child = rootNode.getLastChild();
@@ -270,10 +270,10 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     }
   }
 
-  private void createCellRenderer(@NotNull JTree tree) {
+  private void createCellRenderer(@NonNull JTree tree) {
     tree.setCellRenderer(new ColoredTreeCellRenderer() {
       @Override
-      public void customizeCellRenderer(@NotNull JTree tree,
+      public void customizeCellRenderer(@NonNull JTree tree,
                                         Object value,
                                         boolean selected,
                                         boolean expanded,
@@ -305,7 +305,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     });
   }
 
-  private static void addData(@NotNull NlPaletteModel model, @NotNull DefaultMutableTreeNode rootNode) {
+  private static void addData(@NonNull NlPaletteModel model, @NonNull DefaultMutableTreeNode rootNode) {
     for (NlPaletteGroup group : model.getGroups()) {
       DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode(group);
       for (NlPaletteItem item : group.getItems()) {
@@ -316,7 +316,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     }
   }
 
-  private void enableDnD(@NotNull DnDAwareTree tree) {
+  private void enableDnD(@NonNull DnDAwareTree tree) {
     final DnDManager dndManager = DnDManager.getInstance();
     dndManager.registerSource(new PaletteDnDSource(tree), tree);
   }
@@ -333,7 +333,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   private class PaletteDnDSource implements DnDSource {
     private final DnDAwareTree myTree;
 
-    private PaletteDnDSource(@NotNull DnDAwareTree tree) {
+    private PaletteDnDSource(@NonNull DnDAwareTree tree) {
       myTree = tree;
     }
 
@@ -398,7 +398,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   }
 
   private static final class PaletteSpeedSearch extends TreeSpeedSearch {
-    PaletteSpeedSearch(@NotNull JTree tree) {
+    PaletteSpeedSearch(@NonNull JTree tree) {
       super(tree);
     }
 
