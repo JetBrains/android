@@ -17,6 +17,8 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
@@ -31,12 +33,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.intellij.psi.xml.XmlComment;
+import com.intellij.psi.xml.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+
+import static com.android.SdkConstants.*;
 
 /**
  * The {@linkplain ResourceNotificationManager} provides notifications to editors that
@@ -468,6 +472,7 @@ public class ResourceNotificationManager implements ProjectComponent {
 
     @Override
     public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
+      myIgnoreChildrenChanged = false;
     }
 
     @Override
@@ -476,17 +481,121 @@ public class ResourceNotificationManager implements ProjectComponent {
 
     @Override
     public void childAdded(@NotNull PsiTreeChangeEvent event) {
-      check(event);
+      myIgnoreChildrenChanged = true;
+
+      if (isIgnorable(event)) {
+        return;
+      }
+
+      if (isRelevantFile(event)) {
+        PsiElement child = event.getChild();
+        PsiElement parent = event.getParent();
+
+        if (child instanceof XmlAttribute && parent instanceof XmlTag) {
+          // Typing in a new attribute. Don't need to do any rendering until there
+          // is an actual value
+          if (((XmlAttribute)child).getValueElement() == null) {
+            return;
+          }
+        }
+        else if (parent instanceof XmlAttribute && child instanceof XmlAttributeValue) {
+          XmlAttributeValue attributeValue = (XmlAttributeValue)child;
+          if (attributeValue.getValue() == null || attributeValue.getValue().isEmpty()) {
+            // Just added a new blank attribute; nothing to render yet
+            return;
+          }
+        }
+        else if (parent instanceof XmlAttributeValue && child instanceof XmlToken && event.getOldChild() == null) {
+          // Just added attribute value
+          String text = child.getText();
+          // See if this is an attribute that takes a resource!
+          if (text.startsWith(PREFIX_RESOURCE_REF) && !text.startsWith(PREFIX_BINDING_EXPR)) {
+            if (text.equals(PREFIX_RESOURCE_REF) || text.equals(ANDROID_PREFIX)) {
+              // Using code completion to insert resource reference; not yet done
+              return;
+            }
+            ResourceUrl url = ResourceUrl.parse(text);
+            if (url != null && url.name.isEmpty()) {
+              // Using code completion to insert resource reference; not yet done
+              return;
+            }
+          }
+        }
+        notice(Reason.EDIT);
+      }
+      else {
+        notice(Reason.RESOURCE_EDIT);
+      }
     }
 
     @Override
     public void childRemoved(@NotNull PsiTreeChangeEvent event) {
-      check(event);
+      myIgnoreChildrenChanged = true;
+
+      if (isIgnorable(event)) {
+        return;
+      }
+
+      if (isRelevantFile(event)) {
+        PsiElement child = event.getChild();
+        PsiElement parent = event.getParent();
+        if (parent instanceof XmlAttribute && child instanceof XmlToken) {
+          // Typing in attribute name. Don't need to do any rendering until there
+          // is an actual value
+          XmlAttributeValue valueElement = ((XmlAttribute)parent).getValueElement();
+          if (valueElement == null || valueElement.getValue() == null || valueElement.getValue().isEmpty()) {
+            return;
+          }
+        }
+
+        notice(Reason.EDIT);
+      } else {
+        notice(Reason.RESOURCE_EDIT);
+      }
     }
 
     @Override
     public void childReplaced(@NotNull PsiTreeChangeEvent event) {
-      check(event);
+      myIgnoreChildrenChanged = true;
+
+      if (isIgnorable(event)) {
+        return;
+      }
+
+      if (isRelevantFile(event)) {
+        PsiElement child = event.getChild();
+        PsiElement parent = event.getParent();
+        if (parent instanceof XmlAttribute && child instanceof XmlToken) {
+          // Typing in attribute name. Don't need to do any rendering until there
+          // is an actual value
+          XmlAttributeValue valueElement = ((XmlAttribute)parent).getValueElement();
+          if (valueElement == null || valueElement.getValue() == null || valueElement.getValue().isEmpty()) {
+            return;
+          }
+        }
+        else if (parent instanceof XmlAttributeValue && child instanceof XmlToken && event.getOldChild() != null) {
+          String newText = child.getText();
+          String prevText = event.getOldChild().getText();
+          // See if user is working on an incomplete URL, and is still not complete, e.g. typing in @string/foo manually
+          if (newText.startsWith(PREFIX_RESOURCE_REF) && !newText.startsWith(PREFIX_BINDING_EXPR)) {
+            ResourceUrl prevUrl = ResourceUrl.parse(prevText);
+            ResourceUrl newUrl = ResourceUrl.parse(newText);
+            if (prevUrl != null && prevUrl.name.isEmpty()) {
+              prevUrl = null;
+            }
+            if (newUrl != null && newUrl.name.isEmpty()) {
+              newUrl = null;
+            }
+            if (prevUrl == null && newUrl == null) {
+              return;
+            }
+          }
+        }
+        notice(Reason.EDIT);
+      }
+      else {
+        notice(Reason.RESOURCE_EDIT);
+      }
     }
 
     @Override
@@ -494,32 +603,58 @@ public class ResourceNotificationManager implements ProjectComponent {
       check(event);
     }
 
+    boolean myIgnoreChildrenChanged;
+
     @Override
     public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
-      check(event);
+      if (isRelevantFile(event) && !myIgnoreChildrenChanged && event.getParent() != event.getChild()) {
+        check(event);
+      }
     }
 
     @Override
     public void propertyChanged(@NotNull PsiTreeChangeEvent event) {
     }
 
-    private void check(PsiTreeChangeEvent event) {
+    private boolean isRelevantFile(PsiTreeChangeEvent event) {
       if (!myFileToObserverMap.isEmpty()) {
         final PsiFile file = event.getFile();
         if (file != null && myFileToObserverMap.containsKey(file)) {
-          PsiElement child = event.getChild();
-          PsiElement parent = event.getParent();
+          return true;
+        }
+      }
+      return false;
+    }
 
-          // We can ignore edits in whitespace, and in XML error nodes, and in comments
-          // (Note that editing text in an attribute value, including whitespace characters,
-          // is not a PsiWhiteSpace element; it's an XmlToken of token type XML_ATTRIBUTE_VALUE_TOKEN
-          if (child instanceof PsiWhiteSpace ||
-              child instanceof PsiErrorElement ||
-              child instanceof XmlComment ||
-              parent instanceof XmlComment) {
-            return;
-          }
+    private boolean isIgnorable(PsiTreeChangeEvent event) {
+      // We can ignore edits in whitespace, and in XML error nodes, and in comments
+      // (Note that editing text in an attribute value, including whitespace characters,
+      // is not a PsiWhiteSpace element; it's an XmlToken of token type XML_ATTRIBUTE_VALUE_TOKEN
+      PsiElement child = event.getChild();
+      PsiElement parent = event.getParent();
+      if (child instanceof PsiErrorElement ||
+          child instanceof XmlComment ||
+          parent instanceof XmlComment) {
+        return true;
+      }
 
+      if ((child instanceof PsiWhiteSpace || child instanceof XmlText || parent instanceof XmlText)
+          && ResourceHelper.getFolderType(event.getFile()) != ResourceFolderType.VALUES) {
+        // Editing text or whitespace has no effect outside of values files
+        return true;
+      }
+
+      return false;
+    }
+
+    private void check(PsiTreeChangeEvent event) {
+      if (isIgnorable(event)) {
+        return;
+      }
+
+      if (isRelevantFile(event)) {
+        final PsiFile file = event.getFile();
+        if (file != null) {
           notice(Reason.EDIT);
         }
       }
@@ -606,6 +741,47 @@ public class ResourceNotificationManager implements ProjectComponent {
     }
   }
 
+  /*
+    final MessageBusConnection connection = project.getMessageBus().connect(project);
+    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(project));
+
+  private class MyAndroidPlatformListener extends ModuleRootAdapter {
+    private final Map<Module, Sdk> myModule2Sdk = new HashMap<Module, Sdk>();
+    private final Project myProject;
+
+    private MyAndroidPlatformListener(@NotNull Project project) {
+      myProject = project;
+      updateMap();
+    }
+
+    @Override
+    public void rootsChanged(ModuleRootEvent event) {
+      final PsiFile file = myToolWindowForm.getFile();
+      if (file != null) {
+        final Module module = ModuleUtilCore.findModuleForPsiElement(file);
+        if (module != null) {
+          final Sdk prevSdk = myModule2Sdk.get(module);
+          final Sdk newSdk = ModuleRootManager.getInstance(module).getSdk();
+          if (newSdk != null &&
+              (newSdk.getSdkType() instanceof AndroidSdkType || (prevSdk != null && prevSdk.getSdkType() instanceof AndroidSdkType)) &&
+              !newSdk.equals(prevSdk)) {
+            notice(Reason.SDK_CHANGED);
+          }
+        }
+      }
+
+      updateMap();
+    }
+
+    private void updateMap() {
+      myModule2Sdk.clear();
+      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+        myModule2Sdk.put(module, ModuleRootManager.getInstance(module).getSdk());
+      }
+    }
+  }
+  */
+
   /**
    * Interface which should be implemented by clients interested in resource edits and events that affect resources
    */
@@ -666,6 +842,17 @@ public class ResourceNotificationManager implements ProjectComponent {
       result = 31 * result + (int)(myOtherGeneration ^ (myOtherGeneration >>> 32));
       return result;
     }
+
+    @Override
+    public String toString() {
+      return "ResourceVersion{" +
+             "resource=" + myResourceGeneration +
+             ", file=" + myFileGeneration +
+             ", configuration=" + myConfigurationGeneration +
+             ", projectConfiguration=" + myProjectConfigurationGeneration +
+             ", other=" + myOtherGeneration +
+             '}';
+    }
   }
 
   /**
@@ -688,6 +875,11 @@ public class ResourceNotificationManager implements ProjectComponent {
      * The configuration changed (for example, the locale may have changed)
      */
     CONFIGURATION_CHANGED,
+
+    /**
+     * The module SDK changed
+     */
+    SDK_CHANGED,
 
     /**
      * The active variant changed, which affects available resource sets and values
