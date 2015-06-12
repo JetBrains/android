@@ -35,6 +35,7 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.Alarm;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.Convertor;
+import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -238,6 +239,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     myLayout.setGap(20.0f);
     myLayout.addSelectionListener(this);
     myLayout.setBorder(IdeBorderFactory.createBorder());
+    myLayout.setBackground(UIUtil.getTreeBackground());
 
     toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getChartActions(), true);
     myChartOrientation = "Sunburst";
@@ -252,6 +254,8 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     infoPanel.setBorder(IdeBorderFactory.createBorder());
 
     myInfoLabel = new JLabel();
+    myInfoLabel.setBackground(UIUtil.getTreeBackground());
+    myInfoLabel.setOpaque(true);
     myInfoLabel.setVerticalAlignment(SwingConstants.TOP);
     infoPanel.add(myInfoLabel, BorderLayout.NORTH);
     myInfoTableModel = new DefaultTableModel() {
