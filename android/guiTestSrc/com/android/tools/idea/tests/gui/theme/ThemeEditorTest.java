@@ -71,9 +71,6 @@ public class ThemeEditorTest extends GuiTestCase {
     IdeFrameFixture projectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = openThemeEditor(projectFrame);
 
-    // Check something has been rendered
-    themeEditor.getThemePreviewPanel().getPreviewPanel().requireRendered();
-
     // Search is empty
     themeEditor.getThemePreviewPanel().getSearchTextField().requireText("");
 
@@ -166,6 +163,9 @@ public class ThemeEditorTest extends GuiTestCase {
 
     ThemeEditorFixture themeEditor = editor.getThemeEditor();
     assertNotNull(themeEditor);
+
+    themeEditor.getThemePreviewPanel().getPreviewPanel().waitForRender();
+
     return themeEditor;
   }
 }
