@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.compatibility;
 
+import com.android.annotations.VisibleForTesting;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.Application;
@@ -27,10 +28,12 @@ import com.intellij.util.io.HttpRequests;
 import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
 import static com.intellij.openapi.util.JDOMUtil.loadDocument;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -40,21 +43,24 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public class VersionMetadataUpdater extends ApplicationComponent.Adapter {
   private static final Logger LOG = Logger.getInstance(VersionMetadataUpdater.class);
 
-  private static final long CHECK_INTERVAL = MILLISECONDS.convert(7, DAYS) /* Check weekly */;
   private static final String LAST_CHECK_TIMESTAMP_PROPERTY_NAME = "android-component-compatibility-check";
 
   public VersionMetadataUpdater() {
-    Application app = ApplicationManager.getApplication();
-    app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
-      @Override
-      public void appFrameCreated(String[] commandLineArgs, @NotNull Ref<Boolean> willOpenProject) {
-        long lastUpdateCheck = PropertiesComponent.getInstance().getOrInitLong(LAST_CHECK_TIMESTAMP_PROPERTY_NAME, -1);
-        boolean needsUpdate = System.currentTimeMillis() - lastUpdateCheck >= CHECK_INTERVAL;
-        if (needsUpdate) {
-          fetchVersionMetadataUpdate(false);
+    String checkIntervalProperty = System.getProperty("android.version.compatibility.check.interval");
+    final CheckInterval checkInterval = CheckInterval.find(checkIntervalProperty);
+
+    if (checkInterval != CheckInterval.NONE) {
+      Application app = ApplicationManager.getApplication();
+      app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
+        @Override
+        public void appFrameCreated(String[] commandLineArgs, @NotNull Ref<Boolean> willOpenProject) {
+          long lastUpdateCheck = PropertiesComponent.getInstance().getOrInitLong(LAST_CHECK_TIMESTAMP_PROPERTY_NAME, -1);
+          if (checkInterval.needsUpdate(lastUpdateCheck)) {
+            fetchVersionMetadataUpdate(false);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   public void fetchVersionMetadataUpdate() {
@@ -105,5 +111,32 @@ public class VersionMetadataUpdater extends ApplicationComponent.Adapter {
       }
     });
     return callback;
+  }
+
+  @VisibleForTesting
+  enum CheckInterval {
+    NONE(Long.MAX_VALUE), DAILY(MILLISECONDS.convert(1, DAYS)), WEEKLY(MILLISECONDS.convert(7, DAYS));
+
+    private final long myIntervalInMs;
+
+    CheckInterval(long intervalInMs) {
+      myIntervalInMs = intervalInMs;
+    }
+
+    boolean needsUpdate(long lastUpdateTimestampInMs) {
+      return System.currentTimeMillis() - lastUpdateTimestampInMs >= myIntervalInMs;
+    }
+
+    @NotNull
+    static CheckInterval find(@Nullable String value) {
+      if (isNotEmpty(value)) {
+        for (CheckInterval checkInterval : values()) {
+          if (value.equalsIgnoreCase(checkInterval.name())) {
+            return checkInterval;
+          }
+        }
+      }
+      return WEEKLY;
+    }
   }
 }
