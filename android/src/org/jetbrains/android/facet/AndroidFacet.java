@@ -65,7 +65,6 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.file.PsiPackageImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
@@ -898,9 +897,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Nullable
   public Manifest getManifest() {
-    File manifestIoFile = getMainSourceProvider().getManifestFile();
-
-    VirtualFile manifestFile = LocalFileSystem.getInstance().findFileByIoFile(manifestIoFile);
+    VirtualFile manifestFile = getMainIdeaSourceProvider().getManifestFile();
     return manifestFile != null ? loadDomElement(getModule(), manifestFile, Manifest.class) : null;
   }
 
