@@ -77,11 +77,12 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
   @Override
   @NotNull
   public String getIdLabel() {
-    if (myValueData == null) {
+    Instance instance = getInstance();
+    if (instance == null) {
       return "";
     }
 
-    return ValueDescriptorImpl.getIdLabel(myObjectReference);
+    return String.format("%s (0x%x)", ValueDescriptorImpl.getIdLabel(myObjectReference), instance.getUniqueId());
   }
 
   @NotNull
