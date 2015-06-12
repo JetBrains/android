@@ -27,6 +27,12 @@
     <component>
       <implementation-class>com.android.tools.idea.ddms.adb.AdbService</implementation-class>
     </component>
+    <!-- Disabled until we have a URL serving the updated metadata
+    <component>
+      <implementation-class>com.android.tools.idea.gradle.project.compatibility.VersionMetadataUpdater</implementation-class>
+      <headless-implementation-class/>
+    </component>
+    -->
   </application-components>
   <project-components>
     <component>
@@ -185,7 +191,7 @@
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
     <console.folding implementation="com.android.tools.idea.logcat.ExceptionFolding"/>
     <consoleActionsPostProcessor implementation="org.jetbrains.android.logcat.LogcatConsoleActionsPostProcessor" />
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.compatibility.ComponentsCompatibilityService"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService"/>
     <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledApks"/>
