@@ -21,11 +21,13 @@ import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.FullRevision.PreviewComparison;
 import com.android.sdklib.repository.IDescription;
+import com.android.sdklib.repository.PreciseRevision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalBuildToolPkgInfo;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -69,17 +71,10 @@ public class RemoteBuildToolPkgInfo extends RemotePkgInfo {
    * <p/>
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public String installId() {
-    StringBuilder sb = new StringBuilder(INSTALL_ID_BASE);
-    int[] version = getRevision().toIntArray(false);
-    for (int i = 0; i < version.length; i++) {
-      sb.append(version[i]);
-      if (i != version.length - 1) {
-        sb.append('.');
-      }
-    }
-    return sb.toString();
+    return getPkgDesc().getInstallId();
   }
 
   /**
@@ -111,15 +106,31 @@ public class RemoteBuildToolPkgInfo extends RemotePkgInfo {
    * <p/>
    * A build-tool package is typically installed in SDK/build-tools/revision.
    * Revision spaces are replaced by underscores for ease of use in command-line.
+   * Preview versions will have -preview appended. The RC number is not included.
    *
    * @param osSdkRoot  The OS path of the SDK root folder.
    * @param sdkManager An existing SDK manager to list current platforms and addons.
    * @return A new {@link File} corresponding to the directory to use to install this package.
    */
+  @NotNull
   @Override
   public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
     File folder = new File(osSdkRoot, SdkConstants.FD_BUILD_TOOLS);
-    folder = new File(folder, getRevision().toString().replace(' ', '_'));
+    StringBuilder sb = new StringBuilder();
+
+    PreciseRevision revision = getPkgDesc().getPreciseRevision();
+    int[] version = revision.toIntArray(false);
+    for (int i = 0; i < version.length; i++) {
+      sb.append(version[i]);
+      if (i != version.length - 1) {
+        sb.append('.');
+      }
+    }
+    if (getPkgDesc().getPreciseRevision().isPreview()) {
+      sb.append(PkgDesc.PREVIEW_SUFFIX);
+    }
+
+    folder = new File(folder, sb.toString());
     return folder;
   }
 
