@@ -129,11 +129,13 @@ public class RunConfigurationsDialogFixture extends ComponentFixture<RunConfigur
       Object userObject = method("getUserObject").withReturnType(Object.class).in(modelValue).invoke();
       if (userObject == null) {
         return null;
-      } else if (userObject instanceof ConfigurationType) {
-        return ((ConfigurationType)userObject).getDisplayName();
-      } else {
-        return userObject.toString();
       }
+
+      if (userObject instanceof ConfigurationType) {
+        return ((ConfigurationType)userObject).getDisplayName();
+      }
+
+      return userObject.toString();
     }
   }
 
