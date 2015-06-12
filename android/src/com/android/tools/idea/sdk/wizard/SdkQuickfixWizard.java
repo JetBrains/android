@@ -204,6 +204,12 @@ public class SdkQuickfixWizard extends DynamicWizard {
     SdkState.getInstance(data).loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, true);
   }
 
+  @NotNull
+  @Override
+  protected String getProgressTitle() {
+    return "Finishing install...";
+  }
+
   @Override
   protected String getWizardActionDescription() {
     return "Provides a method for handling quickfix SDK installation actions";
