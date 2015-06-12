@@ -19,21 +19,28 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture.ContentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.UnitTestTreeFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.UnitTestTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @BelongsToTestGroups({TestGroup.UNIT_TESTING, TestGroup.PROJECT_SUPPORT})
 public class UnitTestingSupportTest extends GuiTestCase {
-
-  private IdeFrameFixture myProjectFrame;
+  protected IdeFrameFixture myProjectFrame;
   private EditorFixture myEditor;
+
+  @Test @IdeGuiTest
+  public void unitTestingSupport_defaultMake() throws Exception {
+    doTest("Make");
+  }
+
+  @Test @IdeGuiTest
+  public void unitTestingSupport_gradleAwareMake() throws Exception {
+    doTest("Gradle-aware Make");
+  }
 
   /**
    * This covers all functionality that we expect from AS when it comes to unit tests:
@@ -45,9 +52,9 @@ public class UnitTestingSupportTest extends GuiTestCase {
    *   <li>You can fix a test and changes are picked up the next time tests are run (which means the correct gradle tasks are run).
    * </ul>
    */
-  @Test @IdeGuiTest
-  public void unitTestingSupport() throws IOException {
+  private void doTest(String makeStepName) throws Exception {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplicationWithUnitTests");
+    myProjectFrame.setJUnitDefaultBeforeRunTask(makeStepName);
 
     BuildVariantsToolWindowFixture buildVariants = myProjectFrame.getBuildVariantsWindow();
     buildVariants.activate();
@@ -95,7 +102,7 @@ public class UnitTestingSupportTest extends GuiTestCase {
   }
 
   private void runTestUnderCursor() {
-    // This only works when there's one applicable run configuations, otherwise a popup would show up.
+    // This only works when there's one applicable run configurations, otherwise a popup would show up.
     myEditor.invokeAction(EditorFixture.EditorAction.RUN_FROM_CONTEXT);
     myProjectFrame.waitForBackgroundTasksToFinish();
   }
