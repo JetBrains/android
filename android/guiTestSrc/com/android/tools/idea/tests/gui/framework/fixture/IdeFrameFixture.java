@@ -31,6 +31,13 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.codeInspection.ui.InspectionTree;
+import com.intellij.execution.BeforeRunTask;
+import com.intellij.execution.BeforeRunTaskProvider;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.ConfigurationType;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
@@ -38,6 +45,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilationStatusListener;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -78,6 +86,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -901,6 +910,41 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     }
     else {
       fail("Cannot find declaration of Android plugin");
+    }
+    return this;
+  }
+
+  /**
+   * Sets the "Before Launch" tasks in the "JUnit Run Configuration" template.
+   * @param taskName the name of the "Before Launch" task (e.g. "Make", "Gradle-aware Make")
+   * @param project the project currently opened in the IDE.
+   */
+  @NotNull
+  public IdeFrameFixture setJUnitDefaultBeforeRunTask(@NotNull String taskName) {
+    Project project = getProject();
+    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(project);
+    ConfigurationType junitConfigurationType = runManager.getConfigurationType("JUnit");
+    assertNotNull("Failed to find run configuration type 'JUnit'", junitConfigurationType);
+
+    for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
+      RunnerAndConfigurationSettings template = runManager.getConfigurationTemplate(configurationFactory);
+      RunConfiguration runConfiguration = template.getConfiguration();
+      BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = Extensions.getExtensions(BeforeRunTaskProvider.EXTENSION_POINT_NAME, project);
+
+      BeforeRunTaskProvider targetProvider = null;
+      for (BeforeRunTaskProvider<? extends BeforeRunTask> provider : taskProviders) {
+        if (taskName.equals(provider.getName())) {
+          targetProvider = provider;
+          break;
+        }
+      }
+      assertNotNull(String.format("Failed to find task provider '%1$s'", taskName), targetProvider);
+
+      BeforeRunTask task = targetProvider.createTask(runConfiguration);
+      assertNotNull(task);
+      task.setEnabled(true);
+
+      runManager.setBeforeRunTasks(runConfiguration, Collections.singletonList(task), false);
     }
     return this;
   }
