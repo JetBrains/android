@@ -21,6 +21,7 @@ import com.intellij.designer.ToggleEditorModeAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -52,6 +53,12 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
     if (editor instanceof NlEditor) {
       NlEditor designerEditor = (NlEditor)editor;
       return designerEditor.getComponent();
+    }
+    if (editor instanceof TextEditor) {
+      NlPreviewManager previewManager = NlPreviewManager.getInstance(myProject);
+      if (previewManager.isApplicableEditor((TextEditor)editor)) {
+        return previewManager.getPreviewForm();
+      }
     }
     return null;
   }

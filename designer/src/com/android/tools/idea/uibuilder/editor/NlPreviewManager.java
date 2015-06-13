@@ -322,6 +322,13 @@ public class NlPreviewManager implements ProjectComponent {
     return isInResourceFolder(psiFile);
   }
 
+  public NlPreviewForm getPreviewForm() {
+    if (myToolWindow == null) {
+      initToolWindow();
+    }
+    return myToolWindowForm;
+  }
+
   private static boolean isInResourceFolder(@Nullable PsiFile psiFile) {
     if (psiFile instanceof XmlFile && AndroidFacet.getInstance(psiFile) != null) {
       return RenderService.canRender(psiFile);
