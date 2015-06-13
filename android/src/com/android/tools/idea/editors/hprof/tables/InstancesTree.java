@@ -517,12 +517,12 @@ public class InstancesTree {
       ClassInstance classInstance = (ClassInstance)instance;
       descriptors = new ArrayList<HprofFieldDescriptorImpl>(classInstance.getValues().size());
       int i = 0;
-      for (Map.Entry<Field, Object> entry : classInstance.getValues().entrySet()) {
-        if (entry.getKey().getType() == Type.OBJECT) {
-          descriptors.add(new InstanceFieldDescriptorImpl(myDebuggerTree.getProject(), entry.getKey(), (Instance)entry.getValue(), i));
+      for (ClassInstance.FieldValue entry : classInstance.getValues()) {
+        if (entry.getField().getType() == Type.OBJECT) {
+          descriptors.add(new InstanceFieldDescriptorImpl(myDebuggerTree.getProject(), entry.getField(), (Instance)entry.getValue(), i));
         }
         else {
-          descriptors.add(new PrimitiveFieldDescriptorImpl(myDebuggerTree.getProject(), entry.getKey(), entry.getValue(), i));
+          descriptors.add(new PrimitiveFieldDescriptorImpl(myDebuggerTree.getProject(), entry.getField(), entry.getValue(), i));
         }
         ++i;
       }
