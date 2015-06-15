@@ -33,15 +33,25 @@ public class UnitTestingSupportTest extends GuiTestCase {
   private EditorFixture myEditor;
 
   @Test @IdeGuiTest
-  public void unitTestingSupport_defaultMake() throws Exception {
-    doTest("Make");
+  public void appModule_defaultMake() throws Exception {
+    doTest("Make", "app/src/test/java/com/android/tests", "UnitTest");
+  }
+  
+  @Test @IdeGuiTest
+  public void appModule_gradleAwareMake() throws Exception {
+    doTest("Gradle-aware Make", "app/src/test/java/com/android/tests", "UnitTest");
   }
 
   @Test @IdeGuiTest
-  public void unitTestingSupport_gradleAwareMake() throws Exception {
-    doTest("Gradle-aware Make");
+  public void libModule_defaultMake() throws Exception {
+    doTest("Make", "lib/src/test/java/com/android/tests/lib", "LibUnitTest");
   }
 
+  @Test @IdeGuiTest
+  public void libModule_gradleAwareMake() throws Exception {
+    doTest("Gradle-aware Make", "lib/src/test/java/com/android/tests/lib", "LibUnitTest");
+  }
+  
   /**
    * This covers all functionality that we expect from AS when it comes to unit tests:
    *
@@ -52,7 +62,7 @@ public class UnitTestingSupportTest extends GuiTestCase {
    *   <li>You can fix a test and changes are picked up the next time tests are run (which means the correct gradle tasks are run).
    * </ul>
    */
-  private void doTest(String makeStepName) throws Exception {
+  private void doTest(@NotNull String makeStepName, @NotNull String path, @NotNull String testClass) throws Exception {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
     myProjectFrame.setJUnitDefaultBeforeRunTask(makeStepName);
 
@@ -62,14 +72,14 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
     // Open the test file:
     myEditor = myProjectFrame.getEditor();
-    myEditor.open("app/src/test/java/com/android/tests/UnitTest.java");
+    myEditor.open(path + "/" + testClass + ".java");
 
     // Run the test case that is supposed to pass:
     myEditor.moveTo(myEditor.findOffset("passing", "Test", true));
 
     runTestUnderCursor();
 
-    UnitTestTreeFixture unitTestTree = getTestTree("UnitTest.passingTest");
+    UnitTestTreeFixture unitTestTree = getTestTree(testClass + ".passingTest");
     assertTrue(unitTestTree.isAllTestsPassed());
 
     // Run the test that is supposed to fail:
@@ -78,7 +88,7 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
     runTestUnderCursor();
 
-    unitTestTree = getTestTree("UnitTest.failingTest");
+    unitTestTree = getTestTree(testClass + ".failingTest");
     assertEquals(1, unitTestTree.getFailingTestsCount());
 
     // Fix the failing test and re-run the tests.
@@ -89,16 +99,16 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
     unitTestTree.getContent().rerun();
     myProjectFrame.waitForBackgroundTasksToFinish();
-    unitTestTree = getTestTree("UnitTest.failingTest");
+    unitTestTree = getTestTree(testClass + ".failingTest");
     assertTrue(unitTestTree.isAllTestsPassed());
 
 
     // Run the whole class, it should pass now.
-    myEditor.moveTo(myEditor.findOffset("class Unit", "Test", true));
+    myEditor.moveTo(myEditor.findOffset("class ", testClass, true));
 
     runTestUnderCursor();
 
-    unitTestTree = getTestTree("UnitTest");
+    unitTestTree = getTestTree(testClass);
     assertTrue(unitTestTree.isAllTestsPassed());
   }
 
