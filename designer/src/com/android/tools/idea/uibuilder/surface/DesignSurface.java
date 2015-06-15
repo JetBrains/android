@@ -315,55 +315,81 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     return myScreenView;
   }
 
-  public void zoomActual() {
-    if (SystemInfo.isMac && UIUtil.isRetina()) {
-      setScale(0.5);
-    } else {
-      setScale(1);
+  public void zoom(@NonNull ZoomType type) {
+    switch (type) {
+      case IN:
+        setScale(myScale * 1.1);
+        repaint();
+        break;
+      case OUT:
+        setScale(myScale * (1/1.1));
+        repaint();
+        break;
+      case ACTUAL:
+        if (SystemInfo.isMac && UIUtil.isRetina()) {
+          setScale(0.5);
+        } else {
+          setScale(1);
+        }
+        repaint();
+        break;
+      case FIT:
+      case FIT_INTO:
+        if (myScreenView == null) {
+          return;
+        }
+
+        // Fit to zoom
+        int availableWidth = myScrollPane.getWidth();
+        int availableHeight = myScrollPane.getHeight();
+        Dimension preferredSize = myScreenView.getPreferredSize();
+        if (preferredSize != null) {
+          int requiredWidth = preferredSize.width;
+          int requiredHeight = preferredSize.height;
+          availableWidth -= 2 * DEFAULT_SCREEN_OFFSET_X;
+          availableHeight -= 2 * DEFAULT_SCREEN_OFFSET_Y;
+
+          if (myScreenMode == ScreenMode.BOTH) {
+            if (isVerticalScreenConfig(availableWidth, availableHeight, preferredSize)) {
+              requiredHeight *= 2;
+              requiredHeight += SCREEN_DELTA;
+            } else {
+              requiredWidth *= 2;
+              requiredWidth += SCREEN_DELTA;
+            }
+          }
+
+          double scaleX = (double)availableWidth / requiredWidth;
+          double scaleY = (double)availableHeight / requiredHeight;
+          double scale = Math.min(scaleX, scaleY);
+          if (type == ZoomType.FIT_INTO) {
+            scale = Math.min(1.0, scale);
+          }
+          setScale(scale);
+          repaint();
+        }
+
+        break;
+      default:
+      case SCREEN:
+        throw new UnsupportedOperationException("Not yet implemented: " + type);
     }
-    repaint();
+  }
+
+  public void zoomActual() {
+    zoom(ZoomType.ACTUAL);
   }
 
   public void zoomIn() {
-    setScale(myScale * 1.1);
-    repaint();
+    zoom(ZoomType.IN);
   }
 
   public void zoomOut() {
-    setScale(myScale * (1/1.1));
-    repaint();
+    zoom(ZoomType.OUT);
   }
 
   public void zoomToFit() {
-    if (myScreenView == null) {
-      return;
-    }
-
-    // Fit to zoom
-    int availableWidth = myScrollPane.getWidth();
-    int availableHeight = myScrollPane.getHeight();
-    Dimension preferredSize = myScreenView.getPreferredSize();
-    if (preferredSize != null) {
-      int requiredWidth = preferredSize.width;
-      int requiredHeight = preferredSize.height;
-      availableWidth -= 2 * DEFAULT_SCREEN_OFFSET_X;
-      availableHeight -= 2 * DEFAULT_SCREEN_OFFSET_Y;
-
-      if (myScreenMode == ScreenMode.BOTH) {
-        if (isVerticalScreenConfig(availableWidth, availableHeight, preferredSize)) {
-          requiredHeight *= 2;
-          requiredHeight += SCREEN_DELTA;
-        } else {
-          requiredWidth *= 2;
-          requiredWidth += SCREEN_DELTA;
-        }
-      }
-
-      double scaleX = (double)availableWidth / requiredWidth;
-      double scaleY = (double)availableHeight / requiredHeight;
-      setScale(Math.min(scaleX, scaleY));
-      repaint();
-    }
+    zoom(ZoomType.FIT);
   }
 
   /** Returns true if we want to arrange screens vertically instead of horizontally */

@@ -19,6 +19,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
@@ -56,11 +57,12 @@ public class TargetMenuAction extends FlatComboAction {
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Android version to use when rendering layouts in the IDE");
     presentation.setIcon(classicStyle ? AndroidIcons.Targets : AndroidIcons.NeleIcons.Api);
+    presentation.setIcon(RenderService.NELE_ENABLED ? AndroidIcons.NeleIcons.Api : AndroidIcons.Targets);
     updatePresentation(presentation);
   }
 
   public TargetMenuAction(RenderContext renderContext, boolean useCompatibilityTarget) {
-    this(renderContext, useCompatibilityTarget, true);
+    this(renderContext, useCompatibilityTarget, !RenderService.NELE_ENABLED);
   }
 
   public TargetMenuAction(RenderContext renderContext) {

@@ -22,6 +22,7 @@ import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -46,7 +47,7 @@ public class DeviceMenuAction extends FlatComboAction {
   private final boolean myClassicStyle;
 
   public DeviceMenuAction(@NotNull RenderContext renderContext) {
-    this(renderContext, true);
+    this(renderContext, !RenderService.NELE_ENABLED);
   }
 
   public DeviceMenuAction(@NotNull RenderContext renderContext, boolean classicStyle) {
