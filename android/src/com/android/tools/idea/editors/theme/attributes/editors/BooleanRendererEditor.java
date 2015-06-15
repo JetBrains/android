@@ -36,14 +36,14 @@ import java.awt.event.ActionListener;
  * Uses a dropdown to offer the choice between true or false or having a reference
  * Deals with references through a separate dialog window
  */
-public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements TableCellRenderer {
+public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
   private static final String USE_REFERENCE = "Use reference ...";
   private static final ResourceType[] BOOLEAN_TYPE = new ResourceType[] { ResourceType.BOOL };
   private static final String[] COMBOBOX_OPTIONS = {"true", "false", USE_REFERENCE};
 
   private final ComboBox myComboBox;
   private final @NotNull ThemeEditorContext myContext;
-  private @Nullable AttributeEditorValue myResultValue;
+  private @Nullable String myResultValue;
   private String myEditedItemValue;
 
   public BooleanRendererEditor(@NotNull ThemeEditorContext context) {
@@ -84,7 +84,7 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Attr
   }
 
   @Override
-  public AttributeEditorValue getEditorValue() {
+  public String getEditorValue() {
     return myResultValue;
   }
 
@@ -100,7 +100,7 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Attr
         dialog.show();
 
         if (dialog.isOK()) {
-          myResultValue = new AttributeEditorValue(dialog.getResourceName(), false);
+          myResultValue = dialog.getResourceName();
           stopCellEditing();
         }
         else {
@@ -108,7 +108,7 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Attr
           cancelCellEditing();
         }
       } else {
-        myResultValue = new AttributeEditorValue(selectedValue, false);
+        myResultValue = selectedValue;
         stopCellEditing();
       }
     }

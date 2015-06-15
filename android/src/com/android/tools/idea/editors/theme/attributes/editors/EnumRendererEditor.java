@@ -32,7 +32,7 @@ import java.awt.event.ActionListener;
  * Uses a ComboBox for a dropdown list of choices
  * In the case where other values are allowed, makes the ComboBox editable
  */
-public class EnumRendererEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements TableCellRenderer {
+public class EnumRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
   private final ComboBox myComboBox;
 
   public EnumRendererEditor() {
@@ -79,7 +79,7 @@ public class EnumRendererEditor extends TypedCellEditor<EditedStyleItem, Attribu
   }
 
   @Override
-  public AttributeEditorValue getEditorValue() {
-    return new AttributeEditorValue((String) myComboBox.getSelectedItem(), false);
+  public String getEditorValue() {
+    return (String)myComboBox.getSelectedItem();
   }
 }
