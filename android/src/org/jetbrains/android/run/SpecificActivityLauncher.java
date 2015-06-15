@@ -44,7 +44,7 @@ public class SpecificActivityLauncher extends AndroidActivityLauncher {
   @Nullable
   private final String myActivityName;
 
-  protected SpecificActivityLauncher(@NotNull AndroidFacet facet, @Nullable String activityName) {
+  public SpecificActivityLauncher(@NotNull AndroidFacet facet, @Nullable String activityName) {
     myFacet = facet;
     myActivityName = activityName;
   }
