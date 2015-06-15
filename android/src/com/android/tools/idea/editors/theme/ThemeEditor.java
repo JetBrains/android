@@ -107,11 +107,12 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public void selectNotify() {
-    myComponent.reload(myComponent.getPreviousSelectedTheme());
+    myComponent.selectNotify();
   }
 
   @Override
   public void deselectNotify() {
+    myComponent.deselectNotify();
   }
 
   @Override
