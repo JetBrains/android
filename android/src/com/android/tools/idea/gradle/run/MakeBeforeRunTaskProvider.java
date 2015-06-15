@@ -28,7 +28,7 @@ import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
-import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -236,9 +236,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
           @Override
           public void run() {
             Module[] modules;
-            if (configuration instanceof ModuleBasedConfiguration) {
-              // ModuleBasedConfiguration includes Android and JUnit run configurations.
-              modules = ((ModuleBasedConfiguration)configuration).getModules();
+            if (configuration instanceof ModuleRunProfile) {
+              // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
+              // which is AbstractRerunFailedTestsAction.MyRunProfile.
+              modules = ((ModuleRunProfile)configuration).getModules();
             }
             else {
               modules = Projects.getModulesToBuildFromSelection(myProject, context);

@@ -143,6 +143,17 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       throw new IllegalStateException("Could not find the Re-run button.");
     }
 
+    public void rerunFailed() {
+      for (ActionButton button : getToolbarButtons()) {
+        if ("com.intellij.execution.junit2.ui.actions.RerunFailedTestsAction".equals(button.getAction().getClass().getCanonicalName())) {
+          myRobot.click(button);
+          return;
+        }
+      }
+
+      throw new IllegalStateException("Could not find the Re-run failed tests button.");
+    }
+
     public void waitForExecutionToFinish(@NotNull Timeout timeout) {
       Pause.pause(new Condition("Wait for execution to finish") {
         @Override
