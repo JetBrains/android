@@ -85,15 +85,15 @@ public class ThemeEditorStyle {
     return repository.hasResourceItem(ResourceType.STYLE, myStyleName);
   }
 
-  @NotNull
-  private StyleResourceValue getStyleResourceValue() {
+  /**
+   * Returns StyleResourceValue using myConfiguration with parameters myStyleName and myIsFrameworkStyle
+   * Can be null, if there is no such StyleResourceValue
+   */
+  @Nullable
+  public StyleResourceValue getStyleResourceValue() {
     ResourceResolver resolver = myConfiguration.getResourceResolver();
     assert resolver != null;
-
-    StyleResourceValue result = resolver.getStyle(myStyleName, myIsFrameworkStyle);
-    assert result != null;
-
-    return result;
+    return resolver.getStyle(myStyleName, myIsFrameworkStyle);
   }
 
   @NotNull
@@ -114,10 +114,12 @@ public class ThemeEditorStyle {
 
   /**
    * Returns the style name. If this is a framework style, it will include the "android:" prefix.
+   * Can be null, if there is no corresponding StyleResourceValue
    */
-  @NotNull
+  @Nullable
   public String getName() {
-    return StyleResolver.getQualifiedStyleName(getStyleResourceValue());
+    StyleResourceValue style = getStyleResourceValue();
+    return style == null ? null : StyleResolver.getQualifiedStyleName(style);
   }
 
   /**
