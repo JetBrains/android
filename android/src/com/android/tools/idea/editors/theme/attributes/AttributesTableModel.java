@@ -20,7 +20,6 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
-import com.android.tools.idea.editors.theme.attributes.editors.AttributeEditorValue;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.StyleResolver;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
@@ -213,7 +212,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
    */
   @Override
   public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-    getRowContents(rowIndex).setValueAt(columnIndex, (AttributeEditorValue)aValue);
+    getRowContents(rowIndex).setValueAt(columnIndex, (String) aValue);
   }
 
   @Override
@@ -253,7 +252,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     Object getValueAt(int column);
 
-    void setValueAt(int column, AttributeEditorValue value);
+    void setValueAt(int column, String value);
 
     Class<?> getCellClass(int column);
 
@@ -292,12 +291,11 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     }
 
     @Override
-    public void setValueAt(int column, AttributeEditorValue value) {
+    public void setValueAt(int column, String newName) {
       if (column == 0) {
         throw new RuntimeException("Tried to setValue at parent attribute label");
       }
       else {
-        String newName = value.getResourceValue();
         ThemeEditorStyle parent = mySelectedStyle.getParent();
         if (parent == null || !parent.getName().equals(newName)) {
           //Changes the value of Parent in XML
@@ -356,7 +354,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     }
 
     @Override
-    public void setValueAt(int column, AttributeEditorValue value) {
+    public void setValueAt(int column, String value) {
       throw new RuntimeException(String.format("Tried to setValue at immutable label row of LabelledModel, column = %1$d" + column));
     }
 
@@ -457,14 +455,14 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     }
 
     @Override
-    public void setValueAt(int column, AttributeEditorValue value) {
+    public void setValueAt(int column, String value) {
       if (value == null) {
         return;
       }
 
       if (mySelectedStyle.isReadOnly()) {
         for (ThemePropertyChangedListener listener : myThemePropertyChangedListeners) {
-          listener.attributeChangedOnReadOnlyTheme((EditedStyleItem)getValueAt(1), value.getResourceValue());
+          listener.attributeChangedOnReadOnlyTheme((EditedStyleItem)getValueAt(1), value);
         }
         return;
       }
@@ -474,14 +472,14 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       // to was changed. To preserve this information, ColorEditor returns ColorEditorValue data
       // structure with value and boolean flag which shows whether reload should be forced.
 
-      if (setAttributeValue(value.getResourceValue(), value.isForceReload())) {
+      if (setAttributeValue(value)) {
         fireTableCellUpdated(myRowIndex, column);
       }
     }
 
-    private boolean setAttributeValue(@NotNull String strValue, boolean forceReload) {
+    private boolean setAttributeValue(@NotNull String strValue) {
       EditedStyleItem rv = myAttributes.get(myRowIndex);
-      if (strValue.equals(rv.getValue()) && !forceReload) {
+      if (strValue.equals(rv.getValue())) {
         return false;
       }
       String propertyName = rv.getQualifiedName();
