@@ -19,10 +19,7 @@ import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
-import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -175,14 +172,18 @@ public class LocaleMenuAction extends FlatComboAction {
       //Locale locale = configuration.isLocaleSpecificLayout()
       //                ? configuration.getLocale() : configuration.getConfigurationManager().getLocale();
       Locale locale = configuration.getLocale();
-      if (locale == Locale.ANY) {
+      if (RenderService.NELE_ENABLED) {
+        presentation.setIcon(AndroidIcons.NeleIcons.Language);
+        presentation.setText("Language");
+      } else if (locale == Locale.ANY) {
         presentation.setIcon(AndroidIcons.Globe);
       } else {
         presentation.setIcon(locale.getFlagImage());
       }
       String brief = getLocaleLabel(locale, true);
       presentation.setText(brief);
-    } else {
+    }
+    else {
       presentation.setIcon(AndroidIcons.Globe);
     }
     if (visible != presentation.isVisible()) {
@@ -206,10 +207,17 @@ public class LocaleMenuAction extends FlatComboAction {
   @NotNull
   public static String getLocaleLabel(@Nullable Locale locale, boolean brief) {
     if (locale == null) {
+      if (RenderService.NELE_ENABLED) {
+        return "Language";
+      }
       return "";
     }
 
     if (!locale.hasLanguage()) {
+      if (RenderService.NELE_ENABLED) {
+        return "Language";
+      }
+
       if (brief) {
         // Just use the icon
         return "";

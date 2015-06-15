@@ -18,31 +18,36 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderedViewHierarchy;
+import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.Lists;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightFillLayout;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.PasteProvider;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.SideBorder;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 /**
  * Assembles a designer editor from various components
@@ -79,8 +84,51 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     myContentSplitter.setInnerComponent(contentPanel);
     add(myContentSplitter, BorderLayout.CENTER);
 
+
+    RenderContext context = new NlRenderContext();
+    ActionGroup group = createActions(context);
+
+    ActionManager actionManager = ActionManager.getInstance();
+    ActionToolbar actionToolbar = actionManager.createActionToolbar("NeleToolbarId", group, true);
+    actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
+
+    JComponent editorToolbar = actionToolbar.getComponent();
+    editorToolbar.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+    // TODO: Hide for XML preview?
+    //editorToolbar.setVisible(false);
+    add(editorToolbar, BorderLayout.NORTH);
+
+
     // When you're opening the layout editor we don't want to delay anything
     model.requestRenderAsap();
+  }
+
+  private DefaultActionGroup createActions(RenderContext configurationHolder) {
+    DefaultActionGroup group = new DefaultActionGroup();
+
+    OrientationMenuAction orientationAction = new OrientationMenuAction(configurationHolder);
+    group.add(orientationAction);
+    group.addSeparator();
+
+    DeviceMenuAction deviceAction = new DeviceMenuAction(configurationHolder);
+    group.add(deviceAction);
+
+    TargetMenuAction targetMenuAction = new TargetMenuAction(configurationHolder);
+    group.add(targetMenuAction);
+
+    ThemeMenuAction themeAction = new ThemeMenuAction(configurationHolder);
+    group.add(themeAction);
+
+    LocaleMenuAction localeAction = new LocaleMenuAction(configurationHolder);
+    group.add(localeAction);
+
+    ConfigurationMenuAction configAction = new ConfigurationMenuAction(configurationHolder);
+    group.add(configAction);
+
+    ZoomMenuAction zoomAction = new ZoomMenuAction(mySurface);
+    group.add(zoomAction);
+
+    return group;
   }
 
   @Nullable
@@ -189,6 +237,141 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     public boolean isPasteEnabled(@NonNull DataContext dataContext) {
       // TODO: Look at clipboard
       return false;
+    }
+  }
+
+  /** <b>Temporary</b> bridge to older Configuration actions. When we can ditch the old layout preview
+   * and old layout editors, we no longer needs this level of indirection to let the configuration actions
+   * talk to multiple different editor implementations, and the render actions can directly address DesignSurface.
+   */
+  private class NlRenderContext implements RenderContext {
+    @Nullable
+    @Override
+    public Configuration getConfiguration() {
+      return mySurface.getConfiguration();
+    }
+
+    @Override
+    public void setConfiguration(@NonNull Configuration configuration) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void requestRender() {
+      if (mySurface.getCurrentScreenView() != null) {
+        mySurface.getCurrentScreenView().getModel().requestRenderAsap();
+      }
+    }
+
+    @NonNull
+    @Override
+    public UsageType getType() {
+      return UsageType.LAYOUT_EDITOR;
+    }
+
+    @Nullable
+    @Override
+    public XmlFile getXmlFile() {
+      final Configuration configuration = mySurface.getConfiguration();
+      if (configuration != null) {
+        return (XmlFile)configuration.getPsiFile();
+      }
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public VirtualFile getVirtualFile() {
+      final Configuration configuration = mySurface.getConfiguration();
+      if (configuration != null) {
+        return configuration.getFile();
+      }
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public Module getModule() {
+      final Configuration configuration = mySurface.getConfiguration();
+      if (configuration != null) {
+        return configuration.getModule();
+      }
+      return null;
+    }
+
+    @Override
+    public boolean hasAlphaChannel() {
+      return false;
+    }
+
+    @NonNull
+    @Override
+    public Component getComponent() {
+      return NlEditorPanel.this;
+    }
+
+    @NonNull
+    @Override
+    public Dimension getFullImageSize() {
+      throw new UnsupportedOperationException();
+    }
+
+    @NonNull
+    @Override
+    public Dimension getScaledImageSize() {
+      throw new UnsupportedOperationException();
+    }
+
+    @NonNull
+    @Override
+    public Rectangle getClientArea() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean supportsPreviews() {
+      return false;
+    }
+
+    @Nullable
+    @Override
+    public RenderPreviewManager getPreviewManager(boolean createIfNecessary) {
+      return null;
+    }
+
+    @Override
+    public void setMaxSize(int width, int height) {
+    }
+
+    @Override
+    public void zoomFit(boolean onlyZoomOut, boolean allowZoomIn) {
+      mySurface.zoomToFit();
+    }
+
+    @Override
+    public void updateLayout() {
+    }
+
+    @Override
+    public void setDeviceFramesEnabled(boolean on) {
+    }
+
+    @Nullable
+    @Override
+    public BufferedImage getRenderedImage() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Nullable
+    @Override
+    public RenderResult getLastResult() {
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public RenderedViewHierarchy getViewHierarchy() {
+      return null;
     }
   }
 }

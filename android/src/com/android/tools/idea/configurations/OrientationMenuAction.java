@@ -22,6 +22,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.resources.UiMode;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.rendering.RenderService;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -50,6 +51,10 @@ public class OrientationMenuAction extends FlatComboAction {
   }
 
   private void updatePresentation(Presentation presentation) {
+    if (RenderService.NELE_ENABLED) {
+      presentation.setIcon(AndroidIcons.NeleIcons.Rotate);
+      return;
+    }
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null) {
       State current = configuration.getDeviceState();
