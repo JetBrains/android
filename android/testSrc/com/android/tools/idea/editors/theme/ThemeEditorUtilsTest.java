@@ -30,7 +30,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -119,7 +119,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
    * Tests that the method getOriginalApiLevel correctly returns the api level
    * in which a particular framework attribute or value was defined
    */
-  private void assertOriginalApiLevel(@NotNull String name, int expectedApiLevel) {
+  private void assertOriginalApiLevel(@Nullable String name, int expectedApiLevel) {
     assertEquals(expectedApiLevel, ThemeEditorUtils.getOriginalApiLevel(name, getProject()));
   }
 
@@ -129,6 +129,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertOriginalApiLevel("myString", -1); // random string
     assertOriginalApiLevel("statusBarColor", -1); // no prefix attribute
     assertOriginalApiLevel("@color/holo_purple", -1); // no prefix value
+    assertOriginalApiLevel(null, -1);
   }
 
   public void testCopyTheme() {
