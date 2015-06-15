@@ -117,10 +117,16 @@ public class GradleInvoker {
     executeTasks(tasks);
   }
 
-  public void compileJava(@NotNull Module[] modules) {
+  /**
+   * Execute Gradle tasks that compile the relevant Java sources.
+   * @param modules Modules that need to be compiled
+   * @param testCompileType Kind of tests that the caller is interested in. Use {@link TestCompileType#NONE} if compiling just the
+   *                        main sources, {@link TestCompileType#JAVA_TESTS} if class files for running unit tests are needed.
+   */
+  public void compileJava(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
     BuildMode buildMode = BuildMode.COMPILE_JAVA;
     setProjectBuildMode(buildMode);
-    List<String> tasks = findTasksToExecute(modules, buildMode, TestCompileType.NONE);
+    List<String> tasks = findTasksToExecute(modules, buildMode, testCompileType);
     executeTasks(tasks);
   }
 
@@ -280,7 +286,12 @@ public class GradleInvoker {
           }
           break;
         default:
-          tasks.add(createBuildTask(gradlePath, properties.COMPILE_JAVA_TASK_NAME));
+          // When compiling for unit tests, run only COMPILE_JAVA_TEST_TASK_NAME, which will run javac over main and test code. If the
+          // Jack compiler is enabled in Gradle, COMPILE_JAVA_TASK_NAME will end up running e.g. compileDebugJavaWithJack, which produces
+          // no *.class files and would be just a waste of time.
+          if (testCompileType != TestCompileType.JAVA_TESTS) {
+            tasks.add(createBuildTask(gradlePath, properties.COMPILE_JAVA_TASK_NAME));
+          }
           addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TEST_TASK_NAME);
       }
     }
@@ -337,8 +348,8 @@ public class GradleInvoker {
 
   public enum TestCompileType {
     NONE,            // don't compile any tests
-    ANDROID_TESTS,   // compile tests that are part of an Android Module
-    JAVA_TESTS       // compile tests that are part of a Java module
+    ANDROID_TESTS,   // compile Android, on-device tests
+    JAVA_TESTS       // compile Java unit-tests, either in a pure Java module or Android module
   }
 
   @VisibleForTesting

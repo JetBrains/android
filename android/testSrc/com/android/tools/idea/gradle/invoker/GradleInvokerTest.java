@@ -140,7 +140,7 @@ public class GradleInvokerTest extends IdeaTestCase {
         assertEquals(BuildMode.COMPILE_JAVA, getBuildMode());
       }
     });
-    myInvoker.compileJava(new Module[] { myModule });
+    myInvoker.compileJava(new Module[] { myModule }, GradleInvoker.TestCompileType.NONE);
   }
 
   public void testMake() throws Exception {
