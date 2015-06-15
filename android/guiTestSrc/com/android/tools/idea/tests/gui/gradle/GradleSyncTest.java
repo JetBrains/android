@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
@@ -108,7 +109,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.*;
 import static com.intellij.util.SystemProperties.getLineSeparator;
-import static junit.framework.Assert.*;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
@@ -118,8 +118,7 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
@@ -1321,5 +1320,47 @@ public class GradleSyncTest extends GuiTestCase {
   @Nullable
   private static LanguageLevel getJavaLanguageLevel(@NotNull Module module) {
     return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
+  }
+
+  @Test @IdeGuiTest
+  public void suggestUpgradingAndroidPlugin() throws IOException {
+    final String hyperlinkText = "Fix plugin version and sync project";
+
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+    projectFrame.updateAndroidModelVersion("1.2.0");
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/build.gradle");
+    editor.moveTo(editor.findOffset("android {", "\n", true));
+    editor.enterText("\nlatestDsl()");
+
+    projectFrame.requestProjectSyncAndExpectFailure();
+
+    ContentFixture messages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    String expectedError = "Gradle DSL method not found: 'latestDsl()'";
+    MessageFixture message = messages.findMessageContainingText(ERROR, expectedError);
+    HyperlinkFixture quickFix = message.findHyperlink(hyperlinkText);
+    quickFix.clickAndContinue();
+
+    // Sync still fails, because latestDsl() is made up, but the plugin version should have changed.
+    projectFrame.waitForGradleProjectSyncToFail();
+
+    // Check the top-level build.gradle got updated.
+    FullRevision newVersion = getAndroidGradleModelVersionFromBuildFile(projectFrame.getProject());
+    assertNotNull(newVersion);
+    assertThat(newVersion.toString()).isEqualTo(GRADLE_PLUGIN_RECOMMENDED_VERSION);
+
+    messages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    expectedError = "Gradle DSL method not found: 'latestDsl()'";
+    message = messages.findMessageContainingText(ERROR, expectedError);
+    try {
+      message.findHyperlink(hyperlinkText);
+      fail("There should be no link, now that the plugin is up to date.");
+    }
+    catch (AssertionFailedError e) {
+      assertThat(e.getMessage()).contains("Failed to find URL");
+      assertThat(e.getMessage()).contains(hyperlinkText);
+    }
   }
 }
