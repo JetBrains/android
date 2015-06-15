@@ -36,6 +36,7 @@ import org.junit.Test;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.net.URLClassLoader;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -202,5 +203,22 @@ public class UnitTest {
 
         Foo foo = new Foo();
         assertEquals("library code", foo.callLibFoo());
+    }
+
+    @Test
+    public void onlyOneMockableJar() throws Exception {
+        URL[] urls = ((URLClassLoader) getClass().getClassLoader()).getURLs();
+        int count = 0;
+        URL mockableJar = null;
+        for(URL u : urls){
+            if(u.toString().contains("mockable-")){
+                count++;
+                mockableJar = u;
+            }
+        }
+
+        assertEquals(1, count);
+        assertNotNull(mockableJar);
+        assertTrue(mockableJar.toString().contains("mockable-android-22.jar"));
     }
 }
