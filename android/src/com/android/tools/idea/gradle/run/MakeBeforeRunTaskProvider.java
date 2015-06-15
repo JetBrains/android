@@ -33,6 +33,8 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.compiler.CompileScope;
+import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -124,9 +126,12 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
   }
 
-  private static boolean configurationTypeIsSupported(RunConfiguration runConfiguration) {
-    return runConfiguration instanceof AndroidRunConfigurationBase ||
-           runConfiguration instanceof JUnitConfiguration ||
+  private static boolean configurationTypeIsSupported(@NotNull RunConfiguration runConfiguration) {
+    return runConfiguration instanceof AndroidRunConfigurationBase || isUnitTestConfiguration(runConfiguration);
+  }
+
+  private static boolean isUnitTestConfiguration(@NotNull RunConfiguration runConfiguration) {
+    return runConfiguration instanceof JUnitConfiguration ||
            // Avoid direct dependency on the TestNG plugin:
            runConfiguration.getClass().getSimpleName().equals("TestNGConfiguration");
   }
@@ -238,11 +243,18 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
             else {
               modules = Projects.getModulesToBuildFromSelection(myProject, context);
             }
-            TestCompileType testCompileType = getTestCompileType(configuration);
+
             gradleInvoker.addAfterGradleInvocationTask(afterTask);
             String goal = task.getGoal();
             if (StringUtil.isEmpty(goal)) {
-              gradleInvoker.assemble(modules, testCompileType);
+              if (isUnitTestConfiguration(configuration)) {
+                // Make sure all "intermediates/classes" directories are up-to-date.
+                Module[] affectedModules = getAffectedModules(modules);
+                gradleInvoker.compileJava(affectedModules, TestCompileType.JAVA_TESTS);
+              } else {
+                TestCompileType testCompileType = getTestCompileType(configuration);
+                gradleInvoker.assemble(modules, testCompileType);
+              }
             } else {
               gradleInvoker.executeTasks(Lists.newArrayList(goal));
             }
@@ -256,6 +268,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return false;
     }
     return success.get();
+  }
+
+  @NotNull
+  private Module[] getAffectedModules(@NotNull Module[] modules) {
+    final CompilerManager compilerManager = CompilerManager.getInstance(myProject);
+    CompileScope scope = compilerManager.createModulesCompileScope(modules, true, true);
+    return scope.getAffectedModules();
   }
 
   @NotNull
