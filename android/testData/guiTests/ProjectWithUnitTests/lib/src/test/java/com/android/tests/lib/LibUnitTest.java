@@ -31,14 +31,14 @@ import android.os.PowerManager;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLClassLoader;
 
-public class UnitTest {
+public class LibUnitTest {
     @Test
     public void passingTest() {
         assertEquals(4, 2+2);
@@ -149,10 +149,10 @@ public class UnitTest {
 
     @Test
     public void javaResourcesOnClasspath() throws Exception {
-        URL url = UnitTest.class.getClassLoader().getResource("lib_resource_file.txt");
+        URL url = LibUnitTest.class.getClassLoader().getResource("lib_resource_file.txt");
         assertNotNull("expected resource_file.txt to be in the ClassLoader's resources", url);
 
-        InputStream stream = UnitTest.class.getClassLoader().getResourceAsStream("lib_resource_file.txt");
+        InputStream stream = LibUnitTest.class.getClassLoader().getResourceAsStream("lib_resource_file.txt");
         assertNotNull("expected resource_file.txt to be opened as a stream", stream);
         byte[] line = new byte[1024];
         assertTrue("Expected >0 bytes read from input stream", stream.read(line) > 0);
@@ -162,10 +162,10 @@ public class UnitTest {
 
     @Test
     public void prodJavaResourcesOnClasspath() throws Exception {
-        URL url = UnitTest.class.getClassLoader().getResource("lib_prod_resource_file.txt");
+        URL url = LibUnitTest.class.getClassLoader().getResource("lib_prod_resource_file.txt");
         assertNotNull("expected resource_file.txt to be in the ClassLoader's resources", url);
 
-        InputStream stream = UnitTest.class.getClassLoader().getResourceAsStream("lib_prod_resource_file.txt");
+        InputStream stream = LibUnitTest.class.getClassLoader().getResourceAsStream("lib_prod_resource_file.txt");
         assertNotNull("expected resource_file.txt to be opened as a stream", stream);
         byte[] line = new byte[1024];
         assertTrue("Expected >0 bytes read from input stream", stream.read(line) > 0);
@@ -180,14 +180,25 @@ public class UnitTest {
     }
 
     @Test
-    @Ignore
-    public void thisIsIgnored() {
-        // Just excercise more JUnit features.
-    }
-
-    @Test
     public void commonsLogging() {
         Log log = LogFactory.getLog(getClass());
         log.info("I can use commons-logging!");
+    }
+
+    @Test
+    public void onlyOneMockableJar() throws Exception {
+        URL[] urls = ((URLClassLoader) getClass().getClassLoader()).getURLs();
+        int count = 0;
+        URL mockableJar = null;
+        for(URL u : urls){
+            if(u.toString().contains("mockable-")){
+                count++;
+                mockableJar = u;
+            }
+        }
+
+        assertEquals(1, count);
+        assertNotNull(mockableJar);
+        assertTrue(mockableJar.toString().contains("mockable-android-19.jar"));
     }
 }
