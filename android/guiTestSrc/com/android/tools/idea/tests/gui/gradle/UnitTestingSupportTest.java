@@ -53,7 +53,7 @@ public class UnitTestingSupportTest extends GuiTestCase {
    * </ul>
    */
   private void doTest(String makeStepName) throws Exception {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplicationWithUnitTests");
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
     myProjectFrame.setJUnitDefaultBeforeRunTask(makeStepName);
 
     BuildVariantsToolWindowFixture buildVariants = myProjectFrame.getBuildVariantsWindow();
@@ -62,7 +62,7 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
     // Open the test file:
     myEditor = myProjectFrame.getEditor();
-    myEditor.open("app/src/test/java/google/simpleapplication/UnitTest.java");
+    myEditor.open("app/src/test/java/com/android/tests/UnitTest.java");
 
     // Run the test case that is supposed to pass:
     myEditor.moveTo(myEditor.findOffset("passing", "Test", true));
@@ -72,13 +72,13 @@ public class UnitTestingSupportTest extends GuiTestCase {
     UnitTestTreeFixture unitTestTree = getTestTree("UnitTest.passingTest");
     assertTrue(unitTestTree.isAllTestsPassed());
 
-    // Run the whole class, the second test case will fail:
+    // Run the test that is supposed to fail:
     myEditor.requestFocus();
-    myEditor.moveTo(myEditor.findOffset("class Unit", "Test", true));
+    myEditor.moveTo(myEditor.findOffset("failing", "Test", true));
 
     runTestUnderCursor();
 
-    unitTestTree = getTestTree("UnitTest");
+    unitTestTree = getTestTree("UnitTest.failingTest");
     assertEquals(1, unitTestTree.getFailingTestsCount());
 
     // Fix the failing test and re-run the tests.
@@ -89,6 +89,15 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
     unitTestTree.getContent().rerun();
     myProjectFrame.waitForBackgroundTasksToFinish();
+    unitTestTree = getTestTree("UnitTest.failingTest");
+    assertTrue(unitTestTree.isAllTestsPassed());
+
+
+    // Run the whole class, it should pass now.
+    myEditor.moveTo(myEditor.findOffset("class Unit", "Test", true));
+
+    runTestUnderCursor();
+
     unitTestTree = getTestTree("UnitTest");
     assertTrue(unitTestTree.isAllTestsPassed());
   }
