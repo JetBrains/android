@@ -52,6 +52,8 @@ import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.rendering.ResourceNotificationManager;
+import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -86,8 +88,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.plaf.PanelUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableRowSorter;
@@ -133,6 +133,8 @@ public class ThemeEditorComponent extends Splitter {
 
   private final AttributesPanel myPanel = new AttributesPanel();
   private final ThemeEditorTable myAttributesTable = myPanel.getAttributesTable();
+
+  private final ResourceChangeListener myResourceChangeListener;
 
   private final GoToListener myGoToListener;
 
@@ -210,7 +212,6 @@ public class ThemeEditorComponent extends Splitter {
           }
 
           EditedStyleItem editedStyleItem = new EditedStyleItem(resourceValue, getSelectedStyle());
-
           myCurrentSubStyle = myStyleResolver.getStyle(editedStyleItem.getValue());
         }
         else {
@@ -225,8 +226,7 @@ public class ThemeEditorComponent extends Splitter {
         ThemeEditorComponent.this.goToParent();
       }
     };
-    AttributeReferenceRendererEditor styleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
-
+    final AttributeReferenceRendererEditor styleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
 
     final JScrollPane scroll = myPanel.getAttributesScrollPane();
     scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)); // the scroll pane should fill all available space
@@ -379,6 +379,17 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
+    myResourceChangeListener = new ResourceChangeListener() {
+      @Override
+      public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
+        reload(mySelectedTheme.getName(), myCurrentSubStyle != null ? myCurrentSubStyle.getName() : null);
+      }
+    };
+
+    // TODO: after ddrone's changes change ResourceNotificationManager,because it depends on current module
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
+    manager.addListener(myResourceChangeListener, facet, null, null);
+
     // Set an initial state in case that the editor didn't have a previously saved state
     // TODO: Try to be smarter about this and get the ThemeEditor to set a default state where there is no previous state
     reload(null);
@@ -440,6 +451,7 @@ public class ThemeEditorComponent extends Splitter {
     renameDialog.show();
     if (renameDialog.isOK()) {
       String newName = renameDialog.getNewName();
+      assert mySelectedTheme.getName() != null;
       String newQualifiedName = mySelectedTheme.getName().replace(mySelectedTheme.getSimpleName(), newName);
       AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
       if (facet != null) {
@@ -720,31 +732,6 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    myModel.addTableModelListener(new TableModelListener() {
-      @Override
-      public void tableChanged(final TableModelEvent e) {
-        // We ran this with invokeLater to allow any PSI rescans to run and update the modification count.
-        // If we don't use invokeLater, it will still work with the previous cached PSI file value.
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            if (e.getType() == TableModelEvent.UPDATE) {
-              if (e.getLastRow() == TableModelEvent.HEADER_ROW) { // Indicates a change of the model
-                myAttributesTable.updateRowHeights();
-              }
-              else if (e.getLastRow() == 0) {
-                // Theme parent has been changed, needs reloading to update attributes
-                reload(myPreviousSelectedTheme);
-              }
-            }
-
-            myPreviewPanel.invalidateGraphicsRenderer();
-            myAttributesTable.repaint();
-          }
-        });
-      }
-    });
-
     myAttributesTable.setRowSorter(null); // Clean any previous row sorters.
     myAttributesSorter = new TableRowSorter<AttributesTableModel>(myModel);
     configureFilter();
@@ -783,8 +770,10 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    //We calling this to trigger tableChanged, which will calculate row heights and rePaint myPreviewPanel
-    myModel.fireTableStructureChanged();
+    myAttributesTable.updateRowHeights();
+    myPreviewPanel.invalidateGraphicsRenderer();
+    myPreviewPanel.revalidate();
+    myAttributesTable.repaint();
   }
 
   @Override
@@ -792,6 +781,14 @@ public class ThemeEditorComponent extends Splitter {
     myThemeEditorContext.dispose();
     myMessageBusConnection.disconnect();
     myMessageBusConnection = null;
+
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
+
+    // TODO: Don't forget to call removeListener and addListener when ThemeEditorContext module changes
+    AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
+    assert facet != null : myThemeEditorContext.getCurrentThemeModule().getName() + " module doesn't have an AndroidFacet";
+    manager.removeListener(myResourceChangeListener, facet, null, null);
+
     super.dispose();
   }
 
