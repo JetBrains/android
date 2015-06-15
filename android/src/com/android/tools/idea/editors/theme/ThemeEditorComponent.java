@@ -67,6 +67,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
@@ -333,11 +334,16 @@ public class ThemeEditorComponent extends Splitter {
           myCurrentSubStyle = null;
           mySubStyleSourceAttribute = null;
 
-          myThemeEditorContext.getConfiguration().setTheme(theme.getName());
+          // Unsubscribing from ResourceNotificationManager, because selectedTheme may come from different Module
+          unsubscribeResourceNotification();
+
           Module selectedModule = ((ThemesListModel)(myPanel.getThemeCombo().getModel())).getSelectedModule();
           if (selectedModule != null) {
             myThemeEditorContext.setCurrentThemeModule(selectedModule);
           }
+
+          // Subscribes to ResourceNotificationManager with new facet
+          subscribeResourceNotification();
           loadStyleAttributes();
         }
       }
@@ -386,13 +392,45 @@ public class ThemeEditorComponent extends Splitter {
       }
     };
 
-    // TODO: after ddrone's changes change ResourceNotificationManager,because it depends on current module
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
-    manager.addListener(myResourceChangeListener, facet, null, null);
-
     // Set an initial state in case that the editor didn't have a previously saved state
     // TODO: Try to be smarter about this and get the ThemeEditor to set a default state where there is no previous state
     reload(null);
+  }
+
+  /**
+   * Subscribes myResourceChangeListener to ResourceNotificationManager with current AndroidFacet.
+   * By subscribing, myResourceChangeListener can track all internal and external changes in resources.
+   */
+  private void subscribeResourceNotification() {
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
+    AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
+    assert facet != null : myThemeEditorContext.getCurrentThemeModule().getName() + " module doesn't have an AndroidFacet";
+    manager.addListener(myResourceChangeListener, facet, null, null);
+  }
+
+  /**
+   * Unsubscribes myResourceChangeListener from ResourceNotificationManager with current AndroidFacet.
+   */
+  private void unsubscribeResourceNotification() {
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
+    AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
+    assert facet != null : myThemeEditorContext.getCurrentThemeModule().getName() + " module doesn't have an AndroidFacet";
+    manager.removeListener(myResourceChangeListener, facet, null, null);
+  }
+
+  /**
+   * @see FileEditor#selectNotify().
+   */
+  public void selectNotify() {
+    reload(getPreviousSelectedTheme());
+    subscribeResourceNotification();
+  }
+
+  /**
+   * @see FileEditor#deselectNotify().
+   */
+  public void deselectNotify() {
+    unsubscribeResourceNotification();
   }
 
   private void configureFilter() {
@@ -781,14 +819,6 @@ public class ThemeEditorComponent extends Splitter {
     myThemeEditorContext.dispose();
     myMessageBusConnection.disconnect();
     myMessageBusConnection = null;
-
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
-
-    // TODO: Don't forget to call removeListener and addListener when ThemeEditorContext module changes
-    AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
-    assert facet != null : myThemeEditorContext.getCurrentThemeModule().getName() + " module doesn't have an AndroidFacet";
-    manager.removeListener(myResourceChangeListener, facet, null, null);
-
     super.dispose();
   }
 
