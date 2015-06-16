@@ -42,7 +42,7 @@ import java.util.*;
  * Renderer and Editor for attributes that take flags as values.
  * When editing, opens a dialog with checkboxes for all the possible flags to choose from.
  */
-public class FlagRendererEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements TableCellRenderer {
+public class FlagRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
   private final Box myBox = new Box(BoxLayout.LINE_AXIS);
   private final JLabel myLabel = new JLabel();
   private final EditorTextField myTextField = new EditorTextField();
@@ -105,8 +105,8 @@ public class FlagRendererEditor extends TypedCellEditor<EditedStyleItem, Attribu
   }
 
   @Override
-  public AttributeEditorValue getEditorValue() {
-    return new AttributeEditorValue(myTextField.getText(), false);
+  public String getEditorValue() {
+    return myTextField.getText();
   }
 
   private class FlagDialog extends DialogWrapper {

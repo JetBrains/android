@@ -28,13 +28,13 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class DrawableEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements ThemeEditorContext.ChangeListener {
+public class DrawableEditor extends TypedCellEditor<EditedStyleItem, String> implements ThemeEditorContext.ChangeListener {
   private static final ResourceType[] DRAWABLE_TYPE = new ResourceType[] { ResourceType.DRAWABLE };
 
   private final DrawableComponent myComponent;
 
   private EditedStyleItem myEditedItem;
-  private @Nullable AttributeEditorValue myResultValue;
+  private @Nullable String myResultValue;
   private RenderTask myRenderTask;
   private final ThemeEditorContext myContext;
 
@@ -55,7 +55,7 @@ public class DrawableEditor extends TypedCellEditor<EditedStyleItem, AttributeEd
   }
 
   @Override
-  public AttributeEditorValue getEditorValue() {
+  public String getEditorValue() {
     return myResultValue;
   }
 
@@ -73,7 +73,7 @@ public class DrawableEditor extends TypedCellEditor<EditedStyleItem, AttributeEd
       dialog.show();
 
       if (dialog.isOK()) {
-        myResultValue = new AttributeEditorValue(dialog.getResourceName(), false);
+        myResultValue = dialog.getResourceName();
         stopCellEditing();
       } else {
         myResultValue = null;
