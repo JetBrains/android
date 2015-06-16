@@ -311,6 +311,8 @@ public class SdkState {
             mySdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
           }
           packages.setLocalPkgInfos(mySdkData.getLocalSdk().getPkgsInfos(PkgType.PKG_ALL));
+          myLastRefreshMs = 0;  // until the load is complete, while only partial results are available, set the last refresh time to
+                                // 0 to ensure further calls block until the complete load has finished.
           myPackages = packages;
           indicator.setFraction(0.25);
         }
