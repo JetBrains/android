@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Cell editor that allows editing references in styles. It also allows providing auto-complete suggestions.
  */
-public class AttributeReferenceRendererEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements TableCellRenderer {
+public class AttributeReferenceRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
   protected final Box myBox = new Box(BoxLayout.LINE_AXIS);
   protected final JLabel myLabel = new JLabel();
   protected final TextFieldWithAutoCompletion<String> myTextField;
@@ -110,8 +110,8 @@ public class AttributeReferenceRendererEditor extends TypedCellEditor<EditedStyl
   }
 
   @Override
-  public AttributeEditorValue getEditorValue() {
-    return new AttributeEditorValue(myTextField.getText(), false);
+  public String getEditorValue() {
+    return myTextField.getText();
   }
 
   public interface CompletionProvider {
