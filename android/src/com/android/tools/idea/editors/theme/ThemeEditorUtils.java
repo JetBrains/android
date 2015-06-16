@@ -98,7 +98,7 @@ public class ThemeEditorUtils {
     @Override
     public int compare(ThemeEditorStyle o1, ThemeEditorStyle o2) {
       if (o1.isProjectStyle() == o2.isProjectStyle()) {
-        return o1.getName().compareTo(o2.getName());
+        return o1.getQualifiedName().compareTo(o2.getQualifiedName());
       }
 
       return o1.isProjectStyle() ? -1 : 1;
@@ -263,7 +263,7 @@ public class ThemeEditorUtils {
     return ImmutableSet.copyOf(Iterables.filter(themes, new Predicate<ThemeEditorStyle>() {
       @Override
       public boolean apply(@Nullable ThemeEditorStyle theme) {
-        return theme != null && names.contains(theme.getSimpleName());
+        return theme != null && names.contains(theme.getName());
       }
     }));
   }

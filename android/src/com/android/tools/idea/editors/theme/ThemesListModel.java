@@ -147,7 +147,7 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     ThemeEditorStyle theme = getStyle(mySelectedObject);
     assert theme != null : "Theme should be selected to call renameOption()";
     assert theme.isProjectStyle();
-    return RENAME + theme.getSimpleName();
+    return RENAME + theme.getName();
   }
 
   @Nullable
