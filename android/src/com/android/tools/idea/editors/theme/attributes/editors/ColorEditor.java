@@ -32,10 +32,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
-public class ColorEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> {
+public class ColorEditor extends TypedCellEditor<EditedStyleItem, String> {
   private final ThemeEditorContext myContext;
   private final ColorComponent myComponent;
-  private AttributeEditorValue myEditorValue = null;
+  private String myEditorValue;
 
   private final AndroidThemePreviewPanel myPreviewPanel;
 
@@ -63,7 +63,7 @@ public class ColorEditor extends TypedCellEditor<EditedStyleItem, AttributeEdito
   }
 
   @Override
-  public AttributeEditorValue getEditorValue() {
+  public String getEditorValue() {
     return myEditorValue;
   }
 
@@ -111,7 +111,7 @@ public class ColorEditor extends TypedCellEditor<EditedStyleItem, AttributeEdito
       if (dialog.isOK()) {
         String value = dialog.getResourceName();
         if (value != null) {
-          myEditorValue = new AttributeEditorValue(dialog.getResourceName(), dialog.overwriteResource());
+          myEditorValue = dialog.getResourceName();
         }
       } else {
         // User cancelled, clean up the preview
