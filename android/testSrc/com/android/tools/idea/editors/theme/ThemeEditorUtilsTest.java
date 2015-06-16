@@ -30,6 +30,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -37,6 +38,7 @@ import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ThemeEditorUtilsTest extends AndroidTestCase {
 
@@ -79,11 +81,11 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
     assertNotNull(theme);
-    Collection<ItemResourceValue> values = theme.getValues();
+    Collection<EditedStyleItem> values = theme.getValues();
     assertEquals(7, values.size());
 
-    for (ItemResourceValue item : values) {
-      String doc = ThemeEditorUtils.generateToolTipText(item, myModule, configuration);
+    for (EditedStyleItem item : values) {
+      String doc = ThemeEditorUtils.generateToolTipText(item.getItemResourceValue(), myModule, configuration);
       compareWithAns(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + item.getName() + ".ans");
     }
   }
@@ -98,10 +100,10 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
     assertNotNull(theme);
 
-    Collection<ItemResourceValue> values = theme.getValues();
+    Collection<EditedStyleItem> values = theme.getValues();
     assertEquals(7, values.size());
-    for (ItemResourceValue item : values) {
-      String displayHtml = ThemeEditorUtils.getDisplayHtml(new EditedStyleItem(item, theme));
+    for (EditedStyleItem item : values) {
+      String displayHtml = ThemeEditorUtils.getDisplayHtml(item);
       if ("myDeprecated".equals(item.getName())) {
         assertEquals("<html><body><strike>myDeprecated</strike></body></html>", displayHtml);
       } else {
@@ -152,5 +154,22 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     }.execute();
     myFixture.checkResultByFile("res/values-v16/styles.xml", "themeEditor/testCopyTheme/styles-v16.xml", true);
     myFixture.checkResultByFile("res/values-v19/styles.xml", "themeEditor/testCopyTheme/styles-v19.xml", true);
+  }
+
+  public void testResourceResolverVisitor() {
+    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v14.xml", "res/values-v14/styles.xml");
+    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
+    myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v21.xml", "res/values-v21/styles.xml");
+
+    final AtomicInteger visitedRepos = new AtomicInteger(0);
+    // With only one source set, this should be called just once.
+    ThemeEditorUtils.acceptResourceResolverVisitor(myFacet, new ThemeEditorUtils.ResourceFolderVisitor() {
+      @Override
+      public void visitResourceFolder(@NotNull LocalResourceRepository resources, boolean isSelected) {
+        visitedRepos.incrementAndGet();
+      }
+    });
+    assertEquals(1, visitedRepos.get());
+    // TODO: Test variants
   }
 }
