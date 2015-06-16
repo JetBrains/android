@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.theme;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
@@ -78,6 +79,13 @@ public class ThemeSelectorTest extends GuiTestCase {
       .contains("Theme.AppCompat.NoActionBar", atIndex(3))
       .contains("Show all themes", atIndex(4))
       .contains("Create New Theme", atIndex(6));
+
+    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    EditorFixture editor = projectFrame.getEditor();
+    assertEquals(-1, editor.findOffset(null, "name=\"AppTheme", true));
+    editor.moveTo(editor.findOffset(null, "name=\"NewAppTheme", true));
+    assertEquals("<style ^name=\"NewAppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">",
+                 editor.getCurrentLineContents(true, true, 0));
   }
 
   @Test @IdeGuiTest
