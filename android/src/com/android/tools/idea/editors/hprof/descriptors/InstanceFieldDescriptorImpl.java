@@ -101,8 +101,8 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
       ArrayInstance charBufferArray = null;
       assert (myValueData instanceof ClassInstance);
       ClassInstance classInstance = (ClassInstance)myValueData;
-      for (Map.Entry<Field, Object> entry : classInstance.getValues().entrySet()) {
-        if ("value".equals(entry.getKey().getName())) {
+      for (ClassInstance.FieldValue entry : classInstance.getValues()) {
+        if ("value".equals(entry.getField().getName())) {
           charBufferArray = (ArrayInstance)entry.getValue();
         }
       }
