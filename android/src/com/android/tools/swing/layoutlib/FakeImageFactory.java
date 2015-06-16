@@ -36,7 +36,7 @@ import java.awt.image.BufferedImage;
  */
 public class FakeImageFactory implements IImageFactory {
   private static final Logger LOG = Logger.getInstance(FakeImageFactory.class);
-  private static final Graphics2D NOP_GRAPHICS2D = new NopGraphics2D();
+  private static final Graphics2D NOP_GRAPHICS2D = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics();
 
   private Graphics myGraphics = NOP_GRAPHICS2D;
   private int myRequestedHeight;
@@ -73,11 +73,14 @@ public class FakeImageFactory implements IImageFactory {
         final AffineTransform originalTx = ((Graphics2D)myGraphics).getTransform();
 
         AffineTransform inverse = null;
-        try {
-          inverse = originalTx.createInverse();
-        }
-        catch (NoninvertibleTransformException e) {
-          LOG.error(e);
+
+        if (originalTx != null) {
+          try {
+            inverse = originalTx.createInverse();
+          }
+          catch (NoninvertibleTransformException e) {
+            LOG.error(e);
+          }
         }
 
         final AffineTransform originalTxInverse = inverse;
@@ -117,9 +120,13 @@ public class FakeImageFactory implements IImageFactory {
 
           @Override
           public void setTransform(AffineTransform Tx) {
-            AffineTransform transform = (AffineTransform)originalTx.clone();
-            transform.concatenate(Tx);
-            super.setTransform(transform);
+            if (originalTx != null) {
+              AffineTransform transform = (AffineTransform)originalTx.clone();
+              transform.concatenate(Tx);
+              super.setTransform(transform);
+            } else {
+              super.setTransform(Tx);
+            }
           }
 
           @Override
