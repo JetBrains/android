@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.intellij.execution.junit2.TestProxy;
 import com.intellij.execution.junit2.ui.model.JUnitRunningModel;
 import com.intellij.execution.testframework.TestTreeView;
+import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +38,13 @@ public class UnitTestTreeFixture {
 
   @Nullable
   public JUnitRunningModel getModel() {
+    Pause.pause(new Condition("Wait for the test results model.") {
+      @Override
+      public boolean test() {
+        return myTreeView.getData(TestTreeView.MODEL_DATA_KEY.getName()) != null;
+      }
+    });
+
     return (JUnitRunningModel)myTreeView.getData(TestTreeView.MODEL_DATA_KEY.getName());
   }
 
@@ -44,6 +54,17 @@ public class UnitTestTreeFixture {
 
   public int getFailingTestsCount() {
     return getModel().getProgress().countDefects();
+  }
+
+  public int getAllTestsCount() {
+    TestProxy root = getModel().getRoot();
+    if (root.getChildCount() == 0) {
+      // When root has no children, it means we're only running one method, which is the root.
+      return 1;
+    } else {
+      // Otherwise the class is the root and there's one child per method.
+      return root.getChildCount();
+    }
   }
 
   @NotNull
