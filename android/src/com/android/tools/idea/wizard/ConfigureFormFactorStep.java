@@ -71,19 +71,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
 
   private JPanel myPanel;
   private JPanel myFormFactorPanel;
-  private JBLabel myHelpMeChooseLabel = new JBLabel(getApiHelpText(0, "")) {
-    @Override
-    public Dimension getPreferredSize() {
-      // Since this contains auto-wrapped text, the preferred height will not be set until repaint(). The below will set it as soon
-      // as the actual width is known. This allows the wizard dialog to be set to the correct size even before this step is shown.
-      final View view = (View)myHelpMeChooseLabel.getClientProperty("html");
-      if (getWidth() > 0) {
-        view.setSize(getWidth(), 0);
-        setPreferredSize(new Dimension((int)view.getPreferredSpan(View.X_AXIS), (int)view.getPreferredSpan(View.Y_AXIS)));
-      }
-      return super.getPreferredSize();
-    }
-  };
+  private JBLabel myHelpMeChooseLabel = new JBLabel(getApiHelpText(0, ""));
   private HyperlinkLabel myHelpMeChooseLink = new HyperlinkLabel("Help me choose");
   private List<Pair<Key<Boolean>, JCheckBox>> myCheckboxKeys = Lists.newArrayList();
 
@@ -167,8 +155,8 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private static String getApiHelpText(int selectedApi, String selectedApiName) {
     float percentage = (float)(DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100);
     return String.format(Locale.getDefault(), "<html>Lower API levels target more devices, but have fewer features available. " +
-                                              "By targeting API %1$s and later, your app will run on %2$s of the devices that are " +
-                                              "active on the Google Play Store.</html>",
+                                              "By targeting API %1$s<br>and later, your app will run on %2$s of the devices that are " +
+                                              "active on the<br>Google Play Store.</html>",
                          selectedApiName,
                          percentage < 1 ? "&lt; 1%" : String.format(Locale.getDefault(), "approximately <b>%.1f%%</b>", percentage));
   }
