@@ -221,7 +221,7 @@ public class ThemeResolver {
    * Returns whether the passed style is a theme.
    */
   public boolean isTheme(@NotNull ThemeEditorStyle style) {
-    return myThemeNames.contains(style.getName());
+    return myThemeNames.contains(style.getQualifiedName());
   }
 
   @Nullable

@@ -98,7 +98,7 @@ public class EditedStyleItem {
 
   @NotNull
   public String getQualifiedName() {
-    return (getItemResourceValue().isFrameworkAttr() ? SdkConstants.PREFIX_ANDROID : "") + getName();
+    return StyleResolver.getQualifiedItemName(myItemResourceValue);
   }
 
   public String getAttrPropertyName() {

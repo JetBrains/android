@@ -43,7 +43,7 @@ public class StyleResolverTest extends AndroidTestCase {
     assertNotNull(styleResolver.getStyle("@android:style/TextAppearance"));
 
     ThemeEditorStyle style = styleResolver.getStyle("@android:style/Theme.Holo.Light");
-    assertEquals("Theme.Holo.Light", style.getSimpleName());
+    assertEquals("Theme.Holo.Light", style.getName());
     assertEmpty(style.getValues()); // Style shouldn't have the values of the parent.
 
     try {
@@ -63,7 +63,7 @@ public class StyleResolverTest extends AndroidTestCase {
     }
 
     style = style.getParent();
-    assertEquals("Theme", style.getSimpleName());
+    assertEquals("Theme", style.getName());
     assertNotEmpty(style.getValues());
   }
 }
