@@ -122,7 +122,7 @@ public class NewStyleDialog extends DialogWrapper {
             parentThemesListModel.insertElementAt(selectedParent, 0);
         }
         myParentStyleComboBox.setSelectedItem(selectedParent);
-        myStyleNameTextField.setText(getNewStyleNameSuggestion(selectedParent.getName(), currentThemeName));
+        myStyleNameTextField.setText(getNewStyleNameSuggestion(selectedParent.getQualifiedName(), currentThemeName));
       }
     });
 
@@ -163,7 +163,7 @@ public class NewStyleDialog extends DialogWrapper {
   }
 
   public String getStyleParentName() {
-    return ((ThemeEditorStyle)myParentStyleComboBox.getSelectedItem()).getName();
+    return ((ThemeEditorStyle)myParentStyleComboBox.getSelectedItem()).getQualifiedName();
   }
 
   static String[] COMMON_THEME_NAMES = {"Material", "Holo", "Leanback", "Micro", "DeviceDefault", "AppCompat"};

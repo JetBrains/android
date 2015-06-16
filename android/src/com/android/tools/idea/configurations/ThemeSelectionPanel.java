@@ -537,7 +537,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   private static List<String> getSortedNames(Collection<ThemeEditorStyle> themesRaw) {
     List<String> themes = new ArrayList<String>(themesRaw.size());
     for (ThemeEditorStyle theme : themesRaw) {
-      themes.add(theme.getName());
+      themes.add(theme.getQualifiedName());
     }
     Collections.sort(themes);
     return themes;
