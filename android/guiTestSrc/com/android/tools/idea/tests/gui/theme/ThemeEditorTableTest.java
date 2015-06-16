@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.google.common.collect.ImmutableList;
@@ -134,6 +135,12 @@ public class ThemeEditorTableTest extends GuiTestCase {
       }
     });
     testParentPopup(parentValueCell, newParent, themeEditor);
+
+    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    EditorFixture editor = projectFrame.getEditor();
+    editor.moveTo(editor.findOffset(null, "AppTheme", true));
+    assertEquals("<style name=\"^AppTheme\" parent=\"@style/Theme.AppCompat.NoActionBar\">",
+                        editor.getCurrentLineContents(true, true, 0));
   }
 
   private static void testParentPopup(@NotNull JTableCellFixture cell, @NotNull final String parentName,
