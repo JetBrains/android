@@ -346,9 +346,9 @@ public class InstanceReferenceTree {
       List<String> scratchList = new ArrayList<String>(3);
       if (reference instanceof ClassInstance) {
         ClassInstance classInstance = (ClassInstance)reference;
-        for (Map.Entry<Field, Object> entry : classInstance.getValues().entrySet()) {
-          if (entry.getKey().getType() == Type.OBJECT && entry.getValue() == instance) {
-            scratchList.add(entry.getKey().getName());
+        for (ClassInstance.FieldValue entry : classInstance.getValues()) {
+          if (entry.getField().getType() == Type.OBJECT && entry.getValue() == instance) {
+            scratchList.add(entry.getField().getName());
           }
         }
       }
