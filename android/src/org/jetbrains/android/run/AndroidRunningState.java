@@ -694,11 +694,16 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   private boolean isToLaunchDebug(@NotNull ClientData data) {
+    if (data.getDebuggerConnectionStatus() == ClientData.DebuggerStatus.WAITING) {
+      // early exit without checking package name in case the debug package doesn't match
+      // our target package name. This happens for instance when debugging a test that doesn't launch an application
+      return true;
+    }
     String description = data.getClientDescription();
-    if (description == null || !description.equals(myTargetPackageName)) {
+    if (description == null) {
       return false;
     }
-    return myApplicationLauncher.isReadyForDebugging(data, getProcessHandler());
+    return description.equals(myTargetPackageName) && myApplicationLauncher.isReadyForDebugging(data, getProcessHandler());
   }
 
   private void launchDebug(Client client) {
