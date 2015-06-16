@@ -31,6 +31,7 @@ import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -218,6 +219,10 @@ public class ThemeEditorStyle {
     new WriteCommandAction.Simple(myProject, "Setting value of " + attribute, toBeEdited.toArray(new PsiFile[toBeEdited.size()])) {
       @Override
       protected void run() {
+        // Makes the command global even if only one xml file is modified
+        // That way, the Undo is always available from the theme editor
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(myProject);
+
         for (XmlTag sourceXml : apiInformation.sources) {
           // TODO: Check if the current value is defined by one of the parents and remove the attribute.
           XmlTag tag = getValueTag(sourceXml, attribute);
@@ -281,6 +286,10 @@ public class ThemeEditorStyle {
     new WriteCommandAction.Simple(myProject, "Updating parent to " + newParent, toBeEdited.toArray(new PsiFile[toBeEdited.size()])) {
       @Override
       protected void run() {
+        // Makes the command global even if only one xml file is modified
+        // That way, the Undo is always available from the theme editor
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(myProject);
+
         for (XmlTag sourceXml : apiInformation.sources) {
           sourceXml.setAttribute(SdkConstants.ATTR_PARENT, newParent);
         }
@@ -364,6 +373,10 @@ public class ThemeEditorStyle {
     new WriteCommandAction.Simple(myProject, "Removing " + attribute, toBeEdited.toArray(new PsiFile[toBeEdited.size()])) {
       @Override
       protected void run() {
+        // Makes the command global even if only one xml file is modified
+        // That way, the Undo is always available from the theme editor
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(myProject);
+
         for (XmlTag tag : toBeRemoved) {
           tag.delete();
         }
