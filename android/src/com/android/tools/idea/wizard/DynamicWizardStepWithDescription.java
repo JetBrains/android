@@ -66,6 +66,9 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
     }
     mySouthPanel.setBorder(new EmptyBorder(STUDIO_WIZARD_INSETS));
     myErrorWarningLabel.setForeground(JBColor.red);
+    // Set to empty HTML. If completely empty the height calculation is off and window resizing results.
+    myErrorWarningLabel.setText("<html></html>");
+    myDescriptionLabel.setText("<html></html>");
   }
 
   protected static CompoundBorder createBodyBorder() {
