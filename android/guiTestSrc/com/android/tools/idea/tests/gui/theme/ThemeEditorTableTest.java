@@ -128,6 +128,12 @@ public class ThemeEditorTableTest extends GuiTestCase {
 
     parentValueCell.requireValue(newParent);
 
+    projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
+    parentValueCell.requireValue("Theme.Holo.Light.DarkActionBar");
+
+    projectFrame.invokeMenuPathRegex("Edit", "Redo.*");
+    parentValueCell.requireValue(newParent);
+
     pause(new Condition("Wait for potential tooltips to disappear") {
       @Override
       public boolean test() {
