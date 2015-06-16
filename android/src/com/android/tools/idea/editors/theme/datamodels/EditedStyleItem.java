@@ -54,11 +54,6 @@ public class EditedStyleItem {
     myQualifiedValue = StyleResolver.getQualifiedValue(myItemResourceValue);
   }
 
-  public void setValue(@NotNull String value) {
-    myItemResourceValue = new ItemResourceValue(myItemResourceValue.getName(), myItemResourceValue.isFrameworkAttr(), value, false);
-    myQualifiedValue = value;
-  }
-
   @NotNull
   public String getAttrGroup() {
     return myAttrGroup;
