@@ -297,7 +297,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
       else {
         ThemeEditorStyle parent = mySelectedStyle.getParent();
-        if (parent == null || !parent.getName().equals(newName)) {
+        if (parent == null || !parent.getQualifiedName().equals(newName)) {
           //Changes the value of Parent in XML
           mySelectedStyle.setParent(newName);
           fireTableCellUpdated(0, 1);

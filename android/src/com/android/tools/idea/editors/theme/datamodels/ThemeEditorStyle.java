@@ -30,7 +30,6 @@ import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
-import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -117,7 +116,7 @@ public class ThemeEditorStyle {
    * Can be null, if there is no corresponding StyleResourceValue
    */
   @Nullable
-  public String getName() {
+  public String getQualifiedName() {
     StyleResourceValue style = getStyleResourceValue();
     return style == null ? null : StyleResolver.getQualifiedStyleName(style);
   }
@@ -126,7 +125,7 @@ public class ThemeEditorStyle {
    * Returns the style name without namespaces or prefixes.
    */
   @NotNull
-  public String getSimpleName() {
+  public String getName() {
     return getStyleResourceValue().getName();
   }
 
@@ -317,10 +316,10 @@ public class ThemeEditorStyle {
   @Override
   public String toString() {
     if (!isReadOnly()) {
-      return "[" + getSimpleName() + "]";
+      return "[" + getName() + "]";
     }
 
-    return getSimpleName();
+    return getName();
   }
 
   @Override
@@ -329,12 +328,12 @@ public class ThemeEditorStyle {
       return false;
     }
 
-    return getName().equals(((ThemeEditorStyle)obj).getName());
+    return getQualifiedName().equals(((ThemeEditorStyle)obj).getQualifiedName());
   }
 
   @Override
   public int hashCode() {
-    return getName().hashCode();
+    return getQualifiedName().hashCode();
   }
 
   @NotNull
@@ -469,6 +468,6 @@ public class ThemeEditorStyle {
       return false;
     }
 
-    return androidTargetData.isResourcePublic(ResourceType.STYLE.getName(), getSimpleName());
+    return androidTargetData.isResourcePublic(ResourceType.STYLE.getName(), getName());
   }
 }

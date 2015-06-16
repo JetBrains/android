@@ -82,8 +82,8 @@ public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
 
     ThemeEditorStyle style = (ThemeEditorStyle)value;
     ThemeEditorStyle parent = style.getParent();
-    String styleName = style.getSimpleName();
-    String parentName = parent != null ? parent.getSimpleName() : null;
+    String styleName = style.getName();
+    String parentName = parent != null ? parent.getName() : null;
 
     String defaultAppTheme = null;
     final AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentThemeModule());
@@ -113,7 +113,7 @@ public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
       myStyleNameLabel.append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
 
-    myDefaultLabel.setVisible(style.getName().equals(defaultAppTheme));
+    myDefaultLabel.setVisible(style.getQualifiedName().equals(defaultAppTheme));
 
     return this;
   }
@@ -126,7 +126,7 @@ public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
   @NotNull
   private static String simplifyName(@NotNull ThemeEditorStyle theme) {
     String result;
-    String name = theme.getName();
+    String name = theme.getQualifiedName();
     String[] pieces = name.split("\\.");
     if (pieces.length > 1 && !"Light".equals(pieces[1])) {
       result = pieces[1];
@@ -136,7 +136,7 @@ public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
     }
     ThemeEditorStyle parent = theme;
     while (parent != null) {
-      if ("Theme.Light".equals(parent.getSimpleName())) {
+      if ("Theme.Light".equals(parent.getName())) {
         return result + " Light";
       }
       else {
