@@ -388,7 +388,7 @@ public class ThemeEditorComponent extends Splitter {
     myResourceChangeListener = new ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
-        reload(mySelectedTheme.getName(), myCurrentSubStyle != null ? myCurrentSubStyle.getName() : null);
+        reload(mySelectedTheme.getQualifiedName(), myCurrentSubStyle != null ? myCurrentSubStyle.getQualifiedName() : null);
       }
     };
 
@@ -449,7 +449,7 @@ public class ThemeEditorComponent extends Splitter {
    */
   private boolean createNewTheme() {
     ThemeEditorStyle selectedTheme = getSelectedStyle();
-    String selectedThemeName = selectedTheme == null ? null : selectedTheme.getName();
+    String selectedThemeName = selectedTheme == null ? null : selectedTheme.getQualifiedName();
 
     String newThemeName = createNewStyle(selectedThemeName, null/*message*/, null/*newAttributeName*/, null/*newAttributeValue*/);
     if (newThemeName != null) {
@@ -489,8 +489,8 @@ public class ThemeEditorComponent extends Splitter {
     renameDialog.show();
     if (renameDialog.isOK()) {
       String newName = renameDialog.getNewName();
-      assert mySelectedTheme.getName() != null;
-      String newQualifiedName = mySelectedTheme.getName().replace(mySelectedTheme.getSimpleName(), newName);
+      assert mySelectedTheme.getQualifiedName() != null;
+      String newQualifiedName = mySelectedTheme.getQualifiedName().replace(mySelectedTheme.getName(), newName);
       AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
       if (facet != null) {
         facet.refreshResources();
@@ -536,7 +536,7 @@ public class ThemeEditorComponent extends Splitter {
     final NewStyleDialog dialog = new NewStyleDialog(!isSubStyleSelected() /*isTheme*/,
                                                      myThemeEditorContext,
                                                      defaultParentStyleName,
-                                                     getSelectedTheme() != null ? getSelectedTheme().getSimpleName() : null,
+                                                     getSelectedTheme() != null ? getSelectedTheme().getName() : null,
                                                      message);
     boolean createStyle = dialog.showAndGet();
     if (!createStyle) {
@@ -606,7 +606,7 @@ public class ThemeEditorComponent extends Splitter {
    */
   private void saveCurrentSelectedTheme() {
     ThemeEditorStyle selectedTheme = getSelectedStyle();
-    myPreviousSelectedTheme = selectedTheme == null ? null : selectedTheme.getName();
+    myPreviousSelectedTheme = selectedTheme == null ? null : selectedTheme.getQualifiedName();
   }
 
   @Nullable
@@ -661,10 +661,10 @@ public class ThemeEditorComponent extends Splitter {
     }
 
     // The current style is R/O so we need to propagate this change a new style.
-    String newStyleName = createNewStyle(selectedStyle.getName(), String
+    String newStyleName = createNewStyle(selectedStyle.getQualifiedName(), String
       .format("<html>The %1$s '<code>%2$s</code>' is Read-Only.<br/>A new %1$s will be created to modify '<code>%3$s</code>'.<br/></html>",
               isSubStyleSelected() ? "style" : "theme",
-              selectedStyle.getName(),
+              selectedStyle.getQualifiedName(),
               rv.getName()), rv.getQualifiedName(), strValue);
 
     if (newStyleName == null) {
@@ -694,9 +694,9 @@ public class ThemeEditorComponent extends Splitter {
     // We've modified a sub-style so we need to modify the attribute that was originally pointing to this.
     if (selectedTheme.isReadOnly()) {
       // The theme pointing to the new style is r/o so create a new theme and then write the value.
-      String newThemeName = createNewStyle(selectedTheme.getName(), String.format(
+      String newThemeName = createNewStyle(selectedTheme.getQualifiedName(), String.format(
         "<html>The style '%1$s' which references to '%2$s' is also Read-Only.<br/>" +
-        "A new theme will be created to point to the modified style '%3$s'.<br/></html>", selectedTheme.getName(), rv.getName(),
+        "A new theme will be created to point to the modified style '%3$s'.<br/></html>", selectedTheme.getQualifiedName(), rv.getName(),
         newStyleName), sourcePropertyName, newStyleName);
 
       if (newThemeName != null) {
@@ -705,7 +705,7 @@ public class ThemeEditorComponent extends Splitter {
     } else {
       // The theme pointing to the new style is writable, so go ahead.
       selectedTheme.setValue(sourcePropertyName, newStyleName);
-      reload(selectedTheme.getName());
+      reload(selectedTheme.getQualifiedName());
     }
   }
 
@@ -748,11 +748,11 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
 
-    myPanel.setSubstyleName(myCurrentSubStyle == null ? null : myCurrentSubStyle.getName());
+    myPanel.setSubstyleName(myCurrentSubStyle == null ? null : myCurrentSubStyle.getQualifiedName());
 
     myPanel.getBackButton().setVisible(myCurrentSubStyle != null);
     final Configuration configuration = myThemeEditorContext.getConfiguration();
-    configuration.setTheme(selectedTheme.getName());
+    configuration.setTheme(selectedTheme.getQualifiedName());
 
     assert configuration.getResourceResolver() != null; // ResourceResolver is only null if no theme was set.
     myModel = new AttributesTableModel(selectedStyle, getSelectedAttrGroup(), configuration, myThemeEditorContext.getProject());

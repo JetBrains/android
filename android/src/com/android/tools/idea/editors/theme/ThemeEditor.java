@@ -78,8 +78,8 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
   public FileEditorState getState(@NotNull FileEditorStateLevel fileEditorStateLevel) {
     ThemeEditorStyle theme = myComponent.getSelectedTheme();
     ThemeEditorStyle subStyle = myComponent.getCurrentSubStyle();
-    return new ThemeEditorState(theme == null ? null : theme.getName(),
-                                subStyle == null ? null : subStyle.getName(),
+    return new ThemeEditorState(theme == null ? null : theme.getQualifiedName(),
+                                subStyle == null ? null : subStyle.getQualifiedName(),
                                 myComponent.getProportion());
   }
 
