@@ -46,7 +46,7 @@ public class LibUnitTest {
 
     @Test
     public void failingTest() {
-        assertEquals(5, 2+2);
+        assertEquals(7, 3+3);
     }
 
     @Test
