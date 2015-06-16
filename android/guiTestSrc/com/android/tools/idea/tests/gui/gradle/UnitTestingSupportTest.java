@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.UnitTestTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -81,6 +82,7 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
     UnitTestTreeFixture unitTestTree = getTestTree(testClass + ".passingTest");
     assertTrue(unitTestTree.isAllTestsPassed());
+    assertEquals(1, unitTestTree.getAllTestsCount());
 
     // Run the test that is supposed to fail:
     myEditor.requestFocus();
@@ -90,18 +92,19 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
     unitTestTree = getTestTree(testClass + ".failingTest");
     assertEquals(1, unitTestTree.getFailingTestsCount());
+    assertEquals(1, unitTestTree.getAllTestsCount());
 
     // Fix the failing test and re-run the tests.
     myEditor.requestFocus();
-    myEditor.moveTo(myEditor.findOffset("(5", ",", true));
+    myEditor.moveTo(myEditor.findOffset("(7", ",", true));
     myEditor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
-    myEditor.enterText("4");
+    myEditor.enterText("6");
 
-    unitTestTree.getContent().rerun();
+    runTestUnderCursor();
     myProjectFrame.waitForBackgroundTasksToFinish();
     unitTestTree = getTestTree(testClass + ".failingTest");
     assertTrue(unitTestTree.isAllTestsPassed());
-
+    assertEquals(1, unitTestTree.getAllTestsCount());
 
     // Run the whole class, it should pass now.
     myEditor.moveTo(myEditor.findOffset("class ", testClass, true));
@@ -110,6 +113,33 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
     unitTestTree = getTestTree(testClass);
     assertTrue(unitTestTree.isAllTestsPassed());
+    assertThat(unitTestTree.getAllTestsCount()).isGreaterThan(1);
+
+    // Break the test again to check the re-run buttons.
+    myEditor.requestFocus();
+    myEditor.moveTo(myEditor.findOffset("(6", ",", true));
+    myEditor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
+    myEditor.enterText("8");
+
+    // Re-run all the tests.
+    unitTestTree.getContent().rerun();
+    myProjectFrame.waitForBackgroundTasksToFinish();
+    unitTestTree = getTestTree(testClass);
+    assertEquals(1, unitTestTree.getFailingTestsCount());
+    assertThat(unitTestTree.getAllTestsCount()).isGreaterThan(1);
+
+    // Fix it again.
+    myEditor.requestFocus();
+    myEditor.moveTo(myEditor.findOffset("(8", ",", true));
+    myEditor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
+    myEditor.enterText("6");
+
+    // Re-run failed tests.
+    unitTestTree.getContent().rerunFailed();
+    myProjectFrame.waitForBackgroundTasksToFinish();
+    unitTestTree = getTestTree("Rerun Failed Tests");
+    assertTrue(unitTestTree.isAllTestsPassed());
+    assertEquals(1, unitTestTree.getAllTestsCount());
   }
 
   @NotNull
