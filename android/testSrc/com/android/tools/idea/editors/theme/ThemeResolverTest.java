@@ -38,7 +38,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     assertNull(themeResolver.getTheme("@style/Theme.Holo.Light")); // It's system theme and we're not specifying namespace so it will fail.
 
     ThemeEditorStyle theme = themeResolver.getTheme("@android:style/Theme.Holo.Light");
-    assertEquals("Theme.Holo.Light", theme.getSimpleName());
+    assertEquals("Theme.Holo.Light", theme.getName());
 
     assertEquals(themeResolver.getThemes().size(), themeResolver.getFrameworkThemes().size()); // Only framework themes.
     assertEmpty(themeResolver.getLocalThemes());
@@ -76,8 +76,8 @@ public class ThemeResolverTest extends AndroidTestCase {
                themeResolver.getTheme("@android:style/Theme.MyTheme"));
 
     ThemeEditorStyle theme = themeResolver.getTheme("@style/Theme.MyTheme");
-    assertEquals("Theme.MyTheme", theme.getSimpleName());
-    assertEquals("Theme", theme.getParent().getSimpleName());
+    assertEquals("Theme.MyTheme", theme.getName());
+    assertEquals("Theme", theme.getParent().getName());
 
     assertEquals(1, theme.getValues().size());
     ItemResourceValue value = theme.getValues().toArray(new ItemResourceValue[0])[0];

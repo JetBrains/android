@@ -67,7 +67,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
   public Component getEditorComponent(JTable table, ThemeEditorStyle value, boolean isSelected, int row, int column) {
     ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(new ThemeResolver(myContext.getConfiguration()));
     myComboBox.setModel(new ParentThemesListModel(defaultThemes, value));
-    myResultValue = value.getName();
+    myResultValue = value.getQualifiedName();
     return myComboBox;
   }
 
@@ -99,7 +99,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
       }
       else {
         if (selectedValue instanceof ThemeEditorStyle){
-          myResultValue = ((ThemeEditorStyle)selectedValue).getName();
+          myResultValue = ((ThemeEditorStyle)selectedValue).getQualifiedName();
         }
         stopCellEditing();
       }
