@@ -17,13 +17,20 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredItemResourceValue;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import com.android.SdkConstants;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
+
+import static org.junit.Assert.assertNotEquals;
 
 public class ThemeEditorStyleTest extends AndroidTestCase {
 
@@ -292,5 +299,66 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     ThemeEditorStyle frameworkPrivateTheme = themeResolver.getTheme("@android:style/Theme.Material.Dialog.NoFrame");
     assertNotNull(frameworkPrivateTheme);
     assertFalse(frameworkPrivateTheme.isPublic());
+  }
+
+  /**
+   * Tests attributes present in multiple qualifiers
+   */
+  public void testQualifiers() {
+    myFixture.copyFileToProject("themeEditor/qualifiers/stylesApi-v14.xml", "res/values-v14/styles.xml");
+    myFixture.copyFileToProject("themeEditor/qualifiers/stylesApi-v19.xml", "res/values-v19/styles.xml");
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/qualifiers/stylesApi-v21.xml", "res/values-v21/styles.xml");
+
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 22, null));
+
+    StyleResolver styleResolver = new StyleResolver(configuration);
+    ThemeEditorStyle myTheme = styleResolver.getStyle("@style/Theme.MyTheme");
+    assertNotNull(myTheme);
+    Set<String> expectedAttributes = Sets.newHashSet("actionModeStyle", "windowIsFloating", "checkedTextViewStyle");
+    for(EditedStyleItem item : myTheme.getValues()) {
+      assertTrue(expectedAttributes.remove(item.getName()));
+
+      if ("windowIsFloating".equals(item.getName())) {
+        Set<String> seenConfigurations = Sets.newHashSet();
+        // We should have selected the highest
+        assertEquals("-v21", item.getSelectedValueConfiguration().getUniqueKey());
+        assertSize(2, item.getNonSelectedItemResourceValues());
+        seenConfigurations.add(item.getSelectedValueConfiguration().toString());
+        // The other values can not be default or repeated
+        for(ConfiguredItemResourceValue value : item.getNonSelectedItemResourceValues()) {
+          String configName = value.getConfiguration().toString();
+          assertFalse(seenConfigurations.contains(configName));
+          seenConfigurations.add(configName);
+        }
+      }
+      else if ("actionModeStyle".equals(item.getName())) {
+        // actionModeStyle is only in two configurations v21 and v14 but it has different values
+        assertSize(1, item.getNonSelectedItemResourceValues());
+        assertEquals("-v21", item.getSelectedValueConfiguration().getUniqueKey());
+        assertEquals("@null", item.getValue());
+        ConfiguredItemResourceValue v14Item = item.getNonSelectedItemResourceValues().iterator().next();
+        assertEquals("-v14", v14Item.getConfiguration().getUniqueKey());
+        assertEquals("@style/ActionModeStyle", v14Item.getItemResourceValue().getValue());
+      }
+    }
+    assertEmpty(expectedAttributes);
+
+    // Test with a v14 configuration
+    configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 14, null));
+    myTheme = styleResolver.getStyle("@style/Theme.MyTheme");
+    assertNotNull(myTheme);
+    assertSize(3, myTheme.getValues());
+    for(EditedStyleItem item : myTheme.getValues()) {
+      if ("windowIsFloating".equals(item.getName())) {
+        // We should have selected the v14
+        assertEquals("-v14", item.getSelectedValueConfiguration().getUniqueKey());
+        assertSize(2, item.getNonSelectedItemResourceValues());
+
+        for(ConfiguredItemResourceValue value : item.getNonSelectedItemResourceValues()) {
+          assertNotEquals("-v14", value.getConfiguration().getUniqueKey());
+        }
+      }
+    }
   }
 }
