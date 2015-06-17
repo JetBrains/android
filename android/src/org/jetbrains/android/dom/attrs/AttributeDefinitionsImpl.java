@@ -28,9 +28,22 @@ import com.intellij.xml.util.documentation.XmlDocumentationProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.TAG_RESOURCES;
+import static com.android.SdkConstants.TAG_ATTR;
+import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
+import static com.android.SdkConstants.TAG_EAT_COMMENT;
+import static com.android.SdkConstants.TAG_ENUM;
+import static com.android.SdkConstants.TAG_FLAG;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_VALUE;
+import static com.android.SdkConstants.ATTR_FORMAT;
+import static com.android.SdkConstants.ATTR_PARENT;
 
 /**
  * @author yole
@@ -60,10 +73,10 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     final XmlTag rootTag = document.getRootTag();
     if (rootTag == null || !TAG_RESOURCES.equals(rootTag.getName())) return;
 
-    String attrGroup = "";
+    String attrGroup = null;
     for (XmlTag tag : rootTag.getSubTags()) {
       String tagName = tag.getName();
-      if (tagName.equals(TAG_ATTR)) {
+      if (TAG_ATTR.equals(tagName)) {
         AttributeDefinition def = parseAttrTag(tag, null);
 
         // Sets group for attribute, for example: sets "Button Styles" group for "buttonStyleSmall" attribute
@@ -71,14 +84,14 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
           def.setAttrGroup(attrGroup);
         }
       }
-      else if (tagName.equals(TAG_DECLARE_STYLEABLE)) {
+      else if (TAG_DECLARE_STYLEABLE.equals(tagName)) {
         StyleableDefinitionImpl def = parseDeclareStyleableTag(tag, parentMap);
         // Only "Theme" Styleable has attribute groups
         if (def != null && def.getName().equals("Theme")) {
           parseAndAddAttrGroups(tag);
         }
       }
-      else if (tagName.equals(TAG_EAT_COMMENT)) {
+      else if (TAG_EAT_COMMENT.equals(tagName)) {
 
         // The framework attribute file follows a special convention where related attributes are grouped together,
         // and there is always a set of comments that indicate these sections which look like this:
@@ -92,7 +105,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
 
         // Not all <eat-comment /> sections are actually attribute headers, some are comments.
         // We identify these by looking at the line length; category comments are short, and descriptive comments are longer
-        if (newAttrGroup.length() <= ATTR_GROUP_MAX_CHARACTERS) {
+        if (newAttrGroup != null && newAttrGroup.length() <= ATTR_GROUP_MAX_CHARACTERS) {
           attrGroup = newAttrGroup;
         }
       }
@@ -160,7 +173,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   }
 
   @Nullable
-  private String getCommentBeforeEatComment(XmlTag tag) {
+  private static String getCommentBeforeEatComment(XmlTag tag) {
     PsiElement comment = XmlDocumentationProvider.findPreviousComment(tag);
     for (int i = 0; i < 5; ++i) {
       if (comment == null) {
@@ -270,7 +283,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   }
 
   private void parseAndAddAttrGroups(XmlTag tag) {
-    String attrGroup = "";
+    String attrGroup = null;
     for (XmlTag subTag : tag.getSubTags()) {
       String subTagName = subTag.getName();
       if (TAG_ATTR.equals(subTagName)) {
@@ -281,7 +294,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       }
       else if (TAG_EAT_COMMENT.equals(subTagName)) {
         String newAttrGroup = getCommentBeforeEatComment(subTag);
-        if (newAttrGroup.length() <= ATTR_GROUP_MAX_CHARACTERS) {
+        if (newAttrGroup != null && newAttrGroup.length() <= ATTR_GROUP_MAX_CHARACTERS) {
           attrGroup = newAttrGroup;
         }
       }
