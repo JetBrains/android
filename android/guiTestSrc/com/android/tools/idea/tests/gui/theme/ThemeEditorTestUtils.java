@@ -37,6 +37,9 @@ public class ThemeEditorTestUtils {
       projectFrame.requireEditorNotification("Edit all themes in the project in the theme editor.");
     notificationPanel.performAction("Open editor");
 
+    // Makes sure the Theme Editor is opened before pursuing
+    projectFrame.robot().waitForIdle();
+
     ThemeEditorFixture themeEditor = editor.getThemeEditor();
     assertNotNull(themeEditor);
 
