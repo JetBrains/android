@@ -18,10 +18,7 @@ package com.android.tools.idea.updater.configure;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.tools.idea.sdk.DispatchRunnable;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.LogWrapper;
-import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.remote.RemoteSdk;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
@@ -40,6 +37,7 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -72,10 +70,10 @@ public class SdkUpdaterConfigPanel {
   private boolean myHasPreview;
   private boolean myIncludePreview;
 
-  Runnable myUpdater = new DispatchRunnable() {
+  SdkLoadedCallback myUpdater = new SdkLoadedCallback(true) {
     @Override
-    public void doRun() {
-      updateItems();
+    public void doRun(@NotNull SdkPackages packages) {
+      updateItems(packages);
     }
   };
 
@@ -161,10 +159,10 @@ public class SdkUpdaterConfigPanel {
     myToolComponentsPanel.startLoading();
     myUpdateSitesPanel.startLoading();
 
-    Runnable remoteComplete = new DispatchRunnable() {
+    SdkLoadedCallback remoteComplete = new SdkLoadedCallback(true) {
       @Override
-      public void doRun() {
-        updateItems();
+      public void doRun(@NotNull SdkPackages packages) {
+        updateItems(packages);
         myPlatformComponentsPanel.finishLoading();
         myToolComponentsPanel.finishLoading();
         myUpdateSitesPanel.finishLoading();
@@ -173,11 +171,11 @@ public class SdkUpdaterConfigPanel {
     mySdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, myUpdater, remoteComplete, null, true);
   }
 
-  private void loadPackages() {
+  private void loadPackages(SdkPackages packages) {
     Multimap<AndroidVersion, UpdatablePkgInfo> platformPackages = TreeMultimap.create();
     Set<UpdatablePkgInfo> buildToolsPackages = Sets.newTreeSet();
     Set<UpdatablePkgInfo> toolsPackages = Sets.newTreeSet();
-    for (UpdatablePkgInfo info : mySdkState.getPackages().getConsolidatedPkgs().values()) {
+    for (UpdatablePkgInfo info : packages.getConsolidatedPkgs().values()) {
       IPkgDesc desc = info.getPkgDesc(myIncludePreview);
       if (desc == null) {
         // We're not looking for previews, and this only has a preview available.
@@ -206,10 +204,10 @@ public class SdkUpdaterConfigPanel {
     myToolComponentsPanel.setPackages(toolsPackages, buildToolsPackages);
   }
 
-  private void updateItems() {
+  private void updateItems(SdkPackages packages) {
     myPlatformComponentsPanel.clearState();
     myToolComponentsPanel.clearState();
-    loadPackages();
+    loadPackages(packages);
   }
 
   public Collection<NodeStateHolder> getStates() {
