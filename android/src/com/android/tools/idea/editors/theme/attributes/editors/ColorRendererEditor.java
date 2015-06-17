@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.*;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.MaterialColors;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
@@ -26,6 +30,8 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.ui.JBMenuItem;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import java.awt.Component;
+import javax.swing.JTable;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,6 +48,8 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
   public static final ResourceType[] COLORS_ONLY = {ResourceType.COLOR};
   public static final ResourceType[] DRAWABLES_ONLY = {ResourceType.DRAWABLE, ResourceType.MIPMAP};
   public static final ResourceType[] COLORS_AND_DRAWABLES = {ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP};
+
+  private AttributesTableModel myModel;
 
   private final AndroidThemePreviewPanel myPreviewPanel;
 
@@ -88,6 +96,12 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
     }
   }
 
+  @Override
+  public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
+    myModel = (AttributesTableModel)table.getModel();
+    return super.getEditorComponent(table, value, isSelected, row, column);
+  }
+
   private class ColorEditorActionListener extends DumbAwareActionListener {
     public ColorEditorActionListener() {
       super(myContext.getProject());
@@ -115,7 +129,20 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
         allowedTypes = COLORS_AND_DRAWABLES;
       }
 
+      ThemeEditorStyle style = myModel.getSelectedStyle();
+      ResourceResolver styleResourceResolver = myContext.getConfiguration().getResourceResolver();
+
+      assert styleResourceResolver != null;
+
+      Color primaryColor = ResourceHelper.resolveColor(styleResourceResolver, ThemeEditorUtils
+        .resolveItemFromParents(style, MaterialColors.PRIMARY_MATERIAL_ATTR, !ThemeEditorUtils.isAppCompatTheme(style)),
+                                                       myContext.getProject());
+
       ChooseResourceDialog dialog = ThemeEditorUtils.getResourceDialog(myItem, myContext, allowedTypes);
+      if (primaryColor != null) {
+        dialog.generateColorSuggestions(primaryColor, myItem.getName());
+      }
+
       final String oldValue = myItem.getSelectedValue().getValue();
 
       dialog.setResourcePickerListener(new ChooseResourceDialog.ResourcePickerListener() {

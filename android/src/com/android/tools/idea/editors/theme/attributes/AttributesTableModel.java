@@ -20,12 +20,14 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.Collections;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
@@ -92,7 +94,8 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   private void reloadContent() {
-    final List<EditedStyleItem> rawAttributes = ThemeEditorUtils.resolveAllAttributes(mySelectedStyle, myContext.getThemeResolver());
+    final List<EditedStyleItem> rawAttributes = new ArrayList<EditedStyleItem>(ThemeEditorUtils.resolveAllAttributes(mySelectedStyle, myContext.getThemeResolver()));
+    Collections.sort(rawAttributes, ThemeEditorComponent.SIMPLE_MODE_COMPARATOR);
     myAttributes.clear();
     myLabels = AttributesGrouper.generateLabels(myGroupBy, rawAttributes, myAttributes);
     fireTableStructureChanged();
