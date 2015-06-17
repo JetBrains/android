@@ -144,7 +144,7 @@ public class ThemeEditorComponent extends Splitter {
   private final ThemeEditorTable myAttributesTable = myPanel.getAttributesTable();
 
   private final ResourceChangeListener myResourceChangeListener;
-
+  private boolean myIsSubscribedResourceNotification;
   private final GoToListener myGoToListener;
 
   public interface GoToListener {
@@ -412,20 +412,27 @@ public class ThemeEditorComponent extends Splitter {
    * By subscribing, myResourceChangeListener can track all internal and external changes in resources.
    */
   private void subscribeResourceNotification() {
+    // Already subscribed, we check this, because sometimes selectNotify can be called twice
+    if (myIsSubscribedResourceNotification) {
+      return;
+    }
     ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
     AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
     assert facet != null : myThemeEditorContext.getCurrentThemeModule().getName() + " module doesn't have an AndroidFacet";
     manager.addListener(myResourceChangeListener, facet, null, null);
+    myIsSubscribedResourceNotification = true;
   }
 
   /**
    * Unsubscribes myResourceChangeListener from ResourceNotificationManager with current AndroidFacet.
    */
   private void unsubscribeResourceNotification() {
+    assert myIsSubscribedResourceNotification;
     ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
     AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
     assert facet != null : myThemeEditorContext.getCurrentThemeModule().getName() + " module doesn't have an AndroidFacet";
     manager.removeListener(myResourceChangeListener, facet, null, null);
+    myIsSubscribedResourceNotification = false;
   }
 
   /**
