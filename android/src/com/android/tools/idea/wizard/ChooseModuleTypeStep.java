@@ -21,12 +21,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
+import com.intellij.ui.JBCardLayout;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.accessibility.AccessibleContext;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -34,6 +37,7 @@ import java.awt.*;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 import static com.android.tools.idea.wizard.WizardConstants.SELECTED_MODULE_TYPE_KEY;
 
 /**
@@ -47,8 +51,32 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
   public ChooseModuleTypeStep(Iterable<ModuleTemplateProvider> moduleTypesProviders, @Nullable Disposable parentDisposable) {
     super(parentDisposable);
     myModuleTypesProviders = moduleTypesProviders;
-    myFormFactorGallery.setBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()));
+    myPanel = createGallery();
     setBodyComponent(myPanel);
+  }
+
+  private JPanel createGallery() {
+    Dimension thumbnailSize = DEFAULT_GALLERY_THUMBNAIL_SIZE;
+    myFormFactorGallery = new ASGallery<ModuleTemplate>(JBList.createDefaultListModel(), new Function<ModuleTemplate, Image>() {
+      @Override
+      public Image apply(ModuleTemplate input) {
+        return IconUtil.toImage(input.getIcon());
+      }
+    }, new Function<ModuleTemplate, String>() {
+      @Override
+      public String apply(@Nullable ModuleTemplate input) {
+        return input == null ? "<none>" : input.getName();
+      }
+    }, thumbnailSize);
+    myFormFactorGallery.setMinimumSize(new Dimension(thumbnailSize.width * 2 + 1, thumbnailSize.height));
+    myFormFactorGallery.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+    AccessibleContext accessibleContext = myFormFactorGallery.getAccessibleContext();
+    if (accessibleContext != null) {
+      accessibleContext.setAccessibleDescription(getStepTitle());
+    }
+    JPanel panel = new JPanel(new JBCardLayout());
+    panel.add("only card", new JBScrollPane(myFormFactorGallery));
+    return panel;
   }
 
   @Override
@@ -132,20 +160,6 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
   @Override
   public JComponent getPreferredFocusedComponent() {
     return myFormFactorGallery;
-  }
-
-  private void createUIComponents() {
-    myFormFactorGallery = new ASGallery<ModuleTemplate>(JBList.createDefaultListModel(), new Function<ModuleTemplate, Image>() {
-      @Override
-      public Image apply(ModuleTemplate input) {
-        return IconUtil.toImage(input.getIcon());
-      }
-    }, new Function<ModuleTemplate, String>() {
-      @Override
-      public String apply(@Nullable ModuleTemplate input) {
-        return input == null ? "<none>" : input.getName();
-      }
-    }, WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE);
   }
 
   private class ModuleTypeBinding extends ComponentBinding<ModuleTemplate, JPanel> {
