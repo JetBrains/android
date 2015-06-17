@@ -62,7 +62,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     IdeFrameFixture projectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
 
-    JTableFixture themeEditorTable = themeEditor.getThemeEditorTable();
+    JTableFixture themeEditorTable = themeEditor.getPropertiesTable();
     assertNotNull(themeEditorTable);
 
     // Cell (0,0) should be Theme parent
@@ -80,7 +80,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     IdeFrameFixture projectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
 
-    JTableFixture themeEditorTable = themeEditor.getThemeEditorTable();
+    JTableFixture themeEditorTable = themeEditor.getPropertiesTable();
     assertNotNull(themeEditorTable);
 
     // Cell (0,1) should be the parent combobox
