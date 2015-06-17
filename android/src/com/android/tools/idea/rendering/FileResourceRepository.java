@@ -29,7 +29,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Map;
+
+import static com.android.SdkConstants.FN_RESOURCE_TEXT;
+import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 
 /**
  * A {@link AbstractResourceRepository} for plain java.io Files; this is needed for repositories
@@ -39,8 +43,19 @@ import java.util.Map;
  */
 public class FileResourceRepository extends LocalResourceRepository {
   private static final Logger LOG = Logger.getInstance(FileResourceRepository.class);
-  protected final Map<ResourceType, ListMultimap<String, ResourceItem>> mItems = Maps.newEnumMap(ResourceType.class);
+  protected final Map<ResourceType, ListMultimap<String, ResourceItem>> myItems = Maps.newEnumMap(ResourceType.class);
+  /**
+   * A collection of resource id names found in the R.txt file if the file referenced by this repository is an AAR.
+   * The Ids obtained using {@link #getItemsOfType(ResourceType)} by passing in {@link ResourceType#ID} only contains
+   * a subset of IDs (top level ones like layout file names, and id resources in values xml file). Ids declared inside
+   * layouts and menus (using "@+id/") are not included. This is done for efficiency. However, such IDs can be obtained
+   * from the R.txt file, if present. And hence, this collection includes all id names from the R.txt file, but doesn't
+   * have the associated {@link ResourceItem} with it.
+   */
+  protected Collection<String> myAarDeclaredIds;
   private final File myFile;
+  /** R.txt file associated with the repository. This is only available for aars. */
+  @Nullable private File myResourceTextFile;
 
   private final static SoftValueHashMap<File, FileResourceRepository> ourCache =
     new SoftValueHashMap<File, FileResourceRepository>();
@@ -72,13 +87,25 @@ public class FileResourceRepository extends LocalResourceRepository {
     final FileResourceRepository repository = new FileResourceRepository(file);
     try {
       ResourceMerger resourceMerger = createResourceMerger(file);
-      resourceMerger.mergeData(repository.createMergeConsumer(), true /*doCleanUp*/);
+      resourceMerger.mergeData(repository.createMergeConsumer(), true);
     }
     catch (Exception e) {
       LOG.error("Failed to initialize resources", e);
     }
+    if (file.getPath().contains(EXPLODED_AAR)) {
+      File rDotTxt = new File(file.getParentFile(), FN_RESOURCE_TEXT);
+      if (rDotTxt.exists()) {
+        repository.myResourceTextFile = rDotTxt;
+        repository.myAarDeclaredIds = RDotTxtParser.getIdNames(rDotTxt);
+      }
+    }
 
     return repository;
+  }
+
+  @Nullable
+  File getResourceTextFile() {
+    return myResourceTextFile;
   }
 
   public static void reset() {
@@ -118,18 +145,24 @@ public class FileResourceRepository extends LocalResourceRepository {
   @Override
   @NonNull
   protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
-    return mItems;
+    return myItems;
   }
 
   @Override
   @Nullable
   protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
-    ListMultimap<String, ResourceItem> multimap = mItems.get(type);
+    ListMultimap<String, ResourceItem> multimap = myItems.get(type);
     if (multimap == null && create) {
       multimap = ArrayListMultimap.create();
-      mItems.put(type, multimap);
+      myItems.put(type, multimap);
     }
     return multimap;
+  }
+
+  /** @see #myAarDeclaredIds */
+  @Nullable
+  protected Collection<String> getAllDeclaredIds() {
+    return myAarDeclaredIds;
   }
 
   // For debugging only
