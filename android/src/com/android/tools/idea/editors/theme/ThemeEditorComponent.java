@@ -78,10 +78,17 @@ public class ThemeEditorComponent extends Splitter {
 
   private static final JBColor PREVIEW_BACKGROUND = new JBColor(new Color(0xFAFAFA), new Color(0x343739));
 
+  private static final ImmutableMap<String, Integer> SORTING_MAP =
+    ImmutableMap.<String, Integer>builder()
+      .put(MaterialColors.PRIMARY_MATERIAL_ATTR, 1)
+      .put(MaterialColors.PRIMARY_DARK_MATERIAL_ATTR, 2)
+      .put(MaterialColors.ACCENT_MATERIAL_ATTR, 3)
+      .build();
+
   /**
    * Comparator used for simple mode attribute sorting
    */
-  private static final Comparator SIMPLE_MODE_COMPARATOR = new Comparator() {
+  public static final Comparator SIMPLE_MODE_COMPARATOR = new Comparator() {
     @Override
     public int compare(Object o1, Object o2) {
       // The parent attribute goes always first
@@ -92,6 +99,17 @@ public class ThemeEditorComponent extends Splitter {
       }
 
       if (o1 instanceof EditedStyleItem && o2 instanceof EditedStyleItem) {
+        Integer pos1 = SORTING_MAP.get(((EditedStyleItem)o1).getName());
+        Integer pos2 = SORTING_MAP.get(((EditedStyleItem)o2).getName());
+        if (pos1 != null && pos2 != null) {
+          return pos1 - pos2;
+        }
+        if (pos1 != null) {
+          return -1;
+        }
+        if (pos2 != null) {
+          return 1;
+        }
         return ((EditedStyleItem)o1).compareTo((EditedStyleItem)o2);
       }
 
