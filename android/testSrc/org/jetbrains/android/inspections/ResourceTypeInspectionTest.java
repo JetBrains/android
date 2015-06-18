@@ -520,7 +520,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    private void foo1(@android.support.annotation.ColorRes int c) {\n" +
             "    }\n" +
             "\n" +
-            "    private void foo2(@android.support.annotation./*Cannot resolve symbol 'ColorInt'*/ColorInt/**/ int c) {\n" +
+            "    private void foo2(@android.support.annotation.ColorInt int c) {\n" +
             "    }\n" +
             "\n" +
             "    private static class R {\n" +
@@ -529,6 +529,36 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "            public static final int green=0x7f060001;\n" +
             "            public static final int blue=0x7f060002;\n" +
             "        }\n" +
+            "    }\n" +
+            "}\n");
+  }
+
+  public void testColorInt2() {
+    doCheck("package test.pkg;\n" +
+            "import android.content.Context;\n" +
+            "import android.content.res.Resources;\n" +
+            "import android.support.annotation.ColorInt;\n" +
+            "import android.support.annotation.ColorRes;\n" +
+            "\n" +
+            "public abstract class X {\n" +
+            "    @ColorInt\n" +
+            "    public abstract int getColor1();\n" +
+            "    public abstract void setColor1(@ColorRes int color);\n" +
+            "    @ColorRes\n" +
+            "    public abstract int getColor2();\n" +
+            "    public abstract void setColor2(@ColorInt int color);\n" +
+            "\n" +
+            "    public void test1(Context context) {\n" +
+            "        int actualColor = getColor1();\n" +
+            "        setColor1(/*Expected resource of type color*/actualColor/**/); // ERROR\n" +
+            "        setColor1(/*Expected resource of type color*/getColor1()/**/); // ERROR\n" +
+            "        setColor1(getColor2()); // OK\n" +
+            "    }\n" +
+            "    public void test2(Context context) {\n" +
+            "        int actualColor = getColor2();\n" +
+            "        setColor2(/*Should pass resolved color instead of resource id here: `getResources().getColor(actualColor)`*/actualColor/**/); // ERROR\n" +
+            "        setColor2(/*Should pass resolved color instead of resource id here: `getResources().getColor(getColor2())`*/getColor2()/**/); // ERROR\n" +
+            "        setColor2(getColor1()); // OK\n" +
             "    }\n" +
             "}\n");
   }
@@ -768,9 +798,15 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                           "}";
     classes.add(header + binderThread);
 
+    @Language("JAVA")
+    String colorInt = "@Retention(SOURCE)\n" +
+                      "@Target({METHOD, PARAMETER, FIELD, LOCAL_VARIABLE})\n" +
+                      "public @interface ColorInt {\n" +
+                      "}";
+    classes.add(header + colorInt);
 
     for (ResourceType type : ResourceType.values()) {
-      if (type == ResourceType.FRACTION) {
+      if (type == ResourceType.FRACTION || type == ResourceType.PUBLIC) {
         continue;
       }
       @Language("JAVA")
