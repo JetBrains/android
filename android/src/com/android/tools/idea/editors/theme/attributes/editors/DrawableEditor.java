@@ -17,8 +17,10 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.swing.SwatchComponent;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +33,7 @@ import java.awt.event.ActionListener;
 public class DrawableEditor extends TypedCellEditor<EditedStyleItem, String> implements ThemeEditorContext.ChangeListener {
   private static final ResourceType[] DRAWABLE_TYPE = new ResourceType[] { ResourceType.DRAWABLE };
 
-  private final DrawableComponent myComponent;
+  private final ResourceComponent myComponent;
 
   private EditedStyleItem myEditedItem;
   private @Nullable String myResultValue;
@@ -43,14 +45,18 @@ public class DrawableEditor extends TypedCellEditor<EditedStyleItem, String> imp
     myContext = context;
     context.addChangeListener(this);
 
-    myComponent = new DrawableComponent();
+    myComponent = new ResourceComponent();
     myComponent.addActionListener(new EditorClickListener());
   }
 
   @Override
   public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
     myEditedItem = value;
-    myComponent.configure(myEditedItem, myRenderTask);
+    myComponent.setSwatchIcons(
+      SwatchComponent.imageListOf(myRenderTask.renderDrawableAllStates(myEditedItem.getItemResourceValue())));
+    myComponent.setNameText(String.format(DrawableRenderer.LABEL_TEMPLATE, ColorRenderer.DEFAULT_COLOR.toString(),
+                                          ThemeEditorUtils.getDisplayHtml(myEditedItem)));
+    myComponent.setValueText(myEditedItem.getValue());
     return myComponent;
   }
 
