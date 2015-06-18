@@ -34,7 +34,7 @@ public abstract class SdkLoggerIntegration implements IReaderLogger {
   // Groups: 1=progress values (%, ETA), 2=% int, 3=progress text
   private static Pattern sProgress1Text = Pattern.compile("^\\s+\\((([0-9]+)%,\\s*[^)]*)\\)(.*)\\s*");
   // Groups: 1=progress text, 2=progress values, 3=% int
-  private static Pattern sProgress2Text = Pattern.compile("^\\s+([^(]+)\\s+\\((([0-9]+)%)\\)\\s*");
+  private static Pattern sProgress2Text = Pattern.compile("^\\s+(.+)\\s+\\((([0-9]+)%)\\)\\s*");
   // Groups: 1=task title
   private static Pattern sDownloadingComponentText = Pattern.compile("^\\s+(Downloading .*)\\s*$");
 
