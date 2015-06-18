@@ -32,7 +32,6 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -79,8 +78,6 @@ import java.util.Set;
  * @author Eugene.Kudelevsky
  */
 public class AndroidProcessChooserDialog extends DialogWrapper {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.actions.AndroidProcessChooserDialog");
-
   @NonNls private static final String DEBUGGABLE_PROCESS_PROPERTY = "DEBUGGABLE_PROCESS";
   @NonNls private static final String SHOW_ALL_PROCESSES_PROPERTY = "SHOW_ALL_PROCESSES";
   @NonNls private static final String DEBUGGABLE_DEVICE_PROPERTY = "DEBUGGABLE_DEVICE";
@@ -90,6 +87,9 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   private JPanel myContentPanel;
   private Tree myProcessTree;
   private JBCheckBox myShowAllProcessesCheckBox;
+
+  private String myLastSelectedDevice;
+  private String myLastSelectedProcess;
 
   private final MergingUpdateQueue myUpdatesQueue;
   private final AndroidDebugBridge.IClientChangeListener myClientChangeListener;
@@ -145,7 +145,13 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     myProcessTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
       public void valueChanged(TreeSelectionEvent e) {
-        getOKAction().setEnabled(getSelectedDevice() != null && getSelectedClient() != null);
+        IDevice selectedDevice = getSelectedDevice();
+        Client selectedClient = getSelectedClient();
+
+        myLastSelectedDevice = getPersistableName(selectedDevice);
+        myLastSelectedProcess = getPersistableName(selectedClient);
+
+        getOKAction().setEnabled(selectedDevice != null && selectedClient != null);
       }
     });
     new TreeSpeedSearch(myProcessTree) {
@@ -228,7 +234,21 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     });
 
+    final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
+    myLastSelectedProcess = properties.getValue(DEBUGGABLE_PROCESS_PROPERTY);
+    myLastSelectedDevice = properties.getValue(DEBUGGABLE_DEVICE_PROPERTY);
+
     init();
+  }
+
+  @NotNull
+  private static String getPersistableName(@Nullable Client client) {
+    return client == null ? "" : client.getClientData().getClientDescription();
+  }
+
+  @NotNull
+  private static String getPersistableName(@Nullable IDevice device) {
+    return device == null ? "" : device.getName();
   }
 
   @Override
@@ -285,11 +305,6 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     final Set<String> processNames = collectAllProcessNames(myProject);
 
-    final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
-
-    final String prevProcess = properties.getValue(DEBUGGABLE_PROCESS_PROPERTY);
-    final String prevDevice = properties.getValue(DEBUGGABLE_DEVICE_PROPERTY);
-
     TreeNode selectedDeviceNode = null;
     TreeNode selectedClientNode = null;
 
@@ -300,6 +315,11 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       final DefaultMutableTreeNode deviceNode = new DefaultMutableTreeNode(device);
       root.add(deviceNode);
 
+      final String deviceName = device.getName();
+      if (deviceName.equals(myLastSelectedDevice)) {
+        selectedDeviceNode = deviceNode;
+      }
+
       for (Client client : device.getClients()) {
         final String clientDescription = client.getClientData().getClientDescription();
 
@@ -308,10 +328,8 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
           final DefaultMutableTreeNode clientNode = new DefaultMutableTreeNode(client);
           deviceNode.add(clientNode);
 
-          final String deviceName = device.getName();
-
-          if (clientDescription.equals(prevProcess) &&
-              (selectedDeviceNode == null || deviceName.equals(prevDevice))) {
+          if (clientDescription.equals(myLastSelectedProcess) &&
+              (selectedDeviceNode == null || deviceName.equals(myLastSelectedDevice))) {
             selectedClientNode = clientNode;
             selectedDeviceNode = deviceNode;
           }
@@ -323,8 +341,16 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     }
 
-    final Object[] pathToSelect =
-      selectedDeviceNode != null ? new Object[]{root, selectedDeviceNode, selectedClientNode} : firstTreePath;
+    final Object[] pathToSelect;
+    if (selectedDeviceNode != null && selectedClientNode != null) {
+      pathToSelect = new Object[]{root, selectedDeviceNode, selectedClientNode};
+    }
+    else if (selectedDeviceNode != null) {
+      pathToSelect = new Object[]{root, selectedDeviceNode};
+    }
+    else {
+      pathToSelect = firstTreePath;
+    }
 
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
@@ -343,7 +369,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     });
   }
 
-  private boolean isRelatedProcess(Set<String> processNames, String clientDescription) {
+  private static boolean isRelatedProcess(Set<String> processNames, String clientDescription) {
     final String lc = clientDescription.toLowerCase();
 
     for (String processName : processNames) {
@@ -429,8 +455,8 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     super.doOKAction();
 
-    properties.setValue(DEBUGGABLE_DEVICE_PROPERTY, selectedDevice.getName());
-    properties.setValue(DEBUGGABLE_PROCESS_PROPERTY, selectedClient.getClientData().getClientDescription());
+    properties.setValue(DEBUGGABLE_DEVICE_PROPERTY, getPersistableName(selectedDevice));
+    properties.setValue(DEBUGGABLE_PROCESS_PROPERTY, getPersistableName(selectedClient));
     properties.setValue(SHOW_ALL_PROCESSES_PROPERTY, Boolean.toString(myShowAllProcessesCheckBox.isSelected()));
 
     final String debugPort = Integer.toString(selectedClient.getDebuggerListenPort());
