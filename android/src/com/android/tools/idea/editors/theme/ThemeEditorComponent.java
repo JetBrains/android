@@ -153,7 +153,6 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   private ThemeEditorStyle mySelectedTheme;
-  private MessageBusConnection myMessageBusConnection;
   private AttributesTableModel myModel;
 
   public ThemeEditorComponent(@NotNull final Project project) {
@@ -819,8 +818,6 @@ public class ThemeEditorComponent extends Splitter {
   @Override
   public void dispose() {
     myThemeEditorContext.dispose();
-    myMessageBusConnection.disconnect();
-    myMessageBusConnection = null;
     super.dispose();
   }
 
