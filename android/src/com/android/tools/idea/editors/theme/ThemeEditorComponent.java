@@ -380,21 +380,6 @@ public class ThemeEditorComponent extends Splitter {
     setSecondComponent(myPanel.getRightPanel());
     setShowDividerControls(false);
 
-    myMessageBusConnection = project.getMessageBus().connect(project);
-    myMessageBusConnection.subscribe(PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC, new GradleBuildListener() {
-      @Override
-      public void buildFinished(@NotNull Project project, @Nullable BuildMode mode) {
-        if (project != myThemeEditorContext.getProject()) {
-          return;
-        }
-
-        // Classes probably have changed so reload the custom components and support library classes.
-        myPreviewPanel.reloadComponents();
-        myPreviewPanel.revalidate();
-        myPreviewPanel.repaint();
-      }
-    });
-
     myResourceChangeListener = new ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
