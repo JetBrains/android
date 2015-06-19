@@ -28,6 +28,7 @@ public abstract class UsageTracker {
   public static final String CATEGORY_DEVELOPER_SERVICES = "devServices";
   public static final String CATEGORY_SDK_MANAGER = "sdkManager";
   public static final String CATEGORY_PROFILING = "profiling";
+  public static final String CATEGORY_TEMPLATE = "template";
 
   // GA only allows sending a single <category,action,value> tuple per event
   // However, we'd like to track different components of the avd such as its version, arch, etc
@@ -53,6 +54,8 @@ public abstract class UsageTracker {
 
   public static final String ACTION_PROFILING_CAPTURE = "captureCreated";
   public static final String ACTION_PROFILING_OPEN = "captureOpened";
+
+  public static final String ACTION_TEMPLATE_RENDER = "render";
 
   public static final String INFO_AVD_ABI = "abi";
   public static final String INFO_AVD_TARGET_VERSION = "version";
