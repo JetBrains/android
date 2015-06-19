@@ -19,8 +19,10 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.*;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ApplicationComponent;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
@@ -35,19 +37,18 @@ import java.util.concurrent.*;
 import java.util.concurrent.TimeoutException;
 
 /**
- * {@link com.android.tools.idea.ddms.adb.AdbService} is the main entry point to initializing and obtaining the
- * {@link com.android.ddmlib.AndroidDebugBridge}.
+ * {@link AdbService} is the main entry point to initializing and obtaining the {@link AndroidDebugBridge}.
  *
- * <p>Actions that require a handle to the debug bridge should invoke {@link #getDebugBridge(java.io.File)} to obtain
- * the debug bridge. This bridge is only valid at the time it is obtained, and could go stale in the future (e.g. user disables
- * adb integration via {@link org.jetbrains.android.actions.AndroidEnableAdbServiceAction}, or launches monitor via
+ * <p>Actions that require a handle to the debug bridge should invoke {@link #getDebugBridge(File)} to obtain the debug bridge.
+ * This bridge is only valid at the time it is obtained, and could go stale in the future (e.g. user disables
+ * adb integration via {@link AndroidEnableAdbServiceAction}, or launches monitor via
  * {@link org.jetbrains.android.actions.AndroidRunDdmsAction}).
  *
  * <p>Components that need to keep a handle to the bridge for longer durations (such as tool windows that monitor device state) should do so
- * by first invoking {@link #getDebugBridge(java.io.File)} to obtain the bridge, and implementing
- * {@link com.android.ddmlib.AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
+ * by first invoking {@link #getDebugBridge(File)} to obtain the bridge, and implementing
+ * {@link AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
  */
-public class AdbService implements ApplicationComponent {
+public class AdbService implements Disposable {
   private static final Logger LOG = Logger.getInstance(AdbService.class);
 
   @GuardedBy("this")
@@ -59,25 +60,18 @@ public class AdbService implements ApplicationComponent {
    * */
   private static final Object ADB_INIT_LOCK = new Object();
 
-  @Override
-  public void initComponent() {
+  public static AdbService getInstance() {
+    return ServiceManager.getService(AdbService.class);
+  }
+
+  private AdbService() {
     DdmPreferences.setLogLevel(Log.LogLevel.INFO.getStringValue());
     DdmPreferences.setTimeOut(AndroidUtils.TIMEOUT);
   }
 
   @Override
-  public void disposeComponent() {
+  public void dispose() {
     terminateDdmlib();
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return "AdbService";
-  }
-
-  public static AdbService getInstance() {
-    return ApplicationManager.getApplication().getComponent(AdbService.class);
   }
 
   public synchronized ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull File adb) {
