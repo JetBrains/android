@@ -726,6 +726,9 @@ public class EditorFixture {
       case DUPLICATE_LINES:
         invokeActionViaKeystroke("EditorDuplicate");
         break;
+      case DELETE_LINE:
+        invokeActionViaKeystroke("EditorDeleteLine");
+        break;
       case NEXT_METHOD:
         invokeActionViaKeystroke("MethodDown");
         break;
@@ -1045,6 +1048,7 @@ public class EditorFixture {
     SELECT_ALL,
     JOIN_LINES,
     DUPLICATE_LINES,
+    DELETE_LINE,
     TOGGLE_COMMENT,
     GOTO_DECLARATION,
     NEXT_ERROR,
