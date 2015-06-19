@@ -23,14 +23,12 @@ import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.RemoteSdk;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
 import com.android.utils.ILogger;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ex.ApplicationEx;
-import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.*;
-import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.concurrency.Semaphore;
@@ -87,8 +85,7 @@ public class SdkState {
           it.remove();
           continue;
         }
-        // Note: check the cache for actual AndroidSdkData references, not equality.
-        if (s.mySdkData == sdkData) {
+        if (Objects.equal(s.mySdkData, sdkData)) {
           return s;
         }
       }
