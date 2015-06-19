@@ -116,12 +116,14 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
 
   @Override
   public void apply() throws ConfigurationException {
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        IdeSdks.setAndroidSdkPath(new File(myPanel.getSdkPath()), null);
-      }
-    });
+    if (!IdeSdks.getAndroidSdkPath().getPath().equals(myPanel.getSdkPath())) {
+      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        @Override
+        public void run() {
+          IdeSdks.setAndroidSdkPath(new File(myPanel.getSdkPath()), null);
+        }
+      });
+    }
 
     myPanel.saveSources();
 
