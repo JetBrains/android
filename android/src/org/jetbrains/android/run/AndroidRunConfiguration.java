@@ -162,14 +162,30 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @NotNull
   @Override
-  protected AndroidActivityLauncher getApplicationLauncher(final AndroidFacet facet) {
+  protected AndroidActivityLauncher getApplicationLauncher(@NotNull AndroidFacet facet) {
+    return new AndroidActivityLauncher(facet, needsLaunch(), getActivityLocator(facet));
+  }
+
+  @NotNull
+  protected ActivityLocator getActivityLocator(@NotNull AndroidFacet facet) {
     if (MODE.equals(LAUNCH_DEFAULT_ACTIVITY)) {
-      return new DefaultActivityLauncher(facet);
-    } else if (MODE.equals(LAUNCH_SPECIFIC_ACTIVITY)) {
-      return new SpecificActivityLauncher(facet, ACTIVITY_CLASS);
-    } else {
-      return new DoNothingActivityLauncher();
+      if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
+        return new MavenDefaultActivityLocator(facet);
+      }
+      else {
+        return new DefaultActivityLocator(facet);
+      }
     }
+    else if (MODE.equals(LAUNCH_SPECIFIC_ACTIVITY)) {
+      return new SpecificActivityLocator(facet, ACTIVITY_CLASS);
+    }
+    else {
+      return new EmptyActivityLocator();
+    }
+  }
+
+  protected boolean needsLaunch() {
+    return LAUNCH_SPECIFIC_ACTIVITY.equals(MODE) || LAUNCH_DEFAULT_ACTIVITY.equals(MODE);
   }
 
   /**

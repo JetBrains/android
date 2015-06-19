@@ -17,8 +17,6 @@ package org.jetbrains.android.run;
 
 import com.android.tools.idea.model.ManifestInfo;
 import com.intellij.execution.JavaExecutionUtil;
-import com.intellij.execution.configurations.RuntimeConfigurationError;
-import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
@@ -26,7 +24,10 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.manifest.*;
+import org.jetbrains.android.dom.manifest.Activity;
+import org.jetbrains.android.dom.manifest.ActivityAlias;
+import org.jetbrains.android.dom.manifest.Application;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -35,79 +36,82 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-/**
- * An Android application launcher which launches a specific activity.
- */
-public class SpecificActivityLauncher extends AndroidActivityLauncher {
+public class SpecificActivityLocator extends ActivityLocator {
   @NotNull
   private final AndroidFacet myFacet;
   @Nullable
   private final String myActivityName;
 
-  public SpecificActivityLauncher(@NotNull AndroidFacet facet, @Nullable String activityName) {
+  public SpecificActivityLocator(@NotNull AndroidFacet facet, @Nullable String activityName) {
     myFacet = facet;
     myActivityName = activityName;
   }
 
   @NotNull
   @Override
-  protected String getActivityName() throws ActivityNameException {
-    if (myActivityName == null || myActivityName.length() == 0) {
-      throw new ActivityNameException(AndroidBundle.message("activity.class.not.specified.error"));
-    }
+  protected String getActivityName() {
+    assert myActivityName != null; // validated by validate
     return myActivityName;
   }
 
   @Override
-  public void checkConfiguration() throws RuntimeConfigurationException {
+  public void validate(@NotNull AndroidFacet facet) throws ActivityLocatorException {
+    if (myActivityName == null || myActivityName.length() == 0) {
+      throw new ActivityLocatorException(AndroidBundle.message("activity.class.not.specified.error"));
+    }
+
     Module module = myFacet.getModule();
     Project project = module.getProject();
     final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
     PsiClass activityClass = facade.findClass(AndroidUtils.ACTIVITY_BASE_CLASS_NAME, ProjectScope.getAllScope(project));
     if (activityClass == null) {
-      throw new RuntimeConfigurationError(AndroidBundle.message("cant.find.activity.class.error"));
+      throw new ActivityLocatorException(AndroidBundle.message("cant.find.activity.class.error"));
     }
-    if (myActivityName == null || myActivityName.length() == 0) {
-      throw new RuntimeConfigurationError(AndroidBundle.message("activity.class.not.specified.error"));
-    }
+
     PsiClass c = JavaExecutionUtil.findMainClass(project, myActivityName, GlobalSearchScope.projectScope(project));
 
     if (c == null || !c.isInheritor(activityClass, true)) {
       final ActivityAlias activityAlias = findActivityAlias(myFacet, myActivityName);
-
       if (activityAlias == null) {
-        throw new RuntimeConfigurationError(AndroidBundle.message("not.activity.subclass.error", myActivityName));
+        throw new ActivityLocatorException(AndroidBundle.message("not.activity.subclass.error", myActivityName));
       }
 
-      if (!isActivityLaunchable(activityAlias.getIntentFilters())) {
-        throw new RuntimeConfigurationError(AndroidBundle.message("activity.not.launchable.error", AndroidUtils.LAUNCH_ACTION_NAME));
+      if (!ActivityLocatorUtils.containsLauncherIntent(activityAlias.getIntentFilters())) {
+        throw new ActivityLocatorException(AndroidBundle.message("activity.not.launchable.error", AndroidUtils.LAUNCH_ACTION_NAME));
       }
+
+      // valid activity alias
       return;
     }
-    if (!AndroidRunConfiguration.doesPackageContainMavenProperty(myFacet)) {
-      List<Activity> activities = ManifestInfo.get(module, true).getActivities();
-      Activity activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
-      Module libModule = null;
-      if (activity == null) {
-        for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(module, true)) {
-          final Module depModule = depFacet.getModule();
-          activities = ManifestInfo.get(depModule, true).getActivities();
-          activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
 
+    if (AndroidRunConfiguration.doesPackageContainMavenProperty(myFacet)) {
+      return;
+    }
 
-          if (activity != null) {
-            libModule = depModule;
-            break;
-          }
-        }
-        if (activity == null) {
-          throw new RuntimeConfigurationError(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
-        }
-        else if (!myFacet.getProperties().ENABLE_MANIFEST_MERGING) {
-          throw new RuntimeConfigurationError(AndroidBundle.message("activity.declared.but.manifest.merging.disabled", c.getName(),
-                                                                    libModule.getName(), module.getName()));
-        }
+    // check whether activity is declared in the manifest
+    List<Activity> activities = ManifestInfo.get(module, true).getActivities();
+    Activity activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
+    if (activity != null) {
+      return;
+    }
+
+    Module libModule = null;
+    for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(module, true)) {
+      final Module depModule = depFacet.getModule();
+      activities = ManifestInfo.get(depModule, true).getActivities();
+      activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
+
+      if (activity != null) {
+        libModule = depModule;
+        break;
       }
+    }
+    if (activity == null) {
+      throw new ActivityLocatorException(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
+    }
+    else if (!myFacet.getProperties().ENABLE_MANIFEST_MERGING) {
+      throw new ActivityLocatorException(
+        AndroidBundle.message("activity.declared.but.manifest.merging.disabled", c.getName(), libModule.getName(), module.getName()));
     }
   }
 
@@ -158,14 +162,5 @@ public class SpecificActivityLauncher extends AndroidActivityLauncher {
       }
     }
     return null;
-  }
-
-  private static boolean isActivityLaunchable(List<IntentFilter> intentFilters) {
-    for (IntentFilter filter : intentFilters) {
-      if (AndroidDomUtil.containsAction(filter, AndroidUtils.LAUNCH_ACTION_NAME)) {
-        return true;
-      }
-    }
-    return false;
   }
 }
