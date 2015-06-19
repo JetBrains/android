@@ -70,7 +70,10 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
                          @Nullable String eventLabel,
                          @Nullable Integer eventValue) {
 
-    // don't send if we're not android studio
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      return;
+    }
+
     if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
       return;
     }
