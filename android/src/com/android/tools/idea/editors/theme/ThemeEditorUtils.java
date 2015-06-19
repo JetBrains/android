@@ -16,6 +16,10 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.BuildTypeContainer;
+import com.android.builder.model.ProductFlavorContainer;
+import com.android.builder.model.SourceProvider;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
@@ -25,10 +29,13 @@ import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.rendering.ResourceFolderRegistry;
+import com.android.tools.idea.rendering.ResourceFolderRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.lint.checks.ApiLookup;
 import com.google.common.base.Predicate;
@@ -37,6 +44,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,10 +57,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -176,11 +185,10 @@ public class ThemeEditorUtils {
 
     ThemeEditorStyle currentStyle = style;
     while (currentStyle != null) {
-      for (final ItemResourceValue value : currentStyle.getValues()) {
-        String itemName = StyleResolver.getQualifiedItemName(value);
-        if (!namesSet.contains(itemName)) {
-          allValues.add(new EditedStyleItem(value, currentStyle));
-          namesSet.add(itemName);
+      for (final EditedStyleItem value : currentStyle.getValues()) {
+        if (!namesSet.contains(value.getName())) {
+          allValues.add(value);
+          namesSet.add(value.getName());
         }
       }
 
@@ -196,6 +204,7 @@ public class ThemeEditorUtils {
         return item1.getQualifiedName().compareTo(item2.getQualifiedName());
       }
     });
+
     return allValues;
   }
 
@@ -389,5 +398,83 @@ public class ThemeEditorUtils {
 
     // Copies the theme to the new file
     action.apply(toBeCopied, toBeCopied, context);
+  }
+
+  /**
+   * Given a {@link SourceProvider}, it returns a list of all the available ResourceFolderRepositories
+   */
+  // TODO: Add a string to identify where the SourceSet came from
+  public static List<ResourceFolderRepository> getResourceFolderRepositoiesFromSourceSet(@NotNull AndroidFacet facet,
+                                                                                         @Nullable SourceProvider provider) {
+    if (provider == null) {
+      return Collections.emptyList();
+    }
+
+    Collection<File> resDirectories = provider.getResDirectories();
+    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    List<ResourceFolderRepository> folders = Lists.newArrayListWithExpectedSize(resDirectories.size());
+    for (File dir : resDirectories) {
+      VirtualFile virtualFile = fileSystem.findFileByIoFile(dir);
+      if (virtualFile != null) {
+        folders.add(ResourceFolderRegistry.get(facet, virtualFile));
+      }
+    }
+
+    return folders;
+  }
+
+  /**
+   * Interface to visit all the available {@link LocalResourceRepository}
+   */
+  public interface ResourceFolderVisitor {
+    /**
+     * @param resources a repository containing resources
+     * @param isSelected true if the current passed repository is in an active source set
+     */
+    void visitResourceFolder(@NotNull LocalResourceRepository resources, boolean isSelected);
+  }
+
+  /**
+   * Visits every ResourceFolderRepository
+   */
+  public static void acceptResourceResolverVisitor(@NotNull AndroidFacet facet, @NotNull ResourceFolderVisitor visitor) {
+    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
+
+    if (ideaAndroidProject == null) {
+      visitor.visitResourceFolder(AppResourceRepository.getAppResources(facet, true), true);
+      return;
+    }
+
+    assert facet.isGradleProject();
+    AndroidProject project = ideaAndroidProject.getDelegate();
+    Collection<BuildTypeContainer> buildTypes = project.getBuildTypes();
+    Collection<ProductFlavorContainer> productFlavors = project.getProductFlavors();
+    Set<SourceProvider> selectedProviders = Sets.newHashSet();
+
+    selectedProviders.add(facet.getBuildTypeSourceProvider());
+    for (ResourceFolderRepository repository : getResourceFolderRepositoiesFromSourceSet(facet, facet.getBuildTypeSourceProvider())) {
+      visitor.visitResourceFolder(repository, true);
+    }
+
+    selectedProviders.add(facet.getMultiFlavorSourceProvider());
+    for (ResourceFolderRepository repository : getResourceFolderRepositoiesFromSourceSet(facet, facet.getMultiFlavorSourceProvider())) {
+      visitor.visitResourceFolder(repository, true);
+    }
+
+    for (BuildTypeContainer buildType : buildTypes) {
+      if (selectedProviders.add(buildType.getSourceProvider())) {
+        for (ResourceFolderRepository repository : getResourceFolderRepositoiesFromSourceSet(facet, buildType.getSourceProvider())) {
+          visitor.visitResourceFolder(repository, false);
+        }
+      }
+    }
+
+    for (ProductFlavorContainer productFlavor : productFlavors) {
+      if (selectedProviders.add(productFlavor.getSourceProvider())) {
+        for (ResourceFolderRepository repository : getResourceFolderRepositoiesFromSourceSet(facet, productFlavor.getSourceProvider())) {
+          visitor.visitResourceFolder(repository, false);
+        }
+      }
+    }
   }
 }
