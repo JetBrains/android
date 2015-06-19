@@ -18,10 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.*;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.descriptors.*;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
@@ -290,11 +287,11 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     }
     else {
       for (RemotePkgInfo info : infos) {
-        if (info.getPkgDesc().getType().equals(PkgType.PKG_SYS_IMAGE)) {
+        if (SystemImageDescription.hasSystemImage(info.getPkgDesc())) {
           IAndroidTarget target = findTarget(info);
-          SystemImageDescription desc = new SystemImageDescription(info.getPkgDesc(), target);
-          if (myFilter == null || myFilter.apply(desc)) {
-            items.add(desc);
+          SystemImageDescription image = new SystemImageDescription(info.getPkgDesc(), target);
+          if (myFilter == null || myFilter.apply(image)) {
+            items.add(image);
           }
         }
       }
