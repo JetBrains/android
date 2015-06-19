@@ -198,4 +198,35 @@ public class ThemeSelectorTest extends GuiTestCase {
     assertEquals("<style ^name=\"NewTheme\" parent=\"@android:style/Theme.Holo\" />",
                  editor.getCurrentLineContents(true, true, 0));
   }
+
+
+  /**
+   * Tests that we can remove AppCompat and the themes update correctly.
+   * Test that we can open the simple application and the theme editor opens correctly.
+   */
+  @Test @IdeGuiTest
+  public void testRemoveAppCompat() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    List<String> themeList = themeEditor.getThemesList();
+    assertThat(themeList).contains("Theme.AppCompat.Light.NoActionBar");
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/build.gradle");
+
+    editor.moveTo(editor.findOffset("compile 'com.android.support:app", null, true));
+    editor.invokeAction(EditorFixture.EditorAction.DELETE_LINE);
+    editor.invokeAction(EditorFixture.EditorAction.SAVE);
+
+    themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    projectFrame.requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    // Check AppCompat themes are gone
+    themeList = themeEditor.getThemesList();
+    assertThat(themeList)
+      .excludes("Theme.AppCompat.Light.NoActionBar")
+      .contains("Theme.Material.NoActionBar")
+      .contains("Theme.Material.Light.NoActionBar");
+  }
 }
