@@ -17,6 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.tools.idea.templates.recipe.RecipeContext;
 import com.android.utils.XmlUtils;
@@ -289,6 +290,12 @@ public class Template {
         doRender(outputRootPath, moduleRootPath, args, project, gradleSyncIfNeeded);
       }
     });
+
+    String title = myMetadata.getTitle();
+    if (title != null) {
+      UsageTracker.getInstance()
+        .trackEvent(UsageTracker.CATEGORY_TEMPLATE, UsageTracker.ACTION_TEMPLATE_RENDER, title, null);
+    }
   }
 
   private void doRender(@NotNull File outputRootPath,
