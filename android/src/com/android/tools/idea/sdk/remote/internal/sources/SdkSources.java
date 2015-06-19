@@ -205,8 +205,7 @@ public class SdkSources {
     // that necessary. This is more a protection in case of someone calls this
     // from a worker thread by mistake.
     synchronized (mySources) {
-      // Remove all existing user sources
-      removeAll(SdkSourceCategory.USER_ADDONS);
+      List<SdkSource> result = Lists.newArrayList();
 
       // Load new user sources from property file
       FileInputStream fis = null;
@@ -242,12 +241,15 @@ public class SdkSources {
                 s = new SdkAddonSource(url, disp);
               }
               if (!hasSourceUrl(s)) {
-                add(SdkSourceCategory.USER_ADDONS, s);
+                result.add(s);
               }
             }
           }
         }
-
+        if (result.isEmpty()) {
+          result = EMPTY_LIST;
+        }
+        mySources.put(SdkSourceCategory.USER_ADDONS, result);
       }
       catch (NumberFormatException e) {
         log.error(e, null);
