@@ -21,6 +21,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
+import com.intellij.xml.CommonXmlStrings;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +33,8 @@ import java.util.*;
 
 import static com.android.tools.lint.detector.api.TextFormat.HTML;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
+import static com.intellij.xml.CommonXmlStrings.HTML_END;
+import static com.intellij.xml.CommonXmlStrings.HTML_START;
 
 /**
  * @author Eugene.Kudelevsky
@@ -157,7 +160,11 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
     for (ProblemData problemData : problems) {
       final String originalMessage = problemData.getMessage();
-      final String formattedMessage = RAW.convertTo(originalMessage, HTML);
+
+      // We need to have explicit <html> and </html> tags around the text; inspection infrastructure
+      // such as the {@link com.intellij.codeInspection.ex.DescriptorComposer} will call
+      // {@link com.intellij.xml.util.XmlStringUtil.isWrappedInHtml}. See issue 177283 for uses.
+      final String formattedMessage = HTML_START + RAW.convertTo(originalMessage, HTML) + HTML_END;
       final TextRange range = problemData.getTextRange();
 
       if (range.getStartOffset() == range.getEndOffset()) {
