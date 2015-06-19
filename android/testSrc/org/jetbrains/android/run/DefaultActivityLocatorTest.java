@@ -18,23 +18,23 @@ package org.jetbrains.android.run;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 
 /**
- * Tests for {@link org.jetbrains.android.run.DefaultActivityLauncher}.
+ * Tests for {@link DefaultActivityLocator}.
  */
-public class DefaultActivityLauncherTest extends AndroidGradleTestCase {
+public class DefaultActivityLocatorTest extends AndroidGradleTestCase {
   public void testActivity() throws Exception {
     loadProject("projects/runConfig/activity");
-    assertEquals("com.example.unittest.Launcher", DefaultActivityLauncher.computeDefaultActivity(myAndroidFacet));
+    assertEquals("com.example.unittest.Launcher", DefaultActivityLocator.computeDefaultActivity(myAndroidFacet));
   }
 
   public void testActivityAlias() throws Exception {
     loadProject("projects/runConfig/alias");
-    assertEquals("LauncherAlias", DefaultActivityLauncher.computeDefaultActivity(myAndroidFacet));
+    assertEquals("LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myAndroidFacet));
   }
 
   // tests that when there are multiple activities that with action MAIN and category LAUNCHER, then give
   // preference to the one that also has category DEFAULT
   public void testPreferDefaultCategoryActivity() throws Exception {
     loadProject("projects/runConfig/default");
-    assertEquals("com.example.unittest.LauncherAlias", DefaultActivityLauncher.computeDefaultActivity(myAndroidFacet));
+    assertEquals("com.example.unittest.LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myAndroidFacet));
   }
 }

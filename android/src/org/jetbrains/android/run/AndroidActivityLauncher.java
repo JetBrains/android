@@ -38,27 +38,31 @@ import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
  * A base class for application launchers that starts an activity (rather then e.g. a test).
  * Subclasses should fill in the logic for determining which activity.
  */
-public abstract class AndroidActivityLauncher extends AndroidApplicationLauncher {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidActivityLauncher");
+public class AndroidActivityLauncher extends AndroidApplicationLauncher {
+  private static final Logger LOG = Logger.getInstance(AndroidActivityLauncher.class);
 
-  protected static class ActivityNameException extends Exception {
-    public ActivityNameException(String message) {
-      super(message);
+  @NotNull private final AndroidFacet myFacet;
+  private final boolean myNeedsLaunch;
+  @NotNull private final ActivityLocator myActivityLocator;
+
+  public AndroidActivityLauncher(@NotNull AndroidFacet facet, boolean needsLaunch, @NotNull ActivityLocator locator) {
+    myFacet = facet;
+    myNeedsLaunch = needsLaunch;
+    myActivityLocator = locator;
+  }
+
+  public void checkConfiguration() throws RuntimeConfigurationException {
+    try {
+      myActivityLocator.validate(myFacet);
     }
-
-    public ActivityNameException(String message, Throwable cause) {
-      super(message, cause);
+    catch (ActivityLocator.ActivityLocatorException e) {
+      throw new RuntimeConfigurationException(e.getMessage());
     }
   }
 
-  public abstract void checkConfiguration() throws RuntimeConfigurationException;
-
   @NotNull
-  protected abstract String getActivityName() throws ActivityNameException;
-
-  @NotNull
-  private String getQualifiedActivityName(@NotNull final AndroidFacet facet) throws ActivityNameException {
-    final String activityName = getActivityName();
+  private String getQualifiedActivityName(@NotNull final AndroidFacet facet) throws ActivityLocator.ActivityLocatorException {
+    final String activityName = myActivityLocator.getActivityName();
     // Return the qualified activity name if possible.
     final String activityRuntimeQName = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
       @Override
@@ -95,19 +99,32 @@ public abstract class AndroidActivityLauncher extends AndroidApplicationLauncher
         }
         LOG.info("Debugger already attached");
         return false;
-      default:
+      case WAITING:
         return true;
+      case DEFAULT:
+      default:
+        String msg = "Client not ready yet.";
+        if (processHandler != null) {
+          processHandler.notifyTextAvailable(msg + "\n", STDOUT);
+        }
+        LOG.info(msg);
+        return false;
     }
   }
 
   @Override
   public LaunchResult launch(@NotNull AndroidRunningState state, @NotNull IDevice device)
     throws IOException, AdbCommandRejectedException, TimeoutException {
+    if (!myNeedsLaunch) {
+      return LaunchResult.NOTHING_TO_DO;
+    }
+
     ProcessHandler processHandler = state.getProcessHandler();
-    String activityName;
+    String activityName = null;
     try {
       activityName = getQualifiedActivityName(state.getFacet());
-    } catch (ActivityNameException e) {
+    }
+    catch (ActivityLocator.ActivityLocatorException e) {
       processHandler.notifyTextAvailable("Could not identify launch activity: " + e.getMessage(), STDOUT);
       return LaunchResult.NOTHING_TO_DO;
     }
