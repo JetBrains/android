@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.intellij.notification.EventLog;
@@ -24,7 +25,6 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
 import org.fest.assertions.Index;
-import org.fest.swing.annotation.GUITest;
 import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -55,8 +55,7 @@ public class ThemeEditorTest extends GuiTestCase {
     }
   }
 
-  @Test
-  @GUITest
+  @Test @IdeGuiTest
   public void testOpenProject() throws IOException {
     // Test that we can open the simple application and the theme editor opens correctly
     IdeFrameFixture projectFrame = importSimpleApplication();
