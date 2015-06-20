@@ -18,7 +18,11 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.*;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.descriptors.*;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.tools.idea.sdk.SdkLoadedCallback;
+import com.android.tools.idea.sdk.SdkPackages;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
@@ -220,43 +224,33 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     myRemoteStatusPanel.setVisible(true);
     myRefreshButton.setEnabled(false);
     final List<SystemImageDescription> items = Lists.newArrayList();
-    Runnable localComplete = new Runnable() {
+    SdkLoadedCallback localComplete = new SdkLoadedCallback(true) {
       @Override
-      public void run() {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-
-            items.addAll(getLocalImages());
-            // Update list in the UI immediately with the locally available system images
-            updateListModel(items);
-            if (items.isEmpty()) {
-              myShowRemoteCheckbox.setSelected(true);
-            }
-          }
-        });
+      public void doRun(@NotNull SdkPackages packages) {
+        // getLocalImages() doesn't use SdkPackages, so it's ok that we're not using what's passed in.
+        items.addAll(getLocalImages());
+        // Update list in the UI immediately with the locally available system images
+        updateListModel(items);
+        if (items.isEmpty()) {
+          myShowRemoteCheckbox.setSelected(true);
+        }
       }
     };
-    Runnable remoteComplete = new Runnable() {
+    SdkLoadedCallback remoteComplete = new SdkLoadedCallback(true) {
       @Override
-      public void run() {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            List<SystemImageDescription> remotes = getRemoteImages();
-            if (remotes != null) {
-              items.addAll(remotes);
-              updateListModel(items);
-              myRemoteStatusPanel.setVisible(false);
-              myRefreshButton.setEnabled(true);
-            }
-            else {
-              myShowRemoteCheckbox.setEnabled(false);
-              myShowRemoteCheckbox.setSelected(false);
-              myRemoteStatusPanel.setVisible(false);
-            }
-          }
-        });
+      public void doRun(@NotNull SdkPackages packages) {
+        List<SystemImageDescription> remotes = getRemoteImages(packages);
+        if (remotes != null) {
+          items.addAll(remotes);
+          updateListModel(items);
+          myRemoteStatusPanel.setVisible(false);
+          myRefreshButton.setEnabled(true);
+        }
+        else {
+          myShowRemoteCheckbox.setEnabled(false);
+          myShowRemoteCheckbox.setSelected(false);
+          myRemoteStatusPanel.setVisible(false);
+        }
       }
     };
     Runnable error = new Runnable() {
@@ -278,9 +272,9 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   }
 
   @Nullable
-  private List<SystemImageDescription> getRemoteImages() {
+  private List<SystemImageDescription> getRemoteImages(@NotNull SdkPackages packages) {
     List<SystemImageDescription> items = Lists.newArrayList();
-    Set<RemotePkgInfo> infos = mySdkState.getPackages().getNewPkgs();
+    Set<RemotePkgInfo> infos = packages.getNewPkgs();
 
     if (infos.isEmpty()) {
       return null;
