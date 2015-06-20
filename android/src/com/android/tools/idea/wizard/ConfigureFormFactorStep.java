@@ -16,6 +16,8 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.tools.idea.sdk.SdkLoadedCallback;
+import com.android.tools.idea.sdk.SdkPackages;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
@@ -44,7 +46,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.View;
 import java.awt.*;
 import java.io.File;
 import java.util.*;
@@ -254,25 +255,19 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   }
 
   private void findCompatibleSdk(final FormFactor formFactor, final int minSdkLevel, final HyperlinkLabel link, final JPanel cardPanel) {
-    final SdkState state = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
-    Runnable onComplete = new Runnable() {
+    SdkLoadedCallback onComplete = new SdkLoadedCallback(true) {
       @Override
-      public void run() {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            List<RemotePkgInfo> packageList = Lists.newArrayList(state.getPackages().getNewPkgs());
-            Collections.sort(packageList);
-            Iterator<RemotePkgInfo> result =
-              Iterables.filter(packageList, FormFactorUtils.getMinSdkPackageFilter(formFactor, minSdkLevel)).iterator();
-            if (result.hasNext()) {
-              showDownloadLink(link, result.next(), cardPanel);
-            }
-            else {
-              cardPanel.setVisible(false);
-            }
-          }
-        }, ModalityState.any());
+      public void doRun(@NotNull SdkPackages packages) {
+        List<RemotePkgInfo> packageList = Lists.newArrayList(packages.getNewPkgs());
+        Collections.sort(packageList);
+        Iterator<RemotePkgInfo> result =
+          Iterables.filter(packageList, FormFactorUtils.getMinSdkPackageFilter(formFactor, minSdkLevel)).iterator();
+        if (result.hasNext()) {
+          showDownloadLink(link, result.next(), cardPanel);
+        }
+        else {
+          cardPanel.setVisible(false);
+        }
       }
     };
 
@@ -288,7 +283,8 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       }
     };
 
-    state.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, onComplete, onError, false);
+    SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk()).loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, onComplete,
+                                                                            onError, false);
   }
 
   private void showDownloadLink(final HyperlinkLabel link, final RemotePkgInfo remote, final JPanel cardPanel) {

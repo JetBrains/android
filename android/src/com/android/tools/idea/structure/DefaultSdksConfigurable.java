@@ -21,10 +21,8 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.sdk.DispatchRunnable;
-import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
-import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -118,9 +116,9 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     final CardLayout layout = (CardLayout)myNdkDownloadPanel.getLayout();
     layout.show(myNdkDownloadPanel, "loading");
     final SdkState sdkState = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
-    sdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, new DispatchRunnable() {
+    sdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, new SdkLoadedCallback(true) {
       @Override
-      public void doRun() {
+      public void doRun(@NotNull SdkPackages packages) {
         if (!sdkState.getPackages().getRemotePkgInfos().get(PkgType.PKG_NDK).isEmpty()) {
           layout.show(myNdkDownloadPanel, "link");
         }
