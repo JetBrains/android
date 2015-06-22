@@ -539,6 +539,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
     addExtraBuildActions();
 
+    hideMiscActions();
+
     registerAppClosing();
 
     // Always reset the Default scheme to match Android standards
@@ -559,6 +561,14 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
 
     checkAndSetAndroidSdkSources();
+  }
+
+  private static void hideMiscActions() {
+    ActionManager am = ActionManager.getInstance();
+    // "Configure Plugins..." Not sure why it's called StartupWizard.
+    AnAction pluginAction = am.getAction("StartupWizard");
+    // Never applicable in the context of android studio, so just set to invisible.
+    pluginAction.getTemplatePresentation().setVisible(false);
   }
 
   private static void addExtraBuildActions() {
