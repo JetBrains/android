@@ -379,7 +379,7 @@ public class ResourceNotificationManager implements ProjectComponent {
 
     private void notifyListeners(@NonNull EnumSet<Reason> reason) {
       long generation = myFacet.getAppResources(true).getModificationCount();
-      if (reason.size() == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation <= myGeneration) {
+      if (reason.size() == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation == myGeneration) {
         // Notified of an edit in some file that could potentially affect the resources, but
         // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
         // such as a variant change, then notify regardless
