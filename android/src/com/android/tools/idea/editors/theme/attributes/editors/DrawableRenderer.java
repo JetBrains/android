@@ -16,10 +16,12 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.swing.SwatchComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import javax.swing.JTable;
@@ -27,19 +29,25 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.Component;
 
 public class DrawableRenderer implements TableCellRenderer, ThemeEditorContext.ChangeListener {
-  private final DrawableComponent myComponent;
+  static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b>";
+  private final ResourceComponent myComponent;
   private RenderTask myRenderTask;
 
   public DrawableRenderer(final ThemeEditorContext context) {
     myRenderTask = configureRenderTask(context);
     context.addChangeListener(this);
 
-    myComponent = new DrawableComponent();
+    myComponent = new ResourceComponent();
   }
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    myComponent.configure((EditedStyleItem) value, myRenderTask);
+    EditedStyleItem item = (EditedStyleItem) value;
+    myComponent.setSwatchIcons(
+      SwatchComponent.imageListOf(myRenderTask.renderDrawableAllStates(item.getItemResourceValue())));
+    myComponent.setNameText(String.format(LABEL_TEMPLATE, ColorRenderer.DEFAULT_COLOR.toString(),
+                                          ThemeEditorUtils.getDisplayHtml(item)));
+    myComponent.setValueText(item.getValue());
     return myComponent;
   }
 

@@ -28,6 +28,8 @@ import javax.swing.*;
 import javax.swing.border.Border;
 
 public class AttributesPanel {
+  private static final boolean ENABLE_ADVANCED_MODE = false;
+
   public static final Border BORDER = BorderFactory.createEmptyBorder(10, 10, 10, 10);
 
   private JComboBox myThemeCombo;
@@ -46,9 +48,9 @@ public class AttributesPanel {
     myBackButton.setIcon(AllIcons.Actions.Back);
     myBackButton.setBorder(BORDER);
 
-    myPaletteScrollPane.setVisible(false);
-    myAdvancedFilterCheckBox.setVisible(false);
-    myAttrGroupCombo.setVisible(false);
+    myPaletteScrollPane.setVisible(ENABLE_ADVANCED_MODE);
+    myAdvancedFilterCheckBox.setVisible(ENABLE_ADVANCED_MODE);
+    myAttrGroupCombo.setVisible(ENABLE_ADVANCED_MODE);
 
     new ComboboxSpeedSearch(myThemeCombo);
 
