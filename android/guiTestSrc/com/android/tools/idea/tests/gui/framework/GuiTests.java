@@ -280,7 +280,7 @@ public final class GuiTests {
 
     Container root = getRootContainer(component);
 
-    // First fine the JBList which holds the popup. There could be other JBLists in the hierarchy,
+    // First find the JBList which holds the popup. There could be other JBLists in the hierarchy,
     // so limit it to one that is actually used as a popup, as identified by its model being a ListPopupModel:
     assertNotNull(root);
     JBList list = robot.finder().find(root, new GenericTypeMatcher<JBList>(JBList.class) {

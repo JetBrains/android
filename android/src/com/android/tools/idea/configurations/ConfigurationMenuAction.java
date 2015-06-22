@@ -213,11 +213,13 @@ public class ConfigurationMenuAction extends FlatComboAction {
   }
 
   static void addScreenSizeAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
-    group.add(new PreviewAction(context, "Preview All Screen Sizes", ACTION_PREVIEW_MODE, RenderPreviewMode.SCREENS, true));
+    boolean enabled = context.supportsPreviews();
+    group.add(new PreviewAction(context, "Preview All Screen Sizes", ACTION_PREVIEW_MODE, RenderPreviewMode.SCREENS, enabled));
   }
 
   static void addRemovePreviewsAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
-    group.add(new PreviewAction(context, "Remove Previews", ACTION_PREVIEW_MODE, RenderPreviewMode.NONE, true));
+    boolean enabled = context.supportsPreviews();
+    group.add(new PreviewAction(context, "Remove Previews", ACTION_PREVIEW_MODE, RenderPreviewMode.NONE, enabled));
   }
 
   private static final int ACTION_ADD = 1;
