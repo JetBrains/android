@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.swing;
+package com.android.tools.swing.ui;
 
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.swing.util.GraphicsUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.Gray;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,15 +47,15 @@ public class SwatchComponent extends ClickableLabel {
   /**
    * Padding used vertically and horizontally
    */
-  private static final int PADDING = 2;
+  private static final int PADDING = JBUI.scale(2);
   /**
    * Additional padding from the top for the value label. The text padding from the top will be PADDING + TEXT_PADDING
    */
-  private static final int TEXT_PADDING = 5;
+  private static final int TEXT_PADDING = JBUI.scale(8);
   /**
    * Separation between states
    */
-  private static final int SWATCH_HORIZONTAL_ICONS_PADDING = 2;
+  private static final int SWATCH_HORIZONTAL_ICONS_PADDING = JBUI.scale(2);
   private static final int ARC_SIZE = ThemeEditorConstants.ROUNDED_BORDER_ARC_SIZE;
 
   private List<SwatchIcon> myIconList = Collections.emptyList();
@@ -91,14 +92,13 @@ public class SwatchComponent extends ClickableLabel {
     Shape savedClip = g.getClip();
     int xOffset = PADDING;
     for (SwatchIcon icon : myIconList) {
-      g.setClip(new RoundRectangle2D.Double(xOffset, PADDING, iconSize, iconSize, ARC_SIZE, ARC_SIZE));
+      g.clip(new RoundRectangle2D.Double(xOffset, PADDING, iconSize, iconSize, ARC_SIZE, ARC_SIZE));
       icon.paint(this, g, xOffset, PADDING, iconSize, iconSize);
       g.setColor(Gray._239);
-      g.setClip(null);
+      g.setClip(savedClip);
       g.drawRoundRect(xOffset, PADDING, iconSize, iconSize, ARC_SIZE, ARC_SIZE);
       xOffset += iconSize + SWATCH_HORIZONTAL_ICONS_PADDING;
     }
-    g.setClip(savedClip);
 
     xOffset += SWATCH_HORIZONTAL_ICONS_PADDING * 2;
 
