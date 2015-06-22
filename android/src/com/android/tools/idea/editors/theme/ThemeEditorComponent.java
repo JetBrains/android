@@ -35,7 +35,6 @@ import com.android.tools.idea.editors.theme.attributes.ShowJavadocAction;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
 import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.BooleanRendererEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.ColorComponent;
 import com.android.tools.idea.editors.theme.attributes.editors.ColorEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.ColorRenderer;
 import com.android.tools.idea.editors.theme.attributes.editors.DelegatingCellEditor;
@@ -46,6 +45,7 @@ import com.android.tools.idea.editors.theme.attributes.editors.EnumRendererEdito
 import com.android.tools.idea.editors.theme.attributes.editors.FlagRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.IntegerRenderer;
 import com.android.tools.idea.editors.theme.attributes.editors.ParentRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.ResourceComponent;
 import com.android.tools.idea.editors.theme.attributes.editors.StyleListCellRenderer;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
@@ -933,9 +933,10 @@ public class ThemeEditorComponent extends Splitter {
 
     int headerFontSize = getFontMetrics(myHeaderFont).getHeight();
 
-    // Big cells contain two lines of text, and we want some space between them
-    // (thus multiplier is 2.8 rather than 2). Also, we need some padding on top and bottom.
-    int bigCellSize = 2 * regularFontSize + ColorComponent.SUM_PADDINGS;
+    // We calculate the size of the resource cell (drawable and color cells) by creating a ResourceComponent that
+    // we use to measure the preferred size.
+    ResourceComponent sampleComponent = new ResourceComponent();
+    int bigCellSize = sampleComponent.getPreferredSize().height;
     myAttributesTable.setClassHeights(ImmutableMap.of(
       Object.class, regularFontSize + REGULAR_CELL_PADDING,
       Color.class, bigCellSize,
