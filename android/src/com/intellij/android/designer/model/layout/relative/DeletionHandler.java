@@ -160,7 +160,9 @@ public class DeletionHandler {
       return;
     }
 
-    assert myDeleted.contains(deleted);
+    if (!myDeleted.contains(deleted)) {
+      return;
+    }
 
     for (XmlAttribute attribute : deleted.getTag().getAttributes()) {
       String name = attribute.getLocalName();
