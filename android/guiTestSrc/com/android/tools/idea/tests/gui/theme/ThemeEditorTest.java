@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixtu
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.project.Project;
 import org.fest.assertions.Index;
 import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
@@ -49,8 +48,9 @@ public class ThemeEditorTest extends GuiTestCase {
   /**
    * Checks that no errors are present in the event log
    */
-  private static void checkNoErrors(@NotNull Project project) {
-    for(Notification notification : EventLog.getLogModel(project).getNotifications()) {
+  private static void checkNoErrors(@NotNull IdeFrameFixture projectFrame) {
+    projectFrame.robot().waitForIdle();
+    for(Notification notification : EventLog.getLogModel(projectFrame.getProject()).getNotifications()) {
       assertThat(notification.getType()).isNotEqualTo(NotificationType.ERROR);
     }
   }
@@ -91,6 +91,6 @@ public class ThemeEditorTest extends GuiTestCase {
     assertThat(themeEditor.getPropertiesTable().rowCount()).isGreaterThan(0);
 
     projectFrame.getEditor().close();
-    checkNoErrors(projectFrame.getProject());
+    checkNoErrors(projectFrame);
   }
 }
