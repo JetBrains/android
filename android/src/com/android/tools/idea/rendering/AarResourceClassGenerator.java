@@ -15,22 +15,25 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.DeclareStyleableResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.lint.detector.api.ClassContext;
+import com.google.common.collect.Maps;
+import gnu.trove.TObjectIntHashMap;
+import gnu.trove.TObjectIntProcedure;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.org.objectweb.asm.ClassWriter;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
+import org.jetbrains.org.objectweb.asm.Type;
 
-import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static org.jetbrains.org.objectweb.asm.Opcodes.*;
 
@@ -52,14 +55,21 @@ import static org.jetbrains.org.objectweb.asm.Opcodes.*;
  * this generator will be called. It uses the normal resource repository (already used during rendering to
  * look up resources such as string and style values), and based on the names there generates bytecode on the
  * fly which can then be loaded into the VM and handled by the class loader.
+ * <p>
+ * The R class for an aar should contain the resource references to resources from the aar and all its
+ * dependencies. It is not straight-forward to get the list of dependencies after the creation of the resource
+ * repositories for each aar. So, we use the app's resource repository and generate the R file from it. This
+ * will break custom libraries that use reflection on the R class, but meh.
  */
 public class AarResourceClassGenerator {
-  @NotNull private final LocalResourceRepository myAarResources;
+
+  private Map<ResourceType, TObjectIntHashMap<String>> myCache;
+  /** For int[] in styleables. The ints in styleables are stored in {@link #myCache}. */
+  private Map<String, List<Integer>> myStyleableCache;
   @NotNull private final AppResourceRepository myAppResources;
 
-  private AarResourceClassGenerator(@NotNull AppResourceRepository appResources, @NotNull LocalResourceRepository aarResources) {
+  private AarResourceClassGenerator(@NotNull AppResourceRepository appResources) {
     myAppResources = appResources;
-    myAarResources = aarResources;
   }
 
   /**
@@ -67,20 +77,20 @@ public class AarResourceClassGenerator {
    *
    * @param appResources the application resources used during rendering; this is used to look up dynamic id's
    *                     for resources
-   * @param aarResources the resource registry for the AAR library
-   * @return
    */
-  @Nullable
-  public static AarResourceClassGenerator create(@NotNull AppResourceRepository appResources,
-                                                 @NotNull LocalResourceRepository aarResources) {
-    return new AarResourceClassGenerator(appResources, aarResources);
+  @NotNull
+  public static AarResourceClassGenerator create(@NotNull AppResourceRepository appResources) {
+    return new AarResourceClassGenerator(appResources);
   }
 
+  /**
+   * @param fqcn Fully qualified class name (as accepted by ClassLoader, or as returned by Class.getName())
+   */
   @Nullable
   public byte[] generate(String fqcn) {
-    String className = ClassContext.getInternalName(fqcn);
-    ClassWriter cw = new ClassWriter(0);
-    cw.visit(V1_6, ACC_PUBLIC + ACC_FINAL + ACC_SUPER, className, null, "java/lang/Object", null);
+    String className = fqcn.replace('.', '/');
+    ClassWriter cw = new ClassWriter(0);  // Don't compute MAXS and FRAMES.
+    cw.visit(V1_6, ACC_PUBLIC + ACC_FINAL + ACC_SUPER, className, null, Type.getInternalName(Object.class), null);
 
     int index = className.lastIndexOf('$');
     if (index != -1) {
@@ -91,124 +101,202 @@ public class AarResourceClassGenerator {
       }
 
       cw.visitInnerClass(className, className.substring(0, index), typeName, ACC_PUBLIC + ACC_FINAL + ACC_STATIC);
-
+      if (myCache == null) {
+        myCache = Maps.newHashMap();
+      }
       if (type == ResourceType.STYLEABLE) {
-        type = ResourceType.DECLARE_STYLEABLE;
-        Collection<String> keys = myAarResources.getItemsOfType(type);
-        for (String key : keys) {
-          List<ResourceItem> items = myAarResources.getResourceItem(type, key);
-          if (items == null || items.isEmpty()) {
-            continue;
-          }
-          ResourceItem item = items.get(0);
-          cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, key, "[I", null, null);
-          ResourceValue resourceValue = item.getResourceValue(false);
-          assert resourceValue instanceof DeclareStyleableResourceValue;
-          DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
-          List<AttrResourceValue> attributes = dv.getAllAttributes();
-          int idx = 0;
-          for (AttrResourceValue value : attributes) {
-            Integer initialValue = idx++;
-            StringBuilder sb = new StringBuilder(30);
-            sb.append(key);
-            sb.append('_');
-            if (value.isFramework()) {
-              sb.append("android_");
-            }
-            String v = value.getName();
-            // See AndroidResourceUtil.getFieldNameByResourceName
-            for (int i = 0, n = v.length(); i < n; i++) {
-              char c = v.charAt(i);
-              if (c == '.' || c == ':' || c == '-') {
-                sb.append('_');
-              } else {
-                sb.append(c);
-              }
-            }
-            cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, sb.toString(), "I", null, initialValue).visitEnd();
-          }
+        if (myStyleableCache == null) {
+          TObjectIntHashMap<String> styleableIntCache = new TObjectIntHashMap<String>();
+          myCache.put(type, styleableIntCache);
+          myStyleableCache = Maps.newHashMap();
+          generateStyleable(cw, styleableIntCache, className);
         }
-
-        MethodVisitor mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
-        mv.visitCode();
-
-        for (String key : keys) {
-          List<ResourceItem> items = myAarResources.getResourceItem(type, key);
-          if (items == null || items.isEmpty()) {
-            continue;
-          }
-          ResourceItem item = items.get(0);
-          ResourceValue resourceValue = item.getResourceValue(false);
-          assert resourceValue instanceof DeclareStyleableResourceValue;
-          DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
-          List<AttrResourceValue> attributes = dv.getAllAttributes();
-          if (attributes.isEmpty()) {
-            continue;
-          }
-
-          mv.visitIntInsn(BIPUSH, attributes.size());
-          mv.visitIntInsn(NEWARRAY, T_INT);
-          int idx = 0;
-          for (AttrResourceValue value : attributes) {
-            mv.visitInsn(DUP);
-            switch (idx) {
-              case 0:
-                mv.visitInsn(ICONST_0);
-                break;
-              case 1:
-                mv.visitInsn(ICONST_1);
-                break;
-              case 2:
-                mv.visitInsn(ICONST_2);
-                break;
-              case 3:
-                mv.visitInsn(ICONST_3);
-                break;
-              case 4:
-                mv.visitInsn(ICONST_4);
-                break;
-              case 5:
-                mv.visitInsn(ICONST_5);
-                break;
-              default:
-                mv.visitIntInsn(BIPUSH, idx);
-                break;
-            }
-            Integer initialValue = myAppResources.getResourceId(ResourceType.ATTR, value.getName());
-            mv.visitLdcInsn(initialValue);
-            mv.visitInsn(IASTORE);
-            idx++;
-          }
-          mv.visitFieldInsn(PUTSTATIC, className, key, "[I");
+        else {
+          TObjectIntHashMap<String> styleableIntCache = myCache.get(type);
+          assert styleableIntCache != null;
+          generateFields(cw, styleableIntCache);
+          generateIntArrayFromCache(cw, className, myStyleableCache);
         }
-        mv.visitInsn(RETURN);
-        mv.visitMaxs(4, 0);
-        mv.visitEnd();
-      } else if (type == ResourceType.ID) {
-        File rDotTxt = null;
-        if (myAarResources instanceof FileResourceRepository) {
-          File resourceDirectory = ((FileResourceRepository)myAarResources).getResourceDirectory();
-          rDotTxt = new File(resourceDirectory.getParentFile(), SdkConstants.FN_RESOURCE_TEXT);
-        }
-        Collection<String> keys = null;
-        if (rDotTxt != null && rDotTxt.isFile()) {
-          keys = RDotTxtParser.parseFile(rDotTxt);
-        }
-        if (keys == null) {
-          // No R.txt found or there was error reading it.
-          keys = myAarResources.getItemsOfType(type);
-        }
-        generateFields(cw, type, keys);
       } else {
-        generateFields(cw, type, myAarResources.getItemsOfType(type));
+        TObjectIntHashMap<String> typeCache = myCache.get(type);
+        if (typeCache == null) {
+          typeCache = new TObjectIntHashMap<String>();
+          myCache.put(type, typeCache);
+          generateValuesForType(cw, type, typeCache);
+        }
+        else {
+          generateFields(cw, typeCache);
+        }
       }
     } else {
-      // Default R class
-      for (ResourceType t : myAarResources.getAvailableResourceTypes()) {
+      // Default R class.
+      boolean styleableAdded = false;
+      for (ResourceType t : myAppResources.getAvailableResourceTypes()) {
+        // getAvailableResourceTypes() sometimes returns both styleable and declare styleable. Make sure that we only create one subclass.
+        if (t == ResourceType.DECLARE_STYLEABLE) {
+          t = ResourceType.STYLEABLE;
+        }
+        if (t == ResourceType.STYLEABLE) {
+          if (styleableAdded) {
+            continue;
+          } else {
+            styleableAdded = true;
+          }
+        }
         cw.visitInnerClass(className + "$" + t.getName(), className, t.getName(), ACC_PUBLIC + ACC_FINAL + ACC_STATIC);
       }
     }
 
+    generateConstructor(cw);
+    cw.visitEnd();
+    return cw.toByteArray();
+  }
+
+  private void generateValuesForType(@NotNull ClassWriter cw, @NotNull ResourceType resType, @NotNull TObjectIntHashMap<String> cache) {
+    Collection<String> keys = resType == ResourceType.ID ? myAppResources.getAllIds() : myAppResources.getItemsOfType(resType);
+    for (String key : keys) {
+      int initialValue = myAppResources.getResourceId(resType, key);
+      generateField(cw, AndroidResourceUtil.getFieldNameByResourceName(key), initialValue);
+      cache.put(key, initialValue);
+    }
+  }
+
+  private void generateStyleable(@NotNull ClassWriter cw, @NotNull TObjectIntHashMap<String> styleableIntCache, String className) {
+    Collection<String> declaredStyleables = myAppResources.getItemsOfType(ResourceType.DECLARE_STYLEABLE);
+    // Generate all declarations - both int[] and int for the indices into the array.
+    for (String styleableName : declaredStyleables) {
+      List<ResourceItem> items = myAppResources.getResourceItem(ResourceType.DECLARE_STYLEABLE, styleableName);
+      if (items == null || items.isEmpty()) {
+        continue;
+      }
+      cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, styleableName, "[I", null, null);
+      ResourceValue resourceValue = items.get(0).getResourceValue(false);
+      assert resourceValue instanceof DeclareStyleableResourceValue;
+      DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
+      List<AttrResourceValue> attributes = dv.getAllAttributes();
+      int idx = 0;
+      for (AttrResourceValue value : attributes) {
+        Integer initialValue = idx++;
+        String styleableEntryName = getResourceName(styleableName, value);
+        cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, styleableEntryName, "I", null, initialValue);
+        styleableIntCache.put(styleableEntryName, initialValue);
+      }
+    }
+
+    // Generate class initializer block to initialize the arrays declared above.
+    MethodVisitor mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
+    mv.visitCode();
+    for (String styleableName : declaredStyleables) {
+      List<ResourceItem> items = myAppResources.getResourceItem(ResourceType.DECLARE_STYLEABLE, styleableName);
+      if (items == null || items.isEmpty()) {
+        continue;
+      }
+      ResourceValue resourceValue = items.get(0).getResourceValue(false);
+      assert resourceValue instanceof DeclareStyleableResourceValue;
+      DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
+      List<AttrResourceValue> attributes = dv.getAllAttributes();
+      if (attributes.isEmpty()) {
+        continue;
+      }
+      Integer[] valuesArray = myAppResources.getDeclaredArrayValues(attributes, styleableName);
+      if (valuesArray == null) {
+        valuesArray = new Integer[attributes.size()];
+      }
+      List<Integer> values = Arrays.asList(valuesArray);
+      myStyleableCache.put(styleableName, values);
+      int idx = -1;
+      for (AttrResourceValue value : attributes) {
+        if (valuesArray[++idx] == null || !value.isFramework()) {
+          valuesArray[idx] = myAppResources.getResourceId(ResourceType.ATTR, value.getName());
+        }
+      }
+      generateArrayInitialization(mv, className, styleableName, values);
+    }
+    mv.visitInsn(RETURN);
+    mv.visitMaxs(4, 0);
+    mv.visitEnd();
+  }
+
+  private static void generateFields(@NotNull final ClassWriter cw, @NotNull TObjectIntHashMap<String> values) {
+    values.forEachEntry(new TObjectIntProcedure<String>() {
+      @Override
+      public boolean execute(String name, int value) {
+        generateField(cw, name, value);
+        return true;
+      }
+    });
+  }
+
+  private static void generateField(@NotNull ClassWriter cw, String name, int value) {
+    cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, name, "I", null, value).visitEnd();
+  }
+
+  private static void generateIntArrayFromCache(@NotNull ClassWriter cw, String className, Map<String, List<Integer>> styleableCache) {
+    // Generate the field declarations.
+    for (String name : styleableCache.keySet()) {
+      cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, name, "[I", null, null);
+    }
+
+    // Generate class initializer block to initialize the arrays declared above.
+    MethodVisitor mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
+    mv.visitCode();
+    for (Map.Entry<String, List<Integer>> entry : styleableCache.entrySet()) {
+      List<Integer> values = entry.getValue();
+      if (!values.isEmpty()) {
+        generateArrayInitialization(mv, className, entry.getKey(), values);
+      }
+    }
+    mv.visitInsn(RETURN);
+    mv.visitMaxs(4, 0);
+    mv.visitEnd();
+  }
+
+  /**
+   * Generate code to put set the initial values of an array field (for styleables).
+   * @param mv the class initializer's MethodVisitor (&lt;clinit&gt;)
+   */
+  private static void generateArrayInitialization(@NotNull MethodVisitor mv, String className, String fieldName,
+                                                  @NotNull List<Integer> values) {
+    if (values.isEmpty()) {
+      return;
+    }
+    mv.visitIntInsn(BIPUSH, values.size());
+    mv.visitIntInsn(NEWARRAY, T_INT);
+    int idx = 0;
+    for (Integer value : values) {
+      mv.visitInsn(DUP);
+      switch (idx) {
+        case 0:
+          mv.visitInsn(ICONST_0);
+          break;
+        case 1:
+          mv.visitInsn(ICONST_1);
+          break;
+        case 2:
+          mv.visitInsn(ICONST_2);
+          break;
+        case 3:
+          mv.visitInsn(ICONST_3);
+          break;
+        case 4:
+          mv.visitInsn(ICONST_4);
+          break;
+        case 5:
+          mv.visitInsn(ICONST_5);
+          break;
+        default:
+          mv.visitIntInsn(BIPUSH, idx);
+          break;
+      }
+      mv.visitLdcInsn(value);
+      mv.visitInsn(IASTORE);
+      idx++;
+    }
+    mv.visitFieldInsn(PUTSTATIC, className, fieldName, "[I");
+  }
+
+  /** Generate an empty constructor. */
+  private static void generateConstructor(@NotNull ClassWriter cw) {
     MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
     mv.visitCode();
     mv.visitVarInsn(ALOAD, 0);
@@ -216,16 +304,25 @@ public class AarResourceClassGenerator {
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
-
-    cw.visitEnd();
-    return cw.toByteArray();
   }
 
-  private void generateFields(ClassWriter cw, ResourceType type, Collection<String> keys) {
-    for (String key : keys) {
-      Integer initialValue = myAppResources.getResourceId(type, key);
-      cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, AndroidResourceUtil.getFieldNameByResourceName(key), "I", null, initialValue)
-        .visitEnd();
+  public static String getResourceName(String styleableName, @NotNull AttrResourceValue value) {
+    StringBuilder sb = new StringBuilder(30);
+    sb.append(styleableName);
+    sb.append('_');
+    if (value.isFramework()) {
+      sb.append("android_");
     }
+    String v = value.getName();
+    // See AndroidResourceUtil.getFieldNameByResourceName
+    for (int i = 0, n = v.length(); i < n; i++) {
+      char c = v.charAt(i);
+      if (c == '.' || c == ':' || c == '-') {
+        sb.append('_');
+      } else {
+        sb.append(c);
+      }
+    }
+    return sb.toString();
   }
 }

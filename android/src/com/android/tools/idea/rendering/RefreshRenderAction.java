@@ -49,10 +49,13 @@ public class RefreshRenderAction extends AnAction {
       // Clear layoutlib bitmap cache (in case files have been modified externally)
       IAndroidTarget target = configuration.getTarget();
       Module module = configuration.getModule();
-      if (target != null && module != null) {
-        AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
-        if (targetData != null) {
-          targetData.clearLayoutBitmapCache(module);
+      if (module != null) {
+        AarResourceClassRegistry.get(module.getProject()).clearCache();
+        if (target != null) {
+          AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
+          if (targetData != null) {
+            targetData.clearLayoutBitmapCache(module);
+          }
         }
       }
 
