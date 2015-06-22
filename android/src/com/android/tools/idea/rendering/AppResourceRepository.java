@@ -35,6 +35,7 @@ import com.intellij.openapi.project.Project;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -348,6 +349,10 @@ public class AppResourceRepository extends MultiResourceRepository {
       }
     }
     setChildren(resources);
+
+    // Clear the fake R class cache and the ModuleClassLoader cache.
+    resetDynamicIds(true);
+    ModuleClassLoader.clearCache(myFacet.getModule());
   }
 
   @VisibleForTesting
