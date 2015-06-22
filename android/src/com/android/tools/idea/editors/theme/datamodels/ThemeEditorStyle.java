@@ -110,7 +110,7 @@ public class ThemeEditorStyle {
     assert facet != null : myConfiguration.getModule().getName() + " module doesn't have AndroidFacet";
     ThemeEditorUtils.acceptResourceResolverVisitor(facet, new ThemeEditorUtils.ResourceFolderVisitor() {
       @Override
-      public void visitResourceFolder(@NotNull LocalResourceRepository resources, boolean isSourceSelected) {
+      public void visitResourceFolder(@NotNull LocalResourceRepository resources, @NotNull String variantName, boolean isSourceSelected) {
         if (!isSourceSelected) {
           // Currently we ignore the source sets that are not active
           // TODO: Process all source sets
