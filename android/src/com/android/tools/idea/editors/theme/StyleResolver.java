@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
@@ -77,22 +78,41 @@ public class StyleResolver {
     return url == null ? item.getRawXmlValue() : url.toString();
   }
 
-  @NotNull
+  @Nullable
+  private StyleResourceValue getStyleResourceValue(@NotNull String qualifiedStyleName) {
+    String styleName;
+    boolean isFrameworkStyle;
+
+    if (qualifiedStyleName.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX)) {
+      styleName = qualifiedStyleName.substring(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX.length());
+      isFrameworkStyle = true;
+    } else {
+      styleName = qualifiedStyleName;
+      if (styleName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX)) {
+        styleName = styleName.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length());
+      }
+      isFrameworkStyle = false;
+    }
+
+    ResourceResolver resolver = myConfiguration.getResourceResolver();
+    assert resolver != null;
+    return resolver.getStyle(styleName, isFrameworkStyle);
+  }
+
+  @Nullable
   public ThemeEditorStyle getStyle(@NotNull final String qualifiedStyleName) {
+
+    final StyleResourceValue style = getStyleResourceValue(qualifiedStyleName);
+
+    if (style == null) {
+      return null;
+    }
+
     try {
       return myStylesCache.get(qualifiedStyleName, new Callable<ThemeEditorStyle>() {
         @Override
         public ThemeEditorStyle call() throws Exception {
-          if (qualifiedStyleName.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX)) {
-            String styleName = qualifiedStyleName.substring(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX.length());
-            return new ThemeEditorStyle(StyleResolver.this, myConfiguration, styleName, true);
-          }
-
-          String styleName = qualifiedStyleName;
-          if (qualifiedStyleName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX)) {
-            styleName = qualifiedStyleName.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length());
-          }
-          return new ThemeEditorStyle(StyleResolver.this, myConfiguration, styleName, false);
+          return new ThemeEditorStyle(StyleResolver.this, myConfiguration, style);
         }
       });
     }

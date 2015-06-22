@@ -43,7 +43,7 @@ public class EditedStyleItemTest extends AndroidTestCase {
     EditedStyleItem editedStyleItem = new EditedStyleItem(
       new ConfiguredItemResourceValue(new FolderConfiguration(), new ItemResourceValue("attribute", false, "selectedValue", false)),
       items,
-      styleResolver.getStyle("@android:style/Theme.Holo"));
+      styleResolver.getStyle("@android:style/Theme"));
 
     assertEquals("selectedValue", editedStyleItem.getValue());
     assertEquals("selectedValue", editedStyleItem.getItemResourceValue().getValue());
