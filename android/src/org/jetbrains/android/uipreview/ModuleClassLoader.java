@@ -80,6 +80,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     myModule = module;
   }
 
+  @NotNull
   @Override
   protected Class<?> findClass(String name) throws ClassNotFoundException {
     try {
@@ -88,15 +89,19 @@ public final class ModuleClassLoader extends RenderClassLoader {
       if (!myInsideJarClassLoader) {
         int index = name.lastIndexOf('.');
         if (index != -1 && name.charAt(index + 1) == 'R' && (index == name.length() - 2 || name.charAt(index + 2) == '$') && index > 1) {
-          byte[] data = AarResourceClassRegistry.get(myModule.getProject()).findClassDefinition(name);
-          if (data != null) {
-            data = convertClass(data);
-            if (DEBUG_CLASS_LOADING) {
-              //noinspection UseOfSystemOutOrSystemErr
-              System.out.println("  defining class " + name + " from AAR registry");
+          AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, false);
+          if (appResources != null) {
+            byte[] data = AarResourceClassRegistry.get(myModule.getProject()).findClassDefinition(name, appResources);
+            if (data != null) {
+              data = convertClass(data);
+              if (DEBUG_CLASS_LOADING) {
+                //noinspection UseOfSystemOutOrSystemErr
+                System.out.println("  defining class " + name + " from AAR registry");
+              }
+              return defineClassAndPackage(name, data, 0, data.length);
             }
-            return defineClassAndPackage(name, data, 0, data.length);
           }
+          throw e;
         }
       }
       byte[] clazz = null;
@@ -188,6 +193,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
           // to the .APK file location:
           //noinspection ConstantConditions
           if (classesFolder == null) {
+            @SuppressWarnings("deprecation")  // For getOutput()
             AndroidArtifactOutput output = GradleUtil.getOutput(mainArtifactInfo);
             File file = output.getMainOutputFile().getOutputFile();
             File buildFolder = file.getParentFile().getParentFile();
