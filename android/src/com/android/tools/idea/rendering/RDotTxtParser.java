@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Parse R.txt file are return a list of the id names.
@@ -33,8 +34,9 @@ class RDotTxtParser {
 
   private static final String INT_ID = "int id ";
   private static final int INT_ID_LEN = INT_ID.length();
-  private static final Logger LOG = Logger.getInstance(RDotTxtParser.class);
+  private static Logger ourLog;
 
+  @NotNull
   static Collection<String> parseFile(final File rFile) {
     try {
       return Files.readLines(rFile, Charsets.UTF_8, new LineProcessor<Collection<String>>() {
@@ -59,8 +61,15 @@ class RDotTxtParser {
       });
     }
     catch (IOException e) {
-      LOG.warn("Unable to read file: " + rFile.getPath(), e);
-      return null;
+      getLog().warn("Unable to read file: " + rFile.getPath(), e);
+      return Collections.emptyList();
     }
+  }
+
+  private static Logger getLog() {
+    if (ourLog == null) {
+      ourLog = Logger.getInstance(RDotTxtParser.class);
+    }
+    return ourLog;
   }
 }
