@@ -624,6 +624,32 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}");
   }
 
+  public void testImpliedPermissions() {
+    // Regression test for
+    //   https://code.google.com/p/android/issues/detail?id=177381
+    doCheck("package test.pkg;\n" +
+            "import android.support.annotation.RequiresPermission;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    @RequiresPermission(allOf = {\"my.permission.PERM1\",\"my.permission.PERM2\"})\n" +
+            "    public void method1() {\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresPermission(\"my.permission.PERM1\")\n" +
+            "    public void method2() {\n" +
+            "        /*Missing permissions required by X.method1: my.permission.PERM2*/method1()/**/;\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresPermission(allOf = {\"my.permission.PERM1\",\"my.permission.PERM2\"})\n" +
+            "    public void method3() {\n" +
+            "        // The above @RequiresPermission implies that we are holding these\n" +
+            "        // permissions here, so the call to method1() should not be flagged as\n" +
+            "        // missing a permission!\n" +
+            "        method1();\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   public void testLibraryRevocablePermission() {
     doCheck("package test.pkg;\n" +
             "\n" +

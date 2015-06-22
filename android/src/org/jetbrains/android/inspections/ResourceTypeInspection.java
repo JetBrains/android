@@ -405,6 +405,13 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       assert facet != null; // already checked early on in the inspection visitor
       PermissionHolder lookup = DeclaredPermissionsLookup.getPermissionHolder(facet.getModule());
       if (!requirement.isSatisfied(lookup)) {
+        // See if it looks like we're holding the permission implicitly by @RequirePermission
+        // annotations in the surrounding context
+        lookup = addLocalPermissions(lookup, methodCall);
+        if (requirement.isSatisfied(lookup)) {
+          return;
+        }
+
         PsiClass containingClass = method.getContainingClass();
         String methodName = containingClass != null ? containingClass.getName() + "." + method.getName() : method.getName();
         String message = getMissingPermissionMessage(requirement, methodName, lookup);
@@ -440,6 +447,21 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         }
       }
     }
+  }
+
+  private static PermissionHolder addLocalPermissions(PermissionHolder lookup, PsiCallExpression call) {
+    // Accumulate @RequirePermissions available in the local context
+    PsiMethod method = PsiTreeUtil.getParentOfType(call, PsiMethod.class);
+    if (method == null) {
+      return lookup;
+    }
+    PsiAnnotation annotation = AnnotationUtil.findAnnotationInHierarchy(method, Collections.singleton(PERMISSION_ANNOTATION));
+    if (annotation == null) {
+      return lookup;
+    }
+
+    PermissionRequirement requirement = PermissionRequirement.create(null, LombokPsiParser.createResolvedAnnotation(annotation));
+    return PermissionHolder.SetPermissionLookup.join(lookup, requirement);
   }
 
   private static void checkReturnValueUsage(PsiCallExpression methodCall, ProblemsHolder holder, PsiMethod method) {
@@ -1829,6 +1851,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     Collection<? extends AbstractTreeNode> children = rootNode.getChildren().iterator().next().getChildren();
     for (AbstractTreeNode child : children) {
       SliceUsage usage = (SliceUsage)child.getValue();
+      if (usage == null) {
+        continue;
+      }
       PsiElement element = usage.getElement();
       if (element instanceof PsiExpression && !processor.process((PsiExpression)element)) return false;
     }
