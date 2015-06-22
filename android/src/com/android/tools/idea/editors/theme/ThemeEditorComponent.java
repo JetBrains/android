@@ -50,9 +50,6 @@ import com.android.tools.idea.editors.theme.attributes.editors.StyleListCellRend
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
-import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.project.GradleBuildListener;
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.ResourceNotificationManager;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
 import com.google.common.base.Strings;
@@ -77,7 +74,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.ui.JBColor;
 import com.intellij.util.Processor;
-import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
@@ -490,7 +486,6 @@ public class ThemeEditorComponent extends Splitter {
     renameDialog.show();
     if (renameDialog.isOK()) {
       String newName = renameDialog.getNewName();
-      assert mySelectedTheme.getQualifiedName() != null;
       String newQualifiedName = mySelectedTheme.getQualifiedName().replace(mySelectedTheme.getName(), newName);
       AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
       if (facet != null) {
