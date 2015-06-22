@@ -16,8 +16,6 @@
 package com.android.tools.idea.rendering;
 
 import com.android.io.FileWrapper;
-import com.android.tools.idea.gradle.project.GradleBuildListener;
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.xml.AndroidManifest;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ProjectComponent;
@@ -25,8 +23,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.HashSet;
-import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +32,6 @@ import java.util.Map;
 
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.DOT_AAR;
-import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC;
 import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 
 /**
@@ -46,7 +41,6 @@ public class AarResourceClassRegistry implements ProjectComponent {
 
   private final Map<AppResourceRepository, AarResourceClassGenerator> myGeneratorMap = Maps.newHashMap();
   private final Project myProject;
-  private GradleBuildListener myBuildCompleteListener;
   private Collection<String> myPackages;
 
   @SuppressWarnings("WeakerAccess")  // Accessed via reflection.
@@ -101,42 +95,11 @@ public class AarResourceClassRegistry implements ProjectComponent {
       if (myPackages != null && myPackages.contains(pkg)) {
         AarResourceClassGenerator generator = myGeneratorMap.get(appRepo);
         if (generator != null) {
-          registerSyncListenerIfNecessary();
           return generator.generate(name);
         }
       }
     }
     return null;
-  }
-
-  /**
-   * There's a bug in the ModuleClassLoader's cache implementation, which results in crashes during preview rendering. The workaround is
-   * to clear the cache on each build. This registers a build complete listener to trigger the cache refresh.
-   */
-  private void registerSyncListenerIfNecessary() {
-    if (myBuildCompleteListener != null) {
-      return;
-    }
-    myBuildCompleteListener = new GradleBuildListener() {
-      @Override
-      public void buildFinished(@NotNull Project builtProject, @Nullable BuildMode mode) {
-        if (mode == null || builtProject != myProject) {
-          return;
-        }
-        switch (mode) {
-          case CLEAN:
-          case ASSEMBLE:
-          case COMPILE_JAVA:
-          case REBUILD:
-            ModuleClassLoader.clearCache();
-            clearCache();
-          case SOURCE_GEN:
-          case ASSEMBLE_TRANSLATE:
-        }
-      }
-    };
-    MessageBusConnection connection = myProject.getMessageBus().connect(myProject);
-    connection.subscribe(GRADLE_BUILD_TOPIC, myBuildCompleteListener);
   }
 
   /**
