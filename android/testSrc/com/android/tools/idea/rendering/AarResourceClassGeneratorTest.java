@@ -84,9 +84,9 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
       }
     };
     AppResourceRepository appResources = new AppResourceRepository(myFacet, Collections.singletonList(resources),
-                                                                            Collections.singletonList(resources));
+                                                                            Collections.<FileResourceRepository>emptyList());
 
-    AarResourceClassGenerator generator = AarResourceClassGenerator.create(appResources, appResources);
+    AarResourceClassGenerator generator = AarResourceClassGenerator.create(appResources);
     assertNotNull(generator);
     String name = "my.test.pkg.R";
     Class<?> clz = generateClass(generator, name);
@@ -129,8 +129,6 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
     assertFalse(Modifier.isVolatile(field2.getModifiers()));
     r = clz.newInstance();
     assertNotNull(r);
-    Class<?> enclosingClass = clz.getEnclosingClass();
-    assertNotNull(enclosingClass);
 
     // Make sure the id's match what we've dynamically allocated in the resource repository
     @SuppressWarnings("deprecation")
@@ -159,17 +157,41 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
     name = "my.test.pkg.R$style";
     clz = generateClass(generator, name);
     assertNotNull(clz);
-    r = clz.newInstance();
+    clz.newInstance();
     assertEquals(name, clz.getName());
     assertTrue(Modifier.isPublic(clz.getModifiers()));
     assertTrue(Modifier.isFinal(clz.getModifiers()));
     assertFalse(Modifier.isInterface(clz.getModifiers()));
 
     // Test styleable class!
-    name = "my.test.pkg.R$styleable";
+    styleableTest(generator, gravityValue, layoutColumnSpanValue);
+    // Run the same test again to ensure that caching is working as expected.
+    styleableTest(generator, gravityValue, layoutColumnSpanValue);
+
+
+    name = "my.test.pkg.R$id";
     clz = generateClass(generator, name);
     assertNotNull(clz);
     r = clz.newInstance();
+    assertNotNull(r);
+    assertEquals(name, clz.getName());
+    // getEnclosingClass() results in generating all R classes. So, this should be called at the end
+    // so that tests for caching work as expected.
+    Class<?> enclosingClass = clz.getEnclosingClass();
+    assertNotNull(enclosingClass);
+
+    // TODO: Flag and enum values should also be created as id's by the ValueResourceParser
+    //assertNotNull(clz.getField("top"));
+    //assertNotNull(clz.getField("bottom"));
+    //assertNotNull(clz.getField("center_vertical"));
+  }
+
+  private static void styleableTest(AarResourceClassGenerator generator, Object gravityValue, Object layoutColumnSpanValue)
+    throws Exception {
+    String name = "my.test.pkg.R$styleable";
+    Class<?> clz = generateClass(generator, name);
+    assertNotNull(clz);
+    Object r = clz.newInstance();
     assertEquals(name, clz.getName());
     assertTrue(Modifier.isPublic(clz.getModifiers()));
     assertTrue(Modifier.isFinal(clz.getModifiers()));
@@ -181,12 +203,12 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
     } catch (NoSuchFieldException e) {
       // pass
     }
-    field1 = clz.getField("GridLayout_Layout");
-    value1 = field1.get(null);
+    Field field1 = clz.getField("GridLayout_Layout");
+    Object value1 = field1.get(null);
     assertEquals("[I", field1.getType().getName());
     assertNotNull(value1);
     assertEquals(5, clz.getFields().length);
-    field2 = clz.getField("GridLayout_Layout_android_layout_height");
+    Field field2 = clz.getField("GridLayout_Layout_android_layout_height");
     assertNotNull(field2);
     assertNotNull(clz.getField("GridLayout_Layout_android_layout_width"));
     assertNotNull(clz.getField("GridLayout_Layout_layout_columnSpan"));
@@ -217,18 +239,37 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
     // give value conversion errors.
     assertEquals(2, layoutColumnSpanIndex);
     assertEquals(3, gravityIndex);
+  }
 
-    name = "my.test.pkg.R$id";
-    clz = generateClass(generator, name);
+  public void testWithAars() throws Exception {
+    AppResourceRepository appResources = AppResourceRepositoryTest.createTestAppResourceRepository(myFacet);
+    AarResourceClassGenerator generator = AarResourceClassGenerator.create(appResources);
+    assertNotNull(generator);
+    Class<?> clz = generateClass(generator, "pkg.R$id");
     assertNotNull(clz);
-    r = clz.newInstance();
-    assertNotNull(r);
-    assertEquals(name, clz.getName());
+    assertNotNull(clz.newInstance());
+    Field[] declaredFields = clz.getDeclaredFields();
+    String[] fieldNames = new String[declaredFields.length];
+    for (int i = 0; i < declaredFields.length; i++) {
+      fieldNames[i] = declaredFields[i].getName();
+    }
+    assertSameElements(fieldNames, "id1", "id2", "id3");
+    styleableTestWithAars(generator);
+    // Run same test again to ensure that caching is working as exptected.
+    styleableTestWithAars(generator);
+  }
 
-    // TODO: Flag and enum values should also be created as id's by the ValueResourceParser
-    //assertNotNull(clz.getField("top"));
-    //assertNotNull(clz.getField("bottom"));
-    //assertNotNull(clz.getField("center_vertical"));
+  private static void styleableTestWithAars(AarResourceClassGenerator generator) throws Exception {
+    Class<?> clz = generateClass(generator, "pkg.R$styleable");
+    assertNotNull(clz);
+    assertNotNull(clz.newInstance());
+    Field styleable2 = clz.getDeclaredField("Styleable_with_underscore");
+    assertEquals(styleable2.getType(), (new int[0]).getClass());
+    int[] array = (int[])styleable2.get(null);
+    int idx = (Integer)clz.getDeclaredField("Styleable_with_underscore_android_framework_attr1").get(null);
+    assertEquals(0x01010125, array[idx]);
+    idx = (Integer)clz.getDeclaredField("Styleable_with_underscore_android_framework_attr2").get(null);
+    assertEquals(0x01010142, array[idx]);
   }
 
   @Nullable

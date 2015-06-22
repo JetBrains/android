@@ -19,9 +19,15 @@ import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import junit.framework.TestCase;
+import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+
+import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
+import static java.io.File.separatorChar;
+import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 
 public class FileResourceRepositoryTest extends TestCase {
   public void test() throws IOException {
@@ -44,5 +50,20 @@ public class FileResourceRepositoryTest extends TestCase {
     finally {
       FileUtil.delete(dir);
     }
+  }
+
+  public void testGetAllDeclaredIds() throws IOException {
+    FileResourceRepository repository = getTestRepository();
+    assertSameElements(repository.getAllDeclaredIds(), "id1", "id2", "id3");
+  }
+
+  @NotNull
+  static FileResourceRepository getTestRepository() throws IOException {
+    String aarPath = AndroidTestBase.getTestDataPath() + separatorChar +
+                     "rendering" + separatorChar +
+                     EXPLODED_AAR + separatorChar +
+                     "my_aar_lib" + separatorChar +
+                     "res";
+    return FileResourceRepository.get(new File(aarPath));
   }
 }
