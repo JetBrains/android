@@ -404,8 +404,8 @@ public class ThemeEditorUtils {
    * Given a {@link SourceProvider}, it returns a list of all the available ResourceFolderRepositories
    */
   // TODO: Add a string to identify where the SourceSet came from
-  public static List<ResourceFolderRepository> getResourceFolderRepositoiesFromSourceSet(@NotNull AndroidFacet facet,
-                                                                                         @Nullable SourceProvider provider) {
+  public static List<ResourceFolderRepository> getResourceFolderRepositoriesFromSourceSet(@NotNull AndroidFacet facet,
+                                                                                          @Nullable SourceProvider provider) {
     if (provider == null) {
       return Collections.emptyList();
     }
@@ -438,6 +438,8 @@ public class ThemeEditorUtils {
    * Visits every ResourceFolderRepository
    */
   public static void acceptResourceResolverVisitor(@NotNull AndroidFacet facet, @NotNull ResourceFolderVisitor visitor) {
+    visitor.visitResourceFolder(AppResourceRepository.getAppResources(facet, true), true);
+    /*
     IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
 
     if (ideaAndroidProject == null) {
@@ -452,18 +454,18 @@ public class ThemeEditorUtils {
     Set<SourceProvider> selectedProviders = Sets.newHashSet();
 
     selectedProviders.add(facet.getBuildTypeSourceProvider());
-    for (ResourceFolderRepository repository : getResourceFolderRepositoiesFromSourceSet(facet, facet.getBuildTypeSourceProvider())) {
+    for (ResourceFolderRepository repository : getResourceFolderRepositoriesFromSourceSet(facet, facet.getBuildTypeSourceProvider())) {
       visitor.visitResourceFolder(repository, true);
     }
 
     selectedProviders.add(facet.getMultiFlavorSourceProvider());
-    for (ResourceFolderRepository repository : getResourceFolderRepositoiesFromSourceSet(facet, facet.getMultiFlavorSourceProvider())) {
+    for (ResourceFolderRepository repository : getResourceFolderRepositoriesFromSourceSet(facet, facet.getMultiFlavorSourceProvider())) {
       visitor.visitResourceFolder(repository, true);
     }
 
     for (BuildTypeContainer buildType : buildTypes) {
       if (selectedProviders.add(buildType.getSourceProvider())) {
-        for (ResourceFolderRepository repository : getResourceFolderRepositoiesFromSourceSet(facet, buildType.getSourceProvider())) {
+        for (ResourceFolderRepository repository : getResourceFolderRepositoriesFromSourceSet(facet, buildType.getSourceProvider())) {
           visitor.visitResourceFolder(repository, false);
         }
       }
@@ -471,10 +473,10 @@ public class ThemeEditorUtils {
 
     for (ProductFlavorContainer productFlavor : productFlavors) {
       if (selectedProviders.add(productFlavor.getSourceProvider())) {
-        for (ResourceFolderRepository repository : getResourceFolderRepositoiesFromSourceSet(facet, productFlavor.getSourceProvider())) {
+        for (ResourceFolderRepository repository : getResourceFolderRepositoriesFromSourceSet(facet, productFlavor.getSourceProvider())) {
           visitor.visitResourceFolder(repository, false);
         }
       }
-    }
+    }*/
   }
 }
