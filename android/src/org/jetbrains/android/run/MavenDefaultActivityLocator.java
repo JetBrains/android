@@ -46,7 +46,7 @@ public class MavenDefaultActivityLocator extends ActivityLocator {
 
   @NotNull
   @Override
-  protected String getActivityName() throws ActivityLocatorException {
+  protected String getQualifiedActivityName() throws ActivityLocatorException {
     File manifestCopy = null;
     try {
       Pair<File, String> pair;

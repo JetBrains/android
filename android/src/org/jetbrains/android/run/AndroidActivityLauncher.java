@@ -17,15 +17,9 @@ package org.jetbrains.android.run;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
-import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Computable;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,29 +49,6 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
     catch (ActivityLocator.ActivityLocatorException e) {
       throw new RuntimeConfigurationException(e.getMessage());
     }
-  }
-
-  @NotNull
-  private String getQualifiedActivityName(@NotNull final AndroidFacet facet) throws ActivityLocator.ActivityLocatorException {
-    final String activityName = myActivityLocator.getActivityName();
-    // Return the qualified activity name if possible.
-    final String activityRuntimeQName = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-      @Override
-      public String compute() {
-        final GlobalSearchScope scope = facet.getModule().getModuleWithDependenciesAndLibrariesScope(false);
-        final PsiClass activityClass = JavaPsiFacade.getInstance(facet.getModule().getProject()).findClass(activityName, scope);
-
-        if (activityClass != null) {
-          return JavaExecutionUtil.getRuntimeQualifiedName(activityClass);
-        }
-        return null;
-      }
-    });
-    if (activityRuntimeQName != null) {
-      return activityRuntimeQName;
-    }
-
-    return activityName;
   }
 
   @Override
@@ -119,7 +90,7 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
     ProcessHandler processHandler = state.getProcessHandler();
     String activityName;
     try {
-      activityName = getQualifiedActivityName(state.getFacet());
+      activityName = myActivityLocator.getQualifiedActivityName();
     }
     catch (ActivityLocator.ActivityLocatorException e) {
       processHandler.notifyTextAvailable("Could not identify launch activity: " + e.getMessage(), STDOUT);

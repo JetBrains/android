@@ -33,13 +33,13 @@ public abstract class ActivityLocator {
    * Validates whether the provided facet has the necessary activity for launch.
    *
    * NOTE: This is called before a build is performed, so for certain build systems, it may not be able
-   * to perform a full validation, and an exception might be thrown by {@link #getActivityName()}.
+   * to perform a full validation, and an exception might be thrown by {@link #getQualifiedActivityName()}.
    */
   public abstract void validate(@NotNull AndroidFacet facet) throws ActivityLocatorException;
 
   /**
-   * Returns the launcher activity name.
+   * Returns the fully qualified launcher activity name.
    */
   @NotNull
-  protected abstract String getActivityName() throws ActivityLocatorException;
+  protected abstract String getQualifiedActivityName() throws ActivityLocatorException;
 }

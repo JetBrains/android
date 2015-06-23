@@ -320,14 +320,19 @@ public class AndroidUtils {
     });
   }
 
+  /**
+   * Returns the fully qualified launcher activity name if one is available. In the case of multiple launcher activities,
+   * prefers the one that is has {@link #DEFAULT_CATEGORY_NAME}.
+   *
+   * Note: We need to return fully qualified names. Unqualified names will result in errors if
+   * the package name as defined in the manifest doesn't match the package name of the eventual application
+   */
   @Nullable
   public static String getDefaultLauncherActivityName(final List<Activity> activities, final List<ActivityAlias> activityAliases) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
     final List<ActivityWrapper> activityWrappers = merge(activities, activityAliases);
 
-    // Note: We need to return fully qualified names. Unqualified names will result in errors if
-    // the package name as defined in the manifest doesn't match the package name of the eventual application
     List<ActivityWrapper> launcherActivities = getLaunchableActivities(activityWrappers);
     if (launcherActivities.isEmpty()) {
       return null;
