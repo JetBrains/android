@@ -35,7 +35,7 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   @NotNull
   @Override
-  protected String getActivityName() {
+  protected String getQualifiedActivityName() {
     String activityName = computeDefaultActivity(myFacet);
     assert activityName != null; // validated by validate below
     return activityName;

@@ -50,7 +50,7 @@ public class SpecificActivityLocator extends ActivityLocator {
 
   @NotNull
   @Override
-  protected String getActivityName() {
+  protected String getQualifiedActivityName() {
     assert myActivityName != null; // validated by validate
     return myActivityName;
   }
@@ -108,14 +108,14 @@ public class SpecificActivityLocator extends ActivityLocator {
   }
 
   @Nullable
-  private static ActivityAlias findActivityAlias(@NotNull AndroidFacet facet, @NotNull final String name) {
+  private static ActivityAlias findActivityAlias(@NotNull AndroidFacet facet, @NotNull final String qualifiedName) {
     final List<ActivityAlias> aliases = ManifestInfo.get(facet.getModule(), true).getActivityAliases();
 
     return ApplicationManager.getApplication().runReadAction(new Computable<ActivityAlias>() {
       @Override
       public ActivityAlias compute() {
         for (ActivityAlias alias : aliases) {
-          if (name.equals(ActivityLocatorUtils.getQualifiedName(alias))) {
+          if (qualifiedName.equals(ActivityLocatorUtils.getQualifiedName(alias))) {
             return alias;
           }
         }

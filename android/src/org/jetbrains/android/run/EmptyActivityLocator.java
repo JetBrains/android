@@ -25,7 +25,7 @@ public class EmptyActivityLocator extends ActivityLocator {
 
   @NotNull
   @Override
-  protected String getActivityName() {
+  protected String getQualifiedActivityName() {
     return "";
   }
 }
