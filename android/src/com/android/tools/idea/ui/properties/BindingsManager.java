@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.ui.properties;
 
-import com.android.tools.idea.ui.properties.collections.ObservableList;
 import com.android.tools.idea.ui.properties.exceptions.BindingCycleException;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
-import com.android.tools.idea.ui.properties.expressions.list.ListExpression;
 import com.google.common.base.Objects;
-import com.google.common.collect.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import org.jetbrains.annotations.NotNull;
@@ -28,22 +27,23 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 
 /**
- * Class which manages associations between properties and target values, updating those properties
- * when the target value they are listening to changes.
+ * Class which manages associations between source and destination values, updating the destination
+ * values when their source values change.
  * <p/>
  * One-way bindings and two-way bindings are supported. For more details, see
- * {@link #bind(ObservableProperty, ObservableValue)} and
- * {@link #bindTwoWay(ObservableProperty, ObservableProperty)}.
+ * {@link #bind(SettableValue, ObservableValue)} and
+ * {@link #bindTwoWay(SettableValue, SettableValue)}.
+ * <p/>
+ * Note: This class is currently not thread-safe. You are expected to read, write, and bind
+ * values on the dispatch thread to avoid undefined behavior.
  */
 public final class BindingsManager {
   /**
-   * Ensure bindings aren't registered in a way that causes an infinite loop, with properties
-   * updating other properties back and forth forever. Valid update loops usually settle within
-   * 2 or 3 steps.
+   * Ensure bindings aren't registered in a way that causes an infinite loop. Valid update loops
+   * usually settle within 2 or 3 steps.
    */
   private static final int MAX_CYCLE_COUNT = 10;
 
@@ -55,17 +55,6 @@ public final class BindingsManager {
    */
   public interface InvokeStrategy {
     void invoke(@NotNull Runnable runnable);
-  }
-
-  /**
-   * Simple interface for how bindings should update themselves once the target they're listening
-   * to has changed, which are added to a queue to be invoked later. A class that implements this
-   * interface should also implement {@link #equals(Object)} and {@link #hashCode()} as it's
-   * possible the same update request may be enqueued multiple times in a single frame (if the
-   * target value is invalidated multiple times), but we really only want to update once.
-   */
-  private interface Updater {
-    void update();
   }
 
   /**
@@ -84,6 +73,7 @@ public final class BindingsManager {
   public static final InvokeStrategy SWING_INVOKE_LATER_STRATEGY = new InvokeStrategy() {
     @Override
     public void invoke(@NotNull Runnable runnable) {
+      //noinspection SSBasedInspection
       SwingUtilities.invokeLater(runnable);
     }
   };
@@ -98,24 +88,16 @@ public final class BindingsManager {
     }
   };
 
-  private final Map<ObservableProperty<?>, OneWayBinding<?>> myOneWayBindings = Maps.newHashMap();
-  private final Table<ObservableProperty<?>, ObservableProperty<?>, TwoWayBinding<?>> myTwoWayBindings = HashBasedTable.create();
-  private final List<ListBindingWrapper> myListWrappers = Lists.newArrayList();
-  private final Queue<Updater> myUpdaters = Queues.newArrayDeque();
-  private final Queue<Updater> myDeferredUpdaters = Queues.newArrayDeque();
+  private final List<OneWayBinding<?>> myOneWayBindings = Lists.newArrayList();
+  private final List<TwoWayBinding<?>> myTwoWayBindings = Lists.newArrayList();
+  private final Queue<DestUpdater> myUpdaters = Queues.newArrayDeque();
+  private final Queue<DestUpdater> myDeferredUpdaters = Queues.newArrayDeque();
 
   private boolean myUpdateInProgress;
   private int myCycleCount;
 
   private final InvokeStrategy myInvokeStrategy;
 
-  /**
-   * Note: The default constructor uses an update strategy that defers property evaluation to the
-   * UI thread. This is fine if you are restricting read and write access to your properties to
-   * only happen on the UI thread as well (recommended), but if you want to bind properties in a
-   * thread-safe manner, you will need to construct a BindingsManager using a custom invoke
-   * strategy.
-   */
   public BindingsManager() {
     this(APPLICATION_INVOKE_LATER_STRATEGY);
   }
@@ -125,115 +107,91 @@ public final class BindingsManager {
   }
 
   /**
-   * Binds a property to a target value. Whenever the target value changes, the property will
+   * Binds one value to another. Whenever the source value changes, the destination value will
    * be updated to reflect it.
    * <p/>
-   * Setting a bound property's value is allowed but discouraged, as it will be overwritten as soon
-   * as the target value changes, and this may be hard to debug.
+   * Setting a bound value is allowed but discouraged, as it will be overwritten as soon as the
+   * target value changes, and this may be hard to debug. If you are careful and know what you're
+   * doing, this can still be useful - for example, you might also wish to add a listener
+   * to the bound value and, detecting an external change, release the binding.
    */
-  public <T> void bind(@NotNull ObservableProperty<T> dest, @NotNull ObservableValue<T> src) {
+  public <T> void bind(@NotNull SettableValue<T> dest, @NotNull ObservableValue<T> src) {
     bind(dest, src, BooleanExpressions.TRUE);
   }
 
   /**
-   * Like {@link #bind(ObservableProperty, ObservableValue)}, but takes an additional observable boolean
+   * Like {@link #bind(SettableValue, ObservableValue)}, but takes an additional observable boolean
    * which, while set to false, disables the binding.
    * <p/>
    * This can be useful for UI fields that are initially linked to each other but which may break
    * that link later on.
    */
-  public <T> void bind(@NotNull ObservableProperty<T> dest, @NotNull ObservableValue<T> src, @NotNull ObservableValue<Boolean> enabled) {
+  public <T> void bind(@NotNull SettableValue<T> dest, @NotNull ObservableValue<T> src, @NotNull ObservableValue<Boolean> enabled) {
     release(dest);
 
-    myOneWayBindings.put(dest, new OneWayBinding<T>(dest, src, enabled));
+    myOneWayBindings.add(new OneWayBinding<T>(dest, src, enabled));
   }
 
   /**
-   * Binds two properties to each other. Whenever either property changes, the other property will
+   * Binds two values to each other. Whenever either value changes, the other value will
    * be updated to reflect it.
    * <p/>
-   * Although both properties can influence the other once bound, when this method is first called,
-   * the first parameter will be initialized with the of the second.
+   * Although both values can influence the other once bound, when this method is first called,
+   * the first parameter will be initialized with that of the second.
    */
-  public <T> void bindTwoWay(@NotNull ObservableProperty<T> first, @NotNull ObservableProperty<T> second) {
+  public <T> void bindTwoWay(@NotNull SettableValue<T> first, @NotNull SettableValue<T> second) {
     releaseTwoWay(first, second);
 
-    myTwoWayBindings.put(first, second, new TwoWayBinding<T>(first, second));
+    myTwoWayBindings.add(new TwoWayBinding<T>(first, second));
   }
 
   /**
-   * Binds a list to a target list expression.
+   * Releases a one-way binding previously registered via {@link #bind(SettableValue, ObservableValue)}
    */
-  public <S, D> void bindList(@NotNull ObservableList<D> destList, @NotNull ListExpression<S, D> srcExpression) {
-    releaseList(destList);
-
-    myListWrappers.add(new ListBindingWrapper(destList, new ListBinding<S, D>(destList, srcExpression)));
-  }
-
-  /**
-   * Releases a one-way binding previously registered via {@link #bind(ObservableProperty, ObservableValue)}
-   */
-  public void release(@NotNull ObservableProperty<?> dest) {
-    OneWayBinding<?> oneWayBinding = myOneWayBindings.get(dest);
-    if (oneWayBinding == null) {
-      return;
-    }
-
-    oneWayBinding.dispose();
-    myOneWayBindings.remove(dest);
-  }
-
-  /**
-   * Releases a two-way binding previously registered via
-   * {@link #bindTwoWay(ObservableProperty, ObservableProperty)}.
-   */
-  public <T> void releaseTwoWay(@NotNull ObservableProperty<T> first, @NotNull ObservableProperty<T> second) {
-    TwoWayBinding<?> twoWayBinding = myTwoWayBindings.get(first, second);
-    if (twoWayBinding == null) {
-      return;
-    }
-
-    twoWayBinding.dispose();
-    myTwoWayBindings.remove(first, second);
-  }
-
-  /**
-   * Releases a mapping previously registered via {@link #bindList(ObservableList, ListExpression)}
-   */
-  public <T> void releaseList(@NotNull ObservableList<T> destList) {
-    Iterator<ListBindingWrapper> i = myListWrappers.iterator();
+  public void release(@NotNull SettableValue<?> dest) {
+    Iterator<OneWayBinding<?>> i = myOneWayBindings.iterator();
     while (i.hasNext()) {
-      ListBindingWrapper wrapper = i.next();
-      if (wrapper.getList() == destList) {
-        wrapper.getBinding().dispose();
+      OneWayBinding<?> binding = i.next();
+      if (binding.myDest == dest) {
+        binding.dispose();
         i.remove();
-        break;
+        return;
       }
     }
   }
 
+  /**
+   * Releases a two-way binding previously registered via
+   * {@link #bindTwoWay(SettableValue, SettableValue)}.
+   */
+  public <T> void releaseTwoWay(@NotNull SettableValue<T> first, @NotNull SettableValue<T> second) {
+    Iterator<TwoWayBinding<?>> i = myTwoWayBindings.iterator();
+    while (i.hasNext()) {
+      TwoWayBinding<?> binding = i.next();
+      if (binding.myLhs == first && binding.myRhs == second) {
+        binding.dispose();
+        i.remove();
+        return;
+      }
+    }
+  }
 
   /**
    * Release all bindings (one-way and two-way) registered with this bindings manager.
    */
   public void releaseAll() {
-    for (OneWayBinding<?> oneWayBinding : myOneWayBindings.values()) {
+    for (OneWayBinding<?> oneWayBinding : myOneWayBindings) {
       oneWayBinding.dispose();
     }
     myOneWayBindings.clear();
 
-    for (TwoWayBinding<?> twoWayBinding : myTwoWayBindings.values()) {
+    for (TwoWayBinding<?> twoWayBinding : myTwoWayBindings) {
       twoWayBinding.dispose();
     }
     myTwoWayBindings.clear();
-
-    for (ListBindingWrapper listWrapper : myListWrappers) {
-      listWrapper.getBinding().dispose();
-    }
-    myListWrappers.clear();
   }
 
-  private void enqueueUpdater(@NotNull Updater updater) {
+  private void enqueueUpdater(@NotNull DestUpdater updater) {
     if (myUpdateInProgress) {
       if (!myDeferredUpdaters.contains(updater)) {
         myDeferredUpdaters.add(updater);
@@ -258,8 +216,8 @@ public final class BindingsManager {
       @Override
       public void run() {
         myUpdateInProgress = true;
-        for (Updater propertyUpdater : myUpdaters) {
-          propertyUpdater.update();
+        for (DestUpdater updater : myUpdaters) {
+          updater.update();
         }
         myUpdaters.clear();
         myUpdateInProgress = false;
@@ -272,7 +230,7 @@ public final class BindingsManager {
 
           myUpdaters.addAll(myDeferredUpdaters);
           myDeferredUpdaters.clear();
-          invokeUpdate(); // Call self again with properties invalidated by this last cycle
+          invokeUpdate(); // Call self again with any bindings invalidated by this last cycle
         }
         else {
           myCycleCount = 0;
@@ -282,123 +240,81 @@ public final class BindingsManager {
   }
 
   private class OneWayBinding<T> extends InvalidationListener {
-    private final ObservableProperty<T> myPropertyDest;
-    private final ObservableValue<T> myObservableSrc;
+    private final SettableValue<T> myDest;
+    private final ObservableValue<T> mySrc;
     private final ObservableValue<Boolean> myEnabled;
 
     @Override
     protected void onInvalidated(@NotNull Observable sender) {
       if (myEnabled.get()) {
-        enqueueUpdater(new PropertyUpdater<T>(myPropertyDest, myObservableSrc));
+        enqueueUpdater(new DestUpdater<T>(myDest, mySrc));
       }
     }
 
-    public OneWayBinding(ObservableProperty<T> propertyDest, ObservableValue<T> observableSrc, ObservableValue<Boolean> enabled) {
-      myPropertyDest = propertyDest;
-      myObservableSrc = observableSrc;
+    public OneWayBinding(SettableValue<T> dest, ObservableValue<T> src, ObservableValue<Boolean> enabled) {
+      myDest = dest;
+      mySrc = src;
       myEnabled = enabled;
 
-      myObservableSrc.addListener(this);
+      mySrc.addListener(this);
       myEnabled.addListener(this);
 
-      // Once bound, force the dest property to refresh its value from the src property
-      onInvalidated(observableSrc);
+      // Once bound, force the dest value to initialize itself with the src value
+      onInvalidated(src);
     }
 
     public void dispose() {
-      myObservableSrc.removeListener(this);
+      mySrc.removeListener(this);
       myEnabled.removeListener(this);
     }
   }
 
   private class TwoWayBinding<T> {
-    private final ObservableProperty<T> myPropertyLhs;
-    private final ObservableProperty<T> myPropertyRhs;
+    private final SettableValue<T> myLhs;
+    private final SettableValue<T> myRhs;
     private final InvalidationListener myLeftChangedListener = new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull Observable sender) {
-        enqueueUpdater(new PropertyUpdater<T>(myPropertyRhs, myPropertyLhs));
+        enqueueUpdater(new DestUpdater<T>(myRhs, myLhs));
       }
     };
     private final InvalidationListener myRightChangedListener = new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull Observable sender) {
-        enqueueUpdater(new PropertyUpdater<T>(myPropertyLhs, myPropertyRhs));
+        enqueueUpdater(new DestUpdater<T>(myLhs, myRhs));
       }
     };
 
-    public TwoWayBinding(ObservableProperty<T> propertyLhs, ObservableProperty<T> propertyRhs) {
-      myPropertyLhs = propertyLhs;
-      myPropertyRhs = propertyRhs;
-      myPropertyLhs.addListener(myLeftChangedListener);
-      myPropertyRhs.addListener(myRightChangedListener);
+    public TwoWayBinding(SettableValue<T> lhs, SettableValue<T> rhs) {
+      myLhs = lhs;
+      myRhs = rhs;
+      myLhs.addListener(myLeftChangedListener);
+      myRhs.addListener(myRightChangedListener);
 
-      // Once bound, force the left property to refresh its value from the right property
-      myRightChangedListener.onInvalidated(propertyRhs);
+      // Once bound, force the left value to initialize itself with the right value
+      myRightChangedListener.onInvalidated(rhs);
     }
 
     public void dispose() {
-      myPropertyLhs.removeListener(myLeftChangedListener);
-      myPropertyRhs.removeListener(myRightChangedListener);
-    }
-  }
-
-  private class ListBinding<S, D> extends InvalidationListener implements Updater {
-    private final ObservableList<D> myDestList;
-    private final ListExpression<S, D> mySrcExpression;
-
-    private ListBinding(ObservableList<D> destList, ListExpression<S, D> srcExpression) {
-      myDestList = destList;
-      mySrcExpression = srcExpression;
-      srcExpression.addListener(this);
-
-      // Once bound, force the dest list to refresh its contents based on the source list
-      onInvalidated(srcExpression);
-    }
-
-    @Override
-    protected void onInvalidated(@NotNull Observable sender) {
-      enqueueUpdater(this);
-    }
-
-    @Override
-    public void update() {
-      myDestList.setAll(mySrcExpression.get());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      ListBinding<?, ?> that = (ListBinding<?, ?>)o;
-      return Objects.equal(myDestList, that.myDestList) && Objects.equal(mySrcExpression, that.mySrcExpression);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(myDestList, mySrcExpression);
-    }
-
-    public void dispose() {
-      mySrcExpression.removeListener(this);
+      myLhs.removeListener(myLeftChangedListener);
+      myRhs.removeListener(myRightChangedListener);
     }
   }
 
   /**
-   * Simple helper class which wraps a property and a value and can update the property on request.
-   * This class is used by both {@link OneWayBinding} and {@link TwoWayBinding} to enqueue an
-   * update after they detect a change.
+   * Simple helper class which wraps source and destination values and can update the destination
+   * value on request. This class is used by both {@link OneWayBinding} and {@link TwoWayBinding}
+   * to enqueue an update after they detect a change.
    */
-  private static final class PropertyUpdater<T> implements Updater {
-    private final ObservableProperty<T> myDest;
+  private static final class DestUpdater<T> {
+    private final SettableValue<T> myDest;
     private final ObservableValue<T> mySrc;
 
-    public PropertyUpdater(ObservableProperty<T> dest, ObservableValue<T> src) {
+    public DestUpdater(SettableValue<T> dest, ObservableValue<T> src) {
       myDest = dest;
       mySrc = src;
     }
 
-    @Override
     public void update() {
       myDest.set(mySrc.get());
     }
@@ -407,38 +323,13 @@ public final class BindingsManager {
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      PropertyUpdater<?> that = (PropertyUpdater<?>)o;
+      DestUpdater<?> that = (DestUpdater<?>)o;
       return Objects.equal(myDest, that.myDest) && Objects.equal(mySrc, that.mySrc);
     }
 
     @Override
     public int hashCode() {
       return Objects.hashCode(myDest, mySrc);
-    }
-  }
-
-  /**
-   * Wrapper class which helps us work around that Java {@link Map}s don't support having mutable
-   * {@link List}s as keys. Ideally, we would have just done HashMap.put(list, binding), but this
-   * would break if the list is ever modified.
-   *
-   * See also: http://stackoverflow.com/a/9973694/1299302
-   */
-  private static final class ListBindingWrapper {
-    private ObservableList myList;
-    private ListBinding myBinding;
-
-    public ListBindingWrapper(ObservableList list, ListBinding binding) {
-      myList = list;
-      myBinding = binding;
-    }
-
-    public ObservableList getList() {
-      return myList;
-    }
-
-    public ListBinding getBinding() {
-      return myBinding;
     }
   }
 }
