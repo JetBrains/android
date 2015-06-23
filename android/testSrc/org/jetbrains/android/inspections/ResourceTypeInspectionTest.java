@@ -671,6 +671,89 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testIntentsAndContentResolvers() {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.Manifest;\n" +
+            "import android.app.Activity;\n" +
+            "import android.content.ContentResolver;\n" +
+            "import android.content.Context;\n" +
+            "import android.content.Intent;\n" +
+            "import android.net.Uri;\n" +
+            "import android.support.annotation.RequiresPermission;\n" +
+            "\n" +
+            "import static android.Manifest.permission.READ_HISTORY_BOOKMARKS;\n" +
+            "import static android.Manifest.permission.WRITE_HISTORY_BOOKMARKS;\n" +
+            "\n" +
+            "@SuppressWarnings({\"deprecation\", \"unused\"})\n" +
+            "public class X {\n" +
+            "    @RequiresPermission(Manifest.permission.CALL_PHONE)\n" +
+            "    public static final String ACTION_CALL = \"android.intent.action.CALL\";\n" +
+            "\n" +
+            "    @RequiresPermission.Read(@RequiresPermission(READ_HISTORY_BOOKMARKS))\n" +
+            "    @RequiresPermission.Write(@RequiresPermission(WRITE_HISTORY_BOOKMARKS))\n" +
+            "    public static final Uri BOOKMARKS_URI = Uri.parse(\"content://browser/bookmarks\");\n" +
+            "\n" +
+            "    public static final Uri COMBINED_URI = Uri.withAppendedPath(BOOKMARKS_URI, \"bookmarks\");\n" +
+            "\n" +
+            "    public static void activities1(Activity activity) {\n" +
+            "        Intent intent = new Intent(Intent.ACTION_CALL);\n" +
+            "        intent.setData(Uri.parse(\"tel:1234567890\"));\n" +
+            "        // This one will only be flagged if we have framework metadata on Intent.ACTION_CALL\n" +
+            "        activity.startActivity(intent);\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void activities2(Activity activity) {\n" +
+            "        Intent intent = new Intent(ACTION_CALL);\n" +
+            "        intent.setData(Uri.parse(\"tel:1234567890\"));\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivity(intent)/**/;\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void activities3(Activity activity) {\n" +
+            "        Intent intent;\n" +
+            "        intent = new Intent(ACTION_CALL);\n" +
+            "        intent.setData(Uri.parse(\"tel:1234567890\"));\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivity(intent)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivity(intent, null)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivityForResult(intent, 0)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivityFromChild(activity, intent, 0)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivityIfNeeded(intent, 0)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivityFromFragment(null, intent, 0)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startNextMatchingActivity(intent)/**/;\n" +
+            "        startActivity(\"\"); // Not an error!\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void broadcasts(Context context) {\n" +
+            "        Intent intent;\n" +
+            "        intent = new Intent(ACTION_CALL);\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/context.sendBroadcast(intent)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/context.sendBroadcast(intent, \"\")/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/context.sendBroadcastAsUser(intent, null)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/context.sendStickyBroadcast(intent)/**/;\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void contentResolvers(Context context, ContentResolver resolver) {\n" +
+            "        // read\n" +
+            "        /*Missing permissions required to read X.BOOKMARKS_URI: com.android.browser.permission.READ_HISTORY_BOOKMARKS*/resolver.query(BOOKMARKS_URI, null, null, null, null)/**/;\n" +
+            "\n" +
+            "        // write\n" +
+            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.insert(BOOKMARKS_URI, null)/**/;\n" +
+            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.delete(BOOKMARKS_URI, null, null)/**/;\n" +
+            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.update(BOOKMARKS_URI, null, null, null)/**/;\n" +
+            "\n" +
+            "        // Framework (external) annotation\n" +
+            "        /*Missing permissions required to write Browser.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.update(android.provider.Browser.BOOKMARKS_URI, null, null, null)/**/;\n" +
+            "\n" +
+            "        // URI manipulations\n" +
+            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.insert(COMBINED_URI, null)/**/;\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void startActivity(Object other) {\n" +
+            "        // Unrelated\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   public void testWrongThread() {
     doCheck("import android.support.annotation.MainThread;\n" +
             "import android.support.annotation.UiThread;\n" +
