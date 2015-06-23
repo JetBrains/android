@@ -38,11 +38,11 @@ public class ParentThemesListModel extends AbstractListModel implements MutableC
   private final ArrayList<ThemeEditorStyle> myRecentParentThemeList = new ArrayList<ThemeEditorStyle>();
 
   public ParentThemesListModel(@NotNull ImmutableList<ThemeEditorStyle> defaultThemeList, @Nullable ThemeEditorStyle parent) {
-    if (!defaultThemeList.contains(parent)) {
+    if (parent != null && !defaultThemeList.contains(parent)) {
       myRecentParentThemeList.add(parent);
     }
     myAllItems = new SeparatedList(SEPARATOR, group(myRecentParentThemeList), group(defaultThemeList), group(SHOW_ALL_THEMES));
-    setSelectedItem(parent);
+    setSelectedItem(myAllItems.get(0));
   }
 
   @Override
