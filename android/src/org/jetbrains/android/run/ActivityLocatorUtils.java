@@ -15,11 +15,15 @@
  */
 package org.jetbrains.android.run;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.psi.PsiClass;
+import com.intellij.util.xml.DomElement;
 import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.manifest.IntentFilter;
+import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -38,5 +42,42 @@ public class ActivityLocatorUtils {
     }
 
     return false;
+  }
+
+  @Nullable
+  public static String getQualifiedName(@NotNull ActivityAlias alias) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
+    String name = alias.getName().getStringValue();
+    if (name == null) {
+      return null;
+    }
+
+    int dotIndex = name.indexOf('.');
+    if (dotIndex > 0) { // fully qualified
+      return name;
+    }
+
+    // attempt to retrieve the package name from the manifest in which this alias was defined
+    String pkg = null;
+    DomElement parent = alias.getParent();
+    if (parent instanceof Application) {
+      parent = parent.getParent();
+      if (parent instanceof Manifest) {
+        Manifest manifest = (Manifest)parent;
+        pkg = manifest.getPackage().getStringValue();
+      }
+    }
+
+    // if we have a package name, prepend that to the activity alias
+    return pkg == null ? name : pkg + (dotIndex == -1 ? "." : "") + name;
+  }
+
+  @Nullable
+  public static String getQualifiedName(@NotNull Activity activity) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
+    PsiClass c = activity.getActivityClass().getValue();
+    return c == null ? null : c.getQualifiedName();
   }
 }

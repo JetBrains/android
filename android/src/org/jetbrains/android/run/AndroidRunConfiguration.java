@@ -79,16 +79,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     getApplicationLauncher(facet).checkConfiguration();
   }
 
-  static boolean doesPackageContainMavenProperty(@NotNull AndroidFacet facet) {
-    final Manifest manifest = facet.getManifest();
-
-    if (manifest == null) {
-      return false;
-    }
-    final String aPackage = manifest.getPackage().getStringValue();
-    return aPackage != null && aPackage.contains("${");
-  }
-
   @Override
   public AndroidRunningState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     AndroidRunningState state = super.getState(executor, env);
