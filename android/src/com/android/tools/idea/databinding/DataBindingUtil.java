@@ -25,13 +25,24 @@ import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.DataBindingInfo;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.PsiDataBindingResourceItem;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.lang.Language;
+import com.intellij.lang.java.JavaLanguage;
+import com.intellij.lang.java.JavaParserDefinition;
+import com.intellij.lexer.Lexer;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.light.*;
+import com.intellij.psi.scope.ElementClassHint;
+import com.intellij.psi.scope.NameHint;
+import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiUtil;
@@ -82,8 +93,8 @@ public class DataBindingUtil {
     return existing;
   }
 
-  private static PsiType parsePsiType(String text, AndroidFacet facet) {
-    return PsiElementFactory.SERVICE.getInstance(facet.getModule().getProject()).createTypeFromText(text, null);
+  private static PsiType parsePsiType(String text, AndroidFacet facet, PsiElement context) {
+    return PsiElementFactory.SERVICE.getInstance(facet.getModule().getProject()).createTypeFromText(text, context);
   }
 
   private static void handleGradleSyncResult(Project project, AndroidFacet facet) {
@@ -98,7 +109,7 @@ public class DataBindingUtil {
   public static PsiType resolveViewPsiType(DataBindingInfo.ViewWithId viewWithId, AndroidFacet facet) {
     String viewClassName = getViewClassName(viewWithId.tag, facet);
     if (StringUtil.isNotEmpty(viewClassName)) {
-      return parsePsiType(viewClassName, facet);
+      return parsePsiType(viewClassName, facet, null);
     }
     return null;
   }
@@ -277,16 +288,43 @@ public class DataBindingUtil {
     private DataBindingInfo myInfo;
     private CachedValue<PsiMethod[]> myPsiMethodsCache;
     private CachedValue<PsiField[]> myPsiFieldsCache;
+    private CachedValue<Map<String, String>> myAliasCache;
+
     private PsiReferenceList myExtendsList;
     private PsiClassType[] myExtendsListTypes;
     private final AndroidFacet myFacet;
+    private static Lexer ourJavaLexer;
 
-    protected LightBindingClass(AndroidFacet facet, @NotNull PsiManager psiManager, DataBindingInfo info) {
+    protected LightBindingClass(final AndroidFacet facet, @NotNull PsiManager psiManager, DataBindingInfo info) {
       super(psiManager);
       myInfo = info;
       myFacet = facet;
+      CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(info.getProject());
+      myAliasCache =
+        cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<Map<String, String>>(facet) {
+          @Override
+          Map<String, String> doCompute() {
+            List<PsiDataBindingResourceItem> imports = myInfo.getItems(DataBindingResourceType.IMPORT);
+            Map<String, String> result = new HashMap<String, String>();
+            if (imports != null) {
+              for (PsiDataBindingResourceItem imp : imports) {
+                String alias = imp.getExtra(SdkConstants.ATTR_ALIAS);
+                if (alias != null) {
+                  result.put(alias, imp.getExtra(SdkConstants.ATTR_TYPE));
+                }
+              }
+            }
+            return result;
+          }
+
+          @Override
+          Map<String, String> defaultValue() {
+            return Maps.newHashMap();
+          }
+        }, false);
+
       myPsiMethodsCache =
-        CachedValuesManager.getManager(info.getProject()).createCachedValue(new ResourceCacheValueProvider<PsiMethod[]>(facet) {
+        cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiMethod[]>(facet) {
           @Override
           PsiMethod[] doCompute() {
             List<PsiDataBindingResourceItem> variables = myInfo.getItems(DataBindingResourceType.VARIABLE);
@@ -310,7 +348,7 @@ public class DataBindingUtil {
         });
 
       myPsiFieldsCache =
-        CachedValuesManager.getManager(info.getProject()).createCachedValue(new ResourceCacheValueProvider<PsiField[]>(facet) {
+        cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiField[]>(facet) {
           @Override
           PsiField[] doCompute() {
             List<DataBindingInfo.ViewWithId> viewsWithIds = myInfo.getViewsWithIds();
@@ -321,7 +359,7 @@ public class DataBindingUtil {
             for (DataBindingInfo.ViewWithId viewWithId : viewsWithIds) {
               PsiField psiField = createPsiField(factory, viewWithId);
               if (psiField == null) {
-                unresolved ++;
+                unresolved++;
               } else {
                 result[i++] = psiField;
               }
@@ -419,28 +457,125 @@ public class DataBindingUtil {
     @NotNull
     @Override
     public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
+      List<PsiMethod> matched = null;
       for (PsiMethod method : getMethods()) {
         if (name.equals(method.getName())) {
-          return new PsiMethod[]{method};
+          if (matched == null) {
+            matched = Lists.newArrayList();
+          }
+          matched.add(method);
         }
       }
-      return PsiMethod.EMPTY_ARRAY;
+      return matched == null ? PsiMethod.EMPTY_ARRAY : matched.toArray(new PsiMethod[matched.size()]);
+    }
+
+    @Override
+    public boolean processDeclarations(@NotNull PsiScopeProcessor processor,
+                                       @NotNull ResolveState state,
+                                       PsiElement lastParent,
+                                       @NotNull PsiElement place) {
+      boolean continueProcessing = super.processDeclarations(processor, state, lastParent, place);
+      if (!continueProcessing) {
+        return false;
+      }
+      List<PsiDataBindingResourceItem> imports = myInfo.getItems(DataBindingResourceType.IMPORT);
+      if (imports == null || imports.isEmpty()) {
+        return true;
+      }
+      final ElementClassHint classHint = processor.getHint(ElementClassHint.KEY);
+      if (classHint != null && classHint.shouldProcess(ElementClassHint.DeclarationKind.CLASS)) {
+        final NameHint nameHint = processor.getHint(NameHint.KEY);
+        final String name = nameHint != null ? nameHint.getName(state) : null;
+        for (PsiDataBindingResourceItem imp : imports) {
+          String alias = imp.getExtra(SdkConstants.ATTR_ALIAS);
+          if (alias != null) {
+            continue; // aliases are pre-resolved in {@linkplain #replaceImportAliases}
+          }
+          String qName = imp.getExtra(SdkConstants.ATTR_TYPE);
+          if (qName == null) {
+            continue;
+          }
+
+          if (name != null && !qName.endsWith("." + name)) {
+            continue;
+          }
+
+          Module module = myInfo.getModule();
+          if (module == null) {
+            return true; // this should not really happen but just to be safe
+          }
+          PsiClass aClass = JavaPsiFacade.getInstance(myManager.getProject()).findClass(qName, module
+            .getModuleWithDependenciesAndLibrariesScope(true));
+          if (aClass != null) {
+            if (!processor.execute(aClass, state)) {
+              // found it!
+              return false;
+            }
+          }
+        }
+      }
+      return true;
+    }
+
+    private static Lexer getJavaLexer() {
+      if (ourJavaLexer == null) {
+        ourJavaLexer = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_6);
+      }
+      return ourJavaLexer;
+    }
+
+    private String replaceImportAliases(String type) {
+      Map<String, String> lookup = myAliasCache.getValue();
+      if (lookup == null || lookup.isEmpty()) {
+        return type;
+      }
+      Lexer lexer = getJavaLexer();
+      lexer.start(type);
+      boolean checkNext = true;
+      StringBuilder out = new StringBuilder();
+      IElementType tokenType = lexer.getTokenType();
+      while (tokenType != null) {
+        if (checkNext && tokenType == JavaTokenType.IDENTIFIER) {
+          // this might be something we want to replace
+          String tokenText = lexer.getTokenText();
+          String replacement = lookup.get(tokenText);
+          if (replacement != null) {
+            out.append(replacement);
+          } else {
+            out.append(tokenText);
+          }
+        } else {
+          out.append(lexer.getTokenText());
+        }
+        if (tokenType != TokenType.WHITE_SPACE) { // ignore spaces
+          if (tokenType == JavaTokenType.LT || tokenType == JavaTokenType.COMMA) {
+            checkNext = true;
+          } else {
+            checkNext = false;
+          }
+        }
+        lexer.advance();
+        tokenType = lexer.getTokenType();
+      }
+      return out.toString();
     }
 
     private void createVariableMethods(PsiElementFactory factory, PsiDataBindingResourceItem item, PsiMethod[] outPsiMethods, int index) {
+      PsiManager psiManager = PsiManager.getInstance(myInfo.getProject());
       PsiMethod setter = factory.createMethod("set" + StringUtil.capitalize(item.getName()), PsiType.VOID);
-      PsiType type = parsePsiType(item.getExtra(SdkConstants.ATTR_TYPE), myFacet);
+
+      String variableType = replaceImportAliases(item.getExtra(SdkConstants.ATTR_TYPE));
+
+      PsiType type = parsePsiType(variableType, myFacet, this);
       PsiParameter param = factory.createParameter(item.getName(), type);
       setter.getParameterList().add(param);
       PsiUtil.setModifierProperty(setter, PsiModifier.PUBLIC, true);
-      PsiManager psiManager = PsiManager.getInstance(myInfo.getProject());
-      final Language javaLang = Language.findLanguageByID("JAVA");
-      assert javaLang != null;
-      outPsiMethods[index] = new LightDataBindingMethod(item.getXmlTag(), psiManager, setter, this, javaLang);
+
+      outPsiMethods[index] = new LightDataBindingMethod(item.getXmlTag(), psiManager, setter, this, JavaLanguage.INSTANCE);
 
       PsiMethod getter = factory.createMethod("get" + StringUtil.capitalize(item.getName()), type);
       PsiUtil.setModifierProperty(getter, PsiModifier.PUBLIC, true);
-      outPsiMethods[index + 1] = new LightDataBindingMethod(item.getXmlTag(), psiManager, getter, this, javaLang);
+      outPsiMethods[index + 1] = new LightDataBindingMethod(item.getXmlTag(), psiManager, getter, this, JavaLanguage.INSTANCE);
     }
 
     private void createStaticMethods(PsiElementFactory factory, PsiMethod[] outPsiMethods, int index) {
@@ -451,8 +586,7 @@ public class DataBindingUtil {
       PsiClassType layoutInflaterType = PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, myInfo.getProject(),
                                                               myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
       PsiClassType viewType = PsiType
-        .getTypeByName(SdkConstants.CLASS_VIEW, myInfo.getProject(),
-                       myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
+        .getTypeByName(SdkConstants.CLASS_VIEW, myInfo.getProject(), myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
       PsiParameter layoutInflaterParam = factory.createParameter("inflater", layoutInflaterType);
       PsiParameter rootParam = factory.createParameter("root", viewGroupType);
       PsiParameter attachToRootParam = factory.createParameter("attachToRoot", PsiType.BOOLEAN);
@@ -476,7 +610,7 @@ public class DataBindingUtil {
         PsiUtil.setModifierProperty(method, PsiModifier.STATIC, true);
         //noinspection ConstantConditions
         outPsiMethods[index++] =
-          new LightDataBindingMethod(myInfo.getPsiFile(), psiManager, method, this, Language.findLanguageByID("JAVA"));
+          new LightDataBindingMethod(myInfo.getPsiFile(), psiManager, method, this, JavaLanguage.INSTANCE);
       }
     }
 
@@ -620,8 +754,7 @@ public class DataBindingUtil {
               Project project = facet.getModule().getProject();
               return new PsiField[]{createPsiField(project, PsiElementFactory.SERVICE.getInstance(project), "_all")};
             }
-          }
-        );
+          });
     }
 
     private Set<String> collectVariableNamesFromBindables() {
@@ -730,4 +863,5 @@ public class DataBindingUtil {
       return ourDataBindingEnabledModificationCount.longValue();
     }
   };
+
 }
