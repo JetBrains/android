@@ -15,26 +15,37 @@
  */
 package org.jetbrains.android.run;
 
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.SdkConstants;
+import org.jetbrains.android.AndroidTestCase;
 
 /**
  * Tests for {@link DefaultActivityLocator}.
  */
-public class DefaultActivityLocatorTest extends AndroidGradleTestCase {
+public class DefaultActivityLocatorTest extends AndroidTestCase {
+  public DefaultActivityLocatorTest() {
+    super(false);
+  }
+
   public void testActivity() throws Exception {
-    loadProject("projects/runConfig/activity");
-    assertEquals("com.example.unittest.Launcher", DefaultActivityLocator.computeDefaultActivity(myAndroidFacet));
+    myFixture.copyFileToProject("projects/runConfig/activity/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("projects/runConfig/activity/src/debug/java/com/example/unittest/Launcher.java",
+                                "src/com/example/unittest/Launcher.java");
+    assertEquals("com.example.unittest.Launcher", DefaultActivityLocator.computeDefaultActivity(myFacet));
   }
 
   public void testActivityAlias() throws Exception {
-    loadProject("projects/runConfig/alias");
-    assertEquals("LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myAndroidFacet));
+    myFixture.copyFileToProject("projects/runConfig/alias/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("projects/runConfig/alias/src/debug/java/com/example/unittest/Launcher.java",
+                                "src/com/example/unittest/Launcher.java");
+    assertEquals("LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet));
   }
 
   // tests that when there are multiple activities that with action MAIN and category LAUNCHER, then give
   // preference to the one that also has category DEFAULT
   public void testPreferDefaultCategoryActivity() throws Exception {
-    loadProject("projects/runConfig/default");
-    assertEquals("com.example.unittest.LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myAndroidFacet));
+    myFixture.copyFileToProject("projects/runConfig/default/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("projects/runConfig/alias/src/debug/java/com/example/unittest/Launcher.java",
+                                "src/com/example/unittest/Launcher.java");
+    assertEquals("com.example.unittest.LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet));
   }
 }
