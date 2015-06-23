@@ -66,41 +66,35 @@ import java.util.Map;
 public class ThemeEditorStyle {
   private static final Logger LOG = Logger.getInstance(ThemeEditorStyle.class);
 
-  private final boolean myIsFrameworkStyle;
+  private final @NotNull StyleResourceValue myStyleResourceValue;
   private final @NotNull StyleResolver myThemeResolver;
-  private final @NotNull String myStyleName;
   private final @NotNull Configuration myConfiguration;
   private final Project myProject;
 
   public ThemeEditorStyle(final @NotNull StyleResolver resolver,
                           final @NotNull Configuration configuration,
-                          final @NotNull String styleName,
-                          boolean isFrameworkStyle) {
-    myIsFrameworkStyle = isFrameworkStyle;
+                          final @NotNull StyleResourceValue styleResourceValue) {
+    myStyleResourceValue = styleResourceValue;
     myThemeResolver = resolver;
     myConfiguration = configuration;
-    myStyleName = styleName;
     myProject = configuration.getModule().getProject();
   }
 
   public boolean isProjectStyle() {
-    if (myIsFrameworkStyle) {
+    if (myStyleResourceValue.isFramework()) {
       return false;
     }
     ProjectResourceRepository repository = ProjectResourceRepository.getProjectResources(myConfiguration.getModule(), true);
     assert repository != null : myConfiguration.getModule().getName();
-    return repository.hasResourceItem(ResourceType.STYLE, myStyleName);
+    return repository.hasResourceItem(ResourceType.STYLE, myStyleResourceValue.getName());
   }
 
   /**
-   * Returns StyleResourceValue using myConfiguration with parameters myStyleName and myIsFrameworkStyle
-   * Can be null, if there is no such StyleResourceValue
+   * Returns StyleResourceValue for current Configuration
    */
-  @Nullable
-  public StyleResourceValue getStyleResourceValue() {
-    ResourceResolver resolver = myConfiguration.getResourceResolver();
-    assert resolver != null;
-    return resolver.getStyle(myStyleName, myIsFrameworkStyle);
+  @NotNull
+  private StyleResourceValue getStyleResourceValue() {
+    return myStyleResourceValue;
   }
 
   /**
@@ -109,7 +103,7 @@ public class ThemeEditorStyle {
    */
   @NotNull
   private List<ResourceItem> getStyleResourceItems() {
-    assert !myIsFrameworkStyle;
+    assert !myStyleResourceValue.isFramework();
 
     final ImmutableList.Builder<ResourceItem> resourceItems = ImmutableList.builder();
     AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
@@ -123,7 +117,7 @@ public class ThemeEditorStyle {
           return;
         }
 
-        List<ResourceItem> items = resources.getResourceItem(ResourceType.STYLE, myStyleName);
+        List<ResourceItem> items = resources.getResourceItem(ResourceType.STYLE, myStyleResourceValue.getName());
         if (items == null) {
           return;
         }
@@ -144,10 +138,9 @@ public class ThemeEditorStyle {
    * Returns the style name. If this is a framework style, it will include the "android:" prefix.
    * Can be null, if there is no corresponding StyleResourceValue
    */
-  @Nullable
+  @NotNull
   public String getQualifiedName() {
-    StyleResourceValue style = getStyleResourceValue();
-    return style == null ? null : StyleResolver.getQualifiedStyleName(style);
+    return StyleResolver.getQualifiedStyleName(myStyleResourceValue);
   }
 
   /**
@@ -171,11 +164,11 @@ public class ThemeEditorStyle {
     // item1 = {folderConfiguration1 -> value1, folderConfiguration2 -> value2}
     final Multimap<String, ConfiguredItemResourceValue> itemResourceValues = ArrayListMultimap.create();
 
-    if (myIsFrameworkStyle) {
+    if (myStyleResourceValue.isFramework()) {
       assert myConfiguration.getFrameworkResources() != null;
 
       com.android.ide.common.resources.ResourceItem styleItem =
-        myConfiguration.getFrameworkResources().getResourceItem(ResourceType.STYLE, myStyleName);
+        myConfiguration.getFrameworkResources().getResourceItem(ResourceType.STYLE, myStyleResourceValue.getName());
       // Go over all the files containing the resource.
       for (ResourceFile file : styleItem.getSourceFileList()) {
         ResourceValue styleResourceValue = styleItem.getResourceValue(ResourceType.STYLE, file.getConfiguration(), true);
@@ -194,10 +187,10 @@ public class ThemeEditorStyle {
       LocalResourceRepository repository = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
       assert repository != null;
       // Find every definition of this style and get all the attributes defined
-      List<ResourceItem> styleDefinitions = repository.getResourceItem(ResourceType.STYLE, myStyleName);
+      List<ResourceItem> styleDefinitions = repository.getResourceItem(ResourceType.STYLE, myStyleResourceValue.getName());
       assert styleDefinitions != null; // Style doesn't exist anymore?
       for (ResourceItem styleDefinition : styleDefinitions) {
-        ResourceValue styleResourceValue = styleDefinition.getResourceValue(myIsFrameworkStyle);
+        ResourceValue styleResourceValue = styleDefinition.getResourceValue(myStyleResourceValue.isFramework());
         FolderConfiguration folderConfiguration = styleDefinition.getConfiguration();
 
         if (styleResourceValue instanceof StyleResourceValue) {
@@ -559,7 +552,7 @@ public class ThemeEditorStyle {
    * Returns whether this style is public.
    */
   public boolean isPublic() {
-    if (!myIsFrameworkStyle) {
+    if (!myStyleResourceValue.isFramework()) {
       return true;
     }
 
