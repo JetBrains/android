@@ -31,6 +31,7 @@ import com.android.utils.HtmlBuilder;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -69,8 +70,10 @@ public class ViewLoader {
 
   @NotNull private final Module myModule;
   @NotNull private final Map<String, Class<?>> myLoadedClasses = Maps.newHashMap();
-  /**  Classes that are being loaded currently. */
+  /** Classes that are being loaded currently. */
   @NotNull private final Multiset<Class<?>> myLoadingClasses = HashMultiset.create(5);
+  /** Classes that have been modified after compilation. */
+  @NotNull private final Set<String> myRecentlyModifiedClasses = Sets.newHashSetWithExpectedSize(5);
   @Nullable private final Object myCredential;
   @NotNull private RenderLogger myLogger;
   @NotNull private final LayoutLibrary myLayoutLibrary;
@@ -205,7 +208,8 @@ public class ViewLoader {
 
   /** Checks that the given class has not been edited since the last compilation (and if it has, logs a warning to the user) */
   private void checkModified(@NotNull String fqcn) {
-    if (myModuleClassLoader != null && myModuleClassLoader.isSourceModified(fqcn, myCredential)) {
+    if (myModuleClassLoader != null && myModuleClassLoader.isSourceModified(fqcn, myCredential) && !myRecentlyModifiedClasses.contains(fqcn)) {
+      myRecentlyModifiedClasses.add(fqcn);
       RenderProblem.Html problem = RenderProblem.create(WARNING);
       HtmlBuilder builder = problem.getHtmlBuilder();
       String className = fqcn.substring(fqcn.lastIndexOf('.') + 1);
