@@ -16,6 +16,7 @@
 package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
+import com.android.ddmlib.IDevice;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
@@ -39,14 +40,14 @@ public class MavenDefaultActivityLocator extends ActivityLocator {
   }
 
   @Override
-  public void validate(@NotNull AndroidFacet facet) throws ActivityLocatorException {
+  public void validate() throws ActivityLocatorException {
     // We can't validate anything before having the artifacts from the build,
     // so nothing much to do here..
   }
 
   @NotNull
   @Override
-  protected String getQualifiedActivityName() throws ActivityLocatorException {
+  protected String getQualifiedActivityName(@NotNull IDevice device) throws ActivityLocatorException {
     File manifestCopy = null;
     try {
       Pair<File, String> pair;
@@ -67,7 +68,7 @@ public class MavenDefaultActivityLocator extends ActivityLocator {
         @Nullable
         @Override
         public String compute() {
-          return AndroidUtils.getDefaultLauncherActivityName(manifest);
+          return DefaultActivityLocator.getDefaultLauncherActivityName(manifest);
         }
       });
     }
