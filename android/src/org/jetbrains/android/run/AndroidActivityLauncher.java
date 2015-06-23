@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.run;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
@@ -34,10 +35,6 @@ import java.io.IOException;
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
 
-/**
- * A base class for application launchers that starts an activity (rather then e.g. a test).
- * Subclasses should fill in the logic for determining which activity.
- */
 public class AndroidActivityLauncher extends AndroidApplicationLauncher {
   private static final Logger LOG = Logger.getInstance(AndroidActivityLauncher.class);
 
@@ -120,7 +117,7 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
     }
 
     ProcessHandler processHandler = state.getProcessHandler();
-    String activityName = null;
+    String activityName;
     try {
       activityName = getQualifiedActivityName(state.getFacet());
     }
@@ -128,18 +125,15 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
       processHandler.notifyTextAvailable("Could not identify launch activity: " + e.getMessage(), STDOUT);
       return LaunchResult.NOTHING_TO_DO;
     }
-    activityName = activityName.replace("$", "\\$");
-    final String activityPath = state.getPackageName() + '/' + activityName;
+
+    final String activityPath = getLauncherActivityPath(state.getPackageName(), activityName);
     if (state.isStopped()) return LaunchResult.STOP;
     processHandler.notifyTextAvailable("Launching application: " + activityPath + ".\n", STDOUT);
     AndroidRunningState.MyReceiver receiver = state.new MyReceiver();
+
     while (true) {
       if (state.isStopped()) return LaunchResult.STOP;
-      String command = "am start " +
-                       getDebugFlags(state) +
-                       " -n \"" + activityPath + "\" " +
-                       "-a android.intent.action.MAIN " +
-                       "-c android.intent.category.LAUNCHER";
+      String command = getStartActivityCommand(activityPath, getDebugFlags(state));
       boolean deviceNotResponding = false;
       try {
         state.executeDeviceCommandAndWriteToConsole(device, command, receiver);
@@ -151,24 +145,42 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
       if (!deviceNotResponding && receiver.getErrorType() != 2) {
         break;
       }
-      processHandler.notifyTextAvailable("Device is not ready. Waiting for " + AndroidRunningState.WAITING_TIME + " sec.\n", STDOUT);
+      processHandler.notifyTextAvailable("Device is not ready. Waiting for " + AndroidRunningState.WAITING_TIME_SECS + " sec.\n", STDOUT);
       synchronized (state.getRunningLock()) {
         try {
-          state.getRunningLock().wait(AndroidRunningState.WAITING_TIME * 1000);
+          state.getRunningLock().wait(AndroidRunningState.WAITING_TIME_SECS * 1000);
         }
         catch (InterruptedException e) {
         }
       }
       receiver = state.new MyReceiver();
     }
+
     boolean success = receiver.getErrorType() == AndroidRunningState.NO_ERROR;
     if (success) {
       processHandler.notifyTextAvailable(receiver.getOutput().toString(), STDOUT);
+      return LaunchResult.SUCCESS;
     }
     else {
       processHandler.notifyTextAvailable(receiver.getOutput().toString(), STDERR);
+      return LaunchResult.STOP;
     }
-    return success ? LaunchResult.SUCCESS : LaunchResult.STOP;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static String getStartActivityCommand(@NotNull String activityPath, @NotNull String debugFlags) {
+    return "am start " +
+           debugFlags +
+           " -n \"" + activityPath + "\" " +
+           "-a android.intent.action.MAIN " +
+           "-c android.intent.category.LAUNCHER";
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static String getLauncherActivityPath(@NotNull String packageName, @NotNull String activityName) {
+    return packageName + "/" + activityName.replace("$", "\\$");
   }
 
   /** Returns the flags used to the "am start" command for launching in debug mode. */
