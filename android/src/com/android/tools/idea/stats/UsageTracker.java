@@ -41,6 +41,7 @@ public abstract class UsageTracker {
   public static final String ACTION_SYNC_ENDED = "syncEnded";
   public static final String ACTION_SYNC_SKIPPED = "syncSkipped";
   public static final String ACTION_SYNC_FAILED = "syncFailed";
+  public static final String ACTION_CPP_SYNC_COMPLETED = "cppSyncCompleted";
 
   public static final String ACTION_APK_DEPLOYED = "apkDeployed";
   public static final String ACTION_EMULATOR_LAUNCHED = "emulatorLaunch";
