@@ -16,11 +16,14 @@
 
 package org.jetbrains.android.inspections;
 
+import com.android.annotations.NonNull;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.DeclaredPermissionsLookup;
+import com.android.tools.lint.checks.PermissionFinder;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.android.tools.lint.checks.PermissionRequirement;
+import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -58,6 +61,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
 import lombok.ast.BinaryOperator;
+import lombok.ast.NullLiteral;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -72,6 +76,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.checks.CleanupDetector.CONTENT_RESOLVER_CLS;
+import static com.android.tools.lint.checks.PermissionFinder.Operation.*;
 import static com.android.tools.lint.checks.SupportAnnotationDetector.*;
 import static com.intellij.psi.CommonClassNames.DEFAULT_PACKAGE;
 import static com.intellij.psi.CommonClassNames.JAVA_LANG_STRING;
@@ -341,6 +347,183 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         }
       }
     }
+
+    // Check other permission calls (intents, content resolvers etc: the annotation is not on the method itself
+    // (e.g. Activity#startActivity) but rather on the various intent actions and content resolver URIs being
+    // passed to the method (usually indirectly)
+    String name = method.getName();
+    PermissionFinder.Operation operation = SupportAnnotationDetector.getPermissionOperation(name);
+    if (operation != null) {
+      int index = Math.max(0, SupportAnnotationDetector.getIntentMethodParameterIndex(name));
+      PsiExpressionList argumentList = methodCall.getArgumentList();
+      if (argumentList != null) {
+        PsiExpression argument = argumentList.getExpressions()[index];
+        if (operation == ACTION) {
+          PsiClass c = PsiUtil.resolveClassInType(argument.getType());
+          if (c == null || !CLASS_INTENT.equals(c.getQualifiedName())) {
+            return;
+          }
+        } else if ((operation == READ || operation == WRITE)) {
+          if (!InheritanceUtil.isInheritor(method.getContainingClass(), CONTENT_RESOLVER_CLS)) {
+            return;
+          }
+        }
+
+        PermissionFinder.Result result = search(argument, operation);
+        if (result != null) {
+          checkPermissionRequirement(methodCall, holder, method, result, result.requirement);
+        }
+      }
+    }
+  }
+
+  @Nullable
+  private static PermissionFinder.Result search(@NonNull PsiElement node, @NonNull PermissionFinder.Operation operation) {
+    if (node instanceof NullLiteral) {
+      return null;
+    } else if (node instanceof PsiTypeCastExpression) {
+      PsiTypeCastExpression cast = (PsiTypeCastExpression) node;
+      final PsiExpression operand = cast.getOperand();
+      if (operand != null) {
+        return search(operand, operation);
+      }
+    } else if (node instanceof PsiNewExpression && operation == PermissionFinder.Operation.ACTION) {
+      // Identifies "new Intent(argument)" calls and, if found, continues
+      // resolving the argument instead looking for the action definition
+      PsiNewExpression call = (PsiNewExpression)node;
+      PsiJavaCodeReferenceElement classOrAnonymousClassReference = call.getClassOrAnonymousClassReference();
+      if (classOrAnonymousClassReference != null) {
+        String qualifiedName = classOrAnonymousClassReference.getQualifiedName();
+        if (CLASS_INTENT.equals(qualifiedName)) {
+          PsiExpressionList argumentList = call.getArgumentList();
+          if (argumentList != null) {
+            PsiExpression[] expressions = argumentList.getExpressions();
+            if (expressions.length > 0) {
+              return search(expressions[0], operation);
+            }
+          }
+        }
+      }
+      return null;
+    } else if (node instanceof PsiJavaReference) {
+      PsiElement resolved = ((PsiJavaReference)node).resolve();
+      if (resolved instanceof PsiField) {
+        PsiField field = (PsiField)resolved;
+        PsiModifierList modifierList = field.getModifierList();
+        if (modifierList == null) {
+          return null;
+        }
+        if (operation == PermissionFinder.Operation.ACTION) {
+          PsiAnnotation annotation = modifierList.findAnnotation(PERMISSION_ANNOTATION);
+          if (annotation != null) {
+            return getPermissionRequirement(field, annotation, operation);
+          }
+        }
+        else if (operation == PermissionFinder.Operation.READ || operation == PermissionFinder.Operation.WRITE) {
+          String fqn = operation == PermissionFinder.Operation.READ ? PERMISSION_ANNOTATION_READ : PERMISSION_ANNOTATION_WRITE;
+          PsiAnnotation annotation = null;
+          for (PsiAnnotation a : getAllAnnotations(field)) {
+            if (fqn.equals(a.getQualifiedName())) {
+              annotation = null;
+              if (AnnotationUtil.isExternalAnnotation(a)) {
+                // The complex annotations used for read/write cannot be
+                // expressed in the external annotations format, so they're inlined.
+                // (See Extractor.AnnotationData#write).
+                //
+                // Instead we've inlined the fields of the annotation on the
+                // outer one:
+                annotation = a;
+                break;
+              } else {
+                final PsiAnnotationMemberValue o = a.findAttributeValue(ATTR_VALUE);
+                if (o instanceof PsiAnnotation) {
+                  annotation = (PsiAnnotation)o;
+                  if (PERMISSION_ANNOTATION.equals(annotation.getQualifiedName())) {
+                    break;
+                  }
+                }
+              }
+            }
+          }
+          if (annotation != null) {
+            return getPermissionRequirement(field, annotation, operation);
+          } else {
+            PsiExpression initializer = field.getInitializer();
+            if (initializer instanceof PsiMethodCallExpression) {
+              PsiMethodCallExpression call = (PsiMethodCallExpression)initializer;
+              if (call.getMethodExpression().getQualifiedName().equals("Uri.withAppendedPath")) {
+                PsiExpression[] expressions = call.getArgumentList().getExpressions();
+                if (expressions.length == 2) {
+                  return search(expressions[0], operation);
+                }
+              }
+            }
+          }
+        }
+        else {
+          assert false : operation;
+        }
+      } else if (resolved instanceof PsiLocalVariable) {
+        PsiStatement statement = PsiTreeUtil.getParentOfType(node, PsiStatement.class, false);
+        while (statement != null) {
+          if (statement instanceof PsiDeclarationStatement) {
+            PsiDeclarationStatement declaration = (PsiDeclarationStatement)statement;
+            PsiElement[] declaredElements = declaration.getDeclaredElements();
+            for (PsiElement declared : declaredElements) {
+              if (declared == resolved && declared instanceof PsiLocalVariable) {
+                // Found the declaration of the target variable; look at the right hand side to determine how
+                // to proceed.
+                PsiExpression initializer = ((PsiLocalVariable)declared).getInitializer();
+                if (initializer != null) {
+                  return search(initializer, operation);
+                }
+              }
+            }
+          } else if (statement instanceof PsiExpressionStatement) {
+            PsiExpression expression = ((PsiExpressionStatement)statement).getExpression();
+            if (expression instanceof PsiAssignmentExpression) {
+              PsiAssignmentExpression assignment = (PsiAssignmentExpression)expression;
+              if (assignment.getLExpression() instanceof PsiReferenceExpression) {
+                PsiElement variable = ((PsiReferenceExpression)assignment.getLExpression()).resolve();
+                if (variable == resolved) {
+                  PsiExpression value = assignment.getRExpression();
+                  if (value != null) {
+                    return search(value, operation);
+                  }
+                }
+              }
+            }
+          } else if (statement instanceof PsiBinaryExpression) {
+            PsiBinaryExpression binary = (PsiBinaryExpression)statement;
+            if (binary.getOperationTokenType() == JavaTokenType.EQ) {
+              // Look at the LHS to see how to proceed
+              if (binary.getLOperand() == resolved && binary.getROperand() != null) {
+                // Found assignment: delegate to rhs.
+                return search(binary.getROperand(), operation);
+              }
+            }
+          }
+          statement = PsiTreeUtil.getPrevSiblingOfType(statement, PsiStatement.class);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @NonNull
+  private static PermissionFinder.Result getPermissionRequirement(@NonNull PsiField field,
+                                                                  @NonNull PsiAnnotation annotation,
+                                                                  @NonNull PermissionFinder.Operation operation) {
+    PermissionRequirement requirement = PermissionRequirement.create(null, LombokPsiParser.createResolvedAnnotation(annotation));
+    PsiClass containingClass = field.getContainingClass();
+    String name;
+    if (containingClass != null) {
+      name = containingClass.getName() + "." + field.getName();
+    } else {
+      name = field.getName();
+    }
+    return new PermissionFinder.Result(operation, requirement, name);
   }
 
   private static void checkThreadAnnotation(PsiCallExpression methodCall, ProblemsHolder holder, PsiMethod method, String qualifiedName) {
@@ -399,6 +582,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                                  PsiMethod method,
                                                  PsiAnnotation annotation) {
     PermissionRequirement requirement = PermissionRequirement.create(null, LombokPsiParser.createResolvedAnnotation(annotation));
+    checkPermissionRequirement(methodCall, holder, method, null, requirement);
+  }
+
+  private static void checkPermissionRequirement(PsiCallExpression methodCall,
+                                                 ProblemsHolder holder,
+                                                 PsiMethod method,
+                                                 @Nullable PermissionFinder.Result result,
+                                                 PermissionRequirement requirement) {
     if (!requirement.isConditional()) {
       Project project = methodCall.getProject();
       final AndroidFacet facet = AndroidFacet.getInstance(methodCall);
@@ -413,8 +604,16 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         }
 
         PsiClass containingClass = method.getContainingClass();
-        String methodName = containingClass != null ? containingClass.getName() + "." + method.getName() : method.getName();
-        String message = getMissingPermissionMessage(requirement, methodName, lookup);
+        String methodName;
+        PermissionFinder.Operation operation;
+        if (result != null) {
+          operation = result.operation;
+          methodName = result.name;
+        } else {
+          operation = PermissionFinder.Operation.CALL;
+          methodName = containingClass != null ? containingClass.getName() + "." + method.getName() : method.getName();
+        }
+        String message = getMissingPermissionMessage(requirement, methodName, lookup, operation);
         LocalQuickFix[] fixes = LocalQuickFix.EMPTY_ARRAY;
         List<LocalQuickFix> list = Lists.newArrayList();
         for (String permissionName : requirement.getMissingPermissions(lookup)) {
