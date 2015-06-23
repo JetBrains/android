@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.renderer.NlBooleanRenderer;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +50,7 @@ public class NlPropertyEditors {
       return getComboEditor();
     }
 
-    return getDefaultEditor();
+    return getDefaultEditor(property.getComponent().getModel().getProject());
   }
 
   private static TableCellEditor getBooleanEditor() {
@@ -69,9 +69,9 @@ public class NlPropertyEditors {
     return ourComboEditor;
   }
 
-  private static TableCellEditor getDefaultEditor() {
+  private static TableCellEditor getDefaultEditor(Project project) {
     if (ourDefaultEditor == null) {
-      ourDefaultEditor = new NlReferenceEditor();
+      ourDefaultEditor = new NlReferenceEditor(project);
     }
 
     return ourDefaultEditor;
