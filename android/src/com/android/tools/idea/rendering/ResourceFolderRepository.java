@@ -270,7 +270,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     return layoutTag.findFirstSubTag(TAG_DATA);
   }
 
-  private static void scanDataBindingVariables(PsiResourceFile resourceFile, @Nullable XmlTag dataTag, long modificationCount) {
+  private static void scanDataBindingDataTag(PsiResourceFile resourceFile, @Nullable XmlTag dataTag, long modificationCount) {
     DataBindingInfo info = resourceFile.getDataBindingInfo();
     assert info != null;
     List<PsiDataBindingResourceItem> items = Lists.newArrayList();
@@ -293,6 +293,33 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         }
       }
     }
+    Set<String> usedAliases = Sets.newHashSet();
+    for (XmlTag tag : dataTag.findSubTags(TAG_IMPORT)) {
+      String nameValue = tag.getAttributeValue(ATTR_TYPE);
+      if (nameValue == null) {
+        continue;
+      }
+      String name = StringUtil.unescapeXml(nameValue);
+      String aliasValue = tag.getAttributeValue(ATTR_ALIAS);
+      String alias = null;
+      if (aliasValue != null) {
+        alias = StringUtil.unescapeXml(aliasValue);
+      }
+      if (alias == null) {
+        int lastIndexOfDot = name.lastIndexOf('.');
+        if (lastIndexOfDot >= 0) {
+          alias = name.substring(lastIndexOfDot + 1);
+        }
+      }
+      if (StringUtil.isNotEmpty(alias)) {
+        if (usedAliases.add(name)) {
+          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(name, DataBindingResourceType.IMPORT, tag);
+          item.setSource(resourceFile);
+          items.add(item);
+        }
+      }
+    }
+
     info.replaceItems(items, modificationCount);
   }
 
@@ -341,7 +368,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     } else {
       resourceFile.getDataBindingInfo().update(className, classPackage, modificationCount);
     }
-    scanDataBindingVariables(resourceFile, dataTag, modificationCount);
+    scanDataBindingDataTag(resourceFile, dataTag, modificationCount);
   }
 
   @NonNull
