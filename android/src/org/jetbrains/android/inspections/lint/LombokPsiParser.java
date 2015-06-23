@@ -1146,6 +1146,8 @@ public class LombokPsiParser extends JavaParser {
         }
 
         return list.toArray();
+      } else if (v instanceof PsiExpression) {
+        return JavaConstantExpressionEvaluator.computeConstantExpression((PsiExpression)v, false);
       }
 
       return null;
