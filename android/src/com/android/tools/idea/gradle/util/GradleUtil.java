@@ -301,9 +301,15 @@ public final class GradleUtil {
 
   @NotNull
   public static List<String> getPathSegments(@NotNull String gradlePath) {
-    return Lists.newArrayList(on(GRADLE_PATH_SEPARATOR).omitEmptyStrings().split(gradlePath));
+    return on(GRADLE_PATH_SEPARATOR).omitEmptyStrings().splitToList(gradlePath);
   }
 
+  /**
+   * Returns the build.gradle file in the given module. This method first checks if the Gradle model has the path of the build.gradle
+   * file for the given module. If it doesn't find it, it tries to find a build.gradle inside the module's root directory.
+   * @param module the given module.
+   * @return the build.gradle file in the given module, or {@code null} if it cannot be found.
+   */
   @Nullable
   public static VirtualFile getGradleBuildFile(@NotNull Module module) {
     AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
@@ -315,26 +321,50 @@ public final class GradleUtil {
     return getGradleBuildFile(moduleFilePath.getParentFile());
   }
 
+  /**
+   * Returns the build.gradle file that is expected right in the directory at the given path. For example, if the directory path is
+   * '~/myProject/myModule', this method will look for the file '~/myProject/myModule/build.gradle'.
+   * <p>
+   * <b>Note:</b> Only use this method if you do <b>not</b> have a reference to a {@link Module}. Otherwise use
+   * {@link #getGradleBuildFile(Module)}.
+   * </p>
+   *
+   * @param dirPath the given directory path.
+   * @return the build.gradle file in the directory at the given path, or {@code null} if there is no build.gradle file in the given
+   * directory path.
+   */
   @Nullable
-  public static VirtualFile getGradleBuildFile(@NotNull File rootDir) {
-    File gradleBuildFilePath = getGradleBuildFilePath(rootDir);
+  public static VirtualFile getGradleBuildFile(@NotNull File dirPath) {
+    File gradleBuildFilePath = getGradleBuildFilePath(dirPath);
     return findFileByIoFile(gradleBuildFilePath, true);
   }
 
+  /**
+   * Returns the path of a build.gradle file in the directory at the given path. For example, if the directory path is
+   * '~/myProject/myModule', this method will return the path '~/myProject/myModule/build.gradle'. Please note that a build.gradle file
+   * may not exist at the returned path.
+   * <p>
+   * <b>Note:</b> Only use this method if you do <b>not</b> have a reference to a {@link Module}. Otherwise use
+   * {@link #getGradleBuildFile(Module)}.
+   * </p>
+   *
+   * @param dirPath the given directory path.
+   * @return the path of a build.gradle file in the directory at the given path.
+   */
   @NotNull
-  public static File getGradleBuildFilePath(@NotNull File rootDir) {
-    return new File(rootDir, FN_BUILD_GRADLE);
+  public static File getGradleBuildFilePath(@NotNull File dirPath) {
+    return new File(dirPath, FN_BUILD_GRADLE);
   }
 
   @Nullable
-  public static VirtualFile getGradleSettingsFile(@NotNull File rootDir) {
-    File gradleSettingsFilePath = getGradleSettingsFilePath(rootDir);
+  public static VirtualFile getGradleSettingsFile(@NotNull File dirPath) {
+    File gradleSettingsFilePath = getGradleSettingsFilePath(dirPath);
     return findFileByIoFile(gradleSettingsFilePath, true);
   }
 
   @NotNull
-  public static File getGradleSettingsFilePath(@NotNull File rootDir) {
-    return new File(rootDir, FN_SETTINGS_GRADLE);
+  public static File getGradleSettingsFilePath(@NotNull File dirPath) {
+    return new File(dirPath, FN_SETTINGS_GRADLE);
   }
 
   @NotNull
