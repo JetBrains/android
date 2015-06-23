@@ -18,10 +18,6 @@ package com.android.tools.idea.editors.theme;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.VersionQualifier;
-import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -52,7 +48,6 @@ import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.rendering.ResourceNotificationManager;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -62,8 +57,6 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
@@ -73,15 +66,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.ui.JBColor;
-import com.intellij.util.Processor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
-import org.jetbrains.android.dom.resources.ResourceElement;
-import org.jetbrains.android.dom.resources.Style;
-import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -445,11 +433,12 @@ public class ThemeEditorComponent extends Splitter {
    * @return whether creation of new theme succeeded.
    */
   private boolean createNewTheme() {
-    ThemeEditorStyle selectedTheme = getSelectedStyle();
-    String selectedThemeName = selectedTheme == null ? null : selectedTheme.getQualifiedName();
-
-    String newThemeName = createNewStyle(selectedThemeName, null/*message*/, null/*newAttributeName*/, null/*newAttributeValue*/);
+    String newThemeName = ThemeEditorUtils.createNewStyle(getSelectedStyle(), null, null, myThemeEditorContext, !isSubStyleSelected(), null);
     if (newThemeName != null) {
+      //TODO: this will be deleted in next CL, because myResourceChangeListener will be invoked instead of this.
+      AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
+      facet.refreshResources();
+
       reload(newThemeName);
       return true;
     }
@@ -519,84 +508,6 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   /**
-   * Creates a new theme by displaying the {@link NewStyleDialog}. If newAttributeName is not null, a new attribute will be added to the
-   * style with the value specified in newAttributeValue.
-   * An optional message can be displayed as hint to the user of why the theme is being created.
-   * @return the new style name or null if the style wasn't created.
-   */
-  @Nullable
-  private String createNewStyle(@Nullable String defaultParentStyleName,
-                                @Nullable String message,
-                                @Nullable final String newAttributeName,
-                                @Nullable final String newAttributeValue) {
-    final NewStyleDialog dialog = new NewStyleDialog(!isSubStyleSelected() /*isTheme*/,
-                                                     myThemeEditorContext,
-                                                     defaultParentStyleName,
-                                                     getSelectedTheme() != null ? getSelectedTheme().getName() : null,
-                                                     message);
-    boolean createStyle = dialog.showAndGet();
-    if (!createStyle) {
-      return null;
-    }
-
-    int minModuleApi = ThemeEditorUtils.getMinApiLevel(myThemeEditorContext.getCurrentThemeModule());
-    int themeParentApiLevel = ThemeEditorUtils.getOriginalApiLevel(dialog.getStyleParentName(), myThemeEditorContext.getProject());
-    int newAttributeApiLevel = ThemeEditorUtils.getOriginalApiLevel(newAttributeName, myThemeEditorContext.getProject());
-    int newValueApiLevel = ThemeEditorUtils.getOriginalApiLevel(newAttributeValue, myThemeEditorContext.getProject());
-    int minAcceptableApi = Math.max(Math.max(themeParentApiLevel, newAttributeApiLevel), newValueApiLevel);
-
-    final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STYLE);
-    FolderConfiguration config = new FolderConfiguration();
-    if (minModuleApi < minAcceptableApi) {
-      VersionQualifier qualifier = new VersionQualifier(minAcceptableApi);
-      config.setVersionQualifier(qualifier);
-    }
-    final List<String> dirNames = Collections.singletonList(config.getFolderName(ResourceFolderType.VALUES));
-
-    if (fileName == null) {
-      LOG.error("Couldn't find a default filename for ResourceType.STYLE");
-      return null;
-    }
-
-    boolean isCreated = new WriteCommandAction<Boolean>(myThemeEditorContext.getProject(), "Create new theme " + dialog.getStyleName()) {
-      @Override
-      protected void run(@NotNull Result<Boolean> result) {
-        result.setResult(AndroidResourceUtil.
-          createValueResource(myThemeEditorContext.getCurrentThemeModule(), dialog.getStyleName(),
-                              ResourceType.STYLE, fileName, dirNames, new Processor<ResourceElement>() {
-              @Override
-              public boolean process(ResourceElement element) {
-                assert element instanceof Style;
-                final Style style = (Style)element;
-
-                style.getParentStyle().setStringValue(dialog.getStyleParentName());
-
-                if (!Strings.isNullOrEmpty(newAttributeName)) {
-                  StyleItem newItem = style.addItem();
-                  newItem.getName().setStringValue(newAttributeName);
-
-                  if (!Strings.isNullOrEmpty(newAttributeValue)) {
-                    newItem.setStringValue(newAttributeValue);
-                  }
-                }
-
-                return true;
-              }
-            }));
-      }
-    }.execute().getResultObject();
-
-    if (isCreated) {
-      AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
-      if (facet != null) {
-        facet.refreshResources();
-      }
-    }
-
-    return isCreated ? SdkConstants.STYLE_RESOURCE_PREFIX + dialog.getStyleName() : null;
-  }
-
-  /**
    * Save the current selected theme so we can restore it if we need to refresh the data.
    * If the theme does not exist anymore, the first available theme will be selected.
    */
@@ -657,20 +568,24 @@ public class ThemeEditorComponent extends Splitter {
     }
 
     // The current style is R/O so we need to propagate this change a new style.
-    String newStyleName = createNewStyle(selectedStyle.getQualifiedName(), String
+    String message = String
       .format("<html>The %1$s '<code>%2$s</code>' is Read-Only.<br/>A new %1$s will be created to modify '<code>%3$s</code>'.<br/></html>",
-              isSubStyleSelected() ? "style" : "theme",
-              selectedStyle.getQualifiedName(),
-              rv.getName()), rv.getQualifiedName(), strValue);
+              isSubStyleSelected() ? "style" : "theme", selectedStyle.getQualifiedName(), rv.getName());
+
+    String newStyleName = ThemeEditorUtils.createNewStyle(selectedStyle, rv.getQualifiedName(), strValue, myThemeEditorContext, !isSubStyleSelected(), message);
 
     if (newStyleName == null) {
       return;
     }
 
+    //TODO: this will be deleted in next CL, because myResourceChangeListener will be invoked instead of this.
+    AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
+    assert facet != null;
+    facet.refreshResources();
+
     if (!isSubStyleSelected()) {
       // We changed a theme, so we are done.
       reload(newStyleName);
-
       return;
     }
 
@@ -689,19 +604,23 @@ public class ThemeEditorComponent extends Splitter {
 
     // We've modified a sub-style so we need to modify the attribute that was originally pointing to this.
     if (selectedTheme.isReadOnly()) {
-      // The theme pointing to the new style is r/o so create a new theme and then write the value.
-      String newThemeName = createNewStyle(selectedTheme.getQualifiedName(), String.format(
-        "<html>The style '%1$s' which references to '%2$s' is also Read-Only.<br/>" +
-        "A new theme will be created to point to the modified style '%3$s'.<br/></html>", selectedTheme.getQualifiedName(), rv.getName(),
-        newStyleName), sourcePropertyName, newStyleName);
 
+      // The theme pointing to the new style is r/o so create a new theme and then write the value.
+      message = String.format("<html>The style '%1$s' which references to '%2$s' is also Read-Only.<br/>" +
+                              "A new theme will be created to point to the modified style '%3$s'.<br/></html>",
+                              selectedTheme.getQualifiedName(), rv.getName(), newStyleName);
+
+      String newThemeName = ThemeEditorUtils.createNewStyle(selectedTheme, sourcePropertyName, newStyleName, myThemeEditorContext, true, message);
       if (newThemeName != null) {
+        //TODO: this will be deleted in next CL
+        facet.refreshResources();
         reload(newThemeName);
       }
-    } else {
+    }
+    else {
       // The theme pointing to the new style is writable, so go ahead.
+      // We are not reloading, because myResourceChangeListener will be triggered
       selectedTheme.setValue(sourcePropertyName, newStyleName);
-      reload(selectedTheme.getQualifiedName());
     }
   }
 
