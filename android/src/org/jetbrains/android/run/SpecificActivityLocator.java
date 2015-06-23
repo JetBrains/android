@@ -17,8 +17,10 @@ package org.jetbrains.android.run;
 
 import com.android.tools.idea.model.ManifestInfo;
 import com.intellij.execution.JavaExecutionUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -26,7 +28,6 @@ import com.intellij.psi.search.ProjectScope;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.manifest.Activity;
 import org.jetbrains.android.dom.manifest.ActivityAlias;
-import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -84,83 +85,52 @@ public class SpecificActivityLocator extends ActivityLocator {
       return;
     }
 
-    if (AndroidRunConfiguration.doesPackageContainMavenProperty(myFacet)) {
+    if (doesPackageContainMavenProperty(myFacet)) {
       return;
     }
 
     // check whether activity is declared in the manifest
-    List<Activity> activities = ManifestInfo.get(module, true).getActivities();
+    List<Activity> activities = ManifestInfo.get(module, false).getActivities();
     Activity activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
     if (activity != null) {
       return;
     }
 
-    Module libModule = null;
-    for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(module, true)) {
-      final Module depModule = depFacet.getModule();
-      activities = ManifestInfo.get(depModule, true).getActivities();
-      activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
-
-      if (activity != null) {
-        libModule = depModule;
-        break;
-      }
-    }
+    activities = ManifestInfo.get(module, true).getActivities();
+    activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
     if (activity == null) {
       throw new ActivityLocatorException(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
     }
-    else if (!myFacet.getProperties().ENABLE_MANIFEST_MERGING) {
+    else if (!ActivityLocatorUtils.shouldUseMergedManifest(myFacet)) {
       throw new ActivityLocatorException(
-        AndroidBundle.message("activity.declared.but.manifest.merging.disabled", c.getName(), libModule.getName(), module.getName()));
+        AndroidBundle.message("activity.declared.but.manifest.merging.disabled", c.getName(), module.getName()));
     }
   }
 
   @Nullable
-  private static ActivityAlias findActivityAlias(@NotNull AndroidFacet facet, @NotNull String name) {
-    ActivityAlias alias = doFindActivityAlias(facet, name);
+  private static ActivityAlias findActivityAlias(@NotNull AndroidFacet facet, @NotNull final String name) {
+    final List<ActivityAlias> aliases = ManifestInfo.get(facet.getModule(), true).getActivityAliases();
 
-    if (alias != null) {
-      return alias;
-    }
-    for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(facet.getModule(), true)) {
-      alias = doFindActivityAlias(depFacet, name);
-
-      if (alias != null) {
-        return alias;
+    return ApplicationManager.getApplication().runReadAction(new Computable<ActivityAlias>() {
+      @Override
+      public ActivityAlias compute() {
+        for (ActivityAlias alias : aliases) {
+          if (name.equals(ActivityLocatorUtils.getQualifiedName(alias))) {
+            return alias;
+          }
+        }
+        return null;
       }
-    }
-    return null;
+    });
   }
 
-  @Nullable
-  private static ActivityAlias doFindActivityAlias(@NotNull AndroidFacet facet, @NotNull String name) {
+  private static boolean doesPackageContainMavenProperty(@NotNull AndroidFacet facet) {
     final Manifest manifest = facet.getManifest();
 
     if (manifest == null) {
-      return null;
-    }
-    final Application application = manifest.getApplication();
-
-    if (application == null) {
-      return null;
+      return false;
     }
     final String aPackage = manifest.getPackage().getStringValue();
-
-    for (ActivityAlias activityAlias : application.getActivityAliass()) {
-      final String alias = activityAlias.getName().getStringValue();
-
-      if (alias != null && alias.length() > 0 && name.endsWith(alias)) {
-        String prefix = name.substring(0, name.length() - alias.length());
-
-        if (prefix.endsWith(".")) {
-          prefix = prefix.substring(0, prefix.length() - 1);
-        }
-
-        if (prefix.length() == 0 || prefix.equals(aPackage)) {
-          return activityAlias;
-        }
-      }
-    }
-    return null;
+    return aPackage != null && aPackage.contains("${");
   }
 }

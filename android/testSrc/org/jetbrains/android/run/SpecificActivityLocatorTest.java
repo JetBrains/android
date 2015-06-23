@@ -31,11 +31,48 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
     locator.validate(myFacet);
   }
 
+  public void testActivityNotDeclared() throws ActivityLocator.ActivityLocatorException {
+    myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("projects/runConfig/undeclared/Launcher2.java", "src/com/example/unittest/Launcher2.java");
+
+    SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher2");
+    try {
+      locator.validate(myFacet);
+      fail("Validation succeeded even without activity declaration.");
+    }
+    catch (ActivityLocator.ActivityLocatorException e) {
+      assertEquals("The activity 'Launcher2' is not declared in AndroidManifest.xml", e.getMessage());
+    }
+  }
+
+  public void testNonActivity() {
+    myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher");
+    try {
+      locator.validate(myFacet);
+      fail("Invalid activity accepted");
+    } catch (ActivityLocator.ActivityLocatorException e) {
+      assertEquals("com.example.unittest.Launcher is not an Activity subclass or alias", e.getMessage());
+    }
+  }
+
   public void testValidLauncherAlias() throws ActivityLocator.ActivityLocatorException {
     myFixture.copyFileToProject("projects/runConfig/alias/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject("projects/runConfig/alias/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "LauncherAlias");
     locator.validate(myFacet);
+  }
+
+  public void testAliasNotDeclared() throws ActivityLocator.ActivityLocatorException {
+    myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("projects/runConfig/undeclared/Launcher.java", "src/com/example/unittest/Launcher.java");
+    SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "NotLaunchable");
+    try {
+      locator.validate(myFacet);
+      fail("Validation succeeded for activity alias that isn't launchable.");
+    } catch (ActivityLocator.ActivityLocatorException e) {
+      assertEquals("The intent-filter of the activity must contain android.intent.action.MAIN action", e.getMessage());
+    }
   }
 }

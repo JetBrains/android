@@ -1055,8 +1055,7 @@ public class AndroidUtils {
 
     @Override
     public String getQualifiedName() {
-      PsiClass c = myActivity.getActivityClass().getValue();
-      return c == null ? null : c.getQualifiedName();
+      return ActivityLocatorUtils.getQualifiedName(myActivity);
     }
   }
 
@@ -1076,30 +1075,8 @@ public class AndroidUtils {
     @Nullable
     @Override
     public String getQualifiedName() {
-      String name = myAlias.getName().getStringValue();
-      if (name == null) {
-        return null;
-      }
-
-      int dotIndex = name.indexOf('.');
-      if (dotIndex > 0) { // fully qualified
-        return name;
-      }
-
-      // attempt to retrieve the package name from the manifest in which
-      // this alias was defined
-      String pkg = null;
-      DomElement parent = myAlias.getParent();
-      if (parent instanceof Application) {
-        parent = parent.getParent();
-        if (parent instanceof Manifest) {
-          Manifest manifest = (Manifest)parent;
-          pkg = manifest.getPackage().getStringValue();
-        }
-      }
-
-      // if we have a package name, prepend that to the activity alias
-      return pkg == null ? name : pkg + (dotIndex == -1 ? "." : "") + name;
+      return ActivityLocatorUtils.getQualifiedName(myAlias);
     }
   }
+
 }
