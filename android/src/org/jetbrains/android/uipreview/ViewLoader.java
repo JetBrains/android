@@ -162,7 +162,8 @@ public class ViewLoader {
       if (aClass != null) {
         checkModified(className);
         if (myLoadingClasses.count(aClass) > ALLOWED_NESTED_VIEWS) {
-          throw new InstantiationException("The layout involves creation of " + className + " over 100 levels deep. Infinite recursion?");
+          throw new InstantiationException(
+            "The layout involves creation of " + className + " over " + ALLOWED_NESTED_VIEWS + " levels deep. Infinite recursion?");
         }
         myLoadingClasses.add(aClass);
         try {
