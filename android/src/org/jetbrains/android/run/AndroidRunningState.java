@@ -115,7 +115,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   @NonNls private static final String ANDROID_TARGET_DEVICES_PROPERTY = "AndroidTargetDevices";
   private static final IDevice[] EMPTY_DEVICE_ARRAY = new IDevice[0];
 
-  public static final int WAITING_TIME = 20;
+  public static final int WAITING_TIME_SECS = 20;
 
   private static final Pattern FAILURE = Pattern.compile("Failure\\s+\\[(.*)\\]");
   private static final Pattern TYPED_ERROR = Pattern.compile("Error\\s+[Tt]ype\\s+(\\d+).*");
@@ -1089,10 +1089,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
       switch (result.failureCode) {
         case DEVICE_NOT_RESPONDING:
-          message("Device is not ready. Waiting for " + WAITING_TIME + " sec.", STDOUT);
+          message("Device is not ready. Waiting for " + WAITING_TIME_SECS + " sec.", STDOUT);
           synchronized (myLock) {
             try {
-              myLock.wait(WAITING_TIME * 1000);
+              myLock.wait(WAITING_TIME_SECS * 1000);
             }
             catch (InterruptedException e) {
               LOG.info(e);
