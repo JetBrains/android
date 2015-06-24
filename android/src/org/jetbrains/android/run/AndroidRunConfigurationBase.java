@@ -294,13 +294,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         break;
     }
 
-    AndroidApplicationLauncher applicationLauncher = getApplicationLauncher(facet);
-    if (applicationLauncher != null) {
-      final boolean supportMultipleDevices = supportMultipleDevices() && executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID);
-      return new AndroidRunningState(env, facet, getApkProvider(), targetChooser, computeCommandLine(), applicationLauncher,
-                                     supportMultipleDevices, CLEAR_LOGCAT, this, nonDebuggableOnDevice);
-    }
-    return null;
+    final boolean supportMultipleDevices = supportMultipleDevices() && executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID);
+    return new AndroidRunningState(env, facet, getApkProvider(), targetChooser, computeCommandLine(), getApplicationLauncher(facet),
+                                   supportMultipleDevices, CLEAR_LOGCAT, this, nonDebuggableOnDevice);
   }
 
   @NotNull
@@ -353,7 +349,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   protected abstract ConsoleView attachConsole(AndroidRunningState state, Executor executor) throws ExecutionException;
 
-  @Nullable
+  @NotNull
   protected abstract AndroidApplicationLauncher getApplicationLauncher(AndroidFacet facet);
 
   protected abstract boolean supportMultipleDevices();

@@ -289,6 +289,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return false;
   }
 
+  @NotNull
   @Override
   protected AndroidApplicationLauncher getApplicationLauncher(AndroidFacet facet) {
     String runner = StringUtil.isEmpty(INSTRUMENTATION_RUNNER_CLASS) ? findInstrumentationRunner(facet) : INSTRUMENTATION_RUNNER_CLASS;

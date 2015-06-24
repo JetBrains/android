@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          android:versionCode="1"
+          android:versionName="1.0" >
+  <application>
+    <activity-alias android:name="LauncherAlias" android:label="Alias" android:targetActivity="com.example.unittest.Launcher">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity-alias>
+    <activity-alias android:name="NotLaunchable" android:label="Alias" android:targetActivity="com.example.unittest.Launcher">
+    </activity-alias>
+    <activity android:name="com.example.unittest.Launcher" />
+  </application>
+</manifest>
