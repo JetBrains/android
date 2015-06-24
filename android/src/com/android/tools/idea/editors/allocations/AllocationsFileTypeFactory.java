@@ -15,21 +15,13 @@
  */
 package com.android.tools.idea.editors.allocations;
 
-import com.android.tools.idea.profiling.capture.FileCaptureType;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
+import com.intellij.openapi.fileTypes.FileTypeConsumer;
+import com.intellij.openapi.fileTypes.FileTypeFactory;
 import org.jetbrains.annotations.NotNull;
 
-public class AllocationCaptureType extends FileCaptureType {
-  protected AllocationCaptureType() {
-    super("Allocation Tracking", AndroidIcons.Ddms.AllocationTracker, "Allocations_", "." + AllocationsFileType.DEFAULT_EXTENSION);
-  }
-
-  @NotNull
+public class AllocationsFileTypeFactory extends FileTypeFactory {
   @Override
-  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    return new AllocationsEditor(project, file);
+  public void createFileTypes(@NotNull FileTypeConsumer consumer) {
+    consumer.consume(AllocationsFileType.INSTANCE, AllocationsFileType.INSTANCE.getDefaultExtension());
   }
 }
