@@ -34,6 +34,7 @@ import com.intellij.refactoring.rename.RenameHandler;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.util.AndroidBundle;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
@@ -43,6 +44,7 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
+@Ignore("Cause of IDE fatal errors")
 public class RenameTest extends GuiTestCase {
 
   @Test @IdeGuiTest
