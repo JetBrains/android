@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.run;
 
+import com.android.ddmlib.IDevice;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,16 +31,16 @@ public abstract class ActivityLocator {
   }
 
   /**
-   * Validates whether the provided facet has the necessary activity for launch.
+   * Validates whether an activity can be located.
    *
    * NOTE: This is called before a build is performed, so for certain build systems, it may not be able
-   * to perform a full validation, and an exception might be thrown by {@link #getQualifiedActivityName()}.
+   * to perform a full validation, and an exception might be thrown by {@link #getQualifiedActivityName(IDevice)}.
    */
-  public abstract void validate(@NotNull AndroidFacet facet) throws ActivityLocatorException;
+  public abstract void validate() throws ActivityLocatorException;
 
   /**
-   * Returns the fully qualified launcher activity name.
+   * Returns the fully qualified activity name suitable for launching on the given device.
    */
   @NotNull
-  protected abstract String getQualifiedActivityName() throws ActivityLocatorException;
+  protected abstract String getQualifiedActivityName(@NotNull IDevice device) throws ActivityLocatorException;
 }

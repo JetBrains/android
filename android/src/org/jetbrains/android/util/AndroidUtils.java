@@ -21,7 +21,6 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.codeInsight.navigation.NavigationUtil;
@@ -67,7 +66,6 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -96,8 +94,10 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
-import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.manifest.*;
+import org.jetbrains.android.dom.manifest.Activity;
+import org.jetbrains.android.dom.manifest.ActivityAlias;
+import org.jetbrains.android.dom.manifest.IntentFilter;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.run.*;
@@ -293,83 +293,6 @@ public class AndroidUtils {
         }
       });
     }
-  }
-
-  @NotNull
-  private static List<ActivityWrapper> getLaunchableActivities(@NotNull List<ActivityWrapper> allActivities) {
-    return ContainerUtil.filter(allActivities, new Condition<ActivityWrapper>() {
-      @Override
-      public boolean value(ActivityWrapper activity) {
-        return ActivityLocatorUtils.containsLauncherIntent(activity.getIntentFilters());
-      }
-    });
-  }
-
-  @Nullable
-  public static String getDefaultLauncherActivityName(@NotNull final Manifest manifest) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-      @Override
-      public String compute() {
-        Application application = manifest.getApplication();
-        if (application == null) {
-          return null;
-        }
-
-        return getDefaultLauncherActivityName(application.getActivities(), application.getActivityAliass());
-      }
-    });
-  }
-
-  /**
-   * Returns the fully qualified launcher activity name if one is available. In the case of multiple launcher activities,
-   * prefers the one that is has {@link #DEFAULT_CATEGORY_NAME}.
-   *
-   * Note: We need to return fully qualified names. Unqualified names will result in errors if
-   * the package name as defined in the manifest doesn't match the package name of the eventual application
-   */
-  @Nullable
-  public static String getDefaultLauncherActivityName(final List<Activity> activities, final List<ActivityAlias> activityAliases) {
-    ApplicationManager.getApplication().assertReadAccessAllowed();
-
-    final List<ActivityWrapper> activityWrappers = merge(activities, activityAliases);
-
-    List<ActivityWrapper> launcherActivities = getLaunchableActivities(activityWrappers);
-    if (launcherActivities.isEmpty()) {
-      return null;
-    }
-
-    if (launcherActivities.size() == 1) {
-      return launcherActivities.get(0).getQualifiedName();
-    }
-
-    // If we have more than one launchable activity, then prefer then one with CATEGORY_DEFAULT.
-    // There is no such rule, but since Context.startActivity() prefers such activities, we do the same.
-    List<ActivityWrapper> launchersWithDefaultCategory = ContainerUtil.filter(launcherActivities, new Condition<ActivityWrapper>() {
-      @Override
-      public boolean value(ActivityWrapper adapter) {
-        for (IntentFilter filter : adapter.getIntentFilters()) {
-          if (AndroidDomUtil.containsCategory(filter, DEFAULT_CATEGORY_NAME)) {
-            return true;
-          }
-        }
-        return false;
-      }
-    });
-
-    ActivityWrapper launcherActivity =
-      launchersWithDefaultCategory.isEmpty() ? launcherActivities.get(0) : launchersWithDefaultCategory.get(0);
-    return launcherActivity.getQualifiedName();
-  }
-
-  private static List<ActivityWrapper> merge(List<Activity> activities, List<ActivityAlias> activityAliases) {
-    final List<ActivityWrapper> activityWrappers = Lists.newArrayListWithExpectedSize(activities.size() + activityAliases.size());
-    for (Activity a : activities) {
-      activityWrappers.add(ActivityWrapper.get(a));
-    }
-    for (ActivityAlias a : activityAliases) {
-      activityWrappers.add(ActivityWrapper.get(a));
-    }
-    return activityWrappers;
   }
 
   public static boolean isAbstract(@NotNull PsiClass c) {
@@ -1027,61 +950,4 @@ public class AndroidUtils {
     }
     return false;
   }
-
-  /** {@link org.jetbrains.android.util.AndroidUtils.ActivityWrapper} is a simple adapter class that allows {@link Activity} and {@link ActivityAlias} to be treated uniformly */
-  private static abstract class ActivityWrapper {
-    @NotNull
-    public abstract List<IntentFilter> getIntentFilters();
-
-    @Nullable
-    public abstract String getQualifiedName();
-
-    public static ActivityWrapper get(Activity activity) {
-      return new RealActivityWrapper(activity);
-    }
-
-    public static ActivityWrapper get(ActivityAlias activityAlias) {
-      return new ActivityAliasWrapper(activityAlias);
-    }
-  };
-
-  private static class RealActivityWrapper extends ActivityWrapper {
-    private final Activity myActivity;
-
-    public RealActivityWrapper(Activity activity) {
-      myActivity = activity;
-    }
-
-    @NotNull
-    @Override
-    public List<IntentFilter> getIntentFilters() {
-      return myActivity.getIntentFilters();
-    }
-
-    @Override
-    public String getQualifiedName() {
-      return ActivityLocatorUtils.getQualifiedName(myActivity);
-    }
-  }
-
-  private static class ActivityAliasWrapper extends ActivityWrapper {
-    private final ActivityAlias myAlias;
-
-    public ActivityAliasWrapper(ActivityAlias activityAlias) {
-      myAlias = activityAlias;
-    }
-
-    @NotNull
-    @Override
-    public List<IntentFilter> getIntentFilters() {
-      return myAlias.getIntentFilters();
-    }
-
-    @Nullable
-    @Override
-    public String getQualifiedName() {
-      return ActivityLocatorUtils.getQualifiedName(myAlias);
-    }
-  }
-
 }
