@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
@@ -52,10 +53,11 @@ public class DependenciesElement implements GradleDslElement {
   }
 
   /**
-   * Adds a new external dependency to the build.gradle file.
+   * Adds a new external dependency to the build.gradle file. Please note the new dependency will <b>not</b> be included in
+   * {@link #getExternalDependenciesView()}, unless you invoke {@link GradleBuildFile#reparse()}.
    *
    * @param configurationName the name of the configuration (e.g. "compile", "compileTest", "runtime", etc.)
-   * @param compactNotation the dependency in "compact" notation: "group:name:version:classifier@extension"
+   * @param compactNotation the dependency in "compact" notation: "group:name:version:classifier@extension".
    */
   public void addExternalDependency(@NotNull String configurationName, @NotNull String compactNotation) {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
@@ -63,5 +65,6 @@ public class DependenciesElement implements GradleDslElement {
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
     GrStatement statement = factory.createStatementFromText(configurationName + " '" + compactNotation + "'");
     myPsiElement.addStatementBefore(statement, null);
+    CodeStyleManager.getInstance(project).reformat(statement);
   }
 }
