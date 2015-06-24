@@ -44,7 +44,7 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
 
   public void checkConfiguration() throws RuntimeConfigurationException {
     try {
-      myActivityLocator.validate(myFacet);
+      myActivityLocator.validate();
     }
     catch (ActivityLocator.ActivityLocatorException e) {
       throw new RuntimeConfigurationException(e.getMessage());
@@ -90,7 +90,7 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
     ProcessHandler processHandler = state.getProcessHandler();
     String activityName;
     try {
-      activityName = myActivityLocator.getQualifiedActivityName();
+      activityName = myActivityLocator.getQualifiedActivityName(device);
     }
     catch (ActivityLocator.ActivityLocatorException e) {
       processHandler.notifyTextAvailable("Could not identify launch activity: " + e.getMessage(), STDOUT);

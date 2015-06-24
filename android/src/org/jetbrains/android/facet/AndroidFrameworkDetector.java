@@ -40,6 +40,7 @@ import com.intellij.patterns.ElementPattern;
 import com.intellij.util.indexing.FileContent;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.importDependencies.ImportDependenciesUtil;
+import org.jetbrains.android.run.DefaultActivityLocator;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -129,7 +130,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
 
     Manifest manifest = facet.getManifest();
     if (manifest != null) {
-      if (AndroidUtils.getDefaultLauncherActivityName(manifest) != null) {
+      if (DefaultActivityLocator.getDefaultLauncherActivityName(manifest) != null) {
         AndroidUtils.addRunConfiguration(facet, null, false, null, null);
       }
     }

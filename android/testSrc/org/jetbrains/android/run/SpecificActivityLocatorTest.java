@@ -28,7 +28,7 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("projects/runConfig/activity/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher");
-    locator.validate(myFacet);
+    locator.validate();
   }
 
   public void testActivityNotDeclared() throws ActivityLocator.ActivityLocatorException {
@@ -37,7 +37,7 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
 
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher2");
     try {
-      locator.validate(myFacet);
+      locator.validate();
       fail("Validation succeeded even without activity declaration.");
     }
     catch (ActivityLocator.ActivityLocatorException e) {
@@ -49,7 +49,7 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher");
     try {
-      locator.validate(myFacet);
+      locator.validate();
       fail("Invalid activity accepted");
     } catch (ActivityLocator.ActivityLocatorException e) {
       assertEquals("com.example.unittest.Launcher is not an Activity subclass or alias", e.getMessage());
@@ -61,7 +61,7 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("projects/runConfig/alias/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "LauncherAlias");
-    locator.validate(myFacet);
+    locator.validate();
   }
 
   public void testAliasNotDeclared() throws ActivityLocator.ActivityLocatorException {
@@ -69,7 +69,7 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("projects/runConfig/undeclared/Launcher.java", "src/com/example/unittest/Launcher.java");
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "NotLaunchable");
     try {
-      locator.validate(myFacet);
+      locator.validate();
       fail("Validation succeeded for activity alias that isn't launchable.");
     } catch (ActivityLocator.ActivityLocatorException e) {
       assertEquals("The intent-filter of the activity must contain android.intent.action.MAIN action", e.getMessage());
