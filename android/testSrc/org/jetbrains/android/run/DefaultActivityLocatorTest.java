@@ -16,7 +16,11 @@
 package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
+import com.android.ddmlib.IDevice;
 import org.jetbrains.android.AndroidTestCase;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link DefaultActivityLocator}.
@@ -30,14 +34,14 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("projects/runConfig/activity/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject("projects/runConfig/activity/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("com.example.unittest.Launcher", DefaultActivityLocator.computeDefaultActivity(myFacet));
+    assertEquals("com.example.unittest.Launcher", DefaultActivityLocator.computeDefaultActivity(myFacet, null));
   }
 
   public void testActivityAlias() throws Exception {
     myFixture.copyFileToProject("projects/runConfig/alias/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject("projects/runConfig/alias/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet));
+    assertEquals("LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet, null));
   }
 
   // tests that when there are multiple activities that with action MAIN and category LAUNCHER, then give
@@ -46,6 +50,25 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("projects/runConfig/default/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject("projects/runConfig/alias/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("com.example.unittest.LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet));
+    assertEquals("com.example.unittest.LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet, null));
+  }
+
+  // tests that when there are multiple launcher activities, then we pick the leanback launcher for a TV device
+  public void testLeanbackLauncher() throws Exception {
+    myFixture.copyFileToProject("projects/runConfig/tv/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("projects/runConfig/tv/Launcher.java",
+                                "src/com/example/unittest/Launcher.java");
+    myFixture.copyFileToProject("projects/runConfig/tv/DefaultLauncher.java",
+                                "src/com/example/unittest/DefaultLauncher.java");
+    myFixture.copyFileToProject("projects/runConfig/tv/TvLauncher.java",
+                                "src/com/example/unittest/TvLauncher.java");
+
+    IDevice tv = mock(IDevice.class);
+    when(tv.supportsFeature(IDevice.HardwareFeature.TV)).thenReturn(true);
+    assertEquals("com.example.unittest.TvLauncher", DefaultActivityLocator.computeDefaultActivity(myFacet, tv));
+
+    IDevice device = mock(IDevice.class);
+    when(tv.supportsFeature(IDevice.HardwareFeature.TV)).thenReturn(false);
+    assertEquals("com.example.unittest.DefaultLauncher", DefaultActivityLocator.computeDefaultActivity(myFacet, device));
   }
 }

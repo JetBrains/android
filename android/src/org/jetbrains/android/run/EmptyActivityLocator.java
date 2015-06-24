@@ -15,17 +15,17 @@
  */
 package org.jetbrains.android.run;
 
-import org.jetbrains.android.facet.AndroidFacet;
+import com.android.ddmlib.IDevice;
 import org.jetbrains.annotations.NotNull;
 
 public class EmptyActivityLocator extends ActivityLocator {
   @Override
-  public void validate(@NotNull AndroidFacet facet) {
+  public void validate() {
   }
 
   @NotNull
   @Override
-  protected String getQualifiedActivityName() {
+  protected String getQualifiedActivityName(@NotNull IDevice device) {
     return "";
   }
 }
