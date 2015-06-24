@@ -94,10 +94,9 @@ public class FileResourceRepository extends LocalResourceRepository {
     }
     if (file.getPath().contains(EXPLODED_AAR)) {
       File rDotTxt = new File(file.getParentFile(), FN_RESOURCE_TEXT);
-      if (rDotTxt.exists()) {
-        repository.myResourceTextFile = rDotTxt;
-        repository.myAarDeclaredIds = RDotTxtParser.getIdNames(rDotTxt);
-      }
+      assert rDotTxt.exists() : FN_RESOURCE_TEXT + " file not found at " + rDotTxt.getAbsolutePath();
+      repository.myResourceTextFile = rDotTxt;
+      repository.myAarDeclaredIds = RDotTxtParser.getIdNames(rDotTxt);
     }
 
     return repository;
