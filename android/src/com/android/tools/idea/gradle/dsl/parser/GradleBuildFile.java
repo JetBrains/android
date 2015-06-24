@@ -22,9 +22,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import java.util.List;
@@ -36,6 +41,8 @@ public class GradleBuildFile {
 
   // TODO Get the parsers from an extension point.
   private final List<? extends GradleDslElementParser> myParsers = Lists.newArrayList(new DependenciesElementParser());
+
+  @Nullable private PsiFile myPsiFile;
 
   @NotNull
   public static GradleBuildFile parseFile(@NotNull VirtualFile file, @NotNull Project project) {
@@ -56,9 +63,9 @@ public class GradleBuildFile {
   public void reparse() {
     ApplicationManager.getApplication().assertIsDispatchThread();
     reset();
-    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(myFile);
-    if (psiFile != null) {
-      psiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
+    myPsiFile = PsiManager.getInstance(myProject).findFile(myFile);
+    if (myPsiFile != null) {
+      myPsiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
         @Override
         public void visitMethodCallExpression(GrMethodCallExpression e) {
           for (GradleDslElementParser parser : myParsers) {
@@ -83,5 +90,51 @@ public class GradleBuildFile {
   @NotNull
   public ImmutableList<DependenciesElement> getDependenciesBlocksView() {
     return ImmutableList.copyOf(myDependenciesBlocks);
+  }
+
+  /**
+   * Adds a new external dependency to the build.gradle file. If there are more than one "dependencies" block, this method will add the new
+   * dependency to the first one. If the build.gradle file does not have a "dependencies" block, this method will create one.
+   * <p>
+   * Check that {@link #hasPsiFile()} returns {@code true} before invoking this method.
+   * </p>
+   * <p>
+   * Please note the new dependency will <b>not</b> be included in
+   * {@link DependenciesElement#getExternalDependenciesView()} (obtained through {@link #getDependenciesBlocksView()}, unless you invoke
+   * {@link GradleBuildFile#reparse()}.
+   * </p>
+   *
+   * @param configurationName the name of the configuration (e.g. "compile", "compileTest", "runtime", etc.)
+   * @param compactNotation the dependency in "compact" notation: "group:name:version:classifier@extension".
+   * @throws AssertionError if this method is invoked and this {@code GradleBuildFile} does not have a {@link PsiFile}.
+   */
+  public void addExternalDependency(@NotNull String configurationName, @NotNull String compactNotation) {
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
+    assert myPsiFile != null;
+    if (myDependenciesBlocks.isEmpty()) {
+      // There are no dependency blocks. Add one.
+      GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(myProject);
+
+      // We need to add line separators, otherwise reformatting won't work.
+      String lineSeparator = SystemProperties.getLineSeparator();
+      String text = "dependencies {" + lineSeparator + configurationName + " '" + compactNotation + "'" + lineSeparator +  "}";
+      GrExpression expression = factory.createExpressionFromText(text);
+
+      myPsiFile.add(expression);
+      CodeStyleManager.getInstance(myProject).reformat(expression);
+    }
+    else {
+      DependenciesElement dependenciesBlock = myDependenciesBlocks.get(0);
+      dependenciesBlock.addExternalDependency(configurationName, compactNotation);
+    }
+  }
+
+  /**
+   * Indicates whether this {@code GradleBuildFile} has an underlying {@link PsiFile}. A {@code PsiFile} is necessary to update the contents
+   * of the build.gradle file.
+   * @return {@code true} if this {@code GradleBuildFile} has a {@code PsiFile}; {@code false} otherwise.
+   */
+  public boolean hasPsiFile() {
+    return myPsiFile != null;
   }
 }
