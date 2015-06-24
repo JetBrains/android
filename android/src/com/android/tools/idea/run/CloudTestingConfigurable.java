@@ -68,7 +68,7 @@ public class CloudTestingConfigurable implements SearchableConfigurable, Configu
                       + "<a href='https://cloud.google.com/pricing'>Pricing information</a><br><br></html>");
     if (!CloudConfigurationProvider.canEnable()) {
       warningPane.setText("<html>This feature is coming soon. Stay tuned!<br><br>"
-                          + "For more information, please visit <a href='https://cloud.google.com'>Google Cloud Test Lab</a>.<br><br></html>");
+                          + "For more information, please visit <a href='https://developers.google.com/cloud-test-lab'>Google Cloud Test Lab</a>.<br><br></html>");
     }
     warningPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
     warningPane.setFont(enableCloudTesting.getFont());
