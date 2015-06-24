@@ -28,6 +28,7 @@ import java.util.GregorianCalendar;
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.IdeTestApplication.getFailedTestScreenshotDirPath;
 import static org.fest.reflect.core.Reflection.field;
+import static org.fest.reflect.core.Reflection.method;
 
 public class MethodInvoker extends Statement {
   @NotNull private final GuiTestConfigurator myTestConfigurator;
@@ -50,6 +51,8 @@ public class MethodInvoker extends Statement {
     }
     System.out.println(String.format("Executing test '%1$s'", getTestFqn()));
 
+    failIfIdeHasFatalErrors();
+
     int retryCount = myTestConfigurator.getRetryCount();
     for (int i = 0; i <= retryCount; i++) {
       if (i > 0) {
@@ -67,7 +70,14 @@ public class MethodInvoker extends Statement {
           throwable.printStackTrace();
         }
       }
+      failIfIdeHasFatalErrors();
     }
+  }
+
+  private static void failIfIdeHasFatalErrors() throws ClassNotFoundException {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    Class<?> guiTestsType = Class.forName(GuiTests.class.getCanonicalName(), true, classLoader);
+    method("failIfIdeHasFatalErrors").in(guiTestsType).invoke();
   }
 
   private void runTest(int executionIndex) throws Throwable {
