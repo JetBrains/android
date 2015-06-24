@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -36,7 +34,7 @@ public class EditAvdAction extends AvdUiAction {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    AvdEditWizard wizard = new AvdEditWizard(null, null, getAvdInfo(), false);
+    AvdEditWizard wizard = new AvdEditWizard(myAvdInfoProvider.getComponent(), null, null, getAvdInfo(), false);
     wizard.init();
     wizard.show();
     refreshAvds();
