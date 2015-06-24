@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Lists;
+import com.intellij.diagnostic.AbstractMessage;
+import com.intellij.diagnostic.MessagePool;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationManager;
@@ -52,6 +54,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
@@ -61,6 +64,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.fest.assertions.Assertions.assertThat;
@@ -88,6 +92,36 @@ public final class GuiTests {
   public static final String JDK_HOME_FOR_TESTS = "JDK_HOME_FOR_TESTS";
 
   private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
+
+  // Called by MethodInvoker via reflection
+  @SuppressWarnings("unused")
+  public static void failIfIdeHasFatalErrors() {
+    final MessagePool messagePool = MessagePool.getInstance();
+    List<AbstractMessage> fatalErrors = messagePool.getFatalErrors(true, true);
+    int fatalErrorCount = fatalErrors.size();
+    for (int i = 0; i < fatalErrorCount; i++) {
+      System.err.println("** Fatal Error " + (i + 1) + " of " + fatalErrorCount);
+      AbstractMessage error = fatalErrors.get(i);
+      System.err.println("* Message: ");
+      System.err.println(error.getMessage());
+
+      String additionalInfo = error.getAdditionalInfo();
+      if (isNotEmpty(additionalInfo)) {
+        System.err.println("* Additional Info: ");
+        System.err.println(additionalInfo);
+      }
+
+      String throwableText = error.getThrowableText();
+      if (isNotEmpty(throwableText)) {
+        System.err.println("* Throwable: ");
+        System.err.println(throwableText);
+      }
+      System.err.println();
+    }
+    if (fatalErrorCount > 0) {
+      throw new AssertionError(fatalErrorCount + " fatal errors found. Stopping test execution.");
+    }
+  }
 
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
