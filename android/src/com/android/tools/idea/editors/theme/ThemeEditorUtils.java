@@ -16,9 +16,6 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -29,7 +26,6 @@ import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.AppResourceRepository;
@@ -39,15 +35,17 @@ import com.android.tools.idea.rendering.ResourceFolderRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.lint.checks.ApiLookup;
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -61,9 +59,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.dom.resources.ResourceElement;
+import org.jetbrains.android.dom.resources.Style;
+import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
@@ -338,6 +340,77 @@ public class ThemeEditorUtils {
 
     LOG.error("Unable to find theme-editor-widgets.jar in paths:\n" + notFoundPaths.toString());
     return null;
+  }
+
+  /**
+   * Creates a new style by displaying the dialog of the {@link NewStyleDialog}.
+   * @param newAttributeName, if it is not null, a new attribute will be added to the style with the value specified in newAttributeValue.
+   * @param isTheme whether theme or style will be created
+   * @param parentStyle is used in NewStyleDialog, will be preselected in the parent text field and name will be suggested based on it.
+   * @param message is used in NewStyleDialog to display message to user
+   * @return the new style name or null if the style wasn't created.
+   */
+  @Nullable
+  public static String createNewStyle(@NotNull ThemeEditorStyle parentStyle,
+                                      @Nullable final String newAttributeName,
+                                      @Nullable final String newAttributeValue,
+                                      @NotNull final ThemeEditorContext myThemeEditorContext,
+                                      boolean isTheme,
+                                      @Nullable final String message) {
+    final NewStyleDialog dialog = new NewStyleDialog(isTheme, myThemeEditorContext, parentStyle.getQualifiedName(), parentStyle.getName(), message);
+    boolean createStyle = dialog.showAndGet();
+    if (!createStyle) {
+      return null;
+    }
+
+    int minModuleApi = getMinApiLevel(myThemeEditorContext.getCurrentThemeModule());
+    int themeParentApiLevel = getOriginalApiLevel(dialog.getStyleParentName(), myThemeEditorContext.getProject());
+    int newAttributeApiLevel = getOriginalApiLevel(newAttributeName, myThemeEditorContext.getProject());
+    int newValueApiLevel = getOriginalApiLevel(newAttributeValue, myThemeEditorContext.getProject());
+    int minAcceptableApi = Math.max(Math.max(themeParentApiLevel, newAttributeApiLevel), newValueApiLevel);
+
+    final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STYLE);
+    FolderConfiguration config = new FolderConfiguration();
+    if (minModuleApi < minAcceptableApi) {
+      VersionQualifier qualifier = new VersionQualifier(minAcceptableApi);
+      config.setVersionQualifier(qualifier);
+    }
+    final List<String> dirNames = Collections.singletonList(config.getFolderName(ResourceFolderType.VALUES));
+
+    if (fileName == null) {
+      LOG.error("Couldn't find a default filename for ResourceType.STYLE");
+      return null;
+    }
+
+    boolean isCreated = new WriteCommandAction<Boolean>(myThemeEditorContext.getProject(), "Create new theme " + dialog.getStyleName()) {
+      @Override
+      protected void run(@NotNull Result<Boolean> result) {
+        result.setResult(AndroidResourceUtil.
+          createValueResource(myThemeEditorContext.getCurrentThemeModule(), dialog.getStyleName(),
+                              ResourceType.STYLE, fileName, dirNames, new Processor<ResourceElement>() {
+              @Override
+              public boolean process(ResourceElement element) {
+                assert element instanceof Style;
+                final Style style = (Style)element;
+
+                style.getParentStyle().setStringValue(dialog.getStyleParentName());
+
+                if (!Strings.isNullOrEmpty(newAttributeName)) {
+                  StyleItem newItem = style.addItem();
+                  newItem.getName().setStringValue(newAttributeName);
+
+                  if (!Strings.isNullOrEmpty(newAttributeValue)) {
+                    newItem.setStringValue(newAttributeValue);
+                  }
+                }
+
+                return true;
+              }
+            }));
+      }
+    }.execute().getResultObject();
+
+    return isCreated ? SdkConstants.STYLE_RESOURCE_PREFIX + dialog.getStyleName() : null;
   }
 
   /**
