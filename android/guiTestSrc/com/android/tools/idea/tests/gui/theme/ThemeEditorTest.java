@@ -28,9 +28,11 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.swing.JButton;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -92,5 +94,27 @@ public class ThemeEditorTest extends GuiTestCase {
 
     projectFrame.getEditor().close();
     checkNoErrors(projectFrame);
+  }
+
+  @Test @IdeGuiTest
+  public void testConfigurationToolbar() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+
+    JButton apiButton = themeEditor.findToolbarButton("Android version to use when rendering layouts in the IDE");
+    myRobot.click(apiButton);
+    clickPopupMenuItem("API 21", apiButton, myRobot);
+
+    JButton deviceButton = themeEditor.findToolbarButton("The virtual device to render the layout with");
+    myRobot.click(deviceButton);
+    clickPopupMenuItem("Nexus 6", deviceButton, myRobot);
+
+    themeEditor.requireApi(21).requireDevice("Nexus 6");
+
+    // Tests that Preview All Screen Sizes is disabled
+    myRobot.click(deviceButton);
+    clickPopupMenuItem("Preview All Screen Sizes", deviceButton, myRobot);
+    clickPopupMenuItem("Nexus 9", deviceButton, myRobot);
+    themeEditor.requireDevice("Nexus 9");
   }
 }
