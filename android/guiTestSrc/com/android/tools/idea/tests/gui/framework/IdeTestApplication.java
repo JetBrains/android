@@ -240,6 +240,7 @@ public class IdeTestApplication implements Disposable {
       }
     }
   }
+
   private static void addAdditionalClassPath(@NotNull Collection<URL> classpath) throws MalformedURLException {
     StringTokenizer tokenizer = new StringTokenizer(System.getProperty(PROPERTY_ADDITIONAL_CLASSPATH, ""), File.pathSeparator, false);
     while (tokenizer.hasMoreTokens()) {
