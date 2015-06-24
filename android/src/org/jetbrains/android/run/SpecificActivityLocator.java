@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.run;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.ManifestInfo;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -50,13 +51,13 @@ public class SpecificActivityLocator extends ActivityLocator {
 
   @NotNull
   @Override
-  protected String getQualifiedActivityName() {
+  protected String getQualifiedActivityName(@NotNull IDevice device) {
     assert myActivityName != null; // validated by validate
     return myActivityName;
   }
 
   @Override
-  public void validate(@NotNull AndroidFacet facet) throws ActivityLocatorException {
+  public void validate() throws ActivityLocatorException {
     if (myActivityName == null || myActivityName.length() == 0) {
       throw new ActivityLocatorException(AndroidBundle.message("activity.class.not.specified.error"));
     }
