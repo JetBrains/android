@@ -41,6 +41,7 @@ import java.net.URLClassLoader;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -161,10 +162,10 @@ public class UnitTest {
     @Test
     public void javaResourcesOnClasspath() throws Exception {
         URL url = UnitTest.class.getClassLoader().getResource("resource_file.txt");
-        assertNotNull("expected resource_file.txt to be in the ClassLoader's resources", url);
+        assertNotNull(url);
 
         InputStream stream = UnitTest.class.getClassLoader().getResourceAsStream("resource_file.txt");
-        assertNotNull("expected resource_file.txt to be opened as a stream", stream);
+        assertNotNull(stream);
         byte[] line = new byte[1024];
         assertTrue("Expected >0 bytes read from input stream", stream.read(line) > 0);
         String s = new String(line, "UTF-8").trim();
@@ -174,14 +175,36 @@ public class UnitTest {
     @Test
     public void prodJavaResourcesOnClasspath() throws Exception {
         URL url = UnitTest.class.getClassLoader().getResource("prod_resource_file.txt");
-        assertNotNull("expected resource_file.txt to be in the ClassLoader's resources", url);
+        assertNotNull(url);
 
         InputStream stream = UnitTest.class.getClassLoader().getResourceAsStream("prod_resource_file.txt");
-        assertNotNull("expected resource_file.txt to be opened as a stream", stream);
+        assertNotNull(stream);
         byte[] line = new byte[1024];
         assertTrue("Expected >0 bytes read from input stream", stream.read(line) > 0);
         String s = new String(line, "UTF-8").trim();
         assertEquals("prod", s);
+    }
+
+    @Test
+    public void libJavaResourcesOnClasspath() throws Exception {
+        URL url = UnitTest.class.getClassLoader().getResource("lib_prod_resource_file.txt");
+        assertNotNull(url);
+
+        InputStream stream = UnitTest.class.getClassLoader().getResourceAsStream("lib_prod_resource_file.txt");
+        assertNotNull(stream);
+        byte[] line = new byte[1024];
+        assertTrue("Expected >0 bytes read from input stream", stream.read(line) > 0);
+        String s = new String(line, "UTF-8").trim();
+        assertEquals("lib prod", s);
+    }
+
+    @Test
+    public void libTestJavaResourcesNotOnClasspath() throws Exception {
+        URL url = UnitTest.class.getClassLoader().getResource("lib_resource_file.txt");
+        assertNull(url);
+
+        InputStream stream = UnitTest.class.getClassLoader().getResourceAsStream("lib_resource_file.txt");
+        assertNull(stream);
     }
 
     @Test
