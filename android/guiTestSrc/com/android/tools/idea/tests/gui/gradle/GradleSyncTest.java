@@ -348,6 +348,15 @@ public class GradleSyncTest extends GuiTestCase {
     }
     assertNotNull(jdkNode);
 
+    final ProjectViewFixture.NodeFixture finalJdkNode = jdkNode;
+    pause(new Condition("JDK node is customized") {
+      @Override
+      public boolean test() {
+        List<ProjectViewFixture.NodeFixture> jdkChildren = finalJdkNode.getChildren();
+        return jdkChildren.size() == 1;
+      }
+    });
+
     // Now we verify that the JDK node has only these children:
     // - jdk
     //   - rt.jar
@@ -605,7 +614,7 @@ public class GradleSyncTest extends GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFinish();
   }
 
-  @Test @IdeGuiTest
+  @Test @IdeGuiTest(retryCount = 1)
   public void testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() throws IOException {
     File unsupportedGradleHome = getUnsupportedGradleHome();
     if (unsupportedGradleHome == null) {
