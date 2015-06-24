@@ -49,8 +49,9 @@ import static org.junit.Assert.assertNotNull;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
-public class GradleDslDependenciesParsingTest extends GuiTestCase {
+public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
   @NonNls private static final String APP_BUILD_GRADLE_RELATIVE_PATH = "app/build.gradle";
+  @NonNls private static final String DEPENDENCIES_BLOCK_START = "dependencies {";
 
   @Test @IdeGuiTest
   public void testParseExternalDependenciesWithCompactNotation() throws IOException {
@@ -225,13 +226,64 @@ public class GradleDslDependenciesParsingTest extends GuiTestCase {
                                                .hasVersion("1.2.3");
   }
 
+  @Test @IdeGuiTest
+  public void testAddDependencyWhenBuildFileDoesNotHaveDependenciesBlock() throws IOException {
+    final IdeFrameFixture projectFrame = importSimpleApplication();
+
+    // Remove "dependencies" block.
+    final VirtualFile appBuildFile = projectFrame.findFileByRelativePath(APP_BUILD_GRADLE_RELATIVE_PATH, true);
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        String text = loadText(appBuildFile);
+        int indexOfDependenciesBlock = text.indexOf(DEPENDENCIES_BLOCK_START);
+        if (indexOfDependenciesBlock != -1) {
+          final String newText = text.substring(0, indexOfDependenciesBlock);
+          ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<Void, IOException>() {
+            @Override
+            public Void compute() throws IOException {
+              saveText(appBuildFile, newText);
+              return null;
+            }
+          });
+        }
+      }
+    });
+
+    final GradleBuildFile parsedBuildFile = openAndParseAppBuildFile(projectFrame);
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        WriteCommandAction.runWriteCommandAction(projectFrame.getProject(), new Runnable() {
+          @Override
+          public void run() {
+            parsedBuildFile.addExternalDependency("compile", "joda-time:joda-time:2.3");
+          }
+        });
+        parsedBuildFile.reparse();
+      }
+    });
+
+    List<DependenciesElement> dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    assertThat(dependenciesBlocks).hasSize(1);
+
+    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
+    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
+    assertThat(dependencies).hasSize(1);
+
+    assertThat(dependency(dependencies.get(0))).hasConfigurationName("compile")
+                                               .hasGroup("joda-time")
+                                               .hasName("joda-time")
+                                               .hasVersion("2.3");
+  }
+
   private static void replaceDependenciesInAppBuildFile(@NotNull IdeFrameFixture projectFrame, @NotNull final String...dependencies) {
     final VirtualFile appBuildFile = projectFrame.findFileByRelativePath(APP_BUILD_GRADLE_RELATIVE_PATH, true);
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         String text = loadText(appBuildFile);
-        int indexOfDependenciesBlock = text.indexOf("dependencies {");
+        int indexOfDependenciesBlock = text.indexOf(DEPENDENCIES_BLOCK_START);
         if (indexOfDependenciesBlock != -1) {
           final StringBuilder newText = new StringBuilder();
           newText.append(text.substring(0, indexOfDependenciesBlock));
@@ -250,7 +302,6 @@ public class GradleDslDependenciesParsingTest extends GuiTestCase {
         }
       }
     });
-
   }
 
   @NotNull
