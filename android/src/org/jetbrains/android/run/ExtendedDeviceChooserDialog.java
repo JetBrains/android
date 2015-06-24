@@ -129,7 +129,11 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     myDeviceChooser.addListener(new DeviceChooserListener() {
       @Override
       public void selectedDevicesChanged() {
-        myLaunchEmulatorRadioButton.setSelected(!myDeviceChooser.hasDevices());
+        if (CloudConfigurationProvider.isEnabled()) {
+          myRunTestsInGoogleCloudRadioButton.setSelected(!myDeviceChooser.hasDevices());
+        } else {
+          myLaunchEmulatorRadioButton.setSelected(!myDeviceChooser.hasDevices());
+        }
         myChooserRunningDeviceRadioButton.setSelected(myDeviceChooser.hasDevices());
         updateEnabled();
       }
