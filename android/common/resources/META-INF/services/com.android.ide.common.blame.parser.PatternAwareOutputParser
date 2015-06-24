@@ -8,3 +8,4 @@ com.android.tools.idea.gradle.output.parser.androidPlugin.ManifestMergeFailurePa
 com.android.tools.idea.gradle.output.parser.androidPlugin.DexExceptionParser
 com.android.tools.idea.gradle.output.parser.javac.JavacOutputParser
 com.android.tools.idea.gradle.output.parser.androidPlugin.MergingExceptionParser
+com.android.ide.common.blame.parser.LegacyNdkOutputParser
