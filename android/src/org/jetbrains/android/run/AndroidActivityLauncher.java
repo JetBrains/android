@@ -15,16 +15,11 @@
  */
 package org.jetbrains.android.run;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
-import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Computable;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,49 +29,26 @@ import java.io.IOException;
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
 
-/**
- * A base class for application launchers that starts an activity (rather then e.g. a test).
- * Subclasses should fill in the logic for determining which activity.
- */
-public abstract class AndroidActivityLauncher extends AndroidApplicationLauncher {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidActivityLauncher");
+public class AndroidActivityLauncher extends AndroidApplicationLauncher {
+  private static final Logger LOG = Logger.getInstance(AndroidActivityLauncher.class);
 
-  protected static class ActivityNameException extends Exception {
-    public ActivityNameException(String message) {
-      super(message);
-    }
+  @NotNull private final AndroidFacet myFacet;
+  private final boolean myNeedsLaunch;
+  @NotNull private final ActivityLocator myActivityLocator;
 
-    public ActivityNameException(String message, Throwable cause) {
-      super(message, cause);
-    }
+  public AndroidActivityLauncher(@NotNull AndroidFacet facet, boolean needsLaunch, @NotNull ActivityLocator locator) {
+    myFacet = facet;
+    myNeedsLaunch = needsLaunch;
+    myActivityLocator = locator;
   }
 
-  public abstract void checkConfiguration() throws RuntimeConfigurationException;
-
-  @NotNull
-  protected abstract String getActivityName() throws ActivityNameException;
-
-  @NotNull
-  private String getQualifiedActivityName(@NotNull final AndroidFacet facet) throws ActivityNameException {
-    final String activityName = getActivityName();
-    // Return the qualified activity name if possible.
-    final String activityRuntimeQName = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-      @Override
-      public String compute() {
-        final GlobalSearchScope scope = facet.getModule().getModuleWithDependenciesAndLibrariesScope(false);
-        final PsiClass activityClass = JavaPsiFacade.getInstance(facet.getModule().getProject()).findClass(activityName, scope);
-
-        if (activityClass != null) {
-          return JavaExecutionUtil.getRuntimeQualifiedName(activityClass);
-        }
-        return null;
-      }
-    });
-    if (activityRuntimeQName != null) {
-      return activityRuntimeQName;
+  public void checkConfiguration() throws RuntimeConfigurationException {
+    try {
+      myActivityLocator.validate(myFacet);
     }
-
-    return activityName;
+    catch (ActivityLocator.ActivityLocatorException e) {
+      throw new RuntimeConfigurationException(e.getMessage());
+    }
   }
 
   @Override
@@ -95,34 +67,44 @@ public abstract class AndroidActivityLauncher extends AndroidApplicationLauncher
         }
         LOG.info("Debugger already attached");
         return false;
-      default:
+      case WAITING:
         return true;
+      case DEFAULT:
+      default:
+        String msg = "Client not ready yet.";
+        if (processHandler != null) {
+          processHandler.notifyTextAvailable(msg + "\n", STDOUT);
+        }
+        LOG.info(msg);
+        return false;
     }
   }
 
   @Override
   public LaunchResult launch(@NotNull AndroidRunningState state, @NotNull IDevice device)
     throws IOException, AdbCommandRejectedException, TimeoutException {
+    if (!myNeedsLaunch) {
+      return LaunchResult.NOTHING_TO_DO;
+    }
+
     ProcessHandler processHandler = state.getProcessHandler();
     String activityName;
     try {
-      activityName = getQualifiedActivityName(state.getFacet());
-    } catch (ActivityNameException e) {
+      activityName = myActivityLocator.getQualifiedActivityName();
+    }
+    catch (ActivityLocator.ActivityLocatorException e) {
       processHandler.notifyTextAvailable("Could not identify launch activity: " + e.getMessage(), STDOUT);
       return LaunchResult.NOTHING_TO_DO;
     }
-    activityName = activityName.replace("$", "\\$");
-    final String activityPath = state.getPackageName() + '/' + activityName;
+
+    final String activityPath = getLauncherActivityPath(state.getPackageName(), activityName);
     if (state.isStopped()) return LaunchResult.STOP;
     processHandler.notifyTextAvailable("Launching application: " + activityPath + ".\n", STDOUT);
     AndroidRunningState.MyReceiver receiver = state.new MyReceiver();
+
     while (true) {
       if (state.isStopped()) return LaunchResult.STOP;
-      String command = "am start " +
-                       getDebugFlags(state) +
-                       " -n \"" + activityPath + "\" " +
-                       "-a android.intent.action.MAIN " +
-                       "-c android.intent.category.LAUNCHER";
+      String command = getStartActivityCommand(activityPath, getDebugFlags(state));
       boolean deviceNotResponding = false;
       try {
         state.executeDeviceCommandAndWriteToConsole(device, command, receiver);
@@ -134,24 +116,42 @@ public abstract class AndroidActivityLauncher extends AndroidApplicationLauncher
       if (!deviceNotResponding && receiver.getErrorType() != 2) {
         break;
       }
-      processHandler.notifyTextAvailable("Device is not ready. Waiting for " + AndroidRunningState.WAITING_TIME + " sec.\n", STDOUT);
+      processHandler.notifyTextAvailable("Device is not ready. Waiting for " + AndroidRunningState.WAITING_TIME_SECS + " sec.\n", STDOUT);
       synchronized (state.getRunningLock()) {
         try {
-          state.getRunningLock().wait(AndroidRunningState.WAITING_TIME * 1000);
+          state.getRunningLock().wait(AndroidRunningState.WAITING_TIME_SECS * 1000);
         }
         catch (InterruptedException e) {
         }
       }
       receiver = state.new MyReceiver();
     }
+
     boolean success = receiver.getErrorType() == AndroidRunningState.NO_ERROR;
     if (success) {
       processHandler.notifyTextAvailable(receiver.getOutput().toString(), STDOUT);
+      return LaunchResult.SUCCESS;
     }
     else {
       processHandler.notifyTextAvailable(receiver.getOutput().toString(), STDERR);
+      return LaunchResult.STOP;
     }
-    return success ? LaunchResult.SUCCESS : LaunchResult.STOP;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static String getStartActivityCommand(@NotNull String activityPath, @NotNull String debugFlags) {
+    return "am start " +
+           debugFlags +
+           " -n \"" + activityPath + "\" " +
+           "-a android.intent.action.MAIN " +
+           "-c android.intent.category.LAUNCHER";
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static String getLauncherActivityPath(@NotNull String packageName, @NotNull String activityName) {
+    return packageName + "/" + activityName.replace("$", "\\$");
   }
 
   /** Returns the flags used to the "am start" command for launching in debug mode. */

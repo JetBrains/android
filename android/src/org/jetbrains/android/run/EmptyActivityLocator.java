@@ -15,33 +15,17 @@
  */
 package org.jetbrains.android.run;
 
-import com.android.ddmlib.ClientData;
-import com.android.ddmlib.IDevice;
-import com.intellij.execution.process.ProcessHandler;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-/**
- * An application launcher that launches nothing.
- */
-public class DoNothingActivityLauncher extends AndroidActivityLauncher {
+public class EmptyActivityLocator extends ActivityLocator {
   @Override
-  public void checkConfiguration() {
+  public void validate(@NotNull AndroidFacet facet) {
   }
 
   @NotNull
   @Override
-  protected String getActivityName() {
+  protected String getQualifiedActivityName() {
     return "";
-  }
-
-  @Override
-  public boolean isReadyForDebugging(@NotNull ClientData data, @Nullable ProcessHandler processHandler) {
-    return data.getDebuggerConnectionStatus() == ClientData.DebuggerStatus.WAITING;
-  }
-
-  @Override
-  public LaunchResult launch(@NotNull AndroidRunningState state, @NotNull IDevice device) {
-    return LaunchResult.NOTHING_TO_DO;
   }
 }
