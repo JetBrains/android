@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
@@ -42,6 +43,7 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
 
   @Nullable
   private RenderTask myRenderTask;
+  private EditedStyleItem myItem;
 
   public DrawableRendererEditor(@NotNull ThemeEditorContext context, boolean isEditor) {
     super(context, isEditor);
@@ -70,11 +72,15 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
   protected void updateComponent(@NotNull ThemeEditorContext context, @NotNull ResourceComponent component, @NotNull EditedStyleItem item) {
     assert context.getResourceResolver() != null;
 
+    myItem = item;
+
     if (myRenderTask != null) {
       component.setSwatchIcons(SwatchComponent.imageListOf(myRenderTask.renderDrawableAllStates(item.getItemResourceValue())));
     }
-    component.setNameText(
-      String.format(LABEL_TEMPLATE, ThemeEditorConstants.RESOURCE_ITEM_COLOR.toString(), ThemeEditorUtils.getDisplayHtml(item)));
+
+    String nameText =
+      String.format(LABEL_TEMPLATE, ThemeEditorConstants.RESOURCE_ITEM_COLOR.toString(), ThemeEditorUtils.getDisplayHtml(item));
+    component.setNameText(nameText);
     component.setValueText(item.getValue());
   }
 

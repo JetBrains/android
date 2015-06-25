@@ -310,11 +310,8 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
       public boolean changed(int flags) {
         refreshConfiguration();
 
-        if ((flags & ConfigurationListener.CFG_THEME) != 0) {
-          boolean appCompatTheme = isAppCompatTheme(myContext.getConfiguration());
-          if (appCompatTheme != myIsAppCompatTheme) {
-            rebuild();
-          }
+        if (isAppCompatTheme(myContext.getConfiguration()) != myIsAppCompatTheme) {
+          rebuild();
         }
 
         return true;

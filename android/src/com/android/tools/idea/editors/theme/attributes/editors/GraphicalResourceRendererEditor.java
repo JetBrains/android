@@ -16,16 +16,21 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredItemResourceValue;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.qualifiers.QualifierUtils;
+import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.Locale;
-import com.google.common.base.Predicate;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
@@ -39,6 +44,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.ArrayList;
 
 /**
  * Abstract class that implements a {@link JTable} renderer and editor for attributes based on the {@link ResourceComponent} component.
@@ -48,7 +54,7 @@ import java.awt.event.ItemListener;
  */
 public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
   static final String CURRENT_VARIANT_TEMPLATE = "<html><nobr><font color=\"#%1$s\">%2$s</font>";
-  static final String NOT_SELECTED_VARIANT_TEMPLATE = "<html><nobr><font color=\"#%1$s\">%2$s</font><font color=\"#9B9B9B\"> - %3$s</font>";
+  static final String NOT_SELECTED_VARIANT_TEMPLATE = "<html><nobr><font color=\"#%1$s\">%2$s</font><font color=\"#9B9B9B\"> %3$s</font>";
   @SuppressWarnings("UseJBColor") // LIGHT_GRAY works also in Darcula
   static final Color CURRENT_VARIANT_COLOR = Color.LIGHT_GRAY;
   static final Color NOT_SELECTED_VARIANT_COLOR = JBColor.BLUE;
@@ -58,7 +64,6 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
   protected final ThemeEditorContext myContext;
   protected final ResourceComponent myComponent;
   protected String myEditorValue;
-  protected EditedStyleItem myItem;
 
   public GraphicalResourceRendererEditor(@NotNull ThemeEditorContext context, boolean isEditor) {
     myContext = context;
@@ -69,26 +74,60 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
     }
   }
 
-  private static void updateComponentInternal(@NotNull ResourceComponent component,
+  /**
+   * Returns a restricted version of the passed configuration. The value returned will incompatible with any other configuration in the item.
+   * This configuration can be used when we want to make sure that the configuration selected will be displayed.
+   * <p/>
+   * This method can return null if there is no configuration that matches the constraints.
+   */
+  @Nullable
+  static FolderConfiguration restrictConfiguration(@NotNull ConfigurationManager manager, @NotNull EditedStyleItem item, @NotNull final FolderConfiguration compatibleConfiguration) {
+    ArrayList<FolderConfiguration> incompatibleConfigurations = Lists.newArrayListWithCapacity(
+      item.getNonSelectedItemResourceValues().size() + 1);
+
+    for (ConfiguredItemResourceValue configuredItem : item.getAllConfiguredItems()) {
+      FolderConfiguration configuration = configuredItem.getConfiguration();
+      if (configuration == compatibleConfiguration) {
+        continue;
+      }
+
+      incompatibleConfigurations.add(configuration);
+    }
+
+    return QualifierUtils.restrictConfiguration(manager, compatibleConfiguration, incompatibleConfigurations);
+  }
+
+  /**
+   * Sets the UI state of the passed {@link ResourceComponent} based on the given {@link EditedStyleItem}
+   */
+  private static void updateComponentInternal(final @NotNull ThemeEditorContext context,
+                                              @NotNull ResourceComponent component,
                                               final @NotNull EditedStyleItem item) {
+    final ConfigurationManager manager = context.getConfiguration().getConfigurationManager();
     final String currentVariantColor = ColorUtil.toHex(CURRENT_VARIANT_COLOR);
     final String notSelectedVariantColor = ColorUtil.toHex(NOT_SELECTED_VARIANT_COLOR);
     final ImmutableList.Builder<VariantsComboItem> variantsListBuilder = ImmutableList.builder();
+    FolderConfiguration restrictedConfig = restrictConfiguration(manager, item, item.getSelectedValueConfiguration());
     variantsListBuilder.add(new VariantsComboItem(
       String.format(CURRENT_VARIANT_TEMPLATE, currentVariantColor, item.getSelectedValueConfiguration().toShortDisplayString()),
-      item.getSelectedValueConfiguration()));
-    Iterables.all(item.getNonSelectedItemResourceValues(), new Predicate<ConfiguredItemResourceValue>() {
-      @Override
-      public boolean apply(@Nullable ConfiguredItemResourceValue input) {
-        if (input == null) {
-          return false;
-        }
-        variantsListBuilder.add(new VariantsComboItem(String.format(NOT_SELECTED_VARIANT_TEMPLATE, notSelectedVariantColor,
-                                                                    input.getConfiguration().toShortDisplayString(),
-                                                                    input.getItemResourceValue().getValue()), input.getConfiguration()));
-        return true;
+      restrictedConfig != null ? restrictedConfig : item.getSelectedValueConfiguration()));
+
+    for (ConfiguredItemResourceValue configuredItem : item.getNonSelectedItemResourceValues()) {
+      restrictedConfig = restrictConfiguration(context.getConfiguration().getConfigurationManager(), item, configuredItem.getConfiguration());
+
+      if (restrictedConfig == null) {
+        // This type is not visible
+        LOG.warn(String.format(
+          "For item '%1$s': Folder configuration '%2$s' can never be selected. There are no qualifiers combination that would allow selecting it.",
+          item.getName(), configuredItem.getConfiguration()));
+        continue;
       }
-    });
+
+      String value = configuredItem.getItemResourceValue() != null ? " - " + configuredItem.getItemResourceValue().getValue() : "";
+      variantsListBuilder.add(new VariantsComboItem(String.format(NOT_SELECTED_VARIANT_TEMPLATE, notSelectedVariantColor,
+                                                                  configuredItem.getConfiguration().toShortDisplayString(),
+                                                                  value), restrictedConfig));
+    }
 
     ImmutableList<VariantsComboItem> variantStrings = variantsListBuilder.build();
     component.setVariantsModel(new CollectionComboBoxModel(variantStrings, variantStrings.get(0)));
@@ -102,7 +141,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
   public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected, boolean hasFocus, int row, int column) {
     assert obj instanceof EditedStyleItem : "Object passed to GraphicalResourceRendererEditor.getTableCellRendererComponent must be instance of EditedStyleItem";
 
-    updateComponentInternal(myComponent, (EditedStyleItem)obj);
+    updateComponentInternal(myContext, myComponent, (EditedStyleItem)obj);
     updateComponent(myContext, myComponent, (EditedStyleItem)obj);
 
     return myComponent;
@@ -110,9 +149,8 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
 
   @Override
   public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
-    myItem = value;
-    updateComponentInternal(myComponent, myItem);
-    updateComponent(myContext, myComponent, myItem);
+    updateComponentInternal(myContext, myComponent, value);
+    updateComponent(myContext, myComponent, value);
     myEditorValue = null; // invalidate stored editor value
 
     return myComponent;
@@ -149,21 +187,25 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
       }
 
       VariantsComboItem item = (VariantsComboItem)e.getItem();
-      Configuration configuration = myContext.getConfiguration();
-
-      IAndroidTarget oldTarget =  configuration.getTarget();
-      Locale oldLocale = configuration.getLocale();
-
-      configuration.getEditedConfig().set(item.myFolderConfiguration);
-      configuration.updated(ConfigurationListener.MASK_FOLDERCONFIG);
+      Configuration oldConfiguration = myContext.getConfiguration();
+      ConfigurationManager manager = oldConfiguration.getConfigurationManager();
+      Configuration newConfiguration = Configuration.create(manager, null, null, item.myFolderConfiguration);
 
       // Target and locale are global so we need to set them in the configuration manager when updated
-      if (oldTarget != configuration.getTarget()) {
-        configuration.getConfigurationManager().setTarget(configuration.getTarget());
+      VersionQualifier newVersionQualifier = item.myFolderConfiguration.getVersionQualifier();
+      if (newVersionQualifier != null) {
+        IAndroidTarget realTarget = manager.getHighestApiTarget() != null ? manager.getHighestApiTarget() : manager.getTarget();
+        manager.setTarget(new CompatibilityRenderTarget(realTarget, newVersionQualifier.getVersion(), null));
+      } else {
+        manager.setTarget(null);
       }
-      if (oldLocale != configuration.getLocale()) {
-        configuration.getConfigurationManager().setLocale(configuration.getLocale());
-      }
+
+      LocaleQualifier newLocaleQualifier = item.myFolderConfiguration.getLocaleQualifier();
+      manager.setLocale(newLocaleQualifier != null ? Locale.create(newLocaleQualifier) : Locale.ANY);
+
+      oldConfiguration.setDevice(null, false);
+      Configuration.copyCompatible(newConfiguration, oldConfiguration);
+      oldConfiguration.updated(ConfigurationListener.MASK_FOLDERCONFIG);
 
       GraphicalResourceRendererEditor.this.stopCellEditing();
     }

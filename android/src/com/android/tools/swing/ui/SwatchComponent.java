@@ -19,11 +19,13 @@ import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.swing.util.GraphicsUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -33,6 +35,10 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Collections;
@@ -43,7 +49,7 @@ import static com.intellij.util.ui.GraphicsUtil.setupAAPainting;
 /**
  * Component that displays a list of icons and a label
  */
-public class SwatchComponent extends ClickableLabel {
+public class SwatchComponent extends JComponent {
   /**
    * Padding used vertically and horizontally
    */
@@ -57,11 +63,35 @@ public class SwatchComponent extends ClickableLabel {
    */
   private static final int SWATCH_HORIZONTAL_ICONS_PADDING = JBUI.scale(2);
   private static final int ARC_SIZE = ThemeEditorConstants.ROUNDED_BORDER_ARC_SIZE;
+  private String myText = "";
 
   private List<SwatchIcon> myIconList = Collections.emptyList();
+  private short myMaxIcons;
+  private boolean myHasOverflowIcons;
 
-  public SwatchComponent() {
+  /**
+   * Constructs a SwatchComponent with a maximum number of icons. If the number of icons is greater than maxIcons
+   * the component will display a text with the number of icons left to display. When the user clicks that icon the
+   * icons will expand until the user leaves the control area.
+   */
+  public SwatchComponent(short maxIcons) {
+    myMaxIcons = maxIcons;
     setBorder(null);
+
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        SwatchComponent.this.mouseClicked(e);
+      }
+    });
+  }
+
+  /**
+   * Maximum number of icons to display on the component. If the list of swatch icons is bigger than this number a "..." label
+   * will be displayed to see the rest in a popup dialog.
+   */
+  public void setMaxIcons(short maxIcons) {
+    myMaxIcons = maxIcons;
   }
 
   public void setSwatchIcons(@NotNull List<SwatchIcon> icons) {
@@ -75,7 +105,7 @@ public class SwatchComponent extends ClickableLabel {
 
     final int width = getWidth();
     final int height = getHeight();
-    final int iconSize = height - 2 * PADDING - 1;
+    final int iconSize = getIconSize();
 
     // Background is filled manually here instead of calling super.paintComponent()
     // because some L'n'Fs (e.g. GTK+) paint additional decoration even with null border.
@@ -91,8 +121,27 @@ public class SwatchComponent extends ClickableLabel {
 
     Shape savedClip = g.getClip();
     int xOffset = PADDING;
+    int nIcons = myIconList.size();
+    int iconsToPaint;
+    RoundRectangle2D clipRectangle = new RoundRectangle2D.Double();
+
+    // Since the overflow icons takes the same space as one icon, only draw it if the number of overflow icons is at least 2.
+    if (nIcons - myMaxIcons >= 2) {
+      myHasOverflowIcons = true;
+      iconsToPaint = myMaxIcons;
+    } else {
+      myHasOverflowIcons = false;
+      iconsToPaint = nIcons;
+    }
+
     for (SwatchIcon icon : myIconList) {
-      g.clip(new RoundRectangle2D.Double(xOffset, PADDING, iconSize, iconSize, ARC_SIZE, ARC_SIZE));
+      if (iconsToPaint-- <= 0) {
+        // Do not paint more icons
+        break;
+      }
+
+      clipRectangle.setRoundRect(xOffset, PADDING, iconSize, iconSize, ARC_SIZE, ARC_SIZE);
+      g.clip(clipRectangle);
       icon.paint(this, g, xOffset, PADDING, iconSize, iconSize);
       g.setColor(Gray._239);
       g.setClip(savedClip);
@@ -100,13 +149,22 @@ public class SwatchComponent extends ClickableLabel {
       xOffset += iconSize + SWATCH_HORIZONTAL_ICONS_PADDING;
     }
 
+    Rectangle textRectangle = new Rectangle();
+    // Should we paint the overflow icon?
+    if (myHasOverflowIcons) {
+      int overFlowIcons = nIcons - myMaxIcons;
+      g.setColor(JBColor.LIGHT_GRAY);
+      textRectangle.setBounds(xOffset, PADDING, iconSize, iconSize);
+      GraphicsUtil.drawCenteredString(g, textRectangle, "+" + overFlowIcons);
+      xOffset += iconSize + SWATCH_HORIZONTAL_ICONS_PADDING;
+    }
+
     xOffset += SWATCH_HORIZONTAL_ICONS_PADDING * 2;
 
     // Text is centered vertically so we do not need to use TEXT_PADDING here, only in the preferred size.
-    FontMetrics fm = g.getFontMetrics();
+    textRectangle.setBounds(xOffset, 0, width - xOffset, height);
     g.setColor(getForeground());
-    int yOffset = (height - fm.getHeight()) / 2 + fm.getAscent();
-    g.drawString(getText(), xOffset, yOffset);
+    GraphicsUtil.drawCenteredString(g, textRectangle, myText, false, true);
     g.dispose();
   }
 
@@ -125,6 +183,10 @@ public class SwatchComponent extends ClickableLabel {
       return getMinimumSize();
     }
     return super.getPreferredSize();
+  }
+
+  private int getIconSize() {
+    return getHeight() - 2 * PADDING - 1;
   }
 
   /**
@@ -191,5 +253,49 @@ public class SwatchComponent extends ClickableLabel {
     }
 
     return iconsList.build();
+  }
+
+  public void setText(@NotNull String text) {
+    myText = text;
+  }
+
+  public void addActionListener(@NotNull ActionListener listener) {
+    listenerList.add(ActionListener.class, listener);
+  }
+
+  @SuppressWarnings("unused")
+  public void removeActionListener(@NotNull ActionListener listener) {
+    listenerList.remove(ActionListener.class, listener);
+  }
+
+  private void mouseClicked(@NotNull MouseEvent e) {
+    if (myHasOverflowIcons) {
+      // Check if the click was in the overflow text
+      int iconSize = getIconSize();
+      Rectangle overflowIconRect = new Rectangle(myMaxIcons * iconSize, PADDING, iconSize, iconSize);
+
+      if (overflowIconRect.contains(e.getPoint())) {
+        final short previousMaxIcons = myMaxIcons;
+        addMouseListener(new MouseAdapter() {
+          @Override
+          public void mouseExited(MouseEvent e) {
+            SwatchComponent.this.removeMouseListener(this);
+            setMaxIcons(previousMaxIcons);
+            repaint();
+          }
+        });
+        setMaxIcons(Short.MAX_VALUE);
+        // Display all the other colors until the mouse exits the component
+        repaint();
+        return;
+      }
+    }
+
+    ActionListener[] actionListeners = listenerList.getListeners(ActionListener.class);
+    ActionEvent event = new ActionEvent(
+      this, ActionEvent.ACTION_PERFORMED, myText, e.getWhen(), e.getModifiers());
+    for (ActionListener listener : actionListeners) {
+      listener.actionPerformed(event);
+    }
   }
 }
