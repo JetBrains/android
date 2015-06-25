@@ -277,6 +277,33 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
                                                .hasVersion("2.3");
   }
 
+  @Test @IdeGuiTest
+  public void testParseExternalDependenciesWithCompactNotationDeclaredInSingleLine() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    // Added comments to dependency declarations just ensure parsing works.
+    replaceDependenciesInAppBuildFile(projectFrame,
+                                      "runtime /* Hey */ 'org.springframework:spring-core:2.5', /* Hey */ 'org.springframework:spring-aop:2.5'");
+
+    GradleBuildFile parsedBuildFile = openAndParseAppBuildFile(projectFrame);
+
+    List<DependenciesElement> dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    assertThat(dependenciesBlocks).hasSize(1);
+
+    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
+    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
+    assertThat(dependencies).hasSize(2);
+
+    assertThat(dependency(dependencies.get(0))).hasConfigurationName("runtime")
+                                               .hasGroup("org.springframework")
+                                               .hasName("spring-core")
+                                               .hasVersion("2.5");
+
+    assertThat(dependency(dependencies.get(1))).hasConfigurationName("runtime")
+                                               .hasGroup("org.springframework")
+                                               .hasName("spring-aop")
+                                               .hasVersion("2.5");
+  }
+
   private static void replaceDependenciesInAppBuildFile(@NotNull IdeFrameFixture projectFrame, @NotNull final String...dependencies) {
     final VirtualFile appBuildFile = projectFrame.findFileByRelativePath(APP_BUILD_GRADLE_RELATIVE_PATH, true);
     execute(new GuiTask() {
