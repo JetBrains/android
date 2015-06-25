@@ -34,6 +34,7 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
+import com.intellij.util.SystemProperties;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -261,13 +262,17 @@ public final class GuiTests {
 
   @NotNull
   public static File getProjectCreationDirPath() {
-    try {
-      return createTempDir();
+    // Disabled by default because Theme editor tests break on Mac. Need to investigate further.
+    boolean createTempDir = SystemProperties.getBooleanProperty("gui.tests.new.projects.in.temp.dir", false);
+    if (createTempDir) {
+      try {
+        return createTempDir();
+      }
+      catch (RuntimeException e) {
+        Logger.getInstance(GuiTests.class).info("Failed to create temp directory for project creation in UI tests", e);
+      }
     }
-    catch (RuntimeException e) {
-      Logger.getInstance(GuiTests.class).info("Failed to create temp directory for project creation in UI tests", e);
-      return new File(getTestProjectsRootDirPath(), "newProjects");
-    }
+    return new File(getTestProjectsRootDirPath(), "newProjects");
   }
 
   @NotNull
