@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidQuickFixProvider extends UnresolvedReferenceQuickFixProvider<PsiReferenceExpression> {
+public class AndroidResourceQuickFixProvider extends UnresolvedReferenceQuickFixProvider<PsiReferenceExpression> {
   @Override
   public void registerFixes(@NotNull PsiReferenceExpression exp, @NotNull QuickFixActionRegistrar registrar) {
     final Module contextModule = ModuleUtil.findModuleForPsiElement(exp);

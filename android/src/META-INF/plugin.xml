@@ -661,7 +661,7 @@
     <renameHandler implementation="org.jetbrains.android.AndroidRenameHandler" order="first"/>
     <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.rename.GradleAwareSourceRootRenameValidator"/>
 
-    <codeInsight.unresolvedReferenceQuickFixProvider implementation="org.jetbrains.android.inspections.AndroidQuickFixProvider"/>
+    <codeInsight.unresolvedReferenceQuickFixProvider implementation="org.jetbrains.android.inspections.AndroidResourceQuickFixProvider"/>
     <lang.psiAugmentProvider implementation="org.jetbrains.android.augment.AndroidPsiAugmentProvider"/>
     <java.elementFinder implementation="org.jetbrains.android.augment.AndroidPsiElementFinder"/>
 
@@ -726,6 +726,8 @@
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
     <generatedSourcesFilter implementation="com.android.tools.idea.editors.AndroidGeneratedSourcesFilter"/>
+    <codeInsight.unresolvedReferenceQuickFixProvider
+        implementation="com.android.tools.idea.quickfix.AndroidUnresolvedReferenceQuickFixProvider" order="last"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
