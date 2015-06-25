@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.getProjectCreationDirPath;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.LAYOUT;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static junit.framework.Assert.*;
@@ -346,7 +347,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     String viewClassFile = "app/build/intermediates/classes/debug/com/android/tools/tests/layout/MyButton.class";
     if (projectFrame.findFileByRelativePath(viewClassFile, false) != null) {
       fail("Project should be clean at the start of this test; when that is not the case it's probably " +
-           "some caching of loaded projects in tools/adt/idea/android/testData/guiTests/newProjects which " +
+           "some caching of loaded projects in '" + getProjectCreationDirPath().getPath() + "' which " +
            "we will soon get rid of.");
     }
 
