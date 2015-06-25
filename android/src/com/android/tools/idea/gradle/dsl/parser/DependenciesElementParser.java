@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
+import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
@@ -58,10 +59,16 @@ class DependenciesElementParser implements GradleDslElementParser {
 
   private static void parse(@NotNull GrClosableBlock closure, @NotNull GradleBuildFile buildFile) {
     DependenciesElement dependencies = new DependenciesElement(closure);
+    Collection<GrMethodCallExpression> expressions = findChildrenOfType(closure, GrMethodCallExpression.class);
+    for (GrMethodCallExpression expression : expressions) {
+      List<DependencyElement> dependencyList = parseDependencies(expression);
+      dependencies.addAll(dependencyList);
+    }
+
     Collection<GrApplicationStatement> statements = findChildrenOfType(closure, GrApplicationStatement.class);
     for (GrApplicationStatement statement : statements) {
       List<DependencyElement> dependencyList = parseDependencies(statement);
-      dependencies.add(dependencyList);
+      dependencies.addAll(dependencyList);
     }
     buildFile.add(dependencies);
   }
@@ -125,6 +132,37 @@ class DependenciesElementParser implements GradleDslElementParser {
     if (dependency != null) {
       dependencies.add(dependency);
     }
+    return dependencies;
+  }
+
+  @NotNull
+  private static List<DependencyElement> parseDependencies(@NotNull GrMethodCallExpression expression) {
+    List<DependencyElement> dependencies = Lists.newArrayList();
+    GrReferenceExpression configurationNameExpression = getChildOfType(expression, GrReferenceExpression.class);
+    if (configurationNameExpression != null) {
+      String configurationName = configurationNameExpression.getText();
+      if (isNotEmpty(configurationName)) {
+        GrArgumentList argumentList = getNextSiblingOfType(configurationNameExpression, GrArgumentList.class);
+        if (argumentList != null) {
+          for (GroovyPsiElement arg : argumentList.getAllArguments()) {
+            if (arg instanceof GrListOrMap) {
+              GrListOrMap listOrMap = (GrListOrMap)arg;
+              if (listOrMap.isMap()) {
+                GrNamedArgument[] namedArgs = listOrMap.getNamedArguments();
+                if (namedArgs.length > 0) {
+                  DependencyElement dependency = ExternalDependencyElement.withMapNotation(configurationName,
+                                                                                           Lists.newArrayList(namedArgs));
+                  if (dependency != null) {
+                    dependencies.add(dependency);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     return dependencies;
   }
 }
