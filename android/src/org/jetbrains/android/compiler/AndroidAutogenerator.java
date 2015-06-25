@@ -28,7 +28,7 @@ import org.jetbrains.android.compiler.tools.AndroidRenderscript;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.fileTypes.AndroidIdlFileType;
+import com.android.tools.idea.lang.aidl.AidlFileType;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
@@ -452,7 +452,7 @@ public class AndroidAutogenerator {
   private static void runAidl(@NotNull final AndroidFacet facet, @NotNull final CompileContext context) {
     final Module module = facet.getModule();
     final ModuleCompileScope moduleCompileScope = new ModuleCompileScope(module, false);
-    final VirtualFile[] files = moduleCompileScope.getFiles(AndroidIdlFileType.ourFileType, true);
+    final VirtualFile[] files = moduleCompileScope.getFiles(AidlFileType.INSTANCE, true);
     final List<IdlAutogenerationItem> items = new ArrayList<IdlAutogenerationItem>();
 
     for (final VirtualFile file : files) {
