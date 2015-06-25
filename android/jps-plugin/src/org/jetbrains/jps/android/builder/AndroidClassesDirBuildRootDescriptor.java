@@ -19,11 +19,6 @@ public class AndroidClassesDirBuildRootDescriptor extends BuildRootDescriptorImp
   @NotNull
   @Override
   public FileFilter createFileFilter() {
-    return new FileFilter() {
-      @Override
-      public boolean accept(@NotNull File file) {
-        return FileUtilRt.extensionEquals(file.getName(), "class");
-      }
-    };
+    return FileUtilRt.createFilterByExtension("class");
   }
 }

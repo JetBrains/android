@@ -83,6 +83,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   public static final Key<Boolean> IS_ENABLED = Key.create("_android_source_generator_enabled_");
 
   @NonNls private static final String R_TXT_OUTPUT_DIR_NAME = "r_txt";
+  private static FileFilter JAVA_FILE_FILTER = FileUtilRt.createFilterByExtension("java");
 
   public AndroidSourceGeneratingBuilder() {
     super(BuilderCategory.SOURCE_GENERATOR);
@@ -981,7 +982,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
             storage.update(module.getName(), null);
           }
           else {
-            if (!AndroidCommonUtils.directoriesContainSameContent(tmpOutputDir, aptOutputDirectory, JavaFilesFilter.INSTANCE)) {
+            if (!AndroidCommonUtils.directoriesContainSameContent(tmpOutputDir, aptOutputDirectory, JAVA_FILE_FILTER)) {
               if (!deleteAndMarkRecursively(aptOutputDirectory, context, ANDROID_APT_COMPILER)) {
                 success = false;
                 continue;
