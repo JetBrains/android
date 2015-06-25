@@ -78,31 +78,52 @@ class DependenciesElementParser implements GradleDslElementParser {
         if (argumentList != null) {
           GroovyPsiElement[] arguments = argumentList.getAllArguments();
           int argumentCount = arguments.length;
-          if (argumentCount == 1 && arguments[0] instanceof GrLiteral) {
-            // This may be an external dependency in 'compact' notation:
-            // 'commons-lang:commons-lang:2.6'
-            GrLiteral literal = (GrLiteral)arguments[0];
-            DependencyElement dependency = ExternalDependencyElement.withCompactNotation(configurationName, literal);
-            if (dependency != null) {
-              dependencies.add(dependency);
+          if (argumentCount > 0) {
+            GroovyPsiElement argument = arguments[0];
+            if (argument instanceof GrLiteral) {
+              // "Compact" notation
+              dependencies.addAll(parseExternalDependenciesWithCompactNotation(configurationName, arguments));
             }
-          }
-          else if (argumentCount > 0) {
-            // This may be an external dependency in 'map' notation:
-            // group: 'com.google.code.guice', name: 'guice', version: '1.0'
-            List<GrNamedArgument> namedArguments = Lists.newArrayList();
-            for (GroovyPsiElement argument : arguments) {
-              if (argument instanceof GrNamedArgument) {
-                namedArguments.add((GrNamedArgument)argument);
-              }
-            }
-            DependencyElement dependency = ExternalDependencyElement.withMapNotation(configurationName, namedArguments);
-            if (dependency != null) {
-              dependencies.add(dependency);
+            else if (argument instanceof GrNamedArgument) {
+              // "Map" notation
+              dependencies.addAll(parseExternalDependenciesWithMapNotation(configurationName, arguments));
             }
           }
         }
       }
+    }
+    return dependencies;
+  }
+
+  @NotNull
+  private static List<DependencyElement> parseExternalDependenciesWithCompactNotation(@NotNull String configurationName,
+                                                                                      @NotNull GroovyPsiElement[] arguments) {
+    List<DependencyElement> dependencies = Lists.newArrayList();
+    for (GroovyPsiElement argument : arguments) {
+      if (argument instanceof GrLiteral) {
+        GrLiteral literal = (GrLiteral)argument;
+        DependencyElement dependency = ExternalDependencyElement.withCompactNotation(configurationName, literal);
+        if (dependency != null) {
+          dependencies.add(dependency);
+        }
+      }
+    }
+    return dependencies;
+  }
+
+  @NotNull
+  private static List<DependencyElement> parseExternalDependenciesWithMapNotation(@NotNull String configurationName,
+                                                                                  @NotNull GroovyPsiElement[] arguments) {
+    List<DependencyElement> dependencies = Lists.newArrayList();
+    List<GrNamedArgument> namedArguments = Lists.newArrayList();
+    for (GroovyPsiElement argument : arguments) {
+      if (argument instanceof GrNamedArgument) {
+        namedArguments.add((GrNamedArgument)argument);
+      }
+    }
+    DependencyElement dependency = ExternalDependencyElement.withMapNotation(configurationName, namedArguments);
+    if (dependency != null) {
+      dependencies.add(dependency);
     }
     return dependencies;
   }
