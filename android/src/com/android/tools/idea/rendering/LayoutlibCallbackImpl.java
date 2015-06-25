@@ -670,10 +670,10 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   @SuppressWarnings("unchecked")
   public <T> T getFlag(@NotNull SessionParams.Key<T> key) {
-    if (key == FLAG_KEY_APPLICATION_PACKAGE) {
+    if (key.equals(FLAG_KEY_APPLICATION_PACKAGE)) {
       return (T)getPackage();
     }
-    if (key == FLAG_KEY_RECYCLER_VIEW_SUPPORT) {
+    if (key.equals(FLAG_KEY_RECYCLER_VIEW_SUPPORT)) {
       return (T)Boolean.TRUE;
     }
     return null;
