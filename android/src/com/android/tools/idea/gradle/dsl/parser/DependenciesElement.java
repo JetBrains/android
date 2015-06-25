@@ -35,7 +35,7 @@ public class DependenciesElement implements GradleDslElement {
     myPsiElement = psiElement;
   }
 
-  void add(@NotNull List<DependencyElement> dependencies) {
+  void addAll(@NotNull List<DependencyElement> dependencies) {
     for (DependencyElement dependency : dependencies) {
       add(dependency);
     }
