@@ -99,6 +99,9 @@ public class StyleResolver {
     return resolver.getStyle(styleName, isFrameworkStyle);
   }
 
+  /**
+   * @return returns ThemeEditorStyle for a qualifiedStyleName, if style doesn't exist will return null
+   */
   @Nullable
   public ThemeEditorStyle getStyle(@NotNull final String qualifiedStyleName) {
     final StyleResourceValue style = getStyleResourceValue(qualifiedStyleName);
