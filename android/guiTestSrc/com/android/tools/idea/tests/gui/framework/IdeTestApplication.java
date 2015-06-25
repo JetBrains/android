@@ -47,6 +47,7 @@ import java.util.regex.Pattern;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getProjectCreationDirPath;
 import static com.intellij.openapi.application.PathManager.PROPERTY_CONFIG_PATH;
 import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 import static com.intellij.util.PlatformUtils.PLATFORM_PREFIX_KEY;
 import static com.intellij.util.containers.ContainerUtil.addAll;
@@ -107,6 +108,13 @@ public class IdeTestApplication implements Disposable {
 
   @NotNull
   private static File getGuiTestRootDirPath() throws IOException {
+    String guiTestRootDirPathProperty = System.getProperty("gui.tests.root.dir.path");
+    if (isNotEmpty(guiTestRootDirPathProperty)) {
+      File rootDirPath = new File(guiTestRootDirPathProperty);
+      if (rootDirPath.isDirectory()) {
+        return rootDirPath;
+      }
+    }
     String homeDirPath = toSystemDependentName(PathManager.getHomePath());
     assertThat(homeDirPath).isNotEmpty();
     File rootDirPath = new File(homeDirPath, join("androidStudio", "gui-tests"));
