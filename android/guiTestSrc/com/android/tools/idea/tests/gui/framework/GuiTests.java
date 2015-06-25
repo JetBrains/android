@@ -125,6 +125,14 @@ public final class GuiTests {
     }
   }
 
+  // Called by MethodInvoker via reflection
+  @SuppressWarnings("unused")
+  public static boolean doesIdeHaveFatalErrors() {
+    final MessagePool messagePool = MessagePool.getInstance();
+    List<AbstractMessage> fatalErrors = messagePool.getFatalErrors(true, true);
+    return !fatalErrors.isEmpty();
+  }
+
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
   public static void setUpDefaultGeneralSettings() {
