@@ -23,6 +23,7 @@ import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -61,6 +62,7 @@ import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
 import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.io.Files.createTempDir;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -251,7 +253,13 @@ public final class GuiTests {
 
   @NotNull
   public static File getProjectCreationDirPath() {
-    return new File(getTestProjectsRootDirPath(), "newProjects");
+    try {
+      return createTempDir();
+    }
+    catch (RuntimeException e) {
+      Logger.getInstance(GuiTests.class).info("Failed to create temp directory for project creation in UI tests", e);
+      return new File(getTestProjectsRootDirPath(), "newProjects");
+    }
   }
 
   @NotNull
