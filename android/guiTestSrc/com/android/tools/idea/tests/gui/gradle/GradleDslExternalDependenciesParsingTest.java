@@ -304,6 +304,35 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
                                                .hasVersion("2.5");
   }
 
+  @Test @IdeGuiTest
+  public void testParseExternalDependenciesWithMapNotationUsingSingleConfigurationName() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    replaceDependenciesInAppBuildFile(projectFrame,
+                                      "runtime(\n" +
+                                      "        [group: 'org.springframework', name: 'spring-core', version: '2.5'],\n" +
+                                      "        [group: 'org.springframework', name: 'spring-aop', version: '2.5']\n" +
+                                      "    )");
+
+    GradleBuildFile parsedBuildFile = openAndParseAppBuildFile(projectFrame);
+
+    List<DependenciesElement> dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    assertThat(dependenciesBlocks).hasSize(1);
+
+    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
+    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
+    assertThat(dependencies).hasSize(2);
+
+    assertThat(dependency(dependencies.get(0))).hasConfigurationName("runtime")
+                                               .hasGroup("org.springframework")
+                                               .hasName("spring-core")
+                                               .hasVersion("2.5");
+
+    assertThat(dependency(dependencies.get(1))).hasConfigurationName("runtime")
+                                               .hasGroup("org.springframework")
+                                               .hasName("spring-aop")
+                                               .hasVersion("2.5");
+  }
+
   private static void replaceDependenciesInAppBuildFile(@NotNull IdeFrameFixture projectFrame, @NotNull final String...dependencies) {
     final VirtualFile appBuildFile = projectFrame.findFileByRelativePath(APP_BUILD_GRADLE_RELATIVE_PATH, true);
     execute(new GuiTask() {
