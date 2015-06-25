@@ -245,13 +245,11 @@
     <fileTypeFactory implementation="org.jetbrains.android.fileTypes.AndroidFileTypeFactory"/>
     <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.DbFileTypeFactory" />
-    <lang.parserDefinition language="AIDL" implementationClass="org.jetbrains.android.fileTypes.AndroidIdlParserDefinition"/>
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition" />
     <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition" />
 
-    <lang.syntaxHighlighterFactory key="AIDL" implementationClass="org.jetbrains.android.fileTypes.AndroidIdlSyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory key="Renderscript" implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory key="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory" />
     <lang.syntaxHighlighterFactory key="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighterFactory" />
@@ -260,10 +258,6 @@
 
     <lang.braceMatcher language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbPairedBraceMatcher"/>
 
-    <!--
-    <lang.formatter language="AIDL" implementationClass="com.intellij.lang.java.JavaFormattingModelBuilder"/>
-    <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
-    -->
     <languageInjector implementation="com.android.tools.idea.lang.databinding.DbLanguageInjector" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.navigation.NavigationEditorProvider" />
@@ -564,6 +558,7 @@
     <project.converterProvider implementation="org.jetbrains.android.converter.AndroidProguardOptionsConverterProvider"/>
     <annotator language="XML" implementationClass="org.jetbrains.android.AndroidColorAnnotator" order="first"/>
     <annotator language="JAVA" implementationClass="org.jetbrains.android.AndroidColorAnnotator" order="first"/>
+
     <xml.elementDescriptorProvider implementation="org.jetbrains.android.dom.AndroidDomElementDescriptorProvider" order="first"/>
 
     <facet.toolWindow id="Android"
@@ -839,6 +834,19 @@
     <java.elementFinder implementation="com.android.tools.idea.databinding.BrClassFinder"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingClassFinder"/>
   </extensions>
+
+  <!-- Android IDL support -->
+  <extensions defaultExtensionNs="com.intellij">
+    <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
+    <lang.syntaxHighlighterFactory key="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighterFactory"/>
+    <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlClassNameAnnotator" order="first"/>
+    <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
+
+    <!--
+    <lang.formatter language="AIDL" implementationClass="com.intellij.lang.java.JavaFormattingModelBuilder"/>
+    -->
+  </extensions>
+
   <project-components>
     <component>
       <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
