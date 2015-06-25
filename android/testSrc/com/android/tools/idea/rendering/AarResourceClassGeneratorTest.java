@@ -154,14 +154,9 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
     Object layoutColumnSpanValue = clz.getField("layout_columnSpan").get(null);
 
     // Test style class
-    name = "my.test.pkg.R$style";
-    clz = generateClass(generator, name);
-    assertNotNull(clz);
-    clz.newInstance();
-    assertEquals(name, clz.getName());
-    assertTrue(Modifier.isPublic(clz.getModifiers()));
-    assertTrue(Modifier.isFinal(clz.getModifiers()));
-    assertFalse(Modifier.isInterface(clz.getModifiers()));
+    styleTest(generator);
+    // Run the same test to check caching.
+    styleTest(generator);
 
     // Test styleable class!
     styleableTest(generator, gravityValue, layoutColumnSpanValue);
@@ -184,6 +179,20 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
     //assertNotNull(clz.getField("top"));
     //assertNotNull(clz.getField("bottom"));
     //assertNotNull(clz.getField("center_vertical"));
+  }
+
+  private static void styleTest(AarResourceClassGenerator generator)
+    throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    String name;
+    Class<?> clz;
+    name = "my.test.pkg.R$style";
+    clz = generateClass(generator, name);
+    assertNotNull(clz);
+    clz.newInstance();
+    assertEquals(name, clz.getName());
+    assertTrue(Modifier.isPublic(clz.getModifiers()));
+    assertTrue(Modifier.isFinal(clz.getModifiers()));
+    assertFalse(Modifier.isInterface(clz.getModifiers()));
   }
 
   private static void styleableTest(AarResourceClassGenerator generator, Object gravityValue, Object layoutColumnSpanValue)

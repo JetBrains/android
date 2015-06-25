@@ -156,7 +156,8 @@ public class AarResourceClassGenerator {
     Collection<String> keys = resType == ResourceType.ID ? myAppResources.getAllIds() : myAppResources.getItemsOfType(resType);
     for (String key : keys) {
       int initialValue = myAppResources.getResourceId(resType, key);
-      generateField(cw, AndroidResourceUtil.getFieldNameByResourceName(key), initialValue);
+      key = AndroidResourceUtil.getFieldNameByResourceName(key);
+      generateField(cw, key, initialValue);
       cache.put(key, initialValue);
     }
   }
