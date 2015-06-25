@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
+import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
@@ -41,6 +42,7 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
   static final String LABEL_EMPTY = "(empty)";
 
   private final AndroidThemePreviewPanel myPreviewPanel;
+  private EditedStyleItem myItem;
 
   public ColorRendererEditor(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel, boolean isEditor) {
     super(context, isEditor);
@@ -54,6 +56,8 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
   @Override
   protected void updateComponent(@NotNull ThemeEditorContext context, @NotNull ResourceComponent component, @NotNull EditedStyleItem item) {
     assert context.getResourceResolver() != null;
+
+    myItem = item;
 
     final List<Color> colors = ResourceHelper.resolveMultipleColors(context.getResourceResolver(), item.getItemResourceValue());
     String colorText = colors.isEmpty() ? LABEL_EMPTY : ResourceHelper.colorToString(colors.get(0));

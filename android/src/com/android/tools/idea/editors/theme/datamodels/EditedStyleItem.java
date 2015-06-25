@@ -128,8 +128,11 @@ public class EditedStyleItem {
   }
 
   @NotNull
-  public ConfiguredItemResourceValue getSelectedConfiguredItem() {
-    return mySelectedValue;
+  public Collection<ConfiguredItemResourceValue> getAllConfiguredItems() {
+    return ImmutableList.<ConfiguredItemResourceValue>builder()
+      .add(mySelectedValue)
+      .addAll(getNonSelectedItemResourceValues())
+      .build();
   }
 
   @NotNull
