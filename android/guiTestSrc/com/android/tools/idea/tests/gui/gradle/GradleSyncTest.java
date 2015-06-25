@@ -614,7 +614,7 @@ public class GradleSyncTest extends GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFinish();
   }
 
-  @Test @IdeGuiTest(retryCount = 1)
+  @Test @IdeGuiTest(retryCount = 2)
   public void testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() throws IOException {
     File unsupportedGradleHome = getUnsupportedGradleHome();
     if (unsupportedGradleHome == null) {
