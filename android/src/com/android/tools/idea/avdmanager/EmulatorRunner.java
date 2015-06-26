@@ -40,15 +40,15 @@ public class EmulatorRunner extends ExternalToolRunner {
 
     String description = target == null ? null : target.toString();
     UsageTracker.getInstance().trackEvent(
-      UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_EMULATOR_LAUNCHED, description, null);
+      UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_DEPLOYMENT_EMULATOR, description, null);
 
     if (avdInfo != null) {
       UsageTracker.getInstance().trackEvent(
-        UsageTracker.CATEGORY_AVDINFO, UsageTracker.INFO_AVD_ABI, AvdInfo.getPrettyAbiType(avdInfo), null);
+        UsageTracker.CATEGORY_AVDINFO, UsageTracker.ACTION_AVDINFO_ABI, AvdInfo.getPrettyAbiType(avdInfo), null);
 
       String version = target == null ? "unknown" : target.getVersion().toString();
       UsageTracker.getInstance().trackEvent(
-        UsageTracker.CATEGORY_AVDINFO, UsageTracker.INFO_AVD_TARGET_VERSION, version, null);
+        UsageTracker.CATEGORY_AVDINFO, UsageTracker.ACTION_AVDINFO_TARGET_VERSION, version, null);
     }
   }
 
