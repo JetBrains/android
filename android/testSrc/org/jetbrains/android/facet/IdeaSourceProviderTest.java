@@ -20,6 +20,7 @@ import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.util.io.FileUtil;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Set;
 
 import static org.junit.Assume.assumeTrue;
 
@@ -90,8 +92,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: []\n" +
                  "AIDL Directories: []\n" +
                  "Renderscript Directories: []\n" +
-                 "C Directories: []\n" +
-                 "Cpp Directories: []\n" +
+                 "Jni Directories: []\n" +
                  "Resources Directories: []\n" +
                  "Manifest File: null\n" +
                  "Java Directories: []\n" +
@@ -99,8 +100,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: []\n" +
                  "AIDL Directories: []\n" +
                  "Renderscript Directories: []\n" +
-                 "C Directories: []\n" +
-                 "Cpp Directories: []\n" +
+                 "Jni Directories: []\n" +
                  "Resources Directories: []\n" +
                  "Manifest File: null\n" +
                  "Java Directories: []\n" +
@@ -108,8 +108,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: []\n" +
                  "AIDL Directories: []\n" +
                  "Renderscript Directories: []\n" +
-                 "C Directories: []\n" +
-                 "Cpp Directories: []\n" +
+                 "Jni Directories: []\n" +
                  "Resources Directories: []\n" +
                  "Manifest File: null\n" +
                  "Java Directories: []\n" +
@@ -117,8 +116,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: []\n" +
                  "AIDL Directories: []\n" +
                  "Renderscript Directories: []\n" +
-                 "C Directories: []\n" +
-                 "Cpp Directories: []\n" +
+                 "Jni Directories: []\n" +
                  "Resources Directories: []\n", sb.toString());
 
     sb = new StringBuilder();
@@ -131,8 +129,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: []\n" +
                  "AIDL Directories: []\n" +
                  "Renderscript Directories: []\n" +
-                 "C Directories: []\n" +
-                 "Cpp Directories: []\n" +
+                 "Jni Directories: []\n" +
                  "Resources Directories: []\n" +
                  "Manifest File: null\n" +
                  "Java Directories: []\n" +
@@ -140,8 +137,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: []\n" +
                  "AIDL Directories: []\n" +
                  "Renderscript Directories: []\n" +
-                 "C Directories: []\n" +
-                 "Cpp Directories: []\n" +
+                 "Jni Directories: []\n" +
                  "Resources Directories: []\n", sb.toString());
   }
 
@@ -158,8 +154,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: [app/src/main/assets]\n" +
                  "AIDL Directories: [app/src/main/aidl]\n" +
                  "Renderscript Directories: [app/src/main/rs]\n" +
-                 "C Directories: [app/src/main/jni]\n" +
-                 "Cpp Directories: [app/src/main/jni]\n" +
+                 "Jni Directories: [app/src/main/jni]\n" +
                  "Resources Directories: [app/src/main/resources]\n" +
                  "Name: paid\n" +
                  "Manifest File: app/src/paid/AndroidManifest.xml\n" +
@@ -168,8 +163,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: [app/src/paid/assets]\n" +
                  "AIDL Directories: [app/src/paid/aidl]\n" +
                  "Renderscript Directories: [app/src/paid/rs]\n" +
-                 "C Directories: [app/src/paid/jni]\n" +
-                 "Cpp Directories: [app/src/paid/jni]\n" +
+                 "Jni Directories: [app/src/paid/jni]\n" +
                  "Resources Directories: [app/src/paid/resources]\n" +
                  "Name: basic\n" +
                  "Manifest File: app/src/basic/AndroidManifest.xml\n" +
@@ -178,8 +172,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: [app/src/basic/assets]\n" +
                  "AIDL Directories: [app/src/basic/aidl]\n" +
                  "Renderscript Directories: [app/src/basic/rs]\n" +
-                 "C Directories: [app/src/basic/jni]\n" +
-                 "Cpp Directories: [app/src/basic/jni]\n" +
+                 "Jni Directories: [app/src/basic/jni]\n" +
                  "Resources Directories: [app/src/basic/resources]\n" +
                  "Name: debug\n" +
                  "Manifest File: app/src/debug/AndroidManifest.xml\n" +
@@ -188,8 +181,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: [app/src/debug/assets]\n" +
                  "AIDL Directories: [app/src/debug/aidl]\n" +
                  "Renderscript Directories: [app/src/debug/rs]\n" +
-                 "C Directories: [app/src/debug/jni]\n" +
-                 "Cpp Directories: [app/src/debug/jni]\n" +
+                 "Jni Directories: [app/src/debug/jni]\n" +
                  "Resources Directories: [app/src/debug/resources]\n" +
                  "Name: release\n" +
                  "Manifest File: app/src/release/AndroidManifest.xml\n" +
@@ -198,8 +190,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: [app/src/release/assets]\n" +
                  "AIDL Directories: [app/src/release/aidl]\n" +
                  "Renderscript Directories: [app/src/release/rs]\n" +
-                 "C Directories: [app/src/release/jni]\n" +
-                 "Cpp Directories: [app/src/release/jni]\n" +
+                 "Jni Directories: [app/src/release/jni]\n" +
                  "Resources Directories: [app/src/release/resources]\n" +
                  "Name: paidDebug\n" +
                  "Manifest File: app/src/paidDebug/AndroidManifest.xml\n" +
@@ -208,8 +199,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: [app/src/paidDebug/assets]\n" +
                  "AIDL Directories: [app/src/paidDebug/aidl]\n" +
                  "Renderscript Directories: [app/src/paidDebug/rs]\n" +
-                 "C Directories: [app/src/paidDebug/jni]\n" +
-                 "Cpp Directories: [app/src/paidDebug/jni]\n" +
+                 "Jni Directories: [app/src/paidDebug/jni]\n" +
                  "Resources Directories: [app/src/paidDebug/resources]\n" +
                  "Name: paidRelease\n" +
                  "Manifest File: app/src/paidRelease/AndroidManifest.xml\n" +
@@ -218,8 +208,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: [app/src/paidRelease/assets]\n" +
                  "AIDL Directories: [app/src/paidRelease/aidl]\n" +
                  "Renderscript Directories: [app/src/paidRelease/rs]\n" +
-                 "C Directories: [app/src/paidRelease/jni]\n" +
-                 "Cpp Directories: [app/src/paidRelease/jni]\n" +
+                 "Jni Directories: [app/src/paidRelease/jni]\n" +
                  "Resources Directories: [app/src/paidRelease/resources]\n" +
                  "Name: basicDebug\n" +
                  "Manifest File: app/src/basicDebug/AndroidManifest.xml\n" +
@@ -228,8 +217,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: [app/src/basicDebug/assets]\n" +
                  "AIDL Directories: [app/src/basicDebug/aidl]\n" +
                  "Renderscript Directories: [app/src/basicDebug/rs]\n" +
-                 "C Directories: [app/src/basicDebug/jni]\n" +
-                 "Cpp Directories: [app/src/basicDebug/jni]\n" +
+                 "Jni Directories: [app/src/basicDebug/jni]\n" +
                  "Resources Directories: [app/src/basicDebug/resources]\n" +
                  "Name: basicRelease\n" +
                  "Manifest File: app/src/basicRelease/AndroidManifest.xml\n" +
@@ -238,8 +226,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: [app/src/basicRelease/assets]\n" +
                  "AIDL Directories: [app/src/basicRelease/aidl]\n" +
                  "Renderscript Directories: [app/src/basicRelease/rs]\n" +
-                 "C Directories: [app/src/basicRelease/jni]\n" +
-                 "Cpp Directories: [app/src/basicRelease/jni]\n" +
+                 "Jni Directories: [app/src/basicRelease/jni]\n" +
                  "Resources Directories: [app/src/basicRelease/resources]\n", sb.toString());
 
     sb = new StringBuilder();
@@ -253,8 +240,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: [lib/src/main/assets]\n" +
                  "AIDL Directories: [lib/src/main/aidl]\n" +
                  "Renderscript Directories: [lib/src/main/rs]\n" +
-                 "C Directories: [lib/src/main/jni]\n" +
-                 "Cpp Directories: [lib/src/main/jni]\n" +
+                 "Jni Directories: [lib/src/main/jni]\n" +
                  "Resources Directories: [lib/src/main/resources]\n" +
                  "Name: debug\n" +
                  "Manifest File: lib/src/debug/AndroidManifest.xml\n" +
@@ -263,8 +249,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: [lib/src/debug/assets]\n" +
                  "AIDL Directories: [lib/src/debug/aidl]\n" +
                  "Renderscript Directories: [lib/src/debug/rs]\n" +
-                 "C Directories: [lib/src/debug/jni]\n" +
-                 "Cpp Directories: [lib/src/debug/jni]\n" +
+                 "Jni Directories: [lib/src/debug/jni]\n" +
                  "Resources Directories: [lib/src/debug/resources]\n" +
                  "Name: release\n" +
                  "Manifest File: lib/src/release/AndroidManifest.xml\n" +
@@ -273,8 +258,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Assets Directories: [lib/src/release/assets]\n" +
                  "AIDL Directories: [lib/src/release/aidl]\n" +
                  "Renderscript Directories: [lib/src/release/rs]\n" +
-                 "C Directories: [lib/src/release/jni]\n" +
-                 "Cpp Directories: [lib/src/release/jni]\n" +
+                 "Jni Directories: [lib/src/release/jni]\n" +
                  "Resources Directories: [lib/src/release/resources]\n", sb.toString());
   }
 
@@ -347,11 +331,11 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     sb.append("Renderscript Directories: ");
     sb.append(fileSetToString(sourceProvider.getRenderscriptDirectories(), baseFile));
     sb.append('\n');
-    sb.append("C Directories: ");
-    sb.append(fileSetToString(sourceProvider.getCDirectories(), baseFile));
-    sb.append('\n');
-    sb.append("Cpp Directories: ");
-    sb.append(fileSetToString(sourceProvider.getCppDirectories(), baseFile));
+    sb.append("Jni Directories: ");
+    Set<File> jniDirectories = Sets.newHashSet();
+    jniDirectories.addAll(sourceProvider.getCDirectories());
+    jniDirectories.addAll(sourceProvider.getCppDirectories());
+    sb.append(fileSetToString(jniDirectories, baseFile));
     sb.append('\n');
     sb.append("Resources Directories: ");
     sb.append(fileSetToString(sourceProvider.getResourcesDirectories(), baseFile));
@@ -389,11 +373,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     sb.append("Renderscript Directories: ");
     sb.append(fileSetToString(sourceProvider.getRenderscriptDirectories(), baseFile));
     sb.append('\n');
-    sb.append("C Directories: ");
-    sb.append(fileSetToString(sourceProvider.getCDirectories(), baseFile));
-    sb.append('\n');
-    sb.append("Cpp Directories: ");
-    sb.append(fileSetToString(sourceProvider.getCppDirectories(), baseFile));
+    sb.append("Jni Directories: ");
+    sb.append(fileSetToString(sourceProvider.getJniDirectories(), baseFile));
     sb.append('\n');
     sb.append("Resources Directories: ");
     sb.append(fileSetToString(sourceProvider.getResourcesDirectories(), baseFile));
