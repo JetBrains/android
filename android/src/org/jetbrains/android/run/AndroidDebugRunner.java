@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.run;
 
+import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
@@ -439,11 +440,14 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     }
 
     @Override
-    public void launchDebug(final IDevice device, final String debugPort) {
+    public void launchDebug(@NotNull final Client client) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         @SuppressWarnings({"IOResourceOpenedButNotSafelyClosed"})
         public void run() {
+          IDevice device = client.getDevice();
+          String debugPort = Integer.toString(client.getDebuggerListenPort());
+
           final DebuggerPanelsManager manager = DebuggerPanelsManager.getInstance(myProject);
           AndroidDebugState st =
             new AndroidDebugState(myProject, new RemoteConnection(true, "localhost", debugPort, false),
