@@ -849,7 +849,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           }
         }
         UsageTracker.getInstance()
-          .trackEvent(UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_APK_DEPLOYED, null, null);
+          .trackEvent(UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_DEPLOYMENT_APK, null, null);
         myApplicationDeployed = true;
       }
       final AndroidApplicationLauncher.LaunchResult launchResult =
