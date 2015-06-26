@@ -17,6 +17,7 @@ import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ public class AndroidComponentSafeDeleteProcessor extends SafeDeleteProcessorDele
   }
 
   @Override
-  public NonCodeUsageSearchInfo findUsages(PsiElement element, PsiElement[] allElementsToDelete, List<UsageInfo> result) {
+  public NonCodeUsageSearchInfo findUsages(@NotNull PsiElement element, @NotNull PsiElement[] allElementsToDelete, @NotNull List<UsageInfo> result) {
     final ArrayList<UsageInfo> usages = new ArrayList<UsageInfo>();
     final NonCodeUsageSearchInfo info = getBaseHandler().findUsages(element, allElementsToDelete, usages);
     if (info == null) {
@@ -68,21 +69,21 @@ public class AndroidComponentSafeDeleteProcessor extends SafeDeleteProcessorDele
   }
 
   @Override
-  public Collection<? extends PsiElement> getElementsToSearch(PsiElement element,
+  public Collection<? extends PsiElement> getElementsToSearch(@NotNull PsiElement element,
                                                               @Nullable Module module,
-                                                              Collection<PsiElement> allElementsToDelete) {
+                                                              @NotNull Collection<PsiElement> allElementsToDelete) {
     return getBaseHandler().getElementsToSearch(element, module, allElementsToDelete);
   }
 
   @Override
-  public Collection<PsiElement> getAdditionalElementsToDelete(PsiElement element,
-                                                              Collection<PsiElement> allElementsToDelete,
+  public Collection<PsiElement> getAdditionalElementsToDelete(@NotNull PsiElement element,
+                                                              @NotNull Collection<PsiElement> allElementsToDelete,
                                                               boolean askUser) {
     return getBaseHandler().getAdditionalElementsToDelete(element, allElementsToDelete, askUser);
   }
 
   @Override
-  public Collection<String> findConflicts(PsiElement element, PsiElement[] allElementsToDelete) {
+  public Collection<String> findConflicts(@NotNull PsiElement element, @NotNull PsiElement[] allElementsToDelete) {
     return getBaseHandler().findConflicts(element, allElementsToDelete);
   }
 

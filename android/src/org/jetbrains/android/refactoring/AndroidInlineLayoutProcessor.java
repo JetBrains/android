@@ -56,7 +56,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   @Override
-  protected UsageViewDescriptor createUsageViewDescriptor(UsageInfo[] usages) {
+  protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
     return new UsageViewDescriptorAdapter() {
       @NotNull
       @Override
@@ -92,7 +92,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
   }
 
   @Override
-  protected void performRefactoring(UsageInfo[] usages) {
+  protected void performRefactoring(@NotNull UsageInfo[] usages) {
     final List<LayoutUsageData> inlineInfos = new ArrayList<LayoutUsageData>();
 
     for (UsageInfo usage : usages) {
@@ -141,7 +141,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
   }
 
   @Override
-  protected boolean preprocessUsages(Ref<UsageInfo[]> refUsages) {
+  protected boolean preprocessUsages(@NotNull Ref<UsageInfo[]> refUsages) {
     final UsageInfo[] usages = refUsages.get();
     final MultiMap<PsiElement, String> conflicts = detectConflicts(usages);
 
@@ -187,6 +187,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
     return AndroidBundle.message("android.inline.layout.command.name", myLayoutFile.getName());
   }
 
+  @NotNull
   @Override
   protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
     // do it because the refactoring can be invoked from UI designer
