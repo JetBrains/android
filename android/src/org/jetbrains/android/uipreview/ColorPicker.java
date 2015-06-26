@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.LafManager;
@@ -26,24 +27,82 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.WindowManager;
-import com.intellij.ui.*;
+import com.intellij.ui.ColorPickerListener;
+import com.intellij.ui.ColorUtil;
+import com.intellij.ui.HintHint;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.LightweightHint;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.Alarm;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
+
+import java.awt.AWTException;
+import java.awt.AlphaComposite;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.KeyboardFocusManager;
+import java.awt.LinearGradientPaint;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.PointerInfo;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Robot;
+import java.awt.Toolkit;
+import java.awt.Transparency;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRootPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.UIManager;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ImageObserver;
@@ -66,7 +125,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
   private Color myColor;
   private ColorPreviewComponent myPreviewComponent;
-  private final ColorWheelPanel myColorWheelPanel;
+  private final ColorSelectionPanel myColorSelectionPanel;
   private final JTextField myAlpha;
   private final JTextField myRed;
   private final JTextField myGreen;
@@ -127,7 +186,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
     myFormat.setModel(model);
 
-    myColorWheelPanel = new ColorWheelPanel(this, enableOpacity, myOpacityInPercent);
+    myColorSelectionPanel = new ColorSelectionPanel(this, enableOpacity, myOpacityInPercent);
 
     myExternalListeners = listeners;
     myFormat.addActionListener(new ActionListener() {
@@ -156,7 +215,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     });
     try {
       add(buildTopPanel(true), BorderLayout.NORTH);
-      add(myColorWheelPanel, BorderLayout.CENTER);
+      add(myColorSelectionPanel, BorderLayout.CENTER);
 
       myRecentColorsComponent = new RecentColorsComponent(new ColorListener() {
         @Override
@@ -233,7 +292,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
   private void setColor(Color color, Object src) {
     colorChanged(color, src);
-    myColorWheelPanel.setColor(color, src);
+    myColorSelectionPanel.setColor(color, src);
   }
 
   public void appendRecentColor() {
@@ -287,18 +346,19 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         color = c != null ? ColorUtil.toAlpha(c, alpha) : null;
       } else {
         Color c = ColorUtil.fromHex(myHex.getText(), null);
-        color = c != null ? ColorUtil.toAlpha(c, myColorWheelPanel.myColorWheel.myOpacity) : null;
+        color = c != null ? ColorUtil.toAlpha(c, myColorSelectionPanel.mySaturationBrightnessComponent.myOpacity) : null;
       }
     } else {
       color = gatherRGB();
     }
     if (color != null) {
+      myColorSelectionPanel.myOpacityComponent.setColor(color);
       if (myAlpha.hasFocus()) {
-        myColorWheelPanel.myOpacityComponent.setValue(color.getAlpha());
-        myColorWheelPanel.myOpacityComponent.repaint();
-      } else if (myColorWheelPanel.myOpacityComponent != null && !isARGBMode()) {
-        color = ColorUtil.toAlpha(color, myColorWheelPanel.myOpacityComponent.getValue());
+        myColorSelectionPanel.myOpacityComponent.setValue(color.getAlpha());
+      } else if (myColorSelectionPanel.myOpacityComponent != null && !isARGBMode()) {
+        color = ColorUtil.toAlpha(color, myColorSelectionPanel.myOpacityComponent.getValue());
       }
+      myColorSelectionPanel.myOpacityComponent.repaint();
       updatePreview(color, src == myHex);
     }
   }
@@ -307,7 +367,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     if (color != null && !color.equals(myColor)) {
       myColor = color;
       myPreviewComponent.setColor(color);
-      myColorWheelPanel.setColor(color, fromHex ? myHex : null);
+      myColorSelectionPanel.setColor(color, fromHex ? myHex : null);
 
 
       if (fromHex) {
@@ -483,31 +543,31 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     return result;
   }
 
-  private static class ColorWheelPanel extends JPanel {
-    private ColorWheel myColorWheel;
-    private SlideComponent myBrightnessComponent;
+  private static class ColorSelectionPanel extends JPanel {
+    private SaturationBrightnessComponent mySaturationBrightnessComponent;
+    private HueSlideComponent myHueComponent;
     private SlideComponent myOpacityComponent = null;
 
-    private ColorWheelPanel(ColorListener listener, boolean enableOpacity, boolean opacityInPercent) {
-      setLayout(new BorderLayout());
+    private ColorSelectionPanel(ColorListener listener, boolean enableOpacity, boolean opacityInPercent) {
+      setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
       setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-      myColorWheel = new ColorWheel();
-      add(myColorWheel, BorderLayout.CENTER);
+      mySaturationBrightnessComponent = new SaturationBrightnessComponent();
+      add(mySaturationBrightnessComponent);
 
-      myColorWheel.addListener(listener);
+      mySaturationBrightnessComponent.addListener(listener);
 
-      myBrightnessComponent = new SlideComponent("Brightness", true);
-      myBrightnessComponent.setToolTipText("Brightness");
-      myBrightnessComponent.addListener(new Consumer<Integer>() {
+      myHueComponent = new HueSlideComponent("Hue");
+      myHueComponent.setToolTipText("Hue");
+      myHueComponent.addListener(new Consumer<Integer>() {
         @Override
         public void consume(Integer value) {
-          myColorWheel.setBrightness(1f - (value / 255f));
-          myColorWheel.repaint();
+          mySaturationBrightnessComponent.setHue(value.intValue() / 255.0f);
+          mySaturationBrightnessComponent.repaint();
         }
       });
 
-      add(myBrightnessComponent, BorderLayout.EAST);
+      add(myHueComponent);
 
       if (enableOpacity) {
         myOpacityComponent = new SlideComponent("Opacity", false);
@@ -516,12 +576,12 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         myOpacityComponent.addListener(new Consumer<Integer>() {
           @Override
           public void consume(Integer integer) {
-            myColorWheel.setOpacity(integer.intValue());
-            myColorWheel.repaint();
+            mySaturationBrightnessComponent.setOpacity(integer.intValue());
+            mySaturationBrightnessComponent.repaint();
           }
         });
 
-        add(myOpacityComponent, BorderLayout.SOUTH);
+        add(myOpacityComponent);
       }
     }
 
@@ -529,84 +589,77 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       float[] hsb = new float[3];
       Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), hsb);
 
-      myBrightnessComponent.setValue(255 - (int)(hsb[2] * 255));
-      myBrightnessComponent.repaint();
+      myHueComponent.setValue((int)(hsb[0] * 255));
+      myHueComponent.repaint();
 
-      myColorWheel.dropImage();
-      if (myOpacityComponent != null && source instanceof ColorPicker) {
-        myOpacityComponent.setValue(color.getAlpha());
-        myOpacityComponent.repaint();
+      mySaturationBrightnessComponent.dropImage();
+      if (myOpacityComponent != null) {
+        myOpacityComponent.setColor(color);
+        if (source instanceof ColorPicker) {
+          myOpacityComponent.setValue(color.getAlpha());
+          myOpacityComponent.repaint();
+        }
       }
-
-      myColorWheel.setColor(color, source);
+      mySaturationBrightnessComponent.setColor(color, source);
     }
   }
 
-  private static class ColorWheel extends JComponent {
+  static class SaturationBrightnessComponent extends JComponent {
     private static final int BORDER_SIZE = 5;
     private float myBrightness = 1f;
     private float myHue = 1f;
     private float mySaturation = 0f;
 
     private Image myImage;
-    private Rectangle myWheel;
-
-    private boolean myShouldInvalidate = true;
+    private Rectangle myComponent;
 
     private Color myColor;
 
     private final List<ColorListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
     private int myOpacity;
 
-    private ColorWheel() {
+    protected SaturationBrightnessComponent() {
       setOpaque(true);
-      addComponentListener(new ComponentAdapter() {
-        @Override
-        public void componentResized(ComponentEvent e) {
-          myShouldInvalidate = true;
-        }
-      });
 
       addMouseMotionListener(new MouseAdapter() {
         @Override
         public void mouseDragged(MouseEvent e) {
-          final int x = e.getX();
-          final int y = e.getY();
-          int mx = myWheel.x + myWheel.width / 2;
-          int my = myWheel.y + myWheel.height / 2;
-          double s;
-          double h;
-          s = Math.sqrt((double)((x - mx) * (x - mx) + (y - my) * (y - my))) / (myWheel.height / 2);
-          h = -Math.atan2((double)(y - my), (double)(x - mx)) / (2 * Math.PI);
-          if (h < 0) h += 1.0;
-          if (s > 1) s = 1.0;
+          final Dimension size = getSize();
+          final int x = Math.max(Math.min(e.getX(), size.width - BORDER_SIZE), BORDER_SIZE) - BORDER_SIZE;
+          final int y = Math.max(Math.min(e.getY(), size.height - BORDER_SIZE), BORDER_SIZE) - BORDER_SIZE;
 
-          setHSBValue((float)h, (float)s, myBrightness, myOpacity);
+          float saturation = ((float)x) / (size.width - 2 * BORDER_SIZE);
+          float brightness = 1.0f - ((float)y) / (size.height - 2 * BORDER_SIZE);
+
+          setHSBValue(myHue, saturation, brightness, myOpacity);
         }
       });
 
       addMouseListener(new MouseAdapter() {
         @Override
         public void mousePressed(MouseEvent e) {
-          final int x = e.getX();
-          final int y = e.getY();
-          int mx = myWheel.x + myWheel.width / 2;
-          int my = myWheel.y + myWheel.height / 2;
-          double s;
-          double h;
-          s = Math.sqrt((double)((x - mx) * (x - mx) + (y - my) * (y - my))) / (myWheel.height / 2);
-          h = -Math.atan2((double)(y - my), (double)(x - mx)) / (2 * Math.PI);
-          if (h < 0) h += 1.0;
-          if (s <= 1) {
-            setHSBValue((float)h, (float)s, myBrightness, myOpacity);
-          }
+          final Dimension size = getSize();
+          final int x = e.getX() - BORDER_SIZE;
+          final int y = e.getY() - BORDER_SIZE;
+
+          float saturation = ((float)x) / (size.width - 2 * BORDER_SIZE);
+          float brightness = 1.0f - ((float)y) / (size.height - 2 * BORDER_SIZE);
+
+          setHSBValue(myHue, saturation, brightness, myOpacity);
         }
       });
     }
 
     private void setHSBValue(float h, float s, float b, int opacity) {
-      Color rgb = new Color(Color.HSBtoRGB(h, s, b));
-      setColor(ColorUtil.toAlpha(rgb, opacity), this);
+      myHue = h;
+      mySaturation = s;
+      myBrightness = b;
+      myOpacity = opacity;
+      myColor = ColorUtil.toAlpha(Color.getHSBColor(h, s, b), opacity);
+
+      fireColorChanged(this);
+
+      repaint();
     }
 
     private void setColor(Color color, Object source) {
@@ -633,28 +686,31 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       }
     }
 
-    public void setBrightness(float brightness) {
-      if (brightness != myBrightness) {
-        myImage = null;
-        setHSBValue(myHue, mySaturation, brightness, myOpacity);
-      }
-    }
-
-
     public void setOpacity(int opacity) {
       if (opacity != myOpacity) {
         setHSBValue(myHue, mySaturation, myBrightness, opacity);
       }
     }
 
+    public void setHue(float hue) {
+      if (hue != myHue) {
+        setHSBValue(hue, mySaturation, myBrightness, myOpacity);
+      }
+    }
+
     @Override
     public Dimension getPreferredSize() {
-      return getMinimumSize();
+      return new Dimension(250, 170);
     }
 
     @Override
     public Dimension getMinimumSize() {
-      return new Dimension(300, 300);
+      return new Dimension(150, 170);
+    }
+
+    @Override
+    public Dimension getMaximumSize() {
+      return new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
     }
 
     @Override
@@ -662,45 +718,36 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       Graphics2D g2d = (Graphics2D)g;
 
       final Dimension size = getSize();
-      int _size = Math.min(size.width, size.height);
-      _size = Math.min(_size, 600);
 
-      if (myImage != null && myShouldInvalidate) {
-        if (myImage.getWidth(null) != _size) {
-          myImage = null;
-        }
-      }
-
-      myShouldInvalidate = false;
-
-      if (myImage == null) {
-        myImage = createImage(new ColorWheelImageProducer(_size - BORDER_SIZE * 2, _size - BORDER_SIZE * 2, myBrightness));
-        myWheel = new Rectangle(BORDER_SIZE, BORDER_SIZE, _size - BORDER_SIZE * 2, _size - BORDER_SIZE * 2);
-      }
+      myComponent = new Rectangle(BORDER_SIZE, BORDER_SIZE, size.width, size.height);
+      myImage = createImage(new SaturationBrightnessImageProducer(size.width - BORDER_SIZE * 2, size.height - BORDER_SIZE * 2, myHue));
 
       g.setColor(UIManager.getColor("Panel.background"));
       g.fillRect(0, 0, getWidth(), getHeight());
 
       g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, ((float)myOpacity) / 255f));
-      g.drawImage(myImage, myWheel.x, myWheel.y, null);
+      g.drawImage(myImage, myComponent.x, myComponent.y, null);
 
       g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 1.0f));
 
-      int mx = myWheel.x + myWheel.width / 2;
-      int my = myWheel.y + myWheel.height / 2;
-      g.setColor(Color.white);
-      int arcw = (int)(myWheel.width * mySaturation / 2);
-      int arch = (int)(myWheel.height * mySaturation / 2);
-      double th = myHue * 2 * Math.PI;
-      final int x = (int)(mx + arcw * Math.cos(th));
-      final int y = (int)(my - arch * Math.sin(th));
-      g.fillRect(x - 2, y - 2, 4, 4);
+      final int x = (int)(mySaturation * (myComponent.width - 2 * BORDER_SIZE));
+      final int y = (int)((myComponent.height - 2 * BORDER_SIZE) * (1.0f - myBrightness));
+
+      g.setColor(Color.WHITE);
+      int knobX = BORDER_SIZE + x;
+      int knobY = BORDER_SIZE + y;
+      g.fillRect(knobX - 2, knobY - 2, 4, 4);
       g.setColor(Color.BLACK);
-      g.drawRect(x - 2, y - 2, 4, 4);
+      g.drawRect(knobX - 2, knobY - 2, 4, 4);
     }
 
     public void dropImage() {
       myImage = null;
+    }
+
+    @VisibleForTesting
+    protected Color getColor(){
+      return myColor;
     }
   }
 
@@ -1028,26 +1075,26 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
   }
 
-  public static class ColorWheelImageProducer extends MemoryImageSource {
+  public static class SaturationBrightnessImageProducer extends MemoryImageSource {
     private int[] myPixels;
     private int myWidth;
     private int myHeight;
-    private float myBrightness = 1f;
 
-    private float[] myHues;
     private float[] mySat;
-    private int[] myAlphas;
+    private float[] myBrightness;
 
-    public ColorWheelImageProducer(int w, int h, float brightness) {
+    private float myHue;
+
+    public SaturationBrightnessImageProducer(int w, int h, float hue) {
       super(w, h, null, 0, w);
       myPixels = new int[w * h];
       myWidth = w;
       myHeight = h;
-      myBrightness = brightness;
+      myHue = hue;
       generateLookupTables();
       newPixels(myPixels, ColorModel.getRGBdefault(), 0, w);
       setAnimated(true);
-      generateColorWheel();
+      generateComponent();
     }
 
     public int getRadius() {
@@ -1056,51 +1103,19 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     private void generateLookupTables() {
       mySat = new float[myWidth * myHeight];
-      myHues = new float[myWidth * myHeight];
-      myAlphas = new int[myWidth * myHeight];
-      float radius = getRadius();
-
-      // blend is used to create a linear alpha gradient of two extra pixels
-      float blend = (radius + 2f) / radius - 1f;
-
-      // Center of the color wheel circle
-      int cx = myWidth / 2;
-      int cy = myHeight / 2;
-
+      myBrightness = new float[myWidth * myHeight];
       for (int x = 0; x < myWidth; x++) {
-        int kx = x - cx; // Kartesian coordinates of x
-        int squarekx = kx * kx; // Square of kartesian x
-
         for (int y = 0; y < myHeight; y++) {
-          int ky = cy - y; // Kartesian coordinates of y
-
           int index = x + y * myWidth;
-          mySat[index] = (float)Math.sqrt(squarekx + ky
-                                                     * ky)
-                         / radius;
-          if (mySat[index] <= 1f) {
-            myAlphas[index] = 0xff000000;
-          }
-          else {
-            myAlphas[index] = (int)((blend - Math.min(blend,
-                                                      mySat[index] - 1f)) * 255 / blend) << 24;
-            mySat[index] = 1f;
-          }
-          if (myAlphas[index] != 0) {
-            myHues[index] = (float)(Math.atan2(ky, kx) / Math.PI / 2d);
-          }
+          mySat[index] = ((float)x) / myWidth;
+          myBrightness[index] = 1.0f - ((float)y) / myHeight;
         }
       }
     }
 
-    public void generateColorWheel() {
+    public void generateComponent() {
       for (int index = 0; index < myPixels.length; index++) {
-        if (myAlphas[index] != 0) {
-          myPixels[index] = myAlphas[index]
-                            | 0xffffff
-                              & Color.HSBtoRGB(myHues[index],
-                                               mySat[index], myBrightness);
-        }
+        myPixels[index] = Color.HSBtoRGB(myHue, mySat[index], myBrightness[index]);
       }
       newPixels();
     }
@@ -1385,7 +1400,7 @@ interface ColorListener {
 
 class SlideComponent extends JComponent {
   private static final int OFFSET = 11;
-  private int myPointerValue = 0;
+  protected int myPointerValue = 0;
   private int myValue = 0;
   private final boolean myVertical;
   private final String myTitle;
@@ -1394,6 +1409,8 @@ class SlideComponent extends JComponent {
   private LightweightHint myTooltipHint;
   private final JLabel myLabel = new JLabel();
   private Unit myUnit = Unit.LEVEL;
+
+  private Color myColor;
 
   enum Unit {
     PERCENT,
@@ -1431,6 +1448,11 @@ class SlideComponent extends JComponent {
       @Override
       public void mousePressed(MouseEvent e) {
         processMouse(e);
+      }
+
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        updateBalloonText();
       }
 
       @Override
@@ -1478,6 +1500,10 @@ class SlideComponent extends JComponent {
         repaint();
       }
     });
+  }
+
+  public void setColor(Color color) {
+    myColor = color;
   }
 
   private void updateBalloonText() {
@@ -1568,6 +1594,11 @@ class SlideComponent extends JComponent {
   }
 
   @Override
+  public Dimension getMaximumSize() {
+    return myVertical ? new Dimension(getPreferredSize().width, Integer.MAX_VALUE) : new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+  }
+
+  @Override
   public final void setToolTipText(String text) {
     //disable tooltips
   }
@@ -1575,32 +1606,22 @@ class SlideComponent extends JComponent {
   @Override
   protected void paintComponent(Graphics g) {
     final Graphics2D g2d = (Graphics2D)g;
+    Color color = new Color(myColor.getRGB());
+    Color transparent = ColorUtil.toAlpha(Color.WHITE, 0);
 
     if (myVertical) {
-      g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, Color.WHITE, 0f, getHeight(), Color.BLACK));
+      g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, transparent, 0f, getHeight(), color));
       g.fillRect(7, 10, 12, getHeight() - 20);
-
-      g.setColor(Gray._150);
-      g.drawRect(7, 10, 12, getHeight() - 20);
-
-      g.setColor(Gray._250);
-      g.drawRect(8, 11, 10, getHeight() - 22);
     }
     else {
-      g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, Color.WHITE, getWidth(), 0f, Color.BLACK));
+      g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, transparent, getWidth(), 0f, color));
       g.fillRect(10, 7, getWidth() - 20, 12);
-
-      g.setColor(Gray._150);
-      g.drawRect(10, 7, getWidth() - 20, 12);
-
-      g.setColor(Gray._250);
-      g.drawRect(11, 8, getWidth() - 22, 10);
     }
 
     drawKnob(g2d, myVertical ? 7 : myPointerValue, myVertical ? myPointerValue : 7, myVertical);
   }
 
-  private static void drawKnob(Graphics2D g2d, int x, int y, boolean vertical) {
+  protected static void drawKnob(Graphics2D g2d, int x, int y, boolean vertical) {
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     if (vertical) {
@@ -1641,6 +1662,33 @@ class SlideComponent extends JComponent {
       g2d.setColor(new Color(153, 51, 0));
       g2d.fill(arrowHead);
     }
+  }
+}
+
+class HueSlideComponent extends SlideComponent {
+  private final Color[] myColors = {Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.RED};
+  private final float[] myPoints = new float[myColors.length];
+
+  HueSlideComponent(String title) {
+    super(title, false);
+    int i = 0;
+    for (Color color : myColors) {
+      if (color.equals(Color.RED) && i != 0) {
+        myPoints[i++] = 1.0f;
+      }
+      else {
+        myPoints[i++] = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null)[0];
+      }
+    }
+  }
+
+  @Override
+  protected void paintComponent(Graphics g) {
+    final Graphics2D g2d = (Graphics2D)g;
+
+    g2d.setPaint(new LinearGradientPaint(new Point2D.Double(0, 0), new Point2D.Double(getWidth() - 30, 0), myPoints, myColors));
+    g.fillRect(10, 7, getWidth() - 20, 12);
+    drawKnob(g2d, myPointerValue, 7, false);
   }
 }
 
