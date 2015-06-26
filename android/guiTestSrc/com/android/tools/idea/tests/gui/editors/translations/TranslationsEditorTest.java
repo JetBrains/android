@@ -21,22 +21,24 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.TranslationsEditorFixture;
+import com.intellij.ui.components.JBLoadingPanel;
+import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JTableCellFixture;
+import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 public class TranslationsEditorTest extends GuiTestCase {
@@ -54,11 +56,18 @@ public class TranslationsEditorTest extends GuiTestCase {
       ideFrame.requireEditorNotification("Edit translations for all locales in the translations editor.");
     notificationPanel.performAction("Open editor");
 
-    // Wait for the translations editor table to show up
-    waitUntilFound(myRobot, new GenericTypeMatcher<JTable>(JTable.class) {
+    // Wait for the translations editor table to show up, and the loading panel to complete loading
+    pause(new Condition("Waiting for string resources to load") {
       @Override
-      protected boolean isMatching(@NotNull JTable component) {
-        return true;
+      public boolean test() {
+        ComponentFinder finder = myRobot.finder();
+        JBLoadingPanel loadingPanel = finder.find(new GenericTypeMatcher<JBLoadingPanel>(JBLoadingPanel.class) {
+          @Override
+          protected boolean isMatching(@NotNull JBLoadingPanel component) {
+            return true;
+          }
+        });
+        return !loadingPanel.isLoading();
       }
     });
 
