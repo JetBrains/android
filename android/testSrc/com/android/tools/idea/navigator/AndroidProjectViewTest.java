@@ -121,16 +121,16 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       " lib (Android)\n" +
       "  manifests\n" +
       "   AndroidManifest.xml (main)\n" +
+      "  jni\n" +
+      "   hello.c (main)\n" +
+      "  jniLibs\n" +
+      "   libc.so (main)\n" +
+      "   libm.so (debug)\n" +
       "  res\n" +
       "   drawable\n" +
       "    ic_launcher.png (mdpi)\n" +
       "   values\n" +
       "    strings.xml\n" +
-      "  c\n" +
-      "   hello.c (main)\n" +
-      "  jniLibs\n" +
-      "   libc.so (main)\n" +
-      "   libm.so (debug)\n" +
       " Gradle Scripts\n" +
       "  build.gradle (Project: " + rootModuleName + ")\n" +
       "  build.gradle (Module: app)\n" +
