@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.table.StringsCellRenderer;
 import com.google.common.collect.Lists;
-import org.fest.assertions.Assertions;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.BasicJTableCellReader;
 import org.fest.swing.driver.CellRendererReader;
@@ -42,7 +41,7 @@ public class TranslationsEditorFixture extends JTableFixture {
   @NotNull
   public List<String> locales() {
     List<String> columns = getColumnHeaderValues(target());
-    assert columns.size() > 3; // Key, Default Value and a checkbox are always present
+    assert columns.size() > 3 : "Expected atleast 3 columns (key, default value, isTranslatable?) in the editor, found: " + columns.size();
     return columns.subList(3, columns.size());
   }
 
