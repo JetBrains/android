@@ -21,7 +21,11 @@ import com.android.builder.model.JavaArtifact;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
+import com.intellij.openapi.compiler.CompileScope;
+import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.util.PathsList;
 import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -75,8 +79,8 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       return;
     }
 
-    handlePlatformJar(classPath, platform, (JavaArtifact) testArtifact);
-    handleJavaResources(ideaAndroidProject, classPath);
+    handlePlatformJar(classPath, platform, (JavaArtifact)testArtifact);
+    handleJavaResources(module, ideaAndroidProject, classPath);
   }
 
   // Removes real android.jar from the classpath and puts the mockable one at the end.
@@ -137,20 +141,48 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     }
   }
 
-  // Puts folders with merged java resources for the given variant on the classpath.
-  private static void handleJavaResources(@NotNull IdeaAndroidProject ideaAndroidProject,
+  /**
+   * Puts folders with merged java resources for the selected variant of every module on the classpath.
+   *
+   * <p>The problem we're solving here is that CompilerModuleExtension supports only one directory for "compiler output". When IJ compiles
+   * Java projects, it copies resources to the output classes dir. This is something our Gradle plugin doesn't do, so we need to add the
+   * resource directories to the classpath here.
+   *
+   * <p>We need to do this for every project dependency as well, since we're using classes and resources directories of these directly.
+   *
+   * @see <a href="http://b.android.com/172409">Bug 172409</a>
+   * @see com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer#customizeModule(Project, ModifiableRootModel, IdeaAndroidProject)
+   */
+  private static void handleJavaResources(@NotNull Module module,
+                                          @NotNull IdeaAndroidProject ideaAndroidProject,
                                           @NotNull PathsList classPath) {
-    BaseArtifact testArtifact = ideaAndroidProject.findSelectedTestArtifactInSelectedVariant();
-    if (testArtifact == null) {
-      return;
+    final CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
+    CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
+
+    for (Module affectedModule : scope.getAffectedModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(affectedModule);
+      if (facet != null) {
+        IdeaAndroidProject affectedIdeaAndroidProject = facet.getIdeaAndroidProject();
+        if (affectedIdeaAndroidProject != null) {
+          try {
+            classPath.add(affectedIdeaAndroidProject.getSelectedVariant().getMainArtifact().getJavaResourcesFolder());
+          }
+          catch (UnsupportedMethodException e) {
+            // Java resources were not present in older versions of the gradle plugin.
+          }
+        }
+      }
     }
 
-    try {
-      classPath.add(ideaAndroidProject.getSelectedVariant().getMainArtifact().getJavaResourcesFolder());
-      classPath.add(testArtifact.getJavaResourcesFolder());
-    }
-    catch (UnsupportedMethodException e) {
-      // Java resources were not in older versions of the gradle plugin.
+    // The only test resources we want to use, are the ones from the module where the test is.
+    BaseArtifact testArtifact = ideaAndroidProject.findSelectedTestArtifactInSelectedVariant();
+    if (testArtifact != null) {
+      try {
+        classPath.add(testArtifact.getJavaResourcesFolder());
+      }
+      catch (UnsupportedMethodException e) {
+        // Java resources were not present in older versions of the gradle plugin.
+      }
     }
   }
 }
