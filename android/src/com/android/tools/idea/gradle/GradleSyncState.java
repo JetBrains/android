@@ -115,7 +115,7 @@ public class GradleSyncState {
     });
 
     enableNotifications();
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_SKIPPED, null, null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_GRADLE_SYNC_SKIPPED, null, null);
   }
 
   public void syncStarted(boolean notifyUser) {
@@ -137,7 +137,7 @@ public class GradleSyncState {
       }
     });
 
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_STARTED, null, null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_GRADLE_SYNC_STARTED, null, null);
   }
 
   public void syncFailed(@NotNull final String message) {
@@ -157,7 +157,7 @@ public class GradleSyncState {
       }
     });
 
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_FAILED, null, null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_GRADLE_SYNC_FAILED, null, null);
   }
 
   public void syncEnded() {
@@ -178,7 +178,7 @@ public class GradleSyncState {
       }
     });
 
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_ENDED, null, null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_GRADLE_SYNC_ENDED, null, null);
   }
 
 

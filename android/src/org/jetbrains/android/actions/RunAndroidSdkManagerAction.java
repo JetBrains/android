@@ -141,7 +141,8 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
 
     @Override
     public void run() {
-      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_STANDALONE_LAUNCHED, null, null);
+      UsageTracker.getInstance()
+        .trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_SDK_MANAGER_STANDALONE_LAUNCHED, null, null);
 
       final String toolPath = mySdkPath + File.separator + AndroidCommonUtils.toolPath(SdkConstants.androidCmdName());
       GeneralCommandLine commandLine = new GeneralCommandLine();

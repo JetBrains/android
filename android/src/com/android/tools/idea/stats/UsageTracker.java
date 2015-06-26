@@ -31,31 +31,31 @@ public abstract class UsageTracker {
    * that when we have more info on the sorts of custom dimensions we'd need.
    */
   public static final String CATEGORY_AVDINFO = "avdInfo";
-  public static final String INFO_AVD_ABI = "abi";
-  public static final String INFO_AVD_TARGET_VERSION = "version";
+  public static final String ACTION_AVDINFO_ABI = "abi";
+  public static final String ACTION_AVDINFO_TARGET_VERSION = "version";
 
   public static final String CATEGORY_DEPLOYMENT = "deployment";
-  public static final String ACTION_APK_DEPLOYED = "apkDeployed";
-  public static final String ACTION_EMULATOR_LAUNCHED = "emulatorLaunch";
+  public static final String ACTION_DEPLOYMENT_APK = "apkDeployed";
+  public static final String ACTION_DEPLOYMENT_EMULATOR = "emulatorLaunch";
 
   public static final String CATEGORY_DEVELOPER_SERVICES = "devServices";
-  public static final String ACTION_SERVICE_INSTALLED = "installed";
-  public static final String ACTION_SERVICE_REMOVED = "removed";
+  public static final String ACTION_DEVELOPER_SERVICES_INSTALLED = "installed";
+  public static final String ACTION_DEVELOPER_SERVICES_REMOVED = "removed";
 
   public static final String CATEGORY_GRADLE = "gradle";
-  public static final String ACTION_SYNC_STARTED = "syncStarted";
-  public static final String ACTION_SYNC_ENDED = "syncEnded";
-  public static final String ACTION_SYNC_SKIPPED = "syncSkipped";
-  public static final String ACTION_SYNC_FAILED = "syncFailed";
-  public static final String ACTION_CPP_SYNC_COMPLETED = "cppSyncCompleted";
+  public static final String ACTION_GRADLE_SYNC_STARTED = "syncStarted";
+  public static final String ACTION_GRADLE_SYNC_ENDED = "syncEnded";
+  public static final String ACTION_GRADLE_SYNC_SKIPPED = "syncSkipped";
+  public static final String ACTION_GRADLE_SYNC_FAILED = "syncFailed";
+  public static final String ACTION_GRADLE_CPP_SYNC_COMPLETED = "cppSyncCompleted";
 
   public static final String CATEGORY_PROFILING = "profiling";
   public static final String ACTION_PROFILING_CAPTURE = "captureCreated";
   public static final String ACTION_PROFILING_OPEN = "captureOpened";
 
   public static final String CATEGORY_SDK_MANAGER = "sdkManager";
-  public static final String ACTION_TOOLBAR_BUTTON_CLICKED = "toolbarButtonClicked";
-  public static final String ACTION_STANDALONE_LAUNCHED = "standaloneLaunched";
+  public static final String ACTION_SDK_MANAGER_TOOLBAR_CLICKED = "toolbarButtonClicked";
+  public static final String ACTION_SDK_MANAGER_STANDALONE_LAUNCHED = "standaloneLaunched";
   public static final String ACTION_SDK_MANAGER_LOADED = "sdkManagerLoaded";
 
   /**
