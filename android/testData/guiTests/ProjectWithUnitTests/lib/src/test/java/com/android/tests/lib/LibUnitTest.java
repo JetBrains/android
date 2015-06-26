@@ -150,10 +150,10 @@ public class LibUnitTest {
     @Test
     public void javaResourcesOnClasspath() throws Exception {
         URL url = LibUnitTest.class.getClassLoader().getResource("lib_resource_file.txt");
-        assertNotNull("expected resource_file.txt to be in the ClassLoader's resources", url);
+        assertNotNull(url);
 
         InputStream stream = LibUnitTest.class.getClassLoader().getResourceAsStream("lib_resource_file.txt");
-        assertNotNull("expected resource_file.txt to be opened as a stream", stream);
+        assertNotNull(stream);
         byte[] line = new byte[1024];
         assertTrue("Expected >0 bytes read from input stream", stream.read(line) > 0);
         String s = new String(line, "UTF-8").trim();
@@ -163,14 +163,14 @@ public class LibUnitTest {
     @Test
     public void prodJavaResourcesOnClasspath() throws Exception {
         URL url = LibUnitTest.class.getClassLoader().getResource("lib_prod_resource_file.txt");
-        assertNotNull("expected resource_file.txt to be in the ClassLoader's resources", url);
+        assertNotNull(url);
 
         InputStream stream = LibUnitTest.class.getClassLoader().getResourceAsStream("lib_prod_resource_file.txt");
-        assertNotNull("expected resource_file.txt to be opened as a stream", stream);
+        assertNotNull(stream);
         byte[] line = new byte[1024];
         assertTrue("Expected >0 bytes read from input stream", stream.read(line) > 0);
         String s = new String(line, "UTF-8").trim();
-        assertEquals("prod", s);
+        assertEquals("lib prod", s);
     }
 
     @Test
