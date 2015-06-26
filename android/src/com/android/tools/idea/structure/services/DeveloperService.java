@@ -83,7 +83,8 @@ public final class DeveloperService {
     getContext().installed().set(true);
 
     UsageTracker.getInstance()
-      .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_SERVICE_INSTALLED, getMetadata().getName(), null);
+      .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_DEVELOPER_SERVICES_INSTALLED, getMetadata().getName(),
+                  null);
   }
 
   public void uninstall() {
@@ -126,6 +127,6 @@ public final class DeveloperService {
     getContext().installed().set(false);
 
     UsageTracker.getInstance()
-      .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_SERVICE_REMOVED, getMetadata().getName(), null);
+      .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_DEVELOPER_SERVICES_REMOVED, getMetadata().getName(), null);
   }
 }
