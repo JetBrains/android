@@ -56,6 +56,8 @@ import java.util.*;
 import java.util.List;
 
 public class ClassesTreeView implements DataProvider {
+  public static final String TREE_NAME = "HprofClassesTree";
+
   @NotNull private Project myProject;
   @NotNull private Tree myTree;
   @NotNull private DefaultTreeModel myTreeModel;
@@ -77,6 +79,7 @@ public class ClassesTreeView implements DataProvider {
     myRoot = new HeapPackageNode(null, "");
     myTreeModel = new DefaultTreeModel(myRoot);
     myTree = new Tree(myTreeModel);
+    myTree.setName(TREE_NAME);
     myDisplayMode = DisplayMode.LIST;
     myTree.setRootVisible(false);
     myTree.setShowsRootHandles(false);
