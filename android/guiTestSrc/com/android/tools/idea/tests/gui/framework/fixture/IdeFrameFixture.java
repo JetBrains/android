@@ -650,6 +650,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public CapturesToolWindowFixture getCapturesToolWindow() {
+    return new CapturesToolWindowFixture(getProject(), robot());
+  }
+
+  @NotNull
   public BuildVariantsToolWindowFixture getBuildVariantsWindow() {
     return new BuildVariantsToolWindowFixture(this);
   }
