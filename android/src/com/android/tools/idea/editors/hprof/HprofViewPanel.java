@@ -99,6 +99,7 @@ public class HprofViewPanel implements Disposable {
     classPanel.add(splitter, BorderLayout.CENTER);
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
+    toolbar.getComponent().setName("HprofActionToolbar");
     classPanel.add(toolbar.getComponent(), BorderLayout.NORTH);
 
     JBSplitter mainSplitter = new JBSplitter(true);
