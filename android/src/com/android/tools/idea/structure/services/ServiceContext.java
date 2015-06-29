@@ -133,6 +133,9 @@ public final class ServiceContext {
    * @see #putWatchedValue(String, ObservableProperty)
    */
   public void snapshot() {
+    // TODO: The snapshot concept was added when we thought users would be able to modify the
+    // values of installed services. However, that's currently not supported and may never be.
+    // Remove this method? (Related: http://b.android.com/178452)
     for (ObservableProperty property : myWatched.keySet()) {
       myWatched.put(property, property.get());
     }
