@@ -86,6 +86,10 @@ public class ThemeEditorTable extends CellSpanTable {
   }
 
   private JPopupMenu getPopupMenuAtCell(final int row, final int column) {
+    if (row < 0 || column < 0) {
+      return null;
+    }
+
     myGoToDefinitionItem.setVisible(false);
     myResetItem.setVisible(false);
     TableModel model = getModel();
