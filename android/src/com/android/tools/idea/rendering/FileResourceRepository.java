@@ -120,19 +120,13 @@ public class FileResourceRepository extends LocalResourceRepository {
     ILogger logger = new LogWrapper(LOG);
     ResourceMerger merger = new ResourceMerger();
 
-    ResourceSet resourceSet = new ResourceSet(file.getName()) {
-      @Override
-      protected void checkItems() throws DuplicateDataException {
-        // No checking in ProjectResources; duplicates can happen, but
-        // the project resources shouldn't abort initialization
-      }
-    };
+    ResourceSet resourceSet = new ResourceSet(file.getName(), false /* validateEnabled */);
     resourceSet.addSource(file);
     try {
       resourceSet.loadFromFiles(logger);
     }
     catch (DuplicateDataException e) {
-      // This should not happen; we've subclasses ResourceSet above to a no-op in checkItems
+      // This should not happen; resourceSet validation is disabled.
       assert false;
     }
     catch (MergingException e) {
