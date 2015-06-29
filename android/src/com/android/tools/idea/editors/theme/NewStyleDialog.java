@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +36,6 @@ import java.awt.event.ActionListener;
 
 public class NewStyleDialog extends DialogWrapper {
   private final ResourceNameValidator myResourceNameValidator;
-  private final ThemeEditorContext myContext;
   private JPanel contentPane;
   private JTextField myStyleNameTextField;
   private JLabel myMessageLabel;
@@ -69,8 +67,7 @@ public class NewStyleDialog extends DialogWrapper {
       myMessageLabel.setVisible(false);
     }
 
-    myContext = context;
-    final Configuration configuration = myContext.getConfiguration();
+    final Configuration configuration = context.getConfiguration();
     myResourceNameValidator =
       ResourceNameValidator.create(false, AppResourceRepository.getAppResources(configuration.getModule(), true), ResourceType.STYLE);
 
@@ -90,7 +87,7 @@ public class NewStyleDialog extends DialogWrapper {
     }
 
     //noinspection GtkPreferredJComboBoxRenderer
-    myParentStyleComboBox.setRenderer(new StyleListCellRenderer(myContext));
+    myParentStyleComboBox.setRenderer(new StyleListCellRenderer(context));
     final ParentThemesListModel parentThemesListModel = new ParentThemesListModel(defaultThemes, defaultParent);
     myParentStyleComboBox.setModel(parentThemesListModel);
     myParentStyleComboBox.addActionListener(new ActionListener() {

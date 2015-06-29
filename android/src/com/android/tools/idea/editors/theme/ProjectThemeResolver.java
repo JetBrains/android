@@ -37,9 +37,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
-import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
-
 /**
  * Provides the ability to resolve all themes available in a particular project.
  * Is intended to be a replacement for ThemeResolver, which for now provides
