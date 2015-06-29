@@ -22,12 +22,14 @@ import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.CapturesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.HprofEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Test;
+import sun.plugin.dom.exception.InvalidStateException;
 
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
@@ -35,24 +37,41 @@ public class HprofEditorTest extends GuiTestCase {
   private static final String SAMPLE_SNAPSHOT_NAME = "snapshot.hprof";
   private static final String CAPTURES_APPLICATION = "CapturesApplication";
 
-  @Test
-  @IdeGuiTest
-  public void testOpenHprof() throws IOException {
-    final IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
+  private IdeFrameFixture myIdeFrameFixture;
+  private CapturesToolWindowFixture myCapturesToolWindowFixture;
+  private HprofEditorFixture myDefaultEditor;
 
-    CapturesToolWindowFixture capturesToolWindow = ideFrame.getCapturesToolWindow();
-    capturesToolWindow.openFile(SAMPLE_SNAPSHOT_NAME);
-    HprofEditorFixture editor = HprofEditorFixture.findByFileName(myRobot, ideFrame, SAMPLE_SNAPSHOT_NAME);
+  // TODO: Change this method to use the @Before annotation when it is fixed to work with GUI tests.
+  public void init() throws IOException {
+    myIdeFrameFixture = importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
+
+    myCapturesToolWindowFixture = myIdeFrameFixture.getCapturesToolWindow();
+    myCapturesToolWindowFixture.openFile(SAMPLE_SNAPSHOT_NAME);
+    myDefaultEditor = HprofEditorFixture.findByFileName(myRobot, myIdeFrameFixture, SAMPLE_SNAPSHOT_NAME);
   }
 
   @Test
   @IdeGuiTest
   public void testInitialState() throws IOException {
-    final IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
+    init();
 
-    CapturesToolWindowFixture capturesToolWindow = ideFrame.getCapturesToolWindow();
-    capturesToolWindow.openFile(SAMPLE_SNAPSHOT_NAME);
-    HprofEditorFixture editor = HprofEditorFixture.findByFileName(myRobot, ideFrame, SAMPLE_SNAPSHOT_NAME);
-    assertEquals(editor.getCurrentHeapName(), "app heap");
+    myDefaultEditor.assertCurrentHeapName("app heap");
+    myDefaultEditor.assertCurrentClassesViewMode("Class List View");
+    JTreeFixture classesTree = myDefaultEditor.getClassesTree().requireNotEditable().requireNoSelection();
+    assertNotNull(classesTree.node(0));
+
+    JTreeFixture instancesTree = myDefaultEditor.getInstancesTree().requireNotEditable().requireNoSelection();
+    try {
+      instancesTree.node(0);
+      fail();
+    }
+    catch (IndexOutOfBoundsException ignored) {}
+
+    JTreeFixture referencesTree = myDefaultEditor.getInstanceReferenceTree().requireNotEditable().requireNoSelection();
+    try {
+      referencesTree.node(0);
+      fail();
+    }
+    catch (IndexOutOfBoundsException ignored) {}
   }
 }

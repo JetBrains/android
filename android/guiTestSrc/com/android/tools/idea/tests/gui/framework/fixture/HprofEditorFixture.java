@@ -38,12 +38,13 @@ import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import javax.swing.*;
 import java.awt.*;
 
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -157,7 +158,7 @@ public class HprofEditorFixture extends EditorFixture {
   }
 
   private void waitForHprofEditor() {
-    Pause.pause(new Condition("Wait for editor to be ready") {
+    pause(new Condition("Wait for editor to be ready") {
       @Override
       public boolean test() {
         try {
@@ -191,10 +192,16 @@ public class HprofEditorFixture extends EditorFixture {
         throw new ArrayIndexOutOfBoundsException("Index '" + index + "' is out of bounds (size: " + actions.size() + ")");
       }
       assertTrue(actions.get(index) instanceof ComboBoxAction);
-
       Component buttonPanel = target().getComponent().getComponent(index);
       assertTrue(buttonPanel instanceof Container);
 
+      final JButton button = robot().finder().findByType((Container)buttonPanel, JButton.class, false);
+      pause(new Condition("Wait for button to be visible.") {
+        @Override
+        public boolean test() {
+          return button.isShowing();
+        }
+      }, GuiTests.SHORT_TIMEOUT);
       return ComboBoxActionFixture.findComboBox(robot(), (Container)buttonPanel);
     }
 
