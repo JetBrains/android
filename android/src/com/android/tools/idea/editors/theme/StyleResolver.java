@@ -101,7 +101,6 @@ public class StyleResolver {
 
   @Nullable
   public ThemeEditorStyle getStyle(@NotNull final String qualifiedStyleName) {
-
     final StyleResourceValue style = getStyleResourceValue(qualifiedStyleName);
 
     if (style == null) {
@@ -117,8 +116,7 @@ public class StyleResolver {
       });
     }
     catch (ExecutionException e) {
-      LOG.warn("Unable to retrieve style", e);
-      throw new IllegalArgumentException(e);
+      return null;
     }
   }
 
