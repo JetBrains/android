@@ -404,11 +404,6 @@ public class ThemeEditorStyle {
     }.execute();
   }
 
-  @NotNull
-  public StyleResolver getResolver() {
-    return myThemeResolver;
-  }
-
   @Override
   public String toString() {
     if (!isReadOnly()) {
