@@ -141,7 +141,7 @@ public class NewProjectTest extends GuiTestCase {
     // both in the generated Gradle model as well as in the synced project and modules
 
     // "20+" here should change to 21 as soon as L goes out of preview state
-    IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("20+").create();
+    IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("21").create();
 
     IdeaAndroidProject appAndroidProject = projectFrame.getAndroidProjectForModule("app");
     AndroidProject model = appAndroidProject.getDelegate();
