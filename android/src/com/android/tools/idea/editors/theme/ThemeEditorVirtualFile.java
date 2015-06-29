@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.theme;
 import com.android.tools.idea.editors.AndroidFakeFileSystem;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.ex.FakeFileType;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -28,7 +27,7 @@ import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
 /**
  * Virtual file used to have theme editor is separate tab, not tied to any particular
