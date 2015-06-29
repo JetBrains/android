@@ -20,11 +20,20 @@ import com.intellij.codeInsight.daemon.impl.quickfix.OrderEntryFix;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
+import com.intellij.packageDependencies.DependencyValidationManager;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.PsiShortNamesCache;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForPsiElement;
@@ -60,12 +69,38 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
     });
 
     // Currently our API doesn't address the case that gradle.build file does not exist at the module folder, so just skip for now.
-    if (getGradleBuildFile(contextModule) != null) {
+    if (getGradleBuildFile(contextModule) == null) {
       return;
     }
 
-    // TODO implement a quickfix that could properly "add junit dependency", "add library dependency" and "add module dependency"
-    // to the gradle file.
+    // TODO implement a quickfix that could properly "add junit dependency", "add library dependency" to the gradle file.
+
+    PsiElement psiElement = reference.getElement();
+    String referenceName = reference.getRangeInElement().substring(psiElement.getText());
+    Project project = psiElement.getProject();
+
+    // Check if we could fix it by introduce gradle dependency.
+    PsiClass[] classes = PsiShortNamesCache.getInstance(project).getClassesByName(referenceName, GlobalSearchScope.allScope(project));
+    List<PsiClass> allowedDependencies = filterAllowedDependencies(psiElement, classes);
+
+    if (!allowedDependencies.isEmpty()) {
+      classes = allowedDependencies.toArray(new PsiClass[allowedDependencies.size()]);
+      registrar.register(new AddGradleProjectDependencyFix(contextModule, contextFile.getVirtualFile(), classes, reference));
+    }
+  }
+
+  // Duplicated from com.intellij.codeInsight.daemon.impl.quickfix.OrderEntryFix.filterAllowedDependencies
+  @NotNull
+  private static List<PsiClass> filterAllowedDependencies(@NotNull PsiElement element, @NotNull PsiClass[] classes) {
+    DependencyValidationManager dependencyValidationManager = DependencyValidationManager.getInstance(element.getProject());
+    PsiFile fromFile = element.getContainingFile();
+    List<PsiClass> result = new ArrayList<PsiClass>();
+    for (PsiClass psiClass : classes) {
+      if (dependencyValidationManager.getViolatorDependencyRule(fromFile, psiClass.getContainingFile()) == null) {
+        result.add(psiClass);
+      }
+    }
+    return result;
   }
 
   @NotNull
