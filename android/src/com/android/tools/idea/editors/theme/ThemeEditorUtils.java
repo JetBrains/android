@@ -42,6 +42,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -240,7 +241,7 @@ public class ThemeEditorUtils {
   }
 
   @NotNull
-  private static Collection<ThemeEditorStyle> findThemes(@NotNull Collection<ThemeEditorStyle> themes, final @NotNull Set<String> names) {
+  private static ImmutableCollection<ThemeEditorStyle> findThemes(@NotNull Collection<ThemeEditorStyle> themes, final @NotNull Set<String> names) {
     return ImmutableSet.copyOf(Iterables.filter(themes, new Predicate<ThemeEditorStyle>() {
       @Override
       public boolean apply(@Nullable ThemeEditorStyle theme) {
@@ -255,11 +256,14 @@ public class ThemeEditorUtils {
     Collection<ThemeEditorStyle> readOnlyLibThemes = new HashSet<ThemeEditorStyle>(themeResolver.getProjectThemes());
     readOnlyLibThemes.removeAll(editableThemes);
 
-    Collection<ThemeEditorStyle> foundThemes = findThemes(readOnlyLibThemes, DEFAULT_THEMES);
+    Collection<ThemeEditorStyle> foundThemes = new HashSet<ThemeEditorStyle>();
+    foundThemes.addAll(findThemes(readOnlyLibThemes, DEFAULT_THEMES));
 
     if (foundThemes.isEmpty()) {
       Collection<ThemeEditorStyle> readOnlyFrameworkThemes = themeResolver.getFrameworkThemes();
-      foundThemes = findThemes(readOnlyFrameworkThemes, DEFAULT_THEMES_FALLBACK);
+      foundThemes = new HashSet<ThemeEditorStyle>();
+      foundThemes.addAll(findThemes(readOnlyFrameworkThemes, DEFAULT_THEMES_FALLBACK));
+
       if (foundThemes.isEmpty()) {
         foundThemes.addAll(readOnlyLibThemes);
         foundThemes.addAll(readOnlyFrameworkThemes);
