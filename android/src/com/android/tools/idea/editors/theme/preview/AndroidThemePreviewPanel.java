@@ -77,9 +77,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -194,7 +192,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     }
   }
 
-
   public AndroidThemePreviewPanel(@NotNull ThemeEditorContext context, @NotNull Color background) {
     super(BoxLayout.PAGE_AXIS);
 
@@ -215,7 +212,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     myBreadcrumbs.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
 
     myDumbService = DumbService.getInstance(context.getProject());
-
 
     myScrollPane = new JBScrollPane(myAndroidPreviewPanel,
                                                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -333,11 +329,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     myScrollPane.getViewport().setBackground(bg);
     mySearchTextField.setBackground(bg);
     myBreadcrumbs.setBackground(bg);
-  }
-
-  @NotNull
-  public Set<String> getUsedAttrs() {
-    return myAndroidPreviewPanel.getUsedAttrs();
   }
 
   /**

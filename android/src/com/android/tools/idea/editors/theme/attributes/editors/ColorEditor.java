@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.SwatchComponent;
+import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,8 +32,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class ColorEditor extends TypedCellEditor<EditedStyleItem, String> {
@@ -61,7 +60,7 @@ public class ColorEditor extends TypedCellEditor<EditedStyleItem, String> {
     final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, myItem.getItemResourceValue());
     myComponent.setSwatchIcons(SwatchComponent.colorListOf(colors));
     String colorText = colors.isEmpty() ? ColorRenderer.LABEL_EMPTY : ResourceHelper.colorToString(colors.get(0));
-    String hexDefaultColor = com.intellij.ui.ColorUtil.toHex(ColorRenderer.DEFAULT_COLOR);
+    String hexDefaultColor = ColorUtil.toHex(ColorRenderer.DEFAULT_COLOR);
     myComponent.setNameText(String.format(ColorRenderer.LABEL_TEMPLATE, hexDefaultColor, myItem.getName(), colorText));
     myComponent.setValueText(myItem.getValue());
     myEditorValue = null; // invalidate stored editor value
