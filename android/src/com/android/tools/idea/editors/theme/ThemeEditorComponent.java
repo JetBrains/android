@@ -644,7 +644,8 @@ public class ThemeEditorComponent extends Splitter {
     mySubStyleSourceAttribute = null;
 
     final ThemeResolver themeResolver = new ThemeResolver(configuration, myStyleResolver);
-    myPanel.getThemeCombo().setModel(new ThemesListModel(myProject, themeResolver, defaultThemeName));
+    final ThemeEditorStyle defaultTheme = defaultThemeName == null ? null : themeResolver.getTheme(defaultThemeName);
+    myPanel.getThemeCombo().setModel(new ThemesListModel(myProject, ThemeEditorUtils.getDefaultThemes(themeResolver), defaultTheme));
     loadStyleAttributes();
     mySelectedTheme = myPanel.getSelectedTheme();
     saveCurrentSelectedTheme();
