@@ -127,6 +127,10 @@ public class ThemeResolver {
       myThemeNames.add(styleQualifiedName);
       ThemeEditorStyle resolvedStyle = myStyleResolver.getStyle(styleQualifiedName);
 
+      if (resolvedStyle == null) {
+        continue;
+      }
+
       myAllThemes.add(resolvedStyle);
       if (isProjectDependency) {
         myProjectThemes.add(resolvedStyle);
