@@ -45,6 +45,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -385,6 +386,7 @@ public class ThemeEditorUtils {
     boolean isCreated = new WriteCommandAction<Boolean>(myThemeEditorContext.getProject(), "Create new theme " + dialog.getStyleName()) {
       @Override
       protected void run(@NotNull Result<Boolean> result) {
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(myThemeEditorContext.getProject());
         result.setResult(AndroidResourceUtil.
           createValueResource(myThemeEditorContext.getCurrentThemeModule(), dialog.getStyleName(),
                               ResourceType.STYLE, fileName, dirNames, new Processor<ResourceElement>() {

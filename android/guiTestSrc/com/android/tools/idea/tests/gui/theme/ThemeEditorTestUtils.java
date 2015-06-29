@@ -31,6 +31,9 @@ public class ThemeEditorTestUtils {
 
   @NotNull
   public static ThemeEditorFixture openThemeEditor(@NotNull IdeFrameFixture projectFrame) {
+    // Make sure to have focus, no always automatic depending on window manager
+    projectFrame.focus();
+
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR);
     EditorNotificationPanelFixture notificationPanel =
