@@ -17,8 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.wizard.LabelWithEditLink;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.ui.components.JBLabel;
-import org.fest.swing.core.GenericTypeMatcher;
+import com.intellij.ui.HyperlinkLabel;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Condition;
@@ -54,12 +53,7 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
   public ConfigureAndroidProjectStepFixture enterPackageName(@NotNull String text) {
     LabelWithEditLink link = robot().finder().findByType(target(), LabelWithEditLink.class);
 
-    JBLabel editLabel = robot().finder().find(link, new GenericTypeMatcher<JBLabel>(JBLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull JBLabel label) {
-        return "<html><a>Edit</a></html>".equals(label.getText());
-      }
-    });
+    HyperlinkLabel editLabel = robot().finder().findByType(link, HyperlinkLabel.class);
     robot().click(editLabel);
 
     final JTextField textField = robot().finder().findByType(link, JTextField.class);
