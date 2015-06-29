@@ -103,6 +103,7 @@ public class ProjectThemeResolver {
       for (StyleResourceValue value : getThemesFromResources(styles, configuration)) {
         // Iterate through all themes that are available in the current module
         ThemeEditorStyle themeEditorStyle = resolver.getStyle(value.getName());
+        assert themeEditorStyle != null : "Style with name " + value.getName() + " doesn't exist";
         builder.add(new ThemeWithSource(themeEditorStyle, module));
       }
     }
