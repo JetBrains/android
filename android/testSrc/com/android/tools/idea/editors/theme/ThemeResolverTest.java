@@ -46,20 +46,6 @@ public class ThemeResolverTest extends AndroidTestCase {
     assertNull("Theme resolver shouldn't resolve styles", themeResolver.getTheme("@android:style/TextAppearance"));
   }
 
-  public void testIsTheme() {
-    VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
-    ThemeResolver themeResolver = new ThemeResolver(configuration);
-    StyleResolver styleResolver = new StyleResolver(configuration);
-
-    ThemeEditorStyle theme = themeResolver.getTheme("@android:style/Theme.Holo.Light");
-    ThemeEditorStyle style = styleResolver.getStyle("@android:style/TextAppearance");
-
-    assertFalse(themeResolver.isTheme(style));
-    assertTrue(themeResolver.isTheme(theme));
-    assertTrue(themeResolver.isTheme(theme.getParent()));
-  }
-
   public void testLocalThemes() throws IOException {
     VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");
     VirtualFile myStyleFile = myFixture.copyFileToProject("themeEditor/styles.xml", "res/values/styles.xml");
