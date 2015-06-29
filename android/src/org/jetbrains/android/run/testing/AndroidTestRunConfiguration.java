@@ -253,8 +253,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   protected ConsoleView attachConsole(AndroidRunningState state, Executor executor) throws ExecutionException {
     AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
-    ConsoleView consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole(
-      "Android", state.getProcessHandler(), properties, state.getEnvironment());
+    ConsoleView consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Android", state.getProcessHandler(), properties);
     Disposer.register(state.getFacet().getModule().getProject(), consoleView);
     return consoleView;
   }
