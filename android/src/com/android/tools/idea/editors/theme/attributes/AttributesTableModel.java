@@ -235,10 +235,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     return getRowContents(row).getCellClass(column);
   }
 
-  protected boolean isReadOnly() {
-    return false;
-  }
-
   @NotNull
   public ThemeEditorStyle getSelectedStyle() {
     return mySelectedStyle;
@@ -355,7 +351,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public void setValueAt(int column, String value) {
-      throw new RuntimeException(String.format("Tried to setValue at immutable label row of LabelledModel, column = %1$d" + column));
+      throw new RuntimeException(String.format("Tried to setValue at immutable label row of LabelledModel, column = %1$d", column));
     }
 
     @Override
@@ -441,14 +437,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public boolean isCellEditable(int column) {
-      if (isReadOnly()) {
-      /*
-       * Ideally we should allow framework themes to be modified and then ask the user where to put the new value. We currently simplify
-       * this flow by only allowing the user to modify project themes.
-       */
-        return false;
-      }
-
       EditedStyleItem item = myAttributes.get(myRowIndex);
       // Color rows are editable. Also the middle column for all other attributes.
       return (WIDE_CLASSES.contains(getCellClass(column)) || column == 1) && item.isPublicAttribute();
