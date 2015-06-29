@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -25,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFi
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.google.common.collect.ImmutableList;
+import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTableCellFixture;
@@ -34,6 +36,7 @@ import org.fest.swing.fixture.JTreeFixture;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.awt.Dialog;
 import java.io.IOException;
 import java.util.List;
 
@@ -55,6 +58,10 @@ public class ThemeSelectorTest extends GuiTestCase {
     ThemeEditorTestUtils.enableThemeEditor();
   }
 
+  /**
+   * Tests the theme renaming functionality of the theme selector
+   * and that IntelliJ's Undo works can revert this action
+   */
   @Test @IdeGuiTest
   public void testRenameTheme() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
@@ -93,8 +100,25 @@ public class ThemeSelectorTest extends GuiTestCase {
     editor.moveTo(editor.findOffset(null, "name=\"NewAppTheme", true));
     assertEquals("<style ^name=\"NewAppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">",
                  editor.getCurrentLineContents(true, true, 0));
+
+    // Testing Undo
+    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
+    themesComboBox.selectItem("[NewAppTheme]");
+    projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
+    DialogFixture message = new DialogFixture(myRobot, myRobot.finder().findByType(Dialog.class));
+    message.focus();
+    GuiTests.findAndClickOkButton(message);
+    themeEditor.waitForThemeSelection("[AppTheme]");
+    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    assertEquals(-1, editor.findOffset(null, "name=\"NewAppTheme", true));
+    editor.moveTo(editor.findOffset(null, "name=\"AppTheme", true));
+    assertEquals("<style ^name=\"AppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">",
+                 editor.getCurrentLineContents(true, true, 0));
   }
 
+  /**
+   * Tests the Show all themes dialog from the theme selector
+   */
   @Test @IdeGuiTest
   public void testShowAllThemes() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
@@ -132,6 +156,10 @@ public class ThemeSelectorTest extends GuiTestCase {
     themeEditor.waitForThemeSelection("Theme.AppCompat.NoActionBar");
   }
 
+  /**
+   * Tests the theme creation functionality of the theme selector
+   * and that IntelliJ's Undo can revert this action
+   */
   @Test @IdeGuiTest
   public void testCreateNewTheme() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
@@ -197,6 +225,13 @@ public class ThemeSelectorTest extends GuiTestCase {
     editor.moveTo(editor.findOffset(null, "name=\"NewTheme", true));
     assertEquals("<style ^name=\"NewTheme\" parent=\"@android:style/Theme.Holo\" />",
                  editor.getCurrentLineContents(true, true, 0));
+
+    // Tests Undo
+    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
+    projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
+    themeEditor.waitForThemeSelection("[AppTheme]");
+    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    assertEquals(-1, editor.findOffset(null, "name=\"NewTheme", true));
   }
 
 
