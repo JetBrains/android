@@ -706,9 +706,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return description.equals(myTargetPackageName) && myApplicationLauncher.isReadyForDebugging(data, getProcessHandler());
   }
 
-  private void launchDebug(Client client) {
-    String port = Integer.toString(client.getDebuggerListenPort());
-    myDebugLauncher.launchDebug(client.getDevice(), port);
+  private void launchDebug(@NotNull Client client) {
+    myDebugLauncher.launchDebug(client);
     myDebugLauncher = null;
   }
 
