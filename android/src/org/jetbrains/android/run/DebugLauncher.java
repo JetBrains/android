@@ -15,11 +15,12 @@
  */
 package org.jetbrains.android.run;
 
-import com.android.ddmlib.IDevice;
+import com.android.ddmlib.Client;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author coyote
  */
 public interface DebugLauncher {
-    void launchDebug(IDevice device, String debugPort);
+    void launchDebug(@NotNull Client client);
 }
