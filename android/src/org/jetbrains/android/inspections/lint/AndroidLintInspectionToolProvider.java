@@ -1511,7 +1511,7 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
       return new AndroidLintQuickFix[] {
         new SetAttributeQuickFix("Set orientation=\"horizontal\" (default)", ATTR_ORIENTATION, VALUE_HORIZONTAL),
-        new SetAttributeQuickFix("Set orientation=\"false\" (changes layout)", ATTR_ORIENTATION, VALUE_VERTICAL)
+        new SetAttributeQuickFix("Set orientation=\"vertical\" (changes layout)", ATTR_ORIENTATION, VALUE_VERTICAL)
       };
     }
   }
