@@ -15,9 +15,13 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.ui.HideableDecorator;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 
+import java.awt.Color;
 import java.awt.Component;
 import javax.swing.*;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
@@ -30,6 +34,8 @@ public class ResourceDialogSouthPanel {
   private JPanel myExpertPanel;
 
   public ResourceDialogSouthPanel() {
+    Color backgroundColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
+    myResourceNameMessage.setBackground(backgroundColor == null ? JBColor.YELLOW : backgroundColor);
     HideableDecorator myExpertDecorator = new HideableDecorator(myExpertPlaceholder, "Location", true) {
       @Override
       protected void off() {
