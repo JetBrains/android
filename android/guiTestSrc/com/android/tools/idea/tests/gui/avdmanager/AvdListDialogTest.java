@@ -44,6 +44,7 @@ public class AvdListDialogTest extends GuiTestCase {
     configureAvdOptionsStep.setFrontCamera("Emulated");
     configureAvdOptionsStep.setScaleFactor("1dp on device = 1px on screen").selectUseHostGpu(true);
     avdEditWizard.clickFinish();
+    ideFrame.waitForBackgroundTasksToFinish();
 
     // Ensure the AVD was created
     avdManagerDialog.selectAvdByName("Testsuite AVD");
