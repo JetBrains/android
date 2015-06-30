@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,61 +16,50 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.rendering.ResourceHelper;
-import com.android.tools.swing.SwatchComponent;
-import com.intellij.ui.ColorUtil;
+import com.android.tools.swing.ui.SwatchComponent;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.JTable;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
-public class ColorEditor extends TypedCellEditor<EditedStyleItem, String> {
-  private final ThemeEditorContext myContext;
-  private final ResourceComponent myComponent;
-  private String myEditorValue;
+/**
+ * Class that implements a {@link javax.swing.JTable} renderer and editor for color attributes.
+ */
+public class ColorRendererEditor extends GraphicalResourceRendererEditor {
+  static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b><font color=\"#9B9B9B\"> - %3$s</font>";
+  static final String LABEL_EMPTY = "(empty)";
 
   private final AndroidThemePreviewPanel myPreviewPanel;
 
-  private EditedStyleItem myItem;
+  public ColorRendererEditor(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel, boolean isEditor) {
+    super(context, isEditor);
 
-  public ColorEditor(@NotNull ThemeEditorContext context, AndroidThemePreviewPanel previewPanel) {
-    myContext = context;
-
-    myComponent = new ResourceComponent();
-    myComponent.addActionListener(new ColorEditorActionListener());
-
+    if (isEditor) {
+      myComponent.addActionListener(new ColorEditorActionListener());
+    }
     myPreviewPanel = previewPanel;
   }
 
   @Override
-  public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
-    myItem = value;
-    ResourceResolver resourceResolver = myContext.getResourceResolver();
-    assert resourceResolver != null;
-    final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, myItem.getItemResourceValue());
-    myComponent.setSwatchIcons(SwatchComponent.colorListOf(colors));
-    String colorText = colors.isEmpty() ? ColorRenderer.LABEL_EMPTY : ResourceHelper.colorToString(colors.get(0));
-    String hexDefaultColor = ColorUtil.toHex(ColorRenderer.DEFAULT_COLOR);
-    myComponent.setNameText(String.format(ColorRenderer.LABEL_TEMPLATE, hexDefaultColor, myItem.getName(), colorText));
-    myComponent.setValueText(myItem.getValue());
-    myEditorValue = null; // invalidate stored editor value
+  protected void updateComponent(@NotNull ThemeEditorContext context, @NotNull ResourceComponent component, @NotNull EditedStyleItem item) {
+    assert context.getResourceResolver() != null;
 
-    return myComponent;
-  }
-
-  @Override
-  public String getEditorValue() {
-    return myEditorValue;
+    final List<Color> colors = ResourceHelper.resolveMultipleColors(context.getResourceResolver(), item.getItemResourceValue());
+    String colorText = colors.isEmpty() ? LABEL_EMPTY : ResourceHelper.colorToString(colors.get(0));
+    component.setSwatchIcons(SwatchComponent.colorListOf(colors));
+    component.setNameText(String.format(LABEL_TEMPLATE, ThemeEditorConstants.RESOURCE_ITEM_COLOR.toString(), item.getName(), colorText));
+    component.setValueText(item.getValue());
   }
 
   private class ColorEditorActionListener implements ActionListener {
@@ -79,7 +68,8 @@ public class ColorEditor extends TypedCellEditor<EditedStyleItem, String> {
       String itemValue = myItem.getValue();
       final String colorName;
       // If it points to an existing resource.
-      if (!SdkConstants.NULL_RESOURCE.equals(itemValue) &&
+      if (!RenderResources.REFERENCE_EMPTY.equals(itemValue) &&
+          !RenderResources.REFERENCE_NULL.equals(itemValue) &&
           itemValue.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
         // Use the name of that resource.
         colorName = itemValue.substring(itemValue.indexOf('/') + 1);
@@ -92,11 +82,11 @@ public class ColorEditor extends TypedCellEditor<EditedStyleItem, String> {
       // TODO we need to handle color state lists correctly here.
       ResourceResolver resourceResolver = myContext.getResourceResolver();
       assert resourceResolver != null;
-      String resolvedColor = ResourceHelper.colorToString(
-        ResourceHelper.resolveColor(resourceResolver, myItem.getItemResourceValue()));
+      String resolvedColor = ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, myItem.getItemResourceValue()));
 
-      final ChooseResourceDialog dialog = new ChooseResourceDialog(myContext.getCurrentThemeModule(), ChooseResourceDialog.COLOR_TYPES, resolvedColor, null,
-                                                                   ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
+      final ChooseResourceDialog dialog =
+        new ChooseResourceDialog(myContext.getCurrentThemeModule(), ChooseResourceDialog.COLOR_TYPES, resolvedColor, null,
+                                 ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
 
       final String oldValue = myItem.getItemResourceValue().getValue();
 
@@ -119,15 +109,17 @@ public class ColorEditor extends TypedCellEditor<EditedStyleItem, String> {
         if (value != null) {
           myEditorValue = dialog.getResourceName();
         }
-      } else {
+      }
+      else {
         // User cancelled, clean up the preview
         myPreviewPanel.invalidateGraphicsRenderer();
       }
 
       if (myEditorValue == null) {
-        ColorEditor.this.cancelCellEditing();
-      } else {
-        ColorEditor.this.stopCellEditing();
+        ColorRendererEditor.this.cancelCellEditing();
+      }
+      else {
+        ColorRendererEditor.this.stopCellEditing();
       }
     }
   }
