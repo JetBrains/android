@@ -175,7 +175,8 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   }
 
   /**
-   * Declare any finishing actions that will take place at the completion of the wizard.
+   * Declare any finishing actions that will take place at the completion of the wizard. This will
+   * be executed by a worker thread, under progress.
    */
   public abstract void performFinishingActions();
 
@@ -432,7 +433,18 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
         }
       }
 
-    }, getProgressTitle(), false, getProject());
+    }, getProgressTitle(), false, getProject(), getProgressParentComponent());
+  }
+
+  /**
+   * The component that should be the parent of the progress window created on wizard
+   * completion. Null by default: the main window will be used.
+   * Subclasses should override this if the wizard is kicked off from a window other than the main
+   * Studio window; otherwise the progress bar will be beneath that window.
+   */
+  @Nullable
+  public JComponent getProgressParentComponent() {
+    return null;
   }
 
   @NotNull
