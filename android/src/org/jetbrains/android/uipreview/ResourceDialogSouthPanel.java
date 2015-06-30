@@ -15,14 +15,41 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.intellij.ui.HideableDecorator;
 import com.intellij.ui.components.JBLabel;
 
+import java.awt.Component;
 import javax.swing.*;
+import org.jetbrains.android.actions.CreateXmlResourceDialog;
 
 public class ResourceDialogSouthPanel {
   private JTextField myResourceNameField;
   private JBLabel myResourceNameMessage;
   private JPanel myFullPanel;
+  private JPanel myExpertPlaceholder;
+  private JPanel myExpertPanel;
+
+  public ResourceDialogSouthPanel() {
+    HideableDecorator myExpertDecorator = new HideableDecorator(myExpertPlaceholder, "Location", true) {
+      @Override
+      protected void off() {
+        super.off();
+        // Hack to not shrink the window too small when we close the advanced panel.
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            SwingUtilities.getWindowAncestor(myExpertPlaceholder).pack();
+          }
+        });
+      }
+    };
+    myExpertDecorator.setContentComponent(myExpertPanel);
+  }
+
+  void setExpertPanel(Component comp) {
+    myExpertPanel.removeAll();
+    myExpertPanel.add(comp);
+  }
 
   public JPanel getFullPanel() {
     return myFullPanel;
