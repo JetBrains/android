@@ -55,8 +55,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
         return true;
       }
     };
-    //noinspection GtkPreferredJComboBoxRenderer
-    myComboBox.setRenderer(new StyleListCellRenderer(context));
+    myComboBox.setRenderer(new StyleListCellRenderer(context, myComboBox));
     myComboBox.addActionListener(new ParentChoiceListener());
     myReadOnlyLabel = new JBLabel();
   }

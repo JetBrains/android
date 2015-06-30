@@ -40,11 +40,11 @@ import com.android.tools.idea.editors.theme.attributes.editors.EnumRendererEdito
 import com.android.tools.idea.editors.theme.attributes.editors.FlagRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.IntegerRenderer;
 import com.android.tools.idea.editors.theme.attributes.editors.ParentRendererEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.StyleListCellRenderer;
+import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import com.android.tools.idea.editors.theme.attributes.editors.StyleListPaletteCellRenderer;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
-import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceNotificationManager;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
 import com.google.common.collect.ImmutableList;
@@ -88,6 +88,8 @@ import javax.swing.RowFilter;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import javax.swing.event.DocumentEvent;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.PanelUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -336,7 +338,20 @@ public class ThemeEditorComponent extends Splitter {
 
     // We have our own custom renderer that it's not based on the default one.
     //noinspection GtkPreferredJComboBoxRenderer
-    myPanel.getThemeCombo().setRenderer(new StyleListCellRenderer(myThemeEditorContext));
+    myPanel.getThemeCombo()
+      .setRenderer(new StyleListPaletteCellRenderer(myThemeEditorContext, new StyleListPaletteCellRenderer.ItemHoverListener() {
+        @Override
+        public void itemHovered(@NotNull String name) {
+          if (!name.equals(myThemeName)) {
+            myThemeName = name;
+            mySubStyleName = null;
+            mySubStyleSourceAttribute = null;
+
+            loadStyleAttributes();
+          }
+        }
+      }, myPanel.getThemeCombo()));
+
     myPanel.getThemeCombo().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -367,6 +382,27 @@ public class ThemeEditorComponent extends Splitter {
 
           loadStyleAttributes();
         }
+      }
+    });
+
+    myPanel.getThemeCombo().addPopupMenuListener(new PopupMenuListener() {
+      private String myOriginalThemeName;
+
+      @Override
+      public void popupMenuWillBecomeVisible(PopupMenuEvent popupMenuEvent) {
+        myOriginalThemeName = myThemeName;
+      }
+
+      @Override
+      public void popupMenuWillBecomeInvisible(PopupMenuEvent popupMenuEvent) {
+      }
+
+      @Override
+      public void popupMenuCanceled(PopupMenuEvent popupMenuEvent) {
+        myThemeName = myOriginalThemeName;
+        mySubStyleName = null;
+        mySubStyleSourceAttribute = null;
+        loadStyleAttributes();
       }
     });
 
@@ -526,8 +562,8 @@ public class ThemeEditorComponent extends Splitter {
       myAttributesSorter.setRowFilter(myAttributesFilter);
       myAttributesSorter.setSortKeys(null);
     } else {
-      mySimpleModeFilter.configure(myModel.getDefinedAttributes(), ThemeEditorUtils.isAppCompatTheme(
-        myThemeEditorContext.getConfiguration()));
+      mySimpleModeFilter
+        .configure(myModel.getDefinedAttributes(), ThemeEditorUtils.isSelectedAppCompatTheme(myThemeEditorContext));
       myAttributesSorter.setRowFilter(mySimpleModeFilter);
       myAttributesSorter.setSortKeys(ImmutableList.of(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
     }
@@ -846,6 +882,7 @@ public class ThemeEditorComponent extends Splitter {
     myPreviewPanel.invalidateGraphicsRenderer();
     myPreviewPanel.revalidate();
     myAttributesTable.repaint();
+    myPanel.getThemeCombo().repaint();
   }
 
   @Override

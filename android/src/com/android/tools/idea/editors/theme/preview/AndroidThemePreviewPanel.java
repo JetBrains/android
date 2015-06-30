@@ -259,7 +259,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
       public boolean changed(int flags) {
         refreshConfiguration();
 
-        if (ThemeEditorUtils.isAppCompatTheme(myContext.getConfiguration()) != myIsAppCompatTheme) {
+        if (ThemeEditorUtils.isSelectedAppCompatTheme(myContext) != myIsAppCompatTheme) {
           rebuild();
         }
 
@@ -374,7 +374,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
         .addComponentFilter(new ThemePreviewBuilder.ApiLevelFilter(minApiLevel))
         .addComponentFilter(myGroupFilter);
 
-      myIsAppCompatTheme = ThemeEditorUtils.isAppCompatTheme(configuration);
+      myIsAppCompatTheme = ThemeEditorUtils.isSelectedAppCompatTheme(myContext);
       if (myIsAppCompatTheme) {
         builder
           .addComponentFilter(mySupportReplacementsFilter)

@@ -19,103 +19,86 @@ import com.android.SdkConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.ui.UIUtil;
+import java.awt.Color;
+import java.awt.Component;
+import javax.swing.JComboBox;
+import javax.swing.SwingConstants;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.ListCellRenderer;
+import javax.swing.JList;
+import javax.swing.JSeparator;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link ListCellRenderer} to render {@link ThemeEditorStyle} elements.
  */
-public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
+public class StyleListCellRenderer extends ColoredListCellRenderer {
   private final ThemeEditorContext myContext;
-  private final SimpleColoredComponent myStyleNameLabel = new SimpleColoredComponent();
-  private final SimpleColoredComponent myDefaultLabel = new SimpleColoredComponent();
 
-  public StyleListCellRenderer(ThemeEditorContext context) {
+  public StyleListCellRenderer(@NotNull ThemeEditorContext context, @Nullable JComboBox comboBox) {
+    super(comboBox);
     myContext = context;
-
-    setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-
-    myStyleNameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    myDefaultLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    myDefaultLabel.append("DEFAULT", SimpleTextAttributes.GRAY_ATTRIBUTES);
-    myDefaultLabel.setTextAlign(SwingConstants.RIGHT);
-
-    add(myStyleNameLabel);
-    add(Box.createHorizontalGlue());
-    add(myDefaultLabel);
   }
 
   @Override
-  @Nullable
   public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-    if (value instanceof JSeparator) {
+    if (value instanceof JSeparator){
       return (JSeparator)value;
     }
+    return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+  }
 
-    if (isSelected) {
-      setBackground(list.getSelectionBackground());
-      myStyleNameLabel.setForeground(list.getSelectionForeground());
-      myDefaultLabel.setForeground(list.getSelectionForeground());
-    } else {
-      setBackground(list.getBackground());
-      myStyleNameLabel.setForeground(list.getForeground());
-      myDefaultLabel.setForeground(list.getForeground());
-    }
-
-    myStyleNameLabel.clear();
-
+  @Override
+  protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
     if (value instanceof String) {
-      myStyleNameLabel.append((String)value);
-      myDefaultLabel.setVisible(false);
-      return this;
-    }
-    if (!(value instanceof ThemeEditorStyle)) {
-      return null;
+      append((String)value, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+      return;
     }
 
-    ThemeEditorStyle style = (ThemeEditorStyle)value;
-    ThemeEditorStyle parent = style.getParent();
-    String styleName = style.getName();
-    String parentName = parent != null ? parent.getName() : null;
+    if (value instanceof ThemeEditorStyle) {
+      ThemeEditorStyle style = (ThemeEditorStyle)value;
+      ThemeEditorStyle parent = style.getParent();
+      String styleName = style.getName();
+      String parentName = parent != null ? parent.getName() : null;
 
-    String defaultAppTheme = null;
-    final AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentContextModule());
-    if (facet != null) {
-      Manifest manifest = facet.getManifest();
-      if (manifest != null && manifest.getApplication() != null && manifest.getApplication().getXmlTag() != null) {
-        defaultAppTheme = manifest.getApplication()
-          .getXmlTag().getAttributeValue(SdkConstants.ATTR_THEME, SdkConstants.ANDROID_URI);
+      String defaultAppTheme = null;
+      final AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentContextModule());
+      if (facet != null) {
+        Manifest manifest = facet.getManifest();
+        if (manifest != null && manifest.getApplication() != null && manifest.getApplication().getXmlTag() != null) {
+          defaultAppTheme = manifest.getApplication().getXmlTag().getAttributeValue(SdkConstants.ATTR_THEME, SdkConstants.ANDROID_URI);
+        }
       }
-    }
 
-    if (!style.isProjectStyle()) {
-      String simplifiedName = simplifyName(style);
-      if (StringUtil.isEmpty(simplifiedName)) {
-        myStyleNameLabel.append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      if (!style.isProjectStyle()) {
+        String simplifiedName = simplifyName(style);
+        if (StringUtil.isEmpty(simplifiedName)) {
+          append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+        }
+        else {
+          append(simplifiedName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+          append(" [" + styleName + "]", SimpleTextAttributes.GRAY_ATTRIBUTES, false);
+        }
+      }
+      else if (!selected && parentName != null && styleName.startsWith(parentName + ".")) {
+        append(parentName + ".", SimpleTextAttributes.GRAY_ATTRIBUTES, false);
+        append(styleName.substring(parentName.length() + 1), SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
       }
       else {
-        myStyleNameLabel.append(simplifiedName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-        myStyleNameLabel.append(" [" + styleName + "]", SimpleTextAttributes.GRAY_ATTRIBUTES);
+        append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+      }
+
+      if (style.getQualifiedName().equals(defaultAppTheme)) {
+        append("  Default", new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, new JBColor(0xFF4CAF50, 0xFFA5D6A7)), true);
       }
     }
-    else if (!isSelected && parentName != null && styleName.startsWith(parentName + ".")) {
-      myStyleNameLabel.append(parentName + ".", SimpleTextAttributes.GRAY_ATTRIBUTES);
-      myStyleNameLabel.append(styleName.substring(parentName.length() + 1), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-    }
-    else {
-      myStyleNameLabel.append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-    }
-
-    myDefaultLabel.setVisible(style.getQualifiedName().equals(defaultAppTheme));
-
-    return this;
   }
 
   /**
