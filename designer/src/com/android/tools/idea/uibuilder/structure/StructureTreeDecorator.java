@@ -23,6 +23,7 @@ import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import icons.AndroidIcons;
 
 import javax.swing.*;
 
@@ -130,6 +131,9 @@ public class StructureTreeDecorator {
     if (full && item != null) {
       //todo: Annotate icons with lint warnings or errors, if applicable
       Icon icon = item.getIcon();
+      if (tagName.equals(LINEAR_LAYOUT) && VALUE_VERTICAL.equals(component.getAttribute(ANDROID_URI, ATTR_ORIENTATION))) {
+        icon = AndroidIcons.Views.VerticalLinearLayout;
+      }
       renderer.setIcon(icon);
     }
   }
