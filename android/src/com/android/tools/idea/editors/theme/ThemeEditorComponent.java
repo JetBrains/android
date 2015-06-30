@@ -31,12 +31,10 @@ import com.android.tools.idea.editors.theme.attributes.ShowJavadocAction;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
 import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.BooleanRendererEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.ColorEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.ColorRenderer;
+import com.android.tools.idea.editors.theme.attributes.editors.ColorRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.DelegatingCellEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.DelegatingCellRenderer;
-import com.android.tools.idea.editors.theme.attributes.editors.DrawableEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.DrawableRenderer;
+import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.EnumRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.FlagRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.IntegerRenderer;
@@ -227,7 +225,7 @@ public class ThemeEditorComponent extends Splitter {
     scroll.setBackground(null); // needed for OS X, as by default is set to white
     scroll.getViewport().setBackground(null); // needed for OS X, as by default is set to white
 
-    myAttributesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(new ColorRenderer(myThemeEditorContext)));
+    myAttributesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(new ColorRendererEditor(myThemeEditorContext, myPreviewPanel, false)));
     myAttributesTable.setDefaultRenderer(EditedStyleItem.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
     myAttributesTable.setDefaultRenderer(ThemeEditorStyle.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
     myAttributesTable.setDefaultRenderer(String.class, new DelegatingCellRenderer(myAttributesTable.getDefaultRenderer(String.class)));
@@ -236,7 +234,7 @@ public class ThemeEditorComponent extends Splitter {
     myAttributesTable.setDefaultRenderer(Enum.class, new DelegatingCellRenderer(new EnumRendererEditor()));
     myAttributesTable.setDefaultRenderer(Flag.class, new DelegatingCellRenderer(new FlagRendererEditor()));
     myAttributesTable.setDefaultRenderer(AttributesTableModel.ParentAttribute.class, new DelegatingCellRenderer(new ParentRendererEditor(myThemeEditorContext)));
-    myAttributesTable.setDefaultRenderer(DrawableDomElement.class, new DelegatingCellRenderer(new DrawableRenderer(myThemeEditorContext)));
+    myAttributesTable.setDefaultRenderer(DrawableDomElement.class, new DelegatingCellRenderer(new DrawableRendererEditor(myThemeEditorContext, false)));
     myAttributesTable.setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
       @Override
       public Component getTableCellRendererComponent(JTable table,
@@ -251,7 +249,7 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    myAttributesTable.setDefaultEditor(Color.class, new DelegatingCellEditor(false, new ColorEditor(myThemeEditorContext, myPreviewPanel), myThemeEditorContext));
+    myAttributesTable.setDefaultEditor(Color.class, new DelegatingCellEditor(false, new ColorRendererEditor(myThemeEditorContext, myPreviewPanel, true), myThemeEditorContext));
     myAttributesTable.setDefaultEditor(EditedStyleItem.class, new DelegatingCellEditor(false, new AttributeReferenceRendererEditor(project, completionProvider), myThemeEditorContext));
     myAttributesTable.setDefaultEditor(String.class, new DelegatingCellEditor(false, myAttributesTable.getDefaultEditor(String.class), myThemeEditorContext));
     myAttributesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(Integer.class), myThemeEditorContext));
@@ -262,7 +260,7 @@ public class ThemeEditorComponent extends Splitter {
 
     // We allow to edit style pointers as Strings.
     myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, styleEditor, myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableEditor(myThemeEditorContext), myThemeEditorContext));
+    myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableRendererEditor(myThemeEditorContext, true), myThemeEditorContext));
     updateUiParameters();
 
     myAttributesFilter = new StyleAttributesFilter();

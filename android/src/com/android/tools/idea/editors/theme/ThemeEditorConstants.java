@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.intellij.ui.JBColor;
+
+import java.awt.Color;
+
 public class ThemeEditorConstants {
   public static final int ROUNDED_BORDER_ARC_SIZE = 10;
+
+  /**
+   * Color used to display resources values in the attributes table
+   */
+  public static final JBColor RESOURCE_ITEM_COLOR = new JBColor(new Color(0x6F6F6F)/*light*/, new Color(0xAAAAA)/*dark*/);
 }

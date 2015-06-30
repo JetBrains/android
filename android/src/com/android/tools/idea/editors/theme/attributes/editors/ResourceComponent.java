@@ -15,18 +15,34 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.tools.swing.ClickableLabel;
-import com.android.tools.swing.SwatchComponent;
+import com.android.tools.swing.ui.ClickableLabel;
+import com.android.tools.swing.ui.SwatchComponent;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.ListCellRendererWithRightAlignedComponent;
+import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.ListCellRenderer;
+import javax.swing.SwingConstants;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
 import java.util.List;
 
 /**
@@ -37,20 +53,56 @@ public class ResourceComponent extends JPanel {
   /**
    * ResourceComponent top + bottom margins
    */
-  private static final int MARGIN = 20;
+  private static final int MARGIN = JBUI.scale(20);
   /**
    * Gap between the two rows of the component
    */
-  private static final int ROW_GAP = 8;
+  private static final int ROW_GAP = JBUI.scale(8);
 
   private final SwatchComponent mySwatchComponent = new SwatchComponent();
   private final ClickableLabel myNameLabel = new ClickableLabel();
+  private final ComboBox myVariantCombo = new ComboBox();
+  private final ListCellRenderer mySelectedVariantRenderer;
+  private final ListCellRenderer myPopupVariantRenderer;
 
   public ResourceComponent() {
     super(new BorderLayout(0, ROW_GAP));
     setBorder(BorderFactory.createMatteBorder(MARGIN / 2, 0, MARGIN / 2, 0, getBackground()));
 
-    add(myNameLabel, BorderLayout.NORTH);
+    DefaultListCellRenderer selectedVariantRenderer = new DefaultListCellRenderer();
+    selectedVariantRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
+    mySelectedVariantRenderer = selectedVariantRenderer;
+    myPopupVariantRenderer = new DefaultListCellRenderer() {
+      @Override
+      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        Component popupComponent =  super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+        if (!isSelected) {
+          popupComponent.setBackground(JBColor.WHITE);
+        }
+        return popupComponent;
+      }
+    };
+
+    ListCellRenderer variantRenderer = new ListCellRenderer() {
+      @Override
+      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        if (index == -1) {
+          return mySelectedVariantRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        }
+
+        return myPopupVariantRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      }
+    };
+
+    //noinspection GtkPreferredJComboBoxRenderer
+    myVariantCombo.setRenderer(variantRenderer);
+    myVariantCombo.setBorder(null);
+
+    Box topRowPanel = new Box(BoxLayout.LINE_AXIS);
+    topRowPanel.add(myNameLabel);
+    topRowPanel.add(myVariantCombo);
+    add(topRowPanel, BorderLayout.NORTH);
 
     mySwatchComponent.setBackground(JBColor.WHITE);
     mySwatchComponent.setForeground(null);
@@ -60,7 +112,10 @@ public class ResourceComponent extends JPanel {
   @Override
   public Dimension getPreferredSize() {
     if (!isPreferredSizeSet()) {
-      return new Dimension(0, MARGIN + ROW_GAP + getFontMetrics(getFont()).getHeight() + mySwatchComponent.getPreferredSize().height);
+      int firstRowHeight = Math.max(getFontMetrics(getFont()).getHeight(), myVariantCombo.getPreferredSize().height);
+      int secondRowHeight = mySwatchComponent.getPreferredSize().height;
+
+      return new Dimension(0, MARGIN + ROW_GAP + firstRowHeight + secondRowHeight);
     }
 
     return super.getPreferredSize();
@@ -72,6 +127,19 @@ public class ResourceComponent extends JPanel {
 
   public void setNameText(@NotNull String name) {
     myNameLabel.setText(name);
+  }
+
+  @NotNull
+  public ComboBoxModel getVariantsModel() {
+    return myVariantCombo.getModel();
+  }
+
+  public void setVariantsModel(@Nullable ComboBoxModel comboBoxModel) {
+    myVariantCombo.setModel(comboBoxModel != null ? comboBoxModel : new DefaultComboBoxModel());
+  }
+
+  public void addVariantItemListener(@NotNull ItemListener itemListener) {
+    myVariantCombo.addItemListener(itemListener);
   }
 
   public void setValueText(@NotNull String value) {
