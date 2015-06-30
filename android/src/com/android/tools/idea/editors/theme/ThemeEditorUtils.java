@@ -234,42 +234,6 @@ public class ThemeEditorUtils {
     return attrDefByName.getFormats().contains(want);
   }
 
-  public static boolean createColor(@NotNull final Module module, @NotNull final String colorName, @NotNull final String colorValue) {
-    final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.COLOR);
-    if (fileName == null) {
-      return false;
-    }
-    final List<String> dirNames = Collections.singletonList(ResourceFolderType.VALUES.getName());
-
-    return AndroidResourceUtil.createValueResource(module, colorName, ResourceType.COLOR, fileName, dirNames, colorValue);
-  }
-
-  public static boolean changeColor(@NotNull final Module module, @NotNull final String colorName, @NotNull final String colorValue) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return false;
-    }
-
-    final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.COLOR);
-    if (fileName == null) {
-      return false;
-    }
-    final List<String> dirNames = Collections.singletonList(ResourceFolderType.VALUES.getName());
-
-    try {
-      if (!AndroidResourceUtil.changeColorResource(facet, colorName, colorValue, fileName, dirNames)) {
-        // Changing color resource has failed, one possible reason is that color isn't defined in the project.
-        // Trying to create the color instead.
-        return AndroidResourceUtil.createValueResource(module, colorName, ResourceType.COLOR, fileName, dirNames, colorValue);
-      }
-
-      return true;
-    }
-    catch (Exception e) {
-      return false;
-    }
-  }
-
   @NotNull
   private static Collection<ThemeEditorStyle> findThemes(@NotNull Collection<ThemeEditorStyle> themes, final @NotNull Set<String> names) {
     return ImmutableSet.copyOf(Iterables.filter(themes, new Predicate<ThemeEditorStyle>() {
@@ -345,9 +309,9 @@ public class ThemeEditorUtils {
 
   /**
    * Creates a new style by displaying the dialog of the {@link NewStyleDialog}.
+   * @param parentStyle is used in NewStyleDialog, will be preselected in the parent text field and name will be suggested based on it.
    * @param newAttributeName, if it is not null, a new attribute will be added to the style with the value specified in newAttributeValue.
    * @param isTheme whether theme or style will be created
-   * @param parentStyle is used in NewStyleDialog, will be preselected in the parent text field and name will be suggested based on it.
    * @param message is used in NewStyleDialog to display message to user
    * @return the new style name or null if the style wasn't created.
    */
