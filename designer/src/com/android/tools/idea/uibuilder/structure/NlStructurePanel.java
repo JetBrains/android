@@ -34,6 +34,8 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -52,6 +54,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.UPDATE_DELAY_MSECS;
+import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
@@ -63,6 +67,7 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
   private final Map<XmlTag, DefaultMutableTreeNode> myTag2Node;
   private final AtomicBoolean mySelectionIsUpdating;
   private final NlPropertiesPanel myPropertiesPanel;
+  private final MergingUpdateQueue myUpdateQueue;
 
   private NlModel myModel;
   private boolean myWasExpanded;
@@ -74,6 +79,8 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
     mySelectionIsUpdating = new AtomicBoolean(false);
     JScrollPane pane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     myPropertiesPanel = new NlPropertiesPanel(designSurface);
+    myUpdateQueue = new MergingUpdateQueue(
+      "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, designSurface, null, SWING_THREAD);
     Splitter splitter = new Splitter(true, 0.4f);
     splitter.setFirstComponent(pane);
     splitter.setSecondComponent(myPropertiesPanel);
@@ -85,8 +92,7 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
 
   public void setDesignSurface(@Nullable DesignSurface designSurface) {
     myPropertiesPanel.setDesignSurface(designSurface);
-    setModel(designSurface != null && designSurface.getCurrentScreenView() != null
-             ? designSurface.getCurrentScreenView().getModel() : null);
+    setModel(designSurface != null && designSurface.getCurrentScreenView() != null ? designSurface.getCurrentScreenView().getModel() : null);
   }
 
   private void setModel(@Nullable NlModel model) {
@@ -157,27 +163,39 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
   }
 
   private void loadData() {
-    try {
-      mySelectionIsUpdating.set(true);
-      myWasExpanded = false;
-      myTag2Node.clear();
-      updateHierarchy();
-    } finally {
-      mySelectionIsUpdating.set(false);
-    }
-    updateSelection();
+    updateHierarchy(true);
   }
 
   private void invalidateUI() {
     IJSwingUtilities.updateComponentTreeUI(myTree);
   }
 
-  private void updateHierarchy() {
-    DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)myTree.getModel().getRoot();
-    List<NlComponent> components = myModel != null ? myModel.getComponents() : null;
-    replaceChildNodes(rootNode, components);
-    expandOnce();
-    invalidateUI();
+  private void updateHierarchy(final boolean firstLoad) {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+    myTree.setPaintBusy(true);
+    myUpdateQueue.queue(new Update("updateComponentStructure") {
+      @Override
+      public void run() {
+        try {
+          mySelectionIsUpdating.set(true);
+          if (firstLoad) {
+            myWasExpanded = false;
+            myTag2Node.clear();
+          }
+          DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)myTree.getModel().getRoot();
+          List<NlComponent> components = myModel != null ? myModel.getComponents() : null;
+          replaceChildNodes(rootNode, components);
+          expandOnce();
+          invalidateUI();
+        } finally {
+          myTree.setPaintBusy(false);
+          mySelectionIsUpdating.set(false);
+        }
+        if (firstLoad) {
+          updateSelection();
+        }
+      }
+    });
   }
 
   private void replaceChildNodes(@NonNull DefaultMutableTreeNode node, @Nullable List<NlComponent> subComponents) {
@@ -304,7 +322,7 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent, 
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
-        updateHierarchy();
+        updateHierarchy(false);
       }
     });
   }
