@@ -22,8 +22,12 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.AbstractListModel;
+import javax.swing.ComboBoxModel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -37,29 +41,16 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
   public static final String SHOW_ALL_THEMES = "Show all themes";
   public static final String RENAME = "Rename ";
 
-  // TODO(ddrone): replace untyped list to an explicit union type
   private SeparatedList myAllItems;
   private Object mySelectedObject;
   private Module mySelectedModule;
+  private final List<String> myEditOptions;
 
-  private final ArrayList<String> myEditThemeOptions = new ArrayList<String>();
+  public ThemesListModel(@NotNull Project project, @NotNull ImmutableList<ThemeEditorStyle> defaultThemes, @Nullable ThemeEditorStyle defaultTheme) {
+    ImmutableList<ProjectThemeResolver.ThemeWithSource> editableThemes = ProjectThemeResolver.getEditableProjectThemes(project);
 
-  public ThemesListModel(@NotNull Project project, @NotNull ThemeResolver themeResolver, @Nullable String defaultThemeName) {
-    myEditThemeOptions.add(CREATE_NEW_THEME);
-    setThemeResolver(project, themeResolver, defaultThemeName);
-  }
-
-  /**
-   * Sets a new theme resolver. This will trigger an update of all the elements.
-   * @param themeResolver The new {@link ThemeResolver}.
-   * @param defaultThemeName If not null and the model still exists, the model will try to keep this theme selected.
-   */
-  public void setThemeResolver(Project project, @NotNull ThemeResolver themeResolver, @Nullable String defaultThemeName) {
     // We sort the themes, displaying the local project themes at the top sorted alphabetically. The non local themes are sorted
     // alphabetically right below the project themes.
-    ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(themeResolver);
-
-    ImmutableList<ProjectThemeResolver.ThemeWithSource> editableThemes = ProjectThemeResolver.getEditableProjectThemes(project);
     Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(ThemeEditorUtils.STYLE_COMPARATOR);
     for (ProjectThemeResolver.ThemeWithSource theme : editableThemes) {
       temporarySet.add(theme.getTheme());
@@ -69,22 +60,31 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     ImmutableList<ThemeEditorStyle> allThemes = ImmutableList.copyOf(temporarySet);
     ImmutableList<ThemeEditorStyle> externalThemes = allThemes.subList(editableThemes.size(), allThemes.size());
 
+    Object selectedItem = null;
+    if (defaultTheme != null) {
+      selectedItem = defaultTheme;
+    }
+    else if (!allThemes.isEmpty()) {
+      selectedItem = allThemes.get(0);
+    }
+
+    myEditOptions = new ArrayList<String>();
+    buildEditOptionsList(selectedItem);
+
     myAllItems = new SeparatedList(SEPARATOR, group(editableThemes), group(externalThemes, SHOW_ALL_THEMES),
-                                   group(myEditThemeOptions));
+                                   group(myEditOptions));
 
     // Set the default selection to the first element.
-    if (defaultThemeName != null && themeResolver.getTheme(defaultThemeName) != null) {
-      setSelectedItem(themeResolver.getTheme(defaultThemeName));
-      return;
-    }
+    setSelectedItem(selectedItem);
+  }
 
-    if (!allThemes.isEmpty()) {
-      setSelectedItem(allThemes.get(0));
-    } else {
-      setSelectedItem(null);
+  private void buildEditOptionsList(@Nullable Object selectedItem) {
+    myEditOptions.clear();
+    myEditOptions.add(CREATE_NEW_THEME);
+    ThemeEditorStyle selectedTheme = getStyle(selectedItem);
+    if (selectedTheme != null && selectedTheme.isProjectStyle()) {
+      myEditOptions.add(RENAME + selectedTheme.getName());
     }
-
-    fireContentsChanged(this, 0, getSize() - 1);
   }
 
   @Override
@@ -100,7 +100,8 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     return style != null ? style : item;
   }
 
-  private static ThemeEditorStyle getStyle(final Object object) {
+  @Nullable
+  public static ThemeEditorStyle getStyle(final @Nullable Object object) {
     if (object instanceof ThemeEditorStyle) {
       return (ThemeEditorStyle)object;
     }
@@ -116,22 +117,11 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
       return;
     }
 
-    ThemeEditorStyle selectedStyle = getStyle(anItem);
-    if (selectedStyle == null) {
-      mySelectedObject = anItem;
+    mySelectedObject = anItem;
+    if (anItem instanceof ProjectThemeResolver.ThemeWithSource) {
+      mySelectedModule = ((ProjectThemeResolver.ThemeWithSource)anItem).getSourceModule();
     }
-    else {
-      mySelectedObject = selectedStyle;
-      if (myEditThemeOptions.size() == 2) {
-        myEditThemeOptions.remove(1);
-      }
-      if (selectedStyle.isProjectStyle()) {
-        myEditThemeOptions.add(renameOption());
-      }
-      if (anItem instanceof ProjectThemeResolver.ThemeWithSource) {
-        mySelectedModule = ((ProjectThemeResolver.ThemeWithSource)anItem).getSourceModule();
-      }
-    }
+    buildEditOptionsList(mySelectedObject);
 
     fireContentsChanged(this, -1, -1);
   }
@@ -140,14 +130,6 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
   @Override
   public Object getSelectedItem() {
     return mySelectedObject;
-  }
-
-  @NotNull
-  private String renameOption() {
-    ThemeEditorStyle theme = getStyle(mySelectedObject);
-    assert theme != null : "Theme should be selected to call renameOption()";
-    assert theme.isProjectStyle();
-    return RENAME + theme.getName();
   }
 
   @Nullable

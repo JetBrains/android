@@ -24,7 +24,12 @@ import com.intellij.ui.components.JBScrollPane;
 import java.awt.Dimension;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
 
 public class AttributesPanel {
@@ -107,14 +112,12 @@ public class AttributesPanel {
 
   public ThemeEditorStyle getSelectedTheme() {
     Object item = myThemeCombo.getSelectedItem();
-    if (item instanceof ThemeEditorStyle) {
-      return (ThemeEditorStyle)item;
-    }
-    else if (item instanceof ProjectThemeResolver.ThemeWithSource) {
-      return ((ProjectThemeResolver.ThemeWithSource)item).getTheme();
-    }
 
-    throw new IllegalStateException("getSelectedTheme() is requested on themes combo while selected item is not theme");
+    ThemeEditorStyle style = ThemesListModel.getStyle(item);
+    if (style == null) {
+      throw new IllegalStateException("getSelectedTheme() is requested on themes combo while selected item is not theme");
+    }
+    return style;
   }
 
   public void setAdvancedMode(final boolean isAdvanced) {
