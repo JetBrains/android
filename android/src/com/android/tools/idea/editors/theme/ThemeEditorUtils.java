@@ -321,13 +321,18 @@ public class ThemeEditorUtils {
    * @return the new style name or null if the style wasn't created.
    */
   @Nullable
-  public static String createNewStyle(@NotNull ThemeEditorStyle parentStyle,
+  public static String createNewStyle(@Nullable ThemeEditorStyle parentStyle,
                                       @Nullable final String newAttributeName,
                                       @Nullable final String newAttributeValue,
                                       @NotNull final ThemeEditorContext myThemeEditorContext,
                                       boolean isTheme,
                                       @Nullable final String message) {
-    final NewStyleDialog dialog = new NewStyleDialog(isTheme, myThemeEditorContext, parentStyle.getQualifiedName(), parentStyle.getName(), message);
+    // if isTheme is true, parentStyle shouldn't be null
+    assert !isTheme || parentStyle != null;
+
+    final NewStyleDialog dialog = new NewStyleDialog(isTheme, myThemeEditorContext, (parentStyle == null) ? null : parentStyle.getQualifiedName(),
+                         (parentStyle == null) ? null : parentStyle.getName(), message);
+
     boolean createStyle = dialog.showAndGet();
     if (!createStyle) {
       return null;
