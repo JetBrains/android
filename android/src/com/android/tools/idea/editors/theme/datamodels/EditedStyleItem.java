@@ -128,6 +128,11 @@ public class EditedStyleItem {
   }
 
   @NotNull
+  public ConfiguredItemResourceValue getSelectedConfiguredItem() {
+    return mySelectedValue;
+  }
+
+  @NotNull
   public Collection<ConfiguredItemResourceValue> getNonSelectedItemResourceValues() {
     return myNonSelectedValues;
   }
