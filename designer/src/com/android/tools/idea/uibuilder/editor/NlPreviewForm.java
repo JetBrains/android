@@ -261,12 +261,14 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
     if (model == null) {
       setEditor(null);
+      myManager.setDesignSurface(null);
     } else {
       myFile = model.getFile();
       mySurface.setModel(model);
       mySurface.zoomToFit();
       setEditor(myManager.getActiveLayoutXmlEditor());
       model.activate();
+      myManager.setDesignSurface(mySurface);
     }
   }
 
