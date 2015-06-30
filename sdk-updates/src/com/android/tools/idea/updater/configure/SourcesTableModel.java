@@ -244,13 +244,18 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     }
   }
 
-  protected static class Row {
+  protected static class Row implements SdkUpdaterConfigPanel.MultiStateRow {
     SdkSource mySource;
     boolean myEnabled;
 
     public Row(SdkSource source, boolean enabled) {
       mySource = source;
       myEnabled = enabled;
+    }
+
+    @Override
+    public void cycleState() {
+      myEnabled = !myEnabled;
     }
   }
 }

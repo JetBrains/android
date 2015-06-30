@@ -22,8 +22,11 @@ import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.packages.RemotePlatformPkgInfo;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  * Represents a row in a table in {@link SdkUpdaterConfigurable} associated with a single package.
@@ -32,11 +35,13 @@ import javax.swing.*;
 class PlatformDetailsTreeNode extends UpdaterTreeNode {
   private NodeStateHolder myStateHolder;
   private boolean myIncludePreview;
+  private final ChangeListener myChangeListener;
 
-  public PlatformDetailsTreeNode(@NotNull NodeStateHolder state, boolean includePreview) {
+  public PlatformDetailsTreeNode(@NotNull NodeStateHolder state, boolean includePreview, @Nullable ChangeListener changeListener) {
     myStateHolder = state;
     myIncludePreview = includePreview;
     myStateHolder.setState(getInitialState());
+    myChangeListener = changeListener;
   }
 
   @Override
@@ -62,6 +67,9 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
   @Override
   protected void setState(NodeStateHolder.SelectedState state) {
     myStateHolder.setState(state);
+    if (myChangeListener != null) {
+      myChangeListener.stateChanged(new ChangeEvent(this));
+    }
   }
 
   @Override
