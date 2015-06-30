@@ -60,6 +60,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameDialog;
@@ -106,13 +107,12 @@ public class ThemeEditorComponent extends Splitter {
   private Font myHeaderFont;
 
   private StyleResolver myStyleResolver;
-  private String myPreviousSelectedTheme;
-
-  // Points to the current selected substyle within the theme.
-  private ThemeEditorStyle myCurrentSubStyle;
-
-  // Points to the attribute that original pointed to the substyle.
   private EditedStyleItem mySubStyleSourceAttribute;
+
+  // Name of current selected Theme
+  private String myThemeName;
+  // Name of current selected subStyle within the theme
+  private String mySubStyleName;
 
   // Subcomponents
   private final ThemeEditorContext myThemeEditorContext;
@@ -134,7 +134,6 @@ public class ThemeEditorComponent extends Splitter {
     void goToParent();
   }
 
-  private ThemeEditorStyle mySelectedTheme;
   private AttributesTableModel myModel;
 
   public ThemeEditorComponent(@NotNull final Project project) {
@@ -202,10 +201,10 @@ public class ThemeEditorComponent extends Splitter {
           }
 
           EditedStyleItem editedStyleItem = new EditedStyleItem(resourceValue, getSelectedStyle());
-          myCurrentSubStyle = myStyleResolver.getStyle(editedStyleItem.getValue());
+          mySubStyleName = editedStyleItem.getValue();
         }
         else {
-          myCurrentSubStyle = myStyleResolver.getStyle(value.getValue());
+          mySubStyleName = value.getValue();
         }
         mySubStyleSourceAttribute = value;
         loadStyleAttributes();
@@ -269,7 +268,7 @@ public class ThemeEditorComponent extends Splitter {
     myPanel.getBackButton().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        myCurrentSubStyle = null;
+        mySubStyleName = null;
         loadStyleAttributes();
       }
     });
@@ -300,17 +299,17 @@ public class ThemeEditorComponent extends Splitter {
         if (myPanel.isCreateNewThemeSelected()) {
           if (!createNewTheme()) {
             // User clicked "cancel", restore previously selected item in themes combo.
-            myPanel.setSelectedTheme(mySelectedTheme);
+            myPanel.setSelectedTheme(getSelectedTheme());
           }
         }
         else if (myPanel.isShowAllThemesSelected()) {
           if (!selectNewTheme()) {
-            myPanel.setSelectedTheme(mySelectedTheme);
+            myPanel.setSelectedTheme(getSelectedTheme());
           }
         }
         else if (myPanel.isRenameSelected()) {
           if (!renameTheme()) {
-            myPanel.setSelectedTheme(mySelectedTheme);
+            myPanel.setSelectedTheme(getSelectedTheme());
           }
         }
         else {
@@ -318,9 +317,8 @@ public class ThemeEditorComponent extends Splitter {
           final ThemeEditorStyle theme = (ThemeEditorStyle)item;
           assert theme != null;
 
-          mySelectedTheme = theme;
-          saveCurrentSelectedTheme();
-          myCurrentSubStyle = null;
+          myThemeName = theme.getQualifiedName();
+          mySubStyleName = null;
           mySubStyleSourceAttribute = null;
 
           // Unsubscribing from ResourceNotificationManager, because selectedTheme may come from different Module
@@ -364,7 +362,7 @@ public class ThemeEditorComponent extends Splitter {
     myResourceChangeListener = new ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
-        reload(mySelectedTheme.getQualifiedName(), myCurrentSubStyle != null ? myCurrentSubStyle.getQualifiedName() : null);
+        reload(myThemeName, mySubStyleName);
       }
     };
 
@@ -405,7 +403,7 @@ public class ThemeEditorComponent extends Splitter {
    * @see FileEditor#selectNotify().
    */
   public void selectNotify() {
-    reload(getPreviousSelectedTheme());
+    reload(myThemeName, mySubStyleName);
     subscribeResourceNotification();
   }
 
@@ -431,13 +429,11 @@ public class ThemeEditorComponent extends Splitter {
    * @return whether creation of new theme succeeded.
    */
   private boolean createNewTheme() {
-    String newThemeName = ThemeEditorUtils.createNewStyle(getSelectedStyle(), null, null, myThemeEditorContext, !isSubStyleSelected(), null);
+    String newThemeName = ThemeEditorUtils.createNewStyle(getSelectedTheme(), null, null, myThemeEditorContext, !isSubStyleSelected(), null);
     if (newThemeName != null) {
-      //TODO: this will be deleted in next CL, because myResourceChangeListener will be invoked instead of this.
-      AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
-      facet.refreshResources();
-
-      reload(newThemeName);
+      // We don't need to call reload here, because myResourceChangeListener will take care of it
+      myThemeName = newThemeName;
+      mySubStyleName = null;
       return true;
     }
     return false;
@@ -452,6 +448,7 @@ public class ThemeEditorComponent extends Splitter {
     if (dialog.showAndGet()) {
       String newThemeName = dialog.getTheme();
       if (newThemeName != null) {
+        // TODO: call loadStyleProperties instead
         reload(newThemeName);
         return true;
       }
@@ -464,8 +461,10 @@ public class ThemeEditorComponent extends Splitter {
    * @return Whether the renaming is successful
    */
   private boolean renameTheme() {
-    assert mySelectedTheme.isProjectStyle();
-    PsiElement namePsiElement = mySelectedTheme.getNamePsiElement();
+    ThemeEditorStyle selectedTheme = getSelectedTheme();
+    assert selectedTheme != null;
+    assert selectedTheme.isProjectStyle();
+    PsiElement namePsiElement = selectedTheme.getNamePsiElement();
     if (namePsiElement == null) {
       return false;
     }
@@ -473,7 +472,7 @@ public class ThemeEditorComponent extends Splitter {
     renameDialog.show();
     if (renameDialog.isOK()) {
       String newName = renameDialog.getNewName();
-      String newQualifiedName = mySelectedTheme.getQualifiedName().replace(mySelectedTheme.getName(), newName);
+      String newQualifiedName = selectedTheme.getQualifiedName().replace(selectedTheme.getName(), newName);
       AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
       if (facet != null) {
         facet.refreshResources();
@@ -497,7 +496,7 @@ public class ThemeEditorComponent extends Splitter {
     // TODO: This seems like it could be confusing for users, we might want to differentiate parent navigation depending if it's
     // substyle or theme navigation.
     if (isSubStyleSelected()) {
-      myCurrentSubStyle = parent;
+      mySubStyleName = parent.getQualifiedName();
       loadStyleAttributes();
     }
     else {
@@ -505,35 +504,18 @@ public class ThemeEditorComponent extends Splitter {
     }
   }
 
-  /**
-   * Save the current selected theme so we can restore it if we need to refresh the data.
-   * If the theme does not exist anymore, the first available theme will be selected.
-   */
-  private void saveCurrentSelectedTheme() {
-    ThemeEditorStyle selectedTheme = getSelectedStyle();
-    myPreviousSelectedTheme = selectedTheme == null ? null : selectedTheme.getQualifiedName();
-  }
-
-  @Nullable
-  public String getPreviousSelectedTheme() {
-    return myPreviousSelectedTheme;
-  }
-
   @Nullable
   ThemeEditorStyle getSelectedTheme() {
-    return mySelectedTheme;
-  }
-
-  //Never null, because DefaultComboBoxModel and fixed list of items rendered
-  @NotNull
-  private AttributesGrouper.GroupBy getSelectedAttrGroup() {
-    return (AttributesGrouper.GroupBy)myPanel.getAttrGroupCombo().getSelectedItem();
+    if (myThemeName == null) {
+      return null;
+    }
+    return myStyleResolver.getStyle(myThemeName);
   }
 
   @Nullable
   private ThemeEditorStyle getSelectedStyle() {
-    if (myCurrentSubStyle != null) {
-      return myCurrentSubStyle;
+    if (mySubStyleName != null) {
+      return getCurrentSubStyle();
     }
 
     return getSelectedTheme();
@@ -541,11 +523,20 @@ public class ThemeEditorComponent extends Splitter {
 
   @Nullable
   ThemeEditorStyle getCurrentSubStyle() {
-    return myCurrentSubStyle;
+    if (mySubStyleName == null) {
+      return null;
+    }
+    return myStyleResolver.getStyle(mySubStyleName);
   }
 
   private boolean isSubStyleSelected() {
-    return myCurrentSubStyle != null;
+    return mySubStyleName != null;
+  }
+
+  // Never null, because the list of elements of attGroup is constant and never changed
+  @NotNull
+  private AttributesGrouper.GroupBy getSelectedAttrGroup() {
+    return (AttributesGrouper.GroupBy)myPanel.getAttrGroupCombo().getSelectedItem();
   }
 
   /**
@@ -576,14 +567,11 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
 
-    //TODO: this will be deleted in next CL, because myResourceChangeListener will be invoked instead of this.
-    AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
-    assert facet != null;
-    facet.refreshResources();
-
     if (!isSubStyleSelected()) {
       // We changed a theme, so we are done.
-      reload(newStyleName);
+      // We don't need to call reload, because myResourceChangeListener will take care of it
+      myThemeName = newStyleName;
+      mySubStyleName = null;
       return;
     }
 
@@ -610,15 +598,16 @@ public class ThemeEditorComponent extends Splitter {
 
       String newThemeName = ThemeEditorUtils.createNewStyle(selectedTheme, sourcePropertyName, newStyleName, myThemeEditorContext, true, message);
       if (newThemeName != null) {
-        //TODO: this will be deleted in next CL
-        facet.refreshResources();
-        reload(newThemeName);
+        // We don't need to call reload, because myResourceChangeListener will take care of it
+        myThemeName = newThemeName;
+        mySubStyleName = newStyleName;
       }
     }
     else {
       // The theme pointing to the new style is writable, so go ahead.
-      // We are not reloading, because myResourceChangeListener will be triggered
       selectedTheme.setValue(sourcePropertyName, newStyleName);
+      // We don't need to call reload, because myResourceChangeListener will take care of it
+      mySubStyleName = newStyleName;
     }
   }
 
@@ -636,24 +625,22 @@ public class ThemeEditorComponent extends Splitter {
     // fails to find the local themes.
     Configuration configuration = myThemeEditorContext.getConfiguration();
     configuration.setTheme(null);
-
     myStyleResolver = new StyleResolver(configuration);
-    myCurrentSubStyle = defaultSubStyleName == null ? null : myStyleResolver.getStyle(defaultSubStyleName);
     mySubStyleSourceAttribute = null;
 
     final ThemeResolver themeResolver = new ThemeResolver(configuration, myStyleResolver);
     final ThemeEditorStyle defaultTheme = defaultThemeName == null ? null : themeResolver.getTheme(defaultThemeName);
     myPanel.getThemeCombo().setModel(new ThemesListModel(myProject, ThemeEditorUtils.getDefaultThemes(themeResolver), defaultTheme));
+    myThemeName = (myPanel.getSelectedTheme() == null) ? null : myPanel.getSelectedTheme().getQualifiedName();
+    mySubStyleName = (StringUtil.equals(myThemeName,defaultThemeName)) ? defaultSubStyleName : null;
     loadStyleAttributes();
-    mySelectedTheme = myPanel.getSelectedTheme();
-    saveCurrentSelectedTheme();
   }
 
   /**
    * Loads the theme attributes table for the current selected theme or substyle.
    */
   private void loadStyleAttributes() {
-    mySelectedTheme = myPanel.getSelectedTheme();
+
     final ThemeEditorStyle selectedTheme = getSelectedTheme();
     final ThemeEditorStyle selectedStyle = getSelectedStyle();
 
@@ -662,9 +649,8 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
 
-    myPanel.setSubstyleName(myCurrentSubStyle == null ? null : myCurrentSubStyle.getQualifiedName());
-
-    myPanel.getBackButton().setVisible(myCurrentSubStyle != null);
+    myPanel.setSubstyleName(mySubStyleName);
+    myPanel.getBackButton().setVisible(mySubStyleName != null);
     final Configuration configuration = myThemeEditorContext.getConfiguration();
     configuration.setTheme(selectedTheme.getQualifiedName());
 
