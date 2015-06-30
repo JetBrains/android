@@ -41,6 +41,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class NlPropertiesPanel extends JPanel implements DesignSurfaceListener {
+  public final static int UPDATE_DELAY_MSECS = 250;
+
   private final PTable myTable;
   private final NlPropertiesModel myModel;
   private DesignSurface mySurface;
@@ -146,7 +148,7 @@ public class NlPropertiesPanel extends JPanel implements DesignSurfaceListener {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     if (myUpdateQueue == null) {
-      myUpdateQueue = new MergingUpdateQueue("android.layout.propertysheet", 250, true, null, mySurface, null,
+      myUpdateQueue = new MergingUpdateQueue("android.layout.propertysheet", UPDATE_DELAY_MSECS, true, null, mySurface, null,
                                              Alarm.ThreadToUse.SWING_THREAD);
     }
     return myUpdateQueue;
