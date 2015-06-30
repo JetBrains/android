@@ -24,7 +24,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.Component;
 
 public class IntegerRenderer extends DefaultTableCellRenderer {
-  private static final Logger LOG = Logger.getInstance(ColorEditor.class);
+  private static final Logger LOG = Logger.getInstance(IntegerRenderer.class);
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
