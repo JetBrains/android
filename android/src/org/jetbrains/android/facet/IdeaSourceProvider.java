@@ -232,9 +232,13 @@ public abstract class IdeaSourceProvider {
         return file;
       }
 
-      VirtualFile root = AndroidRootUtil.getMainContentRoot(myFacet);
-      if (root != null) {
-        return root.findChild(ANDROID_MANIFEST_XML);
+      // Not calling AndroidRootUtil.getMainContentRoot(myFacet) because that method can
+      // recurse into this same method if it can't find a content root. (This scenario
+      // applies when we're looking for manifests in for example a temporary file system,
+      // as tested by ResourceTypeInspectionTest#testLibraryRevocablePermission)
+      VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
+      if (contentRoots.length == 1) {
+        return contentRoots[0].findChild(ANDROID_MANIFEST_XML);
       }
 
       return null;
