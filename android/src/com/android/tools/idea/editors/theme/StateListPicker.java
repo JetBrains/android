@@ -26,10 +26,20 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.color.ColorSelector;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.BoxLayout;
@@ -46,12 +56,14 @@ import java.util.List;
 import java.util.Map;
 
 public class StateListPicker extends JPanel {
-  static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b>";
+  private static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b>";
 
   private Module myModule;
   private Configuration myConfiguration;
+  private final List<StateListState> myStates;
 
   public StateListPicker(@NotNull List<StateListState> colorStates, @NotNull Module module, @NotNull Configuration configuration) {
+    myStates = colorStates;
     myModule = module;
     myConfiguration = configuration;
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -64,7 +76,7 @@ public class StateListPicker extends JPanel {
   }
 
   @NotNull
-  private ResourceComponent createStateComponent(StateListState state) {
+  private ResourceComponent createStateComponent(@NotNull StateListState state) {
     ResourceComponent component = new ResourceComponent();
     component.setVariantComboVisible(false);
 
@@ -95,8 +107,57 @@ public class StateListPicker extends JPanel {
     return component;
   }
 
+  public void updateStateList(@NotNull List<VirtualFile> files) {
+    Project project = myModule.getProject();
+    if (!AndroidResourceUtil.ensureFilesWritable(project, files)) {
+      return;
+    }
+
+    List<PsiFile> psiFiles = Lists.newArrayListWithCapacity(files.size());
+    PsiManager manager = PsiManager.getInstance(project);
+    for (VirtualFile file : files) {
+      PsiFile psiFile = manager.findFile(file);
+      if (psiFile != null) {
+        psiFiles.add(psiFile);
+      }
+    }
+
+    final List<ColorSelector> selectors = Lists.newArrayListWithCapacity(files.size());
+
+    for (VirtualFile file : files) {
+      final ColorSelector colorSelector = AndroidUtils.loadDomElement(myModule, file, ColorSelector.class);
+      if (colorSelector == null) {
+        AndroidUtils.reportError(project, file.getName() + " is not a statelist file");
+        return;
+      }
+      selectors.add(colorSelector);
+    }
+
+    new WriteCommandAction.Simple(project, "Change Color State List", psiFiles.toArray(new PsiFile[psiFiles.size()])) {
+      @Override
+      protected void run() {
+        for (ColorSelector colorSelector : selectors) {
+          XmlTag tag = colorSelector.getXmlTag();
+          for (XmlTag subtag : tag.getSubTags()) {
+            subtag.delete();
+          }
+          for (StateListState state : myStates) {
+            XmlTag child = tag.createChildTag(SdkConstants.TAG_ITEM, tag.getNamespace(), null, false);
+            child = tag.addSubTag(child, false);
+
+            Map<String, Boolean> attributes = state.getAttributes();
+            for (String attributeName : attributes.keySet()) {
+              child.setAttribute(attributeName, SdkConstants.ANDROID_URI, attributes.get(attributeName).toString());
+            }
+            child.setAttribute(SdkConstants.ATTR_COLOR, SdkConstants.ANDROID_URI, state.getColor());
+          }
+        }
+      }
+    }.execute();
+  }
+
   class StateActionListener implements ActionListener {
-    private StateListState myState;
+    private final StateListState myState;
 
     public StateActionListener(StateListState state) {
       myState = state;
@@ -164,10 +225,9 @@ public class StateListPicker extends JPanel {
     }
   }
 
-
   public static class StateListState {
     private String myColor;
-    private Map<String, Boolean> myAttributes;
+    private final Map<String, Boolean> myAttributes;
 
     public StateListState() {
       myAttributes = new HashMap<String, Boolean>();
