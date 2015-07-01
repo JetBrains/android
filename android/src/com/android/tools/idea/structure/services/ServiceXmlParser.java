@@ -31,6 +31,8 @@ import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.android.tools.idea.ui.properties.expressions.integer.IntExpression;
 import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import com.android.tools.idea.ui.properties.swing.*;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -40,6 +42,7 @@ import com.intellij.util.containers.Stack;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -233,8 +236,17 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       myServiceCategory = ServiceCategory.valueOf(UPPER_CAMEL.to(UPPER_UNDERSCORE, category));
     }
     catch (IllegalArgumentException e) {
+      // We got a bad category value - show the developer an error so they can fix their service.xml
+      List<String> validCategories = Lists.transform(Arrays.asList(ServiceCategory.values()), new Function<ServiceCategory, String>() {
+        @Nullable
+        @Override
+        public String apply(ServiceCategory c) {
+          return c.getDisplayName();
+        }
+      });
+
       throw new RuntimeException(
-        String.format("Invalid category %1$s, should be one of %2$s", category, Arrays.toString(ServiceCategory.values())));
+        String.format("Invalid category \"%1$s\", should be one of [%2$s]", category, Joiner.on(',').join(validCategories)));
     }
 
     Icon icon = new ImageIcon(iconFile.getPath());
