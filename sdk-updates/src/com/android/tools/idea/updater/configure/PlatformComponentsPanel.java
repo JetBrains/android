@@ -32,6 +32,8 @@ import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.tree.TreeUtil;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Enumeration;
@@ -60,6 +62,13 @@ public class PlatformComponentsPanel {
 
   // map of versions to current subpackages
   Multimap<AndroidVersion, UpdatablePkgInfo> myCurrentPackages = TreeMultimap.create();
+
+  private final ChangeListener myModificationListener = new ChangeListener() {
+    @Override
+    public void stateChanged(ChangeEvent e) {
+      refreshModified();
+    }
+  };
 
   public PlatformComponentsPanel() {
     myPlatformSummaryTable.setColumnSelectionAllowed(false);
@@ -91,7 +100,7 @@ public class PlatformComponentsPanel {
       for (UpdatablePkgInfo info : myCurrentPackages.get(version)) {
         NodeStateHolder holder = new NodeStateHolder(info);
         myStates.add(holder);
-        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview);
+        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview, myModificationListener);
         marker.add(node);
         versionNodes.add(node);
         if (info.getPkgDesc(myIncludePreview).isObsolete() && info.getPkgDesc(myIncludePreview).getType() == PkgType.PKG_PLATFORM) {
@@ -129,21 +138,13 @@ public class PlatformComponentsPanel {
       new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new ApiLevelColumnInfo(), new RevisionColumnInfo(),
         new StatusColumnInfo()};
     myPlatformSummaryTable = new TreeTableView(new ListTreeTableModelOnColumns(myPlatformSummaryRootNode, platformSummaryColumns));
-    SdkUpdaterConfigPanel.setTreeTableProperties(myPlatformSummaryTable, renderer);
-    MouseListener modificationListener = new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        refreshModified();
-      }
-    };
-    myPlatformSummaryTable.addMouseListener(modificationListener);
+    SdkUpdaterConfigPanel.setTreeTableProperties(myPlatformSummaryTable, renderer, myModificationListener);
 
     ColumnInfo[] platformDetailColumns =
       new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new ApiLevelColumnInfo(), new RevisionColumnInfo(),
         new StatusColumnInfo()};
     myPlatformDetailTable = new TreeTableView(new ListTreeTableModelOnColumns(myPlatformDetailsRootNode, platformDetailColumns));
-    SdkUpdaterConfigPanel.setTreeTableProperties(myPlatformDetailTable, renderer);
-    myPlatformDetailTable.addMouseListener(modificationListener);
+    SdkUpdaterConfigPanel.setTreeTableProperties(myPlatformDetailTable, renderer, myModificationListener);
   }
 
   public void setPackages(Multimap<AndroidVersion, UpdatablePkgInfo> packages) {

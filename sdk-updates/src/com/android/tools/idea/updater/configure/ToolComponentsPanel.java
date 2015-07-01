@@ -25,6 +25,8 @@ import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.tree.TreeUtil;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Comparator;
@@ -57,6 +59,12 @@ public class ToolComponentsPanel {
 
   private boolean myModified = false;
   private boolean myIncludePreview;
+  private final ChangeListener myModificationListener = new ChangeListener() {
+    @Override
+    public void stateChanged(ChangeEvent e) {
+      refreshModified();
+    }
+  };
 
   public ToolComponentsPanel() {
     myToolsDetailsCheckbox.addActionListener(new ActionListener() {
@@ -92,7 +100,7 @@ public class ToolComponentsPanel {
     for (UpdatablePkgInfo info : myBuildToolsPackages) {
       NodeStateHolder holder = new NodeStateHolder(info);
       myStates.add(holder);
-      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview);
+      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview, myModificationListener);
       buildToolsParent.add(node);
       buildToolsNodes.add(node);
     }
@@ -103,10 +111,10 @@ public class ToolComponentsPanel {
     for (UpdatablePkgInfo info : myToolsPackages) {
       NodeStateHolder holder = new NodeStateHolder(info);
       myStates.add(holder);
-      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview);
+      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview, myModificationListener);
       myToolsDetailsRootNode.add(node);
       if (!info.getPkgDesc(myIncludePreview).isObsolete()) {
-        myToolsSummaryRootNode.add(new PlatformDetailsTreeNode(holder, myIncludePreview));
+        myToolsSummaryRootNode.add(new PlatformDetailsTreeNode(holder, myIncludePreview, myModificationListener));
       }
     }
     refreshModified();
@@ -169,21 +177,12 @@ public class ToolComponentsPanel {
       new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new VersionColumnInfo(), new StatusColumnInfo()};
     myToolsSummaryTable = new TreeTableView(new ListTreeTableModelOnColumns(myToolsSummaryRootNode, toolsSummaryColumns));
 
-    SdkUpdaterConfigPanel.setTreeTableProperties(myToolsSummaryTable, renderer);
+    SdkUpdaterConfigPanel.setTreeTableProperties(myToolsSummaryTable, renderer, myModificationListener);
 
     ColumnInfo[] toolsDetailColumns =
       new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new VersionColumnInfo(), new StatusColumnInfo()};
     myToolsDetailTable = new TreeTableView(new ListTreeTableModelOnColumns(myToolsDetailsRootNode, toolsDetailColumns));
-    SdkUpdaterConfigPanel.setTreeTableProperties(myToolsDetailTable, renderer);
-
-    MouseListener modificationListener = new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        refreshModified();
-      }
-    };
-    myToolsDetailTable.addMouseListener(modificationListener);
-    myToolsSummaryTable.addMouseListener(modificationListener);
+    SdkUpdaterConfigPanel.setTreeTableProperties(myToolsDetailTable, renderer, myModificationListener);
   }
 
   public void clearState() {
