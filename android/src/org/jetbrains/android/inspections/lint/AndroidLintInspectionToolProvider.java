@@ -20,7 +20,9 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -1405,7 +1407,7 @@ public class AndroidLintInspectionToolProvider {
   }
   public static class AndroidLintLocalSuppressInspection extends AndroidLintInspectionBase {
     public AndroidLintLocalSuppressInspection() {
-      super(AndroidBundle.message("android.lint.inspections.local.suppress"), AnnotationDetector.ISSUE);
+      super(AndroidBundle.message("android.lint.inspections.local.suppress"), AnnotationDetector.INSIDE_METHOD);
     }
   }
 
@@ -1727,6 +1729,12 @@ public class AndroidLintInspectionToolProvider {
       }
 
       return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
+  }
+
+  public static class AndroidLintUniqueConstantsInspection extends AndroidLintInspectionBase {
+    public AndroidLintUniqueConstantsInspection() {
+      super(AndroidBundle.message("android.lint.inspections.unique.constants"), AnnotationDetector.UNIQUE);
     }
   }
 
