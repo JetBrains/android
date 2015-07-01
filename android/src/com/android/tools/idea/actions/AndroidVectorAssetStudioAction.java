@@ -42,12 +42,4 @@ public class AndroidVectorAssetStudioAction extends AndroidAssetStudioAction {
     }
     dialog.createAssets();
   }
-
-  @Override
-  public void update(AnActionEvent e) {
-    e.getPresentation().setVisible(
-      "true".equals(System.getProperty("testvectorassetstudio"))
-      && isAvailable(e.getDataContext())); // from superclass
-  }
-
 }
