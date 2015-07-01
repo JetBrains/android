@@ -61,11 +61,11 @@ public class HprofViewPanel implements Disposable {
     }
     mySelectionModel = new SelectionModel(currentHeap);
 
-    final InstanceReferenceTree referenceTree = new InstanceReferenceTree(mySelectionModel);
+    final InstanceReferenceTree referenceTree = new InstanceReferenceTree(project, mySelectionModel);
     treePanel.add(referenceTree.getComponent(), BorderLayout.CENTER);
 
     final InstancesTree instancesTree = new InstancesTree(project, mySelectionModel);
-    final ClassesTreeView classesTreeView = new ClassesTreeView(mySelectionModel);
+    final ClassesTreeView classesTreeView = new ClassesTreeView(project, mySelectionModel);
     JBSplitter splitter = createNavigationSplitter(classesTreeView.getComponent(), instancesTree.getComponent());
 
     JBPanel classPanel = new JBPanel(new BorderLayout());

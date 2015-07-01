@@ -15,18 +15,27 @@
  */
 package com.android.tools.idea.editors.hprof.tables;
 
+import com.android.tools.idea.actions.EditMultipleSourcesAction;
+import com.android.tools.idea.actions.PsiFileAndLineNavigation;
 import com.android.tools.idea.editors.allocations.ColumnTreeBuilder;
 import com.android.tools.perflib.heap.*;
 import com.intellij.debugger.ui.impl.tree.TreeBuilder;
 import com.intellij.debugger.ui.impl.tree.TreeBuilderNode;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.PopupHandler;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.components.JBList;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.xdebugger.impl.ui.XDebuggerUIConstants;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,10 +43,11 @@ import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class InstanceReferenceTree {
+public class InstanceReferenceTree implements DataProvider {
   private static final int MAX_AUTO_EXPANSION_DEPTH = 5;
   private static final SimpleTextAttributes SOFT_REFERENCE_TEXT_ATTRIBUTE =
     new SimpleTextAttributes(SimpleTextAttributes.STYLE_ITALIC, XDebuggerUIConstants.VALUE_NAME_ATTRIBUTES.getFgColor());
@@ -48,11 +58,15 @@ public class InstanceReferenceTree {
     }
   };
 
+  @NotNull private Project myProject;
   @NotNull private Tree myTree;
   @NotNull private JComponent myColumnTree;
+
   private Instance myInstance;
 
-  public InstanceReferenceTree(@NotNull SelectionModel selectionModel) {
+  public InstanceReferenceTree(@NotNull Project project, @NotNull SelectionModel selectionModel) {
+    myProject = project;
+
     final TreeBuilder model = new TreeBuilder(null) {
       @Override
       public void buildChildren(TreeBuilderNode node) {
@@ -127,13 +141,24 @@ public class InstanceReferenceTree {
       }
     });
 
-    ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree).addColumn(
-      new ColumnTreeBuilder.ColumnBuilder()
-        .setName("Reference Tree")
-        .setPreferredWidth(1200)
-        .setHeaderAlignment(SwingConstants.LEFT)
-        .setRenderer(
-          new ColoredTreeCellRenderer() {
+    myTree.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this);
+    JBList contextActionList = new JBList(new EditMultipleSourcesAction());
+    JBPopupFactory.getInstance().createListPopupBuilder(contextActionList);
+    final DefaultActionGroup popupGroup = new DefaultActionGroup(new EditMultipleSourcesAction());
+    myTree.addMouseListener(new PopupHandler() {
+      @Override
+      public void invokePopup(Component comp, int x, int y) {
+        ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, popupGroup).getComponent().show(comp, x, y);
+      }
+    });
+
+    ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
+      .addColumn(
+        new ColumnTreeBuilder.ColumnBuilder()
+          .setName("Reference Tree")
+          .setPreferredWidth(1200)
+          .setHeaderAlignment(SwingConstants.LEFT)
+          .setRenderer(new ColoredTreeCellRenderer() {
             @Override
             public void customizeCellRenderer(@NotNull JTree tree,
                                               Object value,
@@ -213,7 +238,8 @@ public class InstanceReferenceTree {
               }
             }
           })
-      ).addColumn(
+      )
+      .addColumn(
         new ColumnTreeBuilder.ColumnBuilder()
           .setName("Depth")
           .setPreferredWidth(40)
@@ -236,7 +262,8 @@ public class InstanceReferenceTree {
               }
             }
           })
-      ).addColumn(
+      )
+      .addColumn(
         new ColumnTreeBuilder.ColumnBuilder()
           .setName("Shallow Size")
           .setPreferredWidth(80)
@@ -259,8 +286,12 @@ public class InstanceReferenceTree {
               }
             }
           })
-      ).addColumn(
-      new ColumnTreeBuilder.ColumnBuilder().setName("Dominating Size").setPreferredWidth(80).setHeaderAlignment(SwingConstants.RIGHT)
+      )
+      .addColumn(
+      new ColumnTreeBuilder.ColumnBuilder()
+        .setName("Dominating Size")
+        .setPreferredWidth(80)
+        .setHeaderAlignment(SwingConstants.RIGHT)
         .setRenderer(new ColoredTreeCellRenderer() {
           @Override
           public void customizeCellRenderer(@NotNull JTree tree,
@@ -278,7 +309,8 @@ public class InstanceReferenceTree {
               setTextAlign(SwingConstants.RIGHT);
             }
           }
-        }));
+        })
+      );
 
     myColumnTree = builder.build();
 
@@ -375,6 +407,39 @@ public class InstanceReferenceTree {
       String[] scratchNameArray = new String[scratchList.size()];
       node.add(new InstanceNode(getMutableModel(), reference, scratchList.toArray(scratchNameArray)));
     }
+  }
+
+  @Nullable
+  @Override
+  public Object getData(@NonNls String dataId) {
+    if (CommonDataKeys.NAVIGATABLE_ARRAY.is(dataId)) {
+      return getTargetFiles();
+    }
+    else if (CommonDataKeys.PROJECT.is(dataId)) {
+      return myProject;
+    }
+    return null;
+  }
+
+  @Nullable
+  private PsiFileAndLineNavigation[] getTargetFiles() {
+    Object node = myTree.getSelectionPath().getLastPathComponent();
+
+    String className = null;
+    if (node instanceof InstanceNode) {
+      Instance instance = ((InstanceNode)node).getInstance();
+      if (instance instanceof ClassObj) {
+        className = ((ClassObj)instance).getClassName();
+      }
+      else {
+        className = instance.getClassObj().getClassName();
+        if (instance instanceof ArrayInstance) {
+          className = className.replace("[]", "");
+        }
+      }
+    }
+
+    return PsiFileAndLineNavigation.wrappersForClassName(myProject, className, 0);
   }
 
   private static class InstanceNode extends TreeBuilderNode {

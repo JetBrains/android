@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.hprof.tables;
 
+import com.android.tools.idea.actions.EditMultipleSourcesAction;
+import com.android.tools.idea.actions.PsiFileAndLineNavigation;
 import com.android.tools.idea.editors.allocations.ColumnTreeBuilder;
 import com.android.tools.idea.editors.hprof.descriptors.*;
 import com.android.tools.perflib.heap.*;
@@ -32,34 +34,44 @@ import com.intellij.debugger.ui.impl.watch.DebuggerTreeNodeImpl;
 import com.intellij.debugger.ui.impl.watch.DefaultNodeDescriptor;
 import com.intellij.debugger.ui.impl.watch.NodeDescriptorImpl;
 import com.intellij.debugger.ui.tree.NodeDescriptor;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.PopupHandler;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.components.JBList;
 import com.sun.jdi.request.EventRequest;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.*;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
-public class InstancesTree {
+public class InstancesTree implements DataProvider {
   private static final int NODES_PER_EXPANSION = 100;
 
+  @NotNull private Project myProject;
   @NotNull private DebuggerTree myDebuggerTree;
   @NotNull private JComponent myColumnTree;
+
   @NotNull private DebugProcessImpl myDebugProcess;
-  @NotNull private volatile SuspendContextImpl myDummySuspendContext;
+  @SuppressWarnings("NullableProblems") @NotNull private volatile SuspendContextImpl myDummySuspendContext;
+
   @NotNull private Heap myHeap;
   @Nullable private ClassObj myClassObj;
   @Nullable private Comparator<DebuggerTreeNodeImpl> myComparator;
   @NotNull private SortOrder mySortOrder = SortOrder.UNSORTED;
 
   public InstancesTree(@NotNull Project project, @NotNull final SelectionModel selectionModel) {
+    myProject = project;
+
     myDebuggerTree = new DebuggerTree(project) {
       @Override
       protected void build(DebuggerContextImpl context) {
@@ -67,7 +79,13 @@ public class InstancesTree {
         Instance instance = ((InstanceFieldDescriptorImpl)root.getDescriptor()).getInstance();
         addChildren(root, null, instance);
       }
+
+      @Override
+      public Object getData(@NonNls String dataId) {
+        return InstancesTree.this.getData(dataId);
+      }
     };
+
     myHeap = selectionModel.getHeap();
     myDebugProcess = new DebugProcessEvents(project);
     final SuspendManagerImpl suspendManager = new SuspendManagerImpl(myDebugProcess);
@@ -128,6 +146,17 @@ public class InstancesTree {
     myDebuggerTree.setModel(model);
     myDebuggerTree.setRootVisible(false);
 
+    myDebuggerTree.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this);
+    JBList contextActionList = new JBList(new EditMultipleSourcesAction());
+    JBPopupFactory.getInstance().createListPopupBuilder(contextActionList);
+    final DefaultActionGroup popupGroup = new DefaultActionGroup(new EditMultipleSourcesAction());
+    myDebuggerTree.addMouseListener(new PopupHandler() {
+      @Override
+      public void invokePopup(Component comp, int x, int y) {
+        ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, popupGroup).getComponent().show(comp, x, y);
+      }
+    });
+
     selectionModel.addListener(new SelectionModel.SelectionListener() {
       @Override
       public void onHeapChanged(@NotNull Heap heap) {
@@ -177,7 +206,6 @@ public class InstancesTree {
       }
     });
 
-    // Add a listener specifically for detecting if the user decided to show more nodes.
     myDebuggerTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
       public void valueChanged(TreeSelectionEvent e) {
@@ -219,7 +247,8 @@ public class InstancesTree {
       }
     });
 
-    ColumnTreeBuilder builder = new ColumnTreeBuilder(myDebuggerTree).addColumn(
+    ColumnTreeBuilder builder = new ColumnTreeBuilder(myDebuggerTree)
+      .addColumn(
         new ColumnTreeBuilder.ColumnBuilder()
           .setName("Instance")
           .setPreferredWidth(600)
@@ -230,8 +259,7 @@ public class InstancesTree {
               return getDefaultOrdering(a, b);
             }
           })
-          .setRenderer((DebuggerTreeRenderer)myDebuggerTree.getCellRenderer())
-      )
+          .setRenderer((DebuggerTreeRenderer)myDebuggerTree.getCellRenderer()))
       .addColumn(
         new ColumnTreeBuilder.ColumnBuilder()
           .setName("Depth")
@@ -565,5 +593,43 @@ public class InstancesTree {
     if (currentArrayIndex == limit) {
       node.add(DebuggerTreeNodeImpl.createNodeNoUpdate(myDebuggerTree, new ExpansionDescriptorImpl("array elements", limit, arrayLength)));
     }
+  }
+
+  @Nullable
+  @Override
+  public Object getData(@NonNls String dataId) {
+    if (CommonDataKeys.NAVIGATABLE_ARRAY.is(dataId)) {
+      return getTargetFiles();
+    }
+    else if (CommonDataKeys.PROJECT.is(dataId)) {
+      return myProject;
+    }
+    return null;
+  }
+
+  @Nullable
+  private PsiFileAndLineNavigation[] getTargetFiles() {
+    Object node = myDebuggerTree.getSelectionPath().getLastPathComponent();
+
+    String className = null;
+    if (node instanceof DebuggerTreeNodeImpl) {
+      NodeDescriptorImpl nodeDescriptor = ((DebuggerTreeNodeImpl)node).getDescriptor();
+      if (nodeDescriptor instanceof InstanceFieldDescriptorImpl) {
+        Instance instance = ((InstanceFieldDescriptorImpl)nodeDescriptor).getInstance();
+        if (instance != null) {
+          if (instance instanceof ClassObj) {
+            className = ((ClassObj)instance).getClassName();
+          }
+          else {
+            className = instance.getClassObj().getClassName();
+            if (instance instanceof ArrayInstance) {
+              className = className.replace("[]", "");
+            }
+          }
+        }
+      }
+    }
+
+    return PsiFileAndLineNavigation.wrappersForClassName(myProject, className, 0);
   }
 }
