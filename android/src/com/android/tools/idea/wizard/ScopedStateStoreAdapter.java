@@ -113,6 +113,17 @@ public class ScopedStateStoreAdapter implements AssetStudioAssetGenerator.AssetS
     myState.put(ATTR_CLIPART_NAME, name);
   }
 
+  @Nullable
+  @Override
+  public String getVectorLibIconPath() {
+    return myState.get(ATTR_VECTOR_LIB_ICON_PATH);
+  }
+
+  @Override
+  public void setVectorLibIconPath(String name) {
+    myState.put(ATTR_VECTOR_LIB_ICON_PATH, name);
+  }
+
   @Override
   public Color getForegroundColor() {
     Color color = myState.get(ATTR_FOREGROUND_COLOR);

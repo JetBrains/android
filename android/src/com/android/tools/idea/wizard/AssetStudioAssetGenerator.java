@@ -22,9 +22,11 @@ import com.android.assetstudiolib.vectordrawable.Svg2Vector;
 import com.android.assetstudiolib.vectordrawable.VdPreview;
 import com.android.resources.Density;
 import com.android.tools.idea.rendering.ImageUtils;
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -55,6 +57,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   public static final String ATTR_SOURCE_TYPE = "sourceType";
   public static final String ATTR_IMAGE_PATH = "imagePath";
   public static final String ATTR_CLIPART_NAME = "clipartPath";
+  public static final String ATTR_VECTOR_LIB_ICON_PATH = "vectorLibIconPath";
   public static final String ATTR_FOREGROUND_COLOR = "foregroundColor";
   public static final String ATTR_BACKGROUND_COLOR = "backgroundColor";
   public static final String ATTR_ASSET_TYPE = "assetType";
@@ -113,6 +116,11 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
 
     void setClipartName(String clipartName);
 
+    @Nullable
+    public String getVectorLibIconPath();
+
+    public void setVectorLibIconPath(String path);
+
     Color getForegroundColor();
 
     void setForegroundColor(Color fg);
@@ -160,7 +168,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
    * Types of sources that the asset studio can use to generate icons from
    */
   public enum SourceType {
-    IMAGE, CLIPART, TEXT, SVG
+    IMAGE, CLIPART, TEXT, SVG, VECTORDRAWABLE
   }
 
 
@@ -361,16 +369,18 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
 
     BufferedImage sourceImage = null;
     switch (sourceType) {
-      case SVG:  {
+      case SVG:
+      case VECTORDRAWABLE: {
         // So here we should only generate one dpi image.
-        String path = myContext.getImagePath();
+        String path = sourceType == SourceType.SVG ? myContext.getImagePath() :
+          myContext.getVectorLibIconPath();
         if (path == null || path.isEmpty()) {
           return;
         }
         // Get the parsing errors while generating the images.
         // Save the error log into context to be later picked up by the step UI.
         StringBuilder errorLog = new StringBuilder();
-        sourceImage = getSvgImage(path, errorLog);
+        sourceImage = getSvgImage(path, errorLog, sourceType);
         myContext.setErrorLog(errorLog.toString());
         break;
       }
@@ -481,7 +491,8 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     }
 
     options.sourceImage = sourceImage;
-    if (sourceType == SourceType.SVG) {
+    // Override the density since we only want to generate one image in these cases.
+    if (sourceType == SourceType.SVG || sourceType == SourceType.VECTORDRAWABLE) {
       options.density = Density.ANYDPI;
     }
     generator.generate(null, categoryMap, this, options, baseName);
@@ -532,12 +543,17 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   }
 
   @NotNull
-  private static BufferedImage getSvgImage(@NotNull String path, StringBuilder errorLog) {
-    String xmlFileContent = generateVectorXml(new File(path), errorLog);
-
+  private static BufferedImage getSvgImage(@NotNull String path, StringBuilder errorLog,
+                                           SourceType sourceType) {
+    String xmlFileContent;
+    if (sourceType == SourceType.SVG) {
+      xmlFileContent = generateVectorXml(new File(path), errorLog);
+    } else {
+      assert sourceType == SourceType.VECTORDRAWABLE;
+      xmlFileContent = readXmlFile(path);
+    }
     final VdPreview.Size imageSize = VdPreview.Size.createSizeFromWidth(SVG_PREVIEW_WIDTH);
-    BufferedImage image = VdPreview.getPreviewFromVectorXml(imageSize, xmlFileContent,
-                                                            errorLog);
+    BufferedImage image = VdPreview.getPreviewFromVectorXml(imageSize, xmlFileContent, errorLog);
 
     if (image == null) {
       //noinspection UndesirableClassUsage
@@ -548,10 +564,34 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     return image;
   }
 
+  /**
+   * Read the XML file directly as a simple string.
+   * If there is any exception, just return null.
+   */
+  @Nullable
+  private static String readXmlFile(@NotNull String path) {
+    String xmlFileContent = null;
+    try {
+      xmlFileContent = new String(Files.toString(new File(path), Charsets.UTF_8));
+    } catch (IOException e) {
+      LOG.error(e);
+    }
+    return xmlFileContent;
+  }
+
   public void outputXmlToRes(File targetResDir) {
-    String currentFilePath = myContext.getImagePath();
-    // At output step, we can ignore the errors since they have been exposed in the previous step.
-    String xmlFileContent = generateVectorXml(new File(currentFilePath), null);
+    SourceType sourceType = myContext.getSourceType();
+
+    String xmlFileContent;
+    if (sourceType == SourceType.SVG) {
+      String currentFilePath = myContext.getImagePath();
+      // At output step, we can ignore the errors since they have been exposed in the previous step.
+      xmlFileContent = generateVectorXml(new File(currentFilePath), null);
+    } else {
+      String currentIconPath = myContext.getVectorLibIconPath();
+      assert sourceType == SourceType.VECTORDRAWABLE;
+      xmlFileContent = readXmlFile(currentIconPath);
+    }
 
     String xmlFileName = myContext.getAssetName();
     // Here get the XML file content, and write into targetResDir / drawable / ***.xml

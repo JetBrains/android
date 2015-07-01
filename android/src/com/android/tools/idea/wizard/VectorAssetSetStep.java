@@ -21,6 +21,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkAdapter;
@@ -29,7 +30,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+
 import javax.swing.event.HyperlinkEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Collection;
@@ -56,25 +60,41 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
   private JLabel myImageFileLabel;
   private JLabel myResourceNameLabel;
   private JTextField myResourceNameField;
+
   private JPanel myErrorPanel;
   private JLabel myConvertError;
   private HyperlinkLabel myMoreErrors;
   private MoreErrorHyperlinkAdapter myMoreErrorHyperlinkAdapter = new MoreErrorHyperlinkAdapter();
+  private JButton myIconPickerButton;
+  private JLabel myIconLabel;
+  private JPanel myIconPickerPanel;
+  private JRadioButton myLocalSVGFilesRadioButton;
+  private JRadioButton myMaterialIconsRadioButton;
+  private JPanel myImageFileBrowserPanel;
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
   public VectorAssetSetStep(TemplateWizardState state, @Nullable Project project, @Nullable Module module,
                       @Nullable Icon sidePanelIcon, UpdateListener updateListener, @Nullable VirtualFile invocationTarget) {
     super(state, project, module, sidePanelIcon, updateListener, invocationTarget);
 
-    myImageFile.addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory
-        .createSingleFileDescriptor("svg"));
+    myImageFile.addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileDescriptor("svg"));
 
     myTemplateState.put(ATTR_ASSET_TYPE, AssetType.ACTIONBAR.name());
     // TODO: hook up notification type here!
     mySelectedAssetType = AssetType.ACTIONBAR;
     register(ATTR_ASSET_NAME, myResourceNameField);
+
     myMoreErrors.addHyperlinkListener(myMoreErrorHyperlinkAdapter);
     myErrorPanel.setVisible(false);
+    register(ATTR_SOURCE_TYPE, myMaterialIconsRadioButton, AssetStudioAssetGenerator.SourceType.VECTORDRAWABLE);
+    register(ATTR_SOURCE_TYPE, myLocalSVGFilesRadioButton, AssetStudioAssetGenerator.SourceType.SVG);
+
+    myIconPickerButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        displayVectorIconDialog();
+      }
+    });
   }
 
   public class MoreErrorHyperlinkAdapter extends HyperlinkAdapter {
@@ -111,6 +131,17 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
         }
       });
     }
+
+    if (myMaterialIconsRadioButton.isSelected()) {
+      show(myIconPickerPanel, myIconLabel);
+      hide(myImageFileBrowserPanel, myImageFileLabel);
+    }
+    else {
+      assert myLocalSVGFilesRadioButton.isSelected();
+      show(myImageFileBrowserPanel, myImageFileLabel);
+      hide(myIconPickerPanel, myIconLabel);
+    }
+
   }
 
   @Override
@@ -131,6 +162,7 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
       setIconOrClear(myImagePreview, previewImage);
     } else {
       myIsValid = false;
+      setIconOrClear(myImagePreview, null);
     }
 
     myUpdateListener.update();
@@ -222,5 +254,19 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
   @Override
   protected JLabel getError() {
     return myError;
+  }
+
+  private void displayVectorIconDialog() {
+    DialogBuilder builder = new DialogBuilder(myPanel);
+    // TODO: Set up listener for the OK button status change from IconPicker.
+    IconPicker ip = new IconPicker(builder);
+    builder.setCenterPanel(ip);
+    builder.setTitle("Select Icon");
+    if (!builder.showAndGet()) {
+      return;
+    }
+
+    myTemplateState.put(ATTR_VECTOR_LIB_ICON_PATH, ip.getSelectIcon().getURL().getPath());
+    update();
   }
 }
