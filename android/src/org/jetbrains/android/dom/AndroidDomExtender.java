@@ -18,6 +18,7 @@ package org.jetbrains.android.dom;
 import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -414,6 +415,9 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   }
 
   public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
+    if (DumbService.isDumb(facet.getModule().getProject())) {
+      return Collections.emptyMap();
+    }
     return facet.getClassMap(AndroidUtils.VIEW_CLASS_NAME, SimpleClassMapConstructor.getInstance());
   }
 
