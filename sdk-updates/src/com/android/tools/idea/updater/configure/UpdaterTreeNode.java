@@ -16,6 +16,7 @@
 package com.android.tools.idea.updater.configure;
 
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.util.ui.ThreeStateCheckBox;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -113,11 +114,11 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
 
   public static class Renderer extends JPanel implements TreeCellRenderer {
     private final ColoredTreeCellRenderer myTextRenderer;
-    public final JCheckBox myCheckbox;
+    public final ThreeStateCheckBox myCheckbox;
 
     public Renderer() {
       super(new BorderLayout());
-      myCheckbox = new JCheckBox();
+      myCheckbox = new ThreeStateCheckBox();
       myTextRenderer = new ColoredTreeCellRenderer() {
         @Override
         public void customizeCellRenderer(@NotNull JTree tree,
@@ -148,8 +149,12 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
       UpdaterTreeNode node = (UpdaterTreeNode)value;
       invalidate();
       myCheckbox.setVisible(true);
-      myCheckbox.setSelected(node.getCurrentState() != NodeStateHolder.SelectedState.NOT_INSTALLED);
-      myCheckbox.setEnabled(node.getCurrentState() != NodeStateHolder.SelectedState.MIXED);
+      if (node.getCurrentState() == NodeStateHolder.SelectedState.MIXED) {
+        myCheckbox.setState(ThreeStateCheckBox.State.DONT_CARE);
+      }
+      else {
+        myCheckbox.setSelected(node.getCurrentState() == NodeStateHolder.SelectedState.INSTALLED);
+      }
       myCheckbox.setOpaque(false);
       myCheckbox.setBackground(null);
       setBackground(null);
