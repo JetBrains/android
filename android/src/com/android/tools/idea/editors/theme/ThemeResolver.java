@@ -5,7 +5,6 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.AppResourceRepository;
@@ -16,7 +15,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,12 +55,6 @@ public class ThemeResolver {
 
   public ThemeResolver(@NotNull Configuration configuration, @NotNull StyleResolver styleResolver) {
     myStyleResolver = styleResolver;
-    IAndroidTarget target = configuration.getTarget();
-    if (target == null) {
-      myAllThemes = myProjectThemes = myFrameworkThemes = myProjectLocalThemes = Collections.emptyList();
-      LOG.error("Unable to get IAndroidTarget.");
-      return;
-    }
 
     final Queue<StyleResourceValue> localThemes = new LinkedList<StyleResourceValue>(getProjectThemesNoLibraries(configuration));
     // If there are no libraries, resolvedThemes will be the same as localThemes.
@@ -74,21 +66,9 @@ public class ThemeResolver {
     myFrameworkThemes = Lists.newArrayListWithCapacity(frameworkThemes.size());
     myAllThemes = Lists.newArrayListWithExpectedSize(resolvedThemes.size() * 2 + frameworkThemes.size());
 
-    AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, configuration.getModule());
-    if (androidTargetData == null) {
-      LOG.error("Unable to get AndroidTargetData.");
-      return;
-    }
-
     ResourceResolver resolver = configuration.getResourceResolver();
     if (resolver == null) {
       LOG.error("Unable to get ResourceResolver.");
-      return;
-    }
-
-    LocalResourceRepository resources = AppResourceRepository.getAppResources(configuration.getModule(), true);
-    if (resources == null) {
-      LOG.error("Unable to get AppResourceRepository.");
       return;
     }
 
