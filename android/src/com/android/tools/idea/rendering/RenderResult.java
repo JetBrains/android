@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -57,8 +58,11 @@ public class RenderResult {
       ShadowType shadowType = alphaChannelImage ? ShadowType.NONE : ShadowType.RECTANGULAR;
       if (shadowType == ShadowType.NONE && renderTask.isNonRectangular()) {
         shadowType = ShadowType.ARBITRARY;
-      } else if (HardwareConfigHelper.isRound(renderTask.getConfiguration().getDevice())) {
-        shadowType = ShadowType.ARBITRARY;
+      } else {
+        Device device = renderTask.getConfiguration().getDevice();
+        if (device != null && device.isScreenRound()) {
+          shadowType = ShadowType.ARBITRARY;
+        }
       }
       myImage = new RenderedImage(configuration, image, alphaChannelImage, shadowType);
     } else {
