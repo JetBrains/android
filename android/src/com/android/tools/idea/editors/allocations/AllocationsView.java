@@ -634,7 +634,11 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     @Nullable
     @Override
     public Object getData(@NonNls String dataId) {
-      return AllocationsView.this.getData(dataId, myInfoTable.getValueAt(myInfoTable.getSelectedRow(), 0));
+      int selectedRow = myInfoTable.getSelectedRow();
+      if (selectedRow < 0) {
+        return null;
+      }
+      return AllocationsView.this.getData(dataId, myInfoTable.getValueAt(selectedRow, 0));
     }
   }
 }
