@@ -19,6 +19,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -66,7 +67,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     assertEquals("Theme", theme.getParent().getName());
 
     assertEquals(1, theme.getValues().size());
-    EditedStyleItem value = theme.getValues().toArray(new EditedStyleItem[0])[0];
+    EditedStyleItem value = Iterables.get(theme.getValues(), 0);
     assertEquals("windowBackground", value.getName());
     assertEquals("@drawable/pic", value.getValue());
 
