@@ -108,6 +108,17 @@ public final class TemplateWizardContextAdapter implements AssetStudioContext {
     myWizardState.put(ATTR_CLIPART_NAME, clipartName);
   }
 
+  @Nullable
+  @Override
+  public String getVectorLibIconPath() {
+    return (String)myWizardState.get(ATTR_VECTOR_LIB_ICON_PATH);
+  }
+
+  @Override
+  public void setVectorLibIconPath(String path) {
+    myWizardState.put(ATTR_VECTOR_LIB_ICON_PATH, path);
+  }
+
   @Override
   public Color getForegroundColor() {
     return getNonNullValue(ATTR_FOREGROUND_COLOR, Color.class);

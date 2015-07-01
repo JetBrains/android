@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.wizard;
 
+import com.android.SdkConstants;
 import com.android.assetstudiolib.ActionBarIconGenerator;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.resources.Density;
@@ -60,6 +61,7 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
 
   private static final String V11 = "V11";
   private static final String V9 = "V9";
+  public static final String IMAGES_CLIPART_BIG = "images/clipart/big/";
 
   private JPanel myPanel;
   private JRadioButton myImageRadioButton;
@@ -308,7 +310,8 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
     FlowLayout layout = new FlowLayout();
     dialog.getRootPane().setLayout(layout);
     int count = 0;
-    for (Iterator<String> iter = GraphicGenerator.getClipartNames(); iter.hasNext(); ) {
+    for (Iterator<String> iter = GraphicGenerator.getResourcesNames(IMAGES_CLIPART_BIG, SdkConstants.DOT_PNG);
+         iter.hasNext(); ) {
       final String name = iter.next();
       try {
         JButton btn = new JButton();
