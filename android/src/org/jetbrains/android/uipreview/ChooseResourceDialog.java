@@ -16,6 +16,7 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.StateListPicker;
@@ -573,7 +574,15 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       myResultResourceName = SdkConstants.COLOR_RESOURCE_PREFIX + colorName;
     }
     else if (myContentPanel.getSelectedComponent() == myStateListPickerPanel && myResourceNameVisibility != ResourceNameVisibility.HIDE) {
-      // TODO: create or modify the relevant xml files
+      String stateListName = myResourceNameField.getText();
+      List<String> dirNames = Collections.singletonList("color");
+
+      List<VirtualFile> files = AndroidResourceUtil.findOrCreateStateListFiles(myModule, ResourceFolderType.COLOR, ResourceType.COLOR, stateListName, dirNames);
+      if (files != null) {
+        myStateListPicker.updateStateList(files);
+      }
+
+      myResultResourceName = SdkConstants.COLOR_RESOURCE_PREFIX + stateListName;
     }
     super.doOKAction();
   }
@@ -592,6 +601,9 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       Color color = myColorPicker.getColor();
       myNewResourceAction.setEnabled(false);
       myResultResourceName = ResourceHelper.colorToString(color);
+    }
+    else if (selectedComponent == myStateListPickerPanel) {
+      myNewResourceAction.setEnabled(false);
     }
     else {
       boolean isProjectPanel = selectedComponent == myProjectPanel.myComponent;
@@ -686,7 +698,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       myComboBox.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          java.util.List<ResourceElement> resources = (java.util.List<ResourceElement>)myComboBox.getClientProperty(COMBO);
+          List<ResourceElement> resources = (List<ResourceElement>)myComboBox.getClientProperty(COMBO);
           myComboTextArea.setText(getResourceElementValue(resources.get(myComboBox.getSelectedIndex())));
         }
       });
@@ -729,7 +741,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
         if (file == null) {
           String value = element.getPreviewString();
           if (value == null) {
-            java.util.List<ResourceElement> resources = element.getPreviewResources();
+            List<ResourceElement> resources = element.getPreviewResources();
 
             if (resources == null) {
               long time = System.currentTimeMillis();
@@ -828,7 +840,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     }
 
     private void showComboPreview(ResourceItem element) {
-      java.util.List<ResourceElement> resources = element.getPreviewResources();
+      List<ResourceElement> resources = element.getPreviewResources();
       String selection = (String)myComboBox.getSelectedItem();
       if (selection == null) {
         selection = element.getPreviewComboDefaultSelection();
@@ -872,7 +884,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   }
 
   private static class ResourceGroup {
-    private java.util.List<ResourceItem> myItems = new ArrayList<ResourceItem>();
+    private List<ResourceItem> myItems = new ArrayList<ResourceItem>();
     private final ResourceType myType;
 
     public ResourceGroup(ResourceType type, ResourceManager manager) {
@@ -920,7 +932,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       return myType.getName();
     }
 
-    public java.util.List<ResourceItem> getItems() {
+    public List<ResourceItem> getItems() {
       return myItems;
     }
 
@@ -936,7 +948,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     private final VirtualFile myFile;
     private final Icon myIcon;
     private String myPreviewString;
-    private java.util.List<ResourceElement> myPreviewResources;
+    private List<ResourceElement> myPreviewResources;
     private DefaultComboBoxModel myPreviewComboModel;
     private String myDefaultSelection;
     private Icon myPreviewIcon;
@@ -972,7 +984,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       myPreviewString = previewString;
     }
 
-    public java.util.List<ResourceElement> getPreviewResources() {
+    public List<ResourceElement> getPreviewResources() {
       return myPreviewResources;
     }
 
@@ -984,7 +996,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       return myDefaultSelection;
     }
 
-    public void setPreviewResources(java.util.List<ResourceElement> previewResources,
+    public void setPreviewResources(List<ResourceElement> previewResources,
                                     DefaultComboBoxModel previewComboModel,
                                     String defaultSelection) {
       myPreviewResources = previewResources;
