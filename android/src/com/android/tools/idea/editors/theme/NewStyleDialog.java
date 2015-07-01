@@ -79,7 +79,7 @@ public class NewStyleDialog extends DialogWrapper {
 
     myStyleNameTextField.setText(getNewStyleNameSuggestion(defaultParentName, currentThemeName));
 
-    final ThemeResolver themeResolver = new ThemeResolver(configuration);
+    final ThemeResolver themeResolver = context.getThemeResolver();
     final ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(themeResolver);
     ThemeEditorStyle defaultParent = null;
     if (defaultParentName != null) {
