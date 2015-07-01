@@ -151,6 +151,9 @@ public class SdkUpdaterConfigPanel {
         // do nothing
       }
     });
+    tt.getTree().setToggleClickCount(0);
+    tt.getTree().setShowsRootHandles(true);
+
     setTableProperties(tt, listener);
   }
 
@@ -199,8 +202,6 @@ public class SdkUpdaterConfigPanel {
         }
       }
     });
-    tt.getTree().setToggleClickCount(0);
-    tt.getTree().setShowsRootHandles(true);
   }
 
   public void refresh() {
