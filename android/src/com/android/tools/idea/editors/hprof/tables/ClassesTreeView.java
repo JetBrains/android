@@ -15,16 +15,26 @@
  */
 package com.android.tools.idea.editors.hprof.tables;
 
+import com.android.tools.idea.actions.EditMultipleSourcesAction;
+import com.android.tools.idea.actions.PsiFileAndLineNavigation;
 import com.android.tools.idea.editors.allocations.ColumnTreeBuilder;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.PopupHandler;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.components.JBList;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.HashSet;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,19 +49,32 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class ClassesTreeView {
+public class ClassesTreeView implements DataProvider {
+  @NotNull private Project myProject;
   @NotNull private Tree myTree;
   @NotNull private JComponent myColumnTree;
   @Nullable private Comparator<DefaultMutableTreeNode> myComparator;
   private int myCurrentHeapId;
-  private boolean myShowRootHandles = false;
 
-  public ClassesTreeView(@NotNull final SelectionModel selectionModel) {
+  public ClassesTreeView(@NotNull Project project, @NotNull final SelectionModel selectionModel) {
+    myProject = project;
+
     final DefaultTreeModel model = new DefaultTreeModel(new DefaultMutableTreeNode("Root node"));
     myTree = new Tree(model);
     myTree.setRootVisible(false);
-    myTree.setShowsRootHandles(myShowRootHandles);
+    myTree.setShowsRootHandles(false);
     myTree.setLargeModel(true);
+
+    myTree.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this);
+    JBList contextActionList = new JBList(new EditMultipleSourcesAction());
+    JBPopupFactory.getInstance().createListPopupBuilder(contextActionList);
+    final DefaultActionGroup popupGroup = new DefaultActionGroup(new EditMultipleSourcesAction());
+    myTree.addMouseListener(new PopupHandler() {
+      @Override
+      public void invokePopup(Component comp, int x, int y) {
+        ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, popupGroup).getComponent().show(comp, x, y);
+      }
+    });
 
     selectionModel.addListener(new SelectionModel.SelectionListener() {
       @Override
@@ -85,16 +108,27 @@ public class ClassesTreeView {
 
         sortTree(root);
         model.nodeStructureChanged(root);
+        final TreeNode targetNode = nodeToSelect;
 
-        // If the new heap has the selected class (from a previous heap), then select it and scroll to it.
-        if (nodeToSelect != null) {
-          TreePath pathToSelect = new TreePath(model.getPathToRoot(nodeToSelect));
-          myTree.scrollPathToVisible(pathToSelect);
-          myTree.setSelectionPath(pathToSelect);
-        }
-        else {
-          selectionModel.setClassObj(null);
-        }
+        // This is kind of clunky, but the viewport doesn't know how big the tree is until it repaints.
+        // We need to do this because the contents of this tree has been more or less completely replaced.
+        // Unfortunately, calling repaint() only queues it, so we actually need an extra frame to select the node.
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            // If the new heap has the selected class (from a previous heap), then select it and scroll to it.
+            if (targetNode != null) {
+              myColumnTree.revalidate();
+              TreePath pathToSelect = new TreePath(model.getPathToRoot(targetNode));
+              myTree.setSelectionPath(pathToSelect);
+              myTree.scrollPathToVisible(pathToSelect);
+            }
+            else {
+              selectionModel.setClassObj(null);
+              myTree.scrollRowToVisible(0);
+            }
+          }
+        });
       }
 
       @Override
@@ -324,11 +358,10 @@ public class ClassesTreeView {
           selectionModel.setSelectionLocked(true);
           TreePath selectionPath = myTree.getSelectionPath();
           sortTree(root);
+          model.nodeStructureChanged(root);
           myTree.setSelectionPath(selectionPath);
           myTree.scrollPathToVisible(selectionPath);
           selectionModel.setSelectionLocked(false);
-
-          model.nodeStructureChanged(root);
         }
       }
     });
@@ -355,6 +388,41 @@ public class ClassesTreeView {
       parent.add(child);
       sortTree(child);
     }
+  }
+
+  @Nullable
+  @Override
+  public Object getData(@NonNls String dataId) {
+    if (CommonDataKeys.NAVIGATABLE_ARRAY.is(dataId)) {
+      return getTargetFiles();
+    }
+    else if (CommonDataKeys.PROJECT.is(dataId)) {
+      return myProject;
+    }
+    return null;
+  }
+
+  @Nullable
+  private PsiFileAndLineNavigation[] getTargetFiles() {
+    TreePath path = myTree.getSelectionPath();
+    if (path.getPathCount() < 2) {
+      return null;
+    }
+
+    DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+    if (node.getUserObject() instanceof HeapClassObj) {
+      ClassObj classObj = ((HeapClassObj)node.getUserObject()).getClassObj();
+      String className = classObj.getClassName();
+
+      int arrayIndex = className.indexOf("[");
+      if (arrayIndex >= 0) {
+        className = className.substring(0, arrayIndex);
+      }
+
+      return PsiFileAndLineNavigation.wrappersForClassName(myProject, className, 1);
+    }
+
+    return null;
   }
 
   private static class HeapClassObj {
