@@ -35,7 +35,7 @@ import javax.swing.*;
  */
 public class UpdateSitesPanel {
   private JPanel myRootPanel;
-  private JBTable myUpdateSitesTable;
+  private TableView myUpdateSitesTable;
   private JPanel mySourcesPanel;
   private JPanel mySourcesLoadingPanel;
   private AsyncProcessIcon mySourcesLoadingIcon;
@@ -47,6 +47,7 @@ public class UpdateSitesPanel {
     myUpdateSitesTable = new TableView<SourcesTableModel.Row>(mySourcesTableModel);
     ToolbarDecorator userDefinedDecorator = ToolbarDecorator.createDecorator(myUpdateSitesTable);
     mySourcesPanel = addExtraActions(userDefinedDecorator).createPanel();
+    SdkUpdaterConfigPanel.setTableProperties(myUpdateSitesTable, null);
   }
 
   private ToolbarDecorator addExtraActions(final ToolbarDecorator decorator) {
