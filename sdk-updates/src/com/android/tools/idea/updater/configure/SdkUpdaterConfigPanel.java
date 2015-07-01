@@ -35,14 +35,21 @@ import com.intellij.openapi.updateSettings.impl.UpdateSettingsConfigurable;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.dualView.TreeTableView;
+import com.intellij.ui.table.SelectionProvider;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import sun.awt.CausedFocusEvent;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.TreePath;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -77,6 +84,9 @@ public class SdkUpdaterConfigPanel {
     }
   };
 
+  public interface MultiStateRow {
+    void cycleState();
+  }
 
   public SdkUpdaterConfigPanel(SdkState sdkState, final Runnable channelChangedCallback) {
     UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_SDK_MANAGER_LOADED, null, null);
@@ -125,22 +135,11 @@ public class SdkUpdaterConfigPanel {
     return myPlatformComponentsPanel.isModified() || myToolComponentsPanel.isModified() || myUpdateSitesPanel.isModified();
   }
 
-  static void setTreeTableProperties(TreeTableView tt, UpdaterTreeNode.Renderer renderer) {
+  static void setTreeTableProperties(final TreeTableView tt, UpdaterTreeNode.Renderer renderer, final ChangeListener listener) {
     tt.setTreeCellRenderer(renderer);
     new CheckboxClickListener(tt, renderer).installOn(tt);
     TreeUtil.installActions(tt.getTree());
 
-    tt.setSelectionModel(new DefaultListSelectionModel() {
-      @Override
-      public void setSelectionInterval(int index0, int index1) {
-        // do nothing
-      }
-
-      @Override
-      public void addSelectionInterval(int index0, int index1) {
-        // do nothing
-      }
-    });
     tt.getTree().setSelectionModel(new DefaultTreeSelectionModel() {
       @Override
       public void addSelectionPaths(TreePath[] path) {
@@ -150,6 +149,54 @@ public class SdkUpdaterConfigPanel {
       @Override
       public void setSelectionPaths(TreePath[] path) {
         // do nothing
+      }
+    });
+    setTableProperties(tt, listener);
+  }
+
+  static void setTableProperties(@NotNull final JTable table, @Nullable final ChangeListener listener) {
+    assert table instanceof SelectionProvider;
+    ActionMap am = table.getActionMap();
+    final CycleAction forwardAction = new CycleAction(false);
+    final CycleAction backwardAction = new CycleAction(true);
+    am.put("selectPreviousColumnCell", backwardAction);
+    am.put("selectNextColumnCell", forwardAction);
+
+    table.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyTyped(KeyEvent e) {
+        if (e.getKeyChar() == KeyEvent.VK_ENTER || e.getKeyChar() == KeyEvent.VK_SPACE) {
+          List<MultiStateRow> selection = (List<MultiStateRow>)((SelectionProvider)table).getSelection();
+          for (MultiStateRow node : selection) {
+            node.cycleState();
+            table.repaint();
+            if (listener != null) {
+              listener.stateChanged(new ChangeEvent(node));
+            }
+          }
+        }
+      }
+    });
+    table.addFocusListener(new FocusListener() {
+      @Override
+      public void focusLost(FocusEvent e) {
+        if (e.getOppositeComponent() != null) {
+          table.getSelectionModel().clearSelection();
+        }
+      }
+
+      @Override
+      public void focusGained(FocusEvent e) {
+        JTable table = (JTable)e.getSource();
+        if (table.getSelectionModel().getMinSelectionIndex() != -1) {
+          return;
+        }
+        if (e instanceof CausedFocusEvent && ((CausedFocusEvent)e).getCause() == CausedFocusEvent.Cause.TRAVERSAL_BACKWARD) {
+          backwardAction.doAction(table);
+        }
+        else {
+          forwardAction.doAction(table);
+        }
       }
     });
     tt.getTree().setToggleClickCount(0);
@@ -232,5 +279,43 @@ public class SdkUpdaterConfigPanel {
 
   public void saveSources() {
     myUpdateSitesPanel.save();
+  }
+
+  private static class CycleAction extends AbstractAction {
+    boolean myBackward;
+
+    CycleAction(boolean backward) {
+      myBackward = backward;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent evt) {
+      doAction((JTable)evt.getSource());
+    }
+
+    public void doAction(JTable table) {
+      KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+      ListSelectionModel selectionModel = table.getSelectionModel();
+      int row = myBackward ? selectionModel.getMinSelectionIndex() : selectionModel.getMaxSelectionIndex();
+
+      if (row == -1) {
+        if (myBackward) {
+          row = table.getRowCount();
+        }
+      }
+      row += myBackward ? -1 : 1;
+      if (row < 0) {
+        manager.focusPreviousComponent(table);
+      }
+      else if (row >= table.getRowCount()) {
+        manager.focusNextComponent(table);
+      }
+      else {
+        selectionModel.setSelectionInterval(row, row);
+        table.setColumnSelectionInterval(1, 1);
+        table.scrollRectToVisible(table.getCellRect(row, 1, true));
+      }
+      table.repaint();
+    }
   }
 }
