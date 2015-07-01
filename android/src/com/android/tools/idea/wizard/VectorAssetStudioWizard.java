@@ -52,7 +52,7 @@ public class VectorAssetStudioWizard extends TemplateWizard implements TemplateW
     myOutputStep = new ChooseOutputResDirStep(myWizardState, myProject, null, NONE, myModule, myTargetFile);
     addStep(myIconStep);
     addStep(myOutputStep);
-    myWizardState.put(ATTR_SOURCE_TYPE, AssetStudioAssetGenerator.SourceType.SVG);
+    myWizardState.put(ATTR_SOURCE_TYPE, AssetStudioAssetGenerator.SourceType.VECTORDRAWABLE);
     getHelpButton().hide();
     getNextButton().disable();
     super.init();
