@@ -341,7 +341,7 @@ public class RenderedImage {
         myScaledImage = myImage;
         // ...unless we need to clip:
         Device device = myConfiguration.getDevice();
-        if (HardwareConfigHelper.isRound(device)) {
+        if (device != null && device.isScreenRound()) {
           int imageType = myScaledImage.getType();
           if (imageType == BufferedImage.TYPE_CUSTOM) {
             imageType = BufferedImage.TYPE_INT_ARGB;
@@ -412,7 +412,7 @@ public class RenderedImage {
         myThumbnailHasFrame = false;
 
         Device device = myConfiguration.getDevice();
-        boolean round = device != null && HardwareConfigHelper.isRound(device);
+        boolean round = device != null && device.isScreenRound();
 
         Graphics2D g2 = (Graphics2D)g.create();
         try {
@@ -514,7 +514,7 @@ public class RenderedImage {
         image = myImage;
 
         Device device = myConfiguration.getDevice();
-        if (HardwareConfigHelper.isRound(device)) {
+        if (device != null && device.isScreenRound()) {
           int imageType = image.getType();
           if (imageType == BufferedImage.TYPE_CUSTOM) {
             imageType = BufferedImage.TYPE_INT_ARGB;
@@ -608,7 +608,7 @@ public class RenderedImage {
 
   @Nullable
   public static Shape getClip(@Nullable Device device, int x, int y, int width, int height) {
-    boolean round = device != null && HardwareConfigHelper.isRound(device);
+    boolean round = device != null && device.isScreenRound();
     if (round) {
       int slop = 3; // to hide mask aliasing effects under device chrome by a pixel or two
       return new Ellipse2D.Double(x - slop, y - slop, width + 2 * slop, height + 2 * slop);
