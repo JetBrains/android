@@ -106,7 +106,7 @@ public abstract class Overlay implements Disposable {
     Shape clip = null;
     if (configuration != null) {
       Device device = configuration.getDevice();
-      if (device != null && HardwareConfigHelper.isRound(device)) {
+      if (device != null && device.isScreenRound()) {
         Screen screen = device.getDefaultHardware().getScreen();
         int width = screen.getXDimension();
         int height = screen.getYDimension();

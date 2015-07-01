@@ -16,7 +16,6 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.Density;
 import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
@@ -32,7 +31,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
@@ -622,7 +620,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       @Override
       public Boolean deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable Boolean currentValue) {
         Device device = myState.get(DEVICE_DEFINITION_KEY);
-        if (HardwareConfigHelper.isRound(device)) {
+        if (device != null && device.isScreenRound()) {
           // 79243: Emulator skin doesn't work for round device with Host GPU enabled.
           // Therefore, turn it off by default; if a developer is deliberately trying
           // to emulate a round device, that's probably more important than acceleration.
