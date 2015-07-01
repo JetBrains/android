@@ -938,7 +938,8 @@ public class RenderPreview implements Disposable {
 
         //noinspection UseJBColor
         gc.setColor(new Color(181, 213, 255));
-        if (HardwareConfigHelper.isRound(myConfiguration.getDevice())) {
+        Device device = myConfiguration.getDevice();
+        if (device != null && device.isScreenRound()) {
           Stroke prevStroke = gc.getStroke();
           gc.setStroke(new BasicStroke(3.0f));
           Object prevAntiAlias = gc.getRenderingHint(KEY_ANTIALIASING);
