@@ -326,7 +326,7 @@ public class AvdEditWizard extends DynamicWizard {
       hardwareProperties.put(HardwareProperties.HW_KEYBOARD, toIniString(false));
     }
 
-    boolean isCircular = DeviceDefinitionPreview.isCircular(device);
+    boolean isCircular = device.isScreenRound();
 
     String avdName = state.get(AvdWizardConstants.AVD_ID_KEY);
     if (avdName == null || avdName.isEmpty()) {
