@@ -18,6 +18,7 @@ package com.android.tools.idea.templates;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.SdkMavenRepository;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import com.intellij.openapi.diagnostic.Logger;
@@ -154,14 +155,54 @@ public class RepositoryUrlManager {
   }
 
   /**
+   * Returns the string for the specific version number of the most recent version of the given library
+   * (matching the given prefix filter, if any) in one of the Sdk repositories.
+   *
+   * @param groupId the group id
+   * @param artifactId the artifact id
+   * @param filterPrefix a prefix, if any
+   * @param includePreviews whether to include preview versions of libraries
+   * @return
+   */
+  @Nullable
+  public String getLibraryCoordinate(String groupId, String artifactId, @Nullable String filterPrefix, boolean includePreviews) {
+    SdkMavenRepository repository = SdkMavenRepository.getByGroupId(groupId);
+    if (repository == null) {
+      return null;
+    }
+    AndroidSdkData sdk = tryToChooseAndroidSdk();
+    if (sdk == null) {
+      return null;
+    }
+
+    File sdkLocation = sdk.getLocation();
+    File repo = repository.getRepositoryLocation(sdkLocation, false);
+    if (repo == null) {
+      return null;
+    }
+
+    GradleCoordinate max = repository.getHighestInstalledVersion(sdk.getLocation(), groupId, artifactId, filterPrefix, includePreviews);
+    if (max == null) {
+      return null;
+    }
+
+    return max.getFullRevision();
+  }
+
+  /**
    * Calculate the coordinate pointing to the highest valued version of the given library we
    * have available in our repository.
    * @param libraryId the id of the library to find
    * @param filterPrefix an optional prefix libraries must match; e.g. if the prefix is "18." then only coordinates
    *           in version 18.x will be considered
    * @return a maven coordinate for the requested library or null if we don't support that library
+   * @deprecated Use {@link #getLibraryCoordinate(String, String, String, boolean)} instead. This method only takes
+   *   an artifact id, which may <b>not</b> be unique across group id's, and besides, the below method relies on a hardcoded
+   *   list of libraries in each repository, which gets obsolete all the time as new repositories are added. The method
+   *   above however, does not rely on a table like that and should continue to work as new libraries are added.
    */
   @Nullable
+  @Deprecated
   public String getLibraryCoordinate(String libraryId, @Nullable String filterPrefix, boolean includePreviews) {
     // Check to see if this is a URL we support:
     if (!EXTRAS_REPOSITORY.containsKey(libraryId)) {
