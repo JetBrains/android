@@ -171,6 +171,12 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   public void notifyRun() {
   }
 
+  @NotNull
+  @Override
+  public JComponent getComponent() {
+    return this;
+  }
+
   private final MouseAdapter myEditingListener = new MouseAdapter() {
     @Override
     public void mouseMoved(MouseEvent e) {
