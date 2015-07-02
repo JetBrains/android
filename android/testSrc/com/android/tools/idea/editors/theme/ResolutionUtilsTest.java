@@ -22,27 +22,26 @@ import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
-public class StyleResolverTest extends AndroidTestCase {
+public class ResolutionUtilsTest extends AndroidTestCase {
   /*
    * The test SDK only includes some resources. It only includes a few incomplete styles.
    */
 
   public void testGetQualifiedName() {
     StyleResourceValue styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", true);
-    assertEquals("@android:style/myStyle", StyleResolver.getQualifiedStyleName(styleResourceValue));
+    assertEquals("@android:style/myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
 
     styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", false);
-    assertEquals("@style/myStyle", StyleResolver.getQualifiedStyleName(styleResourceValue));
+    assertEquals("@style/myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
   }
 
   public void testFrameworkStyleRead() {
     VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout1.xml");
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
-    StyleResolver styleResolver = new StyleResolver(configuration);
 
-    assertNotNull(styleResolver.getStyle("@android:style/TextAppearance"));
+    assertNotNull(ResolutionUtils.getStyle(configuration, "@android:style/TextAppearance"));
 
-    ThemeEditorStyle style = styleResolver.getStyle("@android:style/Theme.Holo.Light");
+    ThemeEditorStyle style = ResolutionUtils.getStyle(configuration, "@android:style/Theme.Holo.Light");
     assertEquals("Theme.Holo.Light", style.getName());
     assertEmpty(style.getValues()); // Style shouldn't have the values of the parent.
 

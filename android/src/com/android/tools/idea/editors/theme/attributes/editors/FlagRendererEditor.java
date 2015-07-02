@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.StyleResolver;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -194,7 +194,7 @@ public class FlagRendererEditor extends TypedCellEditor<EditedStyleItem, String>
     protected JComponent createCenterPanel() {
       Box box = new Box(BoxLayout.PAGE_AXIS);
       AttributeDefinition attrDefinition =
-        StyleResolver.getAttributeDefinition(myItem.getSourceStyle().getConfiguration(), myItem.getItemResourceValue());
+        ResolutionUtils.getAttributeDefinition(myItem.getSourceStyle().getConfiguration(), myItem.getItemResourceValue());
       if (attrDefinition != null) {
         String[] flagNames = attrDefinition.getValues();
         for (String flagName : flagNames) {

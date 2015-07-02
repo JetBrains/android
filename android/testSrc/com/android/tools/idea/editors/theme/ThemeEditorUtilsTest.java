@@ -179,9 +179,8 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_resolve_all.xml", "res/values/styles.xml");
 
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
-    StyleResolver styleResolver = new StyleResolver(configuration);
 
-    ThemeEditorStyle theme = styleResolver.getStyle("AppTheme");
+    ThemeEditorStyle theme = ResolutionUtils.getStyle(configuration, "AppTheme");
     List<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(theme);
 
     HashMap<String, EditedStyleItem> items = Maps.newHashMapWithExpectedSize(attributes.size());
