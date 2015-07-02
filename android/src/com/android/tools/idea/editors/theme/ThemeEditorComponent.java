@@ -46,10 +46,8 @@ import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.rendering.ResourceNotificationManager;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -58,6 +56,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
@@ -139,21 +138,17 @@ public class ThemeEditorComponent extends Splitter {
   public ThemeEditorComponent(@NotNull final Project project) {
     myProject = project;
 
-    // TODO(ddrone):
-    // The expensive call is done here only to acquire initial instance of Configuration and Module
-    // This should be optimized somehow, maybe setting Configuration and Module to null in the context initially?
-    final ImmutableList<ProjectThemeResolver.ThemeWithSource> editableProjectThemes =
-      ProjectThemeResolver.getEditableProjectThemes(project);
-    ProjectThemeResolver.ThemeWithSource firstTheme = Iterables.getFirst(editableProjectThemes, null);
-
-    // TODO(ddrone): get non-project theme (e.g. Theme.Material) here in case there are no project themes
-    assert firstTheme != null : "Trying to launch Theme Editor without any themes";
-
-    final Module module = firstTheme.getSourceModule();
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-
-    // Module is a source of a theme, thus, should be Android module
-    assert facet != null : String.format("Module %s is not Android module", module.getName());
+    // We need any module, because when reload will be invoked module will be changed anyway
+    Module arbitraryModule = null;
+    AndroidFacet facet = null;
+    for (final Module module : ModuleManager.getInstance(project).getModules()) {
+      facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        arbitraryModule = module;
+        break;
+      }
+    }
+    assert arbitraryModule != null : "There is no android module in the project";
 
     ConfigurationManager configurationManager = facet.getConfigurationManager();
     final VirtualFile projectFile = project.getProjectFile();
@@ -161,7 +156,7 @@ public class ThemeEditorComponent extends Splitter {
 
     final Configuration configuration = configurationManager.getConfiguration(projectFile);
 
-    myThemeEditorContext = new ThemeEditorContext(configuration, module);
+    myThemeEditorContext = new ThemeEditorContext(configuration, arbitraryModule);
     myThemeEditorContext.addConfigurationListener(new ConfigurationListener() {
       @Override
       public boolean changed(int flags) {
