@@ -106,7 +106,6 @@ public class ThemeEditorComponent extends Splitter {
 
   private Font myHeaderFont;
 
-  private StyleResolver myStyleResolver;
   private EditedStyleItem mySubStyleSourceAttribute;
 
   // Name of current selected Theme
@@ -175,8 +174,6 @@ public class ThemeEditorComponent extends Splitter {
         return true;
       }
     });
-
-    myStyleResolver = new StyleResolver(configuration);
 
     myPreviewPanel = new AndroidThemePreviewPanel(myThemeEditorContext, PREVIEW_BACKGROUND);
     myPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
@@ -510,7 +507,7 @@ public class ThemeEditorComponent extends Splitter {
     if (myThemeName == null) {
       return null;
     }
-    return myStyleResolver.getStyle(myThemeName);
+    return ResolutionUtils.getStyle(myThemeEditorContext.getConfiguration(), myThemeName);
   }
 
   @Nullable
@@ -527,7 +524,7 @@ public class ThemeEditorComponent extends Splitter {
     if (mySubStyleName == null) {
       return null;
     }
-    return myStyleResolver.getStyle(mySubStyleName);
+    return ResolutionUtils.getStyle(myThemeEditorContext.getConfiguration(), mySubStyleName);
   }
 
   private boolean isSubStyleSelected() {
@@ -626,10 +623,9 @@ public class ThemeEditorComponent extends Splitter {
     // fails to find the local themes.
     Configuration configuration = myThemeEditorContext.getConfiguration();
     configuration.setTheme(null);
-    myStyleResolver = new StyleResolver(configuration);
     mySubStyleSourceAttribute = null;
 
-    final ThemeResolver themeResolver = new ThemeResolver(configuration, myStyleResolver);
+    final ThemeResolver themeResolver = new ThemeResolver(configuration);
     final ThemeEditorStyle defaultTheme = defaultThemeName == null ? null : themeResolver.getTheme(defaultThemeName);
     myPanel.getThemeCombo().setModel(new ThemesListModel(myProject, ThemeEditorUtils.getDefaultThemes(themeResolver), defaultTheme));
     myThemeName = (myPanel.getSelectedTheme() == null) ? null : myPanel.getSelectedTheme().getQualifiedName();

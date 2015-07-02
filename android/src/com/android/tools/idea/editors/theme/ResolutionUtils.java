@@ -35,14 +35,11 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility methods for style resolution.
  */
-public class StyleResolver {
-  @SuppressWarnings("ConstantNamingConvention") private static final Logger LOG = Logger.getInstance(StyleResolver.class);
+public class ResolutionUtils {
+  @SuppressWarnings("ConstantNamingConvention") private static final Logger LOG = Logger.getInstance(ResolutionUtils.class);
 
-  private final Configuration myConfiguration;
-
-  public StyleResolver(@NotNull Configuration configuration) {
-    myConfiguration = configuration;
-  }
+  // Utility methods class isn't meant to be constructed, all methods are static.
+  private ResolutionUtils() { }
 
   /**
    * Returns the style name, including the appropriate namespace.
@@ -73,7 +70,7 @@ public class StyleResolver {
   }
 
   @Nullable
-  private StyleResourceValue getStyleResourceValue(@NotNull String qualifiedStyleName) {
+  private static StyleResourceValue getStyleResourceValue(@NotNull Configuration configuration, @NotNull String qualifiedStyleName) {
     String styleName;
     boolean isFrameworkStyle;
 
@@ -88,7 +85,7 @@ public class StyleResolver {
       isFrameworkStyle = false;
     }
 
-    ResourceResolver resolver = myConfiguration.getResourceResolver();
+    ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
     return resolver.getStyle(styleName, isFrameworkStyle);
   }
@@ -97,9 +94,9 @@ public class StyleResolver {
    * @return returns ThemeEditorStyle for a qualifiedStyleName, if style doesn't exist will return null
    */
   @Nullable
-  public ThemeEditorStyle getStyle(@NotNull final String qualifiedStyleName) {
-    final StyleResourceValue style = getStyleResourceValue(qualifiedStyleName);
-    return style == null ? null : new ThemeEditorStyle(this, myConfiguration, style);
+  public static ThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull final String qualifiedStyleName) {
+    final StyleResourceValue style = getStyleResourceValue(configuration, qualifiedStyleName);
+    return style == null ? null : new ThemeEditorStyle(configuration, style);
   }
 
   @Nullable
