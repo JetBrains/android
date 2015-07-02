@@ -391,12 +391,13 @@ public class ThemeEditorComponent extends Splitter {
    * Unsubscribes myResourceChangeListener from ResourceNotificationManager with current AndroidFacet.
    */
   private void unsubscribeResourceNotification() {
-    assert myIsSubscribedResourceNotification;
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
-    AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
-    assert facet != null : myThemeEditorContext.getCurrentThemeModule().getName() + " module doesn't have an AndroidFacet";
-    manager.removeListener(myResourceChangeListener, facet, null, null);
-    myIsSubscribedResourceNotification = false;
+    if (myIsSubscribedResourceNotification) {
+      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
+      AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
+      assert facet != null : myThemeEditorContext.getCurrentThemeModule().getName() + " module doesn't have an AndroidFacet";
+      manager.removeListener(myResourceChangeListener, facet, null, null);
+      myIsSubscribedResourceNotification = false;
+    }
   }
 
   /**
