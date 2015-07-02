@@ -25,6 +25,7 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -171,5 +173,28 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     });
     assertEquals(1, visitedRepos.get());
     // TODO: Test variants
+  }
+
+  public void testResolveAllAttributes() {
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_resolve_all.xml", "res/values/styles.xml");
+
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    StyleResolver styleResolver = new StyleResolver(configuration);
+
+    ThemeEditorStyle theme = styleResolver.getStyle("AppTheme");
+    List<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(theme);
+
+    HashMap<String, EditedStyleItem> items = Maps.newHashMapWithExpectedSize(attributes.size());
+    for (EditedStyleItem item : attributes) {
+      assertNull(items.put(item.getQualifiedName(), item));
+    }
+
+    assertTrue(items.containsKey("android:colorBackground"));
+    assertTrue(items.containsKey("android:colorPrimary"));
+    // Action bar should be there twice, one defined by the framework one defined by us
+    assertTrue(items.containsKey("android:windowActionBar"));
+    assertTrue(items.containsKey("windowActionBar"));
+    assertTrue(items.containsKey("myAttribute"));
+    assertFalse(items.containsKey("android:myBoolean"));
   }
 }
