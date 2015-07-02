@@ -80,6 +80,7 @@ import javax.swing.JTable;
 import javax.swing.RowFilter;
 import javax.swing.plaf.PanelUI;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.Color;
 import java.awt.Component;
@@ -253,6 +254,14 @@ public class ThemeEditorComponent extends Splitter {
     // We allow to edit style pointers as Strings.
     myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, styleEditor, myThemeEditorContext));
     myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableRendererEditor(myThemeEditorContext, true), myThemeEditorContext));
+
+    // We shouldn't allow autoCreateColumnsFromModel, because when setModel() will be invoked, it removes
+    // existing listeners to cell editors.
+    myAttributesTable.setAutoCreateColumnsFromModel(false);
+    for (int c = 0; c < AttributesTableModel.COL_COUNT; ++c) {
+      myAttributesTable.addColumn(new TableColumn(c));
+    }
+
     updateUiParameters();
 
     myAttributesFilter = new StyleAttributesFilter();
