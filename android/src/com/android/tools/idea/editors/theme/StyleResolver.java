@@ -23,8 +23,6 @@ import com.android.ide.common.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -34,16 +32,12 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-
 /**
  * Utility methods for style resolution.
  */
 public class StyleResolver {
   @SuppressWarnings("ConstantNamingConvention") private static final Logger LOG = Logger.getInstance(StyleResolver.class);
 
-  private final Cache<String, ThemeEditorStyle> myStylesCache = CacheBuilder.newBuilder().build();
   private final Configuration myConfiguration;
 
   public StyleResolver(@NotNull Configuration configuration) {
@@ -105,22 +99,7 @@ public class StyleResolver {
   @Nullable
   public ThemeEditorStyle getStyle(@NotNull final String qualifiedStyleName) {
     final StyleResourceValue style = getStyleResourceValue(qualifiedStyleName);
-
-    if (style == null) {
-      return null;
-    }
-
-    try {
-      return myStylesCache.get(qualifiedStyleName, new Callable<ThemeEditorStyle>() {
-        @Override
-        public ThemeEditorStyle call() throws Exception {
-          return new ThemeEditorStyle(StyleResolver.this, myConfiguration, style);
-        }
-      });
-    }
-    catch (ExecutionException e) {
-      return null;
-    }
+    return style == null ? null : new ThemeEditorStyle(this, myConfiguration, style);
   }
 
   @Nullable
