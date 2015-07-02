@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.theme.datamodels;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.StyleResolver;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -33,7 +33,6 @@ public class EditedStyleItemTest extends AndroidTestCase {
 
     VirtualFile myLayout = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml");
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
-    StyleResolver styleResolver = new StyleResolver(configuration);
 
     List<ConfiguredItemResourceValue> items = ImmutableList.of(
       new ConfiguredItemResourceValue(FolderConfiguration.getConfigForFolder("values-v21"),
@@ -43,7 +42,7 @@ public class EditedStyleItemTest extends AndroidTestCase {
     EditedStyleItem editedStyleItem = new EditedStyleItem(
       new ConfiguredItemResourceValue(new FolderConfiguration(), new ItemResourceValue("attribute", false, "selectedValue", false)),
       items,
-      styleResolver.getStyle("@android:style/Theme"));
+      ResolutionUtils.getStyle(configuration, "@android:style/Theme"));
 
     assertEquals("selectedValue", editedStyleItem.getValue());
     assertEquals("selectedValue", editedStyleItem.getItemResourceValue().getValue());

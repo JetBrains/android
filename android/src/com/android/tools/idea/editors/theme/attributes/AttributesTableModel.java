@@ -21,7 +21,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.StyleResolver;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.google.common.collect.ImmutableSet;
@@ -403,7 +403,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
 
       AttributeDefinition attrDefinition =
-        StyleResolver.getAttributeDefinition(mySelectedStyle.getConfiguration(), item.getItemResourceValue());
+        ResolutionUtils.getAttributeDefinition(mySelectedStyle.getConfiguration(), item.getItemResourceValue());
 
       if (urlType == ResourceType.COLOR
               || (value != null && value.startsWith("#") && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color))) {

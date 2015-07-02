@@ -27,7 +27,7 @@ import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.StyleResolver;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
@@ -67,15 +67,12 @@ public class ThemeEditorStyle {
   private static final Logger LOG = Logger.getInstance(ThemeEditorStyle.class);
 
   private final @NotNull StyleResourceValue myStyleResourceValue;
-  private final @NotNull StyleResolver myThemeResolver;
   private final @NotNull Configuration myConfiguration;
   private final Project myProject;
 
-  public ThemeEditorStyle(final @NotNull StyleResolver resolver,
-                          final @NotNull Configuration configuration,
+  public ThemeEditorStyle(final @NotNull Configuration configuration,
                           final @NotNull StyleResourceValue styleResourceValue) {
     myStyleResourceValue = styleResourceValue;
-    myThemeResolver = resolver;
     myConfiguration = configuration;
     myProject = configuration.getModule().getProject();
   }
@@ -140,7 +137,7 @@ public class ThemeEditorStyle {
    */
   @NotNull
   public String getQualifiedName() {
-    return StyleResolver.getQualifiedStyleName(myStyleResourceValue);
+    return ResolutionUtils.getQualifiedStyleName(myStyleResourceValue);
   }
 
   /**
@@ -177,7 +174,7 @@ public class ThemeEditorStyle {
         if (styleResourceValue instanceof StyleResourceValue) {
           for (final ItemResourceValue value : ((StyleResourceValue)styleResourceValue).getValues()) {
             itemResourceValues
-              .put(StyleResolver.getQualifiedItemName(value), new ConfiguredItemResourceValue(folderConfiguration, value));
+              .put(ResolutionUtils.getQualifiedItemName(value), new ConfiguredItemResourceValue(folderConfiguration, value));
           }
         }
       }
@@ -197,7 +194,7 @@ public class ThemeEditorStyle {
           for (final ItemResourceValue value : ((StyleResourceValue)styleResourceValue).getValues()) {
             // We use the qualified name since apps and libraries can use the same attribute name twice with and without "android:"
             itemResourceValues
-              .put(StyleResolver.getQualifiedItemName(value), new ConfiguredItemResourceValue(folderConfiguration, value));
+              .put(ResolutionUtils.getQualifiedItemName(value), new ConfiguredItemResourceValue(folderConfiguration, value));
           }
         }
       }
@@ -248,7 +245,7 @@ public class ThemeEditorStyle {
       return null;
     }
 
-    return myThemeResolver.getStyle(StyleResolver.getQualifiedStyleName(parent));
+    return ResolutionUtils.getStyle(myConfiguration, ResolutionUtils.getQualifiedStyleName(parent));
   }
 
   /**
