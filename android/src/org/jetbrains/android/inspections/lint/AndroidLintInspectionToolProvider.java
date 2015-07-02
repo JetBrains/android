@@ -44,6 +44,18 @@ import static com.android.tools.lint.detector.api.TextFormat.RAW;
  * Registrations for all the various Lint rules as local IDE inspections, along with quickfixes for many of them
  */
 public class AndroidLintInspectionToolProvider {
+  public static class AndroidLintCustomErrorInspection extends AndroidLintInspectionBase {
+    public AndroidLintCustomErrorInspection() {
+      super("Error from Custom Lint Check", IntellijLintIssueRegistry.CUSTOM_ERROR);
+    }
+  }
+
+  public static class AndroidLintCustomWarningInspection extends AndroidLintInspectionBase {
+    public AndroidLintCustomWarningInspection() {
+      super("Warning from Custom Lint Check", IntellijLintIssueRegistry.CUSTOM_WARNING);
+    }
+  }
+
   public static class AndroidLintAaptCrashInspection extends AndroidLintInspectionBase {
     public AndroidLintAaptCrashInspection() {
       super(AndroidBundle.message("android.lint.inspections.aapt.crash"), ResourceCycleDetector.CRASH);
