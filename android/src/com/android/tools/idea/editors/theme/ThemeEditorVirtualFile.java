@@ -58,7 +58,7 @@ public class ThemeEditorVirtualFile extends LightVirtualFile {
   @Nullable
   @Override
   public VirtualFile getParent() {
-    return myProject.getProjectFile();
+    return myProject.getBaseDir();
   }
 
   @NotNull
