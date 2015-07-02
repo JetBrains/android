@@ -348,7 +348,7 @@ public class RenderedPanel extends JPanel implements Disposable {
         Configuration configuration = myContext.getConfiguration();
         if (configuration != null) {
           Device device = configuration.getDevice();
-          if (device != null && HardwareConfigHelper.isRound(device)) {
+          if (device != null && device.isScreenRound()) {
             Screen screen = device.getDefaultHardware().getScreen();
             int width = screen.getXDimension();
             int height = screen.getYDimension();
