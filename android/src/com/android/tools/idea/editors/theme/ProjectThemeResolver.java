@@ -95,14 +95,13 @@ public class ProjectThemeResolver {
       // but it doesn't work properly - getConfiguration() should be called on proper resource file.
       // Fixing that requires a lot of changes elsewhere, and thus, it postponed to a later CL
       final Configuration configuration = facet.getConfigurationManager().getConfiguration(projectFile);
-      final StyleResolver resolver = new StyleResolver(configuration);
 
       LocalResourceRepository resources = facet.getModuleResources(true);
       Map<String, ResourceValue> styles = resources.getConfiguredResources(ResourceType.STYLE, configuration.getFullConfig());
 
       for (StyleResourceValue value : getThemesFromResources(styles, configuration)) {
         // Iterate through all themes that are available in the current module
-        ThemeEditorStyle themeEditorStyle = resolver.getStyle(value.getName());
+        ThemeEditorStyle themeEditorStyle = ResolutionUtils.getStyle(configuration, value.getName());
         assert themeEditorStyle != null : "Style with name " + value.getName() + " doesn't exist";
         builder.add(new ThemeWithSource(themeEditorStyle, module));
       }

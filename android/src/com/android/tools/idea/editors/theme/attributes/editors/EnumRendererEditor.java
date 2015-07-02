@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.StyleResolver;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -65,7 +65,7 @@ public class EnumRendererEditor extends TypedCellEditor<EditedStyleItem, String>
   @Override
   public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
     AttributeDefinition attrDefinition =
-      StyleResolver.getAttributeDefinition(value.getSourceStyle().getConfiguration(), value.getItemResourceValue());
+      ResolutionUtils.getAttributeDefinition(value.getSourceStyle().getConfiguration(), value.getItemResourceValue());
     if (attrDefinition != null) {
       if (attrDefinition.getFormats().size() > 1) {
         myComboBox.setEditable(true); // makes the box editable for items that can take values outside of the choices
