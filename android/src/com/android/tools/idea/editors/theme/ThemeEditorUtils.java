@@ -195,9 +195,9 @@ public class ThemeEditorUtils {
     ThemeEditorStyle currentStyle = style;
     while (currentStyle != null) {
       for (final EditedStyleItem value : currentStyle.getValues()) {
-        if (!namesSet.contains(value.getName())) {
+        if (!namesSet.contains(value.getQualifiedName())) {
           allValues.add(value);
-          namesSet.add(value.getName());
+          namesSet.add(value.getQualifiedName());
         }
       }
 
