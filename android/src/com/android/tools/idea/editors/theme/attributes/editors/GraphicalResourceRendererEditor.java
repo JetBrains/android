@@ -54,10 +54,11 @@ import java.util.ArrayList;
  */
 public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
   static final String CURRENT_VARIANT_TEMPLATE = "<html><nobr><font color=\"#%1$s\">%2$s</font>";
-  static final String NOT_SELECTED_VARIANT_TEMPLATE = "<html><nobr><font color=\"#%1$s\">%2$s</font><font color=\"#9B9B9B\"> %3$s</font>";
+  static final String NOT_SELECTED_VARIANT_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b><font color=\"#9B9B9B\"> %3$s</font>";
   @SuppressWarnings("UseJBColor") // LIGHT_GRAY works also in Darcula
   static final Color CURRENT_VARIANT_COLOR = Color.LIGHT_GRAY;
-  static final Color NOT_SELECTED_VARIANT_COLOR = JBColor.BLUE;
+  @SuppressWarnings("UseJBColor")
+  static final Color NOT_SELECTED_VARIANT_COLOR = new Color(0x70ABE3);
 
   private static final Logger LOG = Logger.getInstance(GraphicalResourceRendererEditor.class);
 
