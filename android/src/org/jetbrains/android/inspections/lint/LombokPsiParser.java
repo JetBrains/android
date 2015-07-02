@@ -230,6 +230,8 @@ public class LombokPsiParser extends JavaParser {
       if (qualifiedName != null) {
         return new ResolvedPsiClassName(element.getManager(), qualifiedName);
       }
+    } else if (element instanceof PsiAnnotation) {
+      return new ResolvedPsiAnnotation((PsiAnnotation)element);
     }
 
     return null;
