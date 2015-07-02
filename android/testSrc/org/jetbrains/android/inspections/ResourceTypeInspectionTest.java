@@ -143,6 +143,28 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testTypes2() {
+        doCheck("package test.pkg;\n" +
+                "\n" +
+                "import android.support.annotation.DrawableRes;\n" +
+                "import android.support.annotation.StringRes;\n" +
+                "\n" +
+                "enum X {\n" +
+                "\n" +
+                "    SKI(/*Expected resource of type drawable*/1/**/, /*Expected resource of type string*/2/**/),\n" +
+                "    SNOWBOARD(/*Expected resource of type drawable*/3/**/, /*Expected resource of type string*/4/**/);\n" +
+                "\n" +
+                "    private final int mIconResId;\n" +
+                "    private final int mLabelResId;\n" +
+                "\n" +
+                "    X(@DrawableRes int iconResId, @StringRes int labelResId) {\n" +
+                "        mIconResId = iconResId;\n" +
+                "        mLabelResId = labelResId;\n" +
+                "    }\n" +
+                "\n" +
+                "}");
+  }
+
   public void testIntDef() {
     doCheck("import android.annotation.SuppressLint;\n" +
             "import android.annotation.TargetApi;\n" +
