@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -30,16 +29,16 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ThemeEditorUtilsTest extends AndroidTestCase {
@@ -54,21 +53,18 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     super(false);
   }
 
-  private void compareWithAns(String doc, String ansPath) throws FileNotFoundException {
+  private void compareWithAns(String doc, String ansPath) throws IOException {
     assertNotNull(doc);
-    Scanner in = new Scanner(new File(ansPath));
-    String ansDoc = "";
-    while (in.hasNext()) {
-      ansDoc += in.nextLine();
-    }
 
-    ansDoc = String.format(ansDoc, sdkPlatformPath);
+    String ansDoc = String.format(FileUtils.readFileToString(new File(ansPath)), sdkPlatformPath);
 
     doc = StringUtil.replace(doc, "\n", "");
+    ansDoc = StringUtil.replace(ansDoc, "\n", "");
+
     assertEquals(ansDoc, doc);
   }
 
-  public void testGenerateToolTipText() throws FileNotFoundException {
+  public void testGenerateToolTipText() throws IOException {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
 
