@@ -22,7 +22,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.StyleResolver;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
@@ -62,7 +62,7 @@ public class EditedStyleItem {
     myNonSelectedValues = ImmutableList.copyOf(nonSelectedValues);
     mySelectedValue = selectedValue;
 
-    AttributeDefinition attrDef = StyleResolver.getAttributeDefinition(sourceTheme.getConfiguration(), mySelectedValue.myValue);
+    AttributeDefinition attrDef = ResolutionUtils.getAttributeDefinition(sourceTheme.getConfiguration(), mySelectedValue.myValue);
     String attrGroup = (attrDef == null) ? null : attrDef.getAttrGroup();
     myAttrGroup = (attrGroup == null) ? "Other non-theme attributes." : attrGroup;
   }
@@ -94,7 +94,7 @@ public class EditedStyleItem {
 
   @NotNull
   public String getValue() {
-    return StyleResolver.getQualifiedValue(getSelectedValue());
+    return ResolutionUtils.getQualifiedValue(getSelectedValue());
   }
 
   @NotNull
@@ -160,7 +160,7 @@ public class EditedStyleItem {
 
   @NotNull
   public String getQualifiedName() {
-    return StyleResolver.getQualifiedItemName(getSelectedValue());
+    return ResolutionUtils.getQualifiedItemName(getSelectedValue());
   }
 
   public String getAttrPropertyName() {
@@ -175,7 +175,7 @@ public class EditedStyleItem {
   }
 
   public boolean isDeprecated() {
-    AttributeDefinition def = StyleResolver.getAttributeDefinition(mySourceTheme.getConfiguration(), getSelectedValue());
+    AttributeDefinition def = ResolutionUtils.getAttributeDefinition(mySourceTheme.getConfiguration(), getSelectedValue());
     String doc = (def == null) ? null : def.getDocValue(null);
     return (doc != null && StringUtil.containsIgnoreCase(doc, DEPRECATED));
   }

@@ -32,7 +32,7 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.StyleResolver;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.rendering.*;
 import com.android.utils.HtmlBuilder;
@@ -101,11 +101,11 @@ public class AndroidJavaDocRenderer {
 
   @NotNull
   private static String renderAttributeDoc(Configuration configuration, ItemResourceValue resValue) {
-    AttributeDefinition def = StyleResolver.getAttributeDefinition(configuration, resValue);
+    AttributeDefinition def = ResolutionUtils.getAttributeDefinition(configuration, resValue);
     String doc = (def == null) ? null : def.getDocValue(null);
     HtmlBuilder builder = new HtmlBuilder();
     builder.beginBold();
-    builder.add(StyleResolver.getQualifiedItemName(resValue));
+    builder.add(ResolutionUtils.getQualifiedItemName(resValue));
     builder.endBold();
     builder.addHtml("<br/>");
 
