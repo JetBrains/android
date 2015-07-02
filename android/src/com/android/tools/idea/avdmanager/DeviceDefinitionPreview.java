@@ -16,10 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.resources.Density;
-import com.android.resources.ScreenOrientation;
-import com.android.resources.ScreenRatio;
-import com.android.resources.ScreenSize;
+import com.android.resources.*;
 import com.android.sdklib.devices.Device;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
@@ -84,7 +81,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       return;
     }
 
-    boolean isCircular = isCircular(myDevice);
+    boolean isCircular = myDevice.isScreenRound();
 
     // Paint our icon
     Icon icon = getIcon(myDevice);
@@ -211,14 +208,6 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
         g2d.drawString("Density: " + pixelDensity.getResourceValue(), infoSegmentX, infoSegmentY);
       }
     }
-  }
-
-  /**
-   * Return true iff the given device has the circular boot prop.
-   */
-  public static boolean isCircular(@NotNull Device device) {
-    String circularProp = device.getBootProps().get("ro.emulator.circular");
-    return "true".equals(circularProp);
   }
 
   private static int round(double d) {
