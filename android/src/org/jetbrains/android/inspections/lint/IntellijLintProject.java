@@ -234,6 +234,8 @@ class IntellijLintProject extends Project {
     }
 
     List<Project> dependencies = Lists.newArrayList();
+    // No, this shouldn't use getAllAndroidDependencies; we may have non-Android dependencies that this won't include
+    // (e.g. Java-only modules)
     List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(module, true);
     for (AndroidFacet dependentFacet : dependentFacets) {
       Project p = moduleMap.get(dependentFacet.getModule());
@@ -340,13 +342,13 @@ class IntellijLintProject extends Project {
                                                @NonNull LintModuleProject project,
                                                @NonNull Map<Project,Module> projectMap,
                                                @NonNull List<Project> dependencies) {
-    File dir;IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
+    IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
     if (gradleProject != null) {
       Collection<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
       for (AndroidLibrary library : libraries) {
         Project p = libraryMap.get(library);
         if (p == null) {
-          dir = library.getFolder();
+          File dir = library.getFolder();
           p = new LintGradleLibraryProject(client, dir, dir, library);
           libraryMap.put(library, p);
           projectMap.put(p, facet.getModule());
