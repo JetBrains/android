@@ -47,14 +47,10 @@ public class ThemeResolver {
   private final List<ThemeEditorStyle> myFrameworkThemes;
   private final List<ThemeEditorStyle> myProjectThemes;
   private final List<ThemeEditorStyle> myProjectLocalThemes;
-  private final StyleResolver myStyleResolver;
+  private final Configuration myConfiguration;
 
   public ThemeResolver(@NotNull Configuration configuration) {
-    this(configuration, new StyleResolver(configuration));
-  }
-
-  public ThemeResolver(@NotNull Configuration configuration, @NotNull StyleResolver styleResolver) {
-    myStyleResolver = styleResolver;
+    myConfiguration = configuration;
 
     final Queue<StyleResourceValue> localThemes = new LinkedList<StyleResourceValue>(getProjectThemesNoLibraries(configuration));
     // If there are no libraries, resolvedThemes will be the same as localThemes.
@@ -99,13 +95,13 @@ public class ThemeResolver {
       boolean isLocalTheme = !localThemes.isEmpty();
       boolean isProjectDependency = isLocalTheme || !resolvedThemes.isEmpty();
       StyleResourceValue style = pendingThemes.remove();
-      String styleQualifiedName = StyleResolver.getQualifiedStyleName(style);
+      String styleQualifiedName = ResolutionUtils.getQualifiedStyleName(style);
 
       if (myThemeNames.contains(styleQualifiedName)) {
         continue;
       }
       myThemeNames.add(styleQualifiedName);
-      ThemeEditorStyle resolvedStyle = myStyleResolver.getStyle(styleQualifiedName);
+      ThemeEditorStyle resolvedStyle = ResolutionUtils.getStyle(configuration, styleQualifiedName);
 
       if (resolvedStyle == null) {
         continue;
@@ -204,7 +200,7 @@ public class ThemeResolver {
   @Nullable
   public ThemeEditorStyle getTheme(@NotNull String themeName) {
     if (myThemeNames.contains(themeName)) {
-      return myStyleResolver.getStyle(themeName);
+      return ResolutionUtils.getStyle(myConfiguration, themeName);
     }
 
     return null;

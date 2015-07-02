@@ -83,8 +83,7 @@ public class NewStyleDialog extends DialogWrapper {
     final ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(themeResolver);
     ThemeEditorStyle defaultParent = null;
     if (defaultParentName != null) {
-      StyleResolver styleResolver = new StyleResolver(context.getConfiguration());
-      defaultParent = styleResolver.getStyle(defaultParentName);
+      defaultParent = ResolutionUtils.getStyle(context.getConfiguration(), defaultParentName);
     }
 
     //noinspection GtkPreferredJComboBoxRenderer
