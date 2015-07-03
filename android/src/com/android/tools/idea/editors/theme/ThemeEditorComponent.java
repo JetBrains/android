@@ -355,6 +355,7 @@ public class ThemeEditorComponent extends Splitter {
     myResourceChangeListener = new ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
+        myThemeEditorContext.updateThemeResolver();
         reload(myThemeName, mySubStyleName);
       }
     };
@@ -621,7 +622,7 @@ public class ThemeEditorComponent extends Splitter {
     configuration.setTheme(null);
     mySubStyleSourceAttribute = null;
 
-    final ThemeResolver themeResolver = new ThemeResolver(configuration);
+    final ThemeResolver themeResolver = myThemeEditorContext.getThemeResolver();
     final ThemeEditorStyle defaultTheme = defaultThemeName == null ? null : themeResolver.getTheme(defaultThemeName);
     myPanel.getThemeCombo().setModel(new ThemesListModel(myProject, ThemeEditorUtils.getDefaultThemes(themeResolver), defaultTheme));
     myThemeName = (myPanel.getSelectedTheme() == null) ? null : myPanel.getSelectedTheme().getQualifiedName();
