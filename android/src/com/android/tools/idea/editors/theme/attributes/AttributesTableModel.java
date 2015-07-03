@@ -53,7 +53,7 @@ import java.util.Set;
  */
 public class AttributesTableModel extends AbstractTableModel implements CellSpanModel {
   private static final Logger LOG = Logger.getInstance(AttributesTableModel.class);
-
+  public static final int COL_COUNT = 2;
   /** Cells containing values with classes in WIDE_CLASSES are going to have column span 2 */
   private static final Set<Class<?>> WIDE_CLASSES = ImmutableSet.of(Color.class, DrawableDomElement.class);
 
@@ -197,7 +197,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
   @Override
   public int getColumnCount() {
-    return 2;
+    return COL_COUNT;
   }
 
   @Override
