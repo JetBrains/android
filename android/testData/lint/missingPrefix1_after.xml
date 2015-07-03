@@ -4,9 +4,9 @@
               an:layout_height="fill_parent"
     >
   <TextView
-      an:layout_width="fill_parent"
-      an:layout_height="wrap_content"
-      an:id="@+id/id123"
+          an:layout_width="fill_parent"
+          an:layout_height="wrap_content"
+          an:id="@+id/id123"
       />
 </LinearLayout>
 
