@@ -53,12 +53,18 @@ public class ThemeEditorContext {
   // rendering context.
   private @NotNull Module myCurrentThemeModule;
 
+  private @NotNull ThemeResolver myThemeResolver;
+
   private final List<ChangeListener> myChangeListeners = new ArrayList<ChangeListener>();
   private final List<ConfigurationListener> myConfigurationListeners = new ArrayList<ConfigurationListener>();
 
   public ThemeEditorContext(@NotNull Configuration configuration, @NotNull Module currentThemeModule) {
-    myConfiguration = configuration;
     myCurrentThemeModule = currentThemeModule;
+    setConfiguration(configuration);
+  }
+
+  public void updateThemeResolver() {
+    myThemeResolver = new ThemeResolver(myConfiguration);
   }
 
   @NotNull
@@ -102,12 +108,18 @@ public class ThemeEditorContext {
     myConfiguration.addListener(configurationListener);
   }
 
+  @NotNull
+  public ThemeResolver getThemeResolver() {
+    return myThemeResolver;
+  }
+
   public void setConfiguration(@NotNull Configuration configuration) {
     for (ConfigurationListener listener : myConfigurationListeners) {
       myConfiguration.removeListener(listener);
     }
 
     myConfiguration = configuration;
+    updateThemeResolver();
 
     for (ConfigurationListener listener : myConfigurationListeners) {
       myConfiguration.addListener(listener);

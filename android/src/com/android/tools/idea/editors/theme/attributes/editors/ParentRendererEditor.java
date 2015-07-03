@@ -65,7 +65,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
 
   @Override
   public Component getEditorComponent(JTable table, ThemeEditorStyle value, boolean isSelected, int row, int column) {
-    ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(new ThemeResolver(myContext.getConfiguration()));
+    ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(myContext.getThemeResolver());
     myComboBox.setModel(new ParentThemesListModel(defaultThemes, value));
     myResultValue = value.getQualifiedName();
     return myComboBox;
