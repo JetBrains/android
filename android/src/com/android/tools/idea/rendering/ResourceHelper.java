@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceUrl;
@@ -22,6 +23,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.editors.theme.StateListPicker;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.lang.databinding.DbUtil;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -42,19 +44,29 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.*;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Queue;
 
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 
 public class ResourceHelper {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.ResourceHelper");
-  private static final String STATE_NAME_PREFIX = "state_";
+  public static final String STATE_NAME_PREFIX = "state_";
 
   /**
    * Returns true if the given style represents a project theme
@@ -509,6 +521,62 @@ public class ResourceHelper {
       }
     }
     return result;
+  }
+
+  /**
+   * Returns list of all the states of the statelist value, or an empty list if value is not a statelist.
+   */
+  @NotNull
+  public static List<StateListPicker.StateListState> resolveStateList(@NotNull RenderResources renderResources, @NotNull ResourceValue value) {
+    if (value.getValue().startsWith(PREFIX_RESOURCE_REF)) {
+      final ResourceUrl url = ResourceUrl.parse(value.getValue());
+      if (url != null) {
+        final ResourceValue resValue = renderResources.findResValue(value.getValue(), value.isFramework());
+        if (resValue != null) {
+          return resolveStateList(renderResources, resValue);
+        }
+      }
+    } else {
+      File file = new File(value.getValue());
+      if (file.exists() && file.getName().endsWith(DOT_XML)) {
+        try {
+          String xml = Files.toString(file, Charsets.UTF_8);
+          Document document = XmlUtils.parseDocumentSilently(xml, true);
+          if (document != null) {
+            List<StateListPicker.StateListState> stateList = new ArrayList<StateListPicker.StateListState>();
+            NodeList items = document.getElementsByTagName(TAG_ITEM);
+            for (int i = 0; i < items.getLength(); i++) {
+              stateList.add(createStateListState(items.item(i)));
+            }
+            return stateList;
+          }
+        } catch (Exception e) {
+          LOG.warn(String.format("Failed parsing state list file %1$s", file.getName()), e);
+        }
+      }
+    }
+    return Collections.emptyList();
+  }
+
+  /**
+   * Returns a StateListState representing the state in item.
+   */
+  @NotNull
+  private static StateListPicker.StateListState createStateListState(Node item) {
+    StateListPicker.StateListState state = new StateListPicker.StateListState();
+    NamedNodeMap attributes = item.getAttributes();
+    for (int i = 0; i < attributes.getLength(); i++) {
+      Node attr = attributes.item(i);
+      String name = attr.getLocalName();
+      String value = attr.getNodeValue();
+      if (SdkConstants.ATTR_COLOR.equals(name)) {
+        state.setColor(value);
+      }
+      else if (name != null && name.startsWith(STATE_NAME_PREFIX)) {
+        state.addAttribute(name, Boolean.valueOf(value));
+      }
+    }
+    return state;
   }
 
   /**

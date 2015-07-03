@@ -260,6 +260,11 @@ public class SwatchComponent extends JComponent {
     myText = text;
   }
 
+  @NotNull
+  public String getText() {
+    return myText;
+  }
+
   public void addActionListener(@NotNull ActionListener listener) {
     listenerList.add(ActionListener.class, listener);
   }
