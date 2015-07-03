@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme;
 
-
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -47,6 +46,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -78,6 +78,7 @@ public class StateListPicker extends JPanel {
   @NotNull
   private ResourceComponent createStateComponent(@NotNull StateListState state) {
     ResourceComponent component = new ResourceComponent();
+    component.setMaximumSize(new Dimension(component.getMaximumSize().width, component.getPreferredSize().height));
     component.setVariantComboVisible(false);
 
     String colorValue = state.getColor();
