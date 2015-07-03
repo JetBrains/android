@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.theme.attributes.editors;
+package com.android.tools.idea.editors.theme.ui;
 
 import com.android.tools.swing.ui.ClickableLabel;
 import com.android.tools.swing.ui.SwatchComponent;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.ListCellRendererWithRightAlignedComponent;
-import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,15 +27,9 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.ListCellRenderer;
-import javax.swing.SwingConstants;
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionListener;
@@ -51,6 +42,10 @@ import java.util.List;
 public class ResourceComponent extends JPanel {
 
   /**
+   * Maximum number of swatch icons to be displayed by default. See {@link SwatchComponent} constructor for more details.
+   */
+  private static final short MAX_SWATCH_ICONS = 3;
+  /**
    * ResourceComponent top + bottom margins
    */
   private static final int MARGIN = JBUI.scale(20);
@@ -59,48 +54,17 @@ public class ResourceComponent extends JPanel {
    */
   private static final int ROW_GAP = JBUI.scale(8);
 
-  private final SwatchComponent mySwatchComponent = new SwatchComponent();
+  private final SwatchComponent mySwatchComponent = new SwatchComponent(MAX_SWATCH_ICONS);
   private final ClickableLabel myNameLabel = new ClickableLabel();
-  private final ComboBox myVariantCombo = new ComboBox();
-  private final ListCellRenderer mySelectedVariantRenderer;
-  private final ListCellRenderer myPopupVariantRenderer;
+  private final VariantsComboBox myVariantCombo = new VariantsComboBox();
 
   public ResourceComponent() {
     super(new BorderLayout(0, ROW_GAP));
     setBorder(BorderFactory.createMatteBorder(MARGIN / 2, 0, MARGIN / 2, 0, getBackground()));
 
-    DefaultListCellRenderer selectedVariantRenderer = new DefaultListCellRenderer();
-    selectedVariantRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
-    mySelectedVariantRenderer = selectedVariantRenderer;
-    myPopupVariantRenderer = new DefaultListCellRenderer() {
-      @Override
-      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-        Component popupComponent =  super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-
-        if (!isSelected) {
-          popupComponent.setBackground(JBColor.WHITE);
-        }
-        return popupComponent;
-      }
-    };
-
-    ListCellRenderer variantRenderer = new ListCellRenderer() {
-      @Override
-      public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-        if (index == -1) {
-          return mySelectedVariantRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-        }
-
-        return myPopupVariantRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-      }
-    };
-
-    //noinspection GtkPreferredJComboBoxRenderer
-    myVariantCombo.setRenderer(variantRenderer);
-    myVariantCombo.setBorder(null);
-
     Box topRowPanel = new Box(BoxLayout.LINE_AXIS);
     topRowPanel.add(myNameLabel);
+    topRowPanel.add(Box.createHorizontalGlue());
     topRowPanel.add(myVariantCombo);
     add(topRowPanel, BorderLayout.NORTH);
 
@@ -127,11 +91,6 @@ public class ResourceComponent extends JPanel {
 
   public void setNameText(@NotNull String name) {
     myNameLabel.setText(name);
-  }
-
-  @NotNull
-  public ComboBoxModel getVariantsModel() {
-    return myVariantCombo.getModel();
   }
 
   public void setVariantsModel(@Nullable ComboBoxModel comboBoxModel) {

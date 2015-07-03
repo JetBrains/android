@@ -22,6 +22,8 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.DeviceMenuAction;
+import com.android.tools.idea.configurations.LocaleMenuAction;
+import com.android.tools.idea.configurations.OrientationMenuAction;
 import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
 import com.android.tools.idea.editors.theme.attributes.AttributesGrouper;
@@ -39,7 +41,7 @@ import com.android.tools.idea.editors.theme.attributes.editors.EnumRendererEdito
 import com.android.tools.idea.editors.theme.attributes.editors.FlagRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.IntegerRenderer;
 import com.android.tools.idea.editors.theme.attributes.editors.ParentRendererEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.ResourceComponent;
+import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.editors.theme.attributes.editors.StyleListCellRenderer;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
@@ -159,9 +161,8 @@ public class ThemeEditorComponent extends Splitter {
     myThemeEditorContext.addConfigurationListener(new ConfigurationListener() {
       @Override
       public boolean changed(int flags) {
-
-        //reloads the theme editor preview when device is modified
-        if ((flags & CFG_DEVICE) != 0) {
+        // reloads the theme editor preview when the configuration folder is updated
+        if ((flags & MASK_FOLDERCONFIG) != 0) {
           loadStyleAttributes();
           myThemeEditorContext.getConfiguration().save();
         }
@@ -338,10 +339,10 @@ public class ThemeEditorComponent extends Splitter {
 
     // Adds the Device selection button
     DefaultActionGroup group = new DefaultActionGroup();
-    DeviceMenuAction deviceAction = new DeviceMenuAction(myPreviewPanel);
-    TargetMenuAction targetAction = new TargetMenuAction(myPreviewPanel);
-    group.add(deviceAction);
-    group.add(targetAction);
+    group.add(new DeviceMenuAction(myPreviewPanel));
+    group.add(new TargetMenuAction(myPreviewPanel));
+    group.add(new LocaleMenuAction(myPreviewPanel));
+    group.add(new OrientationMenuAction(myPreviewPanel));
     ActionToolbar actionToolbar = actionManager.createActionToolbar("ThemeToolbar", group, true);
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
     JPanel myConfigToolbar = myPanel.getConfigToolbar();
