@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -80,8 +81,8 @@ public class SwatchComponent extends JComponent {
 
     addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseClicked(MouseEvent e) {
-        SwatchComponent.this.mouseClicked(e);
+      public void mouseReleased(MouseEvent e) {
+        SwatchComponent.this.mouseReleased(e);
       }
     });
   }
@@ -268,7 +269,11 @@ public class SwatchComponent extends JComponent {
     listenerList.remove(ActionListener.class, listener);
   }
 
-  private void mouseClicked(@NotNull MouseEvent e) {
+  private void mouseReleased(@NotNull MouseEvent e) {
+    if (!SwingUtilities.isLeftMouseButton(e)) {
+      return;
+    }
+
     if (myHasOverflowIcons) {
       // Check if the click was in the overflow text
       int iconSize = getIconSize();
@@ -292,8 +297,7 @@ public class SwatchComponent extends JComponent {
     }
 
     ActionListener[] actionListeners = listenerList.getListeners(ActionListener.class);
-    ActionEvent event = new ActionEvent(
-      this, ActionEvent.ACTION_PERFORMED, myText, e.getWhen(), e.getModifiers());
+    ActionEvent event = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, myText, e.getWhen(), e.getModifiers());
     for (ActionListener listener : actionListeners) {
       listener.actionPerformed(event);
     }
