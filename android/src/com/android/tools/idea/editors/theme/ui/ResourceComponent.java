@@ -105,6 +105,10 @@ public class ResourceComponent extends JPanel {
     mySwatchComponent.setText(value);
   }
 
+  public String getValueText() {
+    return mySwatchComponent.getText();
+  }
+
   @Override
   public void setFont(final Font font) {
     super.setFont(font);
@@ -124,5 +128,9 @@ public class ResourceComponent extends JPanel {
   public void addActionListener(final ActionListener listener) {
     myNameLabel.addActionListener(listener);
     mySwatchComponent.addActionListener(listener);
+  }
+
+  public void setVariantComboVisible(boolean isVisible) {
+    myVariantCombo.setVisible(isVisible);
   }
 }
