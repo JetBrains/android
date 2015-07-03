@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.editors.theme.StateListPicker;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
@@ -86,11 +87,18 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
       // TODO we need to handle color state lists correctly here.
       ResourceResolver resourceResolver = myContext.getResourceResolver();
       assert resourceResolver != null;
-      String resolvedColor = ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, myItem.getItemResourceValue()));
+      ChooseResourceDialog dialog;
 
-      final ChooseResourceDialog dialog =
-        new ChooseResourceDialog(myContext.getCurrentThemeModule(), ChooseResourceDialog.COLOR_TYPES, resolvedColor, null,
-                                 ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
+      List<StateListPicker.StateListState> colorStates = ResourceHelper.resolveStateList(resourceResolver, myItem.getItemResourceValue());
+      if (!colorStates.isEmpty()) {
+        dialog = new ChooseResourceDialog(myContext.getCurrentThemeModule(), myContext.getConfiguration(), ChooseResourceDialog.COLOR_TYPES,
+                                          colorStates, ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
+      }
+      else {
+        String resolvedColor = ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, myItem.getItemResourceValue()));
+        dialog = new ChooseResourceDialog(myContext.getCurrentThemeModule(), ChooseResourceDialog.COLOR_TYPES, resolvedColor,
+                                          null, ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
+      }
 
       final String oldValue = myItem.getItemResourceValue().getValue();
 
