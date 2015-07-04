@@ -3,22 +3,27 @@
   <item name="android.provider.Browser BOOKMARKS_URI">
     <annotation name="android.support.annotation.RequiresPermission.Read">
       <val name="value" val="&quot;com.android.browser.permission.READ_HISTORY_BOOKMARKS&quot;" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
     <annotation name="android.support.annotation.RequiresPermission.Write">
       <val name="value" val="&quot;com.android.browser.permission.WRITE_HISTORY_BOOKMARKS&quot;" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
   <item name="android.provider.Browser SEARCHES_URI">
     <annotation name="android.support.annotation.RequiresPermission.Read">
       <val name="value" val="&quot;com.android.browser.permission.READ_HISTORY_BOOKMARKS&quot;" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
     <annotation name="android.support.annotation.RequiresPermission.Write">
       <val name="value" val="&quot;com.android.browser.permission.WRITE_HISTORY_BOOKMARKS&quot;" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
   <item name="android.provider.Browser android.database.Cursor getAllBookmarks(android.content.ContentResolver)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;com.android.browser.permission.READ_HISTORY_BOOKMARKS&quot;" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
   <item name="android.provider.Browser android.database.Cursor getAllBookmarks(android.content.ContentResolver) 0">
@@ -27,6 +32,7 @@
   <item name="android.provider.Browser android.database.Cursor getAllVisitedUrls(android.content.ContentResolver)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;com.android.browser.permission.READ_HISTORY_BOOKMARKS&quot;" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
   <item name="android.provider.Browser android.database.Cursor getAllVisitedUrls(android.content.ContentResolver) 0">
@@ -35,6 +41,7 @@
   <item name="android.provider.Browser boolean canClearHistory(android.content.ContentResolver)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;com.android.browser.permission.READ_HISTORY_BOOKMARKS&quot;" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
   <item name="android.provider.Browser boolean canClearHistory(android.content.ContentResolver) 0">
@@ -43,6 +50,7 @@
   <item name="android.provider.Browser void addSearchUrl(android.content.ContentResolver, java.lang.String)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="allOf" val="{&quot;com.android.browser.permission.READ_HISTORY_BOOKMARKS&quot;, &quot;com.android.browser.permission.WRITE_HISTORY_BOOKMARKS&quot;}" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
   <item name="android.provider.Browser void addSearchUrl(android.content.ContentResolver, java.lang.String) 0">
@@ -51,6 +59,7 @@
   <item name="android.provider.Browser void clearHistory(android.content.ContentResolver)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;com.android.browser.permission.WRITE_HISTORY_BOOKMARKS&quot;" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
   <item name="android.provider.Browser void clearHistory(android.content.ContentResolver) 0">
@@ -59,6 +68,7 @@
   <item name="android.provider.Browser void clearSearches(android.content.ContentResolver)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;com.android.browser.permission.WRITE_HISTORY_BOOKMARKS&quot;" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
   <item name="android.provider.Browser void clearSearches(android.content.ContentResolver) 0">
@@ -67,6 +77,7 @@
   <item name="android.provider.Browser void deleteFromHistory(android.content.ContentResolver, java.lang.String)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;com.android.browser.permission.WRITE_HISTORY_BOOKMARKS&quot;" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
   <item name="android.provider.Browser void deleteFromHistory(android.content.ContentResolver, java.lang.String) 0">
@@ -75,6 +86,7 @@
   <item name="android.provider.Browser void deleteHistoryTimeFrame(android.content.ContentResolver, long, long)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;com.android.browser.permission.WRITE_HISTORY_BOOKMARKS&quot;" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
   <item name="android.provider.Browser void deleteHistoryTimeFrame(android.content.ContentResolver, long, long) 0">
@@ -83,6 +95,7 @@
   <item name="android.provider.Browser void requestAllIcons(android.content.ContentResolver, java.lang.String, android.webkit.WebIconDatabase.IconListener)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;com.android.browser.permission.READ_HISTORY_BOOKMARKS&quot;" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
   <item name="android.provider.Browser void saveBookmark(android.content.Context, java.lang.String, java.lang.String) 0">
@@ -94,6 +107,7 @@
   <item name="android.provider.Browser void truncateHistory(android.content.ContentResolver)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="allOf" val="{&quot;com.android.browser.permission.READ_HISTORY_BOOKMARKS&quot;, &quot;com.android.browser.permission.WRITE_HISTORY_BOOKMARKS&quot;}" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
   <item name="android.provider.Browser void truncateHistory(android.content.ContentResolver) 0">
@@ -102,6 +116,7 @@
   <item name="android.provider.Browser void updateVisitedHistory(android.content.ContentResolver, java.lang.String, boolean)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="allOf" val="{&quot;com.android.browser.permission.READ_HISTORY_BOOKMARKS&quot;, &quot;com.android.browser.permission.WRITE_HISTORY_BOOKMARKS&quot;}" />
+      <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
   <item name="android.provider.Browser void updateVisitedHistory(android.content.ContentResolver, java.lang.String, boolean) 0">
