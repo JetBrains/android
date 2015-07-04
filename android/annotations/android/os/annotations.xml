@@ -525,8 +525,38 @@
   <item name="android.os.MessageQueue void addIdleHandler(android.os.MessageQueue.IdleHandler) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.os.MessageQueue void addOnFileDescriptorEventListener(java.io.FileDescriptor, int, android.os.MessageQueue.OnFileDescriptorEventListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.MessageQueue void addOnFileDescriptorEventListener(java.io.FileDescriptor, int, android.os.MessageQueue.OnFileDescriptorEventListener) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_INPUT, android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_OUTPUT, android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_ERROR}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.os.MessageQueue void addOnFileDescriptorEventListener(java.io.FileDescriptor, int, android.os.MessageQueue.OnFileDescriptorEventListener) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.os.MessageQueue void removeIdleHandler(android.os.MessageQueue.IdleHandler) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.MessageQueue void removeOnFileDescriptorEventListener(java.io.FileDescriptor) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.MessageQueue.OnFileDescriptorEventListener int onFileDescriptorEvents(java.io.FileDescriptor, int)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_INPUT, android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_OUTPUT, android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_ERROR}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.os.MessageQueue.OnFileDescriptorEventListener int onFileDescriptorEvents(java.io.FileDescriptor, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.MessageQueue.OnFileDescriptorEventListener int onFileDescriptorEvents(java.io.FileDescriptor, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_INPUT, android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_OUTPUT, android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_ERROR}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.os.Messenger Messenger(android.os.Handler) 0">
     <annotation name="android.support.annotation.NonNull" />

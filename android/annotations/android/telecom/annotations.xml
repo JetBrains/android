@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.telecom.Conference void setExtras(android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telecom.Connection void setExtras(android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telecom.RemoteConference.Callback void onExtrasChanged(android.telecom.RemoteConference, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telecom.RemoteConnection.Callback void onExtrasChanged(android.telecom.RemoteConnection, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+</root>
+

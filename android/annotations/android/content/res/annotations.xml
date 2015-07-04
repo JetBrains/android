@@ -345,5 +345,8 @@
   <item name="android.content.res.TypedArray java.lang.String getPositionDescription()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.res.TypedArray java.lang.String getString(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
 </root>
 
