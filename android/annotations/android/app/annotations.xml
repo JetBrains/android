@@ -61,6 +61,12 @@
   <item name="android.app.ActionBar.LayoutParams LayoutParams(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.ActionBar.LayoutParams gravity">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.Gravity.NO_GRAVITY, android.view.Gravity.TOP, android.view.Gravity.BOTTOM, android.view.Gravity.LEFT, android.view.Gravity.RIGHT, android.view.Gravity.START, android.view.Gravity.END, android.view.Gravity.CENTER_VERTICAL, android.view.Gravity.FILL_VERTICAL, android.view.Gravity.CENTER_HORIZONTAL, android.view.Gravity.FILL_HORIZONTAL, android.view.Gravity.CENTER, android.view.Gravity.FILL}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.app.ActionBar.Tab android.app.ActionBar.Tab setContentDescription(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -195,6 +201,9 @@
   </item>
   <item name="android.app.Activity boolean onSearchRequested(android.view.SearchEvent) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.Activity boolean shouldShowRequestPermissionRationale(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.Activity boolean shouldUpRecreateTask(android.content.Intent) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -918,6 +927,9 @@
   <item name="android.app.Fragment android.view.View onCreateView(android.view.LayoutInflater, android.view.ViewGroup, android.os.Bundle) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.app.Fragment boolean shouldShowRequestPermissionRationale(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.app.Fragment java.lang.CharSequence getText(int) 0">
     <annotation name="android.support.annotation.StringRes" />
   </item>
@@ -986,6 +998,12 @@
   </item>
   <item name="android.app.FragmentHostCallback android.view.View onFindViewById(int)">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.FragmentHostCallback void onRequestPermissionsFromFragment(android.app.Fragment, java.lang.String[], int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.FragmentHostCallback void onRequestPermissionsFromFragment(android.app.Fragment, java.lang.String[], int) 1">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.FragmentManager android.app.FragmentTransaction beginTransaction()">
     <annotation name="android.support.annotation.NonNull" />
@@ -1435,12 +1453,6 @@
   <item name="android.app.NotificationManager void notify(java.lang.String, int, android.app.Notification) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.app.NotificationManager void requestPolicyAccess(android.app.NotificationManager.NotificationPolicyAccessRequestCallback, android.os.Handler) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.app.NotificationManager void requestPolicyAccess(android.app.NotificationManager.NotificationPolicyAccessRequestCallback, android.os.Handler) 1">
-    <annotation name="android.support.annotation.Nullable" />
-  </item>
   <item name="android.app.NotificationManager void setNotificationPolicy(android.app.NotificationManager.Policy) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -1534,11 +1546,56 @@
   <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler, java.lang.String) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler, java.lang.String) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler, java.lang.String) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler, java.lang.String) 5">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler, java.lang.String, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler, java.lang.String, android.os.Bundle) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler, java.lang.String, android.os.Bundle) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler, java.lang.String, android.os.Bundle) 5">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.PendingIntent void send(android.content.Context, int, android.content.Intent, android.app.PendingIntent.OnFinished, android.os.Handler, java.lang.String, android.os.Bundle) 6">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.PendingIntent void send(int, android.app.PendingIntent.OnFinished, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.PendingIntent void send(int, android.app.PendingIntent.OnFinished, android.os.Handler) 2">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.PendingIntent void writePendingIntentOrNullToParcel(android.app.PendingIntent, android.os.Parcel) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -1670,6 +1727,45 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.UiModeManager ACTION_EXIT_DESK_MODE">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.VoiceInteractor.AbortVoiceRequest AbortVoiceRequest(android.app.VoiceInteractor.Prompt, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.VoiceInteractor.AbortVoiceRequest AbortVoiceRequest(android.app.VoiceInteractor.Prompt, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.VoiceInteractor.CompleteVoiceRequest CompleteVoiceRequest(android.app.VoiceInteractor.Prompt, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.VoiceInteractor.CompleteVoiceRequest CompleteVoiceRequest(android.app.VoiceInteractor.Prompt, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.VoiceInteractor.ConfirmationRequest ConfirmationRequest(android.app.VoiceInteractor.Prompt, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.VoiceInteractor.ConfirmationRequest ConfirmationRequest(android.app.VoiceInteractor.Prompt, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.VoiceInteractor.PickOptionRequest PickOptionRequest(android.app.VoiceInteractor.Prompt, android.app.VoiceInteractor.PickOptionRequest.Option[], android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.VoiceInteractor.PickOptionRequest PickOptionRequest(android.app.VoiceInteractor.Prompt, android.app.VoiceInteractor.PickOptionRequest.Option[], android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.VoiceInteractor.Prompt Prompt(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.VoiceInteractor.Prompt Prompt(java.lang.CharSequence[], java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.VoiceInteractor.Prompt Prompt(java.lang.CharSequence[], java.lang.CharSequence) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.VoiceInteractor.Prompt java.lang.CharSequence getVisualPrompt()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.VoiceInteractor.Prompt java.lang.CharSequence getVoicePromptAt(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.WallpaperInfo WallpaperInfo(android.content.Context, android.content.pm.ResolveInfo) 0">

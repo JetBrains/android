@@ -28,6 +28,9 @@
   <item name="android.media.AudioDeviceInfo int[] getChannelMasks()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.media.AudioDeviceInfo int[] getEncodings()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.media.AudioDeviceInfo int[] getSampleRates()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -121,6 +124,9 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.media.AudioTrack.WRITE_BLOCKING, android.media.AudioTrack.WRITE_NON_BLOCKING}" />
     </annotation>
+  </item>
+  <item name="android.media.AudioTrack int write(java.nio.ByteBuffer, int, int, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.AudioTrack int write(java.nio.ByteBuffer, int, int, long) 2">
     <annotation name="android.support.annotation.IntDef">
@@ -522,6 +528,12 @@
   <item name="android.media.MediaDrm void setOnExpirationUpdateListener(android.media.MediaDrm.OnExpirationUpdateListener, android.os.Handler) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.media.MediaDrm void setOnKeyStatusChangeListener(android.media.MediaDrm.OnKeyStatusChangeListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDrm void setOnKeyStatusChangeListener(android.media.MediaDrm.OnKeyStatusChangeListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.media.MediaDrm void setPropertyByteArray(java.lang.String, byte[]) 0">
     <annotation name="android.support.annotation.StringDef">
       <val name="value" val="{android.media.MediaDrm.PROPERTY_DEVICE_UNIQUE_ID}" />
@@ -583,11 +595,21 @@
   <item name="android.media.MediaDrm.KeyRequest byte[] getData()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.media.MediaDrm.KeyRequest int getRequestType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaDrm.KeyRequest.REQUEST_TYPE_INITIAL, android.media.MediaDrm.KeyRequest.REQUEST_TYPE_RENEWAL, android.media.MediaDrm.KeyRequest.REQUEST_TYPE_RELEASE}" />
+    </annotation>
+  </item>
   <item name="android.media.MediaDrm.KeyRequest java.lang.String getDefaultUrl()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.MediaDrm.KeyStatus byte[] getKeyId()">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.KeyStatus int getStatusCode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaDrm.KeyStatus.STATUS_USABLE, android.media.MediaDrm.KeyStatus.STATUS_EXPIRED, android.media.MediaDrm.KeyStatus.STATUS_OUTPUT_NOT_ALLOWED, android.media.MediaDrm.KeyStatus.STATUS_PENDING, android.media.MediaDrm.KeyStatus.STATUS_INTERNAL_ERROR}" />
+    </annotation>
   </item>
   <item name="android.media.MediaDrm.MediaDrmStateException java.lang.String getDiagnosticInfo()">
     <annotation name="android.support.annotation.NonNull" />
@@ -610,6 +632,15 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.MediaDrm.OnExpirationUpdateListener void onExpirationUpdate(android.media.MediaDrm, byte[], long) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.OnKeyStatusChangeListener void onKeyStatusChange(android.media.MediaDrm, byte[], java.util.List&lt;android.media.MediaDrm.KeyStatus&gt;, boolean) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.OnKeyStatusChangeListener void onKeyStatusChange(android.media.MediaDrm, byte[], java.util.List&lt;android.media.MediaDrm.KeyStatus&gt;, boolean) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.OnKeyStatusChangeListener void onKeyStatusChange(android.media.MediaDrm, byte[], java.util.List&lt;android.media.MediaDrm.KeyStatus&gt;, boolean) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.MediaDrm.ProvisionRequest byte[] getData()">
