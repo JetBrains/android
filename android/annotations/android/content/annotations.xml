@@ -211,12 +211,15 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 0">
+    <annotation name="android.support.annotation.RequiresPermission.Read" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.RequiresPermission.Read" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver android.net.Uri insert(android.net.Uri, android.content.ContentValues) 0">
+    <annotation name="android.support.annotation.RequiresPermission.Write" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver android.os.Bundle call(android.net.Uri, java.lang.String, java.lang.String, android.os.Bundle) 2">
@@ -229,12 +232,15 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver int bulkInsert(android.net.Uri, android.content.ContentValues[]) 0">
+    <annotation name="android.support.annotation.RequiresPermission.Write" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver int delete(android.net.Uri, java.lang.String, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.RequiresPermission.Write" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.RequiresPermission.Write" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver java.io.InputStream openInputStream(android.net.Uri) 0">
@@ -381,6 +387,9 @@
   </item>
   <item name="android.content.Context android.graphics.drawable.Drawable getDrawable(int)">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context boolean bindService(android.content.Intent, android.content.ServiceConnection, int) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
   </item>
   <item name="android.content.Context boolean bindService(android.content.Intent, android.content.ServiceConnection, int) 1">
     <annotation name="android.support.annotation.NonNull" />
@@ -587,22 +596,44 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.content.Context void removeStickyBroadcast(android.content.Intent) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
+  <item name="android.content.Context void removeStickyBroadcastAsUser(android.content.Intent, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
   <item name="android.content.Context void revokeUriPermission(android.net.Uri, int) 1">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.content.Context void sendBroadcast(android.content.Intent) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
+  <item name="android.content.Context void sendBroadcast(android.content.Intent, java.lang.String) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
   <item name="android.content.Context void sendBroadcast(android.content.Intent, java.lang.String) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.Context void sendBroadcastAsUser(android.content.Intent, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
+  <item name="android.content.Context void sendBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
   <item name="android.content.Context void sendBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String) 2">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 1">
@@ -617,6 +648,9 @@
   <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 6">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.Context void sendOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
   <item name="android.content.Context void sendOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -629,6 +663,15 @@
   <item name="android.content.Context void sendOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 7">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.Context void sendStickyBroadcast(android.content.Intent) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
+  <item name="android.content.Context void sendStickyBroadcastAsUser(android.content.Intent, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
+  <item name="android.content.Context void sendStickyOrderedBroadcast(android.content.Intent, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
   <item name="android.content.Context void sendStickyOrderedBroadcast(android.content.Intent, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -637,6 +680,9 @@
   </item>
   <item name="android.content.Context void sendStickyOrderedBroadcast(android.content.Intent, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 5">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context void sendStickyOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
   </item>
   <item name="android.content.Context void sendStickyOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 3">
     <annotation name="android.support.annotation.Nullable" />
@@ -649,6 +695,18 @@
   </item>
   <item name="android.content.Context void setTheme(int) 0">
     <annotation name="android.support.annotation.StyleRes" />
+  </item>
+  <item name="android.content.Context void startActivities(android.content.Intent[]) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
+  <item name="android.content.Context void startActivities(android.content.Intent[], android.os.Bundle) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
+  <item name="android.content.Context void startActivity(android.content.Intent) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
+  <item name="android.content.Context void startActivity(android.content.Intent, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
   </item>
   <item name="android.content.Context void startActivity(android.content.Intent, android.os.Bundle) 1">
     <annotation name="android.support.annotation.Nullable" />
