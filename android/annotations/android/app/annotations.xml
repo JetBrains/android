@@ -203,18 +203,22 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.Activity boolean startActivityIfNeeded(android.content.Intent, int) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.Activity boolean startActivityIfNeeded(android.content.Intent, int, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.Activity boolean startActivityIfNeeded(android.content.Intent, int, android.os.Bundle) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.Activity boolean startNextMatchingActivity(android.content.Intent) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.Activity boolean startNextMatchingActivity(android.content.Intent, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.Activity boolean startNextMatchingActivity(android.content.Intent, android.os.Bundle) 1">
@@ -368,14 +372,26 @@
   <item name="android.app.Activity void startActivity(android.content.Intent, android.os.Bundle) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.app.Activity void startActivityForResult(android.content.Intent, int) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
+  <item name="android.app.Activity void startActivityForResult(android.content.Intent, int, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
   <item name="android.app.Activity void startActivityForResult(android.content.Intent, int, android.os.Bundle) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.Activity void startActivityFromChild(android.app.Activity, android.content.Intent, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Activity void startActivityFromChild(android.app.Activity, android.content.Intent, int) 1">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
   <item name="android.app.Activity void startActivityFromChild(android.app.Activity, android.content.Intent, int, android.os.Bundle) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Activity void startActivityFromChild(android.app.Activity, android.content.Intent, int, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.RequiresPermission" />
   </item>
   <item name="android.app.Activity void startActivityFromChild(android.app.Activity, android.content.Intent, int, android.os.Bundle) 3">
     <annotation name="android.support.annotation.Nullable" />
@@ -383,8 +399,14 @@
   <item name="android.app.Activity void startActivityFromFragment(android.app.Fragment, android.content.Intent, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.Activity void startActivityFromFragment(android.app.Fragment, android.content.Intent, int) 1">
+    <annotation name="android.support.annotation.RequiresPermission" />
+  </item>
   <item name="android.app.Activity void startActivityFromFragment(android.app.Fragment, android.content.Intent, int, android.os.Bundle) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.Activity void startActivityFromFragment(android.app.Fragment, android.content.Intent, int, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.RequiresPermission" />
   </item>
   <item name="android.app.Activity void startActivityFromFragment(android.app.Fragment, android.content.Intent, int, android.os.Bundle) 3">
     <annotation name="android.support.annotation.Nullable" />
