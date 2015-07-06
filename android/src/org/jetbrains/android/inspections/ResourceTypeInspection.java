@@ -23,7 +23,6 @@ import com.android.tools.idea.model.DeclaredPermissionsLookup;
 import com.android.tools.lint.checks.PermissionFinder;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.android.tools.lint.checks.PermissionRequirement;
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -76,7 +75,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.lint.checks.CleanupDetector.CONTENT_RESOLVER_CLS;
 import static com.android.tools.lint.checks.PermissionFinder.Operation.*;
 import static com.android.tools.lint.checks.SupportAnnotationDetector.*;
 import static com.intellij.psi.CommonClassNames.DEFAULT_PACKAGE;
@@ -352,34 +350,6 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         }
       }
     }
-
-    // Check other permission calls (intents, content resolvers etc: the annotation is not on the method itself
-    // (e.g. Activity#startActivity) but rather on the various intent actions and content resolver URIs being
-    // passed to the method (usually indirectly)
-    String name = method.getName();
-    PermissionFinder.Operation operation = SupportAnnotationDetector.getPermissionOperation(name);
-    if (operation != null) {
-      int index = Math.max(0, SupportAnnotationDetector.getIntentMethodParameterIndex(name));
-      PsiExpressionList argumentList = methodCall.getArgumentList();
-      if (argumentList != null) {
-        PsiExpression argument = argumentList.getExpressions()[index];
-        if (operation == ACTION) {
-          PsiClass c = PsiUtil.resolveClassInType(argument.getType());
-          if (c == null || !CLASS_INTENT.equals(c.getQualifiedName())) {
-            return;
-          }
-        } else if ((operation == READ || operation == WRITE)) {
-          if (!InheritanceUtil.isInheritor(method.getContainingClass(), CONTENT_RESOLVER_CLS)) {
-            return;
-          }
-        }
-
-        PermissionFinder.Result result = search(argument, operation);
-        if (result != null) {
-          checkPermissionRequirement(methodCall, holder, method, result, result.requirement);
-        }
-      }
-    }
   }
 
   @Nullable
@@ -414,14 +384,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       PsiElement resolved = ((PsiJavaReference)node).resolve();
       if (resolved instanceof PsiField) {
         PsiField field = (PsiField)resolved;
-        PsiModifierList modifierList = field.getModifierList();
-        if (modifierList == null) {
-          return null;
-        }
         if (operation == PermissionFinder.Operation.ACTION) {
-          PsiAnnotation annotation = modifierList.findAnnotation(PERMISSION_ANNOTATION);
-          if (annotation != null) {
-            return getPermissionRequirement(field, annotation, operation);
+          for (PsiAnnotation annotation : getAllAnnotations(field)) {
+            if (PERMISSION_ANNOTATION.equals(annotation.getQualifiedName())) {
+              return getPermissionRequirement(field, annotation, operation);
+            }
           }
         }
         else if (operation == PermissionFinder.Operation.READ || operation == PermissionFinder.Operation.WRITE) {
@@ -1473,6 +1440,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
   }
 
+  static class IndirectPermission extends Constraints {
+    public final String signature;
+    @Nullable public PermissionFinder.Result result;
+
+    public IndirectPermission(String signature) {
+      this.signature = signature;
+    }
+  }
+
   @Nullable
   private static Constraints getAllowedValuesFromTypedef(@NotNull PsiType type,
                                                            @NotNull PsiAnnotation magic,
@@ -1541,6 +1517,13 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         else if (COLOR_INT_ANNOTATION.equals(qualifiedName)) {
           return new ResourceTypeAllowedValues(Collections.<ResourceType>emptyList());
         }
+        else if (qualifiedName.startsWith(PERMISSION_ANNOTATION)) {
+          // PERMISSION_ANNOTATION, PERMISSION_ANNOTATION_READ, PERMISSION_ANNOTATION_WRITE
+          // When specified on a parameter, that indicates that we're dealing with
+          // a permission requirement on this *method* which depends on the value
+          // supplied by this parameter
+          return new IndirectPermission(qualifiedName);
+        }
         else if (qualifiedName.endsWith(RES_SUFFIX)) {
           ResourceType resourceType = getResourceTypeFromAnnotation(qualifiedName);
           if (resourceType != null) {
@@ -1595,7 +1578,18 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
   }
 
-  private static void registerProblem(@NotNull PsiExpression argument, @NotNull Constraints allowedValues, @NotNull ProblemsHolder holder) {
+  private static void registerProblem(@NotNull PsiExpression argument, @NotNull Constraints allowedValues,
+                                      @NotNull ProblemsHolder holder) {
+    if (allowedValues instanceof IndirectPermission) {
+      PsiMethodCallExpression call = PsiTreeUtil.getParentOfType(argument, PsiMethodCallExpression.class);
+      IndirectPermission ip = (IndirectPermission)allowedValues;
+      if (call != null && ip.result != null) {
+        checkPermissionRequirement(call, holder, null, ip.result, ip.result.requirement);
+      }
+
+      return;
+    }
+
     if (allowedValues instanceof ResourceTypeAllowedValues) {
       List<ResourceType> types = ((ResourceTypeAllowedValues)allowedValues).types;
       String message;
@@ -1653,6 +1647,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return isResourceTypeAllowed(scope, argument, (ResourceTypeAllowedValues)allowedValues, manager, visited);
     } else if (allowedValues instanceof RangeAllowedValues) {
       return isInRange(scope, argument, (RangeAllowedValues)allowedValues, manager, visited);
+    } else if (allowedValues instanceof IndirectPermission) {
+      return isGrantedPermission(argument, (IndirectPermission)allowedValues);
     }
 
     assert allowedValues instanceof AllowedValues;
@@ -2003,6 +1999,34 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     return UNCERTAIN;
+  }
+
+  private static boolean isGrantedPermission(@NotNull PsiExpression argument, @NotNull IndirectPermission permission) {
+    PsiMethodCallExpression call = PsiTreeUtil.getParentOfType(argument, PsiMethodCallExpression.class);
+    if (call != null) {
+      String signature = permission.signature;
+      PermissionFinder.Operation operation;
+      if (signature.equals(PERMISSION_ANNOTATION_READ)) {
+        operation = READ;
+      }
+      else if (signature.equals(PERMISSION_ANNOTATION_WRITE)) {
+        operation = WRITE;
+      }
+      else {
+        PsiType type = argument.getType();
+        if (type == null || !CLASS_INTENT.equals(type.getCanonicalText())) {
+          return true;
+        }
+        operation = ACTION;
+      }
+      permission.result = search(argument, operation);
+      if (permission.result != null) {
+        // Finish check in registerProblem
+        return false;
+      }
+    }
+    // No unsatisfied permission requirement found
+    return true;
   }
 
   // Would be nice to reuse the MagicConstantInspection's cache for this, but it's not accessible
