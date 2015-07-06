@@ -36,8 +36,10 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.containers.Convertor;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -404,11 +406,30 @@ public class ClassesTreeView implements DataProvider {
     });
 
     myColumnTree = builder.build();
+    installTreeSpeedSearch();
   }
 
   @NotNull
   public JComponent getComponent() {
     return myColumnTree;
+  }
+
+  private void installTreeSpeedSearch() {
+    new TreeSpeedSearch(myTree, new Convertor<TreePath, String>() {
+      @Override
+      public String convert(TreePath e) {
+        Object o = e.getLastPathComponent();
+        if (o instanceof HeapNode) {
+          if (o instanceof HeapClassObjNode) {
+            return ((HeapClassObjNode)o).getSimpleName();
+          }
+          else if (o instanceof HeapPackageNode) {
+            return ((HeapPackageNode)o).getFullName();
+          }
+        }
+        return o.toString();
+      }
+    }, true);
   }
 
   private void sortTree(@NotNull HeapPackageNode parent) {
