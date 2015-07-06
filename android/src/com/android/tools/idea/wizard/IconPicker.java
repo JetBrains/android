@@ -19,13 +19,14 @@ import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.assetstudiolib.vectordrawable.VdIcon;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.TreeMultimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.containers.MultiMap;
 
 import java.awt.*;
 import java.io.File;
@@ -57,12 +58,12 @@ public class IconPicker extends JPanel {
   // specific category except "All". This is the reason when we reference this
   // array, we start from index 1.
   private final static String[] mIconCategories =
-    {"All", "Action", "Alert", "AV", "Communication", "Content", "Device",
+    {"All", "Action", "Alert", "Av", "Communication", "Content", "Device",
       "Editor", "File", "Hardware", "Image", "Maps", "Navigation",
       "Notification", "Social", "Toggle"};
 
   // This is a map from category name to a hash set of icon names.
-  private final MultiMap<String, VdIcon> mAllIconCategoryMap = new MultiMap<String, VdIcon>();
+  private final Multimap<String, VdIcon> mAllIconCategoryMap = TreeMultimap.create();
 
   private AbstractTableModel mModel = new AbstractTableModel() {
 
@@ -238,16 +239,14 @@ public class IconPicker extends JPanel {
   private void loadInternalDrawables() {
     // Starting from 1, since 0 means "all".
     for (int i = 1; i < mIconCategories.length; i++) {
-      Collection<VdIcon> iconSet = new HashSet<VdIcon>();
       String categoryName = mIconCategories[i];
-      mAllIconCategoryMap.put(categoryName, iconSet);
       String categoryNameLowerCase = categoryName.toLowerCase(Locale.ENGLISH);
       String fullDirName = MATERIAL_DESIGN_ICONS_PATH + categoryNameLowerCase + File.separator;
       for (Iterator<String> iter = GraphicGenerator.getResourcesNames(fullDirName, SdkConstants.DOT_XML); iter.hasNext(); ) {
         final String iconName = iter.next();
         URL url = GraphicGenerator.class.getClassLoader().getResource(fullDirName + iconName);
         VdIcon icon = new VdIcon(url);
-        iconSet.add(icon);
+        mAllIconCategoryMap.put(categoryName, icon);
       }
     }
 
