@@ -112,6 +112,22 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testVersionUtility() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=178686
+    // Makes sure the version conditional lookup peeks into surrounding method calls to see
+    // if they're providing version checks.
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
+  public void testEarlyExit() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=37728
+    // Makes sure that if a method exits earlier in the method, we don't flag
+    // API checks after that
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
   public void testReflectiveOperationException() throws Exception {
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     if (sdkData == null || !ConfigureAndroidModuleStep.isJdk7Supported(sdkData)) {
