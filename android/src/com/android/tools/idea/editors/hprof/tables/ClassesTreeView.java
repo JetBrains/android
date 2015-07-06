@@ -23,6 +23,11 @@ import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
+import com.android.tools.idea.editors.hprof.tables.nodedata.HeapNode;
+import com.android.tools.idea.editors.hprof.tables.nodedata.HeapClassObjNode;
+import com.android.tools.idea.editors.hprof.tables.nodedata.HeapPackageNode;
+import com.intellij.openapi.actionSystem.ex.CheckboxAction;
+import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -41,7 +46,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -52,15 +56,26 @@ import java.util.List;
 public class ClassesTreeView implements DataProvider {
   @NotNull private Project myProject;
   @NotNull private Tree myTree;
+  @NotNull private DefaultTreeModel myTreeModel;
+  @NotNull private HeapPackageNode myRoot;
   @NotNull private JComponent myColumnTree;
-  @Nullable private Comparator<DefaultMutableTreeNode> myComparator;
-  private int myCurrentHeapId;
+  @Nullable private Comparator<HeapNode> myComparator;
 
-  public ClassesTreeView(@NotNull Project project, @NotNull final SelectionModel selectionModel) {
+  private int mySelectedHeapId;
+
+  @NotNull private ListIndex myListIndex;
+  @NotNull private TreeIndex myTreeIndex;
+  @NotNull private DisplayMode myDisplayMode;
+
+  public ClassesTreeView(@NotNull Project project,
+                         @NotNull DefaultActionGroup editorActionGroup,
+                         @NotNull final SelectionModel selectionModel) {
     myProject = project;
 
-    final DefaultTreeModel model = new DefaultTreeModel(new DefaultMutableTreeNode("Root node"));
-    myTree = new Tree(model);
+    myRoot = new HeapPackageNode(null, "");
+    myTreeModel = new DefaultTreeModel(myRoot);
+    myTree = new Tree(myTreeModel);
+    myDisplayMode = DisplayMode.LIST;
     myTree.setRootVisible(false);
     myTree.setShowsRootHandles(false);
     myTree.setLargeModel(true);
@@ -76,59 +91,72 @@ public class ClassesTreeView implements DataProvider {
       }
     });
 
-    selectionModel.addListener(new SelectionModel.SelectionListener() {
+    editorActionGroup.addAction(new ComboBoxAction() {
+      @NotNull
       @Override
-      public void onHeapChanged(@NotNull Heap heap) {
-        final Heap selectedHeap = selectionModel.getHeap();
-        myCurrentHeapId = selectedHeap.getId();
-
-        assert model.getRoot() instanceof DefaultMutableTreeNode;
-        DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
-        root.removeAllChildren();
-
-        ArrayList<ClassObj> entries = new ArrayList<ClassObj>(selectedHeap.getClasses().size() + selectedHeap.getInstancesCount());
-        // Find the union of the classObjs this heap has instances of, plus the classObjs themselves that are allocated on this heap.
-        HashSet<ClassObj> entriesSet = new HashSet<ClassObj>(selectedHeap.getClasses().size() + selectedHeap.getInstancesCount());
-        for (ClassObj classObj : selectedHeap.getClasses()) {
-          entriesSet.add(classObj);
-        }
-        for (Instance instance : selectedHeap.getInstances()) {
-          entriesSet.add(instance.getClassObj());
-        }
-        entries.addAll(entriesSet);
-
-        ClassObj classToSelect = selectionModel.getClassObj();
-        TreeNode nodeToSelect = null;
-        for (ClassObj classObj : entries) {
-          root.add(new DefaultMutableTreeNode(new HeapClassObj(classObj, myCurrentHeapId)));
-          if (classObj == classToSelect) {
-            nodeToSelect = root.getLastChild();
-          }
-        }
-
-        sortTree(root);
-        model.nodeStructureChanged(root);
-        final TreeNode targetNode = nodeToSelect;
-
-        // This is kind of clunky, but the viewport doesn't know how big the tree is until it repaints.
-        // We need to do this because the contents of this tree has been more or less completely replaced.
-        // Unfortunately, calling repaint() only queues it, so we actually need an extra frame to select the node.
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
+      protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+        return new DefaultActionGroup(new CheckboxAction(DisplayMode.LIST.toString()) {
           @Override
-          public void run() {
-            // If the new heap has the selected class (from a previous heap), then select it and scroll to it.
-            if (targetNode != null) {
-              myColumnTree.revalidate();
-              TreePath pathToSelect = new TreePath(model.getPathToRoot(targetNode));
-              myTree.setSelectionPath(pathToSelect);
-              myTree.scrollPathToVisible(pathToSelect);
+          public boolean isSelected(AnActionEvent e) {
+            return myDisplayMode == DisplayMode.LIST;
+          }
+
+          @Override
+          public void setSelected(AnActionEvent e, boolean state) {
+            if (state) {
+              myDisplayMode = DisplayMode.LIST;
+              myTree.setShowsRootHandles(false);
+
+              myListIndex.buildList(myRoot);
+              restoreViewState(selectionModel);
             }
-            else {
-              selectionModel.setClassObj(null);
-              myTree.scrollRowToVisible(0);
+          }
+        }, new CheckboxAction(DisplayMode.TREE.toString()) {
+          @Override
+          public boolean isSelected(AnActionEvent e) {
+            return myDisplayMode == DisplayMode.TREE;
+          }
+
+          @Override
+          public void setSelected(AnActionEvent e, boolean state) {
+            if (state) {
+              myDisplayMode = DisplayMode.TREE;
+              myTree.setShowsRootHandles(true);
+
+              myTreeIndex.buildTree(mySelectedHeapId);
+              restoreViewState(selectionModel);
             }
           }
         });
+      }
+
+      @Override
+      public void update(AnActionEvent e) {
+        super.update(e);
+        getTemplatePresentation().setText(myDisplayMode.toString());
+        e.getPresentation().setText(myDisplayMode.toString());
+      }
+    });
+
+    myListIndex = new ListIndex();
+    myTreeIndex = new TreeIndex();
+    selectionModel.addListener(myListIndex); // Add list index first, since that always updates; and tree index depends on it.
+    selectionModel.addListener(myTreeIndex);
+
+    selectionModel.addListener(new SelectionModel.SelectionListener() {
+      @Override
+      public void onHeapChanged(@NotNull Heap heap) {
+        mySelectedHeapId = heap.getId();
+
+        assert myListIndex.myHeapId == mySelectedHeapId;
+        if (myDisplayMode == DisplayMode.LIST) {
+          myListIndex.buildList(myRoot);
+        }
+        else if (myDisplayMode == DisplayMode.TREE) {
+          myTreeIndex.buildTree(mySelectedHeapId);
+        }
+
+        restoreViewState(selectionModel);
       }
 
       @Override
@@ -146,14 +174,19 @@ public class ClassesTreeView implements DataProvider {
       @Override
       public void valueChanged(TreeSelectionEvent e) {
         TreePath path = e.getPath();
-        if (path == null || path.getPathCount() < 2 || !e.isAddedPath()) {
+        if (!e.isAddedPath()) {
+          return;
+        }
+
+        if (path == null || path.getPathCount() < 2) {
           selectionModel.setClassObj(null);
           return;
         }
 
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getPathComponent(1);
-        if (node.getUserObject() instanceof HeapClassObj) {
-          selectionModel.setClassObj(((HeapClassObj)node.getUserObject()).getClassObj());
+        assert path.getLastPathComponent() instanceof HeapNode;
+        HeapNode heapNode = (HeapNode)path.getLastPathComponent();
+        if (heapNode instanceof HeapClassObjNode) {
+          selectionModel.setClassObj(((HeapClassObjNode)heapNode).getClassObj());
         }
       }
     });
@@ -163,16 +196,15 @@ public class ClassesTreeView implements DataProvider {
         .setName("Class Name")
         .setPreferredWidth(800)
         .setHeaderAlignment(SwingConstants.LEFT)
-        .setComparator(new Comparator<DefaultMutableTreeNode>() {
+        .setComparator(new Comparator<HeapNode>() {
           @Override
-          public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
-            int comparisonResult = ((HeapClassObj)a.getUserObject()).getSimpleName()
-              .compareToIgnoreCase(((HeapClassObj)b.getUserObject()).getSimpleName());
-            if (comparisonResult == 0) {
-              return ((HeapClassObj)a.getUserObject()).getClassObj().getClassName()
-                .compareToIgnoreCase(((HeapClassObj)b.getUserObject()).getClassObj().getClassName());
+          public int compare(HeapNode a, HeapNode b) {
+            int valueA = a instanceof HeapPackageNode ? 0 : 1;
+            int valueB = b instanceof HeapPackageNode ? 0 : 1;
+            if (valueA != valueB) {
+              return valueA - valueB;
             }
-            return comparisonResult;
+            return compareNames(a, b);
           }
         })
         .setRenderer(new ColoredTreeCellRenderer() {
@@ -184,9 +216,8 @@ public class ClassesTreeView implements DataProvider {
                                             boolean leaf,
                                             int row,
                                             boolean hasFocus) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-            if (node.getUserObject() instanceof HeapClassObj) {
-              ClassObj clazz = ((HeapClassObj)node.getUserObject()).getClassObj();
+            if (value instanceof HeapClassObjNode) {
+              ClassObj clazz = ((HeapClassObjNode)value).getClassObj();
               String name = clazz.getClassName();
               String pkg = null;
               int i = name.lastIndexOf(".");
@@ -202,6 +233,14 @@ public class ClassesTreeView implements DataProvider {
               setIcon(PlatformIcons.CLASS_ICON);
               // TODO reformat anonymous classes (ANONYMOUS_CLASS_ICON) to match IJ.
             }
+            else if (value instanceof HeapNode) {
+              append(((HeapNode)value).getSimpleName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+              setTransparentIconBackground(true);
+              setIcon(PlatformIcons.PACKAGE_ICON);
+            }
+            else {
+              append("This should not be rendered");
+            }
           }
         })
     ).addColumn(
@@ -209,11 +248,11 @@ public class ClassesTreeView implements DataProvider {
         .setName("Total Count")
         .setPreferredWidth(100)
         .setHeaderAlignment(SwingConstants.RIGHT)
-        .setComparator(new Comparator<DefaultMutableTreeNode>() {
+        .setComparator(new Comparator<HeapNode>() {
           @Override
-          public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
-            return ((HeapClassObj)a.getUserObject()).getClassObj().getInstanceCount() -
-                   ((HeapClassObj)b.getUserObject()).getClassObj().getInstanceCount();
+          public int compare(HeapNode a, HeapNode b) {
+            int result = a.getTotalCount() - b.getTotalCount();
+            return result == 0 ? compareNames(a, b) : result;
           }
         })
         .setRenderer(new ColoredTreeCellRenderer() {
@@ -225,9 +264,8 @@ public class ClassesTreeView implements DataProvider {
                                             boolean leaf,
                                             int row,
                                             boolean hasFocus) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-            if (node.getUserObject() instanceof HeapClassObj) {
-              append(Integer.toString(((HeapClassObj)node.getUserObject()).getClassObj().getInstanceCount()));
+            if (value instanceof HeapNode) {
+              append(Integer.toString(((HeapNode)value).getTotalCount()));
             }
             setTextAlign(SwingConstants.RIGHT);
           }
@@ -237,11 +275,11 @@ public class ClassesTreeView implements DataProvider {
         .setName("Heap Count")
         .setPreferredWidth(100)
         .setHeaderAlignment(SwingConstants.RIGHT)
-        .setComparator(new Comparator<DefaultMutableTreeNode>() {
+        .setComparator(new Comparator<HeapNode>() {
           @Override
-          public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
-            return ((HeapClassObj)a.getUserObject()).getClassObj().getHeapInstancesCount(myCurrentHeapId) -
-                   ((HeapClassObj)b.getUserObject()).getClassObj().getHeapInstancesCount(myCurrentHeapId);
+          public int compare(HeapNode a, HeapNode b) {
+            int result = a.getHeapInstancesCount(mySelectedHeapId) - b.getHeapInstancesCount(mySelectedHeapId);
+            return result == 0 ? compareNames(a, b) : result;
           }
         })
         .setRenderer(new ColoredTreeCellRenderer() {
@@ -253,9 +291,8 @@ public class ClassesTreeView implements DataProvider {
                                             boolean leaf,
                                             int row,
                                             boolean hasFocus) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-            if (node.getUserObject() instanceof HeapClassObj) {
-              append(Integer.toString(((HeapClassObj)node.getUserObject()).getClassObj().getHeapInstancesCount(myCurrentHeapId)));
+            if (value instanceof HeapNode) {
+              append(Integer.toString(((HeapNode)value).getHeapInstancesCount(mySelectedHeapId)));
             }
             setTextAlign(SwingConstants.RIGHT);
           }
@@ -265,11 +302,16 @@ public class ClassesTreeView implements DataProvider {
         .setName("Sizeof")
         .setPreferredWidth(80)
         .setHeaderAlignment(SwingConstants.RIGHT)
-        .setComparator(new Comparator<DefaultMutableTreeNode>() {
+        .setComparator(new Comparator<HeapNode>() {
           @Override
-          public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
-            return ((HeapClassObj)a.getUserObject()).getClassObj().getInstanceSize() -
-                   ((HeapClassObj)b.getUserObject()).getClassObj().getInstanceSize();
+          public int compare(HeapNode a, HeapNode b) {
+            int sizeA = a.getInstanceSize();
+            int sizeB = b.getInstanceSize();
+            if (sizeA < 0 && sizeB < 0) {
+              return compareNames(a, b);
+            }
+            int result = sizeA - sizeB;
+            return result == 0 ? compareNames(a, b) : result;
           }
         })
         .setRenderer(new ColoredTreeCellRenderer() {
@@ -281,9 +323,8 @@ public class ClassesTreeView implements DataProvider {
                                             boolean leaf,
                                             int row,
                                             boolean hasFocus) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-            if (node.getUserObject() instanceof HeapClassObj) {
-              append(Integer.toString(((HeapClassObj)node.getUserObject()).getClassObj().getInstanceSize()));
+            if (value instanceof HeapClassObjNode) {
+              append(Integer.toString(((HeapClassObjNode)value).getInstanceSize()));
             }
             setTextAlign(SwingConstants.RIGHT);
           }
@@ -293,14 +334,13 @@ public class ClassesTreeView implements DataProvider {
         .setName("Shallow Size")
         .setPreferredWidth(100)
         .setHeaderAlignment(SwingConstants.RIGHT)
-        .setComparator(new Comparator<DefaultMutableTreeNode>() {
+        .setComparator(new Comparator<HeapNode>() {
           @Override
-          public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
-            return ((HeapClassObj)a.getUserObject()).getClassObj().getShallowSize(myCurrentHeapId) -
-                   ((HeapClassObj)b.getUserObject()).getClassObj().getShallowSize(myCurrentHeapId);
+          public int compare(HeapNode a, HeapNode b) {
+            int result = a.getShallowSize(mySelectedHeapId) - b.getShallowSize(mySelectedHeapId);
+            return result == 0 ? compareNames(a, b) : result;
           }
-        })
-        .setRenderer(new ColoredTreeCellRenderer() {
+        }).setRenderer(new ColoredTreeCellRenderer() {
           @Override
           public void customizeCellRenderer(@NotNull JTree tree,
                                             Object value,
@@ -309,9 +349,8 @@ public class ClassesTreeView implements DataProvider {
                                             boolean leaf,
                                             int row,
                                             boolean hasFocus) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-            if (node.getUserObject() instanceof HeapClassObj) {
-              append(Integer.toString(((HeapClassObj)node.getUserObject()).getClassObj().getShallowSize(myCurrentHeapId)));
+            if (value instanceof HeapNode) {
+              append(Integer.toString(((HeapNode)value).getShallowSize(mySelectedHeapId)));
             }
             setTextAlign(SwingConstants.RIGHT);
           }
@@ -321,10 +360,12 @@ public class ClassesTreeView implements DataProvider {
         .setName("Retained Size")
         .setPreferredWidth(120)
         .setHeaderAlignment(SwingConstants.RIGHT)
-        .setComparator(new Comparator<DefaultMutableTreeNode>() {
+        .setInitialOrder(SortOrder.DESCENDING)
+        .setComparator(new Comparator<HeapNode>() {
           @Override
-          public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
-            return (int)(((HeapClassObj)a.getUserObject()).getRetainedSize() - ((HeapClassObj)b.getUserObject()).getRetainedSize());
+          public int compare(HeapNode a, HeapNode b) {
+            long result = a.getRetainedSize() - b.getRetainedSize();
+            return result == 0 ? compareNames(a, b) : (result > 0 ? 1 : -1);
           }
         })
         .setRenderer(new ColoredTreeCellRenderer() {
@@ -336,9 +377,8 @@ public class ClassesTreeView implements DataProvider {
                                             boolean leaf,
                                             int row,
                                             boolean hasFocus) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-            if (node.getUserObject() instanceof HeapClassObj) {
-              append(Long.toString(((HeapClassObj)node.getUserObject()).getRetainedSize()));
+            if (value instanceof HeapNode) {
+              append(Long.toString(((HeapNode)value).getRetainedSize()));
             }
             setTextAlign(SwingConstants.RIGHT);
           }
@@ -346,19 +386,16 @@ public class ClassesTreeView implements DataProvider {
     );
 
     //noinspection NullableProblems
-    builder.setTreeSorter(new ColumnTreeBuilder.TreeSorter<DefaultMutableTreeNode>() {
+    builder.setTreeSorter(new ColumnTreeBuilder.TreeSorter<HeapNode>() {
       @Override
-      public void sort(@NotNull Comparator<DefaultMutableTreeNode> comparator, @NotNull SortOrder sortOrder) {
+      public void sort(@NotNull Comparator<HeapNode> comparator, @NotNull SortOrder sortOrder) {
         if (myComparator != comparator) {
           myComparator = comparator;
 
-          DefaultTreeModel model = (DefaultTreeModel)myTree.getModel();
-          DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
-
           selectionModel.setSelectionLocked(true);
           TreePath selectionPath = myTree.getSelectionPath();
-          sortTree(root);
-          model.nodeStructureChanged(root);
+          sortTree(myRoot);
+          myTreeModel.nodeStructureChanged(myRoot);
           myTree.setSelectionPath(selectionPath);
           myTree.scrollPathToVisible(selectionPath);
           selectionModel.setSelectionLocked(false);
@@ -374,20 +411,102 @@ public class ClassesTreeView implements DataProvider {
     return myColumnTree;
   }
 
-  private void sortTree(@NotNull DefaultMutableTreeNode parent) {
-    if (parent.getChildCount() == 0 || myComparator == null) {
+  private void sortTree(@NotNull HeapPackageNode parent) {
+    if (parent.isLeaf() || myComparator == null) {
       return;
     }
 
-    //noinspection unchecked
-    List<DefaultMutableTreeNode> children = Collections.list((Enumeration<DefaultMutableTreeNode>)parent.children());
+    List<HeapNode> children = parent.getChildren();
     Collections.sort(children, myComparator);
 
-    parent.removeAllChildren();
-    for (DefaultMutableTreeNode child : children) {
-      parent.add(child);
-      sortTree(child);
+    for (HeapNode child : children) {
+      if (child instanceof HeapPackageNode) {
+        sortTree((HeapPackageNode)child);
+      }
     }
+  }
+
+  private static int compareNames(@NotNull HeapNode a, @NotNull HeapNode b) {
+    int comparisonResult = a.getSimpleName()
+      .compareToIgnoreCase(b.getSimpleName());
+    if (comparisonResult == 0) {
+      return a.getFullName().compareToIgnoreCase(b.getFullName());
+    }
+    return comparisonResult;
+  }
+
+  private void restoreViewState(@NotNull final SelectionModel selectionModel) {
+    ClassObj classToSelect = selectionModel.getClassObj();
+    TreeNode nodeToSelect = null;
+    if (classToSelect != null) {
+      nodeToSelect = findClassObjNode(classToSelect);
+    }
+
+    sortTree(myRoot);
+    myTreeModel.nodeStructureChanged(myRoot);
+    final TreeNode targetNode = nodeToSelect;
+
+    if (targetNode != null) {
+      // If the new heap has the selected class (from a previous heap), then select it and scroll to it.
+      myColumnTree.revalidate();
+      final TreePath pathToSelect = new TreePath(myTreeModel.getPathToRoot(targetNode));
+      myTree.setSelectionPath(pathToSelect);
+
+      // This is kind of clunky, but the viewport doesn't know how big the tree is until it repaints.
+      // We need to do this because the contents of this tree has been more or less completely replaced.
+      // Unfortunately, calling repaint() only queues it, so we actually need an extra frame to select the node.
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          myTree.scrollPathToVisible(pathToSelect);
+        }
+      });
+    }
+    else {
+      selectionModel.setClassObj(null);
+      myTree.scrollRowToVisible(0);
+    }
+  }
+
+  @Nullable
+  private HeapClassObjNode findClassObjNode(@NotNull ClassObj targetClass) {
+    if (myDisplayMode == DisplayMode.LIST) {
+      for (int i = 0; i < myRoot.getChildCount(); ++i) {
+        TreeNode child = myRoot.getChildAt(i);
+        assert child instanceof HeapClassObjNode;
+        if (((HeapClassObjNode)child).getClassObj() == targetClass) {
+          return (HeapClassObjNode)child;
+        }
+      }
+    }
+    else if (myDisplayMode == DisplayMode.TREE) {
+      HeapPackageNode currentNode = myRoot;
+
+      String[] packages = targetClass.getClassName().split("\\.");
+      assert packages.length > 0;
+      int currentPackageIndex = 0;
+
+      while (currentPackageIndex < packages.length - 1) {
+        if (currentNode.getSubPackages().containsKey(packages[currentPackageIndex])) {
+          currentNode = currentNode.getSubPackages().get(packages[currentPackageIndex]);
+          ++currentPackageIndex;
+        }
+        else {
+          return null;
+        }
+      }
+
+      for (int i = 0; i < currentNode.getChildCount(); ++i) {
+        TreeNode childTreeNode = currentNode.getChildAt(i);
+        assert childTreeNode instanceof HeapNode;
+        HeapNode child = (HeapNode)childTreeNode;
+        if (child instanceof HeapClassObjNode && ((HeapClassObjNode)child).getClassObj() == targetClass) {
+          return (HeapClassObjNode)child;
+        }
+      }
+    }
+
+    return null;
   }
 
   @Nullable
@@ -409,9 +528,10 @@ public class ClassesTreeView implements DataProvider {
       return null;
     }
 
-    DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-    if (node.getUserObject() instanceof HeapClassObj) {
-      ClassObj classObj = ((HeapClassObj)node.getUserObject()).getClassObj();
+    assert path.getLastPathComponent() instanceof HeapNode;
+    HeapNode node = (HeapNode)path.getLastPathComponent();
+    if (node instanceof HeapClassObjNode) {
+      ClassObj classObj = ((HeapClassObjNode)node).getClassObj();
       String className = classObj.getClassName();
 
       int arrayIndex = className.indexOf("[");
@@ -425,35 +545,102 @@ public class ClassesTreeView implements DataProvider {
     return null;
   }
 
-  private static class HeapClassObj {
-    @NotNull private ClassObj myClassObj;
-    private long myRetainedSize;
-    private String mySimpleName;
+  private static class ListIndex implements SelectionModel.SelectionListener {
+    ArrayList<HeapClassObjNode> myClasses = new ArrayList<HeapClassObjNode>();
+    private int myHeapId = -1;
 
-    private HeapClassObj(@NotNull ClassObj classObj, int heapId) {
-      myClassObj = classObj;
-      for (Instance instance : myClassObj.getHeapInstances(heapId)) {
-        myRetainedSize += instance.getTotalRetainedSize();
-      }
+    @Override
+    public void onHeapChanged(@NotNull Heap heap) {
+      if (myHeapId != heap.getId()) {
+        myHeapId = heap.getId();
+        myClasses.clear();
 
-      mySimpleName = myClassObj.getClassName();
-      int index = mySimpleName.lastIndexOf('.');
-      if (index >= 0 && index < mySimpleName.length() - 1) {
-        mySimpleName = mySimpleName.substring(index + 1, mySimpleName.length());
+        // Find the union of the classObjs this heap has instances of, plus the classObjs themselves that are allocated on this heap.
+        HashSet<ClassObj> entriesSet = new HashSet<ClassObj>(heap.getClasses().size() + heap.getInstancesCount());
+        for (ClassObj classObj : heap.getClasses()) {
+          entriesSet.add(classObj);
+        }
+        for (Instance instance : heap.getInstances()) {
+          entriesSet.add(instance.getClassObj());
+        }
+
+        for (ClassObj classObj : entriesSet) {
+          myClasses.add(new HeapClassObjNode(classObj, myHeapId));
+        }
       }
     }
+
+    @Override
+    public void onClassObjChanged(@Nullable ClassObj classObj) {
+
+    }
+
+    @Override
+    public void onInstanceChanged(@Nullable Instance instance) {
+
+    }
+
+    public void buildList(@NotNull HeapNode root) {
+      root.removeAllChildren();
+      for (HeapClassObjNode heapClassObjNode : myClasses) {
+        heapClassObjNode.removeFromParent();
+        root.add(heapClassObjNode);
+      }
+    }
+  }
+
+  private class TreeIndex implements SelectionModel.SelectionListener {
+    private int myHeapId = -1;
+
+    @Override
+    public void onHeapChanged(@NotNull Heap heap) {
+      // TODO save the expansion state
+      if (myDisplayMode == DisplayMode.TREE) {
+        assert myListIndex.myHeapId == heap.getId();
+        buildTree(heap.getId());
+      }
+    }
+
+    @Override
+    public void onClassObjChanged(@Nullable ClassObj classObj) {
+
+    }
+
+    @Override
+    public void onInstanceChanged(@Nullable Instance instance) {
+
+    }
+
+    public void buildTree(int heapId) {
+      if (myHeapId != heapId) {
+        myHeapId = heapId;
+        myRoot.clear();
+
+        for (HeapClassObjNode heapClassObjNode : myListIndex.myClasses) {
+          myRoot.classifyClassObj(heapClassObjNode);
+        }
+
+        myRoot.update(mySelectedHeapId);
+      }
+
+      myRoot.buildTree();
+    }
+  }
+
+  private enum DisplayMode {
+    LIST("Class List View"),
+    TREE("Package Tree View");
 
     @NotNull
-    public ClassObj getClassObj() {
-      return myClassObj;
+    private String myName;
+
+    DisplayMode(@NotNull String name) {
+      myName = name;
     }
 
-    public long getRetainedSize() {
-      return myRetainedSize;
-    }
-
-    public String getSimpleName() {
-      return mySimpleName;
+    @Override
+    public String toString() {
+      return myName;
     }
   }
 }
