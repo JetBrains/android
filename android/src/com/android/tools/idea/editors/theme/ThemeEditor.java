@@ -82,7 +82,8 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     ThemeEditorStyle subStyle = myComponent.getCurrentSubStyle();
     return new ThemeEditorState(theme == null ? null : theme.getQualifiedName(),
                                 subStyle == null ? null : subStyle.getQualifiedName(),
-                                myComponent.getProportion());
+                                myComponent.getProportion(),
+                                myComponent.getSelectedModule().getName());
   }
 
   @Override
@@ -92,7 +93,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     }
 
     ThemeEditorState state = (ThemeEditorState)fileEditorState;
-    myComponent.reload(state.getThemeName(), state.getSubStyleName());
+    myComponent.reload(state.getThemeName(), state.getSubStyleName(), state.getModuleName());
 
     myComponent.setProportion(state.getProportion());
   }

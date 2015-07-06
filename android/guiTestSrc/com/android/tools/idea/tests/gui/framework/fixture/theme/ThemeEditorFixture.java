@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.theme;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.AttributesPanel;
 import com.android.tools.idea.editors.theme.ThemeEditor;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.ThemeEditorTable;
@@ -43,11 +44,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, ThemeEditorComponent> {
-  private JComboBoxFixture myThemesComboBox;
+  private final JComboBoxFixture myThemesComboBox;
 
   public ThemeEditorFixture(@NotNull Robot robot, @NotNull ThemeEditor themeEditor) {
     super(ThemeEditorFixture.class, robot, (ThemeEditorComponent)themeEditor.getComponent());
-    myThemesComboBox = new JComboBoxFixture(robot(), robot().finder().findByType(this.target().getSecondComponent(), JComboBox.class));
+    myThemesComboBox = new JComboBoxFixture(robot(), robot().finder().findByName(this.target().getSecondComponent(), AttributesPanel.THEME_SELECTOR_NAME, JComboBox.class));
   }
 
   @NotNull
