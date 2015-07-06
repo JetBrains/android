@@ -58,6 +58,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -248,6 +249,21 @@ public class ThemeEditorUtils {
         return theme != null && names.contains(theme.getName());
       }
     }));
+  }
+
+  @NotNull
+  public static ImmutableList<Module> findAndroidModules(@NotNull Project project) {
+    final ModuleManager manager = ModuleManager.getInstance(project);
+
+    final ImmutableList.Builder<Module> builder = ImmutableList.builder();
+    for (Module module : manager.getModules()) {
+      final AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        builder.add(module);
+      }
+    }
+
+    return builder.build();
   }
 
   @NotNull
