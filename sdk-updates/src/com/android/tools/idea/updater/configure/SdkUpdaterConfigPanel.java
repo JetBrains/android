@@ -30,14 +30,18 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ShowSettingsUtil;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.ui.InputValidator;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.updateSettings.impl.UpdateSettingsConfigurable;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.table.SelectionProvider;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.awt.CausedFocusEvent;
@@ -50,6 +54,7 @@ import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -59,12 +64,13 @@ import java.util.Set;
  */
 public class SdkUpdaterConfigPanel {
   private JPanel myRootPane;
-  private TextFieldWithBrowseButton mySdkLocation;
+  private JTextField mySdkLocation;
   private PlatformComponentsPanel myPlatformComponentsPanel;
   private ToolComponentsPanel myToolComponentsPanel;
   private UpdateSitesPanel myUpdateSitesPanel;
   private HyperlinkLabel myLaunchStandaloneLink;
   private HyperlinkLabel myChannelLink;
+  private HyperlinkLabel myEditSdkLink;
   private SdkSources mySdkSources;
   private Runnable mySourcesChangeListener = new DispatchRunnable() {
     @Override
@@ -73,7 +79,7 @@ public class SdkUpdaterConfigPanel {
     }
   };
 
-  private final SdkState mySdkState;
+  private SdkState mySdkState;
   private boolean myHasPreview;
   private boolean myIncludePreview;
 
@@ -96,7 +102,6 @@ public class SdkUpdaterConfigPanel {
     mySdkSources = mySdkState.getRemoteSdk().fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, logger);
     mySdkSources.addChangeListener(mySourcesChangeListener);
     myUpdateSitesPanel.setSdkState(sdkState);
-    mySdkLocation.setText(IdeSdks.getAndroidSdkPath().getPath());
     myLaunchStandaloneLink.setHyperlinkText("Launch Standalone SDK Manager");
     myLaunchStandaloneLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
@@ -114,6 +119,26 @@ public class SdkUpdaterConfigPanel {
         channelChangedCallback.run();
       }
     });
+    myEditSdkLink.setHyperlinkText("Edit");
+    myEditSdkLink.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      protected void hyperlinkActivated(HyperlinkEvent e) {
+        String newLocation = Messages
+          .showInputDialog(getComponent(), "New SDK Location:", "Set SDK Location", null, mySdkLocation.getText(), new InputValidator() {
+            @Override
+            public boolean checkInput(String inputString) {
+              return IdeSdks.isValidAndroidSdkPath(new File(inputString));
+            }
+
+            @Override
+            public boolean canClose(String inputString) {
+              return checkInput(inputString);
+            }
+          });
+        setSdkPath(newLocation);
+      }
+    });
+    mySdkLocation.setEditable(false);
   }
 
   public void setIncludePreview(boolean includePreview) {
@@ -121,10 +146,6 @@ public class SdkUpdaterConfigPanel {
     myChannelLink.setVisible(myHasPreview && !myIncludePreview);
     myPlatformComponentsPanel.setIncludePreview(includePreview);
     myToolComponentsPanel.setIncludePreview(includePreview);
-  }
-
-  public String getSdkPath() {
-    return mySdkLocation.getText();
   }
 
   public JComponent getComponent() {
@@ -269,6 +290,7 @@ public class SdkUpdaterConfigPanel {
 
   public void reset() {
     refresh();
+    mySdkLocation.setText(IdeSdks.getAndroidSdkPath().getPath());
     myPlatformComponentsPanel.reset();
     myToolComponentsPanel.reset();
     myUpdateSitesPanel.reset();
@@ -280,6 +302,27 @@ public class SdkUpdaterConfigPanel {
 
   public void saveSources() {
     myUpdateSitesPanel.save();
+  }
+
+  private void setSdkPath(String newLocation) {
+    final File currentPath = IdeSdks.getAndroidSdkPath();
+    assert currentPath != null;  // shouldn't be able to get to this point without sdk set.
+    final File newPath = new File(newLocation);
+    assert IdeSdks.isValidAndroidSdkPath(newPath);
+
+    if (FileUtil.filesEqual(currentPath, newPath)) {
+      return;
+    }
+
+    List<Sdk> sdks = IdeSdks.setAndroidSdkPath(newPath, null);
+    if (sdks.isEmpty()) {
+      Messages.showErrorDialog(getComponent(), "Failed to set SDK path");
+    }
+    else {
+      mySdkState = SdkState.getInstance(AndroidSdkData.getSdkData(newPath));
+      mySdkLocation.setText(newPath.getAbsolutePath());
+      refresh();
+    }
   }
 
   private static class CycleAction extends AbstractAction {
