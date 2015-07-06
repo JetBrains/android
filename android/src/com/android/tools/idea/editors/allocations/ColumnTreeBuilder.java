@@ -19,7 +19,6 @@ import com.android.annotations.Nullable;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.JBViewport;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.tree.WideSelectionTreeUI;
 import org.jetbrains.annotations.NotNull;
@@ -96,9 +95,10 @@ public class ColumnTreeBuilder {
   }
 
   public JComponent build() {
+    boolean showsRootHandles = myTree.getShowsRootHandles(); // Stash this value since it'll get stomped WideSelectionTreeUI.
     myTree.setUI(new ColumnTreeUI());
+    myTree.setShowsRootHandles(showsRootHandles);
     myTree.setCellRenderer(myCellRenderer);
-    myTree.setShowsRootHandles(true);
 
     myTable.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
       @Override
@@ -134,8 +134,10 @@ public class ColumnTreeBuilder {
           Enumeration<TreePath> expanded = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
           comparator = key.getSortOrder() == SortOrder.ASCENDING ? comparator : Collections.reverseOrder(comparator);
           myTreeSorter.sort(comparator, key.getSortOrder());
-          while (expanded.hasMoreElements()) {
-            myTree.expandPath(expanded.nextElement());
+          if (expanded != null) {
+            while (expanded.hasMoreElements()) {
+              myTree.expandPath(expanded.nextElement());
+            }
           }
         }
       }

@@ -61,16 +61,6 @@ public class HprofViewPanel implements Disposable {
     }
     mySelectionModel = new SelectionModel(currentHeap);
 
-    final InstanceReferenceTree referenceTree = new InstanceReferenceTree(project, mySelectionModel);
-    treePanel.add(referenceTree.getComponent(), BorderLayout.CENTER);
-
-    final InstancesTree instancesTree = new InstancesTree(project, mySelectionModel);
-    final ClassesTreeView classesTreeView = new ClassesTreeView(project, mySelectionModel);
-    JBSplitter splitter = createNavigationSplitter(classesTreeView.getComponent(), instancesTree.getComponent());
-
-    JBPanel classPanel = new JBPanel(new BorderLayout());
-    classPanel.add(splitter, BorderLayout.CENTER);
-
     DefaultActionGroup group = new DefaultActionGroup(new ComboBoxAction() {
       @NotNull
       @Override
@@ -97,6 +87,16 @@ public class HprofViewPanel implements Disposable {
         e.getPresentation().setText(mySelectionModel.getHeap().getName() + " heap");
       }
     });
+
+    final InstanceReferenceTree referenceTree = new InstanceReferenceTree(project, mySelectionModel);
+    treePanel.add(referenceTree.getComponent(), BorderLayout.CENTER);
+
+    final InstancesTree instancesTree = new InstancesTree(project, mySelectionModel);
+    final ClassesTreeView classesTreeView = new ClassesTreeView(project, group, mySelectionModel);
+    JBSplitter splitter = createNavigationSplitter(classesTreeView.getComponent(), instancesTree.getComponent());
+
+    JBPanel classPanel = new JBPanel(new BorderLayout());
+    classPanel.add(splitter, BorderLayout.CENTER);
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
     classPanel.add(toolbar.getComponent(), BorderLayout.NORTH);
