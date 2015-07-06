@@ -48,6 +48,7 @@ import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.rendering.ResourceNotificationManager;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -58,7 +59,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
@@ -66,6 +66,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.MutableCollectionComboBoxModel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
@@ -74,6 +75,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -129,6 +131,7 @@ public class ThemeEditorComponent extends Splitter {
   private final ResourceChangeListener myResourceChangeListener;
   private boolean myIsSubscribedResourceNotification;
   private final GoToListener myGoToListener;
+  private MutableCollectionComboBoxModel<Module> myModuleComboModel;
 
   public interface GoToListener {
     void goTo(@NotNull EditedStyleItem value);
@@ -140,17 +143,21 @@ public class ThemeEditorComponent extends Splitter {
   public ThemeEditorComponent(@NotNull final Project project) {
     myProject = project;
 
-    // We need any module, because when reload will be invoked module will be changed anyway
-    Module arbitraryModule = null;
-    AndroidFacet facet = null;
-    for (final Module module : ModuleManager.getInstance(project).getModules()) {
-      facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        arbitraryModule = module;
-        break;
+    initializeModulesCombo(null);
+
+    final JComboBox moduleCombo = myPanel.getModuleCombo();
+    moduleCombo.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        reload(myThemeName, mySubStyleName, getSelectedModule().getName());
       }
-    }
-    assert arbitraryModule != null : "There is no android module in the project";
+    });
+
+    final Module selectedModule = myModuleComboModel.getSelected();
+    assert selectedModule != null;
+
+    final AndroidFacet facet = AndroidFacet.getInstance(selectedModule);
+    assert facet != null : "moduleComboModel must contain only Android modules";
 
     ConfigurationManager configurationManager = facet.getConfigurationManager();
     final VirtualFile projectFile = project.getProjectFile();
@@ -158,7 +165,7 @@ public class ThemeEditorComponent extends Splitter {
 
     final Configuration configuration = configurationManager.getConfiguration(projectFile);
 
-    myThemeEditorContext = new ThemeEditorContext(configuration, arbitraryModule);
+    myThemeEditorContext = new ThemeEditorContext(configuration, selectedModule);
     myThemeEditorContext.addConfigurationListener(new ConfigurationListener() {
       @Override
       public boolean changed(int flags) {
@@ -323,16 +330,6 @@ public class ThemeEditorComponent extends Splitter {
           mySubStyleName = null;
           mySubStyleSourceAttribute = null;
 
-          // Unsubscribing from ResourceNotificationManager, because selectedTheme may come from different Module
-          unsubscribeResourceNotification();
-
-          Module selectedModule = ((ThemesListModel)(myPanel.getThemeCombo().getModel())).getSelectedModule();
-          if (selectedModule != null) {
-            myThemeEditorContext.setCurrentThemeModule(selectedModule);
-          }
-
-          // Subscribes to ResourceNotificationManager with new facet
-          subscribeResourceNotification();
           loadStyleAttributes();
         }
       }
@@ -372,6 +369,37 @@ public class ThemeEditorComponent extends Splitter {
     // Set an initial state in case that the editor didn't have a previously saved state
     // TODO: Try to be smarter about this and get the ThemeEditor to set a default state where there is no previous state
     reload(null);
+  }
+
+  @NotNull
+  public Module getSelectedModule() {
+    final Module module = myModuleComboModel.getSelected();
+    assert module != null;
+
+    return module;
+  }
+
+  private void initializeModulesCombo(@Nullable String defaultModuleName) {
+    final ImmutableList<Module> modules = ThemeEditorUtils.findAndroidModules(myProject);
+    assert modules.size() > 0 : "Theme Editor shouldn't be launched in a project with no Android modules";
+
+    Module defaultModule = null;
+    for (Module module : modules) {
+      if (module.getName().equals(defaultModuleName)) {
+        defaultModule = module;
+        break;
+      }
+    }
+
+    if (defaultModule == null) {
+      myModuleComboModel = new MutableCollectionComboBoxModel<Module>(modules);
+    }
+    else {
+      myModuleComboModel = new MutableCollectionComboBoxModel<Module>(modules, defaultModule);
+    }
+
+    final JComboBox moduleCombo = myPanel.getModuleCombo();
+    moduleCombo.setModel(myModuleComboModel);
   }
 
   /**
@@ -624,16 +652,24 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   public void reload(@Nullable final String defaultThemeName, @Nullable final String defaultSubStyleName) {
-    // This is required since the configuration could have a link to a non existent theme (if it was removed).
-    // If the configuration is pointing to a theme that does not exist anymore, the local resource resolution breaks so ThemeResolver
-    // fails to find the local themes.
-    Configuration configuration = myThemeEditorContext.getConfiguration();
-    configuration.setTheme(null);
+    reload(defaultThemeName, defaultSubStyleName, getSelectedModule().getName());
+  }
+
+  public void reload(@Nullable final String defaultThemeName, @Nullable final String defaultSubStyleName, @Nullable final String defaultModuleName) {
+    // Unsubscribing from ResourceNotificationManager, because Module might be changed
+    unsubscribeResourceNotification();
+
+    initializeModulesCombo(defaultModuleName);
+    myThemeEditorContext.setCurrentThemeModule(getSelectedModule());
+
+    // Subscribes to ResourceNotificationManager with new facet
+    subscribeResourceNotification();
+
     mySubStyleSourceAttribute = null;
 
     final ThemeResolver themeResolver = myThemeEditorContext.getThemeResolver();
     final ThemeEditorStyle defaultTheme = defaultThemeName == null ? null : themeResolver.getTheme(defaultThemeName);
-    myPanel.getThemeCombo().setModel(new ThemesListModel(myProject, ThemeEditorUtils.getDefaultThemes(themeResolver), defaultTheme));
+    myPanel.getThemeCombo().setModel(new ThemesListModel(myThemeEditorContext, ThemeEditorUtils.getDefaultThemes(themeResolver), defaultTheme));
     myThemeName = (myPanel.getSelectedTheme() == null) ? null : myPanel.getSelectedTheme().getQualifiedName();
     mySubStyleName = (StringUtil.equals(myThemeName,defaultThemeName)) ? defaultSubStyleName : null;
     loadStyleAttributes();
