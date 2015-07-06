@@ -112,15 +112,6 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
           indicator.setFraction(0.5);
           indicator.setText("Computing dominators...");
           mySnapshot.computeDominators();
-
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              myPanel.removeAll();
-              myPanel.setLayout(new BorderLayout());
-              myPanel.add(new HprofViewPanel(project, HprofEditor.this, mySnapshot).getComponent(), BorderLayout.CENTER);
-            }
-          });
         }
         catch (Throwable throwable) {
           LOG.info(throwable);
