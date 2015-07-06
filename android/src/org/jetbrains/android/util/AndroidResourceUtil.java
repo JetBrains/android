@@ -21,6 +21,7 @@ import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.actions.CreateElementActionBase;
@@ -29,7 +30,6 @@ import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
-import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -54,6 +54,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.AndroidFileTemplateProvider;
+import org.jetbrains.android.actions.CreateTypedResourceFileAction;
 import org.jetbrains.android.augment.AndroidPsiElementFinder;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
@@ -67,9 +68,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
-import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceType.ATTR;
 import static com.android.resources.ResourceType.STYLEABLE;
 
@@ -330,7 +339,7 @@ public class AndroidResourceUtil {
       return PsiField.EMPTY_ARRAY;
     }
 
-    String name = tag.getAttributeValue(ATTR_NAME);
+    String name = tag.getAttributeValue(SdkConstants.ATTR_NAME);
     if (name == null) {
       return PsiField.EMPTY_ARRAY;
     }
@@ -341,8 +350,8 @@ public class AndroidResourceUtil {
   @NotNull
   public static PsiField[] findStyleableAttributeFields(XmlTag tag, boolean onlyInOwnPackages) {
     String tagName = tag.getName();
-    if (TAG_DECLARE_STYLEABLE.equals(tagName)) {
-      String styleableName = tag.getAttributeValue(ATTR_NAME);
+    if (SdkConstants.TAG_DECLARE_STYLEABLE.equals(tagName)) {
+      String styleableName = tag.getAttributeValue(SdkConstants.ATTR_NAME);
       if (styleableName == null) {
         return PsiField.EMPTY_ARRAY;
       }
@@ -352,8 +361,8 @@ public class AndroidResourceUtil {
       }
       Set<String> names = Sets.newHashSet();
       for (XmlTag attr : tag.getSubTags()) {
-        if (TAG_ATTR.equals(attr.getName())) {
-          String attrName = attr.getAttributeValue(ATTR_NAME);
+        if (SdkConstants.TAG_ATTR.equals(attr.getName())) {
+          String attrName = attr.getAttributeValue(SdkConstants.ATTR_NAME);
           if (attrName != null) {
             names.add(styleableName + '_' + attrName);
           }
@@ -362,11 +371,11 @@ public class AndroidResourceUtil {
       if (!names.isEmpty()) {
         return findResourceFields(facet, STYLEABLE.getName(), names, onlyInOwnPackages);
       }
-    } else if (TAG_ATTR.equals(tagName)) {
+    } else if (SdkConstants.TAG_ATTR.equals(tagName)) {
       XmlTag parentTag = tag.getParentTag();
-      if (parentTag != null && TAG_DECLARE_STYLEABLE.equals(parentTag.getName())) {
-        String styleName = parentTag.getAttributeValue(ATTR_NAME);
-        String attributeName = tag.getAttributeValue(ATTR_NAME);
+      if (parentTag != null && SdkConstants.TAG_DECLARE_STYLEABLE.equals(parentTag.getName())) {
+        String styleName = parentTag.getAttributeValue(SdkConstants.ATTR_NAME);
+        String attributeName = tag.getAttributeValue(SdkConstants.ATTR_NAME);
         AndroidFacet facet = AndroidFacet.getInstance(tag);
         if (facet != null && styleName != null && attributeName != null) {
           return findResourceFields(facet, STYLEABLE.getName(), styleName + '_' + attributeName, onlyInOwnPackages);
@@ -1213,5 +1222,81 @@ public class AndroidResourceUtil {
   @NotNull
   public static String getFieldNameByResourceName(@NotNull String fieldName) {
     return fieldName.replace('.', '_').replace('-', '_').replace(':', '_');
+  }
+
+  /**
+   * Finds and returns the resource files named stateListName in the directories listed in dirNames.
+   * If some of the directories do not contain a file with that name, creates such a resource file.
+   * @param module Module containing the directories under investigation
+   * @param folderType Type of the directories under investigation
+   * @param resourceType Type of the resource file to create if necessary
+   * @param stateListName Name of the resource files to be returned
+   * @param dirNames List of directory names to look into
+   * @return List of found and created files
+   */
+  @Nullable
+  public static List<VirtualFile> findOrCreateStateListFiles(@NotNull Module module, @NotNull final ResourceFolderType folderType,
+                                                             @NotNull final ResourceType resourceType, @NotNull final String stateListName,
+                                                             @NotNull final List<String> dirNames) {
+    final Project project = module.getProject();
+    final PsiManager manager = PsiManager.getInstance(project);
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null;
+    final VirtualFile resDir = facet.getPrimaryResourceDir();
+
+    if (resDir == null) {
+      AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
+      return null;
+    }
+
+    final List<VirtualFile> files = Lists.newArrayListWithCapacity(dirNames.size());
+    boolean foundFiles = new WriteCommandAction<Boolean>(project, "Find statelists files") {
+      @Override
+      protected void run(@NotNull Result<Boolean> result) {
+        result.setResult(true);
+        try {
+          String fileName = stateListName;
+          if (!stateListName.endsWith(SdkConstants.DOT_XML)) {
+            fileName += SdkConstants.DOT_XML;
+          }
+
+          for (String dirName : dirNames) {
+            String dirPath = FileUtil.toSystemDependentName(resDir.getPath() + '/' + dirName);
+            final VirtualFile dir;
+
+            dir = AndroidUtils.createChildDirectoryIfNotExist(project, resDir, dirName);
+            if (dir == null) {
+              throw new IOException("cannot make " + resDir + File.separatorChar + dirName);
+            }
+
+            VirtualFile file = dir.findChild(fileName);
+            if (file != null) {
+              files.add(file);
+              continue;
+            }
+
+            PsiDirectory directory = manager.findDirectory(dir);
+            if (directory == null) {
+              throw new IOException("cannot find " + resDir + File.separatorChar + dirName);
+            }
+
+            createFileResource(fileName, directory, CreateTypedResourceFileAction.getDefaultRootTagByResourceType(folderType),
+                               resourceType.getName(), false);
+
+            file = dir.findChild(fileName);
+            if (file == null) {
+              throw new IOException("cannot find " + Joiner.on(File.separatorChar).join(resDir, dirPath, fileName));
+            }
+            files.add(file);
+          }
+        }
+        catch (Exception e) {
+          LOG.error(e.getMessage());
+          result.setResult(false);
+        }
+      }
+    }.execute().getResultObject();
+
+    return foundFiles ? files : null;
   }
 }
