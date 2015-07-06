@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -83,6 +82,7 @@ public class CreateXmlResourcePanel {
   private JComboBox myFileNameCombo;
   private JBLabel mySourceSetLabel;
   private JComboBox mySourceSetCombo;
+  private JBLabel myFileNameLabel;
 
   private final Module myModule;
   private final ResourceType myResourceType;
@@ -92,14 +92,15 @@ public class CreateXmlResourcePanel {
 
   private final CheckBoxList myDirectoriesList;
   private VirtualFile myResourceDir;
+  private ResourceFolderType myFolderType;
 
   public CreateXmlResourcePanel(@NotNull Module module,
-                                 @NotNull ResourceType resourceType,
-                                 @Nullable String predefinedName,
-                                 @Nullable String predefinedValue,
-                                 boolean chooseName,
-                                 @Nullable VirtualFile defaultFile) {
-    this(module, resourceType, defaultFile);
+                                @NotNull ResourceType resourceType,
+                                @Nullable String predefinedName,
+                                @Nullable String predefinedValue,
+                                boolean chooseName,
+                                @Nullable VirtualFile defaultFile) {
+    this(module, resourceType, defaultFile, ResourceFolderType.VALUES);
 
     if (chooseName) {
       predefinedName = ResourceHelper.prependResourcePrefix(module, predefinedName);
@@ -107,32 +108,29 @@ public class CreateXmlResourcePanel {
 
     if (!StringUtil.isEmpty(predefinedName)) {
       if (chooseName) {
-        myNameLabel.setVisible(true);
-        myNameField.setVisible(true);
+        setChangeNameVisible(true);
       }
       myNameField.setText(predefinedName);
     }
     else {
-      myNameLabel.setVisible(true);
-      myNameField.setVisible(true);
+      setChangeNameVisible(true);
     }
 
     if (!StringUtil.isEmpty(predefinedValue)) {
       myValueField.setText(predefinedValue);
     }
     else {
-      myValueLabel.setVisible(true);
-      myValueField.setVisible(true);
+      setChangeValueVisible(true);
     }
   }
 
-  public CreateXmlResourcePanel(@NotNull Module module, @NotNull ResourceType resourceType, @Nullable VirtualFile defaultFile) {
-    myNameLabel.setVisible(false);
-    myNameField.setVisible(false);
-    myValueLabel.setVisible(false);
-    myValueField.setVisible(false);
+  public CreateXmlResourcePanel(@NotNull Module module, @NotNull ResourceType resourceType, @Nullable VirtualFile defaultFile,
+                                @NotNull ResourceFolderType folderType) {
+    setChangeNameVisible(false);
+    setChangeValueVisible(false);
 
     myResourceType = resourceType;
+    myFolderType = folderType;
 
     final Set<Module> modulesSet = new HashSet<Module>();
     modulesSet.add(module);
@@ -145,8 +143,7 @@ public class CreateXmlResourcePanel {
 
     if (modulesSet.size() == 1) {
       myModule = module;
-      myModuleLabel.setVisible(false);
-      myModuleCombo.setVisible(false);
+      setChangeModuleVisible(false);
     }
     else {
       myModule = null;
@@ -213,9 +210,9 @@ public class CreateXmlResourcePanel {
         updateDirectories(true);
       }
     });
-    final JCheckBox valuesCheckBox = myCheckBoxes.get(SdkConstants.FD_RES_VALUES);
-    if (valuesCheckBox != null) {
-      valuesCheckBox.setSelected(true);
+    final JCheckBox noQualifierCheckBox = myCheckBoxes.get(myFolderType.getName());
+    if (noQualifierCheckBox != null) {
+      noQualifierCheckBox.setSelected(true);
     }
 
     if (defaultFile != null) {
@@ -284,7 +281,7 @@ public class CreateXmlResourcePanel {
       @Override
       public Object getData(@NonNls String dataId) {
         if (CommonDataKeys.VIRTUAL_FILE_ARRAY.getName().equals(dataId)) {
-          return new VirtualFile[] {selectedDir};
+          return new VirtualFile[]{selectedDir};
         }
         else {
           return null;
@@ -320,7 +317,7 @@ public class CreateXmlResourcePanel {
     final PsiDirectory psiResDir = PsiManager.getInstance(project).findDirectory(myResourceDir);
 
     if (psiResDir != null) {
-      final PsiElement[] createdElements = new CreateResourceDirectoryAction(ResourceFolderType.VALUES).invokeDialog(project, psiResDir);
+      final PsiElement[] createdElements = new CreateResourceDirectoryAction(myFolderType).invokeDialog(project, psiResDir);
 
       if (createdElements.length > 0) {
         updateDirectories(false);
@@ -330,7 +327,7 @@ public class CreateXmlResourcePanel {
 
   private void updateDirectories(boolean updateFileCombo) {
     final Module module = getModule();
-    List<VirtualFile> valuesDirs = Collections.emptyList();
+    List<VirtualFile> directories = Collections.emptyList();
 
     if (module != null) {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -339,12 +336,12 @@ public class CreateXmlResourcePanel {
         myResourceDir = facet.getPrimaryResourceDir();
 
         if (myResourceDir != null) {
-          valuesDirs = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.VALUES.getName(), new VirtualFile[]{myResourceDir});
+          directories = AndroidResourceUtil.getResourceSubdirs(myFolderType.getName(), new VirtualFile[]{myResourceDir});
         }
       }
     }
 
-    Collections.sort(valuesDirs, new Comparator<VirtualFile>() {
+    Collections.sort(directories, new Comparator<VirtualFile>() {
       @Override
       public int compare(VirtualFile f1, VirtualFile f2) {
         return f1.getName().compareTo(f2.getName());
@@ -357,13 +354,13 @@ public class CreateXmlResourcePanel {
 
     final List<JCheckBox> checkBoxList = new ArrayList<JCheckBox>();
     myCheckBoxes = new HashMap<String, JCheckBox>();
-    myDirNames = new String[valuesDirs.size()];
+    myDirNames = new String[directories.size()];
 
     int newSelectedIndex = -1;
 
     int i = 0;
 
-    for (VirtualFile dir : valuesDirs) {
+    for (VirtualFile dir : directories) {
       final String dirName = dir.getName();
       final JCheckBox oldCheckBox = oldCheckBoxes.get(dirName);
       final boolean selected = oldCheckBox != null && oldCheckBox.isSelected();
@@ -391,8 +388,8 @@ public class CreateXmlResourcePanel {
       final Object oldItem = myFileNameCombo.getEditor().getItem();
       final Set<String> fileNameSet = new HashSet<String>();
 
-      for (VirtualFile valuesDir : valuesDirs) {
-        for (VirtualFile file : valuesDir.getChildren()) {
+      for (VirtualFile dir : directories) {
+        for (VirtualFile file : dir.getChildren()) {
           fileNameSet.add(file.getName());
         }
       }
@@ -497,5 +494,25 @@ public class CreateXmlResourcePanel {
 
   public JComponent getPanel() {
     return myPanel;
+  }
+
+  public void setChangeFileNameVisible(boolean isVisible) {
+    myFileNameLabel.setVisible(isVisible);
+    myFileNameCombo.setVisible(isVisible);
+  }
+
+  private void setChangeValueVisible(boolean isVisible) {
+    myValueField.setVisible(isVisible);
+    myValueLabel.setVisible(isVisible);
+  }
+
+  private void setChangeNameVisible(boolean isVisible) {
+    myNameField.setVisible(isVisible);
+    myNameLabel.setVisible(isVisible);
+  }
+
+  private void setChangeModuleVisible(boolean isVisible) {
+    myModuleLabel.setVisible(isVisible);
+    myModuleCombo.setVisible(isVisible);
   }
 }

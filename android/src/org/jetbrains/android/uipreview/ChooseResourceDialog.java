@@ -257,8 +257,8 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
           myResourceNameMessage = resourceDialogSouthPanel.getResourceNameMessage();
           myStateListPicker.add(resourceDialogSouthPanel.getFullPanel(), BorderLayout.SOUTH);
 
-          // TODO: Fix location panel to deal with statelists
-          myLocationSettings = new CreateXmlResourcePanel(myModule, ResourceType.COLOR, null);
+          myLocationSettings = new CreateXmlResourcePanel(myModule, ResourceType.COLOR, null, ResourceFolderType.COLOR);
+          myLocationSettings.setChangeFileNameVisible(false);
           resourceDialogSouthPanel.setExpertPanel(myLocationSettings.getPanel());
           myLocationSettings.addModuleComboActionListener(new ActionListener() {
             @Override
@@ -302,7 +302,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
           myResourceNameMessage = resourceDialogSouthPanel.getResourceNameMessage();
           colorPickerContent.add(resourceDialogSouthPanel.getFullPanel(), BorderLayout.SOUTH);
 
-          myLocationSettings = new CreateXmlResourcePanel(myModule, ResourceType.COLOR, null);
+          myLocationSettings = new CreateXmlResourcePanel(myModule, ResourceType.COLOR, null, ResourceFolderType.VALUES);
           resourceDialogSouthPanel.setExpertPanel(myLocationSettings.getPanel());
           myLocationSettings.addModuleComboActionListener(new ActionListener() {
             @Override
@@ -575,9 +575,10 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     }
     else if (myContentPanel.getSelectedComponent() == myStateListPickerPanel && myResourceNameVisibility != ResourceNameVisibility.HIDE) {
       String stateListName = myResourceNameField.getText();
-      List<String> dirNames = Collections.singletonList("color");
+      List<String> dirNames = myLocationSettings.getDirNames();
 
-      List<VirtualFile> files = AndroidResourceUtil.findOrCreateStateListFiles(myModule, ResourceFolderType.COLOR, ResourceType.COLOR, stateListName, dirNames);
+      List<VirtualFile> files = AndroidResourceUtil.findOrCreateStateListFiles(myModule, ResourceFolderType.COLOR, ResourceType.COLOR,
+                                                                               stateListName, dirNames);
       if (files != null) {
         myStateListPicker.updateStateList(files);
       }
