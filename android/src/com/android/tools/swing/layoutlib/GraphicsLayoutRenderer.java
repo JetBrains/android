@@ -449,7 +449,7 @@ public class GraphicsLayoutRenderer {
 
     public DynamicHardwareConfig(HardwareConfig delegate) {
       super(delegate.getScreenWidth(), delegate.getScreenHeight(), delegate.getDensity(), delegate.getXdpi(), delegate.getYdpi(),
-            delegate.getScreenSize(), delegate.getOrientation(), delegate.hasSoftwareButtons());
+            delegate.getScreenSize(), delegate.getOrientation(), delegate.getScreenRoundness(), delegate.hasSoftwareButtons());
 
       myWidth = delegate.getScreenWidth();
       myHeight = delegate.getScreenHeight();
