@@ -43,6 +43,8 @@ import java.util.List;
  * and all classes using its capabilities should retain this single instance.
  */
 public class ThemeEditorContext {
+  // Field is initialized in method called from constructor which checker doesn't see, warning could be ignored
+  @SuppressWarnings("NullableProblems")
   private @NotNull Configuration myConfiguration;
 
   // Right now Module instance can be acquired from the Configuration, so, this field is
@@ -53,17 +55,23 @@ public class ThemeEditorContext {
   // rendering context.
   private @NotNull Module myCurrentThemeModule;
 
+  // Field is initialized in method called from constructor which checker doesn't see, warning could be ignored
+  @SuppressWarnings("NullableProblems")
   private @NotNull ThemeResolver myThemeResolver;
 
   private final List<ChangeListener> myChangeListeners = new ArrayList<ChangeListener>();
   private final List<ConfigurationListener> myConfigurationListeners = new ArrayList<ConfigurationListener>();
 
-  public ThemeEditorContext(@NotNull Configuration configuration, @NotNull Module currentThemeModule) {
-    myCurrentThemeModule = currentThemeModule;
+  public ThemeEditorContext(@NotNull Configuration configuration, @NotNull Module module) {
+    myCurrentThemeModule = module;
     setConfiguration(configuration);
   }
 
   public void updateThemeResolver() {
+    // setTheme(null) is required since the configuration could have a link to a non existent theme (if it was removed).
+    // If the configuration is pointing to a theme that does not exist anymore, the local resource resolution breaks so ThemeResolver
+    // fails to find the local themes.
+    myConfiguration.setTheme(null);
     myThemeResolver = new ThemeResolver(myConfiguration);
   }
 
