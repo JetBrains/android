@@ -78,6 +78,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   @NotNull private ThemeFilterComponent myFilter;
   @Nullable private List<String> myFrameworkThemes;
   @Nullable private List<String> myProjectThemes;
+  @Nullable private List<String> myLibraryThemes;
   @Nullable private static Deque<String> ourRecent;
   @Nullable private ThemeCategory myCategory = ThemeCategory.ALL;
   @NotNull private Map<ThemeCategory, List<String>> myThemeMap = Maps.newEnumMap(ThemeCategory.class);
@@ -329,6 +330,9 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         for (String theme : getFrameworkThemes()) {
           themes.add(theme);
         }
+        for (String theme : getLibraryThemes()) {
+          themes.add(theme);
+        }
         break;
       case ROOT:
       default:
@@ -384,6 +388,14 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     }
 
     return myProjectThemes;
+  }
+
+  private List<String> getLibraryThemes() {
+    if (myLibraryThemes == null) {
+      myLibraryThemes = getSortedNames(getPublicThemes(myThemeResolver.getExternalLibraryThemes()));
+    }
+
+    return myLibraryThemes;
   }
 
   // ---- Implements ListSelectionListener ----
