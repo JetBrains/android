@@ -18,6 +18,7 @@ package com.android.tools.idea.model;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.AndroidLibrary;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
@@ -408,6 +409,18 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
       boolean isRevocable = computeRevocable(permission);
       myRevocableCache.put(permission, isRevocable);
       return isRevocable;
+    }
+
+    @NonNull
+    @Override
+    public AndroidVersion getMinSdkVersion() {
+      return AndroidModuleInfo.get(myFacet).getMinSdkVersion();
+    }
+
+    @NonNull
+    @Override
+    public AndroidVersion getTargetSdkVersion() {
+      return AndroidModuleInfo.get(myFacet).getTargetSdkVersion();
     }
 
     private boolean computeRevocable(@NonNull String permission) {
