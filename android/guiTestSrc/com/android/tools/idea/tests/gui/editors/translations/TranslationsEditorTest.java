@@ -32,9 +32,11 @@ import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -56,18 +58,11 @@ public class TranslationsEditorTest extends GuiTestCase {
       ideFrame.requireEditorNotification("Edit translations for all locales in the translations editor.");
     notificationPanel.performAction("Open editor");
 
-    // Wait for the translations editor table to show up, and the loading panel to complete loading
-    pause(new Condition("Waiting for string resources to load") {
+    // Wait for the translations editor table to show up, and the table to be initialized
+    waitUntilFound(myRobot, new GenericTypeMatcher<JTable>(JTable.class) {
       @Override
-      public boolean test() {
-        ComponentFinder finder = myRobot.finder();
-        JBLoadingPanel loadingPanel = finder.find(new GenericTypeMatcher<JBLoadingPanel>(JBLoadingPanel.class) {
-          @Override
-          protected boolean isMatching(@NotNull JBLoadingPanel component) {
-            return true;
-          }
-        });
-        return !loadingPanel.isLoading();
+      protected boolean isMatching(@NotNull JTable table) {
+        return table.getModel() != null && table.getModel().getColumnCount() > 0;
       }
     });
 
