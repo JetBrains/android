@@ -41,46 +41,46 @@
     </annotation>
   </item>
   <item name="android.accounts.AccountManager android.accounts.AccountManagerFuture&lt;android.os.Bundle&gt; addAccount(java.lang.String, java.lang.String, java.lang.String[], android.os.Bundle, android.app.Activity, android.accounts.AccountManagerCallback&lt;android.os.Bundle&gt;, android.os.Handler)">
+    <annotation name="android.support.annotation.NonNull" />
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.MANAGE_ACCOUNTS&quot;" />
       <val name="apis" val="&quot;..22&quot;" />
     </annotation>
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.accounts.AccountManager android.accounts.AccountManagerFuture&lt;android.os.Bundle&gt; confirmCredentials(android.accounts.Account, android.os.Bundle, android.app.Activity, android.accounts.AccountManagerCallback&lt;android.os.Bundle&gt;, android.os.Handler)">
+    <annotation name="android.support.annotation.NonNull" />
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.MANAGE_ACCOUNTS&quot;" />
       <val name="apis" val="&quot;..22&quot;" />
     </annotation>
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.accounts.AccountManager android.accounts.AccountManagerFuture&lt;android.os.Bundle&gt; editProperties(java.lang.String, android.app.Activity, android.accounts.AccountManagerCallback&lt;android.os.Bundle&gt;, android.os.Handler)">
+    <annotation name="android.support.annotation.NonNull" />
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.MANAGE_ACCOUNTS&quot;" />
       <val name="apis" val="&quot;..22&quot;" />
     </annotation>
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.accounts.AccountManager android.accounts.AccountManagerFuture&lt;android.os.Bundle&gt; getAuthToken(android.accounts.Account, java.lang.String, android.os.Bundle, android.app.Activity, android.accounts.AccountManagerCallback&lt;android.os.Bundle&gt;, android.os.Handler)">
+    <annotation name="android.support.annotation.NonNull" />
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.USE_CREDENTIALS&quot;" />
       <val name="apis" val="&quot;..22&quot;" />
     </annotation>
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.accounts.AccountManager android.accounts.AccountManagerFuture&lt;android.os.Bundle&gt; getAuthToken(android.accounts.Account, java.lang.String, android.os.Bundle, boolean, android.accounts.AccountManagerCallback&lt;android.os.Bundle&gt;, android.os.Handler)">
+    <annotation name="android.support.annotation.NonNull" />
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.USE_CREDENTIALS&quot;" />
       <val name="apis" val="&quot;..22&quot;" />
     </annotation>
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.accounts.AccountManager android.accounts.AccountManagerFuture&lt;android.os.Bundle&gt; getAuthToken(android.accounts.Account, java.lang.String, boolean, android.accounts.AccountManagerCallback&lt;android.os.Bundle&gt;, android.os.Handler)">
+    <annotation name="android.support.annotation.NonNull" />
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.USE_CREDENTIALS&quot;" />
       <val name="apis" val="&quot;..22&quot;" />
     </annotation>
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.accounts.AccountManager android.accounts.AccountManagerFuture&lt;android.os.Bundle&gt; getAuthTokenByFeatures(java.lang.String, java.lang.String, java.lang.String[], android.app.Activity, android.os.Bundle, android.os.Bundle, android.accounts.AccountManagerCallback&lt;android.os.Bundle&gt;, android.os.Handler)">
     <annotation name="android.support.annotation.RequiresPermission">
@@ -95,11 +95,11 @@
     </annotation>
   </item>
   <item name="android.accounts.AccountManager android.accounts.AccountManagerFuture&lt;android.os.Bundle&gt; updateCredentials(android.accounts.Account, java.lang.String, android.os.Bundle, android.app.Activity, android.accounts.AccountManagerCallback&lt;android.os.Bundle&gt;, android.os.Handler)">
+    <annotation name="android.support.annotation.NonNull" />
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.MANAGE_ACCOUNTS&quot;" />
       <val name="apis" val="&quot;..22&quot;" />
     </annotation>
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.accounts.AccountManager android.accounts.AccountManagerFuture&lt;java.lang.Boolean&gt; hasFeatures(android.accounts.Account, java.lang.String[], android.accounts.AccountManagerCallback&lt;java.lang.Boolean&gt;, android.os.Handler)">
     <annotation name="android.support.annotation.RequiresPermission">
@@ -108,11 +108,11 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.accounts.AccountManager android.accounts.AccountManagerFuture&lt;java.lang.Boolean&gt; removeAccount(android.accounts.Account, android.accounts.AccountManagerCallback&lt;java.lang.Boolean&gt;, android.os.Handler)">
+    <annotation name="android.support.annotation.NonNull" />
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.MANAGE_ACCOUNTS&quot;" />
       <val name="apis" val="&quot;..22&quot;" />
     </annotation>
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.accounts.AccountManager android.accounts.Account[] getAccounts()">
     <annotation name="android.support.annotation.RequiresPermission">

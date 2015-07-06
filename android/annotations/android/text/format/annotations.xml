@@ -57,6 +57,12 @@
   <item name="android.text.format.DateUtils java.util.Formatter formatDateRange(android.content.Context, java.util.Formatter, long, long, int, java.lang.String) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.text.format.Formatter java.lang.String formatFileSize(android.content.Context, long) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.format.Formatter java.lang.String formatShortFileSize(android.content.Context, long) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.text.format.Time Time(android.text.format.Time) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
