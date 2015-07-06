@@ -75,7 +75,7 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     myItem = item;
 
     if (myRenderTask != null) {
-      component.setSwatchIcons(SwatchComponent.imageListOf(myRenderTask.renderDrawableAllStates(item.getItemResourceValue())));
+      component.setSwatchIcons(SwatchComponent.imageListOf(myRenderTask.renderDrawableAllStates(item.getSelectedValue())));
     }
 
     String nameText =
