@@ -185,7 +185,7 @@ public class ThemeEditorComponent extends Splitter {
       @Override
       public void goTo(@NotNull EditedStyleItem value) {
         ResourceResolver resolver = myThemeEditorContext.getResourceResolver();
-        if (value.isAttr() && getSelectedStyle() != null && resolver != null) {
+        if (value.isAttr() && getUsedStyle() != null && resolver != null) {
           // We need to resolve the theme attribute.
           // TODO: Do we need a full resolution or can we just try to get it from the StyleWrapper?
           ItemResourceValue resourceValue = (ItemResourceValue)resolver.findResValue(value.getValue(), false);
@@ -194,7 +194,7 @@ public class ThemeEditorComponent extends Splitter {
             return;
           }
 
-          EditedStyleItem editedStyleItem = new EditedStyleItem(resourceValue, getSelectedStyle());
+          EditedStyleItem editedStyleItem = new EditedStyleItem(resourceValue, getUsedStyle());
           mySubStyleName = editedStyleItem.getValue();
         }
         else {
@@ -488,13 +488,13 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   public void goToParent() {
-    ThemeEditorStyle selectedStyle = getSelectedStyle();
+    ThemeEditorStyle selectedStyle = getUsedStyle();
     if (selectedStyle == null) {
       LOG.error("No style selected.");
       return;
     }
 
-    ThemeEditorStyle parent = getSelectedStyle().getParent();
+    ThemeEditorStyle parent = getUsedStyle().getParent();
     assert parent != null;
 
     // TODO: This seems like it could be confusing for users, we might want to differentiate parent navigation depending if it's
@@ -517,7 +517,7 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   @Nullable
-  private ThemeEditorStyle getSelectedStyle() {
+  private ThemeEditorStyle getUsedStyle() {
     if (mySubStyleName != null) {
       return getCurrentSubStyle();
     }
@@ -554,7 +554,7 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
 
-    ThemeEditorStyle selectedStyle = getSelectedStyle();
+    ThemeEditorStyle selectedStyle = getUsedStyle();
     if (selectedStyle == null) {
       LOG.error("No style/theme selected.");
       return;
@@ -645,7 +645,7 @@ public class ThemeEditorComponent extends Splitter {
   private void loadStyleAttributes() {
 
     final ThemeEditorStyle selectedTheme = getSelectedTheme();
-    final ThemeEditorStyle selectedStyle = getSelectedStyle();
+    final ThemeEditorStyle selectedStyle = getUsedStyle();
 
     if (selectedTheme == null || selectedStyle == null) {
       LOG.error("No style/theme selected");
@@ -784,7 +784,7 @@ public class ThemeEditorComponent extends Splitter {
         attributeName = value.toString();
       }
 
-      ThemeEditorStyle selectedTheme = getSelectedStyle();
+      ThemeEditorStyle selectedTheme = getUsedStyle();
       if (selectedTheme == null) {
         LOG.error("No theme selected.");
         return false;
