@@ -155,12 +155,12 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       background = UIUtil.getTreeBackground();
     } else {
       ResourceValue windowBackground = resolver.findItemInTheme("colorBackground", true);
-      background = ResourceHelper.resolveColor(resolver, windowBackground);
+      background = ResourceHelper.resolveColor(resolver, windowBackground, configuration.getModule().getProject());
       if (background == null) {
         background = UIUtil.getTreeBackground();
       }
       ResourceValue textForeground = resolver.findItemInTheme("colorForeground", true);
-      foreground = ResourceHelper.resolveColor(resolver, textForeground);
+      foreground = ResourceHelper.resolveColor(resolver, textForeground, configuration.getModule().getProject());
       if (foreground == null) {
         foreground = UIUtil.getTreeForeground();
       }
