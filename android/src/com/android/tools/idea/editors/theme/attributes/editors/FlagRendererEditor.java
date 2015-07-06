@@ -194,7 +194,7 @@ public class FlagRendererEditor extends TypedCellEditor<EditedStyleItem, String>
     protected JComponent createCenterPanel() {
       Box box = new Box(BoxLayout.PAGE_AXIS);
       AttributeDefinition attrDefinition =
-        ResolutionUtils.getAttributeDefinition(myItem.getSourceStyle().getConfiguration(), myItem.getItemResourceValue());
+        ResolutionUtils.getAttributeDefinition(myItem.getSourceStyle().getConfiguration(), myItem.getSelectedValue());
       if (attrDefinition != null) {
         String[] flagNames = attrDefinition.getValues();
         for (String flagName : flagNames) {

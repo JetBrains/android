@@ -65,7 +65,7 @@ public class DelegatingCellRenderer implements TableCellRenderer {
     Point mousePos = table.getMousePosition();
     if (mousePos != null && item != null) {
       if (table.getCellRect(row, column, true).contains(mousePos)) {
-        final ItemResourceValue resValue = ((EditedStyleItem)value).getItemResourceValue();
+        final ItemResourceValue resValue = ((EditedStyleItem)value).getSelectedValue();
         Configuration configuration = item.getSourceStyle().getConfiguration();
         String toolTipText = ThemeEditorUtils.generateToolTipText(resValue, configuration.getModule(), configuration);
         jComponent.setToolTipText(toolTipText);

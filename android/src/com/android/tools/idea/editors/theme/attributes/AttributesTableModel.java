@@ -389,7 +389,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     public Class<?> getCellClass(int column) {
       EditedStyleItem item = myAttributes.get(myRowIndex);
 
-      ResourceValue resourceValue = mySelectedStyle.getConfiguration().getResourceResolver().resolveResValue(item.getItemResourceValue());
+      ResourceValue resourceValue = mySelectedStyle.getConfiguration().getResourceResolver().resolveResValue(item.getSelectedValue());
       if (resourceValue == null) {
         LOG.error("Unable to resolve " + item.getValue());
         return null;
@@ -403,7 +403,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
 
       AttributeDefinition attrDefinition =
-        ResolutionUtils.getAttributeDefinition(mySelectedStyle.getConfiguration(), item.getItemResourceValue());
+        ResolutionUtils.getAttributeDefinition(mySelectedStyle.getConfiguration(), item.getSelectedValue());
 
       if (urlType == ResourceType.COLOR
               || (value != null && value.startsWith("#") && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color))) {
@@ -484,7 +484,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
 
       VirtualFileManager manager = VirtualFileManager.getInstance();
-      ResourceValue resourceValue = myResourceResolver.resolveResValue(item.getItemResourceValue());
+      ResourceValue resourceValue = myResourceResolver.resolveResValue(item.getSelectedValue());
       final File file = new File(resourceValue.getValue());
 
       final VirtualFile virtualFile = file.exists() ? manager.findFileByUrl("file://" + file.getAbsolutePath()) : null;
