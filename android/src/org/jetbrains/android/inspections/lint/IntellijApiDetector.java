@@ -21,7 +21,6 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.detector.api.*;
-import com.intellij.codeInsight.ExceptionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
@@ -314,6 +313,9 @@ public class IntellijApiDetector extends ApiDetector {
           if (isWithinVersionCheckConditional(element, api)) {
             continue;
           }
+          if (isPrecededByVersionCheckExit(element, api)) {
+            continue;
+          }
           location = IntellijLintUtils.getLocation(myContext.file, element);
         } else {
           location = IntellijLintUtils.getLocation(myContext.file, aClass);
@@ -484,6 +486,9 @@ public class IntellijApiDetector extends ApiDetector {
       }
 
       if (isWithinVersionCheckConditional(element, api)) {
+        return true;
+      }
+      if (isPrecededByVersionCheckExit(element, api)) {
         return true;
       }
 
@@ -678,83 +683,89 @@ public class IntellijApiDetector extends ApiDetector {
     }
   }
 
+  private static boolean isPrecededByVersionCheckExit(PsiElement element, int api) {
+    PsiElement current = PsiTreeUtil.getParentOfType(element, PsiStatement.class);
+    if (current != null) {
+      PsiElement prev = getPreviousStatement(current);
+      if (prev == null) {
+        //noinspection unchecked
+        current = PsiTreeUtil.getParentOfType(current, PsiStatement.class, true, PsiMethod.class, PsiClass.class);
+      } else {
+        current = prev;
+      }
+    }
+    while (current != null) {
+      if (current instanceof PsiIfStatement) {
+        PsiIfStatement ifStatement = (PsiIfStatement)current;
+        PsiStatement thenBranch = ifStatement.getThenBranch();
+        PsiStatement elseBranch = ifStatement.getElseBranch();
+        if (thenBranch != null) {
+          Boolean level = isVersionCheckConditional(api, thenBranch, ifStatement);
+          if (level != null) {
+            // See if the body does an immediate return
+            if (isUnconditionalReturn(thenBranch)) {
+              return true;
+            }
+          }
+        }
+        if (elseBranch != null) {
+          Boolean level = isVersionCheckConditional(api, elseBranch, ifStatement);
+          if (level != null) {
+            if (isUnconditionalReturn(elseBranch)) {
+              return true;
+            }
+          }
+        }
+      }
+      PsiElement prev = getPreviousStatement(current);
+      if (prev == null) {
+        //noinspection unchecked
+        current = PsiTreeUtil.getParentOfType(current, PsiStatement.class, true, PsiMethod.class, PsiClass.class);
+        if (current == null) {
+          return false;
+        }
+      } else {
+        current = prev;
+      }
+    }
+
+    return false;
+  }
+
+  private static boolean isUnconditionalReturn(PsiStatement statement) {
+    if (statement instanceof PsiBlockStatement) {
+      PsiBlockStatement blockStatement = (PsiBlockStatement)statement;
+      PsiCodeBlock block = blockStatement.getCodeBlock();
+      PsiStatement[] statements = block.getStatements();
+      if (statements.length == 1 && statements[0] instanceof PsiReturnStatement) {
+        return true;
+      }
+    }
+    if (statement instanceof PsiReturnStatement) {
+      return true;
+    }
+    return false;
+  }
+
+
+  @Nullable
+  public static PsiStatement getPreviousStatement(PsiElement element) {
+    final PsiElement prevStatement = PsiTreeUtil.skipSiblingsBackward(element, PsiWhiteSpace.class, PsiComment.class);
+    return prevStatement instanceof PsiStatement ? (PsiStatement)prevStatement : null;
+  }
+
   private static boolean isWithinVersionCheckConditional(PsiElement element, int api) {
     PsiElement current = element.getParent();
     PsiElement prev = element;
     while (current != null) {
       if (current instanceof PsiIfStatement) {
         PsiIfStatement ifStatement = (PsiIfStatement)current;
-        PsiExpression condition = ifStatement.getCondition();
-        if (condition != prev && condition instanceof PsiBinaryExpression) {
-          PsiBinaryExpression binary = (PsiBinaryExpression)condition;
-          IElementType tokenType = binary.getOperationTokenType();
-          if (tokenType == JavaTokenType.GT || tokenType == JavaTokenType.GE ||
-              tokenType == JavaTokenType.LE || tokenType == JavaTokenType.LT ||
-              tokenType == JavaTokenType.EQEQ) {
-            PsiExpression left = binary.getLOperand();
-            if (left instanceof PsiReferenceExpression) {
-              PsiReferenceExpression ref = (PsiReferenceExpression)left;
-              if (SDK_INT.equals(ref.getReferenceName())) {
-                PsiExpression right = binary.getROperand();
-                int level = -1;
-                if (right instanceof PsiReferenceExpression) {
-                  PsiReferenceExpression ref2 = (PsiReferenceExpression)right;
-                  String codeName = ref2.getReferenceName();
-                  if (codeName == null) {
-                    return false;
-                  }
-                  level = SdkVersionInfo.getApiByBuildCode(codeName, true);
-                } else if (right instanceof PsiLiteralExpression) {
-                  PsiLiteralExpression lit = (PsiLiteralExpression)right;
-                  Object value = lit.getValue();
-                  if (value instanceof Integer) {
-                    level = ((Integer)value).intValue();
-                  }
-                }
-                if (level != -1) {
-                  boolean fromThen = prev == ifStatement.getThenBranch();
-                  boolean fromElse = prev == ifStatement.getElseBranch();
-                  assert fromThen == !fromElse;
-                  if (tokenType == JavaTokenType.GE) {
-                    // if (SDK_INT >= ICE_CREAM_SANDWICH) { <call> } else { ... }
-                    return level >= api && fromThen;
-                  }
-                  else if (tokenType == JavaTokenType.GT) {
-                    // if (SDK_INT > ICE_CREAM_SANDWICH) { <call> } else { ... }
-                    return level >= api - 1 && fromThen;
-                  }
-                  else if (tokenType == JavaTokenType.LE) {
-                    // if (SDK_INT <= ICE_CREAM_SANDWICH) { ... } else { <call> }
-                    return level >= api - 1 && fromElse;
-                  }
-                  else if (tokenType == JavaTokenType.LT) {
-                    // if (SDK_INT < ICE_CREAM_SANDWICH) { ... } else { <call> }
-                    return level >= api && fromElse;
-                  }
-                  else if (tokenType == JavaTokenType.EQEQ) {
-                      // if (SDK_INT == ICE_CREAM_SANDWICH) { <call> } else {  }
-                      return level >= api && fromThen;
-                  } else {
-                    assert false : tokenType;
-                  }
-                }
-              }
-            }
-          } else if (tokenType == JavaTokenType.ANDAND && (prev == ifStatement.getThenBranch())) {
-            if (isAndedWithConditional(ifStatement.getCondition(), api, prev)) {
-              return true;
-            }
-          }
-        } else if (condition instanceof PsiPolyadicExpression) {
-          PsiPolyadicExpression ppe = (PsiPolyadicExpression)condition;
-          if (ppe.getOperationTokenType() == JavaTokenType.ANDAND && (prev == ifStatement.getThenBranch())) {
-            if (isAndedWithConditional(ppe, api, prev)) {
-              return true;
-            }
-          }
+        Boolean isConditional = isVersionCheckConditional(api, prev, ifStatement);
+        if (isConditional != null) {
+          return isConditional;
         }
       } else if (current instanceof PsiPolyadicExpression && isAndedWithConditional(current, api, prev)) {
-          return true;
+        return true;
       } else if (current instanceof PsiMethod || current instanceof PsiFile) {
         return false;
       }
@@ -763,6 +774,113 @@ public class IntellijApiDetector extends ApiDetector {
     }
 
     return false;
+  }
+
+  @Nullable
+  private static Boolean isVersionCheckConditional(int api, PsiElement prev, PsiIfStatement ifStatement) {
+    PsiExpression condition = ifStatement.getCondition();
+    if (condition != prev && condition instanceof PsiBinaryExpression) {
+      Boolean isConditional = isVersionCheckConditional(api, prev, ifStatement, (PsiBinaryExpression)condition);
+      if (isConditional != null) {
+        return isConditional;
+      }
+    } else if (condition instanceof PsiPolyadicExpression) {
+      PsiPolyadicExpression ppe = (PsiPolyadicExpression)condition;
+      if (ppe.getOperationTokenType() == JavaTokenType.ANDAND && (prev == ifStatement.getThenBranch())) {
+        if (isAndedWithConditional(ppe, api, prev)) {
+          return true;
+        }
+      }
+    } else if (condition instanceof PsiMethodCallExpression) {
+      PsiMethodCallExpression call = (PsiMethodCallExpression) condition;
+      PsiMethod method = call.resolveMethod();
+      if (method != null) {
+        PsiCodeBlock body = method.getBody();
+        if (body != null) {
+          PsiStatement[] statements = body.getStatements();
+          if (statements.length == 1) {
+            PsiStatement statement = statements[0];
+            if (statement instanceof PsiReturnStatement) {
+              PsiReturnStatement returnStatement = (PsiReturnStatement) statement;
+              PsiExpression returnValue = returnStatement.getReturnValue();
+              if (returnValue instanceof PsiBinaryExpression) {
+                Boolean isConditional = isVersionCheckConditional(api, null, null, (PsiBinaryExpression)returnValue);
+                if (isConditional != null) {
+                  return isConditional;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static Boolean isVersionCheckConditional(int api,
+                                                   @Nullable PsiElement prev,
+                                                   @Nullable PsiIfStatement ifStatement,
+                                                   @NonNull PsiBinaryExpression binary) {
+    IElementType tokenType = binary.getOperationTokenType();
+    if (tokenType == JavaTokenType.GT || tokenType == JavaTokenType.GE ||
+        tokenType == JavaTokenType.LE || tokenType == JavaTokenType.LT ||
+        tokenType == JavaTokenType.EQEQ) {
+      PsiExpression left = binary.getLOperand();
+      if (left instanceof PsiReferenceExpression) {
+        PsiReferenceExpression ref = (PsiReferenceExpression)left;
+        if (SDK_INT.equals(ref.getReferenceName())) {
+          PsiExpression right = binary.getROperand();
+          int level = -1;
+          if (right instanceof PsiReferenceExpression) {
+            PsiReferenceExpression ref2 = (PsiReferenceExpression)right;
+            String codeName = ref2.getReferenceName();
+            if (codeName == null) {
+              return false;
+            }
+            level = SdkVersionInfo.getApiByBuildCode(codeName, true);
+          } else if (right instanceof PsiLiteralExpression) {
+            PsiLiteralExpression lit = (PsiLiteralExpression)right;
+            Object value = lit.getValue();
+            if (value instanceof Integer) {
+              level = ((Integer)value).intValue();
+            }
+          }
+          if (level != -1) {
+            boolean fromThen = ifStatement == null || prev == ifStatement.getThenBranch();
+            boolean fromElse = ifStatement != null && prev == ifStatement.getElseBranch();
+            assert fromThen == !fromElse;
+            if (tokenType == JavaTokenType.GE) {
+              // if (SDK_INT >= ICE_CREAM_SANDWICH) { <call> } else { ... }
+              return level >= api && fromThen;
+            }
+            else if (tokenType == JavaTokenType.GT) {
+              // if (SDK_INT > ICE_CREAM_SANDWICH) { <call> } else { ... }
+              return level >= api - 1 && fromThen;
+            }
+            else if (tokenType == JavaTokenType.LE) {
+              // if (SDK_INT <= ICE_CREAM_SANDWICH) { ... } else { <call> }
+              return level >= api - 1 && fromElse;
+            }
+            else if (tokenType == JavaTokenType.LT) {
+              // if (SDK_INT < ICE_CREAM_SANDWICH) { ... } else { <call> }
+              return level >= api && fromElse;
+            }
+            else if (tokenType == JavaTokenType.EQEQ) {
+                // if (SDK_INT == ICE_CREAM_SANDWICH) { <call> } else {  }
+                return level >= api && fromThen;
+            } else {
+              assert false : tokenType;
+            }
+          }
+        }
+      }
+    } else if (tokenType == JavaTokenType.ANDAND && (ifStatement != null && prev == ifStatement.getThenBranch())) {
+      if (isAndedWithConditional(ifStatement.getCondition(), api, prev)) {
+        return true;
+      }
+    }
+    return null;
   }
 
   private static boolean isAndedWithConditional(PsiElement element, int api, @Nullable PsiElement before) {
