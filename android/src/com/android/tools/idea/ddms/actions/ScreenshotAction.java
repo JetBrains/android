@@ -71,6 +71,7 @@ public class ScreenshotAction extends AbstractDeviceAction {
                       File screenshot = viewer.getScreenshot();
                       VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(screenshot);
                       if (vf != null) {
+                        vf.refresh(false, false);
                         FileEditorManager.getInstance(project).openFile(vf, true);
                       }
                     }
