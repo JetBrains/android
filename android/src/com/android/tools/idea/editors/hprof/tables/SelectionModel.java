@@ -26,11 +26,11 @@ import java.util.EventListener;
 
 public class SelectionModel {
   public interface SelectionListener extends EventListener {
-    public void onHeapChanged(@NotNull Heap heap);
+    void onHeapChanged(@NotNull Heap heap);
 
-    public void onClassObjChanged(@Nullable ClassObj classObj);
+    void onClassObjChanged(@Nullable ClassObj classObj);
 
-    public void onInstanceChanged(@Nullable Instance instance);
+    void onInstanceChanged(@Nullable Instance instance);
   }
 
   private final EventDispatcher<SelectionListener> myDispatcher = EventDispatcher.create(SelectionListener.class);
