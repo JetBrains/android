@@ -27,6 +27,7 @@ import javax.swing.ComboBoxModel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -43,18 +44,14 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
 
   private SeparatedList myAllItems;
   private Object mySelectedObject;
-  private Module mySelectedModule;
   private final List<String> myEditOptions;
 
-  public ThemesListModel(@NotNull Project project, @NotNull ImmutableList<ThemeEditorStyle> defaultThemes, @Nullable ThemeEditorStyle defaultTheme) {
-    ImmutableList<ProjectThemeResolver.ThemeWithSource> editableThemes = ProjectThemeResolver.getEditableProjectThemes(project);
-
+  public ThemesListModel(@NotNull ThemeEditorContext context, @NotNull ImmutableList<ThemeEditorStyle> defaultThemes, @Nullable ThemeEditorStyle defaultTheme) {
     // We sort the themes, displaying the local project themes at the top sorted alphabetically. The non local themes are sorted
     // alphabetically right below the project themes.
-    Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(ThemeEditorUtils.STYLE_COMPARATOR);
-    for (ProjectThemeResolver.ThemeWithSource theme : editableThemes) {
-      temporarySet.add(theme.getTheme());
-    }
+    final Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(ThemeEditorUtils.STYLE_COMPARATOR);
+    final Collection<ThemeEditorStyle> editableThemes = context.getThemeResolver().getLocalThemes();
+    temporarySet.addAll(editableThemes);
     temporarySet.addAll(defaultThemes);
 
     ImmutableList<ThemeEditorStyle> allThemes = ImmutableList.copyOf(temporarySet);
@@ -105,9 +102,6 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     if (object instanceof ThemeEditorStyle) {
       return (ThemeEditorStyle)object;
     }
-    else if (object instanceof ProjectThemeResolver.ThemeWithSource) {
-      return ((ProjectThemeResolver.ThemeWithSource)object).getTheme();
-    }
     return null;
   }
 
@@ -118,9 +112,6 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     }
 
     mySelectedObject = anItem;
-    if (anItem instanceof ProjectThemeResolver.ThemeWithSource) {
-      mySelectedModule = ((ProjectThemeResolver.ThemeWithSource)anItem).getSourceModule();
-    }
     buildEditOptionsList(mySelectedObject);
 
     fireContentsChanged(this, -1, -1);
@@ -130,10 +121,5 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
   @Override
   public Object getSelectedItem() {
     return mySelectedObject;
-  }
-
-  @Nullable
-  public Module getSelectedModule() {
-    return mySelectedModule;
   }
 }

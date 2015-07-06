@@ -36,6 +36,8 @@ public class AttributesPanel {
   private static final boolean ENABLE_ADVANCED_MODE = false;
 
   public static final Border BORDER = BorderFactory.createEmptyBorder(10, 10, 10, 10);
+  public static final String THEME_SELECTOR_NAME = "Theme Selector";
+  public static final String MODULE_SELECTOR_NAME = "Module Selector";
 
   private JComboBox myThemeCombo;
   private JCheckBox myAdvancedFilterCheckBox;
@@ -48,6 +50,7 @@ public class AttributesPanel {
   private JComboBox myAttrGroupCombo;
   private ColorPalette myPalette;
   private JBScrollPane myPaletteScrollPane;
+  private JComboBox myModuleCombo;
 
   public AttributesPanel() {
     myBackButton.setIcon(AllIcons.Actions.Back);
@@ -81,6 +84,10 @@ public class AttributesPanel {
     // Stop the combo box long items from blocking the right panel from being able to be made small.
     myThemeCombo.setMinimumSize(new Dimension(10, myThemeCombo.getMinimumSize().height));
     myThemeCombo.setPreferredSize(new Dimension(10, myThemeCombo.getPreferredSize().height));
+
+    // Set combo boxes names to be able to distinguish them in UI tests
+    myThemeCombo.setName(THEME_SELECTOR_NAME);
+    myModuleCombo.setName(MODULE_SELECTOR_NAME);
   }
 
   /**
@@ -138,6 +145,10 @@ public class AttributesPanel {
   }
 
   // Raw getters ahead
+
+  public JComboBox getModuleCombo() {
+    return myModuleCombo;
+  }
 
   public JComboBox getThemeCombo() {
     return myThemeCombo;
