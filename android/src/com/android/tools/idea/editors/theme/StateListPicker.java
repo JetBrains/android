@@ -200,7 +200,7 @@ public class StateListPicker extends JPanel {
       if (url != null) {
         ResourceValue resValue = resourceResolver.findResValue(itemValue, url.framework);
         if (resValue.getResourceType() == ResourceType.COLOR) {
-          resolvedResource = ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, resValue));
+          resolvedResource = ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, resValue, myModule.getProject()));
         }
         else {
           resolvedResource = resourceResolver.resolveResValue(resValue).getName();
