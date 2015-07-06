@@ -16,7 +16,9 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.palette.NlPalettePanel;
+import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindow;
@@ -25,13 +27,11 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class NlPaletteManager extends NlAbstractWindowManager {
   private NlPalettePanel myPalette;
 
-  public NlPaletteManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
+  public NlPaletteManager(@NonNull Project project, @NonNull FileEditorManager fileEditorManager) {
     super(project, fileEditorManager);
   }
 
@@ -69,8 +69,8 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     return ToolWindowAnchor.LEFT;
   }
 
-  @NotNull
-  private static DesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
+  @NonNull
+  private static DesignSurface getDesignSurface(@NonNull DesignerEditorPanelFacade designer) {
     if (designer instanceof NlEditorPanel) {
       NlEditorPanel editor = (NlEditorPanel)designer;
       return editor.getSurface();
@@ -83,12 +83,17 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     throw new RuntimeException(designer.getClass().getName());
   }
 
-  public String getVisibilityKeyName(@NotNull DesignerEditorPanelFacade designer) {
+  public String getVisibilityKeyName(@NonNull DesignerEditorPanelFacade designer) {
     return getComponentName()+ "-" + designer.getClass().getSimpleName();
   }
 
+  public void setDesignSurface(LightToolWindow toolWindow, @Nullable ScalableDesignSurface designSurface) {
+    NlPalettePanel palette = (NlPalettePanel)toolWindow.getContent();
+    palette.setDesignSurface(designSurface);
+  }
+
   @Override
-  protected LightToolWindow createContent(@NotNull DesignerEditorPanelFacade designer) {
+  protected LightToolWindow createContent(@NonNull DesignerEditorPanelFacade designer) {
     NlPalettePanel palette = new NlPalettePanel(designer);
     palette.setDesignSurface(getDesignSurface(designer));
 
@@ -109,7 +114,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
                                getVisibilityKeyName(designer), 180, palette.getActions());
   }
 
-  @NotNull
+  @NonNull
   @Override
   public String getComponentName() {
     return "NlPaletteManager";
