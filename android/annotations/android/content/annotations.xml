@@ -117,10 +117,130 @@
   <item name="android.content.ComponentName void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentProvider android.content.ContentProviderResult[] applyBatch(java.util.ArrayList&lt;android.content.ContentProviderOperation&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.ContentProvider android.content.ContentProviderResult[] applyBatch(java.util.ArrayList&lt;android.content.ContentProviderOperation&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentProvider android.content.Context getContext()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.content.pm.PathPermission[] getPathPermissions()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 5">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.net.Uri canonicalize(android.net.Uri)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.net.Uri canonicalize(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.net.Uri insert(android.net.Uri, android.content.ContentValues)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.net.Uri insert(android.net.Uri, android.content.ContentValues) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.net.Uri insert(android.net.Uri, android.content.ContentValues) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.net.Uri uncanonicalize(android.net.Uri)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.net.Uri uncanonicalize(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProvider android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle) 1">
@@ -129,13 +249,322 @@
   <item name="android.content.ContentProvider android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openFileHelper(android.net.Uri, java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openFileHelper(android.net.Uri, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openFileHelper(android.net.Uri, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openPipeHelper(android.net.Uri, java.lang.String, android.os.Bundle, T, android.content.ContentProvider.PipeDataWriter&lt;T&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openPipeHelper(android.net.Uri, java.lang.String, android.os.Bundle, T, android.content.ContentProvider.PipeDataWriter&lt;T&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openPipeHelper(android.net.Uri, java.lang.String, android.os.Bundle, T, android.content.ContentProvider.PipeDataWriter&lt;T&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openPipeHelper(android.net.Uri, java.lang.String, android.os.Bundle, T, android.content.ContentProvider.PipeDataWriter&lt;T&gt;) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openPipeHelper(android.net.Uri, java.lang.String, android.os.Bundle, T, android.content.ContentProvider.PipeDataWriter&lt;T&gt;) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openPipeHelper(android.net.Uri, java.lang.String, android.os.Bundle, T, android.content.ContentProvider.PipeDataWriter&lt;T&gt;) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider int bulkInsert(android.net.Uri, android.content.ContentValues[]) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProvider int bulkInsert(android.net.Uri, android.content.ContentValues[]) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentProvider int delete(android.net.Uri, java.lang.String, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider int delete(android.net.Uri, java.lang.String, java.lang.String[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider int delete(android.net.Uri, java.lang.String, java.lang.String[]) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider java.lang.String getCallingPackage()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider java.lang.String getReadPermission()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider java.lang.String getType(android.net.Uri)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider java.lang.String getType(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider java.lang.String getWritePermission()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider java.lang.String[] getStreamTypes(android.net.Uri, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider java.lang.String[] getStreamTypes(android.net.Uri, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider java.lang.String[] getStreamTypes(android.net.Uri, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.ContentProvider void dump(java.io.FileDescriptor, java.io.PrintWriter, java.lang.String[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider void setPathPermissions(android.content.pm.PathPermission[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider void setReadPermission(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider void setWritePermission(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider.PipeDataWriter void writeDataToPipe(android.os.ParcelFileDescriptor, android.net.Uri, java.lang.String, android.os.Bundle, T) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider.PipeDataWriter void writeDataToPipe(android.os.ParcelFileDescriptor, android.net.Uri, java.lang.String, android.os.Bundle, T) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider.PipeDataWriter void writeDataToPipe(android.os.ParcelFileDescriptor, android.net.Uri, java.lang.String, android.os.Bundle, T) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProvider.PipeDataWriter void writeDataToPipe(android.os.ParcelFileDescriptor, android.net.Uri, java.lang.String, android.os.Bundle, T) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider.PipeDataWriter void writeDataToPipe(android.os.ParcelFileDescriptor, android.net.Uri, java.lang.String, android.os.Bundle, T) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.ContentProvider getLocalContentProvider()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.ContentProviderResult[] applyBatch(java.util.ArrayList&lt;android.content.ContentProviderOperation&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.ContentProviderResult[] applyBatch(java.util.ArrayList&lt;android.content.ContentProviderOperation&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 5">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.net.Uri canonicalize(android.net.Uri)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.net.Uri canonicalize(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.net.Uri insert(android.net.Uri, android.content.ContentValues)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.net.Uri insert(android.net.Uri, android.content.ContentValues) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.net.Uri insert(android.net.Uri, android.content.ContentValues) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.net.Uri uncanonicalize(android.net.Uri)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.net.Uri uncanonicalize(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient android.os.ParcelFileDescriptor openFile(android.net.Uri, java.lang.String, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient int bulkInsert(android.net.Uri, android.content.ContentValues[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient int bulkInsert(android.net.Uri, android.content.ContentValues[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient int delete(android.net.Uri, java.lang.String, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient int delete(android.net.Uri, java.lang.String, java.lang.String[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient int delete(android.net.Uri, java.lang.String, java.lang.String[]) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient java.lang.String getType(android.net.Uri)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient java.lang.String getType(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient java.lang.String[] getStreamTypes(android.net.Uri, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProviderClient java.lang.String[] getStreamTypes(android.net.Uri, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentProviderClient java.lang.String[] getStreamTypes(android.net.Uri, java.lang.String) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation android.content.ContentProviderOperation.Builder newAssertQuery(android.net.Uri)">
@@ -198,28 +627,162 @@
   <item name="android.content.ContentQueryMap ContentQueryMap(android.database.Cursor, java.lang.String, boolean, android.os.Handler) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentResolver android.content.ContentProviderClient acquireContentProviderClient(android.net.Uri)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentResolver android.content.ContentProviderClient acquireContentProviderClient(android.net.Uri) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.content.ContentProviderClient acquireContentProviderClient(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.content.ContentProviderClient acquireContentProviderClient(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.content.ContentProviderClient acquireUnstableContentProviderClient(android.net.Uri)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.ContentResolver android.content.ContentProviderClient acquireUnstableContentProviderClient(android.net.Uri) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentResolver android.content.ContentProviderClient acquireUnstableContentProviderClient(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.content.ContentProviderClient acquireUnstableContentProviderClient(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.content.ContentProviderResult[] applyBatch(java.lang.String, java.util.ArrayList&lt;android.content.ContentProviderOperation&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.content.ContentProviderResult[] applyBatch(java.lang.String, java.util.ArrayList&lt;android.content.ContentProviderOperation&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.content.ContentProviderResult[] applyBatch(java.lang.String, java.util.ArrayList&lt;android.content.ContentProviderOperation&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.content.SyncInfo getCurrentSync()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_SYNC_STATS&quot;" />
+    </annotation>
+  </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openAssetFileDescriptor(android.net.Uri, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openAssetFileDescriptor(android.net.Uri, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openAssetFileDescriptor(android.net.Uri, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle, android.os.CancellationSignal) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 0">
     <annotation name="android.support.annotation.RequiresPermission.Read" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 0">
     <annotation name="android.support.annotation.RequiresPermission.Read" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 5">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.net.Uri canonicalize(android.net.Uri)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.net.Uri canonicalize(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.net.Uri insert(android.net.Uri, android.content.ContentValues)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentResolver android.net.Uri insert(android.net.Uri, android.content.ContentValues) 0">
     <annotation name="android.support.annotation.RequiresPermission.Write" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.net.Uri insert(android.net.Uri, android.content.ContentValues) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.net.Uri uncanonicalize(android.net.Uri)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.net.Uri uncanonicalize(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.os.Bundle call(android.net.Uri, java.lang.String, java.lang.String, android.os.Bundle)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.os.Bundle call(android.net.Uri, java.lang.String, java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.os.Bundle call(android.net.Uri, java.lang.String, java.lang.String, android.os.Bundle) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver android.os.Bundle call(android.net.Uri, java.lang.String, java.lang.String, android.os.Bundle) 2">
@@ -228,43 +791,169 @@
   <item name="android.content.ContentResolver android.os.Bundle call(android.net.Uri, java.lang.String, java.lang.String, android.os.Bundle) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.ContentResolver android.os.ParcelFileDescriptor openFileDescriptor(android.net.Uri, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentResolver android.os.ParcelFileDescriptor openFileDescriptor(android.net.Uri, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentResolver android.os.ParcelFileDescriptor openFileDescriptor(android.net.Uri, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.os.ParcelFileDescriptor openFileDescriptor(android.net.Uri, java.lang.String, android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.os.ParcelFileDescriptor openFileDescriptor(android.net.Uri, java.lang.String, android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.os.ParcelFileDescriptor openFileDescriptor(android.net.Uri, java.lang.String, android.os.CancellationSignal) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.os.ParcelFileDescriptor openFileDescriptor(android.net.Uri, java.lang.String, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver boolean getMasterSyncAutomatically()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_SYNC_SETTINGS&quot;" />
+    </annotation>
+  </item>
+  <item name="android.content.ContentResolver boolean getSyncAutomatically(android.accounts.Account, java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_SYNC_SETTINGS&quot;" />
+    </annotation>
+  </item>
+  <item name="android.content.ContentResolver boolean isSyncActive(android.accounts.Account, java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_SYNC_STATS&quot;" />
+    </annotation>
+  </item>
+  <item name="android.content.ContentResolver boolean isSyncPending(android.accounts.Account, java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_SYNC_STATS&quot;" />
+    </annotation>
+  </item>
   <item name="android.content.ContentResolver int bulkInsert(android.net.Uri, android.content.ContentValues[]) 0">
     <annotation name="android.support.annotation.RequiresPermission.Write" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver int bulkInsert(android.net.Uri, android.content.ContentValues[]) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver int delete(android.net.Uri, java.lang.String, java.lang.String[]) 0">
     <annotation name="android.support.annotation.RequiresPermission.Write" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentResolver int delete(android.net.Uri, java.lang.String, java.lang.String[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver int delete(android.net.Uri, java.lang.String, java.lang.String[]) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver int getIsSyncable(android.accounts.Account, java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_SYNC_SETTINGS&quot;" />
+    </annotation>
+  </item>
   <item name="android.content.ContentResolver int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 0">
     <annotation name="android.support.annotation.RequiresPermission.Write" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentResolver int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver java.io.InputStream openInputStream(android.net.Uri)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentResolver java.io.InputStream openInputStream(android.net.Uri) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver java.io.OutputStream openOutputStream(android.net.Uri)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.ContentResolver java.io.OutputStream openOutputStream(android.net.Uri) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentResolver java.io.OutputStream openOutputStream(android.net.Uri, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentResolver java.io.OutputStream openOutputStream(android.net.Uri, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver java.io.OutputStream openOutputStream(android.net.Uri, java.lang.String) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver java.lang.Object addStatusChangeListener(int, android.content.SyncStatusObserver)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentResolver java.lang.String getType(android.net.Uri)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentResolver java.lang.String getType(android.net.Uri) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver java.lang.String[] getStreamTypes(android.net.Uri, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.ContentResolver java.lang.String[] getStreamTypes(android.net.Uri, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentResolver java.lang.String[] getStreamTypes(android.net.Uri, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver java.util.List&lt;android.content.PeriodicSync&gt; getPeriodicSyncs(android.accounts.Account, java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_SYNC_SETTINGS&quot;" />
+    </annotation>
+  </item>
+  <item name="android.content.ContentResolver java.util.List&lt;android.content.SyncInfo&gt; getCurrentSyncs()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_SYNC_STATS&quot;" />
+    </annotation>
+  </item>
+  <item name="android.content.ContentResolver java.util.List&lt;android.content.UriPermission&gt; getOutgoingPersistedUriPermissions()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver java.util.List&lt;android.content.UriPermission&gt; getPersistedUriPermissions()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver void addPeriodicSync(android.accounts.Account, java.lang.String, android.os.Bundle, long)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.WRITE_SYNC_SETTINGS&quot;" />
+    </annotation>
+  </item>
   <item name="android.content.ContentResolver void addPeriodicSync(android.accounts.Account, java.lang.String, android.os.Bundle, long) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentResolver void cancelSync(android.content.SyncRequest)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.WRITE_SYNC_SETTINGS&quot;" />
+    </annotation>
+  </item>
+  <item name="android.content.ContentResolver void notifyChange(android.net.Uri, android.database.ContentObserver) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver void notifyChange(android.net.Uri, android.database.ContentObserver) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver void notifyChange(android.net.Uri, android.database.ContentObserver, boolean) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver void notifyChange(android.net.Uri, android.database.ContentObserver, boolean) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver void registerContentObserver(android.net.Uri, boolean, android.database.ContentObserver) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.ContentResolver void registerContentObserver(android.net.Uri, boolean, android.database.ContentObserver) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver void releasePersistableUriPermission(android.net.Uri, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver void releasePersistableUriPermission(android.net.Uri, int) 1">
@@ -273,10 +962,33 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.content.ContentResolver void removePeriodicSync(android.accounts.Account, java.lang.String, android.os.Bundle)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.WRITE_SYNC_SETTINGS&quot;" />
+    </annotation>
+  </item>
   <item name="android.content.ContentResolver void removePeriodicSync(android.accounts.Account, java.lang.String, android.os.Bundle) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver void requestSync(android.accounts.Account, java.lang.String, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver void setIsSyncable(android.accounts.Account, java.lang.String, int)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.WRITE_SYNC_SETTINGS&quot;" />
+    </annotation>
+  </item>
+  <item name="android.content.ContentResolver void setMasterSyncAutomatically(boolean)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.WRITE_SYNC_SETTINGS&quot;" />
+    </annotation>
+  </item>
+  <item name="android.content.ContentResolver void setSyncAutomatically(android.accounts.Account, java.lang.String, boolean)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.WRITE_SYNC_SETTINGS&quot;" />
+    </annotation>
+  </item>
+  <item name="android.content.ContentResolver void takePersistableUriPermission(android.net.Uri, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver void takePersistableUriPermission(android.net.Uri, int) 1">
@@ -351,6 +1063,9 @@
   <item name="android.content.Context android.content.res.ColorStateList getColorStateList(int)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.Context android.content.res.ColorStateList getColorStateList(int) 0">
+    <annotation name="android.support.annotation.ColorRes" />
+  </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[]) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -387,6 +1102,9 @@
   </item>
   <item name="android.content.Context android.graphics.drawable.Drawable getDrawable(int)">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context android.graphics.drawable.Drawable getDrawable(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
   <item name="android.content.Context boolean bindService(android.content.Intent, android.content.ServiceConnection, int) 0">
     <annotation name="android.support.annotation.RequiresPermission" />
@@ -504,7 +1222,10 @@
     </annotation>
   </item>
   <item name="android.content.Context int getColor(int)">
-    <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.content.Context int getColor(int) 0">
+    <annotation name="android.support.annotation.ColorRes" />
   </item>
   <item name="android.content.Context java.io.File getExternalCacheDir()">
     <annotation name="android.support.annotation.Nullable" />
@@ -637,6 +1358,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 3">

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.graphics.drawable.Animatable2 boolean unregisterAnimationCallback(android.graphics.drawable.Animatable2.AnimationCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Animatable2 void registerAnimationCallback(android.graphics.drawable.Animatable2.AnimationCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.drawable.AnimatedStateListDrawable void addState(int[], android.graphics.drawable.Drawable, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -27,7 +33,18 @@
   <item name="android.graphics.drawable.AnimatedStateListDrawable void setConstantState(android.graphics.drawable.DrawableContainer.DrawableContainerState) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.graphics.drawable.AnimatedVectorDrawable boolean onLayoutDirectionChanged(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.AnimatedVectorDrawable boolean unregisterAnimationCallback(android.graphics.drawable.Animatable2.AnimationCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.drawable.AnimatedVectorDrawable void getOutline(android.graphics.Outline) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.AnimatedVectorDrawable void registerAnimationCallback(android.graphics.drawable.Animatable2.AnimationCallback) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.drawable.AnimationDrawable android.graphics.drawable.Drawable mutate()">
@@ -57,7 +74,7 @@
   <item name="android.graphics.drawable.Drawable boolean getPadding(android.graphics.Rect) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.graphics.drawable.Drawable boolean onLayoutDirectionChange(int) 0">
+  <item name="android.graphics.drawable.Drawable boolean onLayoutDirectionChanged(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
     </annotation>
@@ -88,6 +105,11 @@
   <item name="android.graphics.drawable.Drawable void setTintMode(android.graphics.PorterDuff.Mode) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.graphics.drawable.DrawableContainer boolean onLayoutDirectionChanged(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
+    </annotation>
+  </item>
   <item name="android.graphics.drawable.DrawableContainer void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -106,7 +128,7 @@
   <item name="android.graphics.drawable.DrawableWrapper boolean getPadding(android.graphics.Rect) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.graphics.drawable.DrawableWrapper boolean onLayoutDirectionChange(int) 0">
+  <item name="android.graphics.drawable.DrawableWrapper boolean onLayoutDirectionChanged(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
     </annotation>
@@ -156,11 +178,19 @@
   <item name="android.graphics.drawable.Icon android.graphics.drawable.Icon createWithResource(java.lang.String, int) 1">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>
+  <item name="android.graphics.drawable.Icon android.graphics.drawable.Icon setTint(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.graphics.drawable.InsetDrawable void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.drawable.LayerDrawable LayerDrawable(android.graphics.drawable.Drawable[]) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.LayerDrawable boolean onLayoutDirectionChanged(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
+    </annotation>
   </item>
   <item name="android.graphics.drawable.LayerDrawable void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />

@@ -1,13 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.hardware.fingerprint.FingerprintManager void authenticate(android.hardware.fingerprint.FingerprintManager.CryptoObject, android.os.CancellationSignal, android.hardware.fingerprint.FingerprintManager.AuthenticationCallback, int) 0">
+  <item name="android.hardware.fingerprint.FingerprintManager boolean hasEnrolledFingerprints()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.USE_FINGERPRINT&quot;" />
+    </annotation>
+  </item>
+  <item name="android.hardware.fingerprint.FingerprintManager boolean isHardwareDetected()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.USE_FINGERPRINT&quot;" />
+    </annotation>
+  </item>
+  <item name="android.hardware.fingerprint.FingerprintManager void authenticate(android.hardware.fingerprint.FingerprintManager.CryptoObject, android.os.CancellationSignal, int, android.hardware.fingerprint.FingerprintManager.AuthenticationCallback, android.os.Handler)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.USE_FINGERPRINT&quot;" />
+    </annotation>
+  </item>
+  <item name="android.hardware.fingerprint.FingerprintManager void authenticate(android.hardware.fingerprint.FingerprintManager.CryptoObject, android.os.CancellationSignal, int, android.hardware.fingerprint.FingerprintManager.AuthenticationCallback, android.os.Handler) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.hardware.fingerprint.FingerprintManager void authenticate(android.hardware.fingerprint.FingerprintManager.CryptoObject, android.os.CancellationSignal, android.hardware.fingerprint.FingerprintManager.AuthenticationCallback, int) 1">
+  <item name="android.hardware.fingerprint.FingerprintManager void authenticate(android.hardware.fingerprint.FingerprintManager.CryptoObject, android.os.CancellationSignal, int, android.hardware.fingerprint.FingerprintManager.AuthenticationCallback, android.os.Handler) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.hardware.fingerprint.FingerprintManager void authenticate(android.hardware.fingerprint.FingerprintManager.CryptoObject, android.os.CancellationSignal, android.hardware.fingerprint.FingerprintManager.AuthenticationCallback, int) 2">
+  <item name="android.hardware.fingerprint.FingerprintManager void authenticate(android.hardware.fingerprint.FingerprintManager.CryptoObject, android.os.CancellationSignal, int, android.hardware.fingerprint.FingerprintManager.AuthenticationCallback, android.os.Handler) 3">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.fingerprint.FingerprintManager void authenticate(android.hardware.fingerprint.FingerprintManager.CryptoObject, android.os.CancellationSignal, int, android.hardware.fingerprint.FingerprintManager.AuthenticationCallback, android.os.Handler) 4">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.hardware.fingerprint.FingerprintManager.CryptoObject CryptoObject(java.security.Signature) 0">
     <annotation name="android.support.annotation.NonNull" />

@@ -102,6 +102,9 @@
   <item name="android.service.carrier.CarrierMessagingService.SendMultipartSmsResult int[] getMessageRefs()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.service.carrier.CarrierService android.os.IBinder onBind(android.content.Intent)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.service.carrier.MessagePdu MessagePdu(java.util.List&lt;byte[]&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
