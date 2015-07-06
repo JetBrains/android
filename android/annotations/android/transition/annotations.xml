@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.transition.Transition boolean isTransitionRequired(android.transition.TransitionValues, android.transition.TransitionValues) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.transition.Transition boolean isTransitionRequired(android.transition.TransitionValues, android.transition.TransitionValues) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.transition.TransitionInflater android.transition.Transition inflateTransition(int) 0">
     <annotation name="android.support.annotation.TransitionRes" />
   </item>

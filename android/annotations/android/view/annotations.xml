@@ -449,9 +449,6 @@
   <item name="android.view.View boolean verifyDrawable(android.graphics.drawable.Drawable)">
     <annotation name="android.support.annotation.CallSuper" />
   </item>
-  <item name="android.view.View int getBackgroundColor()">
-    <annotation name="android.support.annotation.ColorInt" />
-  </item>
   <item name="android.view.View int getDrawingCacheBackgroundColor()">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -462,6 +459,11 @@
   </item>
   <item name="android.view.View int getId()">
     <annotation name="android.support.annotation.IdRes" />
+  </item>
+  <item name="android.view.View int getImportantForAccessibility()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.IMPORTANT_FOR_ACCESSIBILITY_AUTO, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS}" />
+    </annotation>
   </item>
   <item name="android.view.View int getLayoutDirection()">
     <annotation name="android.support.annotation.IntDef">
@@ -485,6 +487,11 @@
   <item name="android.view.View int getTextAlignment()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.TEXT_ALIGNMENT_INHERIT, android.view.View.TEXT_ALIGNMENT_GRAVITY, android.view.View.TEXT_ALIGNMENT_CENTER, android.view.View.TEXT_ALIGNMENT_TEXT_START, android.view.View.TEXT_ALIGNMENT_TEXT_END, android.view.View.TEXT_ALIGNMENT_VIEW_START, android.view.View.TEXT_ALIGNMENT_VIEW_END}" />
+    </annotation>
+  </item>
+  <item name="android.view.View int getTextDirection()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.TEXT_DIRECTION_LTR, android.view.View.TEXT_DIRECTION_RTL, android.view.View.TEXT_DIRECTION_ANY_RTL, android.view.View.TEXT_DIRECTION_LOCALE, android.view.View.TEXT_DIRECTION_FIRST_STRONG, android.view.View.TEXT_DIRECTION_FIRST_STRONG_LTR, android.view.View.TEXT_DIRECTION_FIRST_STRONG_RTL}" />
     </annotation>
   </item>
   <item name="android.view.View int getVisibility()">
@@ -609,11 +616,20 @@
   <item name="android.view.View void getWindowVisibleDisplayFrame(android.graphics.Rect) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.View void initializeFadingEdge(android.content.res.TypedArray) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View void initializeScrollbars(android.content.res.TypedArray) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.view.View void invalidate(android.graphics.Rect) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void invalidateDrawable(android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View void jumpDrawablesToCurrentState()">
+    <annotation name="android.support.annotation.CallSuper" />
   </item>
   <item name="android.view.View void onAnimationEnd()">
     <annotation name="android.support.annotation.CallSuper" />
@@ -732,6 +748,11 @@
   <item name="android.view.View void setId(int) 0">
     <annotation name="android.support.annotation.IdRes" />
   </item>
+  <item name="android.view.View void setImportantForAccessibility(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.IMPORTANT_FOR_ACCESSIBILITY_AUTO, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS}" />
+    </annotation>
+  </item>
   <item name="android.view.View void setLabelFor(int) 0">
     <annotation name="android.support.annotation.IdRes" />
   </item>
@@ -743,10 +764,10 @@
   <item name="android.view.View void setOnClickListener(android.view.View.OnClickListener) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.view.View void setOnLongClickListener(android.view.View.OnLongClickListener) 0">
+  <item name="android.view.View void setOnContextClickListener(android.view.View.OnContextClickListener) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.view.View void setOnStylusButtonPressListener(android.view.View.OnStylusButtonPressListener) 0">
+  <item name="android.view.View void setOnLongClickListener(android.view.View.OnLongClickListener) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View void setScrollBarStyle(int) 0">
@@ -775,6 +796,11 @@
   <item name="android.view.View void setTextAlignment(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.TEXT_ALIGNMENT_INHERIT, android.view.View.TEXT_ALIGNMENT_GRAVITY, android.view.View.TEXT_ALIGNMENT_CENTER, android.view.View.TEXT_ALIGNMENT_TEXT_START, android.view.View.TEXT_ALIGNMENT_TEXT_END, android.view.View.TEXT_ALIGNMENT_VIEW_START, android.view.View.TEXT_ALIGNMENT_VIEW_END}" />
+    </annotation>
+  </item>
+  <item name="android.view.View void setTextDirection(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.TEXT_DIRECTION_INHERIT, android.view.View.TEXT_DIRECTION_LTR, android.view.View.TEXT_DIRECTION_RTL, android.view.View.TEXT_DIRECTION_ANY_RTL, android.view.View.TEXT_DIRECTION_LOCALE, android.view.View.TEXT_DIRECTION_FIRST_STRONG, android.view.View.TEXT_DIRECTION_FIRST_STRONG_LTR, android.view.View.TEXT_DIRECTION_FIRST_STRONG_RTL}" />
     </annotation>
   </item>
   <item name="android.view.View void setVisibility(int) 0">
@@ -909,6 +935,17 @@
   <item name="android.view.ViewGroup boolean getChildVisibleRect(android.view.View, android.graphics.Rect, android.graphics.Point) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.ViewGroup int getDescendantFocusability()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.ViewGroup.FOCUS_BEFORE_DESCENDANTS, android.view.ViewGroup.FOCUS_AFTER_DESCENDANTS, android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS}" />
+    </annotation>
+  </item>
+  <item name="android.view.ViewGroup int getPersistentDrawingCache()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.ViewGroup.PERSISTENT_NO_CACHE, android.view.ViewGroup.PERSISTENT_ANIMATION_CACHE, android.view.ViewGroup.PERSISTENT_SCROLLING_CACHE, android.view.ViewGroup.PERSISTENT_ALL_CACHES}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.view.ViewGroup void addChildrenForAccessibility(java.util.ArrayList&lt;android.view.View&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -998,6 +1035,17 @@
   </item>
   <item name="android.view.ViewGroup void removeViewInLayout(android.view.View) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewGroup void setDescendantFocusability(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.ViewGroup.FOCUS_BEFORE_DESCENDANTS, android.view.ViewGroup.FOCUS_AFTER_DESCENDANTS, android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS}" />
+    </annotation>
+  </item>
+  <item name="android.view.ViewGroup void setPersistentDrawingCache(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.ViewGroup.PERSISTENT_NO_CACHE, android.view.ViewGroup.PERSISTENT_ANIMATION_CACHE, android.view.ViewGroup.PERSISTENT_SCROLLING_CACHE, android.view.ViewGroup.PERSISTENT_ALL_CACHES}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.view.ViewGroup void startViewTransition(android.view.View) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -1196,6 +1244,11 @@
   </item>
   <item name="android.view.WindowManager.LayoutParams java.lang.String debug(java.lang.String)">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.WindowManager.LayoutParams type">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.WindowManager.LayoutParams.TYPE_BASE_APPLICATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_STARTING, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_PANEL, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_MEDIA, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_SUB_PANEL, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG, android.view.WindowManager.LayoutParams.TYPE_STATUS_BAR, android.view.WindowManager.LayoutParams.TYPE_SEARCH_BAR, android.view.WindowManager.LayoutParams.TYPE_PHONE, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, android.view.WindowManager.LayoutParams.TYPE_TOAST, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY, android.view.WindowManager.LayoutParams.TYPE_PRIORITY_PHONE, android.view.WindowManager.LayoutParams.TYPE_STATUS_BAR_PANEL, android.view.WindowManager.LayoutParams.TYPE_PRIVATE_PRESENTATION, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG, android.view.WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ERROR, android.view.WindowManager.LayoutParams.TYPE_INPUT_METHOD, android.view.WindowManager.LayoutParams.TYPE_INPUT_METHOD_DIALOG}" />
+    </annotation>
   </item>
   <item name="android.view.WindowManager.LayoutParams void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />

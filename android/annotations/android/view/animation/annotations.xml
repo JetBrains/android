@@ -19,6 +19,7 @@
     <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.view.animation.Animation void setInterpolator(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.AnimRes" />
     <annotation name="android.support.annotation.InterpolatorRes" />
   </item>
   <item name="android.view.animation.AnimationSet AnimationSet(android.content.Context, android.util.AttributeSet) 0">
@@ -52,6 +53,7 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.animation.AnimationUtils android.view.animation.Interpolator loadInterpolator(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.AnimRes" />
     <annotation name="android.support.annotation.InterpolatorRes" />
   </item>
   <item name="android.view.animation.AnimationUtils android.view.animation.LayoutAnimationController loadLayoutAnimation(android.content.Context, int) 0">
