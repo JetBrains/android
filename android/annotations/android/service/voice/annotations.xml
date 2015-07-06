@@ -21,5 +21,29 @@
   <item name="android.service.voice.AlwaysOnHotwordDetector.EventPayload byte[] getTriggerAudio()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.service.voice.VoiceInteractionSession.AbortVoiceRequest android.app.VoiceInteractor.Prompt getVoicePrompt()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.voice.VoiceInteractionSession.AbortVoiceRequest java.lang.CharSequence getMessage()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.voice.VoiceInteractionSession.CompleteVoiceRequest android.app.VoiceInteractor.Prompt getVoicePrompt()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.voice.VoiceInteractionSession.CompleteVoiceRequest java.lang.CharSequence getMessage()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.voice.VoiceInteractionSession.ConfirmationRequest android.app.VoiceInteractor.Prompt getVoicePrompt()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.voice.VoiceInteractionSession.ConfirmationRequest java.lang.CharSequence getPrompt()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.voice.VoiceInteractionSession.PickOptionRequest android.app.VoiceInteractor.Prompt getVoicePrompt()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.voice.VoiceInteractionSession.PickOptionRequest java.lang.CharSequence getPrompt()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
 </root>
 

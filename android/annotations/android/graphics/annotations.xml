@@ -21,6 +21,9 @@
   <item name="android.graphics.Bitmap void setPixels(int[], int, int, int, int, int, int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.graphics.BitmapShader BitmapShader(android.graphics.Bitmap, android.graphics.Shader.TileMode, android.graphics.Shader.TileMode) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.Canvas Canvas(android.graphics.Bitmap) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
