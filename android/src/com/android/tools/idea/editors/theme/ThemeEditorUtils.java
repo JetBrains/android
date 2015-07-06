@@ -268,9 +268,7 @@ public class ThemeEditorUtils {
 
   @NotNull
   public static ImmutableList<ThemeEditorStyle> getDefaultThemes(@NotNull ThemeResolver themeResolver) {
-    Collection<ThemeEditorStyle> editableThemes = themeResolver.getLocalThemes();
-    Collection<ThemeEditorStyle> readOnlyLibThemes = new HashSet<ThemeEditorStyle>(themeResolver.getProjectThemes());
-    readOnlyLibThemes.removeAll(editableThemes);
+    Collection<ThemeEditorStyle> readOnlyLibThemes = themeResolver.getExternalLibraryThemes();
 
     Collection<ThemeEditorStyle> foundThemes = new HashSet<ThemeEditorStyle>();
     foundThemes.addAll(findThemes(readOnlyLibThemes, DEFAULT_THEMES));
