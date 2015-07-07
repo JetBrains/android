@@ -153,8 +153,23 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     else if (tagName.equals(Schema.UiGrid.TAG)) {
       parseUiGridTag(attributes);
     }
-    else if (tagName.equals(Schema.UiItem.TAG)) {
-      parseUiItemTag(attributes);
+    else if (tagName.equals(Schema.UiButton.TAG)) {
+      parseUiButton(attributes);
+    }
+    else if (tagName.equals(Schema.UiCheckbox.TAG)) {
+      parseUiCheckbox(attributes);
+    }
+    else if (tagName.equals(Schema.UiInput.TAG)) {
+      parseUiInput(attributes);
+    }
+    else if (tagName.equals(Schema.UiLabel.TAG)) {
+      parseUiLabel(attributes);
+    }
+    else if (tagName.equals(Schema.UiLink.TAG)) {
+      parseUiLink(attributes);
+    }
+    else if (tagName.equals(Schema.UiPulldown.TAG)) {
+      parseUiPulldown(attributes);
     }
     else {
       LOG.warn("WARNING: Unknown service directive " + tagName);
@@ -316,74 +331,29 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   }
 
   private void parseUiGridTag(@NotNull Attributes attributes) {
-    parseGridCoords(attributes);
+    parseRowCol(attributes);
 
     String weights = requireAttr(attributes, Schema.UiGrid.ATTR_COL_DEFINITIONS);
     JPanel grid = myPanelBuilder.startGrid(weights);
-    bindComponentProperties(grid, attributes);
+    bindTopLevelProperties(grid, attributes);
   }
 
   private void closeUiGridTag() {
     myPanelBuilder.endGrid();
   }
 
-  private void parseUiItemTag(@NotNull Attributes attributes) {
-    parseGridCoords(attributes);
+  private void parseUiButton(@NotNull Attributes attributes) {
+    parseRowCol(attributes);
+    JButton button = myPanelBuilder.addButton();
+    bindTopLevelProperties(button, attributes);
 
-    String type = requireAttr(attributes, Schema.UiItem.ATTR_TYPE);
-    if (type.equals(Schema.UiItem.Type.VALUE_BUTTON)) {
-      JButton button = myPanelBuilder.addButton();
-      bindButtonProperties(button, attributes);
-      bindComponentProperties(button, attributes);
-    }
-    else if (type.equals(Schema.UiItem.Type.VALUE_CHECKBOX)) {
-      JCheckBox checkbox = myPanelBuilder.addCheckbox();
-      bindComponentProperties(checkbox, attributes);
-      bindCheckboxProperties(checkbox, attributes);
-    }
-    else if (type.equals(Schema.UiItem.Type.VALUE_INPUT)) {
-      JTextField field = myPanelBuilder.addField();
-      bindComponentProperties(field, attributes);
-      bindFieldProperties(field, attributes);
-    }
-    else if (type.equals(Schema.UiItem.Type.VALUE_LABEL)) {
-      JLabel label = myPanelBuilder.addLabel();
-      bindComponentProperties(label, attributes);
-      bindLabelProperties(label, attributes);
-    }
-    else if (type.equals(Schema.UiItem.Type.VALUE_LINK)) {
-      HyperlinkLabel link = myPanelBuilder.addLink(requireAttr(attributes, Schema.UiItem.Type.Text.ATTR_TEXT),
-                                                   toUri(requireAttr(attributes, Schema.UiItem.Type.Link.ATTR_URL)));
-      bindComponentProperties(link, attributes);
-    }
-    else if (type.equals(Schema.UiItem.Type.VALUE_PULLDOWN)) {
-      String listKey = requireAttr(attributes, Schema.UiItem.Type.Pulldown.ATTR_LIST);
-      ObservableList<String> backingList = getList(listKey);
-      JComboBox comboBox = myPanelBuilder.addComboBox(backingList);
-      bindComponentProperties(comboBox, attributes);
-      bindComboBoxProperties(comboBox, attributes);
-    }
-  }
-
-  private void parseGridCoords(@NotNull Attributes attributes) {
-    String row = attributes.getValue(Schema.UiTag.ATTR_ROW);
-    if (row != null) {
-      myPanelBuilder.setRow(Integer.parseInt(row));
-    }
-    String col = attributes.getValue(Schema.UiTag.ATTR_COL);
-    if (col != null) {
-      myPanelBuilder.setCol(Integer.parseInt(col));
-    }
-  }
-
-  private void bindButtonProperties(@NotNull JButton button, @NotNull Attributes attributes) {
-    String textKey = attributes.getValue(Schema.UiItem.Type.Text.ATTR_TEXT);
+    String textKey = attributes.getValue(Schema.UiButton.ATTR_TEXT);
     if (textKey != null) {
       TextProperty textProperty = new TextProperty(button);
       myPanelBuilder.getBindings().bind(textProperty, parseString(textKey));
     }
 
-    String actionKey = attributes.getValue(Schema.UiItem.Type.Button.ATTR_ACTION);
+    String actionKey = attributes.getValue(Schema.UiButton.ATTR_ACTION);
     if (actionKey != null) {
       final Runnable action = parseAction(actionKey);
       button.addActionListener(new ActionListener() {
@@ -394,29 +364,19 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       });
     }
   }
+  
+  private void parseUiCheckbox(@NotNull Attributes attributes) {
+    parseRowCol(attributes);
+    JCheckBox checkbox = myPanelBuilder.addCheckbox();
+    bindTopLevelProperties(checkbox, attributes);
 
-  private void bindComponentProperties(@NotNull JComponent component, @NotNull Attributes attributes) {
-    String visibleKey = attributes.getValue(Schema.UiItem.Type.Component.ATTR_VISIBLE);
-    if (visibleKey != null) {
-      VisibleProperty visibleProperty = new VisibleProperty(component);
-      myPanelBuilder.getBindings().bind(visibleProperty, parseBool(visibleKey));
-    }
-
-    String enabledKey = attributes.getValue(Schema.UiItem.Type.Component.ATTR_ENABLED);
-    if (enabledKey != null) {
-      EnabledProperty enabledProperty = new EnabledProperty(component);
-      myPanelBuilder.getBindings().bind(enabledProperty, parseBool(enabledKey));
-    }
-  }
-
-  private void bindCheckboxProperties(@NotNull JCheckBox checkbox, @NotNull Attributes attributes) {
-    String textKey = attributes.getValue(Schema.UiItem.Type.Text.ATTR_TEXT);
+    String textKey = attributes.getValue(Schema.UiCheckbox.ATTR_TEXT);
     if (textKey != null) {
       TextProperty textProperty = new TextProperty(checkbox);
       myPanelBuilder.getBindings().bind(textProperty, parseString(textKey));
     }
 
-    String checkedKey = attributes.getValue(Schema.UiItem.Type.CheckBox.ATTR_CHECKED);
+    String checkedKey = attributes.getValue(Schema.UiCheckbox.ATTR_CHECKED);
     if (checkedKey != null) {
       SelectedProperty selectedProperty = new SelectedProperty(checkbox);
       BoolProperty checkedValue = (BoolProperty)parseBool(checkedKey);
@@ -424,17 +384,12 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     }
   }
 
-  private void bindComboBoxProperties(@NotNull JComboBox comboBox, @NotNull Attributes attributes) {
-    String indexKey = attributes.getValue(Schema.UiItem.Type.Pulldown.ATTR_INDEX);
-    if (indexKey != null) {
-      SelectedIndexProperty indexProperty = new SelectedIndexProperty(comboBox);
-      IntProperty indexValue = (IntProperty)parseInt(indexKey);
-      myPanelBuilder.getBindings().bindTwoWay(indexProperty, indexValue);
-    }
-  }
+  private void parseUiInput(@NotNull Attributes attributes) {
+    parseRowCol(attributes);
+    JTextField field = myPanelBuilder.addField();
+    bindTopLevelProperties(field, attributes);
 
-  private void bindFieldProperties(@NotNull JTextField field, @NotNull Attributes attributes) {
-    String textKey = attributes.getValue(Schema.UiItem.Type.Text.ATTR_TEXT);
+    String textKey = attributes.getValue(Schema.UiInput.ATTR_TEXT);
     if (textKey != null) {
       TextProperty textProperty = new TextProperty(field);
       StringProperty textValue = (StringProperty)parseString(textKey);
@@ -442,11 +397,60 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     }
   }
 
-  private void bindLabelProperties(@NotNull JLabel label, @NotNull Attributes attributes) {
-    String textKey = attributes.getValue(Schema.UiItem.Type.Text.ATTR_TEXT);
+  private void parseUiLabel(@NotNull Attributes attributes) {
+    parseRowCol(attributes);
+    JLabel label = myPanelBuilder.addLabel();
+    bindTopLevelProperties(label, attributes);
+
+    String textKey = attributes.getValue(Schema.UiLabel.ATTR_TEXT);
     if (textKey != null) {
       TextProperty textProperty = new TextProperty(label);
       myPanelBuilder.getBindings().bind(textProperty, parseString(textKey));
+    }
+  }
+  private void parseUiLink(@NotNull Attributes attributes) {
+    parseRowCol(attributes);
+    HyperlinkLabel link = myPanelBuilder.addLink(requireAttr(attributes, Schema.UiLink.ATTR_TEXT),
+                                                 toUri(requireAttr(attributes, Schema.UiLink.ATTR_URL)));
+    bindTopLevelProperties(link, attributes);
+  }
+  private void parseUiPulldown(@NotNull Attributes attributes) {
+    parseRowCol(attributes);
+    String listKey = requireAttr(attributes, Schema.UiPulldown.ATTR_LIST);
+    ObservableList<String> backingList = getList(listKey);
+    JComboBox comboBox = myPanelBuilder.addComboBox(backingList);
+    bindTopLevelProperties(comboBox, attributes);
+
+    String indexKey = attributes.getValue(Schema.UiPulldown.ATTR_INDEX);
+    if (indexKey != null) {
+      SelectedIndexProperty indexProperty = new SelectedIndexProperty(comboBox);
+      IntProperty indexValue = (IntProperty)parseInt(indexKey);
+      myPanelBuilder.getBindings().bindTwoWay(indexProperty, indexValue);
+    }
+  }
+
+  private void parseRowCol(@NotNull Attributes attributes) {
+    String row = attributes.getValue(Schema.UiTag.ATTR_ROW);
+    if (row != null) {
+      myPanelBuilder.setRow(Integer.parseInt(row));
+    }
+    String col = attributes.getValue(Schema.UiTag.ATTR_COL);
+    if (col != null) {
+      myPanelBuilder.setCol(Integer.parseInt(col));
+    }
+  }
+
+  private void bindTopLevelProperties(@NotNull JComponent component, @NotNull Attributes attributes) {
+    String visibleKey = attributes.getValue(Schema.UiTag.ATTR_VISIBLE);
+    if (visibleKey != null) {
+      VisibleProperty visibleProperty = new VisibleProperty(component);
+      myPanelBuilder.getBindings().bind(visibleProperty, parseBool(visibleKey));
+    }
+
+    String enabledKey = attributes.getValue(Schema.UiTag.ATTR_ENABLED);
+    if (enabledKey != null) {
+      EnabledProperty enabledProperty = new EnabledProperty(component);
+      myPanelBuilder.getBindings().bind(enabledProperty, parseBool(enabledKey));
     }
   }
 
@@ -550,15 +554,16 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       public static final String ATTR_EXECUTE = "execute";
       public static final String ATTR_FORMAT = "format";
       public static final String ATTR_ICON = "icon";
-      public static final String ATTR_INITIALIZE = "initialize";
       public static final String ATTR_LEARN_MORE = "learnMore";
       public static final String ATTR_MIN_API = "minApi";
       public static final String ATTR_NAME = "name";
     }
 
-    public static class UiTag {
+    public static abstract class UiTag {
       public static final String ATTR_COL = "col";
       public static final String ATTR_ROW = "row";
+      public static final String ATTR_ENABLED = "enabled";
+      public static final String ATTR_VISIBLE = "visible";
     }
 
     public static final class UiGrid extends UiTag {
@@ -566,44 +571,38 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       public static final String ATTR_COL_DEFINITIONS = "colDefinitions";
     }
 
-    public static final class UiItem extends UiTag {
-      public static final String TAG = "uiItem";
-      public static final String ATTR_TYPE = "type";
+    public static final class UiButton extends UiTag {
+      public static final String TAG = "uiButton";
+      public static final String ATTR_TEXT = "text";
+      public static final String ATTR_ACTION = "action";
+    }
 
-      public static final class Type {
-        public static final String VALUE_BUTTON = "button";
-        public static final String VALUE_CHECKBOX = "checkbox";
-        public static final String VALUE_INPUT = "input";
-        public static final String VALUE_LABEL = "label";
-        public static final String VALUE_LINK = "link";
-        public static final String VALUE_PULLDOWN = "pulldown";
+    public static final class UiCheckbox extends UiTag {
+      public static final String TAG = "uiCheckbox";
+      public static final String ATTR_TEXT = "text";
+      public static final String ATTR_CHECKED = "checked";
+    }
 
-        public static final class Component {
-          public static final String ATTR_ENABLED = "enabled";
-          public static final String ATTR_VISIBLE = "visible";
-        }
+    public static final class UiInput extends UiTag {
+      public static final String TAG = "uiInput";
+      public static final String ATTR_TEXT = "text";
+    }
 
-        public static final class Button {
-          public static final String ATTR_ACTION = "action";
-        }
+    public static final class UiLabel extends UiTag {
+      public static final String TAG = "uiLabel";
+      public static final String ATTR_TEXT = "text";
+    }
 
-        public static final class CheckBox {
-          public static final String ATTR_CHECKED = "checked";
-        }
+    public static final class UiLink extends UiTag {
+      public static final String TAG = "uiLink";
+      public static final String ATTR_TEXT = "text";
+      public static final String ATTR_URL = "url";
+    }
 
-        public static final class Link {
-          public static final String ATTR_URL = "url";
-        }
-
-        public static final class Text {
-          public static final String ATTR_TEXT = "text";
-        }
-
-        public static final class Pulldown {
-          public static final String ATTR_LIST = "list";
-          public static final String ATTR_INDEX = "index";
-        }
-      }
+    public static final class UiPulldown extends UiTag {
+      public static final String TAG = "uiPulldown";
+      public static final String ATTR_LIST = "list";
+      public static final String ATTR_INDEX = "index";
     }
   }
 }
