@@ -18,10 +18,12 @@ package com.android.tools.idea.rendering;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.ui.EditorNotifications;
@@ -56,11 +58,17 @@ public class PsiProjectListener extends PsiTreeChangeAdapter {
   }
 
   @NotNull
-  public static PsiProjectListener getListener(@NotNull Project project) {
+  public static PsiProjectListener getListener(@NotNull final Project project) {
     PsiProjectListener listener = ourListeners.get(project);
     if (listener == null) {
       listener = new PsiProjectListener(project);
       ourListeners.put(project, listener);
+      Disposer.register(project, new Disposable() {
+        @Override
+        public void dispose() {
+          ourListeners.remove(project);
+        }
+      });
     }
 
     return listener;
