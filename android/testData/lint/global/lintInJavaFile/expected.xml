@@ -3,6 +3,6 @@
   <problem>
     <file>MyActivity.java</file>
     <line>15</line>
-    <description>Use &lt;code&gt;Integer.valueOf(3)&lt;/code&gt; instead</description>
+    <description><html>Use &lt;code&gt;Integer.valueOf(3)&lt;/code&gt; instead</html></description>
   </problem>
 </problems>
