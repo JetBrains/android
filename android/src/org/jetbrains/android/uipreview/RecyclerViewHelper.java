@@ -75,6 +75,10 @@ public class RecyclerViewHelper {
       fv.visitEnd();
     }
     {
+      fv = cw.visitField(ACC_PRIVATE, "mId", "I", null, null);
+      fv.visitEnd();
+    }
+    {
       mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
       mv.visitCode();
       mv.visitVarInsn(ALOAD, 0);
@@ -88,19 +92,39 @@ public class RecyclerViewHelper {
         cw.visitMethod(ACC_PUBLIC, "onCreateViewHolder", "(Landroid/view/ViewGroup;I)Landroid/support/v7/widget/RecyclerView$ViewHolder;",
                        null, null);
       mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitFieldInsn(GETFIELD, "com/android/layoutlib/bridge/android/support/Adapter", "mId", "I");
+      Label l0 = new Label();
+      mv.visitJumpInsn(IFLE, l0);
+      mv.visitVarInsn(ALOAD, 1);
+      mv.visitMethodInsn(INVOKEVIRTUAL, "android/view/ViewGroup", "getContext", "()Landroid/content/Context;", false);
+      mv.visitMethodInsn(INVOKESTATIC, "android/view/LayoutInflater", "from", "(Landroid/content/Context;)Landroid/view/LayoutInflater;",
+                         false);
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitFieldInsn(GETFIELD, "com/android/layoutlib/bridge/android/support/Adapter", "mId", "I");
+      mv.visitVarInsn(ALOAD, 1);
+      mv.visitInsn(ICONST_0);
+      mv.visitMethodInsn(INVOKEVIRTUAL, "android/view/LayoutInflater", "inflate", "(ILandroid/view/ViewGroup;Z)Landroid/view/View;", false);
+      mv.visitVarInsn(ASTORE, 3);
+      Label l1 = new Label();
+      mv.visitJumpInsn(GOTO, l1);
+      mv.visitLabel(l0);
+      mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
       mv.visitTypeInsn(NEW, "android/widget/TextView");
       mv.visitInsn(DUP);
       mv.visitVarInsn(ALOAD, 1);
       mv.visitMethodInsn(INVOKEVIRTUAL, "android/view/ViewGroup", "getContext", "()Landroid/content/Context;", false);
       mv.visitMethodInsn(INVOKESPECIAL, "android/widget/TextView", "<init>", "(Landroid/content/Context;)V", false);
       mv.visitVarInsn(ASTORE, 3);
+      mv.visitLabel(l1);
+      mv.visitFrame(Opcodes.F_APPEND,1, new Object[] {"android/view/View"}, 0, null);
       mv.visitTypeInsn(NEW, "com/android/layoutlib/bridge/android/support/Adapter$ViewHolder");
       mv.visitInsn(DUP);
       mv.visitVarInsn(ALOAD, 3);
       mv.visitMethodInsn(INVOKESPECIAL, "com/android/layoutlib/bridge/android/support/Adapter$ViewHolder", "<init>",
                          "(Landroid/view/View;)V", false);
       mv.visitInsn(ARETURN);
-      mv.visitMaxs(3, 4);
+      mv.visitMaxs(4, 4);
       mv.visitEnd();
     }
     {
@@ -136,6 +160,16 @@ public class RecyclerViewHelper {
       mv.visitIntInsn(BIPUSH, 10);
       mv.visitInsn(IRETURN);
       mv.visitMaxs(1, 1);
+      mv.visitEnd();
+    }
+    {
+      mv = cw.visitMethod(ACC_PUBLIC, "setLayoutId", "(I)V", null, null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitVarInsn(ILOAD, 1);
+      mv.visitFieldInsn(PUTFIELD, "com/android/layoutlib/bridge/android/support/Adapter", "mId", "I");
+      mv.visitInsn(RETURN);
+      mv.visitMaxs(2, 2);
       mv.visitEnd();
     }
     cw.visitEnd();
@@ -190,11 +224,17 @@ public class RecyclerViewHelper {
   //public class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
   //
   //  private static final int ITEM_COUNT = 10;
+  //  private int mId;
   //
   //  @Override
   //  public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent,
   //                                                    int viewType) {
-  //    TextView view = new TextView(parent.getContext());
+  //    View view;
+  //    if (mId > 0) {
+  //      view = LayoutInflater.from(parent.getContext()).inflate(mId, parent, false);
+  //    } else {
+  //      view = new TextView(parent.getContext());
+  //    }
   //    return new ViewHolder(view);
   //  }
   //
@@ -205,12 +245,15 @@ public class RecyclerViewHelper {
   //    if (view instanceof TextView) {
   //      ((TextView) view).setText("Item number " + position);
   //    }
-  //
   //  }
   //
   //  @Override
   //  public int getItemCount() {
   //    return ITEM_COUNT;
+  //  }
+  //
+  //  public void setLayoutId(int id) {
+  //    mId = id;
   //  }
   //
   //  private static class ViewHolder extends RecyclerView.ViewHolder {
