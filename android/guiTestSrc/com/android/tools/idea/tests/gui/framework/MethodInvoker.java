@@ -79,11 +79,16 @@ public class MethodInvoker extends Statement {
     failIfIdeHasFatalErrors();
   }
 
-  private static boolean doesIdeHaveFatalErrors() throws ClassNotFoundException {
+  public static boolean doesIdeHaveFatalErrors() {
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    Class<?> guiTestsType = Class.forName(GuiTests.class.getCanonicalName(), true, classLoader);
-    //noinspection ConstantConditions
-    return method("doesIdeHaveFatalErrors").withReturnType(boolean.class).in(guiTestsType).invoke();
+    try {
+      Class<?> guiTestsType = Class.forName(GuiTests.class.getCanonicalName(), true, classLoader);
+      //noinspection ConstantConditions
+      return method("doesIdeHaveFatalErrors").withReturnType(boolean.class).in(guiTestsType).invoke();
+    } catch (ClassNotFoundException ex) {
+      // ignore exception
+      return true;
+    }
   }
 
   private static void failIfIdeHasFatalErrors() throws ClassNotFoundException {

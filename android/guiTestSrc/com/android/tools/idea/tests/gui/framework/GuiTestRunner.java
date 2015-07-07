@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.intellij.openapi.diagnostic.Logger;
 import org.fest.swing.image.ScreenshotTaker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.internal.AssumptionViolatedException;
 import org.junit.internal.runners.model.ReflectiveCallable;
 import org.junit.internal.runners.statements.Fail;
 import org.junit.internal.runners.statements.RunAfters;
 import org.junit.internal.runners.statements.RunBefores;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
@@ -61,14 +63,21 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
   }
 
   @Override
-  protected Statement methodBlock(FrameworkMethod method) {
+  protected void runChild(final FrameworkMethod method, RunNotifier notifier) {
     if (!canRunGuiTests()) {
-      Class<?> testClass = getTestClass().getJavaClass();
-      Logger logger = Logger.getInstance(testClass);
-      logger.info("Skipping GUI test " + testClass.getCanonicalName() + " due to headless environment");
-      return super.methodBlock(method);
+      notifier.fireTestAssumptionFailed(new Failure(describeChild(method), new AssumptionViolatedException("Headless environment")));
+      System.out.println(String.format("Skipping test '%1$s'. UI tests cannot run in a headless environment.", method.getName()));
+    } else if (MethodInvoker.doesIdeHaveFatalErrors()) {
+      notifier.fireTestIgnored(describeChild(method)); // TODO: can we restart the IDE at this point, instead of giving up?
+      System.out.println(String.format("Skipping test '%1$s': a fatal error has occurred in the IDE", method.getName()));
+      notifier.pleaseStop();
+    } else {
+      super.runChild(method, notifier);
     }
+  }
 
+  @Override
+  protected Statement methodBlock(FrameworkMethod method) {
     FrameworkMethod newMethod;
     try {
       loadClassesWithIdeClassLoader();
@@ -135,22 +144,12 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   @Override
   protected Statement methodInvoker(final FrameworkMethod method, Object test) {
-    if (canRunGuiTests()) {
-      try {
-        assertNotNull(myScreenshotTaker);
-        return new MethodInvoker(method, test, myScreenshotTaker);
-      }
-      catch (Throwable e) {
-        return new Fail(e);
-      }
+    try {
+      assertNotNull(myScreenshotTaker);
+      return new MethodInvoker(method, test, myScreenshotTaker);
     }
-    // Skip the test.
-    return new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        String msg = String.format("Skipping test '%1$s'. UI tests cannot run in a headless environment.", method.getName());
-        System.out.println(msg);
-      }
-    };
+    catch (Throwable e) {
+      return new Fail(e);
+    }
   }
 }
