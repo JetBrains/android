@@ -45,7 +45,7 @@ public class EditedStyleItemTest extends AndroidTestCase {
       ResolutionUtils.getStyle(configuration, "@android:style/Theme"));
 
     assertEquals("selectedValue", editedStyleItem.getValue());
-    assertEquals("selectedValue", editedStyleItem.getItemResourceValue().getValue());
+    assertEquals("selectedValue", editedStyleItem.getSelectedValue().getValue());
     assertEquals(1, editedStyleItem.getNonSelectedItemResourceValues().size());
     ConfiguredItemResourceValue notSelectedItem = editedStyleItem.getNonSelectedItemResourceValues().iterator().next();
     assertEquals("otherValue", notSelectedItem.myValue.getValue());
