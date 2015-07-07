@@ -56,6 +56,7 @@ import java.util.List;
 
 public class CapturesToolWindow extends BulkFileListener.Adapter
   implements Disposable, HierarchyListener, CaptureService.CaptureListener, DataProvider, DeleteProvider {
+  public static final String TREE_NAME = "CapturesPaneTree";
 
   @NotNull public static final DataKey<Capture[]> CAPTURE_ARRAY = DataKey.create("CaptureArray");
 
@@ -73,6 +74,7 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
     myProject = project;
     DefaultTreeModel model = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new SimpleTree(model);
+    myTree.setName(TREE_NAME);
     myTree.setRootVisible(false);
     myComponent = ScrollPaneFactory.createScrollPane(myTree);
 
