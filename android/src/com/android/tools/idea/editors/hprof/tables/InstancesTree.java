@@ -55,6 +55,8 @@ import java.util.*;
 import java.util.List;
 
 public class InstancesTree implements DataProvider {
+  public static final String TREE_NAME = "HprofInstancesTree";
+
   private static final int NODES_PER_EXPANSION = 100;
 
   @NotNull private Project myProject;
@@ -85,6 +87,7 @@ public class InstancesTree implements DataProvider {
         return InstancesTree.this.getData(dataId);
       }
     };
+    myDebuggerTree.getComponent().setName(TREE_NAME);
 
     myHeap = selectionModel.getHeap();
     myDebugProcess = new DebugProcessEvents(project);

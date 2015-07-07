@@ -48,6 +48,8 @@ import java.util.*;
 import java.util.List;
 
 public class InstanceReferenceTree implements DataProvider {
+  public static final String TREE_NAME = "HprofInstanceReferenceTree";
+
   private static final int MAX_AUTO_EXPANSION_DEPTH = 5;
   private static final SimpleTextAttributes SOFT_REFERENCE_TEXT_ATTRIBUTE =
     new SimpleTextAttributes(SimpleTextAttributes.STYLE_ITALIC, XDebuggerUIConstants.VALUE_NAME_ATTRIBUTES.getFgColor());
@@ -100,6 +102,7 @@ public class InstanceReferenceTree implements DataProvider {
     });
 
     myTree = new Tree(model);
+    myTree.setName(TREE_NAME);
     myTree.setRootVisible(false);
     myTree.setShowsRootHandles(true);
     myTree.setLargeModel(true);
