@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.hprof.tables;
+package com.android.tools.idea.editors.hprof.views;
 
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
 import com.android.tools.idea.actions.PsiFileAndLineNavigation;
@@ -54,7 +54,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class InstancesTree implements DataProvider {
+public class InstancesTreeView implements DataProvider {
   public static final String TREE_NAME = "HprofInstancesTree";
 
   private static final int NODES_PER_EXPANSION = 100;
@@ -71,7 +71,7 @@ public class InstancesTree implements DataProvider {
   @Nullable private Comparator<DebuggerTreeNodeImpl> myComparator;
   @NotNull private SortOrder mySortOrder = SortOrder.UNSORTED;
 
-  public InstancesTree(@NotNull Project project, @NotNull final SelectionModel selectionModel) {
+  public InstancesTreeView(@NotNull Project project, @NotNull final SelectionModel selectionModel) {
     myProject = project;
 
     myDebuggerTree = new DebuggerTree(project) {
@@ -84,7 +84,7 @@ public class InstancesTree implements DataProvider {
 
       @Override
       public Object getData(@NonNls String dataId) {
-        return InstancesTree.this.getData(dataId);
+        return InstancesTreeView.this.getData(dataId);
       }
     };
     myDebuggerTree.getComponent().setName(TREE_NAME);

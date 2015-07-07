@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.hprof.tables.nodedata;
+package com.android.tools.idea.editors.hprof.views.nodedata;
 
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Instance;

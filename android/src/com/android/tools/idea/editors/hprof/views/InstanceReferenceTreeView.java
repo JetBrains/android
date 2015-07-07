@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.hprof.tables;
+package com.android.tools.idea.editors.hprof.views;
 
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
 import com.android.tools.idea.actions.PsiFileAndLineNavigation;
@@ -47,7 +47,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class InstanceReferenceTree implements DataProvider {
+public class InstanceReferenceTreeView implements DataProvider {
   public static final String TREE_NAME = "HprofInstanceReferenceTree";
 
   private static final int MAX_AUTO_EXPANSION_DEPTH = 5;
@@ -66,7 +66,7 @@ public class InstanceReferenceTree implements DataProvider {
 
   private Instance myInstance;
 
-  public InstanceReferenceTree(@NotNull Project project, @NotNull SelectionModel selectionModel) {
+  public InstanceReferenceTreeView(@NotNull Project project, @NotNull SelectionModel selectionModel) {
     myProject = project;
 
     final TreeBuilder model = new TreeBuilder(null) {

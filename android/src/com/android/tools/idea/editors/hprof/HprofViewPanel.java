@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.editors.hprof;
 
-import com.android.tools.idea.editors.hprof.tables.ClassesTreeView;
-import com.android.tools.idea.editors.hprof.tables.InstanceReferenceTree;
-import com.android.tools.idea.editors.hprof.tables.InstancesTree;
-import com.android.tools.idea.editors.hprof.tables.SelectionModel;
+import com.android.tools.idea.editors.hprof.views.ClassesTreeView;
+import com.android.tools.idea.editors.hprof.views.InstanceReferenceTreeView;
+import com.android.tools.idea.editors.hprof.views.InstancesTreeView;
+import com.android.tools.idea.editors.hprof.views.SelectionModel;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Snapshot;
 import com.intellij.openapi.Disposable;
@@ -88,12 +88,12 @@ public class HprofViewPanel implements Disposable {
       }
     });
 
-    final InstanceReferenceTree referenceTree = new InstanceReferenceTree(project, mySelectionModel);
+    final InstanceReferenceTreeView referenceTree = new InstanceReferenceTreeView(project, mySelectionModel);
     treePanel.add(referenceTree.getComponent(), BorderLayout.CENTER);
 
-    final InstancesTree instancesTree = new InstancesTree(project, mySelectionModel);
+    final InstancesTreeView instancesTreeView = new InstancesTreeView(project, mySelectionModel);
     final ClassesTreeView classesTreeView = new ClassesTreeView(project, group, mySelectionModel);
-    JBSplitter splitter = createNavigationSplitter(classesTreeView.getComponent(), instancesTree.getComponent());
+    JBSplitter splitter = createNavigationSplitter(classesTreeView.getComponent(), instancesTreeView.getComponent());
 
     JBPanel classPanel = new JBPanel(new BorderLayout());
     classPanel.add(splitter, BorderLayout.CENTER);
