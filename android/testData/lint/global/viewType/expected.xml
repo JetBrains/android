@@ -3,6 +3,6 @@
   <problem>
     <file>MyActivity.java</file>
     <line>13</line>
-    <description>Unexpected cast to ImageView: layout tag was TextView</description>
+    <description><html>Unexpected cast to ImageView: layout tag was TextView</html></description>
   </problem>
 </problems>
