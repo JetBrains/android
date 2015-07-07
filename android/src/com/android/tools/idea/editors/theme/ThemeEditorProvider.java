@@ -37,7 +37,7 @@ import static com.android.SdkConstants.TAG_RESOURCES;
 import static com.android.SdkConstants.TAG_STYLE;
 
 public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
-  public final static boolean THEME_EDITOR_ENABLE = SystemProperties.getBooleanProperty("enable.theme.editor", false);
+  public final static boolean THEME_EDITOR_ENABLE = true;
 
   private final static String THEME_NAME = "theme-name";
   private final static String STYLE_NAME = "style-name";
