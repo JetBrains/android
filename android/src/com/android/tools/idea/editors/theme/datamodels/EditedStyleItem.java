@@ -83,7 +83,7 @@ public class EditedStyleItem {
     this(new ConfiguredItemResourceValue(DEFAULT_CONFIGURATION, itemResourceValue), sourceTheme);
   }
 
-  private ItemResourceValue getSelectedValue() {
+  public ItemResourceValue getSelectedValue() {
     return mySelectedValue.myValue;
   }
 
@@ -109,12 +109,6 @@ public class EditedStyleItem {
   @NotNull
   public ThemeEditorStyle getSourceStyle() {
     return mySourceTheme;
-  }
-
-  // TODO: Remove this method and replace directly with getSelectedValue
-  @NotNull
-  public ItemResourceValue getItemResourceValue() {
-    return getSelectedValue();
   }
 
   /**
