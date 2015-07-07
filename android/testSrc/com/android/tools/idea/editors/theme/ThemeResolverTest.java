@@ -41,7 +41,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     ThemeEditorStyle theme = themeResolver.getTheme("@android:style/Theme.Holo.Light");
     assertEquals("Theme.Holo.Light", theme.getName());
 
-    assertEquals(themeResolver.getThemes().size(), themeResolver.getFrameworkThemes().size()); // Only framework themes.
+    assertEquals(themeResolver.getThemesCount(), themeResolver.getFrameworkThemes().size()); // Only framework themes.
     assertEmpty(themeResolver.getLocalThemes());
 
     assertNull("Theme resolver shouldn't resolve styles", themeResolver.getTheme("@android:style/TextAppearance"));
@@ -56,8 +56,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
     assertEquals(1, themeResolver.getLocalThemes().size()); // We don't have any libraries so this will only include the project theme
-    assertEquals(2, themeResolver.getProjectThemes().size()); // The Theme.MyTheme + parent Theme
-    assertEquals(themeResolver.getThemes().size(), themeResolver.getFrameworkThemes().size() + 1); // One local theme
+    assertEquals(0, themeResolver.getExternalLibraryThemes().size()); // No library themes
 
     assertNull("The theme is an app theme and shouldn't be returned for the android namespace",
                themeResolver.getTheme("@android:style/Theme.MyTheme"));
