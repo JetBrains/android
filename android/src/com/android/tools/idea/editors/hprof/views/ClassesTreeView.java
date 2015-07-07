@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.hprof.tables;
+package com.android.tools.idea.editors.hprof.views;
 
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
 import com.android.tools.idea.actions.PsiFileAndLineNavigation;
@@ -23,9 +23,9 @@ import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
-import com.android.tools.idea.editors.hprof.tables.nodedata.HeapNode;
-import com.android.tools.idea.editors.hprof.tables.nodedata.HeapClassObjNode;
-import com.android.tools.idea.editors.hprof.tables.nodedata.HeapPackageNode;
+import com.android.tools.idea.editors.hprof.views.nodedata.HeapNode;
+import com.android.tools.idea.editors.hprof.views.nodedata.HeapClassObjNode;
+import com.android.tools.idea.editors.hprof.views.nodedata.HeapPackageNode;
 import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.ApplicationManager;
