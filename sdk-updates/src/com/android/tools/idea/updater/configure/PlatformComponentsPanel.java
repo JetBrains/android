@@ -184,4 +184,10 @@ public class PlatformComponentsPanel {
     myIncludePreview = includePreview;
     updatePlatformItems();
   }
+
+  public void setEnabled(boolean enabled) {
+    myPlatformDetailTable.setEnabled(enabled);
+    myPlatformSummaryTable.setEnabled(enabled);
+    myPlatformDetailsCheckbox.setEnabled(enabled);
+  }
 }
