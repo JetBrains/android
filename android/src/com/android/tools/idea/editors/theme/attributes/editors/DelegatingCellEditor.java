@@ -61,7 +61,7 @@ public class DelegatingCellEditor implements TableCellEditor {
     final Font font;
     if (value instanceof EditedStyleItem) {
       final EditedStyleItem item = (EditedStyleItem) value;
-      tooltipText = ThemeEditorUtils.generateToolTipText(item.getItemResourceValue(), myContext.getCurrentThemeModule(), myContext.getConfiguration());
+      tooltipText = ThemeEditorUtils.generateToolTipText(item.getSelectedValue(), myContext.getCurrentThemeModule(), myContext.getConfiguration());
       stringValue = ThemeEditorUtils.extractRealValue(item, model.getCellClass(row, column));
       ThemeEditorStyle selectedStyle = ((AttributesTableModel)table.getModel()).getSelectedStyle();
       // Displays in bold attributes that are overriding their inherited value

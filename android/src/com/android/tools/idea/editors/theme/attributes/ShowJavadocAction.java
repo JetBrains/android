@@ -64,7 +64,7 @@ public class ShowJavadocAction extends AnAction {
     Project project = e.getProject();
     DocumentationManager documentationManager = DocumentationManager.getInstance(project);
     final DocumentationComponent docComponent = new DocumentationComponent(documentationManager);
-    String tooltip = ThemeEditorUtils.generateToolTipText(item.getItemResourceValue(), myContext.getCurrentThemeModule(), myContext.getConfiguration());
+    String tooltip = ThemeEditorUtils.generateToolTipText(item.getSelectedValue(), myContext.getCurrentThemeModule(), myContext.getConfiguration());
     docComponent.setText(tooltip, e.getData(CommonDataKeys.PSI_FILE), true);
 
     JBPopup hint = JBPopupFactory.getInstance().createComponentPopupBuilder(docComponent, docComponent).setProject(project)
