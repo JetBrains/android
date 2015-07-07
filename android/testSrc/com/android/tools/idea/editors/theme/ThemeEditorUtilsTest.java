@@ -176,7 +176,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
 
-    ThemeEditorStyle theme = ResolutionUtils.getStyle(configuration, "AppTheme");
+    ThemeEditorStyle theme = ResolutionUtils.getStyle(configuration, "AppTheme", null);
     List<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(theme);
 
     HashMap<String, EditedStyleItem> items = Maps.newHashMapWithExpectedSize(attributes.size());

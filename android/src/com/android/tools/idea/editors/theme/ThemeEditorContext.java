@@ -18,10 +18,9 @@ package com.android.tools.idea.editors.theme;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,13 +46,10 @@ public class ThemeEditorContext {
   @SuppressWarnings("NullableProblems")
   private @NotNull Configuration myConfiguration;
 
-  // Right now Module instance can be acquired from the Configuration, so, this field is
-  // extraneous, however, later (after adding proper multiple modules support), myModule
-  // would point to source module of currently selected theme which would be used for,
-  // e.g., resolution of resources available as a value for attribute in currently
-  // selected theme. Configuration field would point to one that is used for as a
-  // rendering context.
-  private @NotNull Module myCurrentThemeModule;
+  /**
+   * Stores {@link ThemeEditorStyle#mySourceModule} of a ThemeEditorStyle currently being edited
+   */
+  private @Nullable Module mySelectedStyleSourceModule;
 
   // Field is initialized in method called from constructor which checker doesn't see, warning could be ignored
   @SuppressWarnings("NullableProblems")
@@ -62,8 +58,7 @@ public class ThemeEditorContext {
   private final List<ChangeListener> myChangeListeners = new ArrayList<ChangeListener>();
   private final List<ConfigurationListener> myConfigurationListeners = new ArrayList<ConfigurationListener>();
 
-  public ThemeEditorContext(@NotNull Configuration configuration, @NotNull Module module) {
-    myCurrentThemeModule = module;
+  public ThemeEditorContext(@NotNull Configuration configuration) {
     setConfiguration(configuration);
   }
 
@@ -81,24 +76,31 @@ public class ThemeEditorContext {
   }
 
   @NotNull
-  public Module getCurrentThemeModule() {
-    return myCurrentThemeModule;
+  public Module getCurrentContextModule() {
+    return myConfiguration.getModule();
   }
 
-  public void setCurrentThemeModule(final @NotNull Module module) {
-    myCurrentThemeModule = module;
+  public void setSelectedStyleSourceModule(@Nullable Module module) {
+    mySelectedStyleSourceModule = module;
+  }
 
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
+  /**
+   * Function for acquiring Module that should be used every time resource resolving
+   * for possible values is needed.
+   */
+  @NotNull
+  public Module getModuleForResources() {
+    if (mySelectedStyleSourceModule != null) {
+      // If we have a source module, we want to use it for resolving possible values
+      return mySelectedStyleSourceModule;
+    }
+    // Otherwise, it should be a library theme or framework theme, in which case we will create
+    // a new theme in the current rendering context, which we are returning here;
+    return myConfiguration.getModule();
+  }
 
-    VirtualFile projectFile = module.getProject().getProjectFile();
-    assert projectFile != null;
-
-    // Using the project virtual file to set up configuration for the theme editor
-    // That fact is hard-coded in computeBestDevice() method in Configuration.java
-    // BEWARE if attempting to modify to use a different virtual file
-    Configuration configuration = facet.getConfigurationManager().getConfiguration(projectFile);
-    setConfiguration(configuration);
+  public void setCurrentContextModule(final @NotNull Module module) {
+    setConfiguration(ThemeEditorUtils.getConfigurationForModule(module));
   }
 
   @Nullable
@@ -108,7 +110,7 @@ public class ThemeEditorContext {
 
   @NotNull
   public Project getProject() {
-    return myCurrentThemeModule.getProject();
+    return myConfiguration.getModule().getProject();
   }
 
   public void addConfigurationListener(@NotNull ConfigurationListener configurationListener) {

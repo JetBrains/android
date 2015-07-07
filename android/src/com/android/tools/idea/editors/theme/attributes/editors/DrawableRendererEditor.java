@@ -58,11 +58,11 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
   @Nullable
   public static RenderTask configureRenderTask(@NotNull final ThemeEditorContext context) {
     RenderTask result = null;
-    AndroidFacet facet = AndroidFacet.getInstance(context.getCurrentThemeModule());
+    AndroidFacet facet = AndroidFacet.getInstance(context.getCurrentContextModule());
     if (facet != null) {
       final RenderService service = RenderService.get(facet);
       result =
-        service.createTask(null, context.getConfiguration(), new RenderLogger("ThemeEditorLogger", context.getCurrentThemeModule()), null);
+        service.createTask(null, context.getConfiguration(), new RenderLogger("ThemeEditorLogger", context.getCurrentContextModule()), null);
     }
 
     return result;
@@ -88,7 +88,7 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     @Override
     public void actionPerformed(ActionEvent e) {
       final ChooseResourceDialog dialog =
-        new ChooseResourceDialog(myContext.getCurrentThemeModule(), DRAWABLE_TYPE, myItem.getValue(), null);
+        new ChooseResourceDialog(myContext.getModuleForResources(), DRAWABLE_TYPE, myItem.getValue(), null);
 
       dialog.show();
 
