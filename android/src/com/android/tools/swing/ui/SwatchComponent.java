@@ -95,7 +95,7 @@ public class SwatchComponent extends JComponent {
     myMaxIcons = maxIcons;
   }
 
-  public void setSwatchIcons(@NotNull List<SwatchIcon> icons) {
+  public void setSwatchIcons(@NotNull List<? extends SwatchIcon> icons) {
     myIconList = ImmutableList.copyOf(icons);
   }
 
