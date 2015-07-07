@@ -60,7 +60,7 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
 
     myItem = item;
 
-    final List<Color> colors = ResourceHelper.resolveMultipleColors(context.getResourceResolver(), item.getItemResourceValue());
+    final List<Color> colors = ResourceHelper.resolveMultipleColors(context.getResourceResolver(), item.getSelectedValue());
     String colorText = colors.isEmpty() ? LABEL_EMPTY : ResourceHelper.colorToString(colors.get(0));
     component.setSwatchIcons(SwatchComponent.colorListOf(colors));
     component.setNameText(String.format(LABEL_TEMPLATE, ThemeEditorConstants.RESOURCE_ITEM_COLOR.toString(), item.getName(), colorText));
@@ -89,23 +89,23 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
       assert resourceResolver != null;
       ChooseResourceDialog dialog;
 
-      List<StateListPicker.StateListState> colorStates = ResourceHelper.resolveStateList(resourceResolver, myItem.getItemResourceValue());
+      List<StateListPicker.StateListState> colorStates = ResourceHelper.resolveStateList(resourceResolver, myItem.getSelectedValue());
       if (!colorStates.isEmpty()) {
         dialog = new ChooseResourceDialog(myContext.getCurrentThemeModule(), myContext.getConfiguration(), ChooseResourceDialog.COLOR_TYPES,
                                           colorStates, ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
       }
       else {
-        String resolvedColor = ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, myItem.getItemResourceValue()));
+        String resolvedColor = ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, myItem.getSelectedValue()));
         dialog = new ChooseResourceDialog(myContext.getCurrentThemeModule(), ChooseResourceDialog.COLOR_TYPES, resolvedColor,
                                           null, ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
       }
 
-      final String oldValue = myItem.getItemResourceValue().getValue();
+      final String oldValue = myItem.getSelectedValue().getValue();
 
       dialog.setResourcePickerListener(new ChooseResourceDialog.ResourcePickerListener() {
         @Override
         public void resourceChanged(final @Nullable String resource) {
-          myItem.getItemResourceValue().setValue(resource == null ? oldValue : resource);
+          myItem.getSelectedValue().setValue(resource == null ? oldValue : resource);
           myPreviewPanel.invalidateGraphicsRenderer();
         }
       });
@@ -113,7 +113,7 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
       dialog.show();
 
       // Restore the old value in the properties model
-      myItem.getItemResourceValue().setValue(oldValue);
+      myItem.getSelectedValue().setValue(oldValue);
 
       myEditorValue = null;
       if (dialog.isOK()) {

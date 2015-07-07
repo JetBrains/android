@@ -82,7 +82,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertEquals(7, values.size());
 
     for (EditedStyleItem item : values) {
-      String doc = ThemeEditorUtils.generateToolTipText(item.getItemResourceValue(), myModule, configuration);
+      String doc = ThemeEditorUtils.generateToolTipText(item.getSelectedValue(), myModule, configuration);
       compareWithAns(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + item.getName() + ".ans");
     }
   }
