@@ -28,7 +28,9 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
@@ -41,6 +43,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
@@ -70,11 +73,19 @@ public class ThemeEditorStyle {
   private final @NotNull Configuration myConfiguration;
   private final Project myProject;
 
+  /**
+   * Source module of the theme, set to null if the theme comes from external libraries or the framework.
+   * For currently edited theme stored in {@link ThemeEditorContext#mySelectedStyleSourceModule}.
+   */
+  private final @Nullable Module mySourceModule;
+
   public ThemeEditorStyle(final @NotNull Configuration configuration,
-                          final @NotNull StyleResourceValue styleResourceValue) {
+                          final @NotNull StyleResourceValue styleResourceValue,
+                          final @Nullable Module sourceModule) {
     myStyleResourceValue = styleResourceValue;
     myConfiguration = configuration;
     myProject = configuration.getModule().getProject();
+    mySourceModule = sourceModule;
   }
 
   public boolean isProjectStyle() {
@@ -103,8 +114,9 @@ public class ThemeEditorStyle {
     assert !myStyleResourceValue.isFramework();
 
     final ImmutableList.Builder<ResourceItem> resourceItems = ImmutableList.builder();
-    AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
-    assert facet != null : myConfiguration.getModule().getName() + " module doesn't have AndroidFacet";
+    final Module module = getModuleForAcquiringResources();
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null : module.getName() + " module doesn't have AndroidFacet";
     ThemeEditorUtils.acceptResourceResolverVisitor(facet, new ThemeEditorUtils.ResourceFolderVisitor() {
       @Override
       public void visitResourceFolder(@NotNull LocalResourceRepository resources, @NotNull String variantName, boolean isSourceSelected) {
@@ -122,6 +134,15 @@ public class ThemeEditorStyle {
       }
     });
     return resourceItems.build();
+  }
+
+  /**
+   * Get a Module instance that should be used for resolving all possible resources that could constitute values
+   * of this theme's attributes. Returns source module of a theme if it's available and rendering context module
+   * otherwise.
+   */
+  private Module getModuleForAcquiringResources() {
+    return mySourceModule != null ? mySourceModule : myConfiguration.getModule();
   }
 
   /**
@@ -180,8 +201,7 @@ public class ThemeEditorStyle {
       }
     }
     else {
-      // TODO: Use something else instead of myConfiguration.getModule?
-      LocalResourceRepository repository = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
+      LocalResourceRepository repository = AppResourceRepository.getAppResources(getModuleForAcquiringResources(), true);
       assert repository != null;
       // Find every definition of this style and get all the attributes defined
       List<ResourceItem> styleDefinitions = repository.getResourceItem(ResourceType.STYLE, myStyleResourceValue.getName());
@@ -233,10 +253,20 @@ public class ThemeEditorStyle {
   }
 
   /**
+   * See {@link #getParent(ThemeResolver)}
+   */
+  public ThemeEditorStyle getParent() {
+    return getParent(null);
+  }
+
+  /**
    * Returns the style parent or null if this is a root style.
+   *
+   * @param themeResolver theme resolver that would be used to look up parent theme by name
+   *                      Pass null if you don't care about resulting ThemeEditorStyle source module (which would be null in that case)
    */
   @Nullable
-  public ThemeEditorStyle getParent() {
+  public ThemeEditorStyle getParent(@Nullable ThemeResolver themeResolver) {
     ResourceResolver resolver = myConfiguration.getResourceResolver();
     assert resolver != null;
 
@@ -245,7 +275,12 @@ public class ThemeEditorStyle {
       return null;
     }
 
-    return ResolutionUtils.getStyle(myConfiguration, ResolutionUtils.getQualifiedStyleName(parent));
+    if (themeResolver == null) {
+      return ResolutionUtils.getStyle(myConfiguration, ResolutionUtils.getQualifiedStyleName(parent), null);
+    }
+    else {
+      return themeResolver.getTheme(ResolutionUtils.getQualifiedStyleName(parent));
+    }
   }
 
   /**
@@ -328,7 +363,7 @@ public class ThemeEditorStyle {
           // copy this theme at the minimum api level for this attribute
           ThemeEditorUtils.copyTheme(minAcceptableApi, apiInformation.toBeCopied);
 
-          AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
+          AndroidFacet facet = AndroidFacet.getInstance(getModuleForAcquiringResources());
           if (facet != null) {
             facet.refreshResources();
           }
@@ -490,6 +525,14 @@ public class ThemeEditorStyle {
   }
 
   /**
+   * Plain getter, see {@link #mySourceModule} for field description.
+   */
+  @Nullable
+  public Module getSourceModule() {
+    return mySourceModule;
+  }
+
+  /**
    * Class containing all the information needed to correctly set attributes with respect to api levels
    */
   private class ApiInformation {
@@ -499,7 +542,7 @@ public class ThemeEditorStyle {
     private XmlTag toBeCopied = null;
 
     private ApiInformation(int minAcceptableApi) {
-      int minApiLevel = ThemeEditorUtils.getMinApiLevel(myConfiguration.getModule());
+      int minApiLevel = ThemeEditorUtils.getMinApiLevel(getModuleForAcquiringResources());
       int closestNonAllowedApi = 0;
       boolean createNewTheme = true;
 

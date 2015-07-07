@@ -18,14 +18,17 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.StateListPicker;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
+import com.intellij.openapi.module.Module;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,19 +87,22 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
         colorName = myItem.getName();
       }
 
+      Module module = myContext.getModuleForResources();
+      final Configuration configuration = ThemeEditorUtils.getConfigurationForModule(module);
+
       // TODO we need to handle color state lists correctly here.
-      ResourceResolver resourceResolver = myContext.getResourceResolver();
+      ResourceResolver resourceResolver = configuration.getResourceResolver();
       assert resourceResolver != null;
       ChooseResourceDialog dialog;
 
       List<StateListPicker.StateListState> colorStates = ResourceHelper.resolveStateList(resourceResolver, myItem.getSelectedValue());
       if (!colorStates.isEmpty()) {
-        dialog = new ChooseResourceDialog(myContext.getCurrentThemeModule(), myContext.getConfiguration(), ChooseResourceDialog.COLOR_TYPES,
+        dialog = new ChooseResourceDialog(module, configuration, ChooseResourceDialog.COLOR_TYPES,
                                           colorStates, ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
       }
       else {
         String resolvedColor = ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, myItem.getSelectedValue()));
-        dialog = new ChooseResourceDialog(myContext.getCurrentThemeModule(), ChooseResourceDialog.COLOR_TYPES, resolvedColor,
+        dialog = new ChooseResourceDialog(module, ChooseResourceDialog.COLOR_TYPES, resolvedColor,
                                           null, ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
       }
 
