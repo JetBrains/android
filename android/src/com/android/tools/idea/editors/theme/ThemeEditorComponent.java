@@ -346,7 +346,7 @@ public class ThemeEditorComponent extends Splitter {
     // Adds the Device selection button
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new DeviceMenuAction(myPreviewPanel));
-    group.add(new TargetMenuAction(myPreviewPanel));
+    group.add(new TargetMenuAction(myPreviewPanel, true));
     group.add(new LocaleMenuAction(myPreviewPanel));
     group.add(new OrientationMenuAction(myPreviewPanel));
     ActionToolbar actionToolbar = actionManager.createActionToolbar("ThemeToolbar", group, true);
