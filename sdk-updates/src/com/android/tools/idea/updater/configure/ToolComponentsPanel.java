@@ -189,8 +189,10 @@ public class ToolComponentsPanel {
     myStates.clear();
   }
 
+  /**
+   * After changing whether previews are included, setPackages() must be called again with appropriately filtered packages.
+   */
   public void setIncludePreview(boolean includePreview) {
     myIncludePreview = includePreview;
-    updateToolsItems();
   }
 }
