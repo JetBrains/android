@@ -46,7 +46,7 @@ public abstract class DeviceSampler implements Runnable {
    */
   public static final int INHERITED_TYPE_START = 3;
 
-  @NotNull protected final TimelineData myData;
+  @NotNull protected TimelineData myData;
   @NotNull protected final List<TimelineEventListener> myListeners = Lists.newLinkedList();
   protected int mySampleFrequencyMs;
   /**
@@ -113,6 +113,14 @@ public abstract class DeviceSampler implements Runnable {
       myData.clear();
       start();
     }
+  }
+
+  @Nullable
+  /**
+   * This method returns a local copy of <code>myClient</code>, as it is volatile.
+   */
+  public Client getClient() {
+    return myClient;
   }
 
   public void addListener(TimelineEventListener listener) {
