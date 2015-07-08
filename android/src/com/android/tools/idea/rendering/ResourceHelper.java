@@ -546,7 +546,7 @@ public class ResourceHelper {
             List<StateListPicker.StateListState> stateList = new ArrayList<StateListPicker.StateListState>();
             NodeList items = document.getElementsByTagName(TAG_ITEM);
             for (int i = 0; i < items.getLength(); i++) {
-              stateList.add(createStateListState(items.item(i)));
+              stateList.add(createStateListState(items.item(i), value.isFramework()));
             }
             return stateList;
           }
@@ -562,7 +562,7 @@ public class ResourceHelper {
    * Returns a StateListState representing the state in item.
    */
   @NotNull
-  private static StateListPicker.StateListState createStateListState(Node item) {
+  private static StateListPicker.StateListState createStateListState(Node item, boolean isFramework) {
     StateListPicker.StateListState state = new StateListPicker.StateListState();
     NamedNodeMap attributes = item.getAttributes();
     for (int i = 0; i < attributes.getLength(); i++) {
@@ -570,7 +570,13 @@ public class ResourceHelper {
       String name = attr.getLocalName();
       String value = attr.getNodeValue();
       if (SdkConstants.ATTR_COLOR.equals(name)) {
-        state.setColor(value);
+        ResourceUrl url = ResourceUrl.parse(value, isFramework);
+        if (url != null) {
+          state.setColor(url.toString());
+        }
+        else {
+          state.setColor(value);
+        }
       }
       else if (name != null && name.startsWith(STATE_NAME_PREFIX)) {
         state.addAttribute(name, Boolean.valueOf(value));
