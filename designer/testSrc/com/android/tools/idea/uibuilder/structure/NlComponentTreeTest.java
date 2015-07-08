@@ -25,7 +25,6 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
-import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.util.Iterator;
@@ -34,13 +33,13 @@ import static com.android.SdkConstants.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class NlStructurePanelTest  extends LayoutTestCase {
+public class NlComponentTreeTest extends LayoutTestCase {
   @Mock
   private DesignSurface mySurface;
   @Mock
   private ScreenView myScreen;
   private NlModel myModel;
-  private NlStructurePanel myPanel;
+  private NlComponentTree myTree;
 
   @Override
   public void setUp() throws Exception {
@@ -50,13 +49,13 @@ public class NlStructurePanelTest  extends LayoutTestCase {
     when(myScreen.getModel()).thenReturn(myModel);
     when(myScreen.getSelectionModel()).thenReturn(myModel.getSelectionModel());
     when(mySurface.getCurrentScreenView()).thenReturn(myScreen);
-    myPanel = new NlStructurePanel(mySurface);
+    myTree = new NlComponentTree();
+    myTree.setDesignSurface(mySurface);
   }
 
   public void testTreeStructure() {
-    JTree tree = myPanel.getTree();
     NlComponent expectedRoot = myModel.getComponents().get(0);
-    DefaultMutableTreeNode hidden = (DefaultMutableTreeNode)tree.getModel().getRoot();
+    DefaultMutableTreeNode hidden = (DefaultMutableTreeNode)myTree.getModel().getRoot();
     assertEquals(1, hidden.getChildCount());
     DefaultMutableTreeNode root = (DefaultMutableTreeNode)hidden.getFirstChild();
     assertEquals("Unexpected root", expectedRoot, root.getUserObject());
@@ -68,16 +67,15 @@ public class NlStructurePanelTest  extends LayoutTestCase {
   }
 
   public void testSelectionInTreeIsPropagatedToModel() {
-    JTree tree = myPanel.getTree();
-    assertNull(tree.getSelectionPaths());
+    assertNull(myTree.getSelectionPaths());
     assertFalse(myModel.getSelectionModel().getSelection().iterator().hasNext());
 
-    DefaultMutableTreeNode hidden = (DefaultMutableTreeNode)tree.getModel().getRoot();
+    DefaultMutableTreeNode hidden = (DefaultMutableTreeNode)myTree.getModel().getRoot();
     DefaultMutableTreeNode root = (DefaultMutableTreeNode)hidden.getFirstChild();
     DefaultMutableTreeNode node1 = (DefaultMutableTreeNode)root.getChildAt(1);
     DefaultMutableTreeNode node2 = (DefaultMutableTreeNode)root.getChildAt(2);
-    tree.addSelectionPath(new TreePath(node1.getPath()));
-    tree.addSelectionPath(new TreePath(node2.getPath()));
+    myTree.addSelectionPath(new TreePath(node1.getPath()));
+    myTree.addSelectionPath(new TreePath(node2.getPath()));
 
     Iterator<NlComponent> selected = myModel.getSelectionModel().getSelection().iterator();
     assertEquals(node1.getUserObject(), selected.next());
@@ -86,17 +84,18 @@ public class NlStructurePanelTest  extends LayoutTestCase {
   }
 
   public void testSelectionInModelIsShownInTree() {
-    JTree tree = myPanel.getTree();
-    assertNull(tree.getSelectionPaths());
+    assertNull(myTree.getSelectionPaths());
     assertFalse(myModel.getSelectionModel().getSelection().iterator().hasNext());
 
     NlComponent layout = myModel.getComponents().get(0);
     NlComponent text = layout.getChild(0);
     NlComponent button = layout.getChild(1);
+    assert text != null;
+    assert button != null;
     myModel.getSelectionModel().toggle(text);
     myModel.getSelectionModel().toggle(button);
 
-    TreePath[] selection = tree.getSelectionPaths();
+    TreePath[] selection = myTree.getSelectionPaths();
     assertEquals(2, selection.length);
     assertEquals(text, ((DefaultMutableTreeNode)selection[0].getLastPathComponent()).getUserObject());
     assertEquals(button, ((DefaultMutableTreeNode)selection[1].getLastPathComponent()).getUserObject());
