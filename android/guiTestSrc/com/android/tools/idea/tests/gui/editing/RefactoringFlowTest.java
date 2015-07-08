@@ -45,6 +45,7 @@ public class RefactoringFlowTest extends GuiTestCase {
     ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(myRobot);
     conflictsDialog.requireMessageTextContains("Resource @string/action_settings already exists");
     conflictsDialog.clickCancel();
+    refactoringDialog.clickCancel();
   }
 
   @Test @IdeGuiTest()
