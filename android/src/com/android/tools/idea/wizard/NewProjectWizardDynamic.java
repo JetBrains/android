@@ -70,7 +70,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       String msg = "<html>Your Android SDK is missing, out of date, or is missing templates.<br>" +
                    "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
       Messages.showErrorDialog(msg, title);
-      return;
+      throw new IllegalStateException("Android SDK missing");
     }
     addPaths();
     initState();
