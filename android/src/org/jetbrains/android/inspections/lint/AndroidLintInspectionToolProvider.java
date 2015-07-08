@@ -1668,6 +1668,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintShiftFlagsInspection extends AndroidLintInspectionBase {
+    public AndroidLintShiftFlagsInspection() {
+      super(AndroidBundle.message("android.lint.inspections.shift.flags"), AnnotationDetector.FLAG_STYLE);
+    }
+  }
+
   public static class AndroidLintShortAlarmInspection extends AndroidLintInspectionBase {
     public AndroidLintShortAlarmInspection() {
       super(AndroidBundle.message("android.lint.inspections.short.alarm"), AlarmDetector.ISSUE);
