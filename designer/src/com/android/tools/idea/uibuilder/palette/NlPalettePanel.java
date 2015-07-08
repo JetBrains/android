@@ -24,6 +24,9 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
+import com.android.tools.idea.uibuilder.model.DnDTransferItem;
+import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindowContent;
@@ -391,7 +394,8 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
           }
         });
       }
-      return new DnDDragStartBean(new ItemTransferable(new DnDTransferItem(item, size.width, size.height)));
+      DnDTransferComponent component = new DnDTransferComponent(item.getId(), item.getRepresentation(), size.width, size.height);
+      return new DnDDragStartBean(new ItemTransferable(new DnDTransferItem(component)));
     }
 
     @Nullable
