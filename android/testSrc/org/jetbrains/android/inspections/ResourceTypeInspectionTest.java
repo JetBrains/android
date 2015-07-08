@@ -381,6 +381,11 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    public void printBetweenFromExclusiveToInclusive(@FloatRange(from=2.5,to=5.0,fromInclusive=false) float arg) { }\n" +
             "    public void printBetweenFromInclusiveToExclusive(@FloatRange(from=2.5,to=5.0,toInclusive=false) float arg) { }\n" +
             "    public void printBetweenFromExclusiveToExclusive(@FloatRange(from=2.5,to=5.0,fromInclusive=false,toInclusive=false) float arg) { }\n" +
+            "    public static final int MINIMUM = -1;\n" +
+            "    public static final int MAXIMUM = 42;\n" +
+            "    public static final int SIZE = 5;\n" +
+            "    public void printIndirect(@IntRange(from = MINIMUM, to = MAXIMUM) int arg) { }\n" +
+            "    public void printIndirectSize(@Size(SIZE) String arg) { }\n" +
             "\n" +
             "    public void testLength() {\n" +
             "        String arg = \"1234\";\n" +
@@ -410,6 +415,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printRange(\"12345\"); // OK\n" +
             "        printRange(\"123456\"); // OK\n" +
             "        printRange(/*Length must be at least 4 and at most 6 (was 7)*/\"1234567\"/**/); // ERROR\n" +
+            "        printIndirectSize(/*Length must be exactly 5*/\"1234567\"/**/); // ERROR\n" +
             "    }\n" +
             "\n" +
             "    public void testSize() {\n" +
@@ -469,6 +475,8 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 8)*/8/**/); // ERROR\n" +
             "        int value = 8;\n" +
             "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 8)*/value/**/); // ERROR\n" +
+            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was -7)*/-7/**/);\n" +
+            "        printIndirect(/*Value must be ≥ -1 and ≤ 42 (was -2)*/-2/**/);\n" +
             "    }\n" +
             "\n" +
             "    public void testFloatRange() {\n" +
@@ -479,6 +487,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printAtLeastExclusive(/*Value must be > 2.5 (was 2.49f)*/2.49f/**/); // ERROR\n" +
             "        printAtLeastExclusive(/*Value must be > 2.5 (was 2.5f)*/2.5f/**/); // ERROR\n" +
             "        printAtLeastExclusive(2.501f); // OK\n" +
+            "        printAtLeastExclusive(/*Value must be > 2.5 (was -10.0)*/-10/**/);\n" +
             "\n" +
             "        printAtMostInclusive(6.8f); // OK\n" +
             "        printAtMostInclusive(6.9f); // OK\n" +
