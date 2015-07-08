@@ -35,7 +35,7 @@ public class AndroidNewProjectAction extends AnAction implements DumbAware {
       dialog.init();
     }
     catch (IllegalStateException e1) {
-      Logger.getInstance(AndroidNewProjectAction.class).error("Unable to launch New Project Wizard", e1);
+      Logger.getInstance(AndroidNewProjectAction.class).warn("Unable to launch New Project Wizard", e1);
       return;
     }
 
