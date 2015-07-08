@@ -53,11 +53,14 @@ import org.w3c.dom.NodeList;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
@@ -524,10 +527,10 @@ public class ResourceHelper {
   }
 
   /**
-   * Returns list of all the states of the statelist value, or an empty list if value is not a statelist.
+   * Returns StateListPicker.StateList description of the statelist value, or null if value is not a statelist.
    */
-  @NotNull
-  public static List<StateListPicker.StateListState> resolveStateList(@NotNull RenderResources renderResources, @NotNull ResourceValue value) {
+  @Nullable
+  public static StateListPicker.StateList resolveStateList(@NotNull RenderResources renderResources, @NotNull ResourceValue value) {
     if (value.getValue().startsWith(PREFIX_RESOURCE_REF)) {
       final ResourceUrl url = ResourceUrl.parse(value.getValue());
       if (url != null) {
@@ -540,49 +543,58 @@ public class ResourceHelper {
       File file = new File(value.getValue());
       if (file.exists() && file.getName().endsWith(DOT_XML)) {
         try {
+          ResourceFolderType folderType = ResourceFolderType.getFolderType(file.getParentFile().getName());
           String xml = Files.toString(file, Charsets.UTF_8);
           Document document = XmlUtils.parseDocumentSilently(xml, true);
           if (document != null) {
-            List<StateListPicker.StateListState> stateList = new ArrayList<StateListPicker.StateListState>();
+            StateListPicker.StateList stateList = new StateListPicker.StateList(folderType);
             NodeList items = document.getElementsByTagName(TAG_ITEM);
             for (int i = 0; i < items.getLength(); i++) {
-              stateList.add(createStateListState(items.item(i), value.isFramework()));
+              stateList.addState(createStateListState(items.item(i), value.isFramework()));
             }
             return stateList;
           }
-        } catch (Exception e) {
+        }
+        catch (IOException e) {
           LOG.warn(String.format("Failed parsing state list file %1$s", file.getName()), e);
+        }
+        catch (IllegalArgumentException e) {
+          LOG.error(String.format("%1$s is not a valid state list file", file.getName()));
         }
       }
     }
-    return Collections.emptyList();
+    return null;
   }
 
   /**
    * Returns a StateListState representing the state in item.
    */
   @NotNull
-  private static StateListPicker.StateListState createStateListState(Node item, boolean isFramework) {
-    StateListPicker.StateListState state = new StateListPicker.StateListState();
+  private static StateListPicker.StateListState createStateListState(Node item, boolean isFramework) throws IllegalArgumentException {
+    String stateValue = null;
+    Map<String, Boolean> stateAttributes = new HashMap<String, Boolean>();
     NamedNodeMap attributes = item.getAttributes();
     for (int i = 0; i < attributes.getLength(); i++) {
       Node attr = attributes.item(i);
       String name = attr.getLocalName();
       String value = attr.getNodeValue();
-      if (SdkConstants.ATTR_COLOR.equals(name)) {
+      if (SdkConstants.ATTR_COLOR.equals(name) || SdkConstants.ATTR_DRAWABLE.equals(name)) {
         ResourceUrl url = ResourceUrl.parse(value, isFramework);
         if (url != null) {
-          state.setColor(url.toString());
+          stateValue = url.toString();
         }
         else {
-          state.setColor(value);
+          stateValue = value;
         }
       }
       else if (name != null && name.startsWith(STATE_NAME_PREFIX)) {
-        state.addAttribute(name, Boolean.valueOf(value));
+        stateAttributes.put(name, Boolean.valueOf(value));
       }
     }
-    return state;
+    if (stateValue == null) {
+      throw new IllegalArgumentException("Not a valid item");
+    }
+    return new StateListPicker.StateListState(stateValue, stateAttributes);
   }
 
   /**
