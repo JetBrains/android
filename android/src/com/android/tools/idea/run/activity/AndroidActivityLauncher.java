@@ -86,43 +86,9 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
     final String activityPath = getLauncherActivityPath(state.getPackageName(), activityName);
     if (state.isStopped()) return LaunchResult.STOP;
     processHandler.notifyTextAvailable("Launching application: " + activityPath + ".\n", STDOUT);
-    ErrorMatchingReceiver receiver = new ErrorMatchingReceiver(state.getStoppedRef());
 
-    while (true) {
-      if (state.isStopped()) return LaunchResult.STOP;
-      String command = getStartActivityCommand(activityPath, getDebugFlags(state), myActivityExtraFlags);
-      boolean deviceNotResponding = false;
-      try {
-        state.executeDeviceCommandAndWriteToConsole(device, command, receiver);
-      }
-      catch (ShellCommandUnresponsiveException e) {
-        LOG.info(e);
-        deviceNotResponding = true;
-      }
-      // TODO: What is error type 2?
-      if (!deviceNotResponding && receiver.getErrorType() != 2) {
-        break;
-      }
-      processHandler.notifyTextAvailable("Device is not ready. Waiting for " + AndroidRunningState.WAITING_TIME_SECS + " sec.\n", STDOUT);
-      synchronized (state.getRunningLock()) {
-        try {
-          state.getRunningLock().wait(AndroidRunningState.WAITING_TIME_SECS * 1000);
-        }
-        catch (InterruptedException e) {
-        }
-      }
-      receiver = new ErrorMatchingReceiver(state.getStoppedRef());
-    }
-
-    boolean success = !receiver.hasError();
-    if (success) {
-      processHandler.notifyTextAvailable(receiver.getOutput().toString(), STDOUT);
-      return LaunchResult.SUCCESS;
-    }
-    else {
-      processHandler.notifyTextAvailable(receiver.getOutput().toString(), STDERR);
-      return LaunchResult.STOP;
-    }
+    String command = getStartActivityCommand(activityPath, getDebugFlags(state), myActivityExtraFlags);
+    return executeCommand(command, state, device);
   }
 
   @VisibleForTesting
@@ -140,11 +106,5 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
   @NotNull
   static String getLauncherActivityPath(@NotNull String packageName, @NotNull String activityName) {
     return packageName + "/" + activityName.replace("$", "\\$");
-  }
-
-  /** Returns the flags used to the "am start" command for launching in debug mode. */
-  @NotNull
-  protected String getDebugFlags(@NotNull AndroidRunningState state) {
-    return state.isDebugMode() ? "-D" : "";
   }
 }
