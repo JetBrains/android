@@ -18,9 +18,29 @@ package com.android.tools.idea.editors.theme;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.configurations.*;
-import com.android.tools.idea.editors.theme.attributes.*;
-import com.android.tools.idea.editors.theme.attributes.editors.*;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.configurations.DeviceMenuAction;
+import com.android.tools.idea.configurations.LocaleMenuAction;
+import com.android.tools.idea.configurations.OrientationMenuAction;
+import com.android.tools.idea.configurations.TargetMenuAction;
+import com.android.tools.idea.configurations.ThemeSelectionDialog;
+import com.android.tools.idea.editors.theme.attributes.AttributesGrouper;
+import com.android.tools.idea.editors.theme.attributes.AttributesModelColorPaletteModel;
+import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.attributes.ShowJavadocAction;
+import com.android.tools.idea.editors.theme.attributes.TableLabel;
+import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.BooleanRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.ColorRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.DelegatingCellEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.DelegatingCellRenderer;
+import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.EnumRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.FlagRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.IntegerRenderer;
+import com.android.tools.idea.editors.theme.attributes.editors.ParentRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.StyleListCellRenderer;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
@@ -50,12 +70,20 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.RowFilter;
 import javax.swing.plaf.PanelUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -194,7 +222,7 @@ public class ThemeEditorComponent extends Splitter {
     myAttributesTable.setDefaultRenderer(Enum.class, new DelegatingCellRenderer(new EnumRendererEditor()));
     myAttributesTable.setDefaultRenderer(Flag.class, new DelegatingCellRenderer(new FlagRendererEditor()));
     myAttributesTable.setDefaultRenderer(AttributesTableModel.ParentAttribute.class, new DelegatingCellRenderer(new ParentRendererEditor(myThemeEditorContext)));
-    myAttributesTable.setDefaultRenderer(DrawableDomElement.class, new DelegatingCellRenderer(new DrawableRendererEditor(myThemeEditorContext, false)));
+    myAttributesTable.setDefaultRenderer(DrawableDomElement.class, new DelegatingCellRenderer(new DrawableRendererEditor(myThemeEditorContext, myPreviewPanel, false)));
     myAttributesTable.setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
       @Override
       public Component getTableCellRendererComponent(JTable table,
@@ -220,7 +248,7 @@ public class ThemeEditorComponent extends Splitter {
 
     // We allow to edit style pointers as Strings.
     myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, styleEditor));
-    myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableRendererEditor(myThemeEditorContext, true)));
+    myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableRendererEditor(myThemeEditorContext, myPreviewPanel, true)));
 
     // We shouldn't allow autoCreateColumnsFromModel, because when setModel() will be invoked, it removes
     // existing listeners to cell editors.
