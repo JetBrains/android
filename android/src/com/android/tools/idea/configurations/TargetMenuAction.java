@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -41,13 +42,24 @@ import static com.android.tools.idea.configurations.Configuration.PREFERENCES_MI
 
 public class TargetMenuAction extends FlatComboAction {
   private final RenderContext myRenderContext;
+  private final boolean myUseCompatibilityTarget;
 
-  public TargetMenuAction(RenderContext renderContext) {
+  /**
+   * Creates a {@code TargetMenuAction}
+   * @param renderContext A {@link RenderContext} instance
+   * @param useCompatibilityTarget when true, this menu action will set a CompatibilityRenderTarget as instead of a real IAndroidTarget
+   */
+  public TargetMenuAction(RenderContext renderContext, boolean useCompatibilityTarget) {
     myRenderContext = renderContext;
+    myUseCompatibilityTarget = useCompatibilityTarget;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Android version to use when rendering layouts in the IDE");
     presentation.setIcon(AndroidIcons.Targets);
     updatePresentation(presentation);
+  }
+
+  public TargetMenuAction(RenderContext renderContext) {
+    this(renderContext, false);
   }
 
   @Override
@@ -98,7 +110,7 @@ public class TargetMenuAction extends FlatComboAction {
 
     for (int i = targets.length - 1; i >= 0; i--) {
       IAndroidTarget target = targets[i];
-      if (!ConfigurationManager.isLayoutLibTarget(target)) {
+      if (!myUseCompatibilityTarget && !ConfigurationManager.isLayoutLibTarget(target)) {
         continue;
       }
 
@@ -121,6 +133,12 @@ public class TargetMenuAction extends FlatComboAction {
 
       String title = getRenderingTargetLabel(target, false);
       boolean select = current == target;
+
+      if (myUseCompatibilityTarget) {
+        target = new CompatibilityRenderTarget(configuration.getConfigurationManager().getHighestApiTarget(),
+                                               target.getVersion().getFeatureLevel(),
+                                               target);
+      }
       group.add(new SetTargetAction(myRenderContext, title, target, select));
     }
 
