@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -84,7 +85,11 @@ public class ShowLicensesUsedAction extends AnAction {
       }
 
       String text = "<html>" + sb.toString() + "</html>";
-      JBScrollPane pane = new JBScrollPane(new JBLabel(text));
+      JTextPane label = new JTextPane();
+      label.setContentType("text/html");
+      label.setText(text);
+      JBScrollPane pane = new JBScrollPane(label);
+
       pane.setPreferredSize(JBUI.size(600, 400));
       panel.add(pane, BorderLayout.CENTER);
       return panel;
