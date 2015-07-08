@@ -55,7 +55,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
@@ -698,12 +697,7 @@ public class ThemeEditorComponent extends Splitter {
     myModel.addThemePropertyChangedListener(new AttributesTableModel.ThemePropertyChangedListener() {
       @Override
       public void attributeChangedOnReadOnlyTheme(final EditedStyleItem attribute, final String newValue) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            createNewThemeWithAttributeValue(attribute, newValue);
-          }
-        });
+        createNewThemeWithAttributeValue(attribute, newValue);
       }
     });
 
