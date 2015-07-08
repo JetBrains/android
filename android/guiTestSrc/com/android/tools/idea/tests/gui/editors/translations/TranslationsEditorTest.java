@@ -85,7 +85,7 @@ public class TranslationsEditorTest extends GuiTestCase {
     // See FontUtil.getFontAbleToDisplay()
     final FontFixture font = cancel.font();
     //noinspection ConstantConditions
-    assertTrue("Font " + font.description() + " cannot display Chinese characters.", execute(new GuiQuery<Boolean>() {
+    assertTrue("Font " + font.target().getName() + " cannot display Chinese characters.", execute(new GuiQuery<Boolean>() {
       @Override
       protected Boolean executeInEDT() throws Throwable {
         return font.target().canDisplay('消');
