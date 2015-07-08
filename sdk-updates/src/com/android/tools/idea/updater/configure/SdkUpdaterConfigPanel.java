@@ -146,7 +146,7 @@ public class SdkUpdaterConfigPanel {
     myChannelLink.setVisible(myHasPreview && !myIncludePreview);
     myPlatformComponentsPanel.setIncludePreview(includePreview);
     myToolComponentsPanel.setIncludePreview(includePreview);
-    loadPackages();
+    loadPackages(mySdkState.getPackages());
   }
 
   public JComponent getComponent() {
