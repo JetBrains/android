@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.palette;
+package com.android.tools.idea.uibuilder.model;
 
 import com.android.annotations.NonNull;
 
@@ -22,7 +22,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 
 public class ItemTransferable implements Transferable {
-  public static final DataFlavor PALETTE_FLAVOR = new DataFlavor(DnDTransferItem.class, "Palette Item");
+  public static final DataFlavor DESIGNER_FLAVOR = new DataFlavor(DnDTransferComponent.class, "Designer Item");
 
   private final DnDTransferItem myItem;
 
@@ -32,17 +32,17 @@ public class ItemTransferable implements Transferable {
 
   @Override
   public DataFlavor[] getTransferDataFlavors() {
-    return new DataFlavor[]{PALETTE_FLAVOR};
+    return new DataFlavor[]{DESIGNER_FLAVOR};
   }
 
   @Override
   public boolean isDataFlavorSupported(DataFlavor dataFlavor) {
-    return PALETTE_FLAVOR.equals(dataFlavor);
+    return DESIGNER_FLAVOR.equals(dataFlavor);
   }
 
   @Override
   public Object getTransferData(DataFlavor dataFlavor) throws UnsupportedFlavorException {
-    if (PALETTE_FLAVOR.equals(dataFlavor)) {
+    if (DESIGNER_FLAVOR.equals(dataFlavor)) {
       return myItem;
     }
     throw new UnsupportedFlavorException(dataFlavor);

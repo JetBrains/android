@@ -32,6 +32,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.android.designer.model.layout.actions.ToggleRenderModeAction;
@@ -51,6 +52,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
+import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -80,6 +82,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final List<ModelListener> myListeners = Lists.newArrayList();
   private List<NlComponent> myComponents = Lists.newArrayList();
   private final SelectionModel mySelectionModel;
+  private final long myId;
   private Disposable myParent;
   private boolean myActive;
   private ResourceVersion myRenderedVersion;
@@ -102,6 +105,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myFile = file;
     myConfiguration = facet.getConfigurationManager().getConfiguration(myFile.getVirtualFile());
     mySelectionModel = new SelectionModel();
+    myId = System.nanoTime() ^ file.getName().hashCode();
     if (parent != null) {
       Disposer.register(parent, this);
     }
@@ -780,6 +784,89 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
 
     return child;
+  }
+
+  @Nullable
+  public List<NlComponent> createComponents(@NonNull ScreenView screenView,
+                                            @NonNull DnDTransferItem item,
+                                            @NonNull InsertType insertType) {
+    List<NlComponent> components = new ArrayList<NlComponent>(item.getComponents().size());
+    for (DnDTransferComponent dndComponent : item.getComponents()) {
+      XmlTag tag = createTagFromTransferItem(screenView, dndComponent.getRepresentation());
+      NlComponent component = createComponent(screenView, tag, null, null, insertType);
+      if (component == null) {
+        return null;  // User may have cancelled
+      }
+      component.w = dndComponent.getWidth();
+      component.h = dndComponent.getHeight();
+      components.add(component);
+    }
+    return components;
+  }
+
+  @NonNull
+  private static XmlTag createTagFromTransferItem(@NonNull ScreenView screenView, @NonNull String text) {
+    NlModel model = screenView.getModel();
+    Project project = model.getFacet().getModule().getProject();
+    XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
+    XmlTag tag = null;
+    if (XmlUtils.parseDocumentSilently(text, false) != null) {
+      try {
+        String xml = addAndroidNamespaceIfMissing(text);
+        tag = elementFactory.createTagFromText(xml);
+      }
+      catch (IncorrectOperationException ignore) {
+        // Thrown by XmlElementFactory if you try to parse non-valid XML. User might have tried
+        // to drop something like plain text -- insert this as a text view instead.
+        // However, createTagFromText may not always throw this for invalid XML, so we perform the above parseDocument
+        // check first instead.
+      }
+    }
+    if (tag == null) {
+      tag = elementFactory.createTagFromText("<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\" " +
+                                             " android:text=\"" + XmlUtils.toXmlAttributeValue(text) + "\"" +
+                                             " android:layout_width=\"wrap_content\"" +
+                                             " android:layout_height=\"wrap_content\"" +
+                                             "/>");
+    }
+    return tag;
+  }
+
+  private static String addAndroidNamespaceIfMissing(@NonNull String xml) {
+    // TODO: Remove this temporary hack, which adds an Android namespace if necessary
+    // (this is such that the resulting tag is namespace aware, and attempts to manipulate it from
+    // a component handler will correctly set namespace prefixes)
+
+    if (!xml.contains(ANDROID_URI)) {
+      int index = xml.indexOf('<');
+      if (index != -1) {
+        index = xml.indexOf(' ', index);
+        if (index == -1) {
+          index = xml.indexOf("/>");
+          if (index == -1) {
+            index = xml.indexOf('>');
+          }
+        }
+        if (index != -1) {
+          xml =
+            xml.substring(0, index) + " xmlns:android=\"http://schemas.android.com/apk/res/android\"" + xml.substring(index);
+        }
+      }
+    }
+    return xml;
+  }
+
+  @NonNull
+  public InsertType determineInsertType(@NonNull DnDTransferItem item, boolean asPreview, boolean isCopy) {
+    InsertType insertType;
+    if (item.isFromPalette()) {
+      insertType = asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
+    } else if (!isCopy && myId == item.getModelId()) {
+      insertType = InsertType.MOVE_INTO;
+    } else {
+      insertType = InsertType.PASTE;
+    }
+    return insertType;
   }
 
   @Override
