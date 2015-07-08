@@ -137,13 +137,7 @@ public class GraphicsLayoutRenderer {
     LayoutLibrary layoutLib;
     try {
       IAndroidTarget latestTarget = configuration.getConfigurationManager().getHighestApiTarget();
-      if (latestTarget != null && latestTarget != target) {
-        target = new CompatibilityRenderTarget(
-          latestTarget,
-          target.getVersion().getFeatureLevel(),
-          target);
-      }
-      layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
+      layoutLib = platform.getSdkData().getTargetData(latestTarget).getLayoutLibrary(project);
 
       if (layoutLib == null) {
         throw new InitializationException("getLayoutLibrary() returned null");
