@@ -21,8 +21,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import org.jetbrains.annotations.NotNull;
 
-import static org.junit.Assert.assertNotNull;
-
 /**
  * Utility class for static methods used in UI tests for the Theme Editor
  */
@@ -40,11 +38,7 @@ public class ThemeEditorTestUtils {
       projectFrame.requireEditorNotification("Edit all themes in the project in the theme editor.");
     notificationPanel.performAction("Open editor");
 
-    // Makes sure the Theme Editor is opened before pursuing
-    projectFrame.robot().waitForIdle();
-
     ThemeEditorFixture themeEditor = editor.getThemeEditor();
-    assertNotNull(themeEditor);
 
     themeEditor.getThemePreviewPanel().getPreviewPanel().waitForRender();
 
