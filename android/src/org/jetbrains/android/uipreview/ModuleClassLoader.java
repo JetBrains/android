@@ -428,6 +428,13 @@ public final class ModuleClassLoader extends RenderClassLoader {
     ourCache.clear();
   }
 
+  /** Remove the cached class loader for the module. */
+  public static void clearCache(Module module) {
+    if (ourCache.containsKey(module)) {
+      ourCache.remove(module);
+    }
+  }
+
   /** Temporary hack: Store this in a weak hash map cached by modules. In the next version we should move this
    * into a proper persistent render service. */
   private static WeakHashMap<Module,ModuleClassLoader> ourCache = new WeakHashMap<Module, ModuleClassLoader>();
