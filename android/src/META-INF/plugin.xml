@@ -275,8 +275,8 @@
     <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.DbFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.hprof.HprofFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.allocations.AllocationsFileTypeFactory" />
-    <fileTypeFactory implementation="com.android.tools.idea.editors.vmtrace.VmTraceFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.gfxtrace.GfxTraceFileTypeFactory" />
+    <fileTypeFactory implementation="com.android.tools.idea.editors.vmtrace.VmTraceFileTypeFactory" />
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition" />
@@ -813,9 +813,9 @@
   <extensions defaultExtensionNs="com.android">
     <captureType implementation="com.android.tools.idea.editors.hprof.HprofCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.allocations.AllocationCaptureType"/>
+    <captureType implementation="com.android.tools.idea.editors.gfxtrace.GfxTraceCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.systeminfo.SystemInfoCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.vmtrace.VmTraceCaptureType"/>
-    <captureType implementation="com.android.tools.idea.editors.gfxtrace.GfxTraceCaptureType"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.android">
