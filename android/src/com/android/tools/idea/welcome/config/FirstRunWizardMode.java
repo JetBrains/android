@@ -61,6 +61,9 @@ public enum FirstRunWizardMode {
   }
 
   public boolean shouldCreateAvd() {
+    if (this == MISSING_SDK) {
+      return false;
+    }
     return getInstallerData().shouldCreateAvd();
   }
 
