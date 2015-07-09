@@ -91,12 +91,16 @@ public class ResolutionUtils {
   }
 
   /**
+   * Construct a ThemeEditorStyle instance for a theme with given name and source module, resolved in a given configuration.
+   *
+   * @param module source module of a theme, should be null only for framework or libraries themes.
+   *               If you don't know source module of a theme, you should use {@link ThemeResolver#getTheme(String)} instead
    * @return returns ThemeEditorStyle for a qualifiedStyleName, if style doesn't exist will return null
    */
   @Nullable
-  public static ThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull final String qualifiedStyleName) {
+  public static ThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull final String qualifiedStyleName, @Nullable Module module) {
     final StyleResourceValue style = getStyleResourceValue(configuration, qualifiedStyleName);
-    return style == null ? null : new ThemeEditorStyle(configuration, style);
+    return style == null ? null : new ThemeEditorStyle(configuration, style, module);
   }
 
   @Nullable

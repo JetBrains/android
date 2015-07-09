@@ -312,7 +312,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 22, null));
 
-    ThemeEditorStyle myTheme = ResolutionUtils.getStyle(configuration, "@style/Theme.MyTheme");
+    ThemeEditorStyle myTheme = ResolutionUtils.getStyle(configuration, "@style/Theme.MyTheme", null);
     assertNotNull(myTheme);
     Set<String> expectedAttributes = Sets.newHashSet("actionModeStyle", "windowIsFloating", "checkedTextViewStyle");
     for(EditedStyleItem item : myTheme.getValues()) {
@@ -345,7 +345,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
 
     // Test with a v14 configuration
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 14, null));
-    myTheme = ResolutionUtils.getStyle(configuration, "@style/Theme.MyTheme");
+    myTheme = ResolutionUtils.getStyle(configuration, "@style/Theme.MyTheme", null);
     assertNotNull(myTheme);
     assertSize(3, myTheme.getValues());
     for(EditedStyleItem item : myTheme.getValues()) {

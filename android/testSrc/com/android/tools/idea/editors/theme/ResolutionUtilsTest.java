@@ -39,9 +39,9 @@ public class ResolutionUtilsTest extends AndroidTestCase {
     VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout1.xml");
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
 
-    assertNotNull(ResolutionUtils.getStyle(configuration, "@android:style/TextAppearance"));
+    assertNotNull(ResolutionUtils.getStyle(configuration, "@android:style/TextAppearance", null));
 
-    ThemeEditorStyle style = ResolutionUtils.getStyle(configuration, "@android:style/Theme.Holo.Light");
+    ThemeEditorStyle style = ResolutionUtils.getStyle(configuration, "@android:style/Theme.Holo.Light", null);
     assertEquals("Theme.Holo.Light", style.getName());
     assertEmpty(style.getValues()); // Style shouldn't have the values of the parent.
 
