@@ -36,9 +36,15 @@ import java.util.List;
 
 public class OrientationMenuAction extends FlatComboAction {
   private final RenderContext myRenderContext;
+  private final boolean myClassicStyle;
 
   public OrientationMenuAction(RenderContext renderContext) {
+    this(renderContext, !RenderService.NELE_ENABLED);
+  }
+
+  public OrientationMenuAction(RenderContext renderContext, boolean classicStyle) {
     myRenderContext = renderContext;
+    myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Go to next state");
     updatePresentation(presentation);
@@ -51,7 +57,7 @@ public class OrientationMenuAction extends FlatComboAction {
   }
 
   private void updatePresentation(Presentation presentation) {
-    if (RenderService.NELE_ENABLED) {
+    if (!myClassicStyle) {
       presentation.setIcon(AndroidIcons.NeleIcons.Rotate);
       return;
     }

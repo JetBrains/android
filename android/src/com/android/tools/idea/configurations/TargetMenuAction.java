@@ -49,14 +49,19 @@ public class TargetMenuAction extends FlatComboAction {
    * Creates a {@code TargetMenuAction}
    * @param renderContext A {@link RenderContext} instance
    * @param useCompatibilityTarget when true, this menu action will set a CompatibilityRenderTarget as instead of a real IAndroidTarget
+   * @param classicStyle if true, use the pre Android Studio 1.5 configuration toolbar style (temporary compatibility code)
    */
-  public TargetMenuAction(RenderContext renderContext, boolean useCompatibilityTarget) {
+  public TargetMenuAction(RenderContext renderContext, boolean useCompatibilityTarget, boolean classicStyle) {
     myRenderContext = renderContext;
     myUseCompatibilityTarget = useCompatibilityTarget;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Android version to use when rendering layouts in the IDE");
-    presentation.setIcon(RenderService.NELE_ENABLED ? AndroidIcons.NeleIcons.Api : AndroidIcons.Targets);
+    presentation.setIcon(classicStyle ? AndroidIcons.Targets : AndroidIcons.NeleIcons.Api);
     updatePresentation(presentation);
+  }
+
+  public TargetMenuAction(RenderContext renderContext, boolean useCompatibilityTarget) {
+    this(renderContext, useCompatibilityTarget, !RenderService.NELE_ENABLED);
   }
 
   public TargetMenuAction(RenderContext renderContext) {
