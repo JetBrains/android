@@ -46,6 +46,8 @@
   <actions>
     <action id="Android.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
             icon="AndroidIcons.SdkManager" overrides="true"/>
+    <action id="WelcomeScreen.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
+            icon="AndroidIcons.SdkManagerLarge" overrides="true"/>
   </actions>
 
 </idea-plugin>
