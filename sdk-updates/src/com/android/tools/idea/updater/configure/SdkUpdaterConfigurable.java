@@ -78,11 +78,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Override
   public JComponent createComponent() {
     AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (data == null) {
-      JPanel errorPanel = new JPanel();
-      errorPanel.add(new JBLabel("Failed to find android sdk"));
-      return errorPanel;
-    }
     final Runnable channelChangedCallback = new Runnable() {
       @Override
       public void run() {
