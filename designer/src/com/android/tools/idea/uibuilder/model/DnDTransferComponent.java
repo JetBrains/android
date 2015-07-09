@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.palette;
+package com.android.tools.idea.uibuilder.model;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 
-public class DnDTransferItem {
+public class DnDTransferComponent {
   private final String myTag;
   private final String myRepresentation;
   @AndroidCoordinate private final int myWidth;
   @AndroidCoordinate private final int myHeight;
 
-  public DnDTransferItem(NlPaletteItem item, @AndroidCoordinate int width, @AndroidCoordinate int height) {
-    myTag = item.getId();
-    myRepresentation = item.getRepresentation();
+  public DnDTransferComponent(@NonNull String tag,
+                              @NonNull String representation,
+                              @AndroidCoordinate int width,
+                              @AndroidCoordinate int height) {
+    myTag = tag;
+    myRepresentation = representation;
     myWidth = width;
     myHeight = height;
   }

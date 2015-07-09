@@ -25,21 +25,15 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.palette.DnDTransferItem;
-import com.android.tools.idea.uibuilder.palette.ItemTransferable;
-import com.android.tools.idea.uibuilder.palette.NlPaletteItem;
-import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.XmlElementFactory;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
 
 import javax.swing.*;
@@ -53,7 +47,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
@@ -562,7 +555,7 @@ public class InteractionManager {
         myLastMouseY = location.y;
 
         for (DataFlavor flavor : event.getCurrentDataFlavors()) {
-          if (flavor.equals(ItemTransferable.PALETTE_FLAVOR) ||
+          if (flavor.equals(ItemTransferable.DESIGNER_FLAVOR) ||
               flavor.getMimeType().startsWith("text/plain;") || flavor.getMimeType().equals("text/plain")) {
             event.acceptDrag(DnDConstants.ACTION_COPY);
             ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
@@ -572,13 +565,17 @@ public class InteractionManager {
             final NlModel model = screenView.getModel();
             try {
               DnDTransferItem item = getTransferItem(event.getTransferable(), true /* allow placeholders */);
-              XmlTag tag = createTagFromTransferItem(item);
-              NlComponent dragged = model.createComponent(screenView, tag, null, null, InsertType.CREATE_PREVIEW);
-              dragged.w = item.getWidth();
-              dragged.h = item.getHeight();
-              dragged.x = Coordinates.getAndroidX(screenView, myLastMouseX) - dragged.w / 2;
-              dragged.y = Coordinates.getAndroidY(screenView, myLastMouseY) - dragged.h / 2;
-              DragDropInteraction interaction = new DragDropInteraction(mySurface, Collections.singletonList(dragged));
+              boolean isCopy = event.getDropAction() == DnDConstants.ACTION_COPY;
+              InsertType insertType = model.determineInsertType(item, true /* preview */, isCopy);
+              List<NlComponent> dragged = model.createComponents(screenView, item, insertType);
+              int yOffset = 0;
+              for (NlComponent component : dragged) {
+                // todo: place the components like they were originally placed?
+                component.x = Coordinates.getAndroidX(screenView, myLastMouseX) - component.w / 2;
+                component.y = Coordinates.getAndroidY(screenView, myLastMouseY) - component.h / 2 + yOffset;
+                yOffset += component.h;
+              }
+              DragDropInteraction interaction = new DragDropInteraction(mySurface, dragged);
               interaction.setType(DragType.COPY);
               startInteraction(myLastMouseX, myLastMouseY, interaction, 0);
               break;
@@ -601,7 +598,7 @@ public class InteractionManager {
       }
 
       for (DataFlavor flavor : event.getCurrentDataFlavors()) {
-        if (flavor.equals(ItemTransferable.PALETTE_FLAVOR) || String.class == flavor.getRepresentationClass()) {
+        if (flavor.equals(ItemTransferable.DESIGNER_FLAVOR) || String.class == flavor.getRepresentationClass()) {
           event.acceptDrag(DnDConstants.ACTION_COPY);
           return;
         }
@@ -621,7 +618,7 @@ public class InteractionManager {
     }
 
     @Override
-    public void drop(DropTargetDropEvent event) {
+    public void drop(final DropTargetDropEvent event) {
       Point location = event.getLocation();
       myLastMouseX = location.x;
       myLastMouseY = location.y;
@@ -633,7 +630,6 @@ public class InteractionManager {
       }
 
       try {
-        final DnDTransferItem item = getTransferItem(event.getTransferable(), false /* do not allow placeholders */);
         event.acceptDrop(DnDConstants.ACTION_MOVE);
         final NlModel model = screenView.getModel();
         final Project project = model.getFacet().getModule().getProject();
@@ -641,8 +637,6 @@ public class InteractionManager {
         WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Drop", file) {
           @Override
           protected void run(@NonNull Result<Void> result) throws Throwable {
-            XmlTag tag = createTagFromTransferItem(item);
-
             if (myCurrentInteraction instanceof DragDropInteraction) {
               DragDropInteraction dragDrop = (DragDropInteraction)myCurrentInteraction;
               List<NlComponent> draggedComponents = dragDrop.getDraggedComponents();
@@ -651,7 +645,11 @@ public class InteractionManager {
               if (component != null) {
                 if (component.getTag().getName().equals("placeholder")) {
                   // If we were unable to read the transfer data on dragEnter, replace the tag here:
-                  component.setTag(tag);
+                  final DnDTransferItem item = getTransferItem(event.getTransferable(), false /* do not allow placeholders */);
+                  boolean isCopy = event.getDropAction() == DnDConstants.ACTION_COPY;
+                  InsertType insertType = model.determineInsertType(item, true /* preview */, isCopy);
+                  draggedComponents = model.createComponents(screenView, item, insertType);
+                  component = draggedComponents.size() == 1 ? draggedComponents.get(0) : null;
                 }
                 if (component.needsDefaultId()) {
                   component.assignId();
@@ -676,15 +674,6 @@ public class InteractionManager {
               }
               return;
             }
-
-            XmlDocument document = file.getDocument();
-            if (document != null) {
-              XmlTag rootTag = document.getRootTag();
-              if (rootTag != null) {
-                rootTag.addSubTag(tag, false);
-                model.requestRender();
-              }
-            }
           }
         };
         action.execute();
@@ -703,81 +692,26 @@ public class InteractionManager {
     throws IOException, UnsupportedFlavorException {
     DnDTransferItem item = null;
     try {
-      if (transferable.isDataFlavorSupported(ItemTransferable.PALETTE_FLAVOR)) {
-        item = (DnDTransferItem)transferable.getTransferData(ItemTransferable.PALETTE_FLAVOR);
+      if (transferable.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) {
+        item = (DnDTransferItem)transferable.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
       }
       else if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
         String xml = (String)transferable.getTransferData(DataFlavor.stringFlavor);
-        item = new DnDTransferItem(new NlPaletteItem("", "", "", xml, "", "", ""), 200, 100);
+        if (!StringUtil.isEmpty(xml)) {
+          item = new DnDTransferItem(new DnDTransferComponent("", xml, 200, 100));
+        }
       }
     } catch (InvalidDnDOperationException ex) {
       if (!allowPlaceholder) {
         throw ex;
       }
       String defaultXml = "<placeholder xmlns:android=\"http://schemas.android.com/apk/res/android\"/>";
-      item = new DnDTransferItem(new NlPaletteItem("", "", "", defaultXml, "", "", ""), 200, 100);
+      item = new DnDTransferItem(new DnDTransferComponent("", defaultXml, 200, 100));
     }
-    if (item == null || item.getRepresentation().isEmpty()) {
+    if (item == null) {
       throw new UnsupportedFlavorException(null);
     }
     return item;
-  }
-
-  @Nullable
-  private XmlTag createTagFromTransferItem(@NonNull DnDTransferItem item) {
-    ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-    if (screenView == null) {
-      return null;
-    }
-    NlModel model = screenView.getModel();
-    Project project = model.getFacet().getModule().getProject();
-    XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
-    XmlTag tag = null;
-    String text = item.getRepresentation();
-    if (XmlUtils.parseDocumentSilently(text, false) != null) {
-      try {
-        String xml = addAndroidNamespaceIfMissing(text);
-        tag = elementFactory.createTagFromText(xml);
-      }
-      catch (IncorrectOperationException ignore) {
-        // Thrown by XmlElementFactory if you try to parse non-valid XML. User might have tried
-        // to drop something like plain text -- insert this as a text view instead.
-        // However, createTagFromText may not always throw this for invalid XML, so we perform the above parseDocument
-        // check first instead.
-      }
-    }
-    if (tag == null) {
-      tag = elementFactory.createTagFromText("<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\" " +
-                                             " android:text=\"" + XmlUtils.toXmlAttributeValue(text) + "\"" +
-                                             " android:layout_width=\"wrap_content\"" +
-                                             " android:layout_height=\"wrap_content\"" +
-                                             "/>");
-    }
-    return tag;
-  }
-
-  private static String addAndroidNamespaceIfMissing(@NonNull String xml) {
-    // TODO: Remove this temporary hack, which adds an Android namespace if necessary
-    // (this is such that the resulting tag is namespace aware, and attempts to manipulate it from
-    // a component handler will correctly set namespace prefixes)
-
-    if (!xml.contains(ANDROID_URI)) {
-      int index = xml.indexOf('<');
-      if (index != -1) {
-        index = xml.indexOf(' ', index);
-        if (index == -1) {
-          index = xml.indexOf("/>");
-          if (index == -1) {
-            index = xml.indexOf('>');
-          }
-        }
-        if (index != -1) {
-          xml =
-            xml.substring(0, index) + " xmlns:android=\"http://schemas.android.com/apk/res/android\"" + xml.substring(index);
-        }
-      }
-    }
-    return xml;
   }
 
   @VisibleForTesting
