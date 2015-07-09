@@ -17,12 +17,11 @@ package com.android.tools.idea.configurations;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -44,12 +43,20 @@ import static com.android.ide.common.rendering.HardwareConfigHelper.*;
 public class DeviceMenuAction extends FlatComboAction {
   private static final boolean LIST_RECENT_DEVICES = false;
   private final RenderContext myRenderContext;
+  private final boolean myClassicStyle;
 
   public DeviceMenuAction(@NotNull RenderContext renderContext) {
+    this(renderContext, true);
+  }
+
+  public DeviceMenuAction(@NotNull RenderContext renderContext, boolean classicStyle) {
     myRenderContext = renderContext;
+    myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("The virtual device to render the layout with");
-    presentation.setIcon(AndroidIcons.Display);
+    if (classicStyle) {
+      presentation.setIcon(AndroidIcons.Display);
+    }
     updatePresentation(presentation);
   }
 
@@ -63,8 +70,13 @@ public class DeviceMenuAction extends FlatComboAction {
     Configuration configuration = myRenderContext.getConfiguration();
     boolean visible = configuration != null;
     if (visible) {
-      String label = getDeviceLabel(configuration.getDevice(), true);
+      Device device = configuration.getDevice();
+      String label = getDeviceLabel(device, true);
       presentation.setText(label);
+
+      if (!myClassicStyle) {
+        presentation.setIcon(getDeviceClassIcon(device));
+      }
     }
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
@@ -111,6 +123,34 @@ public class DeviceMenuAction extends FlatComboAction {
     }
 
     return name;
+  }
+
+  /**
+   * Similar to {@link DeviceMenuAction.FormFactor#getFormFactor(Device)}
+   * but (a) distinguishes between tablets and phones, and (b) uses the new Nele icons
+   */
+  public Icon getDeviceClassIcon(@Nullable Device device) {
+    if (myClassicStyle) {
+      FormFactor formFactor = device != null ? FormFactor.getFormFactor(device) : FormFactor.MOBILE;
+      return formFactor.getIcon();
+    }
+
+    if (device != null) {
+      if (HardwareConfigHelper.isWear(device)) {
+        return AndroidIcons.NeleIcons.Wear;
+      }
+      else if (HardwareConfigHelper.isTv(device)) {
+        return AndroidIcons.NeleIcons.Tv;
+      }
+
+      // Glass, Car not yet in the device list
+
+      if (DeviceArtPainter.isTablet(device)) {
+        return AndroidIcons.NeleIcons.Tablet;
+      }
+    }
+
+    return AndroidIcons.NeleIcons.Phone;
   }
 
   /** TODO: Combine with {@link com.android.tools.idea.wizard.FormFactorUtils.FormFactor} */
@@ -190,7 +230,7 @@ public class DeviceMenuAction extends FlatComboAction {
         boolean separatorNeeded = false;
         for (Device device : recent) {
           String label = getLabel(device, isNexus(device));
-          Icon icon = FormFactor.getFormFactor(device).getIcon();
+          Icon icon = getDeviceClassIcon(device);
           group.add(new SetDeviceAction(myRenderContext, label, device, icon, device == current));
           separatorNeeded = true;
         }
@@ -213,7 +253,7 @@ public class DeviceMenuAction extends FlatComboAction {
         if (device != null) {
           String avdName = "AVD: " + avd.getName();
           boolean selected = current != null && (current.getDisplayName().equals(avdName) || current.getId().equals(avdName));
-          Icon icon = FormFactor.getFormFactor(device).getIcon();
+          Icon icon = getDeviceClassIcon(device);
           group.add(new SetDeviceAction(myRenderContext, avdName, device, icon, selected));
           separatorNeeded = true;
         }
@@ -279,7 +319,7 @@ public class DeviceMenuAction extends FlatComboAction {
   private void addNexusDeviceSection(@NotNull DefaultActionGroup group, @Nullable Device current, @NotNull List<Device> devices) {
     for (final Device device : devices) {
       String label = getLabel(device, true /*nexus*/);
-      Icon icon = FormFactor.getFormFactor(device).getIcon();
+      Icon icon = getDeviceClassIcon(device);
       group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
     }
   }
@@ -295,7 +335,7 @@ public class DeviceMenuAction extends FlatComboAction {
     }
     for (final Device device : generic) {
       String label = getLabel(device, false /*nexus*/);
-      Icon icon = FormFactor.getFormFactor(device).getIcon();
+      Icon icon = getDeviceClassIcon(device);
       group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
     }
   }
