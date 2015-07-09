@@ -74,8 +74,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     // The {@link LightFillLayout} provides the UI for the minimized forms of the {@link LightToolWindow}
     // used for the palette and the structure/properties panes.
     JPanel contentPanel = new JPanel(new LightFillLayout());
-    JLabel toolbar = new JLabel();
-    toolbar.setVisible(false);
+    JComponent toolbar = createToolbar(mySurface);
     contentPanel.add(toolbar);
     contentPanel.add(mySurface);
 
@@ -84,9 +83,13 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     myContentSplitter.setInnerComponent(contentPanel);
     add(myContentSplitter, BorderLayout.CENTER);
 
+    // When you're opening the layout editor we don't want to delay anything
+    model.requestRenderAsap();
+  }
 
-    RenderContext context = new NlRenderContext();
-    ActionGroup group = createActions(context);
+  static JComponent createToolbar(@NonNull DesignSurface surface) {
+    RenderContext context = new NlRenderContext(surface);
+    ActionGroup group = createActions(context, surface);
 
     ActionManager actionManager = ActionManager.getInstance();
     ActionToolbar actionToolbar = actionManager.createActionToolbar("NeleToolbarId", group, true);
@@ -94,16 +97,11 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
 
     JComponent editorToolbar = actionToolbar.getComponent();
     editorToolbar.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
-    // TODO: Hide for XML preview?
-    //editorToolbar.setVisible(false);
-    add(editorToolbar, BorderLayout.NORTH);
 
-
-    // When you're opening the layout editor we don't want to delay anything
-    model.requestRenderAsap();
+    return editorToolbar;
   }
 
-  private DefaultActionGroup createActions(RenderContext configurationHolder) {
+  private static DefaultActionGroup createActions(RenderContext configurationHolder, DesignSurface surface) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     OrientationMenuAction orientationAction = new OrientationMenuAction(configurationHolder);
@@ -125,7 +123,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     ConfigurationMenuAction configAction = new ConfigurationMenuAction(configurationHolder);
     group.add(configAction);
 
-    ZoomMenuAction zoomAction = new ZoomMenuAction(mySurface);
+    ZoomMenuAction zoomAction = new ZoomMenuAction(surface);
     group.add(zoomAction);
 
     return group;
@@ -244,7 +242,13 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
    * and old layout editors, we no longer needs this level of indirection to let the configuration actions
    * talk to multiple different editor implementations, and the render actions can directly address DesignSurface.
    */
-  private class NlRenderContext implements RenderContext {
+  private static class NlRenderContext implements RenderContext {
+    @NonNull private DesignSurface mySurface;
+
+    public NlRenderContext(@NonNull DesignSurface surface) {
+      mySurface = surface;
+    }
+
     @Nullable
     @Override
     public Configuration getConfiguration() {
@@ -307,7 +311,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     @NonNull
     @Override
     public Component getComponent() {
-      return NlEditorPanel.this;
+      return mySurface;
     }
 
     @NonNull
