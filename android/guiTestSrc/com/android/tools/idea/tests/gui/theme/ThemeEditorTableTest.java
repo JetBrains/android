@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
@@ -29,6 +30,7 @@ import org.fest.swing.fixture.JMenuItemFixture;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
@@ -169,5 +171,32 @@ public class ThemeEditorTableTest extends GuiTestCase {
         return parentName.equals(themesComboBox.target().getSelectedItem().toString());
       }
     }, GuiTests.SHORT_TIMEOUT);
+  }
+
+  @Test @IdeGuiTest
+  public void testResoucePickerNameError() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+
+    JTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+    assertNotNull(themeEditorTable);
+
+    // Cell (1,0) should be some color
+    JTableCellFixture colorCell = themeEditorTable.cell(row(1).column(0));
+
+    // click on a color
+    colorCell.click();
+
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
+    JTextComponentFixture name = dialog.getNameTextField();
+
+    // add mistake into name field
+    String badText = "(";
+    name.enterText(badText);
+    String text = name.text();
+    assertNotNull(text);
+    assertTrue(text.endsWith(badText));
+
+    assertEquals("<html><font color='#ff0000'><left>'"+badText+"' is not a valid resource name character</left></b></font></html>", dialog.getError());
   }
 }
