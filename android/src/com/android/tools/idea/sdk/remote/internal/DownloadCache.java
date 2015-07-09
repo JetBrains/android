@@ -25,14 +25,16 @@ import com.android.prefs.AndroidLocation;
 import com.android.prefs.AndroidLocation.AndroidLocationException;
 import com.android.sdklib.io.FileOp;
 import com.android.sdklib.io.IFileOp;
+import com.android.tools.idea.sdk.remote.internal.sources.SdkAddonsListConstants;
 import com.android.utils.Pair;
-import org.apache.http.Header;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
+import com.intellij.util.net.HttpConfigurable;
+import org.apache.http.*;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.message.BasicStatusLine;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -217,30 +219,89 @@ public class DownloadCache {
     }
 
     /**
-     * Calls {@link UrlOpener#openUrl(String, boolean, ITaskMonitor, Header[])}
+     * Calls {@link HttpConfigurable#openHttpConnection(String)}
      * to actually perform a download.
      * <p/>
      * Isolated so that it can be overridden by unit tests.
      */
     @VisibleForTesting(visibility=Visibility.PRIVATE)
     @NonNull
-    protected Pair<InputStream, HttpResponse> openUrl(
+    protected Pair<InputStream, HttpURLConnection> openUrl(
             @NonNull String url,
             boolean needsMarkResetSupport,
             @NonNull ITaskMonitor monitor,
             @Nullable Header[] headers) throws IOException, CanceledByUserException {
-        return com.android.tools.idea.sdk.remote.internal.UrlOpener.openUrl(url, needsMarkResetSupport, monitor, headers);
+        HttpURLConnection connection = HttpConfigurable.getInstance().openHttpConnection(url);
+        if (headers != null) {
+            for (Header header : headers) {
+                connection.setRequestProperty(header.getName(), header.getValue());
+            }
+        }
+        connection.connect();
+        InputStream is = connection.getInputStream();
+        if (needsMarkResetSupport) {
+            is = ensureMarkReset(is);
+        }
+
+        return Pair.of(is, connection);
+    }
+
+    private InputStream ensureMarkReset(InputStream is) {
+        // If the caller requires an InputStream that supports mark/reset, let's
+        // make sure we have such a stream.
+        if (is != null) {
+            if (!is.markSupported()) {
+                try {
+                    // Consume the whole input stream and offer a byte array stream instead.
+                    // This can only work sanely if the resource is a small file that can
+                    // fit in memory. It also means the caller has no chance of showing
+                    // a meaningful download progress.
+
+                    InputStream is2 = toByteArrayInputStream(is);
+                    if (is2 != null) {
+                        try {
+                            is.close();
+                        }
+                        catch (Exception ignore) {
+                        }
+                        return is2;
+                    }
+                }
+                catch (Exception e3) {
+                    // Ignore. If this can't work, caller will fail later.
+                }
+            }
+        }
+        return is;
+    }
+
+    // ByteArrayInputStream is the duct tape of input streams.
+    private static InputStream toByteArrayInputStream(InputStream is) throws IOException {
+        int inc = 4096;
+        int curr = 0;
+        byte[] result = new byte[inc];
+
+        int n;
+        while ((n = is.read(result, curr, result.length - curr)) != -1) {
+            curr += n;
+            if (curr == result.length) {
+                byte[] temp = new byte[curr + inc];
+                System.arraycopy(result, 0, temp, 0, curr);
+                result = temp;
+            }
+        }
+
+        return new ByteArrayInputStream(result, 0, curr);
     }
 
 
     /**
-     * Does a direct download of the given URL using {@link UrlOpener}.
+     * Does a direct download of the given URL using {@link HttpConfigurable#openHttpConnection(String)}.
      * This does not check the download cache and does not attempt to cache the file.
      * Instead the HttpClient library returns a progressive download stream.
      * <p/>
      * For details on realm authentication and user/password handling,
-     * check the underlying {@link UrlOpener#openUrl(String, boolean, ITaskMonitor, Header[])}
-     * documentation.
+     * see {@link HttpConfigurable#openHttpConnection(String)}.
      * <p/>
      * The resulting input stream may not support mark/reset.
      *
@@ -260,7 +321,7 @@ public class DownloadCache {
      *              authentication dialog.
      */
     @NonNull
-    public Pair<InputStream, HttpResponse> openDirectUrl(
+    public Pair<InputStream, HttpURLConnection> openDirectUrl(
             @NonNull  String urlString,
             @Nullable Header[] headers,
             @NonNull  ITaskMonitor monitor)
@@ -311,12 +372,12 @@ public class DownloadCache {
         if (DEBUG) {
             System.out.println(String.format("%s : Direct download", urlString)); //$NON-NLS-1$
         }
-        Pair<InputStream, HttpResponse> result = openUrl(
+        Pair<InputStream, HttpURLConnection> result = openUrl(
                 urlString,
                 false /*needsMarkResetSupport*/,
                 monitor,
                 null /*headers*/);
-        return Pair.of(result.getFirst(), result.getSecond().getStatusLine().getStatusCode());
+        return Pair.of(result.getFirst(), result.getSecond().getResponseCode());
     }
 
     /**
@@ -328,8 +389,7 @@ public class DownloadCache {
      * cache and instead use the {@link #openDirectUrl} method.
      * <p/>
      * For details on realm authentication and user/password handling,
-     * check the underlying {@link UrlOpener#openUrl(String, boolean, ITaskMonitor, Header[])}
-     * documentation.
+     * see {@link HttpConfigurable#openHttpConnection(String)}.
      *
      * @param urlString the URL string to be opened.
      * @param monitor {@link ITaskMonitor} which is related to this URL
@@ -347,7 +407,7 @@ public class DownloadCache {
             throws IOException, CanceledByUserException {
         // Don't cache in direct mode.
         if (mStrategy == Strategy.DIRECT) {
-            Pair<InputStream, HttpResponse> result = openUrl(
+            Pair<InputStream, HttpURLConnection> result = openUrl(
                     urlString,
                     true /*needsMarkResetSupport*/,
                     monitor,
@@ -612,20 +672,19 @@ public class DownloadCache {
         byte[] result = new byte[inc];
 
         try {
-            Pair<InputStream, HttpResponse> r =
+            Pair<InputStream, HttpURLConnection> r =
                 openUrl(urlString, true /*needsMarkResetSupport*/, monitor, headers);
 
             is = r.getFirst();
-            HttpResponse response = r.getSecond();
+            HttpURLConnection connection = r.getSecond();
 
             if (DEBUG) {
                 System.out.println(String.format("%s : fetch: %s => %s",  //$NON-NLS-1$
-                        urlString,
-                        headers == null ? "" : Arrays.toString(headers),    //$NON-NLS-1$
-                        response.getStatusLine()));
+                                                 urlString, headers == null ? "" : Arrays.toString(headers),    //$NON-NLS-1$
+                                                 connection.getResponseMessage()));
             }
 
-            int code = response.getStatusLine().getStatusCode();
+            int code = connection.getResponseCode();
 
             if (outStatusCode != null) {
                 outStatusCode.set(code);
@@ -674,7 +733,7 @@ public class DownloadCache {
                     os.close();
                     os = null;
 
-                    saveInfo(urlString, response, info);
+                    saveInfo(urlString, connection, info);
                 } catch (IOException ignore) {}
             }
 
@@ -706,7 +765,7 @@ public class DownloadCache {
      */
     private void saveInfo(
             @NonNull String urlString,
-            @NonNull HttpResponse response,
+            @NonNull HttpURLConnection connection,
             @NonNull File info) throws IOException {
         Properties props = new Properties();
 
@@ -714,12 +773,12 @@ public class DownloadCache {
         // Save it in case we want to have it later (e.g. to differentiate 200 and 404.)
         props.setProperty(KEY_URL, urlString);
         props.setProperty(KEY_STATUS_CODE,
-                Integer.toString(response.getStatusLine().getStatusCode()));
+                Integer.toString(connection.getResponseCode()));
 
         for (String name : INFO_HTTP_HEADERS) {
-            Header h = response.getFirstHeader(name);
+            String h = connection.getHeaderField(name);
             if (h != null) {
-                props.setProperty(name, h.getValue());
+                props.setProperty(name, h);
             }
         }
 

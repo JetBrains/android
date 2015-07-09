@@ -143,7 +143,7 @@ public final class ComponentInstaller {
   }
 
   public void installPackages(@NotNull SdkManager manager, @NotNull ArrayList<String> packages, ILogger logger) throws WizardException {
-    SdkUpdaterNoWindow updater = new SdkUpdaterNoWindow(manager.getLocation(), manager, logger, false, true, null, null);
+    SdkUpdaterNoWindow updater = new SdkUpdaterNoWindow(manager.getLocation(), manager, logger, false, null, null);
     updater.updateAll(packages, true, false, null, false);
   }
 }
