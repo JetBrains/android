@@ -90,8 +90,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     // The {@link LightFillLayout} provides the UI for the minimized forms of the {@link LightToolWindow}
     // used for the palette and the structure/properties panes.
     JPanel contentPanel = new JPanel(new LightFillLayout());
-    JLabel toolbar = new JLabel();
-    toolbar.setVisible(false);
+    JComponent toolbar = NlEditorPanel.createToolbar(mySurface);
     contentPanel.add(toolbar);
     contentPanel.add(mySurface);
 
