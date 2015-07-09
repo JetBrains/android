@@ -9,11 +9,14 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
+import com.android.tools.idea.rendering.ModuleResourceRepository;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Pair;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +25,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
@@ -31,9 +33,7 @@ import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
  * Class that provides methods to resolve themes for a given configuration.
  */
 public class ThemeResolver {
-  private static final Logger LOG = Logger.getInstance(ThemeResolver.class);
-
-  private final Set<String> myThemeNames = Sets.newHashSet();
+  private final Map<String, ThemeEditorStyle> myThemeByName = Maps.newHashMap();
   private final ImmutableList<ThemeEditorStyle> myFrameworkThemes;
   private final ImmutableList<ThemeEditorStyle> myLocalThemes;
   private final ImmutableList<ThemeEditorStyle> myExternalLibraryThemes;
@@ -50,7 +50,15 @@ public class ThemeResolver {
     }
 
     myFrameworkThemes = fillThemeResolverFromStyles(resolveFrameworkThemes());
-    myLocalThemes = fillThemeResolverFromStyles(resolveLocallyDefinedModuleThemes());
+
+    final ImmutableList.Builder<ThemeEditorStyle> localThemes = ImmutableList.builder();
+    for (Pair<StyleResourceValue, Module> pair : resolveLocallyDefinedModuleThemes()) {
+      final ThemeEditorStyle theme = constructThemeFromResourceValue(pair.getFirst(), pair.getSecond());
+      if (theme != null) {
+        localThemes.add(theme);
+      }
+    }
+    myLocalThemes = localThemes.build();
 
     // resolveNonFrameworkThemes() returns all themes available from the current module, including library themes.
     // Because all local themes would be added at previous step to myLocalThemes, they'll be ignored
@@ -58,23 +66,34 @@ public class ThemeResolver {
     myExternalLibraryThemes = fillThemeResolverFromStyles(resolveNonFrameworkThemes());
   }
 
+  /**
+   * Create a ThemeEditorStyle instance stored in ThemeResolver, which can be added to one of theme lists.
+   * @return null if theme with this name was already added or resolution has failed
+   */
+  @Nullable
+  private ThemeEditorStyle constructThemeFromResourceValue(@NotNull StyleResourceValue value, @Nullable Module sourceModule) {
+    final String name = ResolutionUtils.getQualifiedStyleName(value);
+
+    if (myThemeByName.containsKey(name)) {
+      return null;
+    }
+
+    final ThemeEditorStyle theme = ResolutionUtils.getStyle(myConfiguration, name, sourceModule);
+    if (theme != null) {
+      myThemeByName.put(name, theme);
+    }
+
+    return theme;
+  }
+
   private ImmutableList<ThemeEditorStyle> fillThemeResolverFromStyles(@NotNull List<StyleResourceValue> source) {
     ImmutableList.Builder<ThemeEditorStyle> builder = ImmutableList.builder();
 
     for (StyleResourceValue value : source) {
-      final String name = ResolutionUtils.getQualifiedStyleName(value);
-
-      if (myThemeNames.contains(name)) {
-        continue;
+      ThemeEditorStyle theme = constructThemeFromResourceValue(value, null);
+      if (theme != null) {
+        builder.add(theme);
       }
-
-      myThemeNames.add(name);
-      final ThemeEditorStyle theme = ResolutionUtils.getStyle(myConfiguration, name);
-      if (theme == null) {
-        continue;
-      }
-
-      builder.add(theme);
     }
 
     return builder.build();
@@ -108,13 +127,30 @@ public class ThemeResolver {
    * in the current project (doesn't include themes available from libraries)
    */
   @NotNull
-  private List<StyleResourceValue> resolveLocallyDefinedModuleThemes() {
-    LocalResourceRepository repository = ProjectResourceRepository.getProjectResources(myConfiguration.getModule(), true);
-    if (repository == null) {
-      return Collections.emptyList();
+  private List<Pair<StyleResourceValue, Module>> resolveLocallyDefinedModuleThemes() {
+    final Module module = myConfiguration.getModule();
+    final List<Pair<StyleResourceValue, Module>> result = Lists.newArrayList();
+
+    fillModuleResources(module, ModuleResourceRepository.getModuleResources(module, true), result);
+
+    final List<AndroidFacet> allAndroidDependencies = AndroidUtils.getAllAndroidDependencies(module, false);
+    for (AndroidFacet facet : allAndroidDependencies) {
+      fillModuleResources(facet.getModule(), facet.getModuleResources(true), result);
     }
 
-    return getThemes(repository.getConfiguredResources(ResourceType.STYLE, myConfiguration.getFullConfig()), false /*isFramework*/);
+    return result;
+  }
+
+  private void fillModuleResources(@NotNull Module module,
+                                   @Nullable LocalResourceRepository repository,
+                                   @NotNull List<Pair<StyleResourceValue, Module>> sink) {
+    if (repository == null) {
+      return;
+    }
+
+    for (StyleResourceValue value : getThemes(repository.getConfiguredResources(ResourceType.STYLE, myConfiguration.getFullConfig()), false)) {
+      sink.add(Pair.create(value, module));
+    }
   }
 
   @NotNull
@@ -149,11 +185,7 @@ public class ThemeResolver {
 
   @Nullable
   public ThemeEditorStyle getTheme(@NotNull String themeName) {
-    if (myThemeNames.contains(themeName)) {
-      return ResolutionUtils.getStyle(myConfiguration, themeName);
-    }
-
-    return null;
+    return myThemeByName.get(themeName);
   }
 
   /**

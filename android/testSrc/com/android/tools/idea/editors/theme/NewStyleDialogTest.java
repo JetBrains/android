@@ -43,7 +43,7 @@ public class NewStyleDialogTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
 
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
-    ThemeEditorContext context = new ThemeEditorContext(configuration, myModule);
+    ThemeEditorContext context = new ThemeEditorContext(configuration);
     String styleName = "@android:style/TextAppearance.Medium";
 
     NewStyleDialog dialog = new NewStyleDialog(false, context, styleName, "textAppearance", null);

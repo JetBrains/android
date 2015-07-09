@@ -25,9 +25,10 @@ import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
-import java.awt.*;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -95,7 +96,7 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Stri
       String selectedValue = (String) myComboBox.getSelectedItem();
       if (USE_REFERENCE.equals(selectedValue)) {
         myComboBox.hidePopup();
-        final ChooseResourceDialog dialog = new ChooseResourceDialog(myContext.getCurrentThemeModule(), BOOLEAN_TYPE, myEditedItemValue, null);
+        final ChooseResourceDialog dialog = new ChooseResourceDialog(myContext.getModuleForResources(), BOOLEAN_TYPE, myEditedItemValue, null);
 
         dialog.show();
 

@@ -86,7 +86,7 @@ public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
     String parentName = parent != null ? parent.getName() : null;
 
     String defaultAppTheme = null;
-    final AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentThemeModule());
+    final AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentContextModule());
     if (facet != null) {
       Manifest manifest = facet.getManifest();
       if (manifest != null && manifest.getApplication() != null && manifest.getApplication().getXmlTag() != null) {
