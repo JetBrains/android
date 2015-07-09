@@ -43,6 +43,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -561,7 +562,7 @@ public class UpdaterData {
   }
 
   private List<ArchiveInfo> getRemoteArchives(boolean includeAll) {
-    SdkState state = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
+    SdkState state = SdkState.getInstance(AndroidSdkData.getSdkData(mOsSdkRoot));
     state.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, false);
     List<ArchiveInfo> result = Lists.newArrayList();
     for (UpdatablePkgInfo update : state.getPackages().getConsolidatedPkgs().values()) {
