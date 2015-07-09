@@ -44,16 +44,20 @@ import static com.android.ide.common.rendering.HardwareConfigHelper.*;
 public class DeviceMenuAction extends FlatComboAction {
   private static final boolean LIST_RECENT_DEVICES = false;
   private final RenderContext myRenderContext;
+  private final boolean myClassicStyle;
 
   public DeviceMenuAction(@NotNull RenderContext renderContext) {
+    this(renderContext, !RenderService.NELE_ENABLED);
+  }
+
+  public DeviceMenuAction(@NotNull RenderContext renderContext, boolean classicStyle) {
     myRenderContext = renderContext;
+    myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("The virtual device to render the layout with");
-
-    if (!RenderService.NELE_ENABLED) {
+    if (classicStyle) {
       presentation.setIcon(AndroidIcons.Display);
     }
-
     updatePresentation(presentation);
   }
 
@@ -71,10 +75,9 @@ public class DeviceMenuAction extends FlatComboAction {
       String label = getDeviceLabel(device, true);
       presentation.setText(label);
 
-      if (RenderService.NELE_ENABLED){
+      if (!myClassicStyle) {
         presentation.setIcon(getDeviceClassIcon(device));
       }
-
     }
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
@@ -127,8 +130,8 @@ public class DeviceMenuAction extends FlatComboAction {
    * Similar to {@link DeviceMenuAction.FormFactor#getFormFactor(Device)}
    * but (a) distinguishes between tablets and phones, and (b) uses the new Nele icons
    */
-  public static Icon getDeviceClassIcon(@Nullable Device device) {
-    if (!RenderService.NELE_ENABLED) {
+  public Icon getDeviceClassIcon(@Nullable Device device) {
+    if (myClassicStyle) {
       FormFactor formFactor = device != null ? FormFactor.getFormFactor(device) : FormFactor.MOBILE;
       return formFactor.getIcon();
     }
