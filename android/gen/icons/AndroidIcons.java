@@ -152,6 +152,20 @@ public class AndroidIcons {
     public static final Icon NewProjectMascotGreen = load("/icons/wizards/welcome_green.png"); // 60x60
   }
 
+  public static class NeleIcons {
+    // All 16x16 and 32x32 in Retina mode
+    public static final Icon Api = load("/icons/nele/api.png");
+    public static final Icon Language = load("/icons/nele/language.png");
+    public static final Icon Preview = load("/icons/nele/preview.png");
+    public static final Icon Rotate = load("/icons/nele/rotate.png");
+    public static final Icon Size = load("/icons/nele/size.png");
+    public static final Icon Phone = load("/icons/nele/phone.png");
+    public static final Icon Tablet = load("/icons/nele/tablet.png");
+    public static final Icon Wear = load("/icons/nele/wear.png");
+    public static final Icon Tv = load("/icons/nele/tv.png");
+    public static final Icon Theme = load("/icons/nele/theme.png");
+  }
+
   public static class Views {
     public static final Icon AbsoluteLayout = load("/icons/views/AbsoluteLayout.png"); // 16x16
     public static final Icon AdapterViewFlipper = load("/icons/views/AdapterViewFlipper.png"); // 16x16
