@@ -18,8 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
-import com.android.tools.idea.editors.theme.ThemeEditor;
-import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
+import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
@@ -55,8 +54,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.FocusManager;
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.KeyStroke;
+import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.util.List;
 
@@ -971,30 +972,17 @@ public class EditorFixture {
    * Returns a fixture around the {@link com.android.tools.idea.editors.theme.ThemeEditor} <b>if</b> the currently
    * displayed editor is a theme editor.
    */
-  @Nullable
+  @NotNull
   public ThemeEditorFixture getThemeEditor() {
-    VirtualFile currentFile = getCurrentFile();
-    if (!(currentFile instanceof ThemeEditorVirtualFile)) {
-      return null;
-    }
-
-    return execute(new GuiQuery<ThemeEditorFixture>() {
-      @Override
-      @Nullable
-      protected ThemeEditorFixture executeInEDT() throws Throwable {
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        FileEditor[] editors = manager.getSelectedEditors();
-        if (editors.length == 0) {
-          return null;
+    final ThemeEditorComponent themeEditorComponent =
+      GuiTests.waitUntilFound(robot, new GenericTypeMatcher<ThemeEditorComponent>(ThemeEditorComponent.class) {
+        @Override
+        protected boolean isMatching(@NotNull ThemeEditorComponent component) {
+          return true;
         }
-        FileEditor selected = editors[0];
-        if (!(selected instanceof ThemeEditor)) {
-          return null;
-        }
+      });
 
-        return new ThemeEditorFixture(robot, (ThemeEditor)selected);
-      }
-    });
+    return new ThemeEditorFixture(robot, themeEditorComponent);
   }
 
   /**
