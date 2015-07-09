@@ -19,6 +19,7 @@ package com.android.tools.idea.ddms;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.tools.idea.editors.vmtrace.VmTraceCaptureType;
+import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -51,18 +52,14 @@ public class OpenVmTraceHandler implements ClientData.IMethodProfilingHandler {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              CaptureService service = CaptureService.getInstance(myProject);
-              service.createCapture(VmTraceCaptureType.class, data);
-            }
-            catch (IOException e) {
-              throw new RuntimeException(e);
-            }
-          }
-        });
+        try {
+          CaptureService service = CaptureService.getInstance(myProject);
+          Capture capture = service.createCapture(VmTraceCaptureType.class, data);
+          service.notifyCaptureReady(capture);
+        }
+        catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       }
     });
   }
