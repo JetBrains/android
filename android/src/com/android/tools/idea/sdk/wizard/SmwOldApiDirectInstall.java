@@ -213,7 +213,6 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
         myLogger,
         false,  // force -- The reply to any question asked by the update process.
                //          Currently this will be yes/no for ability to replace modified samples, restart ADB, restart on locked win folder.
-        false, // useHttp -- True to force using HTTP instead of HTTPS for downloads.
         null,  // proxyPort -- An optional HTTP/HTTPS proxy port. Can be null. -- Can we get it from Studio?
         null); // proxyHost -- An optional HTTP/HTTPS proxy host. Can be null. -- Can we get it from Studio?
 

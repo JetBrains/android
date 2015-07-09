@@ -27,6 +27,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.progress.util.ProgressWindow;
@@ -48,7 +49,6 @@ public class SdkState {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.sdk.SdkState");
 
   @GuardedBy(value = "sSdkStates") private static final Set<SoftReference<SdkState>> sSdkStates = new HashSet<SoftReference<SdkState>>();
-
   @Nullable private final AndroidSdkData mySdkData;
   private final RemoteSdk myRemoteSdk;
   private SdkPackages myPackages = new SdkPackages();
@@ -63,7 +63,7 @@ public class SdkState {
     if (mySdkData == null) {
       myPackages = new SdkPackages();
     }
-    myRemoteSdk = new RemoteSdk(new LogWrapper(Logger.getInstance(SdkState.class)));
+    myRemoteSdk = new RemoteSdk();
   }
 
   /**
@@ -228,7 +228,6 @@ public class SdkState {
     }
     return Lists.newArrayList(r);
   }
-
 
   // -----
 

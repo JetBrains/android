@@ -210,6 +210,7 @@
                          id ="gradle.experimental" displayName="Experimental" parentId="reference.settingsdialog.project.gradle"/>
     <applicationService serviceInterface="com.android.tools.idea.gradle.project.GradleExperimentalSettings"
                         serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.sdk.remote.internal.updater.SettingsController"/>
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />

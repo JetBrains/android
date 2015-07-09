@@ -23,6 +23,7 @@ import com.android.tools.idea.updater.SdkComponentSource;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
@@ -46,8 +47,8 @@ import java.util.List;
  * for the UI?
  */
 public class SdkUpdaterConfigurable implements SearchableConfigurable {
-  SdkUpdaterConfigPanel myPanel;
-  boolean myIncludePreview;
+  private SdkUpdaterConfigPanel myPanel;
+  private boolean myIncludePreview;
 
   @NotNull
   @Override
