@@ -27,6 +27,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
@@ -356,7 +357,7 @@ public class ThemeEditorUtils {
       return null;
     }
 
-    int minModuleApi = getMinApiLevel(myThemeEditorContext.getCurrentThemeModule());
+    int minModuleApi = getMinApiLevel(myThemeEditorContext.getCurrentContextModule());
     int themeParentApiLevel = getOriginalApiLevel(dialog.getStyleParentName(), myThemeEditorContext.getProject());
     int newAttributeApiLevel = getOriginalApiLevel(newAttributeName, myThemeEditorContext.getProject());
     int newValueApiLevel = getOriginalApiLevel(newAttributeValue, myThemeEditorContext.getProject());
@@ -380,7 +381,7 @@ public class ThemeEditorUtils {
       protected void run(@NotNull Result<Boolean> result) {
         CommandProcessor.getInstance().markCurrentCommandAsGlobal(myThemeEditorContext.getProject());
         result.setResult(AndroidResourceUtil.
-          createValueResource(myThemeEditorContext.getCurrentThemeModule(), dialog.getStyleName(),
+          createValueResource(myThemeEditorContext.getCurrentContextModule(), dialog.getStyleName(),
                               ResourceType.STYLE, fileName, dirNames, new Processor<ResourceElement>() {
               @Override
               public boolean process(ResourceElement element) {
@@ -489,6 +490,23 @@ public class ThemeEditorUtils {
     }
 
     return folders;
+  }
+
+  @NotNull
+  public static Configuration getConfigurationForModule(@NotNull Module module) {
+    Project project = module.getProject();
+    final AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null : "moduleComboModel must contain only Android modules";
+
+    ConfigurationManager configurationManager = facet.getConfigurationManager();
+
+    // Using the project virtual file to set up configuration for the theme editor
+    // That fact is hard-coded in computeBestDevice() method in Configuration.java
+    // BEWARE if attempting to modify to use a different virtual file
+    final VirtualFile projectFile = project.getProjectFile();
+    assert projectFile != null;
+
+    return configurationManager.getConfiguration(projectFile);
   }
 
   /**

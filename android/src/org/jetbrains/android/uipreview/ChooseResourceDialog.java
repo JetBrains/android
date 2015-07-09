@@ -201,23 +201,35 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   /**
    * Constructor to use when the dialog needs to know the name of the resource used to open it
    */
-  public ChooseResourceDialog(@NotNull Module module, @NotNull ResourceType[] types, @Nullable String value,
-                              @Nullable XmlTag tag, ResourceNameVisibility resourceNameVisibility, @Nullable String resourceName) {
-    this(module, null, types, value,tag, resourceNameVisibility, resourceName, null);
+  public ChooseResourceDialog(@NotNull Module module,
+                              @NotNull ResourceType[] types,
+                              @Nullable String value,
+                              @Nullable XmlTag tag,
+                              ResourceNameVisibility resourceNameVisibility,
+                              @Nullable String resourceName) {
+    this(module, null, types, value, tag, resourceNameVisibility, resourceName, null);
   }
 
   /**
    * Constructor to use to get the statelist panel, where the statelist shown is the one represented by colorStates
    */
-  public ChooseResourceDialog(@NotNull Module module, @NotNull Configuration configuration, @NotNull ResourceType[] types,
-                              @NotNull List<StateListPicker.StateListState> colorStates, ResourceNameVisibility resourceNameVisibility,
+  public ChooseResourceDialog(@NotNull Module module,
+                              @NotNull Configuration configuration,
+                              @NotNull ResourceType[] types,
+                              @NotNull List<StateListPicker.StateListState> colorStates,
+                              ResourceNameVisibility resourceNameVisibility,
                               @Nullable String resourceName) {
     this(module, configuration, types, null, null,resourceNameVisibility, resourceName, colorStates);
   }
 
-  private ChooseResourceDialog(@NotNull Module module, @Nullable Configuration configuration, @NotNull ResourceType[] types,
-                              @Nullable String value, @Nullable XmlTag tag, ResourceNameVisibility resourceNameVisibility,
-                              @Nullable String resourceName, @Nullable List<StateListPicker.StateListState> colorStates) {
+  private ChooseResourceDialog(@NotNull Module module,
+                               @Nullable Configuration configuration,
+                               @NotNull ResourceType[] types,
+                               @Nullable String value,
+                               @Nullable XmlTag tag,
+                               ResourceNameVisibility resourceNameVisibility,
+                               @Nullable String resourceName,
+                               @Nullable List<StateListPicker.StateListState> colorStates) {
     super(module.getProject());
     myModule = module;
     myTag = tag;

@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.configurations.OrientationMenuAction;
@@ -61,7 +60,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.ui.JBColor;
@@ -155,16 +153,9 @@ public class ThemeEditorComponent extends Splitter {
     final Module selectedModule = myModuleComboModel.getSelected();
     assert selectedModule != null;
 
-    final AndroidFacet facet = AndroidFacet.getInstance(selectedModule);
-    assert facet != null : "moduleComboModel must contain only Android modules";
+    final Configuration configuration = ThemeEditorUtils.getConfigurationForModule(selectedModule);
 
-    ConfigurationManager configurationManager = facet.getConfigurationManager();
-    final VirtualFile projectFile = project.getProjectFile();
-    assert projectFile != null;
-
-    final Configuration configuration = configurationManager.getConfiguration(projectFile);
-
-    myThemeEditorContext = new ThemeEditorContext(configuration, selectedModule);
+    myThemeEditorContext = new ThemeEditorContext(configuration);
     myThemeEditorContext.addConfigurationListener(new ConfigurationListener() {
       @Override
       public boolean changed(int flags) {
@@ -411,8 +402,8 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
     ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
-    AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
-    assert facet != null : myThemeEditorContext.getCurrentThemeModule().getName() + " module doesn't have an AndroidFacet";
+    AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentContextModule());
+    assert facet != null : myThemeEditorContext.getCurrentContextModule().getName() + " module doesn't have an AndroidFacet";
     manager.addListener(myResourceChangeListener, facet, null, null);
     myIsSubscribedResourceNotification = true;
   }
@@ -423,8 +414,8 @@ public class ThemeEditorComponent extends Splitter {
   private void unsubscribeResourceNotification() {
     if (myIsSubscribedResourceNotification) {
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
-      AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
-      assert facet != null : myThemeEditorContext.getCurrentThemeModule().getName() + " module doesn't have an AndroidFacet";
+      AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentContextModule());
+      assert facet != null : myThemeEditorContext.getCurrentContextModule().getName() + " module doesn't have an AndroidFacet";
       manager.removeListener(myResourceChangeListener, facet, null, null);
       myIsSubscribedResourceNotification = false;
     }
@@ -519,7 +510,7 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
 
-    ThemeEditorStyle parent = getUsedStyle().getParent();
+    ThemeEditorStyle parent = getUsedStyle().getParent(myThemeEditorContext.getThemeResolver());
     assert parent != null;
 
     // TODO: This seems like it could be confusing for users, we might want to differentiate parent navigation depending if it's
@@ -538,7 +529,7 @@ public class ThemeEditorComponent extends Splitter {
     if (myThemeName == null) {
       return null;
     }
-    return ResolutionUtils.getStyle(myThemeEditorContext.getConfiguration(), myThemeName);
+    return myThemeEditorContext.getThemeResolver().getTheme(myThemeName);
   }
 
   @Nullable
@@ -555,7 +546,7 @@ public class ThemeEditorComponent extends Splitter {
     if (mySubStyleName == null) {
       return null;
     }
-    return ResolutionUtils.getStyle(myThemeEditorContext.getConfiguration(), mySubStyleName);
+    return myThemeEditorContext.getThemeResolver().getTheme(mySubStyleName);
   }
 
   private boolean isSubStyleSelected() {
@@ -657,7 +648,7 @@ public class ThemeEditorComponent extends Splitter {
     unsubscribeResourceNotification();
 
     initializeModulesCombo(defaultModuleName);
-    myThemeEditorContext.setCurrentThemeModule(getSelectedModule());
+    myThemeEditorContext.setCurrentContextModule(getSelectedModule());
 
     // Subscribes to ResourceNotificationManager with new facet
     subscribeResourceNotification();
@@ -685,6 +676,7 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
 
+    myThemeEditorContext.setSelectedStyleSourceModule(selectedTheme.getSourceModule());
     myPanel.setSubstyleName(mySubStyleName);
     myPanel.getBackButton().setVisible(mySubStyleName != null);
     final Configuration configuration = myThemeEditorContext.getConfiguration();
