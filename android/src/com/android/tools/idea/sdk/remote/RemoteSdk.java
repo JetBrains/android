@@ -50,12 +50,8 @@ public class RemoteSdk {
   private long mSdkSourceTS;
   private DownloadCache mDownloadCache;
 
-  public RemoteSdk(ILogger logger) {
-    this(new SettingsController(logger));
-  }
-
-  public RemoteSdk(SettingsController settingsController) {
-    mSettingsController = settingsController;
+  public RemoteSdk() {
+    mSettingsController = SettingsController.getInstance();
   }
 
   /**
@@ -77,7 +73,7 @@ public class RemoteSdk {
   public Multimap<PkgType, RemotePkgInfo> fetch(@NonNull SdkSources sources, @NonNull ILogger logger) {
     Multimap<PkgType, RemotePkgInfo> remotes = HashMultimap.create();
 
-    boolean forceHttp = mSettingsController.getSettings().getForceHttp();
+    boolean forceHttp = mSettingsController.getForceHttp();
 
     // Implementation detail: right now this reuses the SdkSource(s) classes
     // from the sdk-repository v2. The problem with that is that the sources are
@@ -159,7 +155,7 @@ public class RemoteSdk {
         }
       }
 
-      if (mSettingsController.getSettings().getForceHttp()) {
+      if (mSettingsController.getForceHttp()) {
         url = url.replaceAll("https://", "http://");    //$NON-NLS-1$ //$NON-NLS-2$
       }
 
@@ -201,7 +197,7 @@ public class RemoteSdk {
   protected DownloadCache getDownloadCache() {
     if (mDownloadCache == null) {
       mDownloadCache = new DownloadCache(
-        mSettingsController.getSettings().getUseDownloadCache() ? DownloadCache.Strategy.FRESH_CACHE : DownloadCache.Strategy.DIRECT);
+        mSettingsController.getUseDownloadCache() ? DownloadCache.Strategy.FRESH_CACHE : DownloadCache.Strategy.DIRECT);
     }
     return mDownloadCache;
   }

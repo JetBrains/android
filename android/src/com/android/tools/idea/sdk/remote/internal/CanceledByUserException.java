@@ -17,7 +17,7 @@
 package com.android.tools.idea.sdk.remote.internal;
 
 /**
- * Exception thrown by {@link DownloadCache} and {@link com.android.tools.idea.sdk.remote.internal.UrlOpener} when a user
+ * Exception thrown by {@link DownloadCache} when a user
  * cancels an HTTP Basic authentication or NTML authentication dialog.
  */
 public class CanceledByUserException extends Exception {
