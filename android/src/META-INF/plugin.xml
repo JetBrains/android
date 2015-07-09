@@ -803,6 +803,7 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ClassLoadingErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ObjectStreamErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GenericErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.NdkLocationNotFoundErrorHandler"/>
 
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer"/>
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer"/>
