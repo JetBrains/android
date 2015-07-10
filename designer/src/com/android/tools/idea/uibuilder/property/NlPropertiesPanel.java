@@ -123,6 +123,9 @@ public class NlPropertiesPanel extends JPanel implements DesignSurfaceListener {
             if (first != null) {
               mySelectedComponentLabel.setText(first.getTagName());
             }
+            else {
+              mySelectedComponentLabel.setText("");
+            }
             myTable.setPaintBusy(false);
           }
         });

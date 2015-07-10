@@ -65,11 +65,13 @@ public abstract class PTableItem {
   public void setValue(Object value) {
   }
 
+  @Nullable
   public String getTooltipText() {
     return null;
   }
 
-  public TableCellEditor getCellEditor() {
+  @Nullable
+  public PTableCellEditor getCellEditor() {
     return null;
   }
 
