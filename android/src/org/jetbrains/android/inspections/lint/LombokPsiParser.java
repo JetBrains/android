@@ -34,6 +34,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.ArrayUtil;
@@ -966,6 +967,22 @@ public class LombokPsiParser extends JavaParser {
       return null;
     }
 
+    @Nullable
+    @Override
+    public ResolvedPackage getPackage() {
+      if (myClass != null) {
+        PsiFile file = myClass.getContainingFile();
+        PsiDirectory dir = file.getContainingDirectory();
+        if (dir != null) {
+          PsiPackage pkg = JavaDirectoryService.getInstance().getPackage(dir);
+          if (pkg != null) {
+            return new ResolvedPsiPackage(pkg);
+          }
+        }
+      }
+      return null;
+    }
+
     @NonNull
     @Override
     public Iterable<ResolvedAnnotation> getAnnotations() {
@@ -1180,6 +1197,36 @@ public class LombokPsiParser extends JavaParser {
     @Override
     public int hashCode() {
       return myAnnotation.hashCode();
+    }
+  }
+
+  private static class ResolvedPsiPackage extends ResolvedPackage {
+    private PsiPackage myPackage;
+
+    public ResolvedPsiPackage(@NonNull PsiPackage pkg) {
+      myPackage = pkg;
+    }
+
+    @NonNull
+    @Override
+    public String getName() {
+      return myPackage.getQualifiedName();
+    }
+
+    @Override
+    public String getSignature() {
+      return getName();
+    }
+
+    @Override
+    public int getModifiers() {
+      return 0;
+    }
+
+    @NonNull
+    @Override
+    public Iterable<ResolvedAnnotation> getAnnotations() {
+      return LombokPsiParser.getAnnotations(myPackage);
     }
   }
 }
