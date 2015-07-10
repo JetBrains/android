@@ -23,6 +23,7 @@ import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
+import com.android.ddmlib.TimeoutException;
 import com.android.ide.common.build.SplitOutputMatcher;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
@@ -39,9 +40,11 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.stats.UsageTracker;
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.hash.Hashing;
 import com.intellij.CommonBundle;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
@@ -976,11 +979,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
               message(message, STDERR);
               return false;
             }
-            UsageTracker.getInstance()
-              .trackEvent(UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_APK_DEPLOYED, null, null);
             if (!uploadAndInstallApk(device, myPackageName, apk.getAbsolutePath())) {
               return false;
             }
+            trackInstallation(device);
           }
 
           // install test apk
@@ -1064,6 +1066,31 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       message("I/O Error" + (message != null ? ": " + message : ""), STDERR);
       return false;
     }
+  }
+
+  private static void trackInstallation(@NotNull IDevice device) {
+    if (!UsageTracker.getInstance().canTrack()) {
+      return;
+    }
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_APK_DEPLOYED, null, null);
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_SERIAL_HASH,
+                                          Hashing.md5().hashString(device.getSerialNumber(), Charsets.UTF_8).toString(), null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_BUILD_TAGS,
+                                          device.getProperty(IDevice.PROP_BUILD_TAGS), null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_BUILD_TYPE,
+                                          device.getProperty(IDevice.PROP_BUILD_TYPE), null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_BUILD_VERSION_RELEASE,
+                                          device.getProperty(IDevice.PROP_BUILD_VERSION), null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_BUILD_API_LEVEL,
+                                          device.getProperty(IDevice.PROP_BUILD_API_LEVEL), null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_MANUFACTURER,
+                                          device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER), null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_MODEL,
+                                          device.getProperty(IDevice.PROP_DEVICE_MODEL), null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_CPU_ABI,
+                                          device.getProperty(IDevice.PROP_DEVICE_CPU_ABI), null);
   }
 
   @Nullable

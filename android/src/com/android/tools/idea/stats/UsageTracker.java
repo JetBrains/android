@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.stats;
 
+import com.android.ddmlib.IDevice;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.intellij.internal.statistic.StatisticsUploadAssistant;
 import com.intellij.openapi.components.ServiceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +38,9 @@ public abstract class UsageTracker {
   // Note: Custom dimensions could possibly alleviate this issue, and we should consider switching to
   // that when we have more info on the sorts of custom dimensions we'd need.
   public static final String CATEGORY_AVDINFO = "avdInfo";
+
+  // Similar to CATEGORY_AVDINFO, this tracks info about the device during deployment
+  public static final String CATEGORY_DEVICEINFO = "deviceInfo";
 
   public static final String ACTION_SYNC_STARTED = "syncStarted";
   public static final String ACTION_SYNC_ENDED = "syncEnded";
@@ -58,6 +64,14 @@ public abstract class UsageTracker {
   public static final String INFO_AVD_ABI = "abi";
   public static final String INFO_AVD_TARGET_VERSION = "version";
 
+  public static final String INFO_DEVICE_BUILD_TAGS = IDevice.PROP_BUILD_TAGS; // "unsigned,debug" or "dev-keys"
+  public static final String INFO_DEVICE_BUILD_TYPE = IDevice.PROP_BUILD_TYPE; // "user" or "eng"
+  public static final String INFO_DEVICE_BUILD_VERSION_RELEASE = IDevice.PROP_BUILD_VERSION; // "4.4.4"
+  public static final String INFO_DEVICE_BUILD_API_LEVEL = IDevice.PROP_BUILD_API_LEVEL; // "22"
+  public static final String INFO_DEVICE_MANUFACTURER = IDevice.PROP_DEVICE_MANUFACTURER;
+  public static final String INFO_DEVICE_MODEL = IDevice.PROP_DEVICE_MODEL;
+  public static final String INFO_DEVICE_SERIAL_HASH = "ro.serialno.hashed";
+  public static final String INFO_DEVICE_CPU_ABI = IDevice.PROP_DEVICE_CPU_ABI;
 
   /**
    * When using the usage tracker, do NOT include any information that can identify the user
@@ -75,4 +89,7 @@ public abstract class UsageTracker {
                                   @Nullable String eventLabel,
                                   @Nullable Integer eventValue);
 
+  public boolean canTrack() {
+    return AndroidStudioSpecificInitializer.isAndroidStudio() && StatisticsUploadAssistant.isSendAllowed();
+  }
 }
