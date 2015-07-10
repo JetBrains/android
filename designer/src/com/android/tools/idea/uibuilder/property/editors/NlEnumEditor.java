@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -30,8 +31,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
 
-public class NlEnumEditor extends AbstractTableCellEditor implements ActionListener {
+public class NlEnumEditor extends PTableCellEditor implements ActionListener {
   private static final String UNSET = "<unset>";
 
   private final JPanel myPanel;
@@ -96,7 +98,15 @@ public class NlEnumEditor extends AbstractTableCellEditor implements ActionListe
     }
     else if (e.getSource() == myCombo) {
       myValue = myCombo.getModel().getSelectedItem();
-      stopCellEditing();
+      // stop cell editing only if a value has been picked from the combo box, not for every event from the combo
+      if ("comboBoxEdited".equals(e.getActionCommand())) {
+        stopCellEditing();
+      }
     }
+  }
+
+  @Override
+  public void activate() {
+    myCombo.showPopup();
   }
 }

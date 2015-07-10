@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.renderer.NlBooleanRenderer;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
@@ -30,7 +31,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class NlBooleanEditor extends AbstractTableCellEditor implements ActionListener {
+public class NlBooleanEditor extends PTableCellEditor implements ActionListener {
   private final JPanel myPanel;
   private final FixedSizeButton myBrowseButton;
   private final ThreeStateCheckBox myCheckbox;
@@ -97,5 +98,16 @@ public class NlBooleanEditor extends AbstractTableCellEditor implements ActionLi
         cancelCellEditing();
       }
     }
+  }
+
+  @Override
+  public void activate() {
+    myValue = NlBooleanRenderer.getNextState(myCheckbox.getState());
+    stopCellEditing();
+  }
+
+  @Override
+  public boolean isBooleanEditor() {
+    return true;
   }
 }
