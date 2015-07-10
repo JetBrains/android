@@ -27,6 +27,7 @@
   <idea-version since-build="131"/>
 
   <depends>org.jetbrains.android</depends>
+  <depends config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
