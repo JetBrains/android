@@ -38,15 +38,15 @@ public abstract class UsageTracker {
   public static final String ACTION_AVDINFO_TARGET_VERSION = "version";
 
   // Similar to CATEGORY_AVDINFO, this tracks info about the device during deployment
-  public static final String CATEGORY_DEVICEINFO = "deviceInfo";
-  public static final String INFO_DEVICE_BUILD_TAGS = IDevice.PROP_BUILD_TAGS; // "unsigned,debug" or "dev-keys"
-  public static final String INFO_DEVICE_BUILD_TYPE = IDevice.PROP_BUILD_TYPE; // "user" or "eng"
-  public static final String INFO_DEVICE_BUILD_VERSION_RELEASE = IDevice.PROP_BUILD_VERSION; // "4.4.4"
-  public static final String INFO_DEVICE_BUILD_API_LEVEL = IDevice.PROP_BUILD_API_LEVEL; // "22"
-  public static final String INFO_DEVICE_MANUFACTURER = IDevice.PROP_DEVICE_MANUFACTURER;
-  public static final String INFO_DEVICE_MODEL = IDevice.PROP_DEVICE_MODEL;
-  public static final String INFO_DEVICE_SERIAL_HASH = "ro.serialno.hashed";
-  public static final String INFO_DEVICE_CPU_ABI = IDevice.PROP_DEVICE_CPU_ABI;
+  public static final String CATEGORY_DEVICE_INFO = "deviceInfo";
+  public static final String DEVICE_INFO_BUILD_TAGS = IDevice.PROP_BUILD_TAGS; // "unsigned,debug" or "dev-keys"
+  public static final String DEVICE_INFO_BUILD_TYPE = IDevice.PROP_BUILD_TYPE; // "user" or "eng"
+  public static final String DEVICE_INFO_BUILD_VERSION_RELEASE = IDevice.PROP_BUILD_VERSION; // "4.4.4"
+  public static final String DEVICE_INFO_BUILD_API_LEVEL = IDevice.PROP_BUILD_API_LEVEL; // "22"
+  public static final String DEVICE_INFO_MANUFACTURER = IDevice.PROP_DEVICE_MANUFACTURER;
+  public static final String DEVICE_INFO_MODEL = IDevice.PROP_DEVICE_MODEL;
+  public static final String DEVICE_INFO_SERIAL_HASH = "ro.serialno.hashed";
+  public static final String DEVICE_INFO_CPU_ABI = IDevice.PROP_DEVICE_CPU_ABI;
 
   public static final String CATEGORY_DEPLOYMENT = "deployment";
   public static final String ACTION_DEPLOYMENT_APK = "apkDeployed";
