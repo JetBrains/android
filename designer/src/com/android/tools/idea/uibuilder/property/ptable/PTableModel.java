@@ -77,6 +77,24 @@ public class PTableModel extends AbstractTableModel {
     fireTableDataChanged();
   }
 
+  public int getParent(int row) {
+    if (row >= myItems.size()) {
+      return row;
+    }
+
+    PTableItem item = myItems.get(row);
+    if (item.getParent() == null) {
+      return row;
+    }
+
+    PTableItem parent = item.getParent();
+    do {
+      row--;
+    }
+    while (row >= 0 && myItems.get(row) != parent);
+    return row;
+  }
+
   public void expand(int row) {
     if (row >= myItems.size()) {
       return;
