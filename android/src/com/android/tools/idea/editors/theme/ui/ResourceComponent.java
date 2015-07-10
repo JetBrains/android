@@ -60,17 +60,17 @@ public class ResourceComponent extends JPanel {
 
   public ResourceComponent() {
     super(new BorderLayout(0, ROW_GAP));
-    setBorder(BorderFactory.createMatteBorder(MARGIN / 2, 0, MARGIN / 2, 0, getBackground()));
+    setBorder(BorderFactory.createEmptyBorder(MARGIN / 2, 0, MARGIN / 2, 0));
 
     Box topRowPanel = new Box(BoxLayout.LINE_AXIS);
     topRowPanel.add(myNameLabel);
     topRowPanel.add(Box.createHorizontalGlue());
     topRowPanel.add(myVariantCombo);
-    add(topRowPanel, BorderLayout.NORTH);
+    add(topRowPanel, BorderLayout.CENTER);
 
     mySwatchComponent.setBackground(JBColor.WHITE);
     mySwatchComponent.setForeground(null);
-    add(mySwatchComponent, BorderLayout.CENTER);
+    add(mySwatchComponent, BorderLayout.SOUTH);
   }
 
   @Override
