@@ -16,16 +16,15 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.ui.JBColor;
 
-import javax.swing.*;
+import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Font;
 
 /**
  * Cell renderer used to add tooltips to table cells containing {@link ItemResourceValue}
@@ -50,29 +49,7 @@ public class DelegatingCellRenderer implements TableCellRenderer {
     ThemeEditorStyle selectedStyle = ((AttributesTableModel) table.getModel()).getSelectedStyle();
     // Displays in bold attributes that are overriding their inherited value
     returnedComponent.setFont(selectedStyle.hasItem(item) ? table.getFont().deriveFont(Font.BOLD) : table.getFont());
-
     returnedComponent.setForeground((item != null && !item.isPublicAttribute()) ? JBColor.LIGHT_GRAY : table.getForeground());
-
-    if (!(returnedComponent instanceof JComponent)) {
-      // Does not support tooltips
-      return returnedComponent;
-    }
-
-    // Getting the tooltip information is an moderately expensive operation so we try to avoid doing it unless
-    // it's necessary. We first check if the mouse is in the current cell being rendered and only then
-    // we get the tooltip.
-    final JComponent jComponent = (JComponent)returnedComponent;
-    Point mousePos = table.getMousePosition();
-    if (mousePos != null && item != null) {
-      if (table.getCellRect(row, column, true).contains(mousePos)) {
-        final ItemResourceValue resValue = ((EditedStyleItem)value).getSelectedValue();
-        Configuration configuration = item.getSourceStyle().getConfiguration();
-        String toolTipText = ThemeEditorUtils.generateToolTipText(resValue, configuration.getModule(), configuration);
-        jComponent.setToolTipText(toolTipText);
-      }
-    } else {
-      jComponent.setToolTipText(null);
-    }
 
     return returnedComponent;
   }

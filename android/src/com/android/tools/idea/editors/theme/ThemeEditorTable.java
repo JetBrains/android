@@ -15,31 +15,46 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.attributes.ShowJavadocAction;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import org.jetbrains.annotations.NotNull;
 import spantable.CellSpanModel;
 import spantable.CellSpanTable;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.JPopupMenu;
+import javax.swing.RowSorter;
+import javax.swing.SwingUtilities;
 import javax.swing.table.TableModel;
-import java.awt.*;
-import java.awt.event.ActionListener;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.io.File;
 import java.util.Map;
 
 public class ThemeEditorTable extends CellSpanTable {
-  private final JBPopupMenu myPopupMenu;
-  private ActionListener myLastDefinitionActionListener = null;
-  private ActionListener myLastResetActionListener;
-  private final JMenuItem myGoToDefinitionItem;
-  private final JMenuItem myResetItem;
   private Map<Class<?>, Integer> myClassHeights;
+  private ShowJavadocAction myJavadocAction;
+  private ThemeEditorComponent.GoToListener myGoToListener;
+  private ThemeEditorContext myContext;
 
-  public ThemeEditorTable() {
-    myPopupMenu = new JBPopupMenu();
-    myGoToDefinitionItem = myPopupMenu.add(new JMenuItem("Go to definition"));
-    myGoToDefinitionItem.setVisible(false);
-    myResetItem = myPopupMenu.add(new JMenuItem("Reset value"));
-    myResetItem.setVisible(false);
+  public void setGoToListener(@NotNull ThemeEditorComponent.GoToListener goToListener) {
+    myGoToListener = goToListener;
+  }
+
+  public void setContext(@NotNull ThemeEditorContext context) {
+    myContext = context;
+    myJavadocAction = new ShowJavadocAction(this, myContext);
   }
 
   @Override
@@ -90,52 +105,85 @@ public class ThemeEditorTable extends CellSpanTable {
       return null;
     }
 
-    myGoToDefinitionItem.setVisible(false);
-    myResetItem.setVisible(false);
-    TableModel model = getModel();
-    if (!(model instanceof AttributesTableModel)) {
+    TableModel rawModel = getModel();
+    if (!(rawModel instanceof AttributesTableModel)) {
       return null;
     }
 
-    AttributesTableModel.RowContents contents = ((AttributesTableModel) model).getRowContents(this.convertRowIndexToModel(row));
-    if (contents == null) {
-      return null;
+    final AttributesTableModel model = (AttributesTableModel)rawModel;
+    AttributesTableModel.RowContents contents = model.getRowContents(this.convertRowIndexToModel(row));
+
+    if (contents instanceof AttributesTableModel.AttributeContents) {
+      final AttributesTableModel.AttributeContents attribute = (AttributesTableModel.AttributeContents) contents;
+
+      final EditedStyleItem item = attribute.getValueAt(1);
+      if (item == null) {
+        return null;
+      }
+
+      final JBPopupMenu popupMenu = new JBPopupMenu();
+      if (attribute.getCellClass(1) == ThemeEditorStyle.class) {
+        popupMenu.add(new AbstractAction("Go to definition") {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            myGoToListener.goTo(item);
+          }
+        });
+      }
+      else {
+        final ResourceResolver resolver = myContext.getResourceResolver();
+        assert resolver != null;
+        final Project project = myContext.getProject();
+        final ResourceValue resourceValue = resolver.resolveResValue(item.getSelectedValue());
+        final File file = new File(resourceValue.getValue());
+
+        final VirtualFileManager manager = VirtualFileManager.getInstance();
+        final VirtualFile virtualFile = file.exists() ? manager.findFileByUrl("file://" + file.getAbsolutePath()) : null;
+        if (virtualFile != null) {
+          popupMenu.add(new AbstractAction("Go to definition") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              final OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile);
+              FileEditorManager.getInstance(project).openEditor(descriptor, true);
+            }
+          });
+        }
+      }
+
+      myJavadocAction.setCurrentItem(item);
+      popupMenu.add(myJavadocAction);
+
+      final ThemeEditorStyle selectedStyle = model.getSelectedStyle();
+      if (selectedStyle.isReadOnly() || !selectedStyle.equals(item.getSourceStyle())) {
+        return popupMenu;
+      }
+
+      popupMenu.add(new AbstractAction("Reset value") {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          selectedStyle.removeAttribute(item.getQualifiedName());
+          model.fireTableCellUpdated(attribute.getRowIndex(), 0);
+        }
+      });
+      return popupMenu;
+    }
+    else if (contents instanceof AttributesTableModel.ParentAttribute) {
+      final ThemeEditorStyle parentStyle = model.getSelectedStyle().getParent();
+      if (parentStyle == null) {
+        return null;
+      }
+
+      final JBPopupMenu menu = new JBPopupMenu();
+      menu.add(new AbstractAction("Edit parent") {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          myGoToListener.goToParent();
+        }
+      });
+
+      return menu;
     }
 
-    ActionListener definitionCallback = contents.getGoToDefinitionCallback();
-    ActionListener resetCallback = contents.getResetCallback();
-    if (definitionCallback == null && resetCallback == null) {
-      return null;
-    }
-
-    if (definitionCallback != null) {
-      myGoToDefinitionItem.setVisible(true);
-      setDefinitionActionListener(definitionCallback);
-    }
-
-    if (resetCallback != null) {
-      myResetItem.setVisible(true);
-      setResetActionListener(resetCallback);
-    }
-
-    return myPopupMenu;
-  }
-
-  private void setDefinitionActionListener(ActionListener callback) {
-    if (myLastDefinitionActionListener != null) {
-      myGoToDefinitionItem.removeActionListener(myLastDefinitionActionListener);
-    }
-
-    myGoToDefinitionItem.addActionListener(callback);
-    myLastDefinitionActionListener = callback;
-  }
-
-  private void setResetActionListener(ActionListener callback) {
-    if (myLastResetActionListener != null) {
-      myResetItem.removeActionListener(myLastResetActionListener);
-    }
-
-    myResetItem.addActionListener(callback);
-    myLastResetActionListener = callback;
+    return null;
   }
 }
