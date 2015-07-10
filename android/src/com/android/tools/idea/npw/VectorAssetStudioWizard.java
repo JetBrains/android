@@ -44,7 +44,7 @@ public class VectorAssetStudioWizard extends TemplateWizard implements TemplateW
     super("Vector Asset Studio", project);
     myModule = module;
     myTargetFile = targetFile;
-    getWindow().setMinimumSize(new Dimension(800, 640));
+    getWindow().setMinimumSize(new Dimension(800, 400));
     init();
   }
 

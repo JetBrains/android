@@ -89,6 +89,13 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   public static final Key<Integer> ATTR_FONT_SIZE = createKey(AssetStudioAssetGenerator.ATTR_FONT_SIZE, PATH, Integer.class);
   public static final Key<File> ATTR_OUTPUT_FOLDER = createKey(ChooseOutputResDirStep.ATTR_OUTPUT_FOLDER, STEP, File.class);
   public static final Key<String> ATTR_ERROR_LOG = createKey(AssetStudioAssetGenerator.ATTR_ERROR_LOG, PATH, String.class);
+  public static final Key<String> ATTR_VECTOR_DRAWBLE_WIDTH = createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_WIDTH, STEP, String.class);
+  public static final Key<String> ATTR_VECTOR_DRAWBLE_HEIGHT = createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_HEIGHT, STEP, String.class);
+  public static final Key<Integer> ATTR_ORIGINAL_WIDTH = createKey(AssetStudioAssetGenerator.ATTR_ORIGINAL_WIDTH, STEP, Integer.class);
+  public static final Key<Integer> ATTR_ORIGINAL_HEIGHT = createKey(AssetStudioAssetGenerator.ATTR_ORIGINAL_HEIGHT, STEP, Integer.class);
+  public static final Key<Integer> ATTR_VECTOR_DRAWBLE_OPACTITY = createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_OPACTITY, STEP, Integer.class);
+  public static final Key<Boolean> ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED = createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED, STEP, Boolean.class);
+
 
   private static final Logger LOG = Logger.getInstance(IconStep.class);
   private static final int CLIPART_ICON_SIZE = 32;
