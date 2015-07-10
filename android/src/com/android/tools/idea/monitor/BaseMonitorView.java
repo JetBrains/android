@@ -49,6 +49,7 @@ public abstract class BaseMonitorView implements HierarchyListener {
   }
 
   protected void setComponent(@NotNull JComponent component) {
+    myContentPane.removeAll();
     myContentPane.add(component, BorderLayout.CENTER);
   }
 }

@@ -61,6 +61,7 @@ public class AndroidIcons {
   public static final Icon CapturesToolWindow = load("/icons/captures.png"); // 13x13
   public static final Icon MemoryMonitor = load("/icons/memory_monitor.png"); // 16x16
   public static final Icon CpuMonitor = load("/icons/cpu_monitor.png"); // 16x16
+  public static final Icon GpuMonitor = load("/icons/gpu_monitor.png"); // 16x16
 
   public static final Icon Variant = load("/icons/variant.png");
 
