@@ -22,6 +22,7 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -72,7 +73,7 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
     myButton.setFocusPainted(false);
     myButton.setBorderPainted(false);
     myButton.setContentAreaFilled(false);
-    myButton.setBorder(null);
+    myButton.setBorder(BorderFactory.createEmptyBorder());
     myButton.setOpaque(false);
     myButton.setIcon(PlatformIcons.COMBOBOX_ARROW_ICON);
     myButton.setHorizontalTextPosition(SwingConstants.LEFT);
