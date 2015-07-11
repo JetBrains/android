@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
 import com.google.common.collect.Lists;
 import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
@@ -53,7 +54,7 @@ import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 
-public class NlReferenceEditor extends AbstractTableCellEditor implements ActionListener {
+public class NlReferenceEditor extends PTableCellEditor implements ActionListener {
   private final JPanel myPanel;
   private final JBLabel myLabel;
   private final TextFieldWithAutoCompletion myTextFieldWithAutoCompletion;

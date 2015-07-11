@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
@@ -120,7 +121,7 @@ public class NlProperty extends PTableItem {
   }
 
   @Override
-  public TableCellEditor getCellEditor() {
+  public PTableCellEditor getCellEditor() {
     return NlPropertyEditors.get(this);
   }
 
