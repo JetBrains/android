@@ -104,6 +104,18 @@ public class NlBooleanRenderer extends NlAttributeRenderer {
     }
   }
 
+  public static Boolean getNextState(ThreeStateCheckBox.State state) {
+    switch (state) {
+      case DONT_CARE:
+        return Boolean.TRUE;
+      case SELECTED:
+        return Boolean.FALSE;
+      case NOT_SELECTED:
+      default:
+        return null;
+    }
+  }
+
   @Override
   public boolean canRender(@NotNull NlProperty p, @NotNull Set<AttributeFormat> formats) {
     return formats.contains(AttributeFormat.Boolean);

@@ -16,21 +16,30 @@
 package com.android.tools.idea.uibuilder.property.ptable;
 
 import com.android.tools.idea.uibuilder.property.ptable.renderers.PNameRenderer;
+import com.intellij.designer.model.Property;
+import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy;
 import com.intellij.ui.Cell;
 import com.intellij.ui.TableSpeedSearch;
+import com.intellij.ui.TableUtil;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.PairFunction;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.plaf.TableUI;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.*;
 
 public class PTable extends JBTable {
   private final PNameRenderer myNameRenderer = new PNameRenderer();
@@ -109,7 +118,169 @@ public class PTable extends JBTable {
     return row == myMouseHoverRow && col == myMouseHoverCol;
   }
 
-  // Expand/Collapse group items if necessary
+  @Override
+  public void setUI(TableUI ui) {
+    super.setUI(ui);
+
+    // Setup focus traversal keys such that tab takes focus out of the table
+    setFocusTraversalKeys(
+      KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().getDefaultFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS));
+    setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, KeyboardFocusManager.getCurrentKeyboardFocusManager()
+      .getDefaultFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS));
+
+    // Customize keymaps. See https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html for info on how this works, but the
+    // summary is that we set an input map mapping key bindings to a string, and an action map that maps those strings to specific actions.
+    ActionMap actionMap = getActionMap();
+    InputMap focusedInputMap = getInputMap(JComponent.WHEN_FOCUSED);
+    InputMap ancestorInputMap = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "smartEnter");
+    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
+    actionMap.put("smartEnter", new MyEnterAction(false));
+
+    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "toggleEditor");
+    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
+    actionMap.put("toggleEditor", new MyEnterAction(true));
+
+    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0));
+    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_KP_RIGHT, 0));
+    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "expandCurrentRight");
+    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_KP_RIGHT, 0), "expandCurrentRight");
+    actionMap.put("expandCurrentRight", new MyExpandCurrentAction(true));
+
+    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0));
+    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_KP_LEFT, 0));
+    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "collapseCurrentLeft");
+    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_KP_LEFT, 0), "collapseCurrentLeft");
+    actionMap.put("collapseCurrentLeft", new MyExpandCurrentAction(false));
+  }
+
+  private void toggleTreeNode(int row) {
+    PTableItem item = (PTableItem)myModel.getValueAt(row, 0);
+    if (item.isExpanded()) {
+      myModel.collapse(row);
+    }
+    else {
+      myModel.expand(row);
+    }
+  }
+
+  private void selectRow(int row) {
+    getSelectionModel().setSelectionInterval(row, row);
+    TableUtil.scrollSelectionToVisible(this);
+  }
+
+  private void quickEdit(int row) {
+    final PTableCellEditor editor = ((PTableItem)myModel.getValueAt(row, 0)).getCellEditor();
+    if (editor == null) {
+      return;
+    }
+
+    // only perform edit if we know the editor is capable of a quick toggle action.
+    // We know that boolean editors switch their state and finish editing right away
+    if (editor.isBooleanEditor()) {
+      startEditing(row);
+    }
+  }
+
+  private void startEditing(int row) {
+    final PTableCellEditor editor = ((PTableItem)myModel.getValueAt(row, 0)).getCellEditor();
+    if (editor == null) {
+      return;
+    }
+
+    editCellAt(row, 1);
+
+    final JComponent preferredComponent = getComponentToFocus(editor);
+    if (preferredComponent == null) return;
+
+    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(new Runnable() {
+      @Override
+      public void run() {
+        preferredComponent.requestFocusInWindow();
+        editor.activate();
+      }
+    });
+  }
+
+  @Nullable
+  private JComponent getComponentToFocus(PTableCellEditor editor) {
+    JComponent preferredComponent = editor.getPreferredFocusComponent();
+    if (preferredComponent == null) {
+      preferredComponent = IdeFocusTraversalPolicy.getPreferredFocusedComponent((JComponent)editorComp);
+    }
+    if (preferredComponent == null) {
+      return null;
+    }
+    return preferredComponent;
+  }
+
+  // Expand/Collapse if it is a group property, start editing otherwise
+  private class MyEnterAction extends AbstractAction {
+    // don't launch a full editor, just perform a quick toggle
+    private final boolean myToggleOnly;
+
+    public MyEnterAction(boolean toggleOnly) {
+      myToggleOnly = toggleOnly;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      int selectedRow = getSelectedRow();
+      if (isEditing() || selectedRow == -1) {
+        return;
+      }
+
+      PTableItem item = (PTableItem)myModel.getValueAt(selectedRow, 0);
+      if (item.hasChildren()) {
+        toggleTreeNode(selectedRow);
+        selectRow(selectedRow);
+      }
+      else if (myToggleOnly) {
+        quickEdit(selectedRow);
+      }
+      else {
+        startEditing(selectedRow);
+      }
+    }
+  }
+
+  // Expand/Collapse items on right/left key press
+  private class MyExpandCurrentAction extends AbstractAction {
+    private final boolean myExpand;
+
+    public MyExpandCurrentAction(boolean expand) {
+      myExpand = expand;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      int selectedRow = getSelectedRow();
+      if (isEditing() || selectedRow == -1) {
+        return;
+      }
+
+      PTableItem item = (PTableItem)myModel.getValueAt(selectedRow, 0);
+      if (myExpand) {
+        if (item.hasChildren() && !item.isExpanded()) {
+          myModel.expand(selectedRow);
+          selectRow(selectedRow);
+        }
+      }
+      else {
+        if (item.isExpanded()) { // if it is a compound node, collapse it
+          myModel.collapse(selectedRow);
+          selectRow(selectedRow);
+        }
+        else if (item.getParent() != null) { // if it is a child node, move selection to the parent
+          selectRow(myModel.getParent(selectedRow));
+        }
+      }
+    }
+  }
+
+  // Expand/Collapse group items on mouse click
   private class MouseTableListener extends MouseAdapter {
     @Override
     public void mousePressed(MouseEvent e) {
@@ -131,12 +302,7 @@ public class PTable extends JBTable {
         return;
       }
 
-      if (item.isExpanded()) {
-        myModel.collapse(row);
-      }
-      else {
-        myModel.expand(row);
-      }
+      toggleTreeNode(row);
     }
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -29,7 +30,7 @@ public class NlPropertyEditors {
   private static NlEnumEditor ourComboEditor;
   private static NlReferenceEditor ourDefaultEditor;
 
-  public static TableCellEditor get(@NotNull NlProperty property) {
+  public static PTableCellEditor get(@NotNull NlProperty property) {
     AttributeDefinition definition = property.getDefinition();
     if (definition == null) {
       // TODO: default to text editor
@@ -53,7 +54,7 @@ public class NlPropertyEditors {
     return getDefaultEditor(property.getComponent().getModel().getProject());
   }
 
-  private static TableCellEditor getBooleanEditor() {
+  private static PTableCellEditor getBooleanEditor() {
     if (ourBooleanEditor == null) {
       ourBooleanEditor = new NlBooleanEditor();
     }
@@ -61,7 +62,7 @@ public class NlPropertyEditors {
     return ourBooleanEditor;
   }
 
-  private static TableCellEditor getComboEditor() {
+  private static PTableCellEditor getComboEditor() {
     if (ourComboEditor == null) {
       ourComboEditor = new NlEnumEditor();
     }
@@ -69,7 +70,7 @@ public class NlPropertyEditors {
     return ourComboEditor;
   }
 
-  private static TableCellEditor getDefaultEditor(Project project) {
+  private static PTableCellEditor getDefaultEditor(Project project) {
     if (ourDefaultEditor == null) {
       ourDefaultEditor = new NlReferenceEditor(project);
     }
