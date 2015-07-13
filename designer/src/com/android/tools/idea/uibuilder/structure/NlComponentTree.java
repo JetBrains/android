@@ -24,7 +24,6 @@ import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.IJSwingUtilities;
@@ -42,10 +41,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.Insets;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.SdkConstants.*;
@@ -56,7 +53,8 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
 
   private final StructureTreeDecorator myDecorator;
-  private final Map<XmlTag, DefaultMutableTreeNode> myTag2Node;
+  private final Map<NlComponent, DefaultMutableTreeNode> myComponent2Node;
+  private final Map<String, DefaultMutableTreeNode> myId2Node;
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
 
@@ -65,7 +63,8 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
 
   public NlComponentTree() {
     myDecorator = StructureTreeDecorator.get();
-    myTag2Node = new HashMap<XmlTag, DefaultMutableTreeNode>();
+    myComponent2Node = new HashMap<NlComponent, DefaultMutableTreeNode>();
+    myId2Node = new HashMap<String, DefaultMutableTreeNode>();
     mySelectionIsUpdating = new AtomicBoolean(false);
     myUpdateQueue = new MergingUpdateQueue("android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, this, null, SWING_THREAD);
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(null);
@@ -137,6 +136,8 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
     IJSwingUtilities.updateComponentTreeUI(this);
   }
 
+  // ---- Methods for updating hierarchy while attempting to keep expanded nodes expanded ----
+
   private void updateHierarchy(final boolean firstLoad) {
     ApplicationManager.getApplication().assertIsDispatchThread();
     setPaintBusy(true);
@@ -147,14 +148,14 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
           mySelectionIsUpdating.set(true);
           if (firstLoad) {
             myWasExpanded = false;
-            myTag2Node.clear();
+            myId2Node.clear();
           }
-          DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)getModel().getRoot();
-          List<NlComponent> components = myModel != null ? myModel.getComponents() : null;
-          replaceChildNodes(rootNode, components);
+          HierarchyUpdater updater = new HierarchyUpdater();
+          updater.execute();
           expandOnce();
           invalidateUI();
-        } finally {
+        }
+        finally {
           setPaintBusy(false);
           mySelectionIsUpdating.set(false);
         }
@@ -163,28 +164,6 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
         }
       }
     });
-  }
-
-  private void replaceChildNodes(@NonNull DefaultMutableTreeNode node, @Nullable List<NlComponent> subComponents) {
-    node.removeAllChildren();
-    if (subComponents != null) {
-      for (NlComponent child : subComponents) {
-        node.add(makeNode(child));
-      }
-    }
-  }
-
-  @NonNull
-  private DefaultMutableTreeNode makeNode(@NonNull NlComponent component) {
-    DefaultMutableTreeNode node = myTag2Node.get(component.getTag());
-    if (node == null) {
-      node = new DefaultMutableTreeNode(component);
-      myTag2Node.put(component.getTag(), node);
-    } else {
-      node.setUserObject(component);
-    }
-    replaceChildNodes(node, component.children);
-    return node;
   }
 
   private void expandOnce() {
@@ -201,7 +180,7 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
         DefaultMutableTreeNode nodeToExpand = rootNode;
         NlComponent component = findComponentToExpandTo();
         if (component != null) {
-          nodeToExpand = myTag2Node.get(component.getTag());
+          nodeToExpand = myComponent2Node.get(component);
           if (nodeToExpand == null) {
             nodeToExpand = rootNode;
           }
@@ -255,7 +234,7 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
       clearSelection();
       if (myModel != null) {
         for (NlComponent component : myModel.getSelectionModel().getSelection()) {
-          DefaultMutableTreeNode node = myTag2Node.get(component.getTag());
+          DefaultMutableTreeNode node = myComponent2Node.get(component);
           if (node != null) {
             TreePath path = new TreePath(node.getPath());
             expandPath(path);
@@ -309,6 +288,90 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
   public void modelChanged(@NonNull DesignSurface surface, @Nullable NlModel model) {
     if (model != null) {
       modelRendered(model);
+    }
+  }
+
+  /**
+   * Updating the tree nodes after the model has changed presents a few problems:
+   * <ul>
+   *   <li>We would like the current expanded nodes to continue to appear expanded.</li>
+   *   <li>NlComponent and XmlTag instances may have been changed and can no longer be trusted.</li>
+   * </ul>
+   * The solution used here is not elegant. The idea is to attempt to restore the visible nodes that have an id.
+   * We require:
+   * <ul>
+   *   <li>A mapping from component id to the tree node from the previous update.</li>
+   *   <li>A set of nodes that are currently visible which is computed here from the current tree.</li>
+   * </ul>
+   * When we find an old node for a component id we will reuse that node and make sure all parent nodes are expanded
+   * if this node was visible before the update.
+   * <br/>
+   * As a side effect we build the following maps:
+   * <ul>
+   *   <li>A map from component id to the new tree node (for the next hierarchy update).</li>
+   *   <li>A map from component reference to the new tree node (for handling of selection changes).</li>
+   * </ul>
+   */
+  private class HierarchyUpdater {
+    private final Map<String, DefaultMutableTreeNode> myId2TempNode;
+    private final Set<DefaultMutableTreeNode> myVisibleNodes;
+
+    private HierarchyUpdater() {
+      myId2TempNode = new HashMap<String, DefaultMutableTreeNode>(myId2Node);
+      myVisibleNodes = new HashSet<DefaultMutableTreeNode>();
+    }
+
+    public void execute() {
+      myId2Node.clear();
+      myComponent2Node.clear();
+      TreePath rootPath = new TreePath(getModel().getRoot());
+      recordVisibleNodes(rootPath);
+      List<NlComponent> components = myModel != null ? myModel.getComponents() : null;
+      replaceChildNodes(rootPath, components);
+    }
+
+    private void recordVisibleNodes(@NonNull TreePath path) {
+      if (isExpanded(path)) {
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+        for (int i=0; i<node.getChildCount(); i++) {
+          DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
+          recordVisibleNodes(path.pathByAddingChild(child));
+          myVisibleNodes.add(child);
+        }
+      }
+    }
+
+    private void replaceChildNodes(@NonNull TreePath path, @Nullable List<NlComponent> subComponents) {
+      DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+      node.removeAllChildren();
+      if (subComponents != null) {
+        boolean mustExpand = false;
+        for (NlComponent child : subComponents) {
+          mustExpand |= addChildNode(path, child);
+        }
+        if (mustExpand) {
+          expandPath(path);
+        }
+      }
+    }
+
+    private boolean addChildNode(@NonNull TreePath path, @NonNull NlComponent component) {
+      DefaultMutableTreeNode parent = (DefaultMutableTreeNode)path.getLastPathComponent();
+      DefaultMutableTreeNode node = null;
+      String id = component.getId();
+      if (id != null) {
+        node = myId2TempNode.get(id);
+      }
+      if (node == null) {
+        node = new DefaultMutableTreeNode(component);
+      }
+      if (id != null) {
+        myId2Node.put(id, node);
+      }
+      myComponent2Node.put(component, node);
+      parent.add(node);
+      replaceChildNodes(path.pathByAddingChild(node), component.children);
+      return myVisibleNodes.contains(node);
     }
   }
 
