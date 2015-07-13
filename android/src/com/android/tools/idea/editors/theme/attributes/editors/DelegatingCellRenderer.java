@@ -40,7 +40,8 @@ public class DelegatingCellRenderer implements TableCellRenderer {
 
 
   @Override
-  public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+  public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus,
+                                                 final int row, final int column) {
 
     EditedStyleItem item = (value instanceof  EditedStyleItem) ? (EditedStyleItem) value : null;
 
@@ -48,7 +49,8 @@ public class DelegatingCellRenderer implements TableCellRenderer {
       myDelegate.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
     ThemeEditorStyle selectedStyle = ((AttributesTableModel) table.getModel()).getSelectedStyle();
     // Displays in bold attributes that are overriding their inherited value
-    returnedComponent.setFont(selectedStyle.hasItem(item) ? table.getFont().deriveFont(Font.BOLD) : table.getFont());
+    returnedComponent.setFont(selectedStyle.hasItem(item) ? returnedComponent.getFont().deriveFont(Font.BOLD) :
+                              returnedComponent.getFont().deriveFont(Font.PLAIN));
     returnedComponent.setForeground((item != null && !item.isPublicAttribute()) ? JBColor.LIGHT_GRAY : table.getForeground());
 
     return returnedComponent;
