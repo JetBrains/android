@@ -16,13 +16,10 @@
 package com.android.tools.idea.editors.theme.attributes;
 
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.intellij.codeInsight.documentation.DocumentationComponent;
 import com.intellij.codeInsight.documentation.DocumentationManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -31,41 +28,43 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.awt.RelativePoint;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.AbstractAction;
+import javax.swing.JTable;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
 
 /**
  * Action to display a Javadoc popup for attributes in the theme editor.
  */
-public class ShowJavadocAction extends AnAction {
+public class ShowJavadocAction extends AbstractAction {
   private static final Point ORIGIN = new Point(0, 0);
 
   protected final JTable myAttributesTable;
   private final ThemeEditorContext myContext;
+  private EditedStyleItem myCurrentItem;
 
   public ShowJavadocAction(@NotNull JTable attributesTable, @NotNull ThemeEditorContext context) {
+    super("Show documentation");
     myAttributesTable = attributesTable;
     myContext = context;
   }
 
-  @Override
-  public void actionPerformed(AnActionEvent e) {
-    int selectedRow = myAttributesTable.getSelectedRow();
-    int selectedColumn = myAttributesTable.getSelectedColumn();
-    Object selectedItem = myAttributesTable.getValueAt(selectedRow, selectedColumn);
+  public void setCurrentItem(EditedStyleItem currentItem) {
+    myCurrentItem = currentItem;
+  }
 
-    if (selectedItem == null || !(selectedItem instanceof EditedStyleItem)) {
-      // We can not display javadoc for this item.
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    EditedStyleItem item = myCurrentItem;
+    if (item == null) {
       return;
     }
 
-    EditedStyleItem item = (EditedStyleItem)selectedItem;
-
-    Project project = e.getProject();
+    Project project = myContext.getProject();
     DocumentationManager documentationManager = DocumentationManager.getInstance(project);
     final DocumentationComponent docComponent = new DocumentationComponent(documentationManager);
     String tooltip = ThemeEditorUtils.generateToolTipText(item.getSelectedValue(), myContext.getCurrentContextModule(), myContext.getConfiguration());
-    docComponent.setText(tooltip, e.getData(CommonDataKeys.PSI_FILE), true);
+    docComponent.setText(tooltip, null, true);
 
     JBPopup hint = JBPopupFactory.getInstance().createComponentPopupBuilder(docComponent, docComponent).setProject(project)
       .setDimensionServiceKey(project, DocumentationManager.JAVADOC_LOCATION_AND_SIZE, false).setResizable(true).setMovable(true)

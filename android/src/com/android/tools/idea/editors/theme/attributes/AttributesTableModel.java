@@ -16,34 +16,22 @@
 package com.android.tools.idea.editors.theme.attributes;
 
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.ThemeEditorComponent;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
 import org.jetbrains.annotations.NotNull;
 import spantable.CellSpanModel;
-import com.intellij.openapi.diagnostic.Logger;
 
 import javax.swing.table.AbstractTableModel;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -63,64 +51,9 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   protected final ThemeEditorStyle mySelectedStyle;
 
   private final AttributesGrouper.GroupBy myGroupBy;
-  private final ResourceResolver myResourceResolver;
-  private final Project myProject;
 
   private final List<ThemePropertyChangedListener> myThemePropertyChangedListeners = new ArrayList<ThemePropertyChangedListener>();
   public final ParentAttribute parentAttribute = new ParentAttribute();
-
-  private ThemeEditorComponent.GoToListener myGoToDefinitionListener;
-
-  public void setGoToDefinitionListener(ThemeEditorComponent.GoToListener goToDefinitionListener) {
-    myGoToDefinitionListener = goToDefinitionListener;
-  }
-
-  private class GoToDefinitionAction implements ActionListener {
-    private EditedStyleItem myItem = null;
-
-    public void setItem(EditedStyleItem item) {
-      this.myItem = item;
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      if (myGoToDefinitionListener != null && myItem != null) {
-        myGoToDefinitionListener.goTo(myItem);
-      }
-    }
-  }
-
-  private class OpenFileAction implements ActionListener {
-    private VirtualFile myFile = null;
-
-    public void setFile(VirtualFile file) {
-      myFile = file;
-    }
-
-    private final Runnable myOpenFileRunnable = new Runnable() {
-      @Override
-      public void run() {
-        OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, myFile);
-        FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
-      }
-    };
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      if (myFile != null) {
-        ApplicationManager.getApplication().invokeLater(myOpenFileRunnable);
-      }
-    }
-  }
-
-  private final GoToDefinitionAction myGoToDefinitionAction = new GoToDefinitionAction();
-  private final OpenFileAction myOpenFileAction = new OpenFileAction();
-  private final ActionListener myGotoParentAction = new ActionListener() {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      myGoToDefinitionListener.goToParent();
-    }
-  };
 
   public interface ThemePropertyChangedListener {
     void attributeChangedOnReadOnlyTheme(final EditedStyleItem attribute, final String newValue);
@@ -140,16 +73,11 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     return builder.build();
   }
 
-  public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle,
-                              @NotNull AttributesGrouper.GroupBy groupBy,
-                              @NotNull Configuration configuration,
-                              Project project) {
-    myProject = project;
+  public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle, @NotNull AttributesGrouper.GroupBy groupBy) {
     myAttributes = new ArrayList<EditedStyleItem>();
     myLabels = new ArrayList<TableLabel>();
     mySelectedStyle = selectedStyle;
     myGroupBy = groupBy;
-    myResourceResolver = configuration.getResourceResolver();
     reloadContent();
   }
 
@@ -160,6 +88,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     fireTableStructureChanged();
   }
 
+  @NotNull
   public RowContents getRowContents(final int rowIndex) {
     if (rowIndex == 0) {
       return parentAttribute;
@@ -243,32 +172,19 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   /**
    * Basically a union type, RowContents = LabelContents | AttributeContents | ParentAttribute
    */
-  public interface RowContents {
+  public interface RowContents<T> {
     int getColumnSpan(int column);
 
-    Object getValueAt(int column);
+    T getValueAt(int column);
 
     void setValueAt(int column, String value);
 
     Class<?> getCellClass(int column);
 
     boolean isCellEditable(int column);
-
-    /**
-     * Attributes table has a pop-up menu which contains item "Go to definition",
-     * which should work differently for different rows. This method should return
-     * ActionListener which would implement "Go to definition" functionality.
-     * Listener would be set as JMenuItem action listener before returning menu from
-     * {@link com.android.tools.idea.editors.theme.ThemeEditorTable#getComponentPopupMenu}.
-     *
-     * @return null when no "Go to definition" action for current row is available
-     */
-    ActionListener getGoToDefinitionCallback();
-
-    ActionListener getResetCallback();
   }
 
-  public class ParentAttribute implements RowContents {
+  public class ParentAttribute implements RowContents<Object> {
 
     @Override
     public int getColumnSpan(int column) {
@@ -310,19 +226,9 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     public boolean isCellEditable(int column) {
       return (column == 1 && !mySelectedStyle.isReadOnly());
     }
-
-    @Override
-    public ActionListener getGoToDefinitionCallback() {
-      return mySelectedStyle.getParent() == null ? null : myGotoParentAction;
-    }
-
-    @Override
-    public ActionListener getResetCallback() {
-      return null;
-    }
   }
 
-  private class LabelContents implements RowContents {
+  public class LabelContents implements RowContents<TableLabel> {
     private final TableLabel myLabel;
 
     private LabelContents(TableLabel label) {
@@ -335,7 +241,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     }
 
     @Override
-    public Object getValueAt(int column) {
+    public TableLabel getValueAt(int column) {
       return myLabel;
     }
 
@@ -353,23 +259,17 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     public void setValueAt(int column, String value) {
       throw new RuntimeException(String.format("Tried to setValue at immutable label row of LabelledModel, column = %1$d", column));
     }
-
-    @Override
-    public ActionListener getGoToDefinitionCallback() {
-      return null;
-    }
-
-    @Override
-    public ActionListener getResetCallback() {
-      return null;
-    }
   }
 
-  private class AttributeContents implements RowContents {
+  public class AttributeContents implements RowContents<EditedStyleItem> {
     private final int myRowIndex;
 
     public AttributeContents(int rowIndex) {
       myRowIndex = rowIndex;
+    }
+
+    public int getRowIndex() {
+      return myRowIndex;
     }
 
     @Override
@@ -381,7 +281,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     }
 
     @Override
-    public Object getValueAt(int column) {
+    public EditedStyleItem getValueAt(int column) {
       return myAttributes.get(myRowIndex);
     }
 
@@ -450,7 +350,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
       if (mySelectedStyle.isReadOnly()) {
         for (ThemePropertyChangedListener listener : myThemePropertyChangedListeners) {
-          listener.attributeChangedOnReadOnlyTheme((EditedStyleItem)getValueAt(1), value);
+          listener.attributeChangedOnReadOnlyTheme(getValueAt(1), value);
         }
         return;
       }
@@ -473,47 +373,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       String propertyName = rv.getQualifiedName();
       mySelectedStyle.setValue(propertyName, strValue);
       return true;
-    }
-
-    @Override
-    public ActionListener getGoToDefinitionCallback() {
-      EditedStyleItem item = (EditedStyleItem)getValueAt(1);
-      if (getCellClass(1) == ThemeEditorStyle.class) {
-        myGoToDefinitionAction.setItem(item);
-        return myGoToDefinitionAction;
-      }
-
-      VirtualFileManager manager = VirtualFileManager.getInstance();
-      ResourceValue resourceValue = myResourceResolver.resolveResValue(item.getSelectedValue());
-      final File file = new File(resourceValue.getValue());
-
-      final VirtualFile virtualFile = file.exists() ? manager.findFileByUrl("file://" + file.getAbsolutePath()) : null;
-      if (virtualFile != null) {
-        myOpenFileAction.setFile(virtualFile);
-        return myOpenFileAction;
-      }
-
-      return null;
-    }
-
-    /**
-     * Creates and returns an ActionListener that suppresses an attribute defined in the current theme
-     * from that theme, hence returning to inheriting it from the parent theme.
-     * Returns null if the attribute in question is not defined in the current theme, or is read-only
-     */
-    @Override
-    public ActionListener getResetCallback() {
-      final EditedStyleItem item = (EditedStyleItem) getValueAt(0);
-      if (!mySelectedStyle.isReadOnly() && mySelectedStyle.equals(item.getSourceStyle())) {
-        return new ActionListener() {
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            mySelectedStyle.removeAttribute(item.getQualifiedName());
-            fireTableCellUpdated(myRowIndex, 0);
-          }
-        };
-      }
-      return null;
     }
   }
 }

@@ -33,7 +33,6 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
@@ -94,8 +93,8 @@ public class ThemeEditorComponent extends Splitter {
   private TableRowSorter<AttributesTableModel> myAttributesSorter;
   private final SimpleModeFilter mySimpleModeFilter;
 
-  private final AttributesPanel myPanel = new AttributesPanel();
-  private final ThemeEditorTable myAttributesTable = myPanel.getAttributesTable();
+  private final AttributesPanel myPanel;
+  private final ThemeEditorTable myAttributesTable;
 
   private final ResourceChangeListener myResourceChangeListener;
   private boolean myIsSubscribedResourceNotification;
@@ -111,6 +110,8 @@ public class ThemeEditorComponent extends Splitter {
 
   public ThemeEditorComponent(@NotNull final Project project) {
     myProject = project;
+    myPanel = new AttributesPanel();
+    myAttributesTable = myPanel.getAttributesTable();
 
     initializeModulesCombo(null);
 
@@ -140,14 +141,10 @@ public class ThemeEditorComponent extends Splitter {
         return true;
       }
     });
+    myAttributesTable.setContext(myThemeEditorContext);
 
     myPreviewPanel = new AndroidThemePreviewPanel(myThemeEditorContext, PREVIEW_BACKGROUND);
     myPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-
-    // Setup Javadoc handler.
-    ActionManager actionManager = ActionManager.getInstance();
-    ShowJavadocAction showJavadoc = new ShowJavadocAction(myAttributesTable, myThemeEditorContext);
-    showJavadoc.registerCustomShortcutSet(actionManager.getAction(IdeActions.ACTION_QUICK_JAVADOC).getShortcutSet(), myAttributesTable);
 
     ResourcesCompletionProvider completionProvider = new ResourcesCompletionProvider(myThemeEditorContext);
     myGoToListener = new GoToListener() {
@@ -178,6 +175,7 @@ public class ThemeEditorComponent extends Splitter {
         ThemeEditorComponent.this.goToParent();
       }
     };
+    myAttributesTable.setGoToListener(myGoToListener);
     final AttributeReferenceRendererEditor styleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
 
     final JScrollPane scroll = myPanel.getAttributesScrollPane();
@@ -211,18 +209,18 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    myAttributesTable.setDefaultEditor(Color.class, new DelegatingCellEditor(false, new ColorRendererEditor(myThemeEditorContext, myPreviewPanel, true), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(EditedStyleItem.class, new DelegatingCellEditor(false, new AttributeReferenceRendererEditor(project, completionProvider), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(String.class, new DelegatingCellEditor(false, myAttributesTable.getDefaultEditor(String.class), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(Integer.class), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(Boolean.class, new DelegatingCellEditor(false, new BooleanRendererEditor(myThemeEditorContext), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(Enum.class, new DelegatingCellEditor(false, new EnumRendererEditor(), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(Flag.class, new DelegatingCellEditor(false, new FlagRendererEditor(), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(AttributesTableModel.ParentAttribute.class, new DelegatingCellEditor(false, new ParentRendererEditor(myThemeEditorContext), myThemeEditorContext));
+    myAttributesTable.setDefaultEditor(Color.class, new DelegatingCellEditor(false, new ColorRendererEditor(myThemeEditorContext, myPreviewPanel, true)));
+    myAttributesTable.setDefaultEditor(EditedStyleItem.class, new DelegatingCellEditor(false, new AttributeReferenceRendererEditor(project, completionProvider)));
+    myAttributesTable.setDefaultEditor(String.class, new DelegatingCellEditor(false, myAttributesTable.getDefaultEditor(String.class)));
+    myAttributesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(Integer.class)));
+    myAttributesTable.setDefaultEditor(Boolean.class, new DelegatingCellEditor(false, new BooleanRendererEditor(myThemeEditorContext)));
+    myAttributesTable.setDefaultEditor(Enum.class, new DelegatingCellEditor(false, new EnumRendererEditor()));
+    myAttributesTable.setDefaultEditor(Flag.class, new DelegatingCellEditor(false, new FlagRendererEditor()));
+    myAttributesTable.setDefaultEditor(AttributesTableModel.ParentAttribute.class, new DelegatingCellEditor(false, new ParentRendererEditor(myThemeEditorContext)));
 
     // We allow to edit style pointers as Strings.
-    myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, styleEditor, myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableRendererEditor(myThemeEditorContext, true), myThemeEditorContext));
+    myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, styleEditor));
+    myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableRendererEditor(myThemeEditorContext, true)));
 
     // We shouldn't allow autoCreateColumnsFromModel, because when setModel() will be invoked, it removes
     // existing listeners to cell editors.
@@ -311,6 +309,8 @@ public class ThemeEditorComponent extends Splitter {
     group.add(new DeviceMenuAction(myPreviewPanel, false));
     group.add(new TargetMenuAction(myPreviewPanel, true, false));
     group.add(new LocaleMenuAction(myPreviewPanel, false));
+
+    ActionManager actionManager = ActionManager.getInstance();
     ActionToolbar actionToolbar = actionManager.createActionToolbar("ThemeToolbar", group, true);
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
     JPanel myConfigToolbar = myPanel.getConfigToolbar();
@@ -655,8 +655,7 @@ public class ThemeEditorComponent extends Splitter {
     configuration.setTheme(selectedTheme.getQualifiedName());
 
     assert configuration.getResourceResolver() != null; // ResourceResolver is only null if no theme was set.
-    myModel = new AttributesTableModel(selectedStyle, getSelectedAttrGroup(), configuration, myThemeEditorContext.getProject());
-    myModel.setGoToDefinitionListener(myGoToListener);
+    myModel = new AttributesTableModel(selectedStyle, getSelectedAttrGroup());
 
     myModel.addThemePropertyChangedListener(new AttributesTableModel.ThemePropertyChangedListener() {
       @Override
