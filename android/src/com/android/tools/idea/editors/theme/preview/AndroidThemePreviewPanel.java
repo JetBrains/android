@@ -106,6 +106,8 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
                     new ToolbarComponentDefinition(true/*isAppCompat*/));
   private static final Map<String, String> SUPPORT_LIBRARY_REPLACEMENTS =
     ImmutableMap.of("android.support.v7.widget.Toolbar", "Toolbar");
+  /** Enable the component drill down that allows to see only selected groups of components on click */
+  private static final boolean ENABLE_COMPONENTS_DRILL_DOWN = false;
 
   /** Current search term to use for filtering. If empty, no search term is being used */
   private String mySearchTerm = "";
@@ -275,35 +277,37 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
       }
     });
 
-    myAndroidPreviewPanel.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        ViewInfo view = myAndroidPreviewPanel.findViewAtPoint(e.getPoint());
+    if (ENABLE_COMPONENTS_DRILL_DOWN) {
+      myAndroidPreviewPanel.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          ViewInfo view = myAndroidPreviewPanel.findViewAtPoint(e.getPoint());
 
-        if (view == null) {
-          return;
+          if (view == null) {
+            return;
+          }
+
+          mySearchTextField.setText("");
+
+          Object cookie = view.getCookie();
+          if (cookie instanceof MergeCookie) {
+            cookie = ((MergeCookie)cookie).getCookie();
+          }
+
+          if (!(cookie instanceof Element)) {
+            return;
+          }
+
+          NamedNodeMap attributes = ((Element)cookie).getAttributes();
+          Node group = attributes.getNamedItemNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP);
+
+          if (group != null) {
+            myBreadcrumbs.push(new Breadcrumb(ThemePreviewBuilder.ComponentGroup.valueOf(group.getNodeValue())));
+            rebuild();
+          }
         }
-
-        mySearchTextField.setText("");
-
-        Object cookie = view.getCookie();
-        if (cookie instanceof MergeCookie) {
-          cookie = ((MergeCookie)cookie).getCookie();
-        }
-
-        if (!(cookie instanceof Element)) {
-          return;
-        }
-
-        NamedNodeMap attributes = ((Element)cookie).getAttributes();
-        Node group = attributes.getNamedItemNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP);
-
-        if (group != null) {
-          myBreadcrumbs.push(new Breadcrumb(ThemePreviewBuilder.ComponentGroup.valueOf(group.getNodeValue())));
-          rebuild();
-        }
-      }
-    });
+      });
+    }
 
     myContext.addConfigurationListener(new ConfigurationListener() {
       @Override
