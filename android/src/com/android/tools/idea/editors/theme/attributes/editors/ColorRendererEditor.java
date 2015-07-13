@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.RenderResources;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.StateListPicker;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
@@ -28,7 +25,8 @@ import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
-import com.intellij.openapi.module.Module;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +42,9 @@ import java.util.List;
 public class ColorRendererEditor extends GraphicalResourceRendererEditor {
   static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b><font color=\"#9B9B9B\"> - %3$s</font>";
   static final String LABEL_EMPTY = "(empty)";
+  public static final ResourceType[] COLORS_ONLY = {ResourceType.COLOR};
+  public static final ResourceType[] DRAWABLES_ONLY = {ResourceType.DRAWABLE, ResourceType.MIPMAP};
+  public static final ResourceType[] COLORS_AND_DRAWABLES = {ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP};
 
   private final AndroidThemePreviewPanel myPreviewPanel;
   private EditedStyleItem myItem;
@@ -73,38 +74,22 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
   private class ColorEditorActionListener implements ActionListener {
     @Override
     public void actionPerformed(final ActionEvent e) {
-      String itemValue = myItem.getValue();
-      final String colorName;
-      // If it points to an existing resource.
-      if (!RenderResources.REFERENCE_EMPTY.equals(itemValue) &&
-          !RenderResources.REFERENCE_NULL.equals(itemValue) &&
-          itemValue.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-        // Use the name of that resource.
-        colorName = itemValue.substring(itemValue.indexOf('/') + 1);
+      AttributeDefinition attrDefinition =
+        ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), myItem.getSelectedValue());
+
+      ResourceType[] allowedTypes;
+      String attributeName = myItem.getName().toLowerCase();
+      if (attributeName.contains("color") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Reference)) {
+        allowedTypes = COLORS_ONLY;
+      }
+      else if (attributeName.contains("drawable") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color)) {
+        allowedTypes = DRAWABLES_ONLY;
       }
       else {
-        // Otherwise use the name of the attribute.
-        colorName = myItem.getName();
+        allowedTypes = COLORS_AND_DRAWABLES;
       }
 
-      Module module = myContext.getModuleForResources();
-      final Configuration configuration = ThemeEditorUtils.getConfigurationForModule(module);
-
-      // TODO we need to handle color state lists correctly here.
-      ResourceResolver resourceResolver = configuration.getResourceResolver();
-      assert resourceResolver != null;
-      ChooseResourceDialog dialog;
-
-      List<StateListPicker.StateListState> colorStates = ResourceHelper.resolveStateList(resourceResolver, myItem.getSelectedValue());
-      if (!colorStates.isEmpty()) {
-        dialog = new ChooseResourceDialog(module, configuration, ChooseResourceDialog.COLOR_TYPES,
-                                          colorStates, ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
-      }
-      else {
-        String resolvedColor = ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, myItem.getSelectedValue()));
-        dialog = new ChooseResourceDialog(module, ChooseResourceDialog.COLOR_TYPES, resolvedColor,
-                                          null, ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
-      }
+      ChooseResourceDialog dialog = ThemeEditorUtils.getResourceDialog(myItem, myContext, allowedTypes);
 
       final String oldValue = myItem.getSelectedValue().getValue();
 

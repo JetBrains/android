@@ -39,16 +39,27 @@ import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.plaf.basic.ComboPopup;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -207,7 +218,10 @@ public class ResourceEditor extends PropertyEditor {
           types.add(ResourceType.BOOL);
           break;
         case Color:
-          return ChooseResourceDialog.COLOR_TYPES;
+          types.add(ResourceType.COLOR);
+          types.add(ResourceType.DRAWABLE);
+          types.add(ResourceType.MIPMAP);
+          break;
         case Dimension:
           types.add(ResourceType.DIMEN);
           break;

@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.swing.ui.SwatchComponent;
+import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
@@ -39,30 +41,30 @@ import java.awt.event.ActionListener;
 public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
   static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b><font color=\"#9B9B9B\"></font>";
 
-  private static final ResourceType[] DRAWABLE_TYPE = new ResourceType[]{ResourceType.DRAWABLE};
-
   @Nullable
   private RenderTask myRenderTask;
+  private final AndroidThemePreviewPanel myPreviewPanel;
   private EditedStyleItem myItem;
 
-  public DrawableRendererEditor(@NotNull ThemeEditorContext context, boolean isEditor) {
+  public DrawableRendererEditor(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel, boolean isEditor) {
     super(context, isEditor);
 
-    myRenderTask = configureRenderTask(context);
+    myRenderTask = configureRenderTask(context.getCurrentContextModule(), context.getConfiguration());
 
     if (isEditor) {
       myComponent.addActionListener(new EditorClickListener());
     }
+    myPreviewPanel = previewPanel;
   }
 
   @Nullable
-  public static RenderTask configureRenderTask(@NotNull final ThemeEditorContext context) {
+  public static RenderTask configureRenderTask(@NotNull final Module module, @NotNull final Configuration configuration) {
     RenderTask result = null;
-    AndroidFacet facet = AndroidFacet.getInstance(context.getCurrentContextModule());
+    AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
       final RenderService service = RenderService.get(facet);
       result =
-        service.createTask(null, context.getConfiguration(), new RenderLogger("ThemeEditorLogger", context.getCurrentContextModule()), null);
+        service.createTask(null, configuration, new RenderLogger("ThemeEditorLogger", module), null);
     }
 
     return result;
@@ -87,18 +89,40 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
   private class EditorClickListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
-      final ChooseResourceDialog dialog =
-        new ChooseResourceDialog(myContext.getModuleForResources(), DRAWABLE_TYPE, myItem.getValue(), null);
+      ChooseResourceDialog dialog = ThemeEditorUtils.getResourceDialog(myItem, myContext, ColorRendererEditor.DRAWABLES_ONLY);
+
+      final String oldValue = myItem.getSelectedValue().getValue();
+
+      dialog.setResourcePickerListener(new ChooseResourceDialog.ResourcePickerListener() {
+        @Override
+        public void resourceChanged(final @Nullable String resource) {
+          myItem.getSelectedValue().setValue(resource == null ? oldValue : resource);
+          myPreviewPanel.invalidateGraphicsRenderer();
+        }
+      });
 
       dialog.show();
 
+      // Restore the old value in the properties model
+      myItem.getSelectedValue().setValue(oldValue);
+
+      myEditorValue = null;
       if (dialog.isOK()) {
-        myEditorValue = dialog.getResourceName();
-        stopCellEditing();
+        String value = dialog.getResourceName();
+        if (value != null) {
+          myEditorValue = dialog.getResourceName();
+        }
       }
       else {
-        myEditorValue = null;
-        cancelCellEditing();
+        // User cancelled, clean up the preview
+        myPreviewPanel.invalidateGraphicsRenderer();
+      }
+
+      if (myEditorValue == null) {
+        DrawableRendererEditor.this.cancelCellEditing();
+      }
+      else {
+        DrawableRendererEditor.this.stopCellEditing();
       }
     }
   }

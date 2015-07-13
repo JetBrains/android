@@ -21,6 +21,8 @@ import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.RenderResources;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
@@ -79,10 +81,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.inspections.lint.IntellijLintClient;
+import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.Color;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -93,7 +97,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-
 
 /**
  * Utility class for static methods which are used in different classes of theme editor
@@ -560,5 +563,48 @@ public class ThemeEditorUtils {
         visitor.visitResourceFolder(resourceRepository, provider.getName(), false);
       }
     }
+  }
+
+  public static ChooseResourceDialog getResourceDialog(@NotNull EditedStyleItem item, @NotNull ThemeEditorContext context,
+                                                       ResourceType[] allowedTypes) {
+    String itemValue = item.getValue();
+    final String resourceName;
+    // If it points to an existing resource.
+    if (!RenderResources.REFERENCE_EMPTY.equals(itemValue) &&
+        !RenderResources.REFERENCE_NULL.equals(itemValue) &&
+        itemValue.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+      // Use the name of that resource.
+      resourceName = itemValue.substring(itemValue.indexOf('/') + 1);
+    }
+    else {
+      // Otherwise use the name of the attribute.
+      resourceName = item.getName();
+    }
+
+    Module module = context.getModuleForResources();
+    final Configuration configuration = getConfigurationForModule(module);
+
+    ResourceResolver resourceResolver = configuration.getResourceResolver();
+    assert resourceResolver != null;
+    ChooseResourceDialog dialog;
+
+    StateListPicker.StateList stateList = ResourceHelper.resolveStateList(resourceResolver, item.getSelectedValue());
+    if (stateList != null) {
+      dialog = new ChooseResourceDialog(context.getModuleForResources(), context.getConfiguration(), allowedTypes, stateList,
+                                        ChooseResourceDialog.ResourceNameVisibility.FORCE, resourceName);
+    }
+    else {
+      String resolvedResource;
+      Color color = ResourceHelper.resolveColor(resourceResolver, item.getSelectedValue());
+      if (color != null) {
+        resolvedResource = ResourceHelper.colorToString(color);
+      }
+      else {
+        resolvedResource = resourceResolver.resolveResValue(item.getSelectedValue()).getName();
+      }
+      dialog = new ChooseResourceDialog(context.getModuleForResources(), allowedTypes, resolvedResource, null,
+                                        ChooseResourceDialog.ResourceNameVisibility.FORCE, resourceName);
+    }
+    return dialog;
   }
 }

@@ -20,8 +20,13 @@ import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.attributes.editors.ColorRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.google.common.base.Joiner;
@@ -34,12 +39,15 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
+import org.jetbrains.android.dom.drawable.DrawableSelector;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -51,24 +59,25 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class StateListPicker extends JPanel {
   private static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b>";
 
-  private Module myModule;
-  private Configuration myConfiguration;
-  private final List<StateListState> myStates;
+  private final Module myModule;
+  private final Configuration myConfiguration;
+  private final StateList myStateList;
+  private @Nullable final RenderTask myRenderTask;
 
-  public StateListPicker(@NotNull List<StateListState> colorStates, @NotNull Module module, @NotNull Configuration configuration) {
-    myStates = colorStates;
+  public StateListPicker(@NotNull StateList stateList, @NotNull Module module, @NotNull Configuration configuration) {
+    myStateList = stateList;
     myModule = module;
     myConfiguration = configuration;
+    myRenderTask = DrawableRendererEditor.configureRenderTask(module, configuration);
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-    for (StateListState state: colorStates) {
+    for (StateListState state: myStateList.getStates()) {
       ResourceComponent stateComponent  = createStateComponent(state);
       stateComponent.addActionListener(new StateActionListener(state));
       add(stateComponent);
@@ -81,18 +90,8 @@ public class StateListPicker extends JPanel {
     component.setMaximumSize(new Dimension(component.getMaximumSize().width, component.getPreferredSize().height));
     component.setVariantComboVisible(false);
 
-    String colorValue = state.getColor();
-    component.setValueText(colorValue);
-    ResourceUrl url = ResourceUrl.parse(colorValue);
-    if (url != null) {
-      ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
-      assert resourceResolver != null;
-      ResourceValue resValue = resourceResolver.findResValue(colorValue, url.framework);
-      ResourceValue color = resourceResolver.resolveResValue(resValue);
-      colorValue = color.getValue();
-    }
-    List<Color> colorList = Collections.singletonList(ResourceHelper.parseColor(colorValue));
-    component.setSwatchIcons(SwatchComponent.colorListOf(colorList));
+    String stateValue = state.getValue();
+    updateComponent(component, stateValue);
 
     Map<String, Boolean> attributes = state.getAttributes();
     List<String> attributeDescriptions = new ArrayList<String>();
@@ -123,26 +122,33 @@ public class StateListPicker extends JPanel {
       }
     }
 
-    final List<ColorSelector> selectors = Lists.newArrayListWithCapacity(files.size());
+    final List<AndroidDomElement> selectors = Lists.newArrayListWithCapacity(files.size());
 
+    Class<? extends AndroidDomElement> selectorClass;
+    if (myStateList.getType() == ResourceFolderType.COLOR) {
+      selectorClass = ColorSelector.class;
+    }
+    else {
+      selectorClass = DrawableSelector.class;
+    }
     for (VirtualFile file : files) {
-      final ColorSelector colorSelector = AndroidUtils.loadDomElement(myModule, file, ColorSelector.class);
-      if (colorSelector == null) {
+      final AndroidDomElement selector = AndroidUtils.loadDomElement(myModule, file, selectorClass);
+      if (selector == null) {
         AndroidUtils.reportError(project, file.getName() + " is not a statelist file");
         return;
       }
-      selectors.add(colorSelector);
+      selectors.add(selector);
     }
 
-    new WriteCommandAction.Simple(project, "Change Color State List", psiFiles.toArray(new PsiFile[psiFiles.size()])) {
+    new WriteCommandAction.Simple(project, "Change State List", psiFiles.toArray(new PsiFile[psiFiles.size()])) {
       @Override
       protected void run() {
-        for (ColorSelector colorSelector : selectors) {
-          XmlTag tag = colorSelector.getXmlTag();
+        for (AndroidDomElement selector : selectors) {
+          XmlTag tag = selector.getXmlTag();
           for (XmlTag subtag : tag.getSubTags()) {
             subtag.delete();
           }
-          for (StateListState state : myStates) {
+          for (StateListState state : myStateList.getStates()) {
             XmlTag child = tag.createChildTag(SdkConstants.TAG_ITEM, tag.getNamespace(), null, false);
             child = tag.addSubTag(child, false);
 
@@ -150,7 +156,12 @@ public class StateListPicker extends JPanel {
             for (String attributeName : attributes.keySet()) {
               child.setAttribute(attributeName, SdkConstants.ANDROID_URI, attributes.get(attributeName).toString());
             }
-            child.setAttribute(SdkConstants.ATTR_COLOR, SdkConstants.ANDROID_URI, state.getColor());
+            if (selector instanceof ColorSelector) {
+              child.setAttribute(SdkConstants.ATTR_COLOR, SdkConstants.ANDROID_URI, state.getValue());
+            }
+            else if (selector instanceof DrawableSelector) {
+              child.setAttribute(SdkConstants.ATTR_DRAWABLE, SdkConstants.ANDROID_URI, state.getValue());
+            }
           }
         }
       }
@@ -169,83 +180,126 @@ public class StateListPicker extends JPanel {
       Component source = (Component)e.getSource();
       ResourceComponent component = (ResourceComponent)SwingUtilities.getAncestorOfClass(ResourceComponent.class, source);
       String itemValue = component.getValueText();
-      final String colorName;
+      final String resourceName;
       // If it points to an existing resource.
       if (!RenderResources.REFERENCE_EMPTY.equals(itemValue) &&
           !RenderResources.REFERENCE_NULL.equals(itemValue) &&
           itemValue.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
         // Use the name of that resource.
-        colorName = itemValue.substring(itemValue.indexOf('/') + 1);
+        resourceName = itemValue.substring(itemValue.indexOf('/') + 1);
       }
       else {
         // Otherwise use the name of the attribute.
-        colorName = itemValue;
+        resourceName = itemValue;
       }
 
       ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
       assert resourceResolver != null;
-      String resolvedColor;
+      String resolvedResource;
       ResourceUrl url = ResourceUrl.parse(itemValue);
       if (url != null) {
         ResourceValue resValue = resourceResolver.findResValue(itemValue, url.framework);
-        resolvedColor = ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, resValue));
+        if (resValue.getResourceType() == ResourceType.COLOR) {
+          resolvedResource = ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, resValue));
+        }
+        else {
+          resolvedResource = resourceResolver.resolveResValue(resValue).getName();
+        }
       }
       else {
-        resolvedColor = itemValue;
+        resolvedResource = itemValue;
+      }
+
+      ResourceType[] allowedTypes;
+      if (myStateList.getType() == ResourceFolderType.COLOR) {
+        allowedTypes = ColorRendererEditor.COLORS_ONLY;
+      }
+      else {
+        allowedTypes = ColorRendererEditor.DRAWABLES_ONLY;
       }
 
       final ChooseResourceDialog dialog =
-        new ChooseResourceDialog(myModule, ChooseResourceDialog.COLOR_TYPES, resolvedColor, null,
-                                 ChooseResourceDialog.ResourceNameVisibility.FORCE, colorName);
+        new ChooseResourceDialog(myModule, allowedTypes, resolvedResource, null,
+                                 ChooseResourceDialog.ResourceNameVisibility.FORCE, resourceName);
 
       dialog.show();
 
       if (dialog.isOK()) {
-        myState.setColor(dialog.getResourceName());
+        myState.setValue(dialog.getResourceName());
+        AndroidFacet facet = AndroidFacet.getInstance(myModule);
+        if (facet != null) {
+          facet.refreshResources();
+        }
         updateComponent(component, dialog.getResourceName());
+        component.repaint();
       }
     }
+  }
 
-    private void updateComponent(@NotNull ResourceComponent component, @NotNull String resourceName) {
-      AndroidFacet facet = AndroidFacet.getInstance(myModule);
-      if (facet != null) {
-        facet.refreshResources();
-      }
-      component.setValueText(resourceName);
+  private void updateComponent(@NotNull ResourceComponent component, @NotNull String resourceName) {
+    component.setValueText(resourceName);
+
+    ResourceValue resValue = null;
+    String value = resourceName;
+    ResourceUrl url = ResourceUrl.parse(resourceName);
+    if (url != null) {
       ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
       assert resourceResolver != null;
-      ResourceUrl url = ResourceUrl.parse(resourceName);
-      if (url != null) {
-        ResourceValue resValue = resourceResolver.findResValue(resourceName, url.framework);
-        if (resValue != null) {
-          List<Color> colorList = Collections.singletonList(ResourceHelper.parseColor(resourceResolver.resolveResValue(resValue).getValue()));
-          component.setSwatchIcons(SwatchComponent.colorListOf(colorList));
-        }
-      }
-      component.repaint();
+      resValue = resourceResolver.findResValue(resourceName, url.framework);
+      value = resourceResolver.resolveResValue(resValue).getValue();
+    }
+    if (resValue != null && resValue.getResourceType() != ResourceType.COLOR && myRenderTask != null) {
+      component.setSwatchIcons(SwatchComponent.imageListOf(myRenderTask.renderDrawableAllStates(resValue)));
+    }
+    else {
+      List<Color> colorList = Collections.singletonList(ResourceHelper.parseColor(value));
+      component.setSwatchIcons(SwatchComponent.colorListOf(colorList));
+    }
+  }
+
+  public static class StateList {
+    private final ResourceFolderType myType;
+    private final List<StateListState> myStates;
+
+    public StateList(@NotNull ResourceFolderType type) {
+      myType = type;
+      myStates = new ArrayList<StateListState>();
+    }
+
+    @NotNull
+    public ResourceFolderType getType() {
+      return myType;
+    }
+
+    @NotNull
+    public List<StateListState> getStates() {
+      return myStates;
+    }
+
+    public void addState(@NotNull StateListState state) {
+      myStates.add(state);
     }
   }
 
   public static class StateListState {
-    private String myColor;
+    private String myValue;
     private final Map<String, Boolean> myAttributes;
 
-    public StateListState() {
-      myAttributes = new HashMap<String, Boolean>();
+    public StateListState(@NotNull String value, @NotNull Map<String, Boolean> attributes) {
+      myValue = value;
+      myAttributes = attributes;
     }
 
-    public void setColor(String color) {
-      myColor = color;
+    public void setValue(@NotNull String value) {
+      myValue = value;
     }
 
-    public void addAttribute(String name, boolean value) {
-      myAttributes.put(name, value);
+    @NotNull
+    public String getValue() {
+      return myValue;
     }
 
-    public String getColor() {
-      return myColor;
-    }
-
+    @NotNull
     public Map<String, Boolean> getAttributes() {
       return myAttributes;
     }
