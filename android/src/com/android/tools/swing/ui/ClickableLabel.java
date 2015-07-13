@@ -27,8 +27,7 @@ public class ClickableLabel extends JButton {
     setFocusPainted(false);
     setBorderPainted(false);
     setContentAreaFilled(false);
-    setBorder(null);
-    setOpaque(false);
+    setBorder(BorderFactory.createEmptyBorder());
     setHorizontalAlignment(horizontalAlignment);
   }
 
