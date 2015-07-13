@@ -19,13 +19,13 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.chartlib.EventData;
 import com.android.tools.chartlib.TimelineComponent;
-import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.GcAction;
 import com.android.tools.idea.ddms.actions.ToggleAllocationTrackingAction;
 import com.android.tools.idea.ddms.hprof.DumpHprofAction;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.DeviceSampler;
+import com.android.tools.idea.monitor.TimelineEventListener;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.monitor.memory.actions.ToggleDebugRender;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -43,7 +43,8 @@ import java.awt.event.HierarchyListener;
 
 import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
 
-public class MemoryMonitorView extends BaseMonitorView implements HierarchyListener, DeviceContext.DeviceSelectionListener {
+public class MemoryMonitorView extends BaseMonitorView
+  implements TimelineEventListener, HierarchyListener, DeviceContext.DeviceSelectionListener {
   /**
    * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
    * a sample on every GC.
@@ -68,9 +69,12 @@ public class MemoryMonitorView extends BaseMonitorView implements HierarchyListe
     float initialMax = 5.0f;
     float initialMarker = 2.0f;
 
-    TimelineData data = new TimelineData(2, SAMPLES);
+    myMemorySampler = new MemorySampler(SAMPLE_FREQUENCY_MS);
+    myMemorySampler.addListener(this);
+
     myEvents = new EventData();
-    myTimelineComponent = new TimelineComponent(data, myEvents, bufferTimeInSeconds, initialMax, Float.MAX_VALUE, initialMarker);
+    myTimelineComponent =
+      new TimelineComponent(myMemorySampler.getTimelineData(), myEvents, bufferTimeInSeconds, initialMax, Float.MAX_VALUE, initialMarker);
 
     myTimelineComponent.configureUnits("MB");
     myTimelineComponent.configureStream(0, "Allocated", new JBColor(0x78abd9, 0x78abd9));
@@ -86,9 +90,6 @@ public class MemoryMonitorView extends BaseMonitorView implements HierarchyListe
     myTimelineComponent.setBackground(BACKGROUND_COLOR);
 
     setComponent(myTimelineComponent);
-
-    myMemorySampler = new MemorySampler(data, SAMPLE_FREQUENCY_MS);
-    myMemorySampler.addListener(this);
 
     myContentPane.addHierarchyListener(this);
 

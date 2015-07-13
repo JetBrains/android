@@ -24,6 +24,8 @@ import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.DeviceSampler;
 import com.android.tools.idea.monitor.TimelineEventListener;
+import com.android.tools.idea.monitor.gpu.gfxinfohandlers.LHandler;
+import com.android.tools.idea.monitor.gpu.gfxinfohandlers.MHandler;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
@@ -36,27 +38,21 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 
 public class GpuMonitorView extends BaseMonitorView implements TimelineEventListener, DeviceContext.DeviceSelectionListener {
-  public static int DEFAULT_API_LEVEL = 22;
-  public static int DETAILED_API_LEVEL = 23;
-
-  public static final int PRE_M_SAMPLES = 2048;
-  public static final int POST_M_SAMPLES = 8192;
   public static final int PRE_M_SAMPLE_FREQUENCY_MS = 33;
   public static final int POST_M_SAMPLE_FREQUENCY_MS = 200;
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
 
-  private int myApiLevel = DEFAULT_API_LEVEL;
+  private int myApiLevel;
   @NotNull private final GpuSampler myGpuSampler;
 
   public GpuMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
     super(project);
 
-    myApiLevel = getApiLevel(deviceContext.getSelectedClient());
-    TimelineData data = createTimelineData();
-    configureTimelineComponent(data);
-    myGpuSampler = new GpuSampler(data, PRE_M_SAMPLE_FREQUENCY_MS, myApiLevel);
+    myGpuSampler = new GpuSampler(PRE_M_SAMPLE_FREQUENCY_MS);
     myGpuSampler.addListener(this);
 
+    myApiLevel = myGpuSampler.getApiLevel();
+    configureTimelineComponent(myGpuSampler.getTimelineData());
     deviceContext.addListener(this, project);
   }
 
@@ -81,17 +77,14 @@ public class GpuMonitorView extends BaseMonitorView implements TimelineEventList
   }
 
   @Override
-  public void clientSelected(@Nullable Client c) {
-    int newApiLevel = getApiLevel(c);
-    if (newApiLevel != myApiLevel) {
-      myGpuSampler.stop();
-      myApiLevel = newApiLevel;
-      TimelineData data = createTimelineData();
-      configureTimelineComponent(data);
-      myGpuSampler.resetClientState(c, data, myApiLevel);
-    }
-    else {
-      myGpuSampler.setClient(c);
+  public void clientSelected(@Nullable final Client client) {
+    myGpuSampler.setClient(client);
+    if (client != null) {
+      int newApiLevel = myGpuSampler.getApiLevel();
+      if (newApiLevel != myApiLevel) {
+        myApiLevel = newApiLevel;
+        configureTimelineComponent(myGpuSampler.getTimelineData());
+      }
     }
   }
 
@@ -108,48 +101,11 @@ public class GpuMonitorView extends BaseMonitorView implements TimelineEventList
     return myGpuSampler;
   }
 
-  private int getApiLevel(@Nullable Client client) {
-    if (client != null) {
-      String apiString = client.getDevice().getProperty("ro.build.version.sdk");
-      if (apiString == null) {
-        return DEFAULT_API_LEVEL;
-      }
-      else {
-        try {
-          // TODO remove this version promotion workaround after M launches
-          int apiLevel = Integer.parseInt(apiString);
-          if (apiLevel == 22) {
-            String versionString = client.getDevice().getProperty("ro.build.version.release");
-            if (versionString == null) {
-              return 22;
-            }
-            return "M".equals(versionString) ? DETAILED_API_LEVEL : 22;
-          }
-          return apiLevel;
-        }
-        catch (NumberFormatException e) {
-          return DEFAULT_API_LEVEL;
-        }
-      }
-    }
-    return myApiLevel;
-  }
-
-  @NotNull
-  private TimelineData createTimelineData() {
-    if (myApiLevel >= DETAILED_API_LEVEL) {
-      return new TimelineData(9, POST_M_SAMPLES);
-    }
-    else {
-      return new TimelineData(4, PRE_M_SAMPLES);
-    }
-  }
-
   private void configureTimelineComponent(@NotNull TimelineData data) {
     TimelineComponent timelineComponent;
     EventData events = new EventData();
 
-    if (myApiLevel >= DETAILED_API_LEVEL) {
+    if (myApiLevel >= MHandler.MIN_API_LEVEL) {
       // Buffer at one and a half times the sample frequency.
       float bufferTimeInSeconds = POST_M_SAMPLE_FREQUENCY_MS * 1.5f / 1000.f;
 
@@ -173,12 +129,21 @@ public class GpuMonitorView extends BaseMonitorView implements TimelineEventList
 
       timelineComponent = new TimelineComponent(data, events, bufferTimeInSeconds, 17.0f, 100.0f, 3.0f);
 
-      timelineComponent.configureUnits("ms");
-      timelineComponent.configureStream(0, "Draw", new JBColor(0x4979f2, 0x3e66cc));
-      timelineComponent.configureStream(1, "Prepare", new JBColor(0xa900ff, 0x8f00ff));
-      timelineComponent.configureStream(2, "Process", new JBColor(0xff4315, 0xdc3912));
-      timelineComponent.configureStream(3, "Execute", new JBColor(0xffb400, 0xe69800));
-      timelineComponent.setBackground(BACKGROUND_COLOR);
+      if (myApiLevel >= LHandler.MIN_API_LEVEL) {
+        timelineComponent.configureUnits("ms");
+        timelineComponent.configureStream(0, "Draw", new JBColor(0x4979f2, 0x3e66cc));
+        timelineComponent.configureStream(1, "Prepare", new JBColor(0xa900ff, 0x8f00ff));
+        timelineComponent.configureStream(2, "Process", new JBColor(0xff4315, 0xdc3912));
+        timelineComponent.configureStream(3, "Execute", new JBColor(0xffb400, 0xe69800));
+        timelineComponent.setBackground(BACKGROUND_COLOR);
+      }
+      else {
+        timelineComponent.configureUnits("ms");
+        timelineComponent.configureStream(0, "Draw", new JBColor(0x4979f2, 0x3e66cc));
+        timelineComponent.configureStream(1, "Process", new JBColor(0xff4315, 0xdc3912));
+        timelineComponent.configureStream(2, "Execute", new JBColor(0xffb400, 0xe69800));
+        timelineComponent.setBackground(BACKGROUND_COLOR);
+      }
     }
 
     setComponent(timelineComponent);

@@ -18,12 +18,13 @@ package com.android.tools.idea.monitor.cpu;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.chartlib.EventData;
+import com.android.tools.chartlib.TimelineComponent;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.ToggleMethodProfilingAction;
-import com.android.tools.idea.monitor.*;
+import com.android.tools.idea.monitor.BaseMonitorView;
+import com.android.tools.idea.monitor.DeviceSampler;
+import com.android.tools.idea.monitor.TimelineEventListener;
 import com.android.tools.idea.monitor.actions.RecordingAction;
-import com.android.tools.chartlib.TimelineComponent;
-import com.android.tools.chartlib.TimelineData;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
@@ -37,7 +38,7 @@ import java.awt.*;
 
 import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
 
-public class CpuMonitorView extends BaseMonitorView implements DeviceContext.DeviceSelectionListener {
+public class CpuMonitorView extends BaseMonitorView implements TimelineEventListener, DeviceContext.DeviceSelectionListener {
   /**
    * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
    * a sample on every GC.
@@ -56,9 +57,12 @@ public class CpuMonitorView extends BaseMonitorView implements DeviceContext.Dev
     float initialMax = 100.0f;
     float initialMarker = 10.0f;
 
-    TimelineData data = new TimelineData(2, SAMPLES);
+    myCpuSampler = new CpuSampler(SAMPLE_FREQUENCY_MS);
+    myCpuSampler.addListener(this);
+
     EventData events = new EventData();
-    TimelineComponent timelineComponent = new TimelineComponent(data, events, bufferTimeInSeconds, initialMax, 100, initialMarker);
+    TimelineComponent timelineComponent =
+      new TimelineComponent(myCpuSampler.getTimelineData(), events, bufferTimeInSeconds, initialMax, 100, initialMarker);
 
     timelineComponent.configureUnits("%");
     timelineComponent.configureStream(0, "Kernel", new JBColor(0xd73f3f, 0xd73f3f));
@@ -66,9 +70,6 @@ public class CpuMonitorView extends BaseMonitorView implements DeviceContext.Dev
     timelineComponent.setBackground(BACKGROUND_COLOR);
 
     setComponent(timelineComponent);
-
-    myCpuSampler = new CpuSampler(data, SAMPLE_FREQUENCY_MS);
-    myCpuSampler.addListener(this);
 
     myDeviceContext = deviceContext;
     myDeviceContext.addListener(this, project);
