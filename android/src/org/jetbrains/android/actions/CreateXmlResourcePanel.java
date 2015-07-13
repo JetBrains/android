@@ -210,10 +210,6 @@ public class CreateXmlResourcePanel {
         updateDirectories(true);
       }
     });
-    final JCheckBox noQualifierCheckBox = myCheckBoxes.get(myFolderType.getName());
-    if (noQualifierCheckBox != null) {
-      noQualifierCheckBox.setSelected(true);
-    }
 
     if (defaultFile != null) {
       resetFromFile(defaultFile, module.getProject());
@@ -374,14 +370,26 @@ public class CreateXmlResourcePanel {
       }
       i++;
     }
+
+    String defaultFolderName = myFolderType.getName();
+    JCheckBox noQualifierCheckBox = myCheckBoxes.get(defaultFolderName);
+    if (noQualifierCheckBox == null) {
+      noQualifierCheckBox = new JCheckBox(defaultFolderName);
+
+      checkBoxList.add(0, noQualifierCheckBox);
+      myCheckBoxes.put(defaultFolderName, noQualifierCheckBox);
+
+      String[] newDirNames = new String[myDirNames.length + 1];
+      newDirNames[0] = defaultFolderName;
+      System.arraycopy(myDirNames, 0, newDirNames, 1, myDirNames.length);
+      myDirNames = newDirNames;
+    }
+    noQualifierCheckBox.setSelected(true);
+
     myDirectoriesList.setModel(new CollectionListModel<JCheckBox>(checkBoxList));
 
     if (newSelectedIndex >= 0) {
       myDirectoriesList.setSelectedIndex(newSelectedIndex);
-    }
-
-    if (checkBoxList.size() == 1) {
-      checkBoxList.get(0).setSelected(true);
     }
 
     if (updateFileCombo) {
