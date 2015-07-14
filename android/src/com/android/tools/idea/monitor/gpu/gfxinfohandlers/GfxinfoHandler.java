@@ -46,4 +46,9 @@ public interface GfxinfoHandler {
    * @return the TimelineData model
    */
   @NotNull TimelineData createTimelineData();
+
+  /**
+   * Check if the developer option for GPU monitoring is turned on.
+   */
+  boolean getIsEnabledOnDevice();
 }
