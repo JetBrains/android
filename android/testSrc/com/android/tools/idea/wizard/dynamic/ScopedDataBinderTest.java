@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.wizard.dynamic;
 
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColorPanel;
@@ -26,8 +26,8 @@ import java.awt.*;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.android.tools.idea.wizard.ScopedDataBinder.ValueDeriver;
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedDataBinder.ValueDeriver;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
  * Tests for {@link ScopedDataBinder}. These tests

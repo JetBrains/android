@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.wizard.WizardConstants;
-import com.android.tools.idea.wizard.WizardStepHeaderPanel;
+import com.android.tools.idea.wizard.dynamic.WizardStepHeaderPanel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;

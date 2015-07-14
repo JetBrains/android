@@ -17,6 +17,9 @@ package com.android.tools.idea.wizard;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;

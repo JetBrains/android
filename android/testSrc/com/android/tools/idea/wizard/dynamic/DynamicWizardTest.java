@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.wizard.dynamic;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -24,8 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.wizard.DynamicWizardPathTest.DummyDynamicWizardPath;
-import static com.android.tools.idea.wizard.DynamicWizardStepTest.DummyDynamicWizardStep;
+import static com.android.tools.idea.wizard.dynamic.DynamicWizardPathTest.DummyDynamicWizardPath;
+import static com.android.tools.idea.wizard.dynamic.DynamicWizardStepTest.DummyDynamicWizardStep;
 
 /**
  * Tests for {@link DynamicWizard} and a dummy implementation
@@ -60,15 +60,15 @@ public class DynamicWizardTest extends LightIdeaTestCase {
 
   public void testAddPath() throws Exception {
     assertEquals(0, myWizard.getVisibleStepCount());
-    assertEquals(0, myWizard.myPaths.size());
+    assertEquals(0, myWizard.getAllPaths().size());
 
     myWizard.addPath(myPath1);
     assertEquals(2, myWizard.getVisibleStepCount());
-    assertEquals(1, myWizard.myPaths.size());
+    assertEquals(1, myWizard.getAllPaths().size());
 
     myWizard.addPath(myPath2);
     assertEquals(4, myWizard.getVisibleStepCount());
-    assertEquals(2, myWizard.myPaths.size());
+    assertEquals(2, myWizard.getAllPaths().size());
   }
 
   public void testInvisibleFirstPage() {
@@ -76,7 +76,7 @@ public class DynamicWizardTest extends LightIdeaTestCase {
     DynamicWizard wizard = new VisibilityTestWizard(new LabelStep(false), new LabelStep(false), visibleStep);
     wizard.init();
     assertEquals(1, wizard.getVisibleStepCount(), 1);
-    assertEquals(visibleStep, wizard.myCurrentPath.getCurrentStep());
+    assertEquals(visibleStep, wizard.getCurrentPath().getCurrentStep());
   }
 
   public void testVisibleFirstPage() {
@@ -84,7 +84,7 @@ public class DynamicWizardTest extends LightIdeaTestCase {
     DynamicWizard wizard = new VisibilityTestWizard(visibleStep, new LabelStep(false), new LabelStep(false), new LabelStep(true));
     wizard.init();
     assertEquals(1, wizard.getVisibleStepCount(), 2);
-    assertEquals(visibleStep, wizard.myCurrentPath.getCurrentStep());
+    assertEquals(visibleStep, wizard.getCurrentPath().getCurrentStep());
   }
 
   public static class DummyDynamicWizard extends DynamicWizard {

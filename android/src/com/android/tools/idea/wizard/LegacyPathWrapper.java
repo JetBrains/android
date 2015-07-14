@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.wizard.dynamic;
 
+import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.collect.Maps;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.application.Application;
@@ -41,7 +42,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Uses {@link com.intellij.openapi.ui.DialogWrapper} to display a wizard in a dialog
+ * Uses {@link DialogWrapper} to display a wizard in a dialog
  */
 public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHost {
   // Action References. myCancelAction and myHelpAction are inherited

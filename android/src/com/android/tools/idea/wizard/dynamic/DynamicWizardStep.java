@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.wizard.dynamic;
 
+import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -32,8 +34,8 @@ import java.awt.*;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
 
 /**
  * DynamicWizardStep
@@ -279,11 +281,9 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
    * @param errorMessage the message to display
    */
   public final void setErrorHtml(@Nullable String errorMessage) {
-    if (errorMessage != null && !errorMessage.startsWith("<html>")) {
-      errorMessage = "<html>" + errorMessage + "</html>";
-    }
     JLabel label = getMessageLabel();
     if (label != null) {
+      errorMessage = toHtml(errorMessage);
       label.setText(errorMessage);
     }
     else {
@@ -366,6 +366,19 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
 
   @Nullable
   protected abstract String getStepDescription();
+
+  /**
+   * Wrap the target string with html tags unless it is already tagged. If the input string is
+   * {@code null} then the output string will also be {@code null}.
+   */
+  @Nullable
+  protected final String toHtml(@Nullable String text) {
+    if (!StringUtil.isEmpty(text) && !text.startsWith("<html>")) {
+      text = String.format("<html>%1$s</html>", text.trim());
+    }
+    return text;
+
+  }
 
   private class StepUpdate extends Update {
     private final Key<?> myChangedKey;

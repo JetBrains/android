@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.wizard.dynamic;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
@@ -25,7 +25,7 @@ import java.awt.event.ActionListener;
 import java.util.Map;
 
 /**
- * Class for binding radio buttons to {@link com.android.tools.idea.wizard.ScopedStateStore}
+ * Class for binding radio buttons to {@link ScopedStateStore}
  */
 public class RadioButtonGroupBinding<E> extends ScopedDataBinder.ComponentBinding<E, JRadioButton> {
   private final Map<JRadioButton, E> myValueToButtonBinding;

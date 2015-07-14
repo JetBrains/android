@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.assetstudiolib.GraphicGenerator;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;

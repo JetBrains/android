@@ -16,8 +16,8 @@
 package com.android.tools.idea.welcome.wizard;
 
 import com.android.tools.idea.welcome.install.WizardException;
-import com.android.tools.idea.wizard.AndroidStudioWizardPath;
-import com.android.tools.idea.wizard.DynamicWizardHost;
+import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardPath;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;

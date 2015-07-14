@@ -18,6 +18,8 @@ package com.android.tools.idea.wizard;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.intellij.openapi.Disposable;
@@ -34,7 +36,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 
 /**

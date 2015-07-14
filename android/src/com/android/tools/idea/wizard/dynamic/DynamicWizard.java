@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.wizard.dynamic;
 
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.google.common.collect.Lists;
@@ -41,7 +41,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
  * DynamicWizard is an evolution of {@link TemplateWizard} that seeks to provide a flexible base for
@@ -62,7 +62,8 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   // 42 is an arbitrary number. This constant is for the number of update cycles before
   // we decide there's circular dependency and we cannot settle down the model state.
   public static final int MAX_UPDATE_ATTEMPTS = 42;
-  Logger LOG = Logger.getInstance(DynamicWizard.class);
+  // TODO: Make this logger private and create new loggers for anywhere that complains
+  public static Logger LOG = Logger.getInstance(DynamicWizard.class);
 
   // A queue of updates used to throttle the update() function.
   private final MergingUpdateQueue myUpdateQueue;
@@ -186,7 +187,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
    * If the this wizard is a global one, the function returns null.
    */
   @Nullable
-  protected Project getProject() {
+  public Project getProject() {
     return myProject;
   }
 
@@ -228,11 +229,21 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   /**
    * Add the given path to the end of this wizard.
    */
-  protected final void addPath(@NotNull AndroidStudioWizardPath path) {
+  public final void addPath(@NotNull AndroidStudioWizardPath path) {
     myPaths.add(path);
     path.attachToWizard(this);
     // Rebuild the iterator to avoid concurrent modification exceptions
     myPathListIterator = new PathIterator(myPaths);
+  }
+
+  @NotNull
+  public final ArrayList<AndroidStudioWizardPath> getAllPaths() {
+    return myPaths;
+  }
+
+  @Nullable
+  public final AndroidStudioWizardPath getCurrentPath() {
+    return myCurrentPath;
   }
 
   /**

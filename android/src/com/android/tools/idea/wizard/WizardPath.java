@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 
 import java.util.Collection;

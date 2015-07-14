@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.io.File;
 import java.util.Collections;
 
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.PATH;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.PATH;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 
 public class NewFormFactorModulePathTest extends AndroidTestCase {
@@ -34,29 +35,29 @@ public class NewFormFactorModulePathTest extends AndroidTestCase {
     super.setUp();
     myPath = new NewFormFactorModulePath(MOBILE, new File("/"), getTestRootDisposable());
     ScopedStateStore wizardState = new ScopedStateStore(WIZARD, null, null);
-    myPath.myState = new ScopedStateStore(PATH, wizardState, null);
+    myPath.setState(new ScopedStateStore(PATH, wizardState, null));
   }
 
   public void testDeriveValues_addsNewApiWhenAvailable() throws Exception {
     ScopedStateStore.Key<Integer> targetApiLevelKey = FormFactorUtils.getTargetApiLevelKey(MOBILE);
-    myPath.myState.put(targetApiLevelKey, 18);
-    myPath.myState.put(NEWLY_INSTALLED_API_KEY, 19);
+    myPath.getState().put(targetApiLevelKey, 18);
+    myPath.getState().put(NEWLY_INSTALLED_API_KEY, 19);
 
     myPath.deriveValues(Collections.EMPTY_SET);
 
-    assertNotNull(myPath.myState.get(targetApiLevelKey));
-    assertEquals(Integer.valueOf(19), myPath.myState.get(targetApiLevelKey));
+    assertNotNull(myPath.getState().get(targetApiLevelKey));
+    assertEquals(Integer.valueOf(19), myPath.getState().get(targetApiLevelKey));
   }
 
   public void testDeriveValues_doesNotChangeIfLowerApiInstalled() throws Exception {
 
     ScopedStateStore.Key<Integer> targetApiLevelKey = FormFactorUtils.getTargetApiLevelKey(MOBILE);
-    myPath.myState.put(targetApiLevelKey, 18);
-    myPath.myState.put(NEWLY_INSTALLED_API_KEY, 17);
+    myPath.getState().put(targetApiLevelKey, 18);
+    myPath.getState().put(NEWLY_INSTALLED_API_KEY, 17);
 
     myPath.deriveValues(Collections.EMPTY_SET);
 
-    assertNotNull(myPath.myState.get(targetApiLevelKey));
-    assertEquals(Integer.valueOf(18), myPath.myState.get(targetApiLevelKey));
+    assertNotNull(myPath.getState().get(targetApiLevelKey));
+    assertEquals(Integer.valueOf(18), myPath.getState().get(targetApiLevelKey));
   }
 }

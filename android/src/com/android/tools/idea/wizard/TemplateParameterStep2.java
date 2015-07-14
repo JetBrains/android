@@ -22,6 +22,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.*;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
@@ -73,8 +75,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
  * Wizard step for specifying template-specific parameters.
