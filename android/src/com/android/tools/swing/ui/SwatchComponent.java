@@ -275,7 +275,7 @@ public class SwatchComponent extends JComponent {
   }
 
   private void mouseReleased(@NotNull MouseEvent e) {
-    if (!SwingUtilities.isLeftMouseButton(e)) {
+    if (!SwingUtilities.isLeftMouseButton(e) || !contains(e.getPoint())) {
       return;
     }
 

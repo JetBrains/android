@@ -32,8 +32,11 @@ import javax.swing.JPopupMenu;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 /**
@@ -128,6 +131,15 @@ public class ResourceComponent extends JPanel {
   public void addActionListener(final ActionListener listener) {
     myNameLabel.addActionListener(listener);
     mySwatchComponent.addActionListener(listener);
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        if (!contains(e.getPoint())) {
+          return;
+        }
+        listener.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, null));
+      }
+    });
   }
 
   public void setVariantComboVisible(boolean isVisible) {
