@@ -24,7 +24,7 @@ import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.wizard.ConfigureAndroidModuleStep;
 import com.android.tools.idea.wizard.NewProjectWizardState;
 import com.android.tools.idea.wizard.StringEvaluator;
-import com.android.tools.idea.wizard.TemplateWizardState;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;

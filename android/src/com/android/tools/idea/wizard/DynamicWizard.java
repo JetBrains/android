@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ide.wizard.Step;

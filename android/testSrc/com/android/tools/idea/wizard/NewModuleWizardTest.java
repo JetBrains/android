@@ -19,6 +19,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.extensions.Extensions;
@@ -116,39 +117,33 @@ public class NewModuleWizardTest extends AndroidTestCase {
 
     try {
       // On some systems JDK and Android SDK location might not be known - then the wizard will proceed to a page to set them up
-      final int firstStepNewModulePath;
       final Class<?> firstStepNewModuleClass;
       if (IdeSdks.getJdk() != null && IdeSdks.getAndroidSdkPath() != null) {
         // Should proceed to Android module creation first step
-        firstStepNewModulePath = 9;
         firstStepNewModuleClass = ConfigureAndroidModuleStep.class;
       }
       else {
         // Needs to setup JDK/Android SDK paths
-        firstStepNewModulePath = 7;
         firstStepNewModuleClass = ChooseAndroidAndJavaSdkStep.class;
       }
       assertInstanceOf(wizard.getCurrentStepObject(), ChooseTemplateStep.class);
-      assertEquals(firstStepNewModulePath, wizard.getNextStep(0));
 
       // Import path
-      assertFollowingTheRightPath(wizard, NewModuleWizardState.MODULE_IMPORT_NAME, 1, ImportSourceLocationStep.class);
+      assertFollowingTheRightPath(wizard, NewModuleWizardState.MODULE_IMPORT_NAME, ImportSourceLocationStep.class);
       // New module path
-      assertFollowingTheRightPath(wizard, TemplateWizardModuleBuilder.APP_TEMPLATE_NAME, firstStepNewModulePath, firstStepNewModuleClass);
+      assertFollowingTheRightPath(wizard, TemplateWizardModuleBuilder.APP_TEMPLATE_NAME, firstStepNewModuleClass);
       // Import archive
-      assertFollowingTheRightPath(wizard, NewModuleWizardState.ARCHIVE_IMPORT_NAME, 13, WrapArchiveOptionsStep.class);
+      assertFollowingTheRightPath(wizard, NewModuleWizardState.ARCHIVE_IMPORT_NAME, WrapArchiveOptionsStep.class);
     }
     finally {
       Disposer.dispose(wizard.getDisposable());
     }
   }
 
-  private static void assertFollowingTheRightPath(NewModuleWizard wizard, String templateName, int stepIndex, Class<?> stepClass) {
+  private static void assertFollowingTheRightPath(NewModuleWizard wizard, String templateName, Class<?> stepClass) {
     wizard.myModuleBuilder.templateChanged(templateName);
-    assertEquals(stepIndex, wizard.getNextStep(0));
     wizard.doNextAction();
     assertInstanceOf(wizard.getCurrentStepObject(), stepClass);
-    assertEquals(0, wizard.getPreviousStep(stepIndex));
     wizard.doPreviousAction();
     assertInstanceOf(wizard.getCurrentStepObject(), ChooseTemplateStep.class);
   }

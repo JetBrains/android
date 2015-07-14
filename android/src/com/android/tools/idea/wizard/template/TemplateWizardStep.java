@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.wizard.template;
 
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.AndroidStudioWizardStep;
+import com.android.tools.idea.wizard.ComboBoxItem;
+import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
+import com.android.tools.idea.wizard.StringEvaluator;
 import com.android.utils.Pair;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.BiMap;

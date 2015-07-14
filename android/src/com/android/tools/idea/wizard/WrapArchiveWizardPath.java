@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.wizard.StepListener;
