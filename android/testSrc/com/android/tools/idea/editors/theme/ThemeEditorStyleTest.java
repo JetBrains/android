@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredItemResourceValue;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
@@ -61,9 +62,10 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     ThemeEditorStyle parent = theme.getParent();
     assertNotNull(parent);
 
-    ItemResourceValue hasItem = new ItemResourceValue("myColor", false, "?android:attr/colorBackground", false);
-    ItemResourceValue hasNotItem = new ItemResourceValue("myHasNot", false, "?android:attr/colorBackground", false);
-    ItemResourceValue hasInParent = new ItemResourceValue("editTextStyle", true, "?android:attr/colorBackground", true);
+    FolderConfiguration defaultConfig = new FolderConfiguration();
+    ConfiguredItemResourceValue hasItem = new ConfiguredItemResourceValue(defaultConfig, new ItemResourceValue("myColor", false, "?android:attr/colorBackground", false));
+    ConfiguredItemResourceValue hasNotItem = new ConfiguredItemResourceValue(defaultConfig, new ItemResourceValue("myHasNot", false, "?android:attr/colorBackground", false));
+    ConfiguredItemResourceValue hasInParent = new ConfiguredItemResourceValue(defaultConfig, new ItemResourceValue("editTextStyle", true, "?android:attr/colorBackground", true));
     assertTrue(theme.hasItem(new EditedStyleItem(hasItem, theme)));
     assertFalse(theme.hasItem(new EditedStyleItem(hasNotItem, theme)));
     assertTrue(theme.getParent().hasItem(new EditedStyleItem(hasInParent, parent)));
