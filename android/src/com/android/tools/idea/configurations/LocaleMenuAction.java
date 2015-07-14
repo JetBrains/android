@@ -19,10 +19,7 @@ import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
-import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -47,7 +44,7 @@ public class LocaleMenuAction extends FlatComboAction {
   private final boolean myClassicStyle;
 
   public LocaleMenuAction(RenderContext renderContext) {
-    this(renderContext, true);
+    this(renderContext, !RenderService.NELE_ENABLED);
   }
 
   public LocaleMenuAction(RenderContext renderContext, boolean classicStyle) {
@@ -214,7 +211,7 @@ public class LocaleMenuAction extends FlatComboAction {
    */
   @NotNull
   public static String getLocaleLabel(@Nullable Locale locale, boolean brief) {
-    return getLocaleLabel(locale, brief, true);
+    return getLocaleLabel(locale, brief, !RenderService.NELE_ENABLED);
   }
 
   /**

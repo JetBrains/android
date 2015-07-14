@@ -120,6 +120,24 @@ public class Insets {
     return true;
   }
 
+  /**
+   * Returns the total width of the left and right insets; e.g. if you have 2px on the
+   * left and 3px on the right, the inset width is 5px.
+   */
+  @AndroidCoordinate
+  public int width() {
+    return left + right;
+  }
+
+  /**
+   * Returns the total height of the top and bottom insets; e.g. if you have 2px on the
+   * top and 3px on the bottom, the inset height is 5px.
+   */
+  @AndroidCoordinate
+  public int height() {
+    return top + bottom;
+  }
+
   @NonNull
   @Override
   public String toString() {

@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uilbuilder;
+package com.android.tools.idea.uibuilder;
 
+import com.android.annotations.NonNull;
+import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
+import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.fixtures.SurfaceFixture;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.ex.PathManagerEx;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -45,5 +48,17 @@ public abstract class LayoutTestCase extends AndroidTestCase {
       return adtPath;
     }
     return AndroidTestBase.getAndroidPluginHome();
+  }
+
+  protected ModelBuilder model(@NonNull String name, @NonNull ComponentDescriptor root) {
+    return new ModelBuilder(myFacet, myFixture, name, root);
+  }
+
+  protected ComponentDescriptor component(@NonNull String tag) {
+    return new ComponentDescriptor(tag);
+  }
+
+  protected SurfaceFixture surface() {
+    return new SurfaceFixture();
   }
 }

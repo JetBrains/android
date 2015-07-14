@@ -20,8 +20,6 @@ import com.android.annotations.Nullable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -33,12 +31,12 @@ import java.util.Map;
 public class SelectionModel {
   private List<NlComponent> mySelection = Collections.emptyList();
   private NlComponent myPrimary;
-  private List<ChangeListener> myListeners;
+  private List<SelectionListener> myListeners;
   private Map<NlComponent, SelectionHandles> myHandles;
 
   @NonNull
-  public Iterable<NlComponent> getSelection() {
-    return mySelection;
+  public List<NlComponent> getSelection() {
+    return Collections.unmodifiableList(mySelection);
   }
 
   @Nullable
@@ -87,13 +85,14 @@ public class SelectionModel {
 
   private void updateListeners() {
     if (myListeners != null) {
-      for (ChangeListener listener : myListeners) {
-        listener.stateChanged(new ChangeEvent(this));
+      List<NlComponent> selection = getSelection();
+      for (SelectionListener listener : myListeners) {
+        listener.selectionChanged(this, selection);
       }
     }
   }
 
-  public void addListener(@NonNull ChangeListener listener) {
+  public void addListener(@NonNull SelectionListener listener) {
     if (myListeners == null) {
       myListeners = Lists.newArrayList();
     } else {
@@ -102,7 +101,7 @@ public class SelectionModel {
     myListeners.add(listener);
   }
 
-  public void removeListener(@NonNull ChangeListener listener) {
+  public void removeListener(@NonNull SelectionListener listener) {
     if (myListeners != null) {
       myListeners.remove(listener);
     }
@@ -164,5 +163,10 @@ public class SelectionModel {
     for (NlComponent child : component.getChildren()) {
       addComponent(all, child);
     }
+  }
+
+  /** Returns true if the given component is part of the selection */
+  public boolean isSelected(@NonNull NlComponent component) {
+    return mySelection.contains(component);
   }
 }

@@ -23,14 +23,10 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.util.List;
 
@@ -49,14 +45,30 @@ public class ScreenView {
     mySurface = surface;
     myModel = model;
 
-    myModel.addListener(new ChangeListener() {
+    myModel.addListener(new ModelListener() {
       @Override
-      public void stateChanged(ChangeEvent changeEvent) {
+      public void modelRendered(@NonNull NlModel model) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            mySurface.updateErrorDisplay(ScreenView.this, myModel.getRenderResult());
+            mySurface.repaint();
+            mySurface.zoomToFit();
+          }
+        });
+      }
+
+      @Override
+      public void modelChanged(@NonNull NlModel model) {
+      }
+    });
+    myModel.getSelectionModel().addListener(new SelectionListener() {
+      @Override
+      public void selectionChanged(@NonNull SelectionModel model, @NonNull List<NlComponent> selection) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
             mySurface.repaint();
-            mySurface.zoomToFit();
           }
         });
       }
@@ -98,7 +110,6 @@ public class ScreenView {
         break;
       }
     }
-    myModel.requestRender();
   }
 
   public void toggleOrientation() {
@@ -110,7 +121,6 @@ public class ScreenView {
     if (flip != null) {
       configuration.setDeviceState(flip);
     }
-    myModel.requestRender();
   }
 
   @NonNull

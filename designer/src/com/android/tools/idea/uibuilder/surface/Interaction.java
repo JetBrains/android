@@ -31,10 +31,7 @@ import java.util.List;
  * interaction can have a number of graphics {@link Layer}s which are added and
  * cleaned up on behalf of the interaction by the system.
  * <p/>
- * Interactions are typically mouse oriented. If a mouse wishes to integrate
- * with the native drag &amp; drop support, it should also implement
- * the {@link DropInteraction} interface, which is a sub interface of this
- * {@linkplain Interaction} interface. There are pros and cons to using native drag
+ * Interactions are typically mouse oriented. There are pros and cons to using native drag
  * &amp; drop, so various interactions will differ in whether they use it.
  * In particular, you should use drag &amp; drop if your interaction should:
  * <ul>
@@ -99,21 +96,22 @@ public class Interaction {
    * @param startMask The initial AWT mask for the interaction, if known, or
    *                  otherwise 0.
    */
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int startMask) {
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
     myStartX = x;
     myStartY = y;
-    myStartMask = startMask;
+    myStartMask = modifiers;
   }
 
   /**
    * Handles updating of the interaction state for a new mouse position.
    *
-   * @param x The most recent mouse x coordinate applicable to this
-   *          interaction
-   * @param y The most recent mouse y coordinate applicable to this
-   *          interaction
+   * @param x         The most recent mouse x coordinate applicable to this
+   *                  interaction
+   * @param y         The most recent mouse y coordinate applicable to this
+   *                  interaction
+   * @param modifiers current modifier key mask
    */
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
   }
 
   /**
@@ -121,13 +119,14 @@ public class Interaction {
    * interaction has terminated (either through successful completion, or because
    * it was canceled).
    *
-   * @param x        The most recent mouse x coordinate applicable to this
-   *                 interaction
-   * @param y        The most recent mouse y coordinate applicable to this
-   *                 interaction
-   * @param canceled True if the interaction was canceled, and false otherwise.
+   * @param x         The most recent mouse x coordinate applicable to this
+   *                  interaction
+   * @param y         The most recent mouse y coordinate applicable to this
+   *                  interaction
+   * @param modifiers current modifier key mask
+   * @param canceled  True if the interaction was canceled, and false otherwise.
    */
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
   }
 
   /**

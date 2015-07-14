@@ -35,7 +35,7 @@ public class SelectionLayer extends Layer {
   public void paint(@NonNull Graphics2D gc) {
     SelectionModel model = myScreenView.getSelectionModel();
     for (NlComponent component : model.getSelection()) {
-      if (component.isRoot()) {
+      if (component.isRoot() || !component.isShowing()) {
         continue;
       }
       int x = Coordinates.getSwingX(myScreenView, component.x);

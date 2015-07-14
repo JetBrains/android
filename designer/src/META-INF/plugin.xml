@@ -28,8 +28,20 @@
 
   <project-components>
     <component>
+      <implementation-class>com.android.tools.idea.uibuilder.editor.NlPaletteManager</implementation-class>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.uibuilder.editor.NlStructureManager</implementation-class>
+    </component>
+    <component>
       <implementation-class>com.android.tools.idea.uibuilder.handlers.ViewHandlerManager</implementation-class>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.uibuilder.editor.NlPreviewManager</implementation-class>
+      <skipForDefaultProject/>
+      <headless-implementation-class/>
+    </component>
+
   </project-components>
 
 </idea-plugin>

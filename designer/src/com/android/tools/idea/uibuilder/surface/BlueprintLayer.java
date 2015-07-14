@@ -86,6 +86,9 @@ public class BlueprintLayer extends Layer {
       gc.drawRect(x, y, w - 1, h - 1);
       gc.setStroke(prevStroke);
       className = className.substring(className.lastIndexOf('.') + 1);
+      if (className.equals("FloatingActionButton")) {
+        className = "FAB";
+      }
       Font font = BLUEPRINT_TEXT_FONT;
       gc.setFont(font);
       String id = component.getId();

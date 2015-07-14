@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.tools.idea.designer.*;
 import junit.framework.TestCase;
 
 import java.awt.*;
@@ -27,6 +26,9 @@ public class InsetsTest extends TestCase {
     assertEquals(2, insets.top);
     assertEquals(3, insets.right);
     assertEquals(4, insets.bottom);
+
+    assertEquals(4, insets.width());
+    assertEquals(6, insets.height());
 
     assertTrue(new Insets(1, 2, 3, 4).equals(new Insets(1, 2, 3, 4)));
 

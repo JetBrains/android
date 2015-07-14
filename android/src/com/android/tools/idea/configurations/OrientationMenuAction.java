@@ -22,6 +22,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.resources.UiMode;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.rendering.RenderService;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -38,7 +39,7 @@ public class OrientationMenuAction extends FlatComboAction {
   private final boolean myClassicStyle;
 
   public OrientationMenuAction(RenderContext renderContext) {
-    this(renderContext, true);
+    this(renderContext, !RenderService.NELE_ENABLED);
   }
 
   public OrientationMenuAction(RenderContext renderContext, boolean classicStyle) {
