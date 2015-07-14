@@ -34,6 +34,7 @@ import javax.swing.border.Border;
 
 public class AttributesPanel {
   private static final boolean ENABLE_ADVANCED_MODE = false;
+  private static final int MAX_SIZE_THEME_SELECTOR = 25;
 
   public static final Border BORDER = BorderFactory.createEmptyBorder(10, 10, 10, 10);
   public static final String THEME_SELECTOR_NAME = "Theme Selector";
@@ -84,6 +85,8 @@ public class AttributesPanel {
     // Stop the combo box long items from blocking the right panel from being able to be made small.
     myThemeCombo.setMinimumSize(new Dimension(10, myThemeCombo.getMinimumSize().height));
     myThemeCombo.setPreferredSize(new Dimension(10, myThemeCombo.getPreferredSize().height));
+
+    myThemeCombo.setMaximumRowCount(MAX_SIZE_THEME_SELECTOR);
 
     // Set combo boxes names to be able to distinguish them in UI tests
     myThemeCombo.setName(THEME_SELECTOR_NAME);
