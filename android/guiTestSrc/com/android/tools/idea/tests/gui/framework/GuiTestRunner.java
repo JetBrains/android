@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import org.fest.swing.image.ScreenshotTaker;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
@@ -34,7 +33,6 @@ import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
 import java.awt.*;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -48,11 +46,12 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   public GuiTestRunner(Class<?> testClass) throws InitializationError {
     super(testClass);
+
     myScreenshotTaker = canRunGuiTests() ? new ScreenshotTaker() : null;
     try {
       // A random class which is reachable from module community-main's classpath but not
       // module android's classpath
-      Class.forName("git4idea.repo.GitConfig");
+      Class.forName("git4idea.repo.GitConfig", false, testClass.getClassLoader());
     }
     catch (ClassNotFoundException e) {
       throw new InitializationError("Invalid test run configuration. Edit your test configuration and make sure that " +
