@@ -155,12 +155,10 @@ public class ThemeEditorTableTest extends GuiTestCase {
                                       @NotNull ThemeEditorFixture themeEditor) {
     JPopupMenuFixture popupMenu = cell.showPopupMenu();
     String[] menuLabels = popupMenu.menuLabels();
-    assertEquals(2, menuLabels.length);
-    JMenuItemFixture definition = popupMenu.menuItemWithPath("Go to definition");
-    JMenuItemFixture reset = popupMenu.menuItemWithPath("Reset value");
-    reset.requireNotVisible();
-    definition.requireVisible();
-    definition.click();
+    assertEquals(1, menuLabels.length);
+    JMenuItemFixture edit = popupMenu.menuItemWithPath("Edit parent");
+    edit.requireVisible();
+    edit.click();
 
     final JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     pause(new Condition("Waiting for parent to load") {
