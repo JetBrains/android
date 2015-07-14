@@ -64,6 +64,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
 /**
  * {@linkplain IconStep} is a wizard page that lets the user create a variety of density-scaled assets.
+ * TODO: It seems like the "Launcher" and "Action Bar and Tabs" modes might not be used anymore.
  */
 public class IconStep extends DynamicWizardStepWithDescription implements Disposable {
   public static final Key<String> ATTR_ASSET_NAME = createKey(AssetStudioAssetGenerator.ATTR_ASSET_NAME, PATH, String.class);
@@ -123,18 +124,10 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   private ImageComponent myXHdpiPreview;
   private JSlider myPaddingSlider;
   private ImageComponent myXXHdpiPreview;
-  private JLabel myImageFileLabel;
-  private JLabel myTextLabel;
-  private JLabel myFontFamilyLabel;
-  private JLabel myChooseClipartLabel;
-  private JLabel myBackgroundColorLabel;
   private JLabel myForegroundColorLabel;
   private JLabel myAssetTypeLabel;
   private JComboBox myChooseThemeComboBox;
-  private JLabel myChooseThemeLabel;
-  private JLabel myShapeLabel;
   private JTextField myResourceNameField;
-  private JLabel myResourceNameLabel;
   private ImageComponent myV9XHdpiPreview;
   private ImageComponent myV9XXHdpiPreview;
   private ImageComponent myV9MdpiPreview;
@@ -150,8 +143,9 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   private JPanel myPageBook;
   private JLabel mySourceSetLabel;
   private JComboBox mySourceSetComboBox;
-  private JComponent[] myScalingButtons;
-  private JComponent[] myShapeButtons;
+  private JPanel myTypePanel;
+  private JPanel myAssetSourceCardPanel;
+  private JPanel myTypeCardPanel;
   private String myDefaultName;
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
@@ -161,9 +155,6 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     myTemplateKey = templateKey;
     mySourceProviderKey = sourceProviderKey;
     mySourceProviders = sourceProviders;
-
-    myScalingButtons = new JComponent[]{myCropRadioButton, myCenterRadioButton};
-    myShapeButtons = new JComponent[]{myNoneRadioButton, mySquareRadioButton, myCircleRadioButton};
 
     myUpdateQueue = new MergingUpdateQueue("asset.studio", 200, true, null, this, null, false);
 
@@ -442,18 +433,16 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     if (sourceType != null) {
       switch (sourceType) {
         case IMAGE:
-          hide(myChooseClipart, myChooseClipartLabel, myText, myTextLabel, myFontFamily, myFontFamilyLabel, myForegroundColor,
-               myForegroundColorLabel);
-          show(myImageFile, myImageFileLabel, myBackgroundColor, myBackgroundColorLabel);
+          ((CardLayout)myAssetSourceCardPanel.getLayout()).show(myAssetSourceCardPanel, "ImageCard");
+          hide(myForegroundColor, myForegroundColorLabel);
           break;
         case CLIPART:
-          hide(myText, myTextLabel, myFontFamily, myFontFamilyLabel, myImageFile, myImageFileLabel);
-          show(myChooseClipart, myChooseClipartLabel, myBackgroundColor, myBackgroundColorLabel, myForegroundColor, myForegroundColorLabel);
+          ((CardLayout)myAssetSourceCardPanel.getLayout()).show(myAssetSourceCardPanel, "ClipartCard");
+          show(myForegroundColor, myForegroundColorLabel);
           break;
         case TEXT:
-          hide(myChooseClipart, myChooseClipartLabel, myImageFile, myImageFileLabel);
-          show(myText, myTextLabel, myFontFamily, myFontFamilyLabel, myBackgroundColor, myBackgroundColorLabel, myForegroundColor,
-               myForegroundColorLabel);
+          ((CardLayout)myAssetSourceCardPanel.getLayout()).show(myAssetSourceCardPanel, "TextCard");
+          show(myForegroundColor, myForegroundColorLabel);
           myFontFamily.setSelectedItem(myState.get(ATTR_FONT));
           break;
       }
@@ -462,27 +451,15 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     // Asset Type Combo Box
     AssetType assetType = myState.get(ATTR_ASSET_TYPE);
     if (assetType != null) {
-      //mySelectedAssetType = selectedAssetType;
       switch (assetType) {
         case LAUNCHER:
-          hide(myChooseThemeComboBox, myChooseThemeLabel);
-          show(myShapeLabel, myResourceNameLabel, myResourceNameField);
-          show(myScalingButtons);
-          show(myShapeButtons);
+          ((CardLayout)myTypeCardPanel.getLayout()).show(myTypeCardPanel, "LauncherCard");
           break;
         case ACTIONBAR:
-          show(myResourceNameField, myResourceNameLabel);
-          show(myChooseThemeComboBox, myChooseThemeLabel);
-          hide(myShapeLabel, myBackgroundColorLabel, myBackgroundColor);
-          hide(myScalingButtons);
-          hide(myShapeButtons);
+          ((CardLayout)myTypeCardPanel.getLayout()).show(myTypeCardPanel, "ActionbarCard");
           break;
         case NOTIFICATION:
-          show(myResourceNameField, myResourceNameLabel);
-          hide(myChooseThemeComboBox, myChooseThemeLabel, myForegroundColor, myForegroundColorLabel);
-          hide(myShapeLabel, myBackgroundColorLabel, myBackgroundColor);
-          hide(myScalingButtons);
-          hide(myShapeButtons);
+          ((CardLayout)myTypeCardPanel.getLayout()).show(myTypeCardPanel, "NotificationCard");
           break;
       }
 
@@ -641,12 +618,8 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
 
   public void finalizeAssetType(@Nullable AssetType type) {
     myState.put(ATTR_ASSET_TYPE, type);
-    if (type == null) {
-      show(myLauncherRadioButton, myActionBarAndTabsRadioButton, myNotificationRadioButton, myAssetTypeLabel);
-    }
-    else {
-      hide(myLauncherRadioButton, myActionBarAndTabsRadioButton, myNotificationRadioButton, myAssetTypeLabel);
-    }
+    myTypePanel.setVisible(type == null);
+    myAssetTypeLabel.setVisible(type == null);
   }
 
   @NotNull
