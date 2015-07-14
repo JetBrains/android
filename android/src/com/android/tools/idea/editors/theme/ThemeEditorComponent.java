@@ -738,6 +738,9 @@ public class ThemeEditorComponent extends Splitter {
 
   @Override
   public void dispose() {
+    // First remove the table editor so that it won't be called after
+    // objects it relies on, like the module, have themselves been disposed
+    myAttributesTable.removeEditor();
     myThemeEditorContext.dispose();
     super.dispose();
   }
