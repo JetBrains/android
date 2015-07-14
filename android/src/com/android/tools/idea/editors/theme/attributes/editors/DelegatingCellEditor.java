@@ -52,24 +52,24 @@ public class DelegatingCellEditor implements TableCellEditor {
     final Object stringValue;
     final CellSpanModel model = (CellSpanModel)table.getModel();
 
-    final Font font;
+    boolean boldFont = false;
     if (value instanceof EditedStyleItem) {
       final EditedStyleItem item = (EditedStyleItem) value;
       stringValue = ThemeEditorUtils.extractRealValue(item, model.getCellClass(row, column));
       ThemeEditorStyle selectedStyle = ((AttributesTableModel)table.getModel()).getSelectedStyle();
       // Displays in bold attributes that are overriding their inherited value
-      font = selectedStyle.hasItem(item) ? table.getFont().deriveFont(Font.BOLD) : table.getFont();
+      boldFont = selectedStyle.hasItem(item);
     }
     else {
       // Not an EditedStyleItem for theme name and theme parent.
       stringValue = value;
-      font = table.getFont();
     }
 
     final Component returnedComponent =
       myDelegate.getTableCellEditorComponent(table, myConvertValueToString ? stringValue : value, isSelected, row, column);
 
-    returnedComponent.setFont(font);
+    returnedComponent.setFont(boldFont ? returnedComponent.getFont().deriveFont(Font.BOLD) :
+                              returnedComponent.getFont().deriveFont(Font.PLAIN));
     return returnedComponent;
   }
 
