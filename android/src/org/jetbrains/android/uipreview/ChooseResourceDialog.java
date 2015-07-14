@@ -695,7 +695,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       }
 
       for (int i = 0; i < types.length; i++) {
-        myGroups[i] = new ResourceGroup(types[i], myManager, true);
+        myGroups[i] = new ResourceGroup(types[i], myManager);
       }
 
       myTreeBuilder =
@@ -917,6 +917,10 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   public static class ResourceGroup {
     private List<ResourceItem> myItems = new ArrayList<ResourceItem>();
     private final ResourceType myType;
+
+    public ResourceGroup(ResourceType type, ResourceManager manager) {
+      this(type, manager, true);
+    }
 
     public ResourceGroup(ResourceType type, ResourceManager manager, boolean includeFileResources) {
       myType = type;
