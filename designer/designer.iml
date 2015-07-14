@@ -28,5 +28,7 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="java-impl" />
+    <orderEntry type="module" module-name="lang-impl" />
   </component>
 </module>

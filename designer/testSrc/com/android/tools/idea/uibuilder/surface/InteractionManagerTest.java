@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uilbuilder.LayoutTestCase;
 import com.intellij.psi.xml.XmlFile;
 import org.intellij.lang.annotations.Language;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
-import static com.android.tools.idea.uilbuilder.LayoutTestUtilities.*;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 
 public class InteractionManagerTest extends LayoutTestCase {
 
@@ -41,13 +42,15 @@ public class InteractionManagerTest extends LayoutTestCase {
                     "</LinearLayout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
 
-    ScreenView screenView = createScreen(createModel(myFacet, xmlFile), new SelectionModel());
-    DesignSurface designSurface = createSurface(screenView);
+    DesignSurface surface = createSurface();
+    NlModel model = createModel(surface, myFacet, xmlFile);
+    ScreenView screenView = createScreen(surface, model, new SelectionModel());
+    DesignSurface designSurface = screenView.getSurface();
     InteractionManager manager = createManager(designSurface);
 
     @Language("XML")
     String xmlFragment = "" +
-                         "<TextView\n" +
+                         "<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                          "     android:layout_width=\"match_parent\"\n" +
                          "     android:layout_height=\"wrap_content\"\n" +
                          "     android:text=\"Hello World\"\n" +
@@ -62,10 +65,10 @@ public class InteractionManagerTest extends LayoutTestCase {
                       "    android:layout_height=\"0dp\"\n" +
                       "    android:orientation=\"vertical\">\n" +
                       "\n" +
-                      "    <TextView\n" +
-                      "            android:layout_width=\"match_parent\"\n" +
-                      "            android:layout_height=\"wrap_content\"\n" +
-                      "            android:text=\"Hello World\"\n" +
+                      "    <TextView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "              android:layout_width=\"match_parent\"\n" +
+                      "              android:layout_height=\"wrap_content\"\n" +
+                      "              android:text=\"Hello World\"\n" +
                       "            />\n" +
                       "</LinearLayout>\n";
     assertEquals(expected, xmlFile.getText());

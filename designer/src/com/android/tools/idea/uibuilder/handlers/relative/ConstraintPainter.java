@@ -13,33 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers;
+package com.android.tools.idea.uibuilder.handlers.relative;
 
+import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.model.Insets;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.lint.detector.api.LintUtils;
-import com.intellij.psi.xml.XmlAttribute;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.model.TextDirection;
 
 import java.awt.*;
-import java.util.*;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.graphics.NlDrawingStyle.*;
 
 
 /**
- * The {@link RelativeLayoutConstraintPainter} is responsible for painting relative layout constraints -
+ * The {@link ConstraintPainter} is responsible for painting relative layout constraints -
  * such as a source node having its top edge constrained to a target node with a given margin.
  * This painter is used both to show static constraints, as well as visualizing proposed
  * constraints during a move or resize operation.
  */
-public class RelativeLayoutConstraintPainter {
+public class ConstraintPainter {
   /**
    * The size of the arrow head
    */
@@ -50,16 +47,43 @@ public class RelativeLayoutConstraintPainter {
   private static final int PARENT_RECT_SIZE = 12;
 
   /**
+   * Paints a given match as a constraint.
+   *
+   * @param graphics     the graphics context
+   * @param state        the handler state
+   * @param match        the match
+   */
+  static void paintConstraint(
+    NlGraphics graphics, GuidelineHandler state, Match match) {
+    NlComponent node = match.edge.component;
+    if (node == null) {
+      return;
+    }
+
+    Insets padding = node.getPadding();
+    Rectangle targetBounds =
+      node == state.layout
+      ? new Rectangle(node.x + padding.left, node.y + padding.top, Math.max(0, node.w - padding.left - padding.right),
+                      Math.max(0, node.h - padding.top - padding.bottom))
+      : new Rectangle(node.x, node.y, node.w, node.h);
+
+    ConstraintType type = match.type;
+    assert type != null;
+    Rectangle sourceBounds = state.myBounds;
+    paintConstraint(graphics, type, node, sourceBounds, node, targetBounds, null /* allConstraints */,
+                    true /* highlightTargetEdge */,
+                    state.myTextDirection);
+  }
+
+  /**
    * Paints a constraint.
    * <p/>
    * TODO: when there are multiple links originating in the same direction from
    * center, maybe offset them slightly from each other?
-   *
-   * @param graphics   the graphics context to draw into
+   *  @param graphics   the graphics context to draw into
    * @param constraint The constraint to be drawn
    */
-  private static void paintConstraint(ScreenView screenView,
-                                      NlGraphics graphics,
+  private static void paintConstraint(NlGraphics graphics,
                                       DependencyGraph.Constraint constraint,
                                       Set<DependencyGraph.Constraint> allConstraints,
                                       TextDirection textDirection) {
@@ -73,53 +97,24 @@ public class RelativeLayoutConstraintPainter {
       return;
     }
 
-    Rectangle sourceBounds = getBounds(screenView, sourceNode);
-    Rectangle targetBounds = getBounds(screenView, targetNode);
-    paintConstraint(screenView, graphics, constraint.type, sourceNode, sourceBounds, targetNode, targetBounds, allConstraints,
+    Rectangle sourceBounds = getBounds(sourceNode);
+    Rectangle targetBounds = getBounds(targetNode);
+    paintConstraint(graphics, constraint.type, sourceNode, sourceBounds, targetNode, targetBounds, allConstraints,
                     false /* highlightTargetEdge */, textDirection);
   }
 
-  // TODO: Make more efficient
-  private static Rectangle getBounds(ScreenView screenView, NlComponent component) {
-    return new Rectangle(Coordinates.getSwingX(screenView, component.x), Coordinates.getSwingY(screenView, component.y),
-                         Coordinates.getSwingDimension(screenView, component.w), Coordinates.getSwingDimension(screenView, component.h));
+  private static Rectangle getBounds(NlComponent component) {
+    return new Rectangle(component.x, component.y, component.w, component.h);
   }
-
-  // TODO: Make more efficient
-  private static Insets getInsets(ScreenView screenView, Insets insets) {
-    if (insets == Insets.NONE) {
-      return insets;
-    }
-    int left = insets.left;
-    int top = insets.top;
-    int right = insets.right;
-    int bottom = insets.bottom;
-    if (left != 0) {
-      left = Coordinates.getAndroidDimension(screenView, left);
-    }
-    if (right != 0) {
-      right = Coordinates.getAndroidDimension(screenView, right);
-    }
-    if (top != 0) {
-      left = Coordinates.getAndroidDimension(screenView, top);
-    }
-    if (bottom != 0) {
-      left = Coordinates.getAndroidDimension(screenView, bottom);
-    }
-    return new Insets(left, top, right, bottom);
-  }
-
 
   /**
    * Paint selection feedback by painting constraints for the selected nodes
-   *
-   * @param graphics       the graphics context
+   *  @param graphics       the graphics context
    * @param parentNode     the parent relative layout
    * @param childNodes     the nodes whose constraints should be painted
    * @param showDependents whether incoming constraints should be shown as well
    */
-  public static void paintSelectionFeedback(ScreenView screenView,
-                                            NlGraphics graphics,
+  public static void paintSelectionFeedback(NlGraphics graphics,
                                             NlComponent parentNode,
                                             List<NlComponent> childNodes,
                                             boolean showDependents,
@@ -137,7 +132,7 @@ public class RelativeLayoutConstraintPainter {
         if (childNodes.contains(node)) {
           continue;
         }
-        Rectangle bounds = getBounds(screenView, node);
+        Rectangle bounds = getBounds(node);
         graphics.useStyle(DEPENDENCY);
         graphics.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
       }
@@ -151,18 +146,18 @@ public class RelativeLayoutConstraintPainter {
 
       // Paint all incoming constraints
       if (showDependents) {
-        paintConstraints(screenView, graphics, view.dependedOnBy, textDirection);
+        paintConstraints(graphics, view.dependedOnBy, textDirection);
       }
 
       // Paint all outgoing constraints
-      paintConstraints(screenView, graphics, view.dependsOn, textDirection);
+      paintConstraints(graphics, view.dependsOn, textDirection);
     }
   }
 
   /**
    * Paints a set of constraints.
    */
-  private static void paintConstraints(ScreenView screenView, NlGraphics graphics, java.util.List<DependencyGraph.Constraint> constraints, TextDirection textDirection) {
+  private static void paintConstraints(NlGraphics graphics, List<DependencyGraph.Constraint> constraints, TextDirection textDirection) {
     Set<DependencyGraph.Constraint> mutableConstraintSet = new HashSet<DependencyGraph.Constraint>(constraints);
 
     // WORKAROUND! Hide alignBottom attachments if we also have a alignBaseline
@@ -184,7 +179,7 @@ public class RelativeLayoutConstraintPainter {
       // paintConstraint can digest more than one constraint, so we need to keep
       // checking to see if the given constraint is still relevant.
       if (mutableConstraintSet.contains(constraint)) {
-        paintConstraint(screenView, graphics, constraint, mutableConstraintSet, textDirection);
+        paintConstraint(graphics, constraint, mutableConstraintSet, textDirection);
       }
     }
   }
@@ -193,8 +188,7 @@ public class RelativeLayoutConstraintPainter {
    * Paints a constraint of the given type from the given source node, to the
    * given target node, with the specified bounds.
    */
-  private static void paintConstraint(ScreenView screenView,
-                                      NlGraphics graphics,
+  private static void paintConstraint(NlGraphics graphics,
                                       ConstraintType type,
                                       NlComponent sourceNode,
                                       Rectangle sourceBounds,
@@ -230,13 +224,13 @@ public class RelativeLayoutConstraintPainter {
 
     // Vertical constraint?
     if (sourceSegmentTypeX == SegmentType.UNKNOWN) {
-      paintVerticalConstraint(screenView, graphics, type, sourceNode, sourceBounds, targetNode, targetBounds, highlightTargetEdge);
+      paintVerticalConstraint(graphics, type, sourceNode, sourceBounds, targetNode, targetBounds, highlightTargetEdge);
       return;
     }
 
     // Horizontal constraint?
     if (sourceSegmentTypeY == SegmentType.UNKNOWN) {
-      paintHorizontalConstraint(screenView, graphics, type, sourceNode, sourceBounds, targetNode, targetBounds, highlightTargetEdge, textDirection);
+      paintHorizontalConstraint(graphics, type, sourceNode, sourceBounds, targetNode, targetBounds, highlightTargetEdge, textDirection);
       return;
     }
 
@@ -404,8 +398,7 @@ public class RelativeLayoutConstraintPainter {
    *                    +--------+
    * </pre>
    */
-  private static void paintVerticalConstraint(ScreenView screenView,
-                                              NlGraphics graphics,
+  private static void paintVerticalConstraint(NlGraphics graphics,
                                               ConstraintType type,
                                               NlComponent sourceNode,
                                               Rectangle sourceBounds,
@@ -414,7 +407,7 @@ public class RelativeLayoutConstraintPainter {
                                               boolean highlightTargetEdge) {
     SegmentType sourceSegmentTypeY = type.sourceSegmentTypeY;
     SegmentType targetSegmentTypeY = type.targetSegmentTypeY;
-    Insets targetMargins = getInsets(screenView, targetNode.getMargins());
+    Insets targetMargins = targetNode.getMargins();
 
     assert sourceSegmentTypeY != SegmentType.UNKNOWN;
     assert targetBounds != null;
@@ -645,8 +638,7 @@ public class RelativeLayoutConstraintPainter {
    * Paints a horizontal constraint, handling the various scenarios where there are margins,
    * or where the two nodes overlap horizontally and where they don't, etc.
    */
-  private static void paintHorizontalConstraint(ScreenView screenView,
-                                                NlGraphics graphics,
+  private static void paintHorizontalConstraint(NlGraphics graphics,
                                                 ConstraintType type,
                                                 NlComponent sourceNode,
                                                 Rectangle sourceBounds,
@@ -656,7 +648,7 @@ public class RelativeLayoutConstraintPainter {
                                                 TextDirection textDirection) {
     SegmentType sourceSegmentTypeX = type.sourceSegmentTypeX;
     SegmentType targetSegmentTypeX = type.targetSegmentTypeX;
-    Insets targetMargins = getInsets(screenView, targetNode.getMargins());
+    Insets targetMargins = targetNode.getMargins();
 
     assert sourceSegmentTypeX != SegmentType.UNKNOWN;
     assert targetBounds != null;
@@ -825,336 +817,6 @@ public class RelativeLayoutConstraintPainter {
     graphics.useStyle(GUIDELINE);
     graphics.drawLine(centerX(sourceBounds), sourceBounds.y, centerX(sourceBounds),
                       y2(sourceBounds));
-  }
-
-  /**
-   * Data structure about relative layout relationships which makes it possible to:
-   * <ul>
-   * <li> Quickly determine not just the dependencies on other nodes, but which nodes
-   * depend on this node such that they can be visualized for the selection
-   * <li> Determine if there are cyclic dependencies, and whether a potential move
-   * would result in a cycle
-   * <li> Determine the "depth" of a given node (in terms of how many connections it
-   * is away from a parent edge) such that we can prioritize connections which
-   * minimizes the depth
-   * </ul>
-   */
-  public static class DependencyGraph {
-    @NonNls private static final String KEY = "DependencyGraph";
-
-    private final Map<NlComponent, ViewData> myNodeToView = new HashMap<NlComponent, ViewData>();
-
-    /**
-     * Returns the {@link DependencyGraph} for the given relative layout widget
-     *
-     * @param layout the relative layout
-     * @return a {@link DependencyGraph} for the layout
-     */
-    @NotNull
-    public static DependencyGraph get(@NotNull NlComponent layout) {
-      // TODO: Cache
-      //DependencyGraph graph = layout.getClientProperty(KEY);
-      //if (graph == null) {
-      //  graph = new DependencyGraph(layout);
-      //  layout.setClientProperty(KEY, graph);
-      //}
-      //return graph;
-      return new DependencyGraph(layout);
-    }
-
-    /**
-     * Constructs a new {@link DependencyGraph} for the given relative layout
-     */
-    private DependencyGraph(NlComponent layout) {
-      // Parent view:
-      String parentId = layout.getId();
-      if (parentId != null) {
-        parentId = LintUtils.stripIdPrefix(parentId);
-      }
-      else {
-        parentId = "RelativeLayout"; // For display purposes; we never reference
-        // the parent id from a constraint, only via parent-relative params
-        // like centerInParent
-      }
-      ViewData parentView = new ViewData(layout, parentId);
-      myNodeToView.put(layout, parentView);
-      Map<String, ViewData> idToView = new HashMap<String, ViewData>();
-      idToView.put(parentId, parentView);
-
-      for (NlComponent child : layout.getChildren()) {
-        String id = child.getId();
-        if (id != null) {
-          id = LintUtils.stripIdPrefix(id);
-        }
-        ViewData view = new ViewData(child, id);
-        myNodeToView.put(child, view);
-        if (id != null) {
-          idToView.put(id, view);
-        }
-      }
-
-      for (ViewData view : myNodeToView.values()) {
-        for (XmlAttribute attribute : view.node.tag.getAttributes()) {
-          String name = attribute.getLocalName();
-          ConstraintType type = ConstraintType.fromAttribute(name);
-          if (type != null) {
-            String value = attribute.getValue();
-
-            if (type.targetParent) {
-              if (VALUE_TRUE.equals(value)) {
-                Constraint constraint = new Constraint(type, view, parentView);
-                view.dependsOn.add(constraint);
-                parentView.dependedOnBy.add(constraint);
-              }
-            }
-            else {
-              // id-based constraint.
-              // NOTE: The id could refer to some widget that is NOT a sibling!
-              String targetId = LintUtils.stripIdPrefix(value);
-              ViewData target = idToView.get(targetId);
-              //noinspection StatementWithEmptyBody
-              if (target != view) {
-                if (target != null) {
-                  Constraint constraint = new Constraint(type, view, target);
-                  view.dependsOn.add(constraint);
-                  target.dependedOnBy.add(constraint);
-                }
-              }
-              else {
-                // Self-reference. RelativeLayout ignores these so it's
-                // not an error like a deeper cycle (where RelativeLayout
-                // will throw an exception), but we might as well warn
-                // the user about it.
-                // TODO: Where do we emit this error?
-              }
-            }
-          }
-        }
-      }
-    }
-
-    public ViewData getView(NlComponent node) {
-      return myNodeToView.get(node);
-    }
-
-    /**
-     * Returns the set of views that depend on the given node in either the horizontal or
-     * vertical direction
-     *
-     * @param nodes    the set of nodes that we want to compute the transitive dependencies
-     *                 for
-     * @param vertical if true, look for vertical edge dependencies, otherwise look for
-     *                 horizontal edge dependencies
-     * @return the set of nodes that directly or indirectly depend on the given nodes in
-     * the given direction
-     */
-    public Set<NlComponent> dependsOn(Collection<? extends NlComponent> nodes, boolean vertical) {
-      java.util.List<ViewData> reachable = new ArrayList<ViewData>();
-
-      // Traverse the graph of constraints and determine all nodes affected by
-      // this node
-      Set<ViewData> visiting = new HashSet<ViewData>();
-      for (NlComponent node : nodes) {
-        ViewData view = myNodeToView.get(node);
-        if (view != null) {
-          findBackwards(view, visiting, reachable, vertical);
-        }
-      }
-
-      Set<NlComponent> dependents = new HashSet<NlComponent>(reachable.size());
-
-      for (ViewData v : reachable) {
-        dependents.add(v.node);
-      }
-
-      return dependents;
-    }
-
-    private static void findBackwards(ViewData view, Set<ViewData> visiting, List<ViewData> reachable, boolean vertical) {
-      visiting.add(view);
-      reachable.add(view);
-
-      for (Constraint constraint : view.dependedOnBy) {
-        if (vertical && !constraint.type.verticalEdge || !vertical && !constraint.type.horizontalEdge) {
-          continue;
-        }
-
-        assert constraint.to == view;
-        ViewData from = constraint.from;
-        if (!visiting.contains(from)) {
-          findBackwards(from, visiting, reachable, vertical);
-        }
-      }
-
-      visiting.remove(view);
-    }
-
-    /**
-     * Info about a specific widget child of a relative layout and its constraints. This
-     * is a node in the dependency graph.
-     */
-    static class ViewData {
-      @NotNull public final NlComponent node;
-      @Nullable public final String id;
-      @NotNull public final java.util.List<Constraint> dependsOn = new ArrayList<Constraint>(4);
-      @NotNull public final java.util.List<Constraint> dependedOnBy = new ArrayList<Constraint>(8);
-
-      ViewData(@NotNull NlComponent node, @Nullable String id) {
-        this.node = node;
-        this.id = id;
-      }
-    }
-
-    /**
-     * Info about a specific constraint between two widgets in a relative layout. This is
-     * an edge in the dependency graph.
-     */
-    static class Constraint {
-      @NotNull public final ConstraintType type;
-      public final ViewData from;
-      public final ViewData to;
-
-      Constraint(@NotNull ConstraintType type, @NotNull ViewData from, @NotNull ViewData to) {
-        this.type = type;
-        this.from = from;
-        this.to = to;
-      }
-    }
-  }
-
-  /**
-   * Each constraint type corresponds to a type of constraint available for the
-   * RelativeLayout; for example, {@link #LAYOUT_ABOVE} corresponds to the layout_above constraint.
-   */
-  private enum ConstraintType {
-    LAYOUT_ABOVE(ATTR_LAYOUT_ABOVE, null /* sourceX */, SegmentType.BOTTOM, null /* targetX */, SegmentType.TOP, false /* targetParent */,
-                 true /* horizontalEdge */, false /* verticalEdge */, true /* relativeToMargin */),
-
-    LAYOUT_BELOW(ATTR_LAYOUT_BELOW, null, SegmentType.TOP, null, SegmentType.BOTTOM, false, true, false, true),
-    ALIGN_TOP(ATTR_LAYOUT_ALIGN_TOP, null, SegmentType.TOP, null, SegmentType.TOP, false, true, false, false),
-    ALIGN_BOTTOM(ATTR_LAYOUT_ALIGN_BOTTOM, null, SegmentType.BOTTOM, null, SegmentType.BOTTOM, false, true, false, false),
-    ALIGN_LEFT(ATTR_LAYOUT_ALIGN_LEFT, SegmentType.LEFT, null, SegmentType.LEFT, null, false, false, true, false),
-    ALIGN_RIGHT(ATTR_LAYOUT_ALIGN_RIGHT, SegmentType.RIGHT, null, SegmentType.RIGHT, null, false, false, true, false),
-    LAYOUT_ALIGN_START(ATTR_LAYOUT_ALIGN_START, SegmentType.START, null, SegmentType.START, null, false, false, true, false),
-    LAYOUT_ALIGN_END(ATTR_LAYOUT_ALIGN_END, SegmentType.END, null, SegmentType.END, null, false, false, true, false),
-    LAYOUT_LEFT_OF(ATTR_LAYOUT_TO_LEFT_OF, SegmentType.RIGHT, null, SegmentType.LEFT, null, false, false, true, true),
-    LAYOUT_RIGHT_OF(ATTR_LAYOUT_TO_RIGHT_OF, SegmentType.LEFT, null, SegmentType.RIGHT, null, false, false, true, true),
-    LAYOUT_ALIGN_START_OF(ATTR_LAYOUT_TO_START_OF, SegmentType.START, null, SegmentType.START, null, false, false, true, false),
-    LAYOUT_ALIGN_END_OF(ATTR_LAYOUT_TO_END_OF, SegmentType.END, null, SegmentType.END, null, false, false, true, false),
-    ALIGN_PARENT_TOP(ATTR_LAYOUT_ALIGN_PARENT_TOP, null, SegmentType.TOP, null, SegmentType.TOP, true, true, false, false),
-    ALIGN_BASELINE(ATTR_LAYOUT_ALIGN_BASELINE, null, SegmentType.BASELINE, null, SegmentType.BASELINE, false, true, false, false),
-    ALIGN_PARENT_LEFT(ATTR_LAYOUT_ALIGN_PARENT_LEFT, SegmentType.LEFT, null, SegmentType.LEFT, null, true, false, true, false),
-    ALIGN_PARENT_RIGHT(ATTR_LAYOUT_ALIGN_PARENT_RIGHT, SegmentType.RIGHT, null, SegmentType.RIGHT, null, true, false, true, false),
-    ALIGN_PARENT_BOTTOM(ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, null, SegmentType.BOTTOM, null, SegmentType.BOTTOM, true, true, false, false),
-    LAYOUT_CENTER_HORIZONTAL(ATTR_LAYOUT_CENTER_HORIZONTAL, SegmentType.CENTER_VERTICAL, null, SegmentType.CENTER_VERTICAL, null, true, true, false, false),
-    LAYOUT_CENTER_VERTICAL(ATTR_LAYOUT_CENTER_VERTICAL, null, SegmentType.CENTER_HORIZONTAL, null, SegmentType.CENTER_HORIZONTAL, true,
-                           false, true, false),
-    LAYOUT_CENTER_IN_PARENT(ATTR_LAYOUT_CENTER_IN_PARENT, SegmentType.CENTER_VERTICAL, SegmentType.CENTER_HORIZONTAL, SegmentType.CENTER_VERTICAL, SegmentType.CENTER_HORIZONTAL, true, true,
-                            true, false);
-
-    ConstraintType(String name,
-                   SegmentType sourceSegmentTypeX,
-                   SegmentType sourceSegmentTypeY,
-                   SegmentType targetSegmentTypeX,
-                   SegmentType targetSegmentTypeY,
-                   boolean targetParent,
-                   boolean horizontalEdge,
-                   boolean verticalEdge,
-                   boolean relativeToMargin) {
-      assert horizontalEdge || verticalEdge;
-
-      this.name = name;
-      this.sourceSegmentTypeX = sourceSegmentTypeX != null ? sourceSegmentTypeX : SegmentType.UNKNOWN;
-      this.sourceSegmentTypeY = sourceSegmentTypeY != null ? sourceSegmentTypeY : SegmentType.UNKNOWN;
-      this.targetSegmentTypeX = targetSegmentTypeX != null ? targetSegmentTypeX : SegmentType.UNKNOWN;
-      this.targetSegmentTypeY = targetSegmentTypeY != null ? targetSegmentTypeY : SegmentType.UNKNOWN;
-      this.targetParent = targetParent;
-      this.horizontalEdge = horizontalEdge;
-      this.verticalEdge = verticalEdge;
-      this.relativeToMargin = relativeToMargin;
-    }
-
-    /**
-     * The attribute name of the constraint
-     */
-    public final String name;
-
-    /**
-     * The horizontal position of the source of the constraint
-     */
-    public final SegmentType sourceSegmentTypeX;
-
-    /**
-     * The vertical position of the source of the constraint
-     */
-    public final SegmentType sourceSegmentTypeY;
-
-    /**
-     * The horizontal position of the target of the constraint
-     */
-    public final SegmentType targetSegmentTypeX;
-
-    /**
-     * The vertical position of the target of the constraint
-     */
-    public final SegmentType targetSegmentTypeY;
-
-    /**
-     * If true, the constraint targets the parent layout, otherwise it targets another
-     * view
-     */
-    public final boolean targetParent;
-
-    /**
-     * If true, this constraint affects the horizontal dimension
-     */
-    public final boolean horizontalEdge;
-
-    /**
-     * If true, this constraint affects the vertical dimension
-     */
-    public final boolean verticalEdge;
-
-    /**
-     * Whether this constraint is relative to the margin bounds of the node rather than
-     * the node's actual bounds
-     */
-    public final boolean relativeToMargin;
-
-    /**
-     * Map from attribute name to constraint type
-     */
-    private static Map<String, ConstraintType> ourSNameToType;
-
-    /**
-     * Returns the {@link ConstraintType} corresponding to the given attribute name, or
-     * null if not found.
-     *
-     * @param attribute the name of the attribute to look up
-     * @return the corresponding {@link ConstraintType}
-     */
-    @Nullable
-    public static ConstraintType fromAttribute(@NotNull String attribute) {
-      if (ourSNameToType == null) {
-        ConstraintType[] types = ConstraintType.values();
-        Map<String, ConstraintType> map = new HashMap<String, ConstraintType>(types.length);
-        for (ConstraintType type : types) {
-          map.put(type.name, type);
-        }
-        ourSNameToType = map;
-      }
-      return ourSNameToType.get(attribute);
-    }
-
-    /**
-     * Returns true if this constraint type represents a constraint where the target edge
-     * is one of the parent edges (actual edge, not center/baseline segments)
-     *
-     * @return true if the target segment is a parent edge
-     */
-    public boolean isRelativeToParentEdge() {
-      return this == ALIGN_PARENT_LEFT || this == ALIGN_PARENT_RIGHT || this == ALIGN_PARENT_TOP || this == ALIGN_PARENT_BOTTOM;
-    }
   }
 
   private static int centerX(Rectangle rectangle) {

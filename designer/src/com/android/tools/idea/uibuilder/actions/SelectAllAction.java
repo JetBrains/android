@@ -33,6 +33,9 @@ public class SelectAllAction extends AnAction {
   @Override
   public void actionPerformed(AnActionEvent e) {
     ScreenView screenView = mySurface.getCurrentScreenView();
+    if (screenView == null) {
+      return;
+    }
     SelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.selectAll(screenView.getModel());
     mySurface.repaint();

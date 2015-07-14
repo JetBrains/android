@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -29,7 +30,7 @@ public class ThemeMenuAction extends FlatAction {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Theme to render layout with");
-    presentation.setIcon(AndroidIcons.Themes);
+    presentation.setIcon(RenderService.NELE_ENABLED ? AndroidIcons.NeleIcons.Theme : AndroidIcons.Themes);
     updatePresentation(presentation);
   }
 

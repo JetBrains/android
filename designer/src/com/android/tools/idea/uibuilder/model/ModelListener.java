@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.surface;
+package com.android.tools.idea.uibuilder.model;
 
-public class DropInteraction extends Interaction {
+import com.android.annotations.NonNull;
+
+/**
+ * Interface implemented by listeners on model changes
+ */
+public interface ModelListener {
+  /** Something in the model changed */
+  void modelChanged(@NonNull NlModel model);
+
+  /** The model finished rendering after updates */
+  void modelRendered(@NonNull NlModel model);
 }

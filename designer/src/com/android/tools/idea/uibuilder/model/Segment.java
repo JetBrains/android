@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 
 /**
  * A segment is a straight horizontal or vertical line between two points, typically an
@@ -42,21 +42,21 @@ public class Segment {
   /**
    * Whether the edge is a top edge, a baseline edge, a left edge, etc
    */
-  @NotNull
+  @NonNull
   public final SegmentType edgeType;
 
   /**
    * Whether the edge is offset from the node by a margin or not, or whether it has no
    * margin
    */
-  @NotNull
+  @NonNull
   public final MarginType marginType;
 
   /**
    * The node that contains this edge
    */
   @Nullable
-  public final NlComponent node;
+  public final NlComponent component;
 
   /**
    * The id of the node. May be null (in which case id should be generated when
@@ -68,25 +68,25 @@ public class Segment {
   public Segment(int at,
                  int from,
                  int to,
-                 @Nullable NlComponent node,
+                 @Nullable NlComponent component,
                  @Nullable String id,
-                 @NotNull SegmentType edgeType,
-                 @NotNull MarginType marginType) {
+                 @NonNull SegmentType edgeType,
+                 @NonNull MarginType marginType) {
     this.at = at;
     this.from = from;
     this.to = to;
-    this.node = node;
+    this.component = component;
     this.id = id;
     this.edgeType = edgeType;
     this.marginType = marginType;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public String toString() {
-    String nodeStr = node == null ? "null" : node.tag.getName().substring(
-      node.tag.getName().lastIndexOf(('.')) + 1);
-    return "Segment [edgeType=" + edgeType + ", node=" + nodeStr + ", at=" + at + ", id=" + id
+    String componentStr = component == null ? "null" : component.getTagName().substring(
+      component.getTagName().lastIndexOf(('.')) + 1);
+    return "Segment [edgeType=" + edgeType + ", component=" + componentStr + ", at=" + at + ", id=" + id
            + ", from=" + from + ", to=" + to + ", marginType=" + marginType + "]";
   }
 }

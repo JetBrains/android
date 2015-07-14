@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.tools.idea.uilbuilder.LayoutTestCase;
+import com.android.annotations.NonNull;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.intellij.openapi.util.Ref;
 
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
@@ -31,9 +31,9 @@ public class SelectionModelTest extends LayoutTestCase {
     assertTrue(model.isEmpty());
     final Ref<Boolean> called = new Ref<Boolean>(false);
 
-    ChangeListener listener = new ChangeListener() {
+    SelectionListener listener = new SelectionListener() {
       @Override
-      public void stateChanged(ChangeEvent changeEvent) {
+      public void selectionChanged(@NonNull SelectionModel model, @NonNull List<NlComponent> selection) {
         assertFalse(called.get());
         called.set(true);
       }

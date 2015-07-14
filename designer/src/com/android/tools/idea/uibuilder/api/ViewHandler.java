@@ -16,29 +16,58 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 
 import java.awt.*;
-import java.util.List;
+import java.util.EnumSet;
 
 /** A view handler is a tool handler for a given Android view class */
 public class ViewHandler {
   /**
-   * Called when one or more children are about to be deleted by the user.
+   * Returns whether the given component accepts the given parent layout as a potential container
    *
-   * @param parent  the parent of the deleted children (which still contains
-   *                the children since this method is called before the deletion
-   *                is performed)
-   * @param deleted a nonempty list of children about to be deleted
-   * @return true if the children have been fully deleted by this participant; false
-   *         if normal deletion should resume. Note that even though an implementation may return
-   *         false from this method, that does not mean it did not perform any work. For example,
-   *         a RelativeLayout handler could remove constraints pointing to now deleted components,
-   *         but leave the overall deletion of the elements to the core designer.
+   * @param layout   the layout being inserted into (which does not yet contain the
+   *                 newly created node in its child list)
+   * @param newChild the newly created component
+   * @return true if the proposed parent is accepted
    */
-  public boolean deleteChildren(@NonNull NlComponent parent, @NonNull List<NlComponent> deleted) throws Exception {
-    return false;
+  public boolean acceptsParent(@NonNull NlComponent layout,
+                              @NonNull NlComponent newChild) {
+    return true;
+  }
+
+  /**
+   * Called when a view for this handler is being created. This allows for the handler to
+   * customize the newly created object. Note that this method is called not just when a
+   * view is created from a palette drag, but when views are constructed via a drag-move
+   * (where views are created in the destination and then deleted from the source), and
+   * even when views are constructed programmatically from other view handlers. The
+   * {@link InsertType} parameter can be used to distinguish the context for the
+   * insertion. For example, the <code>DialerFilterHandler</code> can insert EditText children
+   * when a DialerFilter is first created, but not during a copy/paste or a move.
+   *
+   * @param editor     the associated editor
+   * @param parent     the parent of the node, if any (which may not yet contain the newly created
+   *                   node in its child list)
+   * @param newChild   the newly created node (which will always be a View that applies to
+   *                   this {@linkplain ViewHandler})
+   * @param insertType whether this node was created as part of a newly created view, or
+   * @return true, or false if the view handler wants to cancel this component
+   * creation. This typically happens if for example the view handler tries
+   * to customize the component by for example asking the user for a specific
+   * resource (via {@link ViewEditor#displayResourceInput(EnumSet, String)}),
+   * and then the user cancels that dialog. At that point we don't want an
+   * unconfigured component lingering around, so the component create handler
+   * cancels the drop instead by returning false.
+   */
+  public boolean onCreate(@NonNull ViewEditor editor,
+                          @Nullable NlComponent parent,
+                          @NonNull NlComponent newChild,
+                          @NonNull InsertType insertType) {
+    return true;
   }
 
   /**
@@ -51,5 +80,9 @@ public class ViewHandler {
    */
   public boolean paintConstraints(@NonNull ScreenView screenView, @NonNull Graphics2D graphics, @NonNull NlComponent component) {
     return false;
+  }
+
+  public FillPolicy getFillPolicy() {
+    return FillPolicy.WIDTH_IN_VERTICAL;
   }
 }

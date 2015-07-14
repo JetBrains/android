@@ -17,13 +17,22 @@ package com.android.tools.idea.uibuilder.model;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
+import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceVersion;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.android.designer.model.layout.actions.ToggleRenderModeAction;
@@ -32,68 +41,74 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
+import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.annotations.NotNull;
 
-import javax.swing.event.ChangeListener;
+import javax.swing.Timer;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Model for an XML file
  */
-public class NlModel implements Disposable, ConfigurationListener, ResourceFolderManager.ResourceFolderListener {
+public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
   @AndroidCoordinate public static final int EMPTY_COMPONENT_SIZE = 5;
   @AndroidCoordinate public static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
 
-  private final AndroidFacet myFacet;
+  @NonNull private final DesignSurface mySurface;
+  @NonNull private final AndroidFacet myFacet;
   private final XmlFile myFile;
   private RenderResult myRenderResult;
-  private Configuration myConfiguration;
-  private final List<ChangeListener> myListeners = Lists.newArrayList();
+  private final Configuration myConfiguration;
+  private final List<ModelListener> myListeners = Lists.newArrayList();
   private List<NlComponent> myComponents = Lists.newArrayList();
   private final SelectionModel mySelectionModel;
+  private final long myId;
   private Disposable myParent;
-  private ExternalChangeListener myPsiListener;
-  private int myConfigurationDirty;
   private boolean myActive;
-  private boolean myVariantChanged;
+  private ResourceVersion myRenderedVersion;
+  private long myModificationCount;
+  private int myRenderDelay = 10;
+  private AndroidPreviewProgressIndicator myCurrentIndicator;
+  private static final Object PROGRESS_LOCK = new Object();
+
 
   @NonNull
-  public static NlModel create(@Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
-    return new NlModel(parent, facet, file);
+  public static NlModel create(@NonNull DesignSurface surface, @Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
+    return new NlModel(surface, parent, facet, file);
   }
 
-  private NlModel(@Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
+  @VisibleForTesting
+  protected NlModel(@NonNull DesignSurface surface, @Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
+    mySurface = surface;
     myParent = parent;
     myFacet = facet;
     myFile = file;
     myConfiguration = facet.getConfigurationManager().getConfiguration(myFile.getVirtualFile());
     mySelectionModel = new SelectionModel();
-
-    if (facet.isGradleProject()) {
-      // Ensure that the app resources have been initialized first, since
-      // we want it to add its own variant listeners before ours (such that
-      // when the variant changes, the project resources get notified and updated
-      // before our own update listener attempts a re-render)
-      ModuleResourceRepository.getModuleResources(facet, true /*createIfNecessary*/);
-      myFacet.getResourceFolderManager().addListener(this);
+    myId = System.nanoTime() ^ file.getName().hashCode();
+    if (parent != null) {
+      Disposer.register(parent, this);
     }
-
-    myConfiguration.addListener(this);
-
-    myPsiListener = new ExternalChangeListener(this);
-    activate();
   }
 
   public void setParentDisposable(Disposable parent) {
@@ -102,30 +117,34 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     }
   }
 
+  public int getRenderDelay() {
+    return myRenderDelay;
+  }
+
+  public void setRenderDelay(int renderDelay) {
+    myRenderDelay = renderDelay;
+  }
+
   /** Notify model that it's active. A model is active by default. */
   public void activate() {
     if (!myActive) {
       myActive = true;
-      myPsiListener.activate();
 
-      if (myVariantChanged || (myConfigurationDirty & MASK_RENDERING) != 0) {
-        myVariantChanged = false;
+      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
+      ResourceVersion version = manager.addListener(this, myFacet, myFile, myConfiguration);
+      if (!version.equals(myRenderedVersion)) {
         requestRender();
       }
-      myConfigurationDirty = 0;
     }
   }
 
   /** Notify model that it's not active. This means it can stop watching for events etc. It may be activated again in the future. */
   public void deactivate() {
     if (myActive) {
-      myPsiListener.deactivate();
+      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
+      manager.removeListener(this, myFacet, myFile, myConfiguration);
       myActive = false;
     }
-  }
-
-  public void buildProject() {
-    requestRender();
   }
 
   public XmlFile getFile() {
@@ -137,10 +156,41 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     return mySelectionModel;
   }
 
-  public boolean requestRender() {
+  /** Like {@link #requestRender()}, but tries to do it as quickly as possible (flushes rendering queue) */
+  public void requestRenderAsap() {
+    requestRender();
+    getRenderingQueue().sendFlush();
+  }
+
+  /** Renders immediately and synchronously */
+  public void renderImmediately() {
+    getRenderingQueue().cancelAllUpdates();
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
+        public void run() {
+          requestRenderAsap();
+        }
+      });
+      return;
+    }
+
+    doRender();
+  }
+
+  public void requestRender() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
-    getRenderingQueue().queue(new Update("render") {
+    synchronized (PROGRESS_LOCK) {
+      if (myCurrentIndicator == null) {
+        myCurrentIndicator = new AndroidPreviewProgressIndicator(0);
+        myCurrentIndicator.start();
+      }
+    }
+
+    MergingUpdateQueue renderingQueue = getRenderingQueue();
+    renderingQueue.cancelAllUpdates();
+    renderingQueue.queue(new Update("render") {
       @Override
       public void run() {
         DumbService.getInstance(myFacet.getModule().getProject()).waitForSmartMode();
@@ -150,6 +200,13 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
         catch (Throwable e) {
           Logger.getInstance(NlModel.class).error(e);
         }
+
+        synchronized (PROGRESS_LOCK) {
+          if (myCurrentIndicator != null) {
+            myCurrentIndicator.stop();
+            myCurrentIndicator = null;
+          }
+        }
       }
 
       @Override
@@ -157,14 +214,14 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
         return true;
       }
     });
-    return true;
   }
 
-  @NotNull
+  @NonNull
   private MergingUpdateQueue getRenderingQueue() {
+    int delay = myRenderDelay;
     synchronized (myRenderingQueueLock) {
       if (myRenderingQueue == null) {
-        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", 10, true, null, myParent, null,
+        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", delay, true, null, myParent, null,
                                                   Alarm.ThreadToUse.OWN_THREAD);
       }
       return myRenderingQueue;
@@ -185,6 +242,11 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     if (configuration == null) {
       return;
     }
+
+    // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
+    // external changes
+    ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(myFile.getProject());
+    myRenderedVersion = resourceNotificationManager.getCurrentVersion(myFacet, myFile, myConfiguration);
 
     // Some types of files must be saved to disk first, because layoutlib doesn't
     // delegate XML parsers for non-layout files (meaning layoutlib will read the
@@ -214,26 +276,27 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
 
     myRenderResult = result;
     updateHierarchy(result);
-    notifyListeners();
+    notifyListenersRenderComplete();
   }
 
-  public void addListener(@NonNull ChangeListener listener) {
+  public void addListener(@NonNull ModelListener listener) {
     synchronized (myListeners) {
       myListeners.remove(listener); // prevent duplicate registration
       myListeners.add(listener);
     }
   }
 
-  public void removeListener(@NonNull ChangeListener listener) {
+  public void removeListener(@NonNull ModelListener listener) {
     synchronized (myListeners) {
       myListeners.remove(listener);
     }
   }
 
-  private void notifyListeners() {
+  private void notifyListenersRenderComplete() {
     synchronized (myListeners) {
-      for (ChangeListener listener : myListeners) {
-        listener.stateChanged(null);
+      List<ModelListener> listeners = Lists.newArrayList(myListeners);
+      for (ModelListener listener : listeners) {
+        listener.modelRendered(this);
       }
     }
   }
@@ -249,6 +312,16 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
   }
 
   @NonNull
+  public Module getModule() {
+    return myFacet.getModule();
+  }
+
+  @NonNull
+  public Project getProject() {
+    return getModule().getProject();
+  }
+
+  @NonNull
   public Configuration getConfiguration() {
     return myConfiguration;
   }
@@ -261,7 +334,7 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
   private final Map<XmlTag,NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
   private final Map<XmlTag,NlComponent> myMergeComponentMap = Maps.newHashMap();
 
-  void updateHierarchy(@Nullable RenderResult result) {
+  private void updateHierarchy(@Nullable RenderResult result) {
     if (result == null || result.getSession() == null || !result.getSession().getResult().isSuccess()) {
       myComponents.clear();
       return;
@@ -269,20 +342,55 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     updateHierarchy(result.getSession().getRootViews());
   }
 
-  void updateHierarchy(@Nullable List<ViewInfo> rootViews) {
+  @VisibleForTesting
+  public void updateHierarchy(@Nullable List<ViewInfo> rootViews) {
     for (NlComponent component : myComponents) {
       initTagMap(component);
       component.children = null;
     }
 
-    List<NlComponent> newRoots = Lists.newArrayList();
+    final List<NlComponent> newRoots = Lists.newArrayList();
     if (rootViews != null) {
       for (ViewInfo info : rootViews) {
         NlComponent newRoot = updateHierarchy(null, info, 0, 0);
-        newRoots.add(newRoot);
+        if (newRoot != null) {
+          newRoots.add(newRoot);
+        }
       }
     }
+
+    // TODO: Use result from rendering instead, if available!
+    ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
+      public void run() {
+        for (NlComponent root : newRoots) {
+          TagSnapshot snapshot = TagSnapshot.createTagSnapshot(root.getTag());
+          updateSnapshot(root, snapshot);
+        }
+      }
+    });
+
+    myModificationCount++;
     myComponents = newRoots;
+  }
+
+  private static void updateSnapshot(@NonNull NlComponent component, @NonNull TagSnapshot snapshot) {
+    assert component.getTag() == snapshot.tag;
+    component.setSnapshot(snapshot);
+    if (!snapshot.children.isEmpty()) {
+      if (snapshot.children.size() != component.getChildCount()) {
+        // TODO: Investigate this; some layouts in iosched triggers this.
+        return;
+      }
+      assert snapshot.children.size() == component.getChildCount();
+      for (int i = 0, n = component.getChildCount(); i < n; i++) {
+        NlComponent child = component.getChild(i);
+        assert child != null;
+        updateSnapshot(child, snapshot.children.get(i));
+      }
+    } else {
+      assert component.getChildCount() == 0;
+    }
   }
 
   protected void initTagMap(@NonNull NlComponent root) {
@@ -293,7 +401,7 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
   }
 
   private static void gatherTags(Map<XmlTag, NlComponent> map, NlComponent component) {
-    XmlTag tag = component.tag;
+    XmlTag tag = component.getTag();
     map.put(tag, component);
 
     for (NlComponent child : component.getChildren()) {
@@ -316,21 +424,29 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
       cookie = ((MergeCookie)cookie).getCookie();
       if (cookie instanceof XmlTag) {
         tag = (XmlTag)cookie;
-        if (myMergeComponentMap.containsKey(tag)) {
+        NlComponent mergedComponent = myMergeComponentMap.get(tag);
+        if (mergedComponent == null && parent != null && tag == parent.getTag()) {
+          // NumberPicker will render its children with merge cookies pointing to the root
+          // component (which was not a <merge>)
+          mergedComponent = parent;
+        }
+        if (mergedComponent != null) {
           // Just expand the bounds
           int left = parentX + view.getLeft();
           int top = parentY + view.getTop();
           int width = view.getRight() - view.getLeft();
           int height = view.getBottom() - view.getTop();
-          NlComponent viewComponent = myMergeComponentMap.get(tag);
-          Rectangle rectanglePrev = new Rectangle(viewComponent.x, viewComponent.y,
-                                                  viewComponent.w, viewComponent.h);
+          Rectangle rectanglePrev = new Rectangle(mergedComponent.x, mergedComponent.y,
+                                                  mergedComponent.w, mergedComponent.h);
           Rectangle rectangle = new Rectangle(left, top, width, height);
           rectangle.add(rectanglePrev);
-          viewComponent.setBounds(rectanglePrev.x, rectanglePrev.y, rectanglePrev.width, rectanglePrev.height);
+          mergedComponent.setBounds(rectanglePrev.x, rectanglePrev.y, rectanglePrev.width, rectanglePrev.height);
           return null;
         }
       }
+    }
+    if (tag != null && parent != null && parent.getTag() == tag) {
+      tag = null;
     }
     if (tag != null) {
       component = myTagToComponentMap.get(tag);
@@ -341,7 +457,7 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
         //}
       }
       if (component == null) {
-        component = new NlComponent(tag);
+        component = new NlComponent(this, tag);
       } else {
         component.children = null;
         myTagToComponentMap.remove(tag);
@@ -384,8 +500,19 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     return (tag != null) ? findViewsByTag(tag) : null;
   }
 
+  /**
+   * Looks up the point at the given pixel coordinates in the Android screen coordinate system, and
+   * finds the leaf component there and returns it, if any. If the point is outside the screen bounds,
+   * it will either return null, or the root view if {@code useRootOutsideBounds} is set and there is
+   * precisely one parent.
+   *
+   * @param x                    the x pixel coordinate
+   * @param y                    the y pixel coordinate
+   * @param useRootOutsideBounds if true, return the root component when pointing outside the screen, otherwise null
+   * @return the leaf component at the coordinate
+   */
   @Nullable
-  public NlComponent findLeafAt(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+  public NlComponent findLeafAt(@AndroidCoordinate int x, @AndroidCoordinate int y, boolean useRootOutsideBounds) {
     // Search BACKWARDS such that if the children are painted on top of each
     // other (as is the case in a FrameLayout) I pick the last one which will
     // be topmost!
@@ -394,6 +521,17 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
       NlComponent leaf = component.findLeafAt(x, y);
       if (leaf != null) {
         return leaf;
+      }
+    }
+
+    if (useRootOutsideBounds) {
+      // If dragging outside of the screen, associate it with the
+      // root widget (if there is one, and at most one (e.g. not a <merge> tag)
+      List<NlComponent> components = myComponents;
+      if (components.size() == 1) {
+        return components.get(0);
+      } else {
+        return null;
       }
     }
 
@@ -472,22 +610,22 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     return true;
   }
 
-  public void delete() {
-  }
-
-
   public void delete(final Collection<NlComponent> components) {
     // Group by parent and ask each one to participate
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(myFacet.getModule().getProject(), "Delete Component", myFile) {
       @Override
-      protected void run(@NotNull Result<Void> result) throws Throwable {
+      protected void run(@NonNull Result<Void> result) throws Throwable {
         handleDeletion(components);
       }
     };
     action.execute();
+
+    List<NlComponent> remaining = Lists.newArrayList(mySelectionModel.getSelection());
+    remaining.removeAll(components);
+    mySelectionModel.setSelection(remaining);
   }
 
-  private void handleDeletion(@NotNull Collection<NlComponent> components) throws Exception {
+  private void handleDeletion(@NonNull Collection<NlComponent> components) throws Exception {
     // Segment the deleted components into lists of siblings
     Map<NlComponent, List<NlComponent>> siblingLists = groupSiblings(components);
 
@@ -497,12 +635,15 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     // Notify parent components about children getting deleted
     for (Map.Entry<NlComponent, List<NlComponent>> entry : siblingLists.entrySet()) {
       NlComponent parent = entry.getKey();
+      if (parent == null) {
+        continue;
+      }
       List<NlComponent> children = entry.getValue();
       boolean finished = false;
 
-      ViewHandler handler = viewHandlerManager.getHandler(parent.tag.getName());
-      if (handler != null) {
-        finished = handler.deleteChildren(parent, children);
+      ViewHandler handler = viewHandlerManager.getHandler(parent);
+      if (handler instanceof ViewGroupHandler) {
+        finished = ((ViewGroupHandler)handler).deleteChildren(parent, children);
       }
 
       if (!finished) {
@@ -511,7 +652,7 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
           if (p != null) {
             p.removeChild(component);
           }
-          component.tag.delete();
+          component.getTag().delete();
         }
       }
     }
@@ -527,8 +668,8 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
    * @param components the components to be grouped
    * @return a map from parents (or null) to a list of components with the corresponding parent
    */
-  @NotNull
-  public static Map<NlComponent, List<NlComponent>> groupSiblings(@NotNull Collection<? extends NlComponent> components) {
+  @NonNull
+  public static Map<NlComponent, List<NlComponent>> groupSiblings(@NonNull Collection<? extends NlComponent> components) {
     Map<NlComponent, List<NlComponent>> siblingLists = new HashMap<NlComponent, List<NlComponent>>();
 
     if (components.isEmpty()) {
@@ -553,47 +694,250 @@ public class NlModel implements Disposable, ConfigurationListener, ResourceFolde
     return siblingLists;
   }
 
-  @Override
-  public void dispose() {
-    myPsiListener.deactivate();
-    myConfiguration.removeListener(this);
-    myFacet.getResourceFolderManager().removeListener(this);
+  /**
+   * Creates a new component of the given type. It will optionally insert it as a child of the given parent (and optionally
+   * right before the given sibling or null to append at the end.)
+   * <p/>
+   * Note: This operation can only be called when the caller is already holding a write lock. This will be the
+   * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate(ViewEditor, NlComponent, NlComponent, InsertType)}
+   * and {@link com.android.tools.idea.uibuilder.api.DragHandler#commit(int, int, int)}.
+   *
+   * @param screenView The target screen, if known. Used to handle pixel to dp computations in view handlers, etc.
+   * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}.
+   *                   You can also pass XML tags here (this is typically the same as the fully qualified class name
+   *                   of the custom view, but for Android framework views in the android.view or android.widget packages,
+   *                   you can omit the package.)
+   * @param parent     The optional parent to add this component to
+   * @param before     The sibling to insert immediately before, or null to append
+   * @param insertType The type of insertion
+   */
+  public NlComponent createComponent(@Nullable ScreenView screenView,
+                                     @NonNull String fqcn,
+                                     @Nullable NlComponent parent,
+                                     @Nullable NlComponent before,
+                                     @NonNull InsertType insertType) {
+    String tagName =  NlComponent.viewClassToTag(fqcn);
+
+    XmlTag tag;
+    if (parent != null) {
+      // Creating a component intended to be inserted into an existing layout
+      tag = parent.getTag().createChildTag(tagName, null, null, false);
+    } else {
+      // Creating a component not yet inserted into a layout. Typically done when trying to perform
+      // a drag from palette, etc.
+      XmlElementFactory elementFactory = XmlElementFactory.getInstance(getProject());
+      String text = "<" + fqcn + " xmlns:android=\"http://schemas.android.com/apk/res/android\"/>"; // SIZES?
+      tag = elementFactory.createTagFromText(text);
+    }
+
+    return createComponent(screenView, tag, parent, before, insertType);
   }
 
-  // ---- Implements ResourceFolderManager.ResourceFolderListener ----
-
-  @Override
-  public void resourceFoldersChanged(@NotNull AndroidFacet facet,
-                                     @NotNull List<VirtualFile> folders,
-                                     @NotNull Collection<VirtualFile> added,
-                                     @NotNull Collection<VirtualFile> removed) {
-    if (facet == myFacet) {
-      if (myActive) {
-        // The app resources should already have been refreshed by their own variant listener
-        requestRender();
+  public NlComponent createComponent(@Nullable ScreenView screenView,
+                                     @NonNull XmlTag tag,
+                                     @Nullable NlComponent parent,
+                                     @Nullable NlComponent before,
+                                     @NonNull InsertType insertType) {
+    if (parent != null) {
+      // Creating a component intended to be inserted into an existing layout
+      XmlTag parentTag = parent.getTag();
+      if (before != null) {
+        tag = (XmlTag) parentTag.addBefore(tag, before.getTag());
       } else {
-        myVariantChanged = true;
+        tag = parentTag.addSubTag(tag, false);
+      }
+
+      // Required for all views; drop handlers can adjust as necessary
+      tag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT);
+      tag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT);
+    } else {
+      // No namespace yet: use the default prefix instead
+      tag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
+      tag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+    }
+
+    NlComponent child = new NlComponent(this, tag);
+
+    if (parent != null) {
+      parent.addChild(child, before);
+    }
+
+    // Notify view handlers
+    ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(getProject());
+    ViewHandler childHandler = viewHandlerManager.getHandler(child);
+    if (childHandler != null && screenView != null) {
+      ViewEditor editor = new ViewEditorImpl(screenView);
+      boolean ok = childHandler.onCreate(editor, parent, child, insertType);
+      if (!ok) {
+        if (parent != null) {
+          parent.removeChild(child);
+        }
+        tag.delete();
+        return null;
       }
     }
-  }
-
-  // ---- implements ConfigurationListener ----
-
-  @Override
-  public boolean changed(int flags) {
-    if (myActive) {
-      requestRender();
-
-      //if ((flags & CFG_TARGET) != 0) {
-      //  IAndroidTarget target = myConfiguration != null ? myConfiguration.getTarget() : null;
-      //  if (target != null) {
-      //    updatePalette(target);
-      //  }
-      //}
-    } else {
-      myConfigurationDirty |= flags;
+    if (parent != null) {
+      ViewHandler parentHandler = viewHandlerManager.getHandler(parent);
+      if (parentHandler instanceof ViewGroupHandler) {
+        ((ViewGroupHandler)parentHandler).onChildInserted(parent, child, insertType);
+      }
     }
 
-    return true;
+    return child;
+  }
+
+  @Nullable
+  public List<NlComponent> createComponents(@NonNull ScreenView screenView,
+                                            @NonNull DnDTransferItem item,
+                                            @NonNull InsertType insertType) {
+    List<NlComponent> components = new ArrayList<NlComponent>(item.getComponents().size());
+    for (DnDTransferComponent dndComponent : item.getComponents()) {
+      XmlTag tag = createTagFromTransferItem(screenView, dndComponent.getRepresentation());
+      NlComponent component = createComponent(screenView, tag, null, null, insertType);
+      if (component == null) {
+        return null;  // User may have cancelled
+      }
+      component.w = dndComponent.getWidth();
+      component.h = dndComponent.getHeight();
+      components.add(component);
+    }
+    return components;
+  }
+
+  @NonNull
+  private static XmlTag createTagFromTransferItem(@NonNull ScreenView screenView, @NonNull String text) {
+    NlModel model = screenView.getModel();
+    Project project = model.getFacet().getModule().getProject();
+    XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
+    XmlTag tag = null;
+    if (XmlUtils.parseDocumentSilently(text, false) != null) {
+      try {
+        String xml = addAndroidNamespaceIfMissing(text);
+        tag = elementFactory.createTagFromText(xml);
+      }
+      catch (IncorrectOperationException ignore) {
+        // Thrown by XmlElementFactory if you try to parse non-valid XML. User might have tried
+        // to drop something like plain text -- insert this as a text view instead.
+        // However, createTagFromText may not always throw this for invalid XML, so we perform the above parseDocument
+        // check first instead.
+      }
+    }
+    if (tag == null) {
+      tag = elementFactory.createTagFromText("<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\" " +
+                                             " android:text=\"" + XmlUtils.toXmlAttributeValue(text) + "\"" +
+                                             " android:layout_width=\"wrap_content\"" +
+                                             " android:layout_height=\"wrap_content\"" +
+                                             "/>");
+    }
+    return tag;
+  }
+
+  private static String addAndroidNamespaceIfMissing(@NonNull String xml) {
+    // TODO: Remove this temporary hack, which adds an Android namespace if necessary
+    // (this is such that the resulting tag is namespace aware, and attempts to manipulate it from
+    // a component handler will correctly set namespace prefixes)
+
+    if (!xml.contains(ANDROID_URI)) {
+      int index = xml.indexOf('<');
+      if (index != -1) {
+        index = xml.indexOf(' ', index);
+        if (index == -1) {
+          index = xml.indexOf("/>");
+          if (index == -1) {
+            index = xml.indexOf('>');
+          }
+        }
+        if (index != -1) {
+          xml =
+            xml.substring(0, index) + " xmlns:android=\"http://schemas.android.com/apk/res/android\"" + xml.substring(index);
+        }
+      }
+    }
+    return xml;
+  }
+
+  @NonNull
+  public InsertType determineInsertType(@NonNull DnDTransferItem item, boolean asPreview, boolean isCopy) {
+    InsertType insertType;
+    if (item.isFromPalette()) {
+      insertType = asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
+    } else if (!isCopy && myId == item.getModelId()) {
+      insertType = InsertType.MOVE_INTO;
+    } else {
+      insertType = InsertType.PASTE;
+    }
+    return insertType;
+  }
+
+  @Override
+  public void dispose() {
+    deactivate(); // ensure listeners are unregistered if necessary
+  }
+
+  @Override
+  public String toString() {
+    return NlModel.class.getSimpleName() + " for " + myFile;
+  }
+
+  // ---- Implements ResourceNotificationManager.ResourceChangeListener ----
+
+  @Override
+  public void resourcesChanged(@NonNull Set<ResourceNotificationManager.Reason> reason) {
+    requestRender();
+  }
+
+  // ---- Implements ModificationTracker ----
+
+  @Override
+  public long getModificationCount() {
+    return myModificationCount;
+  }
+
+  public void notifyModified() {
+    myModificationCount++;
+  }
+
+  private class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {
+    private final Object myLock = new Object();
+    private final int myDelay;
+
+    public AndroidPreviewProgressIndicator(int delay) {
+      myDelay = delay;
+    }
+
+    @Override
+    public void start() {
+      super.start();
+      UIUtil.invokeLaterIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          final Timer timer = UIUtil.createNamedTimer("Android rendering progress timer", myDelay, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              synchronized (myLock) {
+                if (isRunning()) {
+                  mySurface.registerIndicator(AndroidPreviewProgressIndicator.this);
+                }
+              }
+            }
+          });
+          timer.setRepeats(false);
+          timer.start();
+        }
+      });
+    }
+
+    @Override
+    public void stop() {
+      synchronized (myLock) {
+        super.stop();
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            mySurface.unregisterIndicator(AndroidPreviewProgressIndicator.this);
+          }
+        });
+      }
+    }
   }
 }

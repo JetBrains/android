@@ -16,12 +16,10 @@
 package com.android.tools.idea.uibuilder.model;
 
 import junit.framework.TestCase;
-import org.mockito.Mockito;
 
 import java.awt.*;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class SelectionHandleTest extends TestCase {
   public void test() {

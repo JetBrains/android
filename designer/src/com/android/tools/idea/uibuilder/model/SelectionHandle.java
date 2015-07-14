@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import org.intellij.lang.annotations.MagicConstant;
 
 import java.awt.*;
@@ -45,7 +46,7 @@ public class SelectionHandle {
   /**
    * The position of the handle in the selection rectangle
    */
-  enum Position {
+  public enum Position {
     TOP_MIDDLE(Cursor.N_RESIZE_CURSOR, 0.5, 0),
     TOP_RIGHT(Cursor.NE_RESIZE_CURSOR, 1, 0),
     RIGHT_MIDDLE(Cursor.E_RESIZE_CURSOR, 1, 0.5),
@@ -62,7 +63,7 @@ public class SelectionHandle {
     public final double alignY;
 
     /** Predefined AWT cursor constant */
-    private int myAwtCursor;
+    private final int myAwtCursor;
 
     Position(@MagicConstant(valuesFromClass = Cursor.class) int awtCursor, double alignX, double alignY) {
       myAwtCursor = awtCursor;
@@ -78,28 +79,28 @@ public class SelectionHandle {
     /**
      * Is the {@link SelectionHandle} somewhere on the left edge?
      */
-    boolean isLeft() {
+    public boolean isLeft() {
       return this == TOP_LEFT || this == LEFT_MIDDLE || this == BOTTOM_LEFT;
     }
 
     /**
      * Is the {@link SelectionHandle} somewhere on the right edge?
      */
-    boolean isRight() {
+    public boolean isRight() {
       return this == TOP_RIGHT || this == RIGHT_MIDDLE || this == BOTTOM_RIGHT;
     }
 
     /**
      * Is the {@link SelectionHandle} somewhere on the top edge?
      */
-    boolean isTop() {
+    public boolean isTop() {
       return this == TOP_LEFT || this == TOP_MIDDLE || this == TOP_RIGHT;
     }
 
     /**
      * Is the {@link SelectionHandle} somewhere on the bottom edge?
      */
-    boolean isBottom() {
+    public boolean isBottom() {
       return this == BOTTOM_LEFT || this == BOTTOM_MIDDLE || this == BOTTOM_RIGHT;
     }
   }
@@ -111,7 +112,7 @@ public class SelectionHandle {
   /**
    * The x coordinate of the center of the selection handle
    */
-  @SwingCoordinate
+  @AndroidCoordinate
   public int getCenterX() {
     return component.x + (int)(myPosition.alignX * component.w);
   }
@@ -119,7 +120,7 @@ public class SelectionHandle {
   /**
    * The y coordinate of the center of the selection handle
    */
-  @SwingCoordinate
+  @AndroidCoordinate
   public int getCenterY() {
     return component.y + (int)(myPosition.alignY * component.h);
   }
@@ -190,5 +191,17 @@ public class SelectionHandle {
   @NonNull
   public Cursor getCursor() {
     return Cursor.getPredefinedCursor(getAwtCursorType());
+  }
+
+  /** Returns the horizontal edge (top or bottom) this selection handle is associated with, if any */
+  @Nullable
+  public SegmentType getHorizontalEdge() {
+    return myPosition.isTop() ? SegmentType.TOP : myPosition.isBottom() ? SegmentType.BOTTOM : null;
+  }
+
+  /** Returns the vertical edge (left or right) this selection handle is associated with, if any */
+  @Nullable
+  public SegmentType getVerticalEdge() {
+    return myPosition.isLeft() ? SegmentType.LEFT : myPosition.isRight() ? SegmentType.RIGHT : null;
   }
 }
