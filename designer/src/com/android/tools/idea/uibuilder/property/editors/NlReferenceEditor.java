@@ -206,13 +206,13 @@ public class NlReferenceEditor extends PTableCellEditor implements ActionListene
 
       for (ResourceType type : types) {
         List<ChooseResourceDialog.ResourceItem> resItems =
-          new ChooseResourceDialog.ResourceGroup(type, facet.getLocalResourceManager()).getItems();
+          new ChooseResourceDialog.ResourceGroup(type, facet.getLocalResourceManager(), true).getItems();
         items.addAll(getResNames(resItems, SdkConstants.PREFIX_RESOURCE_REF));
       }
 
       for (ResourceType type : types) {
         List<ChooseResourceDialog.ResourceItem> resItems =
-          new ChooseResourceDialog.ResourceGroup(type, facet.getSystemResourceManager()).getItems();
+          new ChooseResourceDialog.ResourceGroup(type, facet.getSystemResourceManager(), true).getItems();
         items.addAll(getResNames(resItems, SdkConstants.ANDROID_PREFIX));
       }
 
