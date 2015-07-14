@@ -42,7 +42,6 @@ import java.util.Collections;
  */
 public class EditedStyleItem {
   private final static Logger LOG = Logger.getInstance(EditedStyleItem.class);
-  private final static FolderConfiguration DEFAULT_CONFIGURATION = new FolderConfiguration();
   private final static String DEPRECATED = "deprecated";
 
   private final ThemeEditorStyle mySourceTheme;
@@ -73,14 +72,6 @@ public class EditedStyleItem {
   public EditedStyleItem(@NotNull ConfiguredItemResourceValue selectedValue,
                          @NotNull ThemeEditorStyle sourceTheme) {
     this(selectedValue, Collections.<ConfiguredItemResourceValue>emptyList(), sourceTheme);
-  }
-
-  /**
-   * @deprecated Use {@link #EditedStyleItem(ConfiguredItemResourceValue, ThemeEditorStyle)}
-   */
-  @Deprecated
-  public EditedStyleItem(@NotNull ItemResourceValue itemResourceValue, @NotNull ThemeEditorStyle sourceTheme) {
-    this(new ConfiguredItemResourceValue(DEFAULT_CONFIGURATION, itemResourceValue), sourceTheme);
   }
 
   public ItemResourceValue getSelectedValue() {

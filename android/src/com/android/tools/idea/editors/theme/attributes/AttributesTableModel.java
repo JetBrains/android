@@ -371,7 +371,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return false;
       }
       String propertyName = rv.getQualifiedName();
-      mySelectedStyle.setValue(propertyName, strValue);
+      mySelectedStyle.setValue(rv.getSelectedValueConfiguration(), propertyName, strValue);
       return true;
     }
   }

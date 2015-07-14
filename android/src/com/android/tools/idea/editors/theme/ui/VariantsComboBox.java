@@ -20,6 +20,8 @@ import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.ui.JBEmptyBorder;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.BorderFactory;
@@ -29,7 +31,9 @@ import javax.swing.JButton;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
+import javax.swing.border.Border;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.awt.ItemSelectable;
@@ -48,6 +52,10 @@ import java.awt.event.ItemListener;
  * {@link javax.swing.JComboBox} only allows the popup to be the same size as the control.
  */
 public class VariantsComboBox extends JPanel implements ItemSelectable {
+  private static final Border VARIANT_MENU_BORDER = JBUI.Borders.empty(5, 0);
+  private static final Border VARIANT_ITEM_BORDER = new JBEmptyBorder(5);
+  private static final JBColor VARIANT_MENU_BACKGROUND_COLOR = JBColor.WHITE;
+
   private JButton myButton = new JButton();
   private ComboBoxModel myModel = new DefaultComboBoxModel();
   private ListDataListener myListDataListener = new ListDataListener() {
@@ -107,16 +115,24 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
   @NotNull
   protected JPopupMenu createPopupMenu() {
     JPopupMenu menu = new JBPopupMenu();
-    menu.setBackground(JBColor.WHITE);
+    Border existingBorder = menu.getBorder();
+
+    if (existingBorder != null) {
+      menu.setBorder(BorderFactory.createCompoundBorder(existingBorder, VARIANT_MENU_BORDER));
+    } else {
+      menu.setBorder(VARIANT_MENU_BORDER);
+    }
+    menu.setBackground(VARIANT_MENU_BACKGROUND_COLOR);
 
     for (int i = 0; i < myModel.getSize(); i++) {
       final Object element = myModel.getElementAt(i);
       JMenuItem item = new JBMenuItem(element.toString());
+      item.setBorder(VARIANT_ITEM_BORDER);
       if (i == 0) {
         // Pre-select the first element
         item.setArmed(true);
       }
-      item.setBackground(JBColor.WHITE);
+      item.setBackground(VARIANT_MENU_BACKGROUND_COLOR);
       item.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -136,6 +152,14 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
       });
       menu.add(item);
     }
+
+    menu.addSeparator();
+    JMenuItem addVariantItem = new JBMenuItem("Add variation");
+    addVariantItem.setBackground(VARIANT_MENU_BACKGROUND_COLOR);
+    addVariantItem.setBorder(VARIANT_ITEM_BORDER);
+    // TODO: Add variation should open the color picker
+    addVariantItem.setEnabled(false);
+    menu.add(addVariantItem);
 
     return menu;
   }

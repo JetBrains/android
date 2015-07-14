@@ -187,8 +187,7 @@ public class ThemeEditorComponent extends Splitter {
             return;
           }
 
-          EditedStyleItem editedStyleItem = new EditedStyleItem(resourceValue, getUsedStyle());
-          mySubStyleName = editedStyleItem.getValue();
+          mySubStyleName = ResolutionUtils.getQualifiedValue(resourceValue);
         }
         else {
           mySubStyleName = value.getValue();
@@ -624,7 +623,7 @@ public class ThemeEditorComponent extends Splitter {
     }
     else {
       // The theme pointing to the new style is writable, so go ahead.
-      selectedTheme.setValue(sourcePropertyName, newStyleName);
+      selectedTheme.setValue(rv.getSelectedValueConfiguration(), sourcePropertyName, newStyleName);
       // We don't need to call reload, because myResourceChangeListener will take care of it
       mySubStyleName = newStyleName;
     }
