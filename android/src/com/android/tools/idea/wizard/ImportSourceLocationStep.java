@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
+import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;

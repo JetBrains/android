@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.wizard.template.TemplateWizard;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
+import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -24,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
-import static com.android.tools.idea.wizard.TemplateWizardStep.NONE;
+import static com.android.tools.idea.wizard.template.TemplateWizardStep.NONE;
 import static com.android.tools.idea.wizard.AssetStudioAssetGenerator.*;
 
 /**

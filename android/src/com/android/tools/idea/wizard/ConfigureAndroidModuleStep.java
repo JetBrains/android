@@ -26,6 +26,8 @@ import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
+import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;

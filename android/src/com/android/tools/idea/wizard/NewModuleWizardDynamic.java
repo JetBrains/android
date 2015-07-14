@@ -25,6 +25,7 @@ import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription.WizardStepHeaderSettings;
+import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;

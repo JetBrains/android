@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;

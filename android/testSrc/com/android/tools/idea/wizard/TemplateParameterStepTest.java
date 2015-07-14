@@ -18,6 +18,8 @@ package com.android.tools.idea.wizard;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
+import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.intellij.openapi.util.io.FileUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.AndroidTestCase;

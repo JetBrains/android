@@ -22,6 +22,7 @@ import com.android.assetstudiolib.vectordrawable.Svg2Vector;
 import com.android.assetstudiolib.vectordrawable.VdPreview;
 import com.android.resources.Density;
 import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;

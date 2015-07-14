@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;

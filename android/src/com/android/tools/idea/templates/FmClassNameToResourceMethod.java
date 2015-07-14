@@ -20,7 +20,7 @@ import freemarker.template.*;
 import java.util.List;
 
 import static com.android.tools.idea.templates.FmUtil.stripSuffix;
-import static com.android.tools.idea.wizard.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
+import static com.android.tools.idea.wizard.template.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
 
 /**
  * Similar to {@link FmCamelCaseToUnderscoreMethod}, but strips off common class

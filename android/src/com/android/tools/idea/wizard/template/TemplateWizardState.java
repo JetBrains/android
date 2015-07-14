@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.wizard.template;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
@@ -22,6 +22,7 @@ import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.*;
 import com.google.common.base.Function;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
@@ -78,25 +79,30 @@ public class TemplateWizardState implements Function<String, Object> {
   public static final String LAYOUT_NAME_PREFIX = "activity_";
 
   /** Template handler responsible for instantiating templates and reading resources */
-  protected Template myTemplate;
+  // TODO: Temporary change. Set to private in a followup CL!
+  public Template myTemplate;
 
   /** Targeted source set */
   protected SourceProvider mySourceProvider;
 
   /** Configured parameters, by id */
-  protected final Map<String, Object> myParameters = new HashMap<String, Object>();
+  // TODO: Temporary change. Set to private in a followup CL!
+  public final Map<String, Object> myParameters = new HashMap<String, Object>();
 
   /** Ids for parameters which should be hidden (because the client wizard already
    * has information for these parameters) */
-  protected final Set<String> myHidden = new HashSet<String>();
+  // TODO: Temporary change. Set to private in a followup CL!
+  public final Set<String> myHidden = new HashSet<String>();
 
   /**
    * Ids for parameters whose values should not change.
    */
-  protected final Set<String> myFinal = new HashSet<String>();
+  // TODO: Temporary change. Set to private in a followup CL!
+  public final Set<String> myFinal = new HashSet<String>();
 
   /** Ids for parameters which have been modified directly by the user. */
-  protected final Set<String> myModified = new HashSet<String>();
+  // TODO: Temporary change. Set to private in a followup CL!
+  public final Set<String> myModified = new HashSet<String>();
 
   public TemplateWizardState() {
     put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);

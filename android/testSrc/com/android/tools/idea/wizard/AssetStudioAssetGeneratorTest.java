@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard;
 import com.android.assetstudiolib.*;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;

@@ -18,6 +18,8 @@ package com.android.tools.idea.wizard;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
+import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;

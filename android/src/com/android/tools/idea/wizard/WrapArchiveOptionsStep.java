@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;

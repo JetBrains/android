@@ -20,6 +20,8 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
+import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.collect.Iterators;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;

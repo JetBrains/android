@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.assetstudiolib.GraphicGenerator;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.Nullable;
 

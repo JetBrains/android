@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.resources.Density;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
