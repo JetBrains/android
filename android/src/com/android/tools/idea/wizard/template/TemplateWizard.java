@@ -16,7 +16,7 @@
 package com.android.tools.idea.wizard.template;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.wizard.AndroidStudioWizardStep;
+import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardStep;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.project.Project;

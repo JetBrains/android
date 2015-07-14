@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 
 import com.android.tools.idea.templates.Parameter;
+import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.intellij.openapi.extensions.ExtensionPointName;
 
 import javax.swing.*;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.wizard.dynamic;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -34,9 +34,9 @@ import java.beans.PropertyChangeListener;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSETS;
 import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSET_SIZE;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
  * <p>Base class for wizard steps that have a description label in the bottom.
@@ -132,7 +132,7 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
     register(KEY_DESCRIPTION, getDescriptionLabel(), new ComponentBinding<String, JLabel>() {
       @Override
       public void setValue(String newValue, @NotNull JLabel label) {
-        label.setText(ImportUIUtil.makeHtmlString(newValue));
+        label.setText(toHtml(newValue));
       }
     });
   }

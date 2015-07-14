@@ -25,6 +25,8 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -46,7 +48,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.wizard.FormFactorUtils.*;
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
 
 /**

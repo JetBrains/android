@@ -23,6 +23,8 @@ import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.FormFactorUtils.FormFactor;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.google.common.collect.Lists;
 import com.intellij.ide.startup.StartupManagerEx;
@@ -47,9 +49,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.FILES_TO_OPEN_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.*;
 
 /**
  * Presents a wizard to the user to create a new project.
@@ -237,7 +237,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
   @Nullable
   @Override
-  protected Project getProject() {
+  public Project getProject() {
     return myProject;
   }
 }

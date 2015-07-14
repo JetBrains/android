@@ -28,6 +28,7 @@ import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;

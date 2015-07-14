@@ -26,6 +26,8 @@ import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
+import com.android.tools.idea.wizard.dynamic.RadioButtonGroupBinding;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -57,10 +59,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.android.assetstudiolib.ActionBarIconGenerator.Theme;
 import static com.android.tools.idea.wizard.AssetStudioAssetGenerator.*;
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.PATH;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.PATH;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
  * {@linkplain IconStep} is a wizard page that lets the user create a variety of density-scaled assets.

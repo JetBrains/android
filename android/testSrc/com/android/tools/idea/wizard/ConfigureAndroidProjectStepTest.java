@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import junit.framework.TestCase;
 
 import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;

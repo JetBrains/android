@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.wizard.dynamic;
 
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-import static com.android.tools.idea.wizard.DynamicWizardStepTest.DummyDynamicWizardStep;
+import static com.android.tools.idea.wizard.dynamic.DynamicWizardStepTest.DummyDynamicWizardStep;
 
 /**
  * Tests for {@link DynamicWizardPath}
@@ -58,15 +58,15 @@ public class DynamicWizardPathTest extends AndroidTestBase {
 
   public void testAddStep() throws Exception {
     assertEquals(0, myPath.getVisibleStepCount());
-    assertEquals(0, myPath.mySteps.size());
+    assertEquals(0, myPath.getAllSteps().size());
 
     myPath.addStep(myStep1);
     assertEquals(1, myPath.getVisibleStepCount());
-    assertEquals(1, myPath.mySteps.size());
+    assertEquals(1, myPath.getAllSteps().size());
 
     myPath.addStep(myStep2);
     assertEquals(2, myPath.getVisibleStepCount());
-    assertEquals(2, myPath.mySteps.size());
+    assertEquals(2, myPath.getAllSteps().size());
   }
 
   public void testGetStepCount() throws Exception {

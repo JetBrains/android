@@ -36,10 +36,10 @@ import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.FormFactorApiComboBox.AndroidTargetComboBoxItem;
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 import static com.android.tools.idea.wizard.WizardConstants.INVALID_FILENAME_CHARS;
 
 /**

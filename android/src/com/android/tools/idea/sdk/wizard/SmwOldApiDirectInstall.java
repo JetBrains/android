@@ -24,7 +24,7 @@ import com.android.tools.idea.sdk.SdkLoggerIntegration;
 import com.android.tools.idea.sdk.SdkPackages;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.internal.updater.SdkUpdaterNoWindow;
-import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;

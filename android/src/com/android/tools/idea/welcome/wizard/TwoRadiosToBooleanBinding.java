@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.tools.idea.wizard.ScopedDataBinder;
+import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.wizard.dynamic;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.ui.TextAccessors;
+import com.android.tools.idea.wizard.ComboBoxItem;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -39,14 +40,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope;
 
 /**
  * A data binding class that links Swing UI elements to a {@link ScopedStateStore}.
  * Provides data bindings between Swing JComponents of various types and a ScopedStateStore.
  * Components may be registered in a 2-way binding by calling
- * {@link #register(com.android.tools.idea.wizard.ScopedStateStore.Key, javax.swing.JCheckBox)}.
+ * {@link #register(ScopedStateStore.Key, javax.swing.JCheckBox)}.
  * Once registered, any change to the state store will trigger an update of the UI, and any update of the UI will automatically
  * enter the value into the state store.
  *
@@ -99,7 +100,9 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Scope;
 public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, FocusListener, ChangeListener, ActionListener,
                                          DocumentListener, ItemListener {
   // State store
-  protected ScopedStateStore myState;
+  // TODO: Temporary change. Set to private in a followup CL!
+  @VisibleForTesting
+  public ScopedStateStore myState;
 
   // Mapping documents to components.
   private Map<Document, JComponent> myDocumentsToComponent = Maps.newIdentityHashMap();
@@ -218,7 +221,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    */
   @VisibleForTesting
   @SuppressWarnings("unchecked")
-  protected <T> void saveState(@NotNull JComponent component) {
+  public <T> void saveState(@NotNull JComponent component) {
     if (myAlreadySavingState) {
       return;
     }
@@ -354,7 +357,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * Connects the given {@link ValueDeriver} to the given key. Whenever an update is triggered, the given deriver will
    * be queried to update the underlying value.
    */
-  protected <T> void registerValueDeriver(@NotNull Key<T> key, @NotNull ValueDeriver<T> deriver) {
+  public <T> void registerValueDeriver(@NotNull Key<T> key, @NotNull ValueDeriver<T> deriver) {
     myValueDerivers.put(key, deriver);
   }
 
@@ -417,7 +420,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * Connects the given {@link JComponent} to the given key through the given binding
    * and sets a listener to pick up changes that need to trigger validation and UI updates.
    */
-  protected <T, C extends JComponent> void register(@NotNull Key<T> key, @NotNull C component,
+  public <T, C extends JComponent> void register(@NotNull Key<T> key, @NotNull C component,
                         @NotNull ComponentBinding<T, ? super C> binding) {
     T value = bindAndGet(key, component, binding);
     if (value != null) {
@@ -477,7 +480,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * Connects the given {@link javax.swing.JCheckBox} to the given key and sets a listener to pick up changes that
    * need to trigger validation and UI updates.
    */
-  protected void register(@NotNull Key<Boolean> key, @NotNull JCheckBox checkBox) {
+  public void register(@NotNull Key<Boolean> key, @NotNull JCheckBox checkBox) {
     Boolean value = bindAndGet(key, checkBox, null);
     if (value != null) {
       checkBox.setSelected(value);
@@ -523,7 +526,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * Connects the given {@link JTextField} to the given key and sets a listener to pick up changes that need to trigger validation
    * and UI updates.
    */
-  protected void register(@NotNull Key<String> key, @NotNull JTextField textField) {
+  public void register(@NotNull Key<String> key, @NotNull JTextField textField) {
     myDocumentsToComponent.put(textField.getDocument(), textField);
     String value = bindAndGet(key, textField, null);
     if (value != null) {
@@ -535,7 +538,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     textField.getDocument().addDocumentListener(this);
   }
 
-  protected void register(@NotNull Key<String> key, @NotNull JLabel label) {
+  public void register(@NotNull Key<String> key, @NotNull JLabel label) {
     String value = bindAndGet(key, label, null);
     if (value != null) {
       label.setText(value);
@@ -548,7 +551,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * Connects the given {@link JSlider} to the given key and sets a listener to pick up changes that need to trigger validation
    * and UI updates.
    */
-  protected void register(@NotNull Key<Integer> key, @NotNull JSlider paddingSlider) {
+  public void register(@NotNull Key<Integer> key, @NotNull JSlider paddingSlider) {
     Integer value = bindAndGet(key, paddingSlider, null);
     if (value != null) {
       paddingSlider.setValue(value);
@@ -563,7 +566,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * Connects the given {@link JSpinner} to the given key and sets a listener to pick up changes that need to trigger validation
    * and UI updates.
    */
-  protected void register(@NotNull Key<Object> key, @NotNull JSpinner spinner) {
+  public void register(@NotNull Key<Object> key, @NotNull JSpinner spinner) {
     Object value = bindAndGet(key, spinner, null);
     if (value != null) {
       spinner.setValue(value);
@@ -578,7 +581,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * Connects the given {@link TextFieldWithBrowseButton} to the given key and sets a listener to pick up
    * changes that need to trigger validation and UI updates.
    */
-  protected void register(@NotNull Key<String> key, @NotNull final TextFieldWithBrowseButton field) {
+  public void register(@NotNull Key<String> key, @NotNull final TextFieldWithBrowseButton field) {
     myDocumentsToComponent.put(field.getTextField().getDocument(), field);
     String value = bindAndGet(key, field, null);
     if (value != null) {
@@ -591,7 +594,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     field.getTextField().addFocusListener(this);
   }
 
-  protected void register(@NotNull Key<String> key, @NotNull final TextAccessor field) {
+  public void register(@NotNull Key<String> key, @NotNull final TextAccessor field) {
     assert field instanceof JComponent;
 
     JComponent component = (JComponent)field;
@@ -608,7 +611,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * Connects the given {@link ColorPanel} to the given key and sets a listener to pick up changes that need to trigger validation
    * and UI updates.
    */
-  protected void register(@NotNull Key<Color> key, @NotNull ColorPanel colorPanel) {
+  public void register(@NotNull Key<Color> key, @NotNull ColorPanel colorPanel) {
     Color value = bindAndGet(key, colorPanel, null);
     if (value != null) {
       colorPanel.setSelectedColor(value);

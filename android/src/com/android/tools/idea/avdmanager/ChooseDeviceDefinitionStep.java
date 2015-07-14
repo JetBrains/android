@@ -16,7 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;

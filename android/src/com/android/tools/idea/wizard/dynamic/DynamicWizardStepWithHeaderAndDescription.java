@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.wizard.dynamic;
 
+import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
@@ -27,8 +28,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSET_SIZE;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
  * Base class for wizard pages with title and description labels underneath
@@ -89,7 +90,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
       @Override
       public void setValue(@Nullable String newValue, @NotNull JLabel component) {
         component.setVisible(!StringUtil.isEmpty(newValue));
-        component.setText(ImportUIUtil.makeHtmlString(newValue));
+        component.setText(toHtml(newValue));
       }
     });
   }

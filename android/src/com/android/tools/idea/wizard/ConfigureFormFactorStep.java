@@ -25,6 +25,10 @@ import com.android.tools.idea.stats.DistributionService;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription;
+import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -55,10 +59,10 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.FormFactorApiComboBox.AndroidTargetComboBoxItem;
 import static com.android.tools.idea.wizard.FormFactorUtils.*;
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 
 /**

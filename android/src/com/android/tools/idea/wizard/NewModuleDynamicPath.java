@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardPath;
+
 /**
  * Combines wizard path and module template provider.
  */

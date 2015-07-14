@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.wizard.dynamic;
 
+import com.android.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -29,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
  * DynamicWizardPath
@@ -112,7 +113,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   /**
    * Add a new step to the end of this path.
    */
-  protected final void addStep(@NotNull DynamicWizardStep step) {
+  public final void addStep(@NotNull DynamicWizardStep step) {
     mySteps.add(step);
     step.attachToPath(this);
   }
@@ -122,6 +123,11 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    */
   public final ScopedStateStore getState() {
     return myState;
+  }
+
+  @VisibleForTesting
+  public final void setState(@NotNull ScopedStateStore overrideState) {
+    myState = overrideState;
   }
 
   /**

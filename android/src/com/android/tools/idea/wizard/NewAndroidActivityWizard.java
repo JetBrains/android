@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.module.Module;

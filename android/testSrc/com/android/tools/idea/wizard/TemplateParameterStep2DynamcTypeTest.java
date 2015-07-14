@@ -17,6 +17,8 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Strings;
 import com.intellij.openapi.extensions.DefaultPluginDescriptor;
