@@ -30,6 +30,7 @@ import com.intellij.designer.propertyTable.editors.ComboEditor;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -337,6 +338,11 @@ public class ResourceEditor extends PropertyEditor {
       }
       return;
     }
+    if (DumbService.isDumb(module.getProject())) {
+      DumbService.getInstance(module.getProject()).showDumbModeNotification("Resource list is not available during indexing");
+      return;
+    }
+
     ResourceDialog dialog = new ResourceDialog(module, myTypes, (String)getValue(), (RadViewComponent)myComponent);
     if (dialog.showAndGet()) {
       setValue(dialog.getResourceName());
