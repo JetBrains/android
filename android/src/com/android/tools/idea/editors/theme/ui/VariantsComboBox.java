@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.editors.theme.ui;
 
+import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.PopupMenuListenerAdapter;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -31,19 +34,23 @@ import javax.swing.JButton;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.plaf.ButtonUI;
 import javax.swing.plaf.basic.BasicButtonUI;
+import javax.swing.event.PopupMenuEvent;
+import java.awt.AWTEvent;
 import java.awt.ItemSelectable;
+import java.awt.Toolkit;
+import java.awt.event.AWTEventListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
+import java.util.List;
 
 /**
  * ComboBox-like control that displays the different variants for an attribute. The {@code VariantsComboBox} doesn't support editors or
@@ -82,6 +89,7 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
       fireModelUpdated();
     }
   };
+  private List<Action> myActions = Lists.newArrayList();
 
   public VariantsComboBox() {
     add(myButton);
@@ -93,12 +101,40 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
     myButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (myModel.getSize() < 2) {
+        if (!isVisible()) {
+          return;
+        }
+
+        if (!isPopupEnabled()) {
           // Only the selected element, do not show popup
           return;
         }
 
+        // When the popup is open, if the user click on the button again, we consume the mouse event so the popup is
+        // just closed (and not opened again by the click).
+        final AWTEventListener clickListener = new AWTEventListener() {
+          @Override
+          public void eventDispatched(AWTEvent event) {
+            MouseEvent mouseEvent = (MouseEvent)event;
+
+            if (mouseEvent.getID() == MouseEvent.MOUSE_PRESSED && myButton.contains(mouseEvent.getPoint())) {
+              mouseEvent.consume();
+            }
+          }
+        };
+
         JPopupMenu variantsMenu = createPopupMenu();
+        variantsMenu.addPopupMenuListener(new PopupMenuListenerAdapter() {
+          @Override
+          public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+            Toolkit.getDefaultToolkit().addAWTEventListener(clickListener, AWTEvent.MOUSE_EVENT_MASK);
+          }
+
+          @Override
+          public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+            Toolkit.getDefaultToolkit().removeAWTEventListener(clickListener);
+          }
+        });
         variantsMenu.show(myButton, 0, getSize().height);
       }
     });
@@ -128,7 +164,8 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
     }
     menu.setBackground(VARIANT_MENU_BACKGROUND_COLOR);
 
-    for (int i = 0; i < myModel.getSize(); i++) {
+    int nElements = myModel.getSize();
+    for (int i = 0; i < nElements; i++) {
       final Object element = myModel.getElementAt(i);
       JMenuItem item = new JBMenuItem(element.toString());
       item.setBorder(VARIANT_ITEM_BORDER);
@@ -157,13 +194,17 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
       menu.add(item);
     }
 
-    menu.addSeparator();
-    JMenuItem addVariantItem = new JBMenuItem("Add variation");
-    addVariantItem.setBackground(VARIANT_MENU_BACKGROUND_COLOR);
-    addVariantItem.setBorder(VARIANT_ITEM_BORDER);
-    // TODO: Add variation should open the color picker
-    addVariantItem.setEnabled(false);
-    menu.add(addVariantItem);
+    if (!myActions.isEmpty()) {
+      if (nElements > 0) {
+        menu.addSeparator();
+      }
+      for (Action action : myActions) {
+        JMenuItem newMenuItem = new JBMenuItem(action);
+        newMenuItem.setBackground(VARIANT_MENU_BACKGROUND_COLOR);
+        newMenuItem.setBorder(VARIANT_ITEM_BORDER);
+        menu.add(newMenuItem);
+      }
+    }
 
     return menu;
   }
@@ -192,17 +233,30 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
 
   protected void fireModelUpdated() {
     myButton.setText(myModel.getSelectedItem().toString());
-
-    if (myModel.getSize() < 2) {
-      myButton.setIcon(null);
-    } else {
-      myButton.setIcon(PlatformIcons.COMBOBOX_ARROW_ICON);
-    }
+    myButton.setIcon(isPopupEnabled() ? PlatformIcons.COMBOBOX_ARROW_ICON : null);
   }
 
   protected void fireItemSelectionChanged(@NotNull ItemEvent e) {
     for (ItemListener itemListener : getItemListeners()) {
       itemListener.itemStateChanged(e);
     }
+  }
+
+  /**
+   * Returns whether the popup expand icon (down arrow) should be displayed or not. The icon is displayed if:
+   * <ul>
+   *   <li>there is more than 1 variant</li>
+   *   <li>OR, there are additional actions in the menu</li>
+   * </ul>
+   */
+  protected boolean isPopupEnabled() {
+    return myModel.getSize() > 1 || !myActions.isEmpty();
+  }
+
+  /**
+   * Adds an action that will be displayed at the end of the variants list
+   */
+  public void addAction(@NotNull Action action) {
+    myActions.add(action);
   }
 }
