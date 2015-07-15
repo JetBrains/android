@@ -18,7 +18,7 @@ package com.android.tools.idea.npw;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.wizard.ASGallery;
+import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.base.Function;

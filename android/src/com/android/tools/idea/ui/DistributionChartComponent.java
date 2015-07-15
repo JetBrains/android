@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.ui;
 
 import com.android.tools.idea.stats.Distribution;
 import com.android.tools.idea.stats.DistributionService;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
 import org.jetbrains.annotations.NotNull;
@@ -33,8 +32,6 @@ import java.util.List;
  * Chart of distributions
  */
 public class DistributionChartComponent extends JPanel {
-  private static final Logger LOG = Logger.getInstance(DistributionChartComponent.class);
-
   // Because this text overlays colored components, it must stay white/gray, and does not change for dark themes. 
   private static final Color TEXT_COLOR = new Color(0xFEFEFE);
   private static final Color API_LEVEL_COLOR = new Color(0, 0, 0, 77);

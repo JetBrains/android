@@ -16,7 +16,7 @@
         </constraints>
         <properties/>
       </component>
-      <component id="a51bb" class="com.android.tools.idea.wizard.ImageComponent" binding="myTemplateImage">
+      <component id="a51bb" class="com.android.tools.idea.ui.ImageComponent" binding="myTemplateImage">
         <constraints>
           <grid row="0" column="2" row-span="1" col-span="2" vsize-policy="6" hsize-policy="6" anchor="0" fill="0" indent="0" use-parent-layout="false">
             <minimum-size width="256" height="256"/>

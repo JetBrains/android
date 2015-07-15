@@ -26,7 +26,9 @@ import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.wizard.*;
+import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
+import com.android.tools.idea.ui.ImageComponent;
+import com.android.tools.idea.wizard.StringEvaluator;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.RadioButtonGroupBinding;
 import com.google.common.base.Objects;
@@ -166,7 +168,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     myBackgroundColor.setSelectedColor(Color.WHITE);
 
     for (String font : GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()) {
-      myFontFamily.addItem(new ComboBoxItem(font, font, 1, 1));
+      myFontFamily.addItem(new ComboBoxItemWithApiTag(font, font, 1, 1));
       if (font.equals(myState.get(ATTR_FONT))) {
         myFontFamily.setSelectedIndex(myFontFamily.getItemCount() - 1);
       }
@@ -199,7 +201,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   private static void populateThemeComboBox(JComboBox comboBox) {
     for (Theme theme : Theme.values()) {
       String themeName = theme.name();
-      comboBox.addItem(new ComboBoxItem(themeName, themeName, 0, 0));
+      comboBox.addItem(new ComboBoxItemWithApiTag(themeName, themeName, 0, 0));
     }
   }
 
@@ -362,9 +364,9 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
       showLabelAndCombo = folders.size() > 1;
       mySourceSetComboBox.removeAllItems();
       if (showLabelAndCombo) {
-        ComboBoxItem selected = null;
+        ComboBoxItemWithApiTag selected = null;
         for (File directory : folders) {
-          ComboBoxItem item = new ComboBoxItem(directory, getResourceDirLabel(getModule(), directory), 0, 0);
+          ComboBoxItemWithApiTag item = new ComboBoxItemWithApiTag(directory, getResourceDirLabel(getModule(), directory), 0, 0);
           if (Objects.equal(directory, res)) {
             selected = item;
           }

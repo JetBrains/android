@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
-import com.android.tools.idea.wizard.ImageComponent;
+import com.android.tools.idea.ui.ImageComponent;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;

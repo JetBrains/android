@@ -26,7 +26,7 @@ import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.wizard.ComboBoxItem;
+import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.base.CharMatcher;
@@ -67,9 +67,9 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.npw.NewModuleWizardState.APP_NAME;
 import static com.android.tools.idea.npw.NewProjectWizardState.*;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * ConfigureAndroidModuleStep is the first page in the New Project wizard that sets project/module name, location, and other project-global
@@ -833,7 +833,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
   }
 
-  public static class SourceLevelComboBoxItem extends ComboBoxItem {
+  public static class SourceLevelComboBoxItem extends ComboBoxItemWithApiTag {
     public final LanguageLevel level;
 
     public SourceLevelComboBoxItem(@NotNull LanguageLevel level) {
@@ -847,7 +847,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
   }
 
-  public static class AndroidTargetComboBoxItem extends ComboBoxItem {
+  public static class AndroidTargetComboBoxItem extends ComboBoxItemWithApiTag {
     public int apiLevel = -1;
     public IAndroidTarget target = null;
 

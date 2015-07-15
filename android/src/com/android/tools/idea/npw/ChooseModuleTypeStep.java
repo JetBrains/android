@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.wizard.ASGallery;
+import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;

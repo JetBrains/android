@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.resources.Density;
-import com.android.tools.idea.wizard.ImageComponent;
+import com.android.tools.idea.ui.ImageComponent;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-
 import javax.swing.event.HyperlinkEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -43,8 +42,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
-import static com.android.tools.idea.npw.AssetStudioAssetGenerator.ATTR_ASSET_TYPE;
-import static com.android.tools.idea.npw.AssetStudioAssetGenerator.ATTR_IMAGE_PATH;
 
 /**
  * Similar to RasterAssetSetStep, this is particular for vector drawable generation.

@@ -18,8 +18,8 @@ package com.android.tools.idea.wizard.template;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardStep;
-import com.android.tools.idea.wizard.ComboBoxItem;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.StringEvaluator;
 import com.android.utils.Pair;
@@ -77,7 +77,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   protected final BiMap<String, JComponent> myParamFields = HashBiMap.create();
   protected final Map<String, JLabel> myParamFieldLabels = Maps.newHashMap();
   protected final Map<JRadioButton, Pair<String, Object>> myRadioButtonValues = Maps.newHashMap();
-  protected final Map<Parameter, ComboBoxItem> myComboBoxValues = Maps.newHashMap();
+  protected final Map<Parameter, ComboBoxItemWithApiTag> myComboBoxValues = Maps.newHashMap();
   protected final Project myProject;
   protected final Module myModule;
   private final Icon mySidePanelIcon;
@@ -344,7 +344,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
 
         // Check to see that the selection's constraints are met if this is a combo box
         if (myComboBoxValues.containsKey(param)) {
-          ComboBoxItem selectedItem = myComboBoxValues.get(param);
+          ComboBoxItemWithApiTag selectedItem = myComboBoxValues.get(param);
 
           if (selectedItem == null) {
             return false;
@@ -395,7 +395,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
         }
         else if (component instanceof JComboBox) {
           for (int i = 0; i < ((JComboBox)component).getItemCount(); i++) {
-            if (((ComboBoxItem)((JComboBox)component).getItemAt(i)).id.equals(value)) {
+            if (((ComboBoxItemWithApiTag)((JComboBox)component).getItemAt(i)).id.equals(value)) {
               ((JComboBox)component).setSelectedIndex(i);
               break;
             }
@@ -428,7 +428,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       newValue = ((JCheckBox)component).isSelected();
     }
     else if (component instanceof JComboBox) {
-      ComboBoxItem selectedItem = (ComboBoxItem)((JComboBox)component).getSelectedItem();
+      ComboBoxItemWithApiTag selectedItem = (ComboBoxItemWithApiTag)((JComboBox)component).getSelectedItem();
       myComboBoxValues.put(param, selectedItem);
 
       if (selectedItem != null) {
@@ -468,7 +468,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       try { minSdk = Integer.parseInt(option.getAttribute(TemplateMetadata.ATTR_MIN_API)); } catch (Exception e) { }
       int minBuildApi = 1;
       try { minBuildApi = Integer.parseInt(option.getAttribute(TemplateMetadata.ATTR_MIN_BUILD_API)); } catch (Exception e) { }
-      comboBox.addItem(new ComboBoxItem(optionId, optionLabel, minSdk, minBuildApi));
+      comboBox.addItem(new ComboBoxItemWithApiTag(optionId, optionLabel, minSdk, minBuildApi));
       String isDefault = option.getAttribute(ATTR_DEFAULT);
       if (isDefault != null && !isDefault.isEmpty() && Boolean.valueOf(isDefault)) {
         comboBox.setSelectedIndex(comboBox.getItemCount() - 1);
@@ -482,18 +482,18 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
    */
   protected static <E extends Enum<E>> void populateComboBox(@NotNull JComboBox comboBox, @NotNull Class<E> enumClass) {
     for (Enum<E> e : enumClass.getEnumConstants()) {
-      comboBox.addItem(new ComboBoxItem(e.name(), e.toString(), 1, 1));
+      comboBox.addItem(new ComboBoxItemWithApiTag(e.name(), e.toString(), 1, 1));
     }
   }
 
   /**
    * Takes a {@link JComboBox} instance and an array and
    * populates the combo box with the values in the array.
-   * Similar to the {@link DefaultComboBoxModel}, but uses our ComboBoxItem.
+   * Similar to the {@link DefaultComboBoxModel}, but uses our ComboBoxItemWithApiTag.
    */
   protected static void populateComboBox(@NotNull JComboBox comboBox, @NotNull Object[] array) {
     for (int i = 0; i < array.length; ++i) {
-      comboBox.addItem(new ComboBoxItem(i, array[i].toString(), 1, 1));
+      comboBox.addItem(new ComboBoxItemWithApiTag(i, array[i].toString(), 1, 1));
     }
   }
 
@@ -531,10 +531,10 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     if (value != null) {
       for (int i = 0; i < comboBox.getItemCount(); i++) {
         Object item = comboBox.getItemAt(i);
-        if (!(item instanceof ComboBoxItem)) {
+        if (!(item instanceof ComboBoxItemWithApiTag)) {
           continue;
         }
-        if (((ComboBoxItem)item).id.equals(value)) {
+        if (((ComboBoxItemWithApiTag)item).id.equals(value)) {
           comboBox.setSelectedIndex(i);
           break;
         }

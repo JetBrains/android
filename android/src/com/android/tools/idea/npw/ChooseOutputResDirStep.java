@@ -17,11 +17,9 @@ package com.android.tools.idea.npw;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.npw.AssetStudioAssetGenerator;
-import com.android.tools.idea.npw.NewTemplateObjectWizard;
-import com.android.tools.idea.wizard.ComboBoxItem;
-import com.android.tools.idea.wizard.FileTreeCellRenderer;
-import com.android.tools.idea.wizard.FileTreeModel;
+import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
+import com.android.tools.idea.ui.FileTreeCellRenderer;
+import com.android.tools.idea.ui.FileTreeModel;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.intellij.openapi.module.Module;
@@ -198,7 +196,7 @@ public class ChooseOutputResDirStep extends TemplateWizardStep {
           for (File f : sourceProvider.getResDirectories()) {
             String resPath = FileUtil.getRelativePath(moduleRoot,
                                                       FileUtil.toSystemIndependentName(f.getPath()), '/');
-            comboBoxModel.addElement(new ComboBoxItem(f, resPath, 1, 1));
+            comboBoxModel.addElement(new ComboBoxItemWithApiTag(f, resPath, 1, 1));
             if (resDir != null && resDir.equals(f)) {
               selectedIndex = index;
             }
@@ -227,8 +225,8 @@ public class ChooseOutputResDirStep extends TemplateWizardStep {
       File resDir = (File)myTemplateState.get(ATTR_TARGET_VARIANT);
       if (resDir == null) {
         Object selectedVariant = myVariantComboBox.getSelectedItem();
-        if (selectedVariant instanceof ComboBoxItem) {
-          resDir = (File)((ComboBoxItem)selectedVariant).id;
+        if (selectedVariant instanceof ComboBoxItemWithApiTag) {
+          resDir = (File)((ComboBoxItemWithApiTag)selectedVariant).id;
         }
       }
       if (resDir != null) {

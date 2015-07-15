@@ -25,6 +25,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.*;
 import com.android.tools.idea.wizard.dynamic.*;
 import com.google.common.base.Function;
