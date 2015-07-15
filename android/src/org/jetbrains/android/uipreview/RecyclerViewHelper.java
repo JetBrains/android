@@ -28,8 +28,9 @@ public class RecyclerViewHelper {
   public static final String PACKAGE_NAME = "com.android.layoutlib.bridge.android.support";
   public static final String CN_CUSTOM_ADAPTER = PACKAGE_NAME + ".Adapter";
   public static final String CN_CUSTOM_VIEW_HOLDER = PACKAGE_NAME + ".Adapter$ViewHolder";
-  public static final String CN_RV_ADAPTER = "android.support.v7.widget.RecyclerView$Adapter";
-  public static final String CN_RV_LAYOUT_MANAGER = "android.support.v7.widget.RecyclerView$LayoutManager";
+  public static final String CN_RECYCLER_VIEW = "android.support.v7.widget.RecyclerView";
+  public static final String CN_RV_ADAPTER = CN_RECYCLER_VIEW + "$Adapter";
+  public static final String CN_RV_LAYOUT_MANAGER = CN_RECYCLER_VIEW + "$LayoutManager";
 
   // Lazily initialized.
   private static byte[] ourAdapterClass;
@@ -133,25 +134,60 @@ public class RecyclerViewHelper {
       mv.visitVarInsn(ALOAD, 1);
       mv.visitFieldInsn(GETFIELD, "android/support/v7/widget/RecyclerView$ViewHolder", "itemView", "Landroid/view/View;");
       mv.visitVarInsn(ASTORE, 3);
+      mv.visitTypeInsn(NEW, "java/util/ArrayList");
+      mv.visitInsn(DUP);
+      mv.visitMethodInsn(INVOKESPECIAL, "java/util/ArrayList", "<init>", "()V", false);
+      mv.visitVarInsn(ASTORE, 4);
+      mv.visitVarInsn(ALOAD, 0);
       mv.visitVarInsn(ALOAD, 3);
-      mv.visitTypeInsn(INSTANCEOF, "android/widget/TextView");
-      Label l0 = new Label();
-      mv.visitJumpInsn(IFEQ, l0);
-      mv.visitVarInsn(ALOAD, 3);
-      mv.visitTypeInsn(CHECKCAST, "android/widget/TextView");
+      mv.visitVarInsn(ALOAD, 4);
+      mv.visitTypeInsn(NEW, "java/util/LinkedList");
+      mv.visitInsn(DUP);
+      mv.visitMethodInsn(INVOKESPECIAL, "java/util/LinkedList", "<init>", "()V", false);
+      mv.visitMethodInsn(INVOKESPECIAL, "com/android/layoutlib/bridge/android/support/Adapter", "findTextViews",
+                         "(Landroid/view/View;Ljava/util/ArrayList;Ljava/util/LinkedList;)V", false);
       mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
       mv.visitInsn(DUP);
       mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false);
-      mv.visitLdcInsn("Item number ");
+      mv.visitLdcInsn("Item ");
       mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
       mv.visitVarInsn(ILOAD, 2);
       mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(I)Ljava/lang/StringBuilder;", false);
       mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
-      mv.visitMethodInsn(INVOKEVIRTUAL, "android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V", false);
+      mv.visitVarInsn(ASTORE, 5);
+      mv.visitInsn(ICONST_0);
+      mv.visitVarInsn(ISTORE, 6);
+      Label l0 = new Label();
       mv.visitLabel(l0);
-      mv.visitFrame(Opcodes.F_APPEND, 1, new Object[]{"android/view/View"}, 0, null);
+      mv.visitFrame(Opcodes.F_FULL, 7, new Object[]{"com/android/layoutlib/bridge/android/support/Adapter",
+        "android/support/v7/widget/RecyclerView$ViewHolder", Opcodes.INTEGER, "android/view/View", "java/util/ArrayList",
+        "java/lang/String", Opcodes.INTEGER}, 0, new Object[]{});
+      mv.visitVarInsn(ILOAD, 6);
+      mv.visitVarInsn(ALOAD, 4);
+      mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/ArrayList", "size", "()I", false);
+      Label l1 = new Label();
+      mv.visitJumpInsn(IF_ICMPGE, l1);
+      mv.visitVarInsn(ALOAD, 4);
+      mv.visitVarInsn(ILOAD, 6);
+      mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/ArrayList", "get", "(I)Ljava/lang/Object;", false);
+      mv.visitTypeInsn(CHECKCAST, "android/widget/TextView");
+      mv.visitVarInsn(ALOAD, 5);
+      mv.visitMethodInsn(INVOKEVIRTUAL, "android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V", false);
+      mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
+      mv.visitInsn(DUP);
+      mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false);
+      mv.visitLdcInsn("Sub");
+      mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+      mv.visitVarInsn(ALOAD, 5);
+      mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+      mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
+      mv.visitVarInsn(ASTORE, 5);
+      mv.visitIincInsn(6, 1);
+      mv.visitJumpInsn(GOTO, l0);
+      mv.visitLabel(l1);
+      mv.visitFrame(Opcodes.F_CHOP, 1, null, 0, null);
       mv.visitInsn(RETURN);
-      mv.visitMaxs(3, 4);
+      mv.visitMaxs(5, 7);
       mv.visitEnd();
     }
     {
@@ -170,6 +206,65 @@ public class RecyclerViewHelper {
       mv.visitFieldInsn(PUTFIELD, "com/android/layoutlib/bridge/android/support/Adapter", "mId", "I");
       mv.visitInsn(RETURN);
       mv.visitMaxs(2, 2);
+      mv.visitEnd();
+    }
+    {
+      mv = cw.visitMethod(ACC_PRIVATE, "findTextViews", "(Landroid/view/View;Ljava/util/ArrayList;Ljava/util/LinkedList;)V",
+                          "(Landroid/view/View;Ljava/util/ArrayList<Landroid/widget/TextView;>;Ljava/util/LinkedList<Landroid/view/View;>;)V",
+                          null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 1);
+      mv.visitTypeInsn(INSTANCEOF, "android/widget/TextView");
+      Label l0 = new Label();
+      mv.visitJumpInsn(IFEQ, l0);
+      mv.visitVarInsn(ALOAD, 2);
+      mv.visitVarInsn(ALOAD, 1);
+      mv.visitTypeInsn(CHECKCAST, "android/widget/TextView");
+      mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/ArrayList", "add", "(Ljava/lang/Object;)Z", false);
+      mv.visitInsn(POP);
+      Label l1 = new Label();
+      mv.visitJumpInsn(GOTO, l1);
+      mv.visitLabel(l0);
+      mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+      mv.visitVarInsn(ALOAD, 1);
+      mv.visitTypeInsn(INSTANCEOF, "android/view/ViewGroup");
+      mv.visitJumpInsn(IFEQ, l1);
+      mv.visitInsn(ICONST_0);
+      mv.visitVarInsn(ISTORE, 4);
+      Label l2 = new Label();
+      mv.visitLabel(l2);
+      mv.visitFrame(Opcodes.F_APPEND, 1, new Object[]{Opcodes.INTEGER}, 0, null);
+      mv.visitVarInsn(ILOAD, 4);
+      mv.visitVarInsn(ALOAD, 1);
+      mv.visitTypeInsn(CHECKCAST, "android/view/ViewGroup");
+      mv.visitMethodInsn(INVOKEVIRTUAL, "android/view/ViewGroup", "getChildCount", "()I", false);
+      mv.visitJumpInsn(IF_ICMPGE, l1);
+      mv.visitVarInsn(ALOAD, 3);
+      mv.visitVarInsn(ALOAD, 1);
+      mv.visitTypeInsn(CHECKCAST, "android/view/ViewGroup");
+      mv.visitVarInsn(ILOAD, 4);
+      mv.visitMethodInsn(INVOKEVIRTUAL, "android/view/ViewGroup", "getChildAt", "(I)Landroid/view/View;", false);
+      mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/LinkedList", "add", "(Ljava/lang/Object;)V", false);
+      mv.visitIincInsn(4, 1);
+      mv.visitJumpInsn(GOTO, l2);
+      mv.visitLabel(l1);
+      mv.visitFrame(Opcodes.F_CHOP, 1, null, 0, null);
+      mv.visitVarInsn(ALOAD, 3);
+      mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/LinkedList", "isEmpty", "()Z", false);
+      Label l3 = new Label();
+      mv.visitJumpInsn(IFNE, l3);
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitVarInsn(ALOAD, 3);
+      mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/LinkedList", "remove", "()Ljava/lang/Object;", false);
+      mv.visitTypeInsn(CHECKCAST, "android/view/View");
+      mv.visitVarInsn(ALOAD, 2);
+      mv.visitVarInsn(ALOAD, 3);
+      mv.visitMethodInsn(INVOKESPECIAL, "com/android/layoutlib/bridge/android/support/Adapter", "findTextViews",
+                         "(Landroid/view/View;Ljava/util/ArrayList;Ljava/util/LinkedList;)V", false);
+      mv.visitLabel(l3);
+      mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+      mv.visitInsn(RETURN);
+      mv.visitMaxs(4, 5);
       mv.visitEnd();
     }
     cw.visitEnd();
@@ -217,9 +312,13 @@ public class RecyclerViewHelper {
   //package com.android.layoutlib.bridge.android.support;
   //
   //import android.support.v7.widget.RecyclerView;
+  //import android.view.LayoutInflater;
   //import android.view.View;
   //import android.view.ViewGroup;
   //import android.widget.TextView;
+  //
+  //import java.util.ArrayList;
+  //import java.util.LinkedList;
   //
   //public class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
   //
@@ -239,11 +338,14 @@ public class RecyclerViewHelper {
   //  }
   //
   //  @Override
-  //  public void onBindViewHolder(RecyclerView.ViewHolder holder,
-  //                               int position) {
+  //  public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
   //    View view = holder.itemView;
-  //    if (view instanceof TextView) {
-  //      ((TextView) view).setText("Item number " + position);
+  //    ArrayList<TextView> textViews = new ArrayList<TextView>();
+  //    findTextViews(view, textViews, new LinkedList<View>());
+  //    String text = "Item " + position;
+  //    for (int i = 0; i < textViews.size(); i++) {
+  //      textViews.get(i).setText(text);
+  //      text = "Sub" + text;
   //    }
   //  }
   //
@@ -254,6 +356,19 @@ public class RecyclerViewHelper {
   //
   //  public void setLayoutId(int id) {
   //    mId = id;
+  //  }
+  //
+  //  private void findTextViews(View view, ArrayList<TextView> out, LinkedList<View> queue) {
+  //    if (view instanceof TextView) {
+  //      out.add((TextView) view);
+  //    } else if (view instanceof ViewGroup) {
+  //      for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+  //        queue.add(((ViewGroup) view).getChildAt(i));
+  //      }
+  //    }
+  //    if (!queue.isEmpty()) {
+  //      findTextViews(queue.remove(), out, queue);
+  //    }
   //  }
   //
   //  private static class ViewHolder extends RecyclerView.ViewHolder {
