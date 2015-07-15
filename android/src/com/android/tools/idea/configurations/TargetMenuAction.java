@@ -116,7 +116,7 @@ public class TargetMenuAction extends FlatComboAction {
 
     for (int i = targets.length - 1; i >= 0; i--) {
       IAndroidTarget target = targets[i];
-      if (!myUseCompatibilityTarget && !ConfigurationManager.isLayoutLibTarget(target)) {
+      if (!ConfigurationManager.isLayoutLibTarget(target)) {
         continue;
       }
 
@@ -140,7 +140,7 @@ public class TargetMenuAction extends FlatComboAction {
       String title = getRenderingTargetLabel(target, false);
       boolean select = current == target;
 
-      if (myUseCompatibilityTarget) {
+      if (myUseCompatibilityTarget && configuration.getConfigurationManager().getHighestApiTarget() != null) {
         target = new CompatibilityRenderTarget(configuration.getConfigurationManager().getHighestApiTarget(),
                                                target.getVersion().getFeatureLevel(),
                                                target);
