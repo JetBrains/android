@@ -50,8 +50,10 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     // We sort the themes, displaying the local project themes at the top sorted alphabetically. The non local themes are sorted
     // alphabetically right below the project themes.
     final Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(ThemeEditorUtils.STYLE_COMPARATOR);
-    final Collection<ThemeEditorStyle> editableThemes = context.getThemeResolver().getLocalThemes();
-    temporarySet.addAll(editableThemes);
+    temporarySet.addAll(context.getThemeResolver().getLocalThemes());
+
+    ImmutableList<ThemeEditorStyle> editableThemes = ImmutableList.copyOf(temporarySet);
+
     temporarySet.addAll(defaultThemes);
 
     ImmutableList<ThemeEditorStyle> allThemes = ImmutableList.copyOf(temporarySet);

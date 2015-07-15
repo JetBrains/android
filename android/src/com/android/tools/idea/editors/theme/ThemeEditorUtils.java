@@ -121,7 +121,7 @@ public class ThemeEditorUtils {
     @Override
     public int compare(ThemeEditorStyle o1, ThemeEditorStyle o2) {
       if (o1.isProjectStyle() == o2.isProjectStyle()) {
-        return o1.getQualifiedName().compareTo(o2.getQualifiedName());
+        return o1.getQualifiedName().compareToIgnoreCase(o2.getQualifiedName());
       }
 
       return o1.isProjectStyle() ? -1 : 1;
