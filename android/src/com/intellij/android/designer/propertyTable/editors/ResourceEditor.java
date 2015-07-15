@@ -339,7 +339,7 @@ public class ResourceEditor extends PropertyEditor {
       return;
     }
     if (DumbService.isDumb(module.getProject())) {
-      DumbService.getInstance(module.getProject()).showDumbModeNotification("Resource list is not available during indexing");
+      DumbService.getInstance(module.getProject()).showDumbModeNotification("Resources are not available during indexing");
       return;
     }
 
