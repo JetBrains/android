@@ -23,7 +23,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.npw.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.NewProjectWizardState;
-import com.android.tools.idea.wizard.StringEvaluator;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.detector.api.Severity;

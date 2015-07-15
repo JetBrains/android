@@ -21,7 +21,7 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription;
-import com.android.tools.idea.wizard.StringEvaluator;
+import com.android.tools.idea.templates.StringEvaluator;
 import com.android.utils.Pair;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.BiMap;

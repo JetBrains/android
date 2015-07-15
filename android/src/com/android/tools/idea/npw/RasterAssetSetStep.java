@@ -25,7 +25,7 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.android.tools.idea.ui.ImageComponent;
-import com.android.tools.idea.wizard.StringEvaluator;
+import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
