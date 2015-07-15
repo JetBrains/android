@@ -25,7 +25,7 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.android.tools.idea.ui.LabelWithEditLink;
 import com.android.tools.idea.ui.TextFieldWithLaunchBrowserButton;
-import com.android.tools.idea.wizard.StringEvaluator;
+import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.*;

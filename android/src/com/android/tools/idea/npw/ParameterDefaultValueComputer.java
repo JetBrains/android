@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.wizard.StringEvaluator;
+import com.android.tools.idea.templates.StringEvaluator;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
