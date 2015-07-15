@@ -309,7 +309,6 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
             append(item.getTitle());
             setIcon(item.getIcon());
           }
-          setToolTipText(item.getTooltip());
         }
         else if (content instanceof NlPaletteGroup) {
           NlPaletteGroup group = (NlPaletteGroup)content;
