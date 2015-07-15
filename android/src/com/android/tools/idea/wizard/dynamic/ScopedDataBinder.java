@@ -16,8 +16,8 @@
 package com.android.tools.idea.wizard.dynamic;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.android.tools.idea.ui.TextAccessors;
-import com.android.tools.idea.wizard.ComboBoxItem;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -269,8 +269,8 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     }
     else if (component instanceof JComboBox) {
       Object selectedObject = ((JComboBox)component).getSelectedItem();
-      if (selectedObject instanceof ComboBoxItem) {
-        ComboBoxItem selectedItem = (ComboBoxItem)selectedObject;
+      if (selectedObject instanceof ComboBoxItemWithApiTag) {
+        ComboBoxItemWithApiTag selectedItem = (ComboBoxItemWithApiTag)selectedObject;
         newValue = selectedItem.id;
       } else {
         newValue = selectedObject;
@@ -511,8 +511,8 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     int index = -1;
     for (int i = 0; i < comboBox.getItemCount(); i++) {
       Object item = comboBox.getItemAt(i);
-      if (item instanceof ComboBoxItem) {
-        item = ((ComboBoxItem)item).id;
+      if (item instanceof ComboBoxItemWithApiTag) {
+        item = ((ComboBoxItemWithApiTag)item).id;
       }
       if (Objects.equal(item, value)) {
         index = i;

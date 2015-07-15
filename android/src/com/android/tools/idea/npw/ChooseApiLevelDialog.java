@@ -17,7 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.tools.idea.stats.Distribution;
 import com.android.tools.idea.stats.DistributionService;
-import com.android.tools.idea.wizard.DistributionChartComponent;
+import com.android.tools.idea.ui.DistributionChartComponent;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;

@@ -542,7 +542,7 @@
                   <text value="API 11+"/>
                 </properties>
               </component>
-              <component id="67237" class="com.android.tools.idea.wizard.ImageComponent" binding="myV9XHdpiPreview">
+              <component id="67237" class="com.android.tools.idea.ui.ImageComponent" binding="myV9XHdpiPreview">
                 <constraints>
                   <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="32" height="50"/>
@@ -551,7 +551,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="c6797" class="com.android.tools.idea.wizard.ImageComponent" binding="myV9XXHdpiPreview">
+              <component id="c6797" class="com.android.tools.idea.ui.ImageComponent" binding="myV9XXHdpiPreview">
                 <constraints>
                   <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="48" height="75"/>
@@ -560,7 +560,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="b070e" class="com.android.tools.idea.wizard.ImageComponent" binding="myV9MdpiPreview">
+              <component id="b070e" class="com.android.tools.idea.ui.ImageComponent" binding="myV9MdpiPreview">
                 <constraints>
                   <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="16" height="25"/>
@@ -569,7 +569,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="df66e" class="com.android.tools.idea.wizard.ImageComponent" binding="myV9HdpiPreview">
+              <component id="df66e" class="com.android.tools.idea.ui.ImageComponent" binding="myV9HdpiPreview">
                 <constraints>
                   <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="24" height="38"/>
@@ -578,7 +578,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="407db" class="com.android.tools.idea.wizard.ImageComponent" binding="myV11XHdpiPreview">
+              <component id="407db" class="com.android.tools.idea.ui.ImageComponent" binding="myV11XHdpiPreview">
                 <constraints>
                   <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="48" height="48"/>
@@ -587,7 +587,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="83c81" class="com.android.tools.idea.wizard.ImageComponent" binding="myV11XXHdpiPreview">
+              <component id="83c81" class="com.android.tools.idea.ui.ImageComponent" binding="myV11XXHdpiPreview">
                 <constraints>
                   <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="72" height="72"/>
@@ -596,7 +596,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="2deaf" class="com.android.tools.idea.wizard.ImageComponent" binding="myV11MdpiPreview">
+              <component id="2deaf" class="com.android.tools.idea.ui.ImageComponent" binding="myV11MdpiPreview">
                 <constraints>
                   <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="24" height="24"/>
@@ -605,7 +605,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="dd5f6" class="com.android.tools.idea.wizard.ImageComponent" binding="myV11HdpiPreview">
+              <component id="dd5f6" class="com.android.tools.idea.ui.ImageComponent" binding="myV11HdpiPreview">
                 <constraints>
                   <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="36" height="36"/>
@@ -655,7 +655,7 @@
                   <text value="XHDPI"/>
                 </properties>
               </component>
-              <component id="8a696" class="com.android.tools.idea.wizard.ImageComponent" binding="myMdpiPreview">
+              <component id="8a696" class="com.android.tools.idea.ui.ImageComponent" binding="myMdpiPreview">
                 <constraints>
                   <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="1" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="48" height="48"/>
@@ -664,7 +664,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="43639" class="com.android.tools.idea.wizard.ImageComponent" binding="myXHdpiPreview">
+              <component id="43639" class="com.android.tools.idea.ui.ImageComponent" binding="myXHdpiPreview">
                 <constraints>
                   <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="1" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="96" height="96"/>
@@ -673,7 +673,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="e5feb" class="com.android.tools.idea.wizard.ImageComponent" binding="myHdpiPreview">
+              <component id="e5feb" class="com.android.tools.idea.ui.ImageComponent" binding="myHdpiPreview">
                 <constraints>
                   <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="1" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="72" height="72"/>
@@ -690,7 +690,7 @@
                   <text value="HDPI"/>
                 </properties>
               </component>
-              <component id="6bf5d" class="com.android.tools.idea.wizard.ImageComponent" binding="myXXHdpiPreview">
+              <component id="6bf5d" class="com.android.tools.idea.ui.ImageComponent" binding="myXXHdpiPreview">
                 <constraints>
                   <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="1" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="144" height="144"/>

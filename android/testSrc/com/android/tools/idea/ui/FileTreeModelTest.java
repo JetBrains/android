@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.ui;
 
+import com.android.tools.idea.ui.FileTreeModel;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.Stack;
 import org.jetbrains.android.AndroidTestCase;
@@ -24,7 +25,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.*;
 
-import static com.android.tools.idea.wizard.FileTreeModel.Node;
+import static com.android.tools.idea.ui.FileTreeModel.Node;
 
 /**
  *

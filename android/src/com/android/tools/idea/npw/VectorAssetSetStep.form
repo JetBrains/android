@@ -97,7 +97,7 @@
           <color color="-16777216"/>
         </border>
         <children>
-          <component id="960a1" class="com.android.tools.idea.wizard.ImageComponent" binding="myImagePreview">
+          <component id="960a1" class="com.android.tools.idea.ui.ImageComponent" binding="myImagePreview">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="3" anchor="0" fill="0" indent="1" use-parent-layout="false">
                 <minimum-size width="128" height="128"/>

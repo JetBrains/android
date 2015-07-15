@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wizard;
+package com.android.tools.idea.ui;
 
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * ComboBoxItem is a container class for an item of a {@link JComboBox} that's backed by a
- * {@link Parameter} representing an enumerated type. It has a human-readable label, an
- * ID in parameter space, and optional API restrictions.
-*/
-public class ComboBoxItem {
+ * ComboBoxItemWithApiTag wraps choices that appear in a combobox where a user should only be able to
+ * select them if they're targeting a minimum API (or newer). It is up to the parent UI form to
+ * query these combobox items and reject them if necessary.
+ * TODO: This seems backwards, throwing data on a combobox item and then using instanceof checks in
+ * various classes to cast and pull API info out later. Let's investigate how this is used and see
+ * if there's a better way.
+ */
+public class ComboBoxItemWithApiTag {
   public Object id;
   public String label;
   public int minApi;
   public int minBuildApi;
 
-  public ComboBoxItem(@NotNull Object id, @NotNull String label, int minApi, int minBuildApi) {
+  public ComboBoxItemWithApiTag(@NotNull Object id, @NotNull String label, int minApi, int minBuildApi) {
     this.id = id;
     this.label = label;
     this.minApi = minApi;
@@ -46,7 +49,7 @@ public class ComboBoxItem {
     if (obj == null || !obj.getClass().equals(getClass())) {
       return false;
     }
-    ComboBoxItem other = (ComboBoxItem)obj;
+    ComboBoxItemWithApiTag other = (ComboBoxItemWithApiTag)obj;
     return Objects.equal(id, other.id) && Objects.equal(label, other.label);
   }
 

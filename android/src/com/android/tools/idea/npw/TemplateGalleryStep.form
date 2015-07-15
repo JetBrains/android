@@ -49,7 +49,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="4a990" class="com.android.tools.idea.wizard.ASGallery" binding="myGallery">
+          <component id="4a990" class="com.android.tools.idea.ui.ASGallery" binding="myGallery">
             <constraints/>
             <properties/>
           </component>

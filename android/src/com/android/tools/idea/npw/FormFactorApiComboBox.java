@@ -25,7 +25,7 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.wizard.ComboBoxItem;
+import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Iterables;
@@ -49,8 +49,8 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.npw.FormFactorUtils.*;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
 * A labeled combo box of SDK options for a given FormFactor.
@@ -285,7 +285,7 @@ public final class FormFactorApiComboBox extends JComboBox {
     return list.toArray(new IAndroidTarget[list.size()]);
   }
 
-  public static class AndroidTargetComboBoxItem extends ComboBoxItem {
+  public static class AndroidTargetComboBoxItem extends ComboBoxItemWithApiTag {
     public int apiLevel = -1;
     public IAndroidTarget target = null;
 

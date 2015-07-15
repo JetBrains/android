@@ -18,7 +18,7 @@ package com.android.tools.idea.npw;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.wizard.TextFieldWithLaunchBrowserButton;
+import com.android.tools.idea.ui.TextFieldWithLaunchBrowserButton;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.annotations.VisibleForTesting;

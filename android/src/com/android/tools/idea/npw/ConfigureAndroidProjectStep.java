@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.wizard.LabelWithEditLink;
+import com.android.tools.idea.ui.LabelWithEditLink;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
