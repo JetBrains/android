@@ -461,6 +461,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       } else {
         component.children = null;
         myTagToComponentMap.remove(tag);
+        component.setTag(tag);
       }
 
       component.viewInfo = view;
