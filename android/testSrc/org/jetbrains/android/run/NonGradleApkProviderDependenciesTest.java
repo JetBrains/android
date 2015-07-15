@@ -17,6 +17,8 @@ package org.jetbrains.android.run;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestCase;
@@ -54,12 +56,18 @@ public class NonGradleApkProviderDependenciesTest extends AndroidTestCase {
 
     setIdAndApk(myFacet, "com.test.app", "app.apk");
     for (Module module : myAdditionalModules) {
-      if (module.getName().equals("1")) {
-        setIdAndApk(AndroidFacet.getInstance(module), "com.test.dep1", "dep1.apk");
-      } else if (module.getName().equals("2")) {
-        setIdAndApk(AndroidFacet.getInstance(module), "com.test.dep2", "dep2.apk");
-      } else {
-        assertTrue("Remaining module dep should be library.", AndroidFacet.getInstance(module).isLibraryProject());
+      for (VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
+        if (contentRoot.getPath().endsWith("dependencyApp1")) {
+          setIdAndApk(AndroidFacet.getInstance(module), "com.test.dep1", "dep1.apk");
+          break;
+        } else if (contentRoot.getPath().endsWith("dependencyApp2")) {
+          setIdAndApk(AndroidFacet.getInstance(module), "com.test.dep2", "dep2.apk");
+          break;
+        } else if (contentRoot.getPath().endsWith("dependencyLibrary")) {
+          assertTrue(module.getName() + " at " + contentRoot.getPath() + " should be an Android library.",
+                     AndroidFacet.getInstance(module).isLibraryProject());
+          break;
+        }
       }
     }
 
