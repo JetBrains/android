@@ -19,7 +19,7 @@ package org.jetbrains.android.run.testing;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.configuration.BrowseModuleValueActionListener;
 import com.intellij.execution.junit.JUnitUtil;
-import com.intellij.execution.junit2.configuration.MethodListDlg;
+import com.intellij.execution.MethodListDlg;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.ide.util.PackageChooserDialog;
 import com.intellij.openapi.module.Module;
