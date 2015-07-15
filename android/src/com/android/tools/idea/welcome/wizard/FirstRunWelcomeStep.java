@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.tools.idea.wizard.FormFactorUtils;
+import com.android.tools.idea.npw.FormFactorUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

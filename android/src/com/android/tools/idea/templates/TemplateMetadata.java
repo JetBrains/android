@@ -18,7 +18,7 @@ package com.android.tools.idea.templates;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.wizard.AssetStudioAssetGenerator;
+import com.android.tools.idea.npw.AssetStudioAssetGenerator;
 import com.google.common.base.Function;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;

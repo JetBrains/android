@@ -22,6 +22,7 @@ import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
+import com.android.tools.idea.npw.FormFactorUtils;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.collect.Lists;
@@ -154,7 +155,7 @@ public class DeviceMenuAction extends FlatComboAction {
     return AndroidIcons.NeleIcons.Phone;
   }
 
-  /** TODO: Combine with {@link com.android.tools.idea.wizard.FormFactorUtils.FormFactor} */
+  /** TODO: Combine with {@link FormFactorUtils.FormFactor} */
   public enum FormFactor {
     MOBILE, WEAR, GLASS, TV, CAR;
     private Icon myIcon64;

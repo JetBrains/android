@@ -26,8 +26,8 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_PROJECT_LOCATION;
-import static com.android.tools.idea.wizard.FormFactorUtils.ATTR_MODULE_NAME;
+import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
+import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
 import static org.mockito.Mockito.*;
 
 /**

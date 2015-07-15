@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.tools.idea.npw.ModuleTemplate;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableSet;

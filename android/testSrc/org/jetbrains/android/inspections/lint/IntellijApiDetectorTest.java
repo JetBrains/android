@@ -15,9 +15,8 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import com.android.tools.idea.wizard.ConfigureAndroidModuleStep;
+import com.android.tools.idea.npw.ConfigureAndroidModuleStep;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.AndroidTestCase;
@@ -25,7 +24,6 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Ignore;
 
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider.AndroidLintNewApiInspection;
 
