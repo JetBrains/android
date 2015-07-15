@@ -193,6 +193,10 @@ public class NlPreviewManager implements ProjectComponent {
   private boolean myRenderImmediately;
 
   private void processFileEditorChange(@Nullable final TextEditor newEditor) {
+    if (!RenderService.NELE_ENABLED) {
+      return;
+    }
+
     if (myPendingShowComponent != null) {
       myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
       myPendingShowComponent = null;
