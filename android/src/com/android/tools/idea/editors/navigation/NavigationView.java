@@ -26,7 +26,7 @@ import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
 import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.*;
-import com.android.tools.idea.wizard.NewAndroidActivityWizard;
+import com.android.tools.idea.npw.NewAndroidActivityWizard;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.intellij.ide.dnd.DnDEvent;
