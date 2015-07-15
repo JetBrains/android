@@ -31,8 +31,8 @@ import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
-import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.rendering.ModuleResourceRepository;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -217,7 +217,7 @@ public class ThemeEditorStyle {
       }
     }
     else {
-      LocalResourceRepository repository = AppResourceRepository.getAppResources(getModuleForAcquiringResources(), true);
+      LocalResourceRepository repository = ModuleResourceRepository.getModuleResources(getModuleForAcquiringResources(), true);
       assert repository != null;
       // Find every definition of this style and get all the attributes defined
       List<ResourceItem> styleDefinitions = repository.getResourceItem(ResourceType.STYLE, myStyleResourceValue.getName());
