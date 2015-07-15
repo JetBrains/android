@@ -27,11 +27,13 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.ui.JBMenuItem;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -51,9 +53,16 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
 
     myRenderTask = configureRenderTask(context.getCurrentContextModule(), context.getConfiguration());
 
+    final EditorClickListener editorClickListener = new EditorClickListener();
     if (isEditor) {
-      myComponent.addActionListener(new EditorClickListener());
+      myComponent.addActionListener(editorClickListener);
     }
+    myComponent.addVariantComboAction(new AbstractAction("Add variation") {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        editorClickListener.actionPerformed(e);
+      }
+    });
     myPreviewPanel = previewPanel;
   }
 
@@ -100,6 +109,11 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
           myPreviewPanel.invalidateGraphicsRenderer();
         }
       });
+
+      if (e.getSource() instanceof JBMenuItem) {
+        // This has been triggered from the "Add variations" menu option so display location settings
+        dialog.openLocationSettings();
+      }
 
       dialog.show();
 
