@@ -38,6 +38,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.DeviceData;
@@ -207,18 +208,18 @@ public class DeviceArtPainterTest extends TestCase {
 
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   private static Device newDevice() throws Exception {
-    java.util.List<Device> devices;
+    Collection<Device> devices;
     InputStream stream = null;
     try {
       stream = DeviceSchemaTest.class.getResourceAsStream("devices_minimal.xml");
-      devices = DeviceParser.parse(stream);
+      devices = DeviceParser.parse(stream).values();
     } finally {
       if (stream != null) {
         stream.close();
       }
     }
     assertTrue(!devices.isEmpty());
-    return devices.get(0);
+    return devices.iterator().next();
   }
 
   @Nullable
