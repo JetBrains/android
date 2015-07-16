@@ -574,8 +574,6 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
   protected boolean render(final PsiFile psiFile, final AndroidFacet facet,
                         @SuppressWarnings("unused") boolean forceFullRender) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-    
     getRenderingQueue().queue(new Update("render") {
       @Override
       public void run() {
