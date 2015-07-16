@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.wizard.NewProjectWizardDynamic;
+import com.android.tools.idea.npw.NewProjectWizardDynamic;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;

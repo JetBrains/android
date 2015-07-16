@@ -18,7 +18,7 @@ package com.android.tools.idea.actions;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.wizard.NewAndroidActivityWizard;
+import com.android.tools.idea.npw.NewAndroidActivityWizard;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;

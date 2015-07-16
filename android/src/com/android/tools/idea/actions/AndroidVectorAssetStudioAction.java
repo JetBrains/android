@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.wizard.VectorAssetStudioWizard;
-import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.android.tools.idea.npw.VectorAssetStudioWizard;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;

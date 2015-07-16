@@ -19,7 +19,7 @@ package org.jetbrains.android.actions;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
-import com.android.tools.idea.wizard.ComboBoxItem;
+import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.ide.projectView.ProjectView;
@@ -71,8 +71,8 @@ public abstract class CreateResourceActionBase extends AnAction {
   public static SourceProvider getSourceProvider(@Nullable JComboBox combo) {
     if (combo != null && combo.isVisible()) {
       Object selectedItem = combo.getSelectedItem();
-      if (selectedItem instanceof ComboBoxItem) {
-        return (SourceProvider)((ComboBoxItem)selectedItem).id;
+      if (selectedItem instanceof ComboBoxItemWithApiTag) {
+        return (SourceProvider)((ComboBoxItemWithApiTag)selectedItem).id;
       }
     }
 
@@ -132,7 +132,7 @@ public abstract class CreateResourceActionBase extends AnAction {
       DefaultComboBoxModel model = new DefaultComboBoxModel();
       for (SourceProvider sourceProvider : providers) {
         //noinspection unchecked
-        model.addElement(new ComboBoxItem(sourceProvider, sourceProvider.getName(), 0, 0));
+        model.addElement(new ComboBoxItemWithApiTag(sourceProvider, sourceProvider.getName(), 0, 0));
       }
       combo.setModel(model);
 

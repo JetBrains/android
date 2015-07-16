@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.tools.idea.wizard.DynamicWizardStep;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.util.IJSwingUtilities;
 import org.jetbrains.annotations.NotNull;

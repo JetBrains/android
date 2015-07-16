@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.wizard.ASGallery;
+import com.android.tools.idea.ui.ASGallery;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.edt.GuiTask;

@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.wizard.NewModuleWizardDynamic;
+import com.android.tools.idea.npw.NewModuleWizardDynamic;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
