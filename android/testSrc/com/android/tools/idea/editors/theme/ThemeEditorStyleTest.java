@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredItemResourceValue;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
-import com.android.SdkConstants;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -361,5 +362,53 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
         }
       }
     }
+  }
+
+  /**
+   * Test that setValue only affects the specified folders
+   */
+  public void testSetValueFolderFiltering() {
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
+    myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-v14/styles.xml");
+    myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-land/styles.xml");
+
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+
+    ThemeEditorStyle style = themeResolver.getTheme("@style/AppTheme");
+    assertNotNull(style);
+
+    // This should modify not modify the default folder
+    //noinspection ConstantConditions
+    style.setValue(
+      ImmutableList.of(FolderConfiguration.getConfigForQualifierString("land"), FolderConfiguration.getConfigForQualifierString("v14")),
+      "myColor", "modified");
+    myFixture.checkResultByFile("res/values/styles.xml", "themeEditor/styles_1.xml", true);
+    myFixture.checkResultByFile("res/values-v14/styles.xml", "themeEditor/setValueAfter/styles_myColor_modified.xml", true);
+    myFixture.checkResultByFile("res/values-land/styles.xml", "themeEditor/setValueAfter/styles_myColor_modified.xml", true);
+  }
+
+  /**
+   * Test that setParent only affects the specified folders
+   */
+  public void testSetParent() {
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
+    myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-v14/styles.xml");
+    myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-land/styles.xml");
+
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+
+    ThemeEditorStyle style = themeResolver.getTheme("@style/AppTheme");
+    assertNotNull(style);
+
+    // This should modify not modify the default folder
+    //noinspection ConstantConditions
+    style.setParent(
+      ImmutableList.of(FolderConfiguration.getConfigForQualifierString("land"), FolderConfiguration.getConfigForQualifierString("v14")),
+      "@android:style/Theme.Modified");
+    myFixture.checkResultByFile("res/values/styles.xml", "themeEditor/styles_1.xml", true);
+    myFixture.checkResultByFile("res/values-v14/styles.xml", "themeEditor/setValueAfter/styles_parent_modified.xml", true);
+    myFixture.checkResultByFile("res/values-land/styles.xml", "themeEditor/setValueAfter/styles_parent_modified.xml", true);
   }
 }
