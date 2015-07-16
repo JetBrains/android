@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ResizeHandler;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -60,18 +60,21 @@ public class ResizeInteraction extends Interaction {
   @Override
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int startMask) {
     super.begin(x, y, startMask);
+    NlComponent parent = myComponent.getParent();
 
-    final int ax = Coordinates.getAndroidX(myScreenView, x);
-    final int ay = Coordinates.getAndroidY(myScreenView, y);
+    if (parent != null) {
+      ViewGroupHandler viewGroupHandler = ViewHandlerManager.get(myScreenView.getModel().getFacet()).findLayoutHandler(parent, false);
 
-    /* The parent layout's view group handler */
-    ViewGroupHandler viewGroupHandler = findViewGroupHandlerAt(ax, ay);
-    if (viewGroupHandler != null) {
-      ViewEditorImpl editor = new ViewEditorImpl(myScreenView);
-      myResizeHandler = viewGroupHandler.createResizeHandler(editor, myComponent, myHorizontalEdge, myVerticalEdge);
-      if (myResizeHandler != null) {
-        myResizeHandler.start(Coordinates.getAndroidX(myScreenView, myStartX), Coordinates.getAndroidY(myScreenView, myStartY),
-                              startMask);
+      if (viewGroupHandler != null) {
+        ViewEditor editor = new ViewEditorImpl(myScreenView);
+        myResizeHandler = viewGroupHandler.createResizeHandler(editor, myComponent, myHorizontalEdge, myVerticalEdge);
+
+        if (myResizeHandler != null) {
+          int androidX = Coordinates.getAndroidX(myScreenView, myStartX);
+          int androidY = Coordinates.getAndroidY(myScreenView, myStartY);
+
+          myResizeHandler.start(androidX, androidY, startMask);
+        }
       }
     }
   }
@@ -118,14 +121,6 @@ public class ResizeInteraction extends Interaction {
       model.notifyModified();
     }
     myScreenView.getSurface().repaint();
-  }
-
-  @Nullable
-  private ViewGroupHandler findViewGroupHandlerAt(@AndroidCoordinate int x, @AndroidCoordinate int y) {
-    NlModel model = myScreenView.getModel();
-    NlComponent component = model.findLeafAt(x, y, true);
-    ViewHandlerManager handlerManager = ViewHandlerManager.get(model.getFacet());
-    return component != null ? handlerManager.findLayoutHandler(component, false) : null;
   }
 
   /**
