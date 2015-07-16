@@ -23,7 +23,7 @@ import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.sdk.SdkLoggerIntegration;
 import com.android.tools.idea.welcome.install.*;
-import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.utils.ILogger;
 import com.android.utils.StdLogger;
 import com.google.common.base.Function;

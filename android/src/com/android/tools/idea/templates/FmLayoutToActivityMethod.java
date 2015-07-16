@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.templates;
 
-import static com.android.tools.idea.wizard.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
-import static com.android.tools.idea.wizard.TemplateWizardState.LAYOUT_NAME_PREFIX;
+import static com.android.tools.idea.wizard.template.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
+import static com.android.tools.idea.wizard.template.TemplateWizardState.LAYOUT_NAME_PREFIX;
 
 import freemarker.template.*;
 

@@ -16,7 +16,7 @@
 package com.android.tools.idea.welcome.wizard;
 
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.wizard.ScopedStateStore.Key;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ComparisonChain;

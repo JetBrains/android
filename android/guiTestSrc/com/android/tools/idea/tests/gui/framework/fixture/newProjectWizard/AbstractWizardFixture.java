@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
@@ -26,7 +27,7 @@ import javax.swing.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 
 /**
- * Base class for fixtures which control wizards that extend {@link com.android.tools.idea.wizard.DynamicWizard}
+ * Base class for fixtures which control wizards that extend {@link DynamicWizard}
  */
 public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDialog> implements ContainerFixture<JDialog> {
 

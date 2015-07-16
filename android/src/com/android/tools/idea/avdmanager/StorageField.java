@@ -16,7 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Storage;
-import com.android.tools.idea.wizard.ScopedDataBinder;
+import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.EnumComboBoxModel;
