@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.TableModelEvent;
@@ -40,12 +41,14 @@ import java.util.List;
 public class AttributesModelColorPaletteModel implements ColorPalette.ColorPaletteModel, TableModelListener {
   private final ResourceResolver myResourceResolver;
   private final AttributesTableModel myModel;
+  private final Project myProject;
 
   private List<Color> myColorList;
   private Multimap<Color, EditedStyleItem> myColorReferences = HashMultimap.create();
 
   public AttributesModelColorPaletteModel(@NotNull Configuration configuration, @NotNull AttributesTableModel model) {
     myResourceResolver = configuration.getResourceResolver();
+    myProject = configuration.getModule().getProject();
     myModel = model;
     myModel.addTableModelListener(this);
 
@@ -92,7 +95,7 @@ public class AttributesModelColorPaletteModel implements ColorPalette.ColorPalet
       }
 
       EditedStyleItem item = (EditedStyleItem)myModel.getValueAt(i, 0);
-      for (Color color : ResourceHelper.resolveMultipleColors(myResourceResolver, item.getSelectedValue())) {
+      for (Color color : ResourceHelper.resolveMultipleColors(myResourceResolver, item.getSelectedValue(), myProject)) {
         myColorReferences.put(color, item);
         colorSet.add(color);
       }
