@@ -17,7 +17,6 @@ package com.android.tools.idea.wizard;
 
 import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.ConcurrencyUtil;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +54,6 @@ public final class AsyncValidatorTest extends TestCase {
       submit(new Callable<IdeaTestApplication>() {
         @Override
         public IdeaTestApplication call() throws Exception {
-          PlatformTestCase.autodetectPlatformPrefix();
           return IdeaTestApplication.getInstance(null);
         }
       });
