@@ -16,7 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
-import com.android.tools.idea.wizard.AssetStudioWizard;
+import com.android.tools.idea.npw.AssetStudioWizard;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;

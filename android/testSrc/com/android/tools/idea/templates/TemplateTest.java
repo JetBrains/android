@@ -21,10 +21,9 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.wizard.ConfigureAndroidModuleStep;
-import com.android.tools.idea.wizard.NewProjectWizardState;
-import com.android.tools.idea.wizard.StringEvaluator;
-import com.android.tools.idea.wizard.TemplateWizardState;
+import com.android.tools.idea.npw.ConfigureAndroidModuleStep;
+import com.android.tools.idea.npw.NewProjectWizardState;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
@@ -55,9 +54,9 @@ import java.util.Set;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
-import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
-import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_PROJECT_LOCATION;
-import static com.android.tools.idea.wizard.FormFactorUtils.ATTR_MODULE_NAME;
+import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
+import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
+import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
 
 /**
  * Test for template instantiation.

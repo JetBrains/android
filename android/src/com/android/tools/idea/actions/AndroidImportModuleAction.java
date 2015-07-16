@@ -17,7 +17,7 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
-import com.android.tools.idea.wizard.NewModuleWizard;
+import com.android.tools.idea.npw.NewModuleWizard;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;

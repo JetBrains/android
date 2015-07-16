@@ -16,8 +16,8 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.wizard.SingleStepDialogWrapperHost;
-import com.android.tools.idea.wizard.SingleStepWizard;
+import com.android.tools.idea.wizard.dynamic.SingleStepDialogWrapperHost;
+import com.android.tools.idea.wizard.dynamic.SingleStepWizard;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

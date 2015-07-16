@@ -16,7 +16,6 @@
 package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
-import com.android.builder.model.Dependencies;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.module.Module;
@@ -25,18 +24,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectLocator;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import freemarker.ext.beans.BooleanModel;
 import freemarker.template.*;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.inspections.lint.IntellijLintClient;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.tools.idea.templates.FmUtil.stripSuffix;
-import static com.android.tools.idea.wizard.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
-import static com.android.tools.idea.wizard.TemplateWizardState.LAYOUT_NAME_PREFIX;
 
 /**
  * Method invoked by FreeMarker to check whether a given dependency

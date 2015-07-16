@@ -40,7 +40,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
+import static com.android.tools.idea.npw.FormFactorUtils.FormFactor.MOBILE;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
