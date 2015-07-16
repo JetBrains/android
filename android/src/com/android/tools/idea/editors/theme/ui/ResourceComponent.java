@@ -29,6 +29,7 @@ import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -134,7 +135,7 @@ public class ResourceComponent extends JPanel {
     addMouseListener(new MouseAdapter() {
       @Override
       public void mouseReleased(MouseEvent e) {
-        if (!contains(e.getPoint())) {
+        if (!contains(e.getPoint()) || !SwingUtilities.isLeftMouseButton(e)) {
           return;
         }
         listener.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, null));
