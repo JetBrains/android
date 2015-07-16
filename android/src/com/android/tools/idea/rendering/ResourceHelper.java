@@ -555,7 +555,7 @@ public class ResourceHelper {
           try {
             ResourceFolderType folderType = ResourceFolderType.getFolderType(psiFile.getContainingDirectory().getName());
             XmlTag rootTag = ((XmlFile)psiFile).getRootTag();
-            if (rootTag != null) {
+            if (rootTag != null && TAG_SELECTOR.equals(rootTag.getName())) {
               StateListPicker.StateList stateList = new StateListPicker.StateList(folderType);
               for (XmlTag subTag : rootTag.findSubTags(TAG_ITEM)) {
                 stateList.addState(createStateListState(subTag, value.isFramework()));
