@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.lint.NlBackgroundEditorHighlighter;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.*;
@@ -34,6 +35,7 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
   private final VirtualFile myFile;
   private final Project myProject;
   private NlEditorPanel myEditorPanel;
+  private BackgroundEditorHighlighter myBackgroundHighlighter;
 
   public NlEditor(AndroidFacet facet, VirtualFile file, Project project) {
     myFacet = facet;
@@ -116,7 +118,13 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
   @Nullable
   @Override
   public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
+    // The designer should display components that have problems detected by inspections. Ideally, we'd just get the result
+    // of all the inspections on the XML file. However, it doesn't look like there is an API to obtain this for a file
+    // (there are  test APIs). So we add a single highlighter which uses lint..
+    if (myBackgroundHighlighter == null) {
+      myBackgroundHighlighter = new NlBackgroundEditorHighlighter(myEditorPanel);
+    }
+    return myBackgroundHighlighter;
   }
 
   @Nullable
