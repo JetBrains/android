@@ -588,14 +588,14 @@ public class ThemeEditorUtils {
     assert resourceResolver != null;
     ChooseResourceDialog dialog;
 
-    StateListPicker.StateList stateList = ResourceHelper.resolveStateList(resourceResolver, item.getSelectedValue());
+    StateListPicker.StateList stateList = ResourceHelper.resolveStateList(resourceResolver, item.getSelectedValue(), context.getProject());
     if (stateList != null) {
       dialog = new ChooseResourceDialog(context.getModuleForResources(), context.getConfiguration(), allowedTypes, stateList,
                                         ChooseResourceDialog.ResourceNameVisibility.FORCE, resourceName);
     }
     else {
       String resolvedResource;
-      Color color = ResourceHelper.resolveColor(resourceResolver, item.getSelectedValue());
+      Color color = ResourceHelper.resolveColor(resourceResolver, item.getSelectedValue(), context.getProject());
       if (color != null) {
         resolvedResource = ResourceHelper.colorToString(color);
       }

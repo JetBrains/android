@@ -911,7 +911,7 @@ public class AndroidJavaDocRenderer {
     protected File resolveValue(@NotNull ResourceItemResolver resolver, @Nullable ResourceValue value, @NotNull ResourceUrl url) {
       assert resolver.getLookupChain() != null;
       resolver.setLookupChainList(Lists.<ResourceValue>newArrayList());
-      return ResourceHelper.resolveDrawable(resolver, value);
+      return ResourceHelper.resolveDrawable(resolver, value, myModule.getProject());
     }
 
     @Override
@@ -971,7 +971,7 @@ public class AndroidJavaDocRenderer {
     protected Color resolveValue(@NotNull ResourceItemResolver resolver, @Nullable ResourceValue value, @NotNull ResourceUrl url) {
       assert resolver.getLookupChain() != null;
       resolver.setLookupChainList(Lists.<ResourceValue>newArrayList());
-      return ResourceHelper.resolveColor(resolver, value);
+      return ResourceHelper.resolveColor(resolver, value, myModule.getProject());
     }
 
     @Override
