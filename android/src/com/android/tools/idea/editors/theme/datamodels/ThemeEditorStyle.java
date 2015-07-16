@@ -43,6 +43,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -66,6 +67,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Wrapper for style configurations that allows modifying attributes directly in the XML file.
@@ -369,6 +371,22 @@ public class ThemeEditorStyle {
   }
 
   /**
+   * Filters out {@link ResourceItem}s that are not contained in the passed folders
+   */
+  @NotNull
+  private static Iterable<ResourceItem> filterStylesByFolder(@NotNull Collection<FolderConfiguration> selectedFolders, @NotNull Iterable<ResourceItem> styleResourceItems) {
+    final Set<FolderConfiguration> foldersSet = Sets.newHashSet(selectedFolders);
+
+    return Iterables.filter(styleResourceItems, new Predicate<ResourceItem>() {
+      @Override
+      public boolean apply(@Nullable ResourceItem input) {
+        assert input != null;
+        return foldersSet.contains(input.getConfiguration());
+      }
+    });
+  }
+
+  /**
    * Returns the {@link XmlTag}s associated to the passed {@link ResourceItem}s.
    */
   @NotNull
@@ -405,6 +423,10 @@ public class ThemeEditorStyle {
    * @param value The attribute value.
    */
   public void setValue(@NotNull final String attribute, @NotNull final String value) {
+    if (!isProjectStyle()) {
+      throw new UnsupportedOperationException("Non project styles can not be modified");
+    }
+
     setValue(getFolderConfigurations(), attribute, value);
   }
 
@@ -447,7 +469,8 @@ public class ThemeEditorStyle {
       }
     }, null);
 
-    Iterable<ResourceItem> filteredStyles = filterStylesByApiLevel(minProjectApi, minAcceptableApi, styleResourceItems);
+    Iterable<ResourceItem> filteredStyles = filterStylesByFolder(selectedFolders, styleResourceItems);
+    filteredStyles = filterStylesByApiLevel(minProjectApi, minAcceptableApi, filteredStyles);
     final Iterable<XmlTag> stylesXmlTags = getXmlTagsFromStyles(myProject, filteredStyles);
     PsiFile[] toBeEdited = getPsiFilesFromXmlTags(stylesXmlTags);
 
@@ -513,6 +536,28 @@ public class ThemeEditorStyle {
     if (!isProjectStyle()) {
       throw new UnsupportedOperationException("Non project styles can not be modified");
     }
+
+    setParent(getFolderConfigurations(), newParent);
+  }
+
+  /**
+   * Changes the name of the themes in the given folder
+   * The theme needs to be reloaded in ThemeEditorComponent for the change to be complete
+   * THIS METHOD DOES NOT DIRECTLY MODIFY THE VALUE ONE GETS WHEN EVALUATING getParent()
+   */
+  public void setParent(@NotNull FolderConfiguration currentFolder, @NotNull final String newParent) {
+    setParent(ImmutableList.of(currentFolder), newParent);
+  }
+
+  /**
+   * Changes the name of the themes in given folders
+   * The theme needs to be reloaded in ThemeEditorComponent for the change to be complete
+   * THIS METHOD DOES NOT DIRECTLY MODIFY THE VALUE ONE GETS WHEN EVALUATING getParent()
+   */
+  public void setParent(@NotNull Collection<FolderConfiguration> selectedFolders, @NotNull final String newParent) {
+    if (!isProjectStyle()) {
+      throw new UnsupportedOperationException("Non project styles can not be modified");
+    }
     final int minProjectApi = ThemeEditorUtils.getMinApiLevel(myConfiguration.getModule());
     final int minAcceptableApi = ThemeEditorUtils.getOriginalApiLevel(newParent, myProject);
     final FolderConfiguration sourceConfiguration = findAcceptableSourceFolderConfiguration(myConfiguration.getModule(), minAcceptableApi,
@@ -527,13 +572,10 @@ public class ThemeEditorStyle {
         return input.getConfiguration().equals(sourceConfiguration);
       }
     }, null);
-    // Filter styles that we do not need to modify because the do not match the API level requirements
-    Iterable<ResourceItem> filteredStyles = filterStylesByApiLevel(minProjectApi, minAcceptableApi, styleResourceItems);
-    // Get the XmlTags for the styles
+    Iterable<ResourceItem> filteredStyles = filterStylesByFolder(selectedFolders, styleResourceItems);
+    filteredStyles = filterStylesByApiLevel(minProjectApi, minAcceptableApi, filteredStyles);
     final Iterable<XmlTag> stylesXmlTags = getXmlTagsFromStyles(myProject, filteredStyles);
-    // Get the PsiFile for each style XmlTag
     PsiFile[] toBeEdited = getPsiFilesFromXmlTags(stylesXmlTags);
-
 
     new WriteCommandAction.Simple(myProject, "Updating parent to " + newParent, toBeEdited) {
       @Override
