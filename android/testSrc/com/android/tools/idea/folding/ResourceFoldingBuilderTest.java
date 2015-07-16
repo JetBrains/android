@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.folding;
 
-import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.AndroidTestCase;
 
 public class ResourceFoldingBuilderTest extends AndroidTestCase {
@@ -25,11 +24,6 @@ public class ResourceFoldingBuilderTest extends AndroidTestCase {
   public void testJavaDimens() throws Throwable { performTest(".java"); }
   public void testXmlString() throws Throwable { performTest(".xml"); }
   public void testPlurals() throws Throwable { performTest(".java"); }
-
-  @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
-  public ResourceFoldingBuilderTest() {
-    IdeaTestCase.initPlatformPrefix();
-  }
 
   private void performTest(String extension) throws Throwable {
     myFixture.copyFileToProject(getTestDataPath() + "/folding/values.xml", "res/values/values.xml");

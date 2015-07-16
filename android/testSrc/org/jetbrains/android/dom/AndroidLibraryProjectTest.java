@@ -46,11 +46,6 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
 
   protected JavaCodeInsightTestFixture myFixture;
 
-  @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
-  public AndroidLibraryProjectTest() {
-    IdeaTestCase.initPlatformPrefix();
-  }
-
   @Override
   public void setUp() throws Exception {
     super.setUp();

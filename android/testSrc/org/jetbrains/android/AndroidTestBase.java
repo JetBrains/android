@@ -55,10 +55,6 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   protected JavaCodeInsightTestFixture myFixture;
 
-  protected AndroidTestBase() {
-    IdeaTestCase.initPlatformPrefix();
-  }
-
   public static String getAbsoluteTestDataPath() {
     // The following code doesn't work right now that the Android
     // plugin lives in a separate place:
