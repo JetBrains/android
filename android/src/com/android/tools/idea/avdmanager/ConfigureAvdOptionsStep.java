@@ -25,7 +25,9 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.*;
+import com.android.tools.idea.wizard.dynamic.*;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
@@ -64,7 +66,7 @@ import java.util.Set;
 
 import static com.android.sdklib.devices.Storage.Unit;
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
  * Options panel for configuring various AVD options. Has an "advanced" mode and a "simple" mode.

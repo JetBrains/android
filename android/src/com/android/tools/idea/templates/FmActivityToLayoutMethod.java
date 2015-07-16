@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.annotations.NonNull;
 import com.android.utils.SdkUtils;
 import freemarker.template.*;
 import org.jetbrains.annotations.NotNull;
@@ -23,8 +22,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.tools.idea.templates.FmUtil.stripSuffix;
-import static com.android.tools.idea.wizard.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
-import static com.android.tools.idea.wizard.TemplateWizardState.LAYOUT_NAME_PREFIX;
+import static com.android.tools.idea.wizard.template.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
+import static com.android.tools.idea.wizard.template.TemplateWizardState.LAYOUT_NAME_PREFIX;
 
 /**
  * Method invoked by FreeMarker to convert an Activity class name into

@@ -25,7 +25,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
-import com.android.tools.idea.wizard.*;
+import com.android.tools.idea.wizard.dynamic.*;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
