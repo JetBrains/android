@@ -64,7 +64,8 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
 
     myItem = item;
 
-    final List<Color> colors = ResourceHelper.resolveMultipleColors(context.getResourceResolver(), item.getSelectedValue());
+    final List<Color> colors = ResourceHelper.resolveMultipleColors(context.getResourceResolver(), item.getSelectedValue(),
+                                                                    context.getProject());
     String colorText = colors.isEmpty() ? LABEL_EMPTY : ResourceHelper.colorToString(colors.get(0));
     component.setSwatchIcons(SwatchComponent.colorListOf(colors));
     component.setNameText(String.format(LABEL_TEMPLATE, ThemeEditorConstants.RESOURCE_ITEM_COLOR.toString(), item.getName(), colorText));
