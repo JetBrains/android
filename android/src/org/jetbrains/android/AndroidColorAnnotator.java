@@ -256,7 +256,7 @@ public class AndroidColorAnnotator implements Annotator {
                                             @NotNull ResourceValue value,
                                             @NotNull ResourceResolver resourceResolver) {
     if (type == ResourceType.COLOR) {
-      Color color = ResourceHelper.resolveColor(resourceResolver, value);
+      Color color = ResourceHelper.resolveColor(resourceResolver, value, element.getProject());
       if (color != null) {
         Annotation annotation = holder.createInfoAnnotation(element, null);
         annotation.setGutterIconRenderer(new MyRenderer(element, color));
@@ -264,7 +264,7 @@ public class AndroidColorAnnotator implements Annotator {
     } else {
       assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
 
-      File iconFile = pickBestBitmap(ResourceHelper.resolveDrawable(resourceResolver, value));
+      File iconFile = pickBestBitmap(ResourceHelper.resolveDrawable(resourceResolver, value, element.getProject()));
       if (iconFile != null) {
         Annotation annotation = holder.createInfoAnnotation(element, null);
         annotation.setGutterIconRenderer(new com.android.tools.idea.rendering.GutterIconRenderer(element, iconFile));
