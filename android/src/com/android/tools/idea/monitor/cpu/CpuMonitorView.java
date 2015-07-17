@@ -37,7 +37,7 @@ import java.awt.*;
 
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
 
-public class CpuMonitorView extends BaseMonitorView implements TimelineEventListener, DeviceContext.DeviceSelectionListener {
+public class CpuMonitorView extends BaseMonitorView implements DeviceContext.DeviceSelectionListener {
   /**
    * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
    * a sample on every GC.
@@ -105,14 +105,6 @@ public class CpuMonitorView extends BaseMonitorView implements TimelineEventList
   @Override
   public void clientSelected(@Nullable Client c) {
     myCpuSampler.setClient(c);
-  }
-
-  @Override
-  public void onStart() {
-  }
-
-  @Override
-  public void onStop() {
   }
 
   @Override

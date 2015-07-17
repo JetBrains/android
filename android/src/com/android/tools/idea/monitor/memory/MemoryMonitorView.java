@@ -44,8 +44,7 @@ import java.awt.event.HierarchyListener;
 
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
 
-public class MemoryMonitorView extends BaseMonitorView
-  implements TimelineEventListener, HierarchyListener, DeviceContext.DeviceSelectionListener {
+public class MemoryMonitorView extends BaseMonitorView implements HierarchyListener, DeviceContext.DeviceSelectionListener {
   /**
    * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
    * a sample on every GC.
@@ -77,8 +76,11 @@ public class MemoryMonitorView extends BaseMonitorView
     myTimelineComponent.configureUnits("MB");
     myTimelineComponent.configureStream(0, "Allocated", new JBColor(0x78abd9, 0x78abd9));
     myTimelineComponent.configureStream(1, "Free", new JBColor(0xbaccdc, 0x51585c));
-    myTimelineComponent.configureEvent(EVENT_HPROF, 0, AndroidIcons.Ddms.DumpHprof, new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF), false);
-    myTimelineComponent.configureEvent(EVENT_ALLOC, 0, AndroidIcons.Ddms.AllocationTracker, new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF), true);
+    myTimelineComponent
+      .configureEvent(EVENT_HPROF, 0, AndroidIcons.Ddms.DumpHprof, new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF), false);
+    myTimelineComponent
+      .configureEvent(EVENT_ALLOC, 0, AndroidIcons.Ddms.AllocationTracker, new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF),
+                      true);
 
     myTimelineComponent.configureType(DeviceSampler.TYPE_DATA, TimelineComponent.Style.SOLID);
     myTimelineComponent.configureType(DeviceSampler.TYPE_TIMEOUT, TimelineComponent.Style.DASHED);
@@ -131,14 +133,6 @@ public class MemoryMonitorView extends BaseMonitorView
   @Override
   public void clientSelected(@Nullable Client c) {
     myMemorySampler.setClient(c);
-  }
-
-  @Override
-  public void onStart() {
-  }
-
-  @Override
-  public void onStop() {
   }
 
   @Override
