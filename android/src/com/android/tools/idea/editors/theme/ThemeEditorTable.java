@@ -48,6 +48,10 @@ public class ThemeEditorTable extends CellSpanTable {
   private ThemeEditorComponent.GoToListener myGoToListener;
   private ThemeEditorContext myContext;
 
+  public ThemeEditorTable() {
+    putClientProperty("terminateEditOnFocusLost", true);
+  }
+
   public void setGoToListener(@NotNull ThemeEditorComponent.GoToListener goToListener) {
     myGoToListener = goToListener;
   }
