@@ -23,7 +23,7 @@ import java.awt.*;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 
-public abstract class BaseMonitorView implements HierarchyListener {
+public abstract class BaseMonitorView implements HierarchyListener, TimelineEventListener {
   @NotNull protected Project myProject;
   @NotNull protected JPanel myContentPane;
 
@@ -40,6 +40,16 @@ public abstract class BaseMonitorView implements HierarchyListener {
         getSampler().start();
       }
     }
+  }
+
+  @Override
+  public void onStart() {
+
+  }
+
+  @Override
+  public void onStop() {
+
   }
 
   protected abstract DeviceSampler getSampler();

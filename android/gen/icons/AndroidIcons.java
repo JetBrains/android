@@ -62,6 +62,7 @@ public class AndroidIcons {
   public static final Icon MemoryMonitor = load("/icons/memory_monitor.png"); // 16x16
   public static final Icon CpuMonitor = load("/icons/cpu_monitor.png"); // 16x16
   public static final Icon GpuMonitor = load("/icons/gpu_monitor.png"); // 16x16
+  public static final Icon NetworkMonitor = load("/icons/network_monitor.png"); // 16x16
 
   public static final Icon Variant = load("/icons/variant.png");
 
@@ -134,7 +135,9 @@ public class AndroidIcons {
     public static final Icon Heap = load("/icons/ddms/heap.png"); // 16x16
     public static final Icon HeapInfo = load("/icons/ddms/heap_info.png"); // 16x16
     public static final Icon Logcat = load("/icons/ddms/logcat.png"); // 16x16
-    /** The {@link #LogcatAutoFilterSelectedPid} icon is a copy of the AllIcons.Diff.diff icon to be replaced if we get a better icon. */
+    /**
+     * The {@link #LogcatAutoFilterSelectedPid} icon is a copy of the AllIcons.Diff.diff icon to be replaced if we get a better icon.
+     */
     public static final Icon LogcatAutoFilterSelectedPid = load("/icons/ddms/logcat_filter_pid.png"); // 16x16
     public static final Icon RealDevice = load("/icons/ddms/real_device.png"); // 16x16
     public static final Icon ScreenCapture = load("/icons/ddms/screen_capture.png"); // 16x16
