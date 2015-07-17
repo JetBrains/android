@@ -35,8 +35,6 @@ class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition
 
     if (!isAppCompat) {
       setApiLevel(21);
-      set(ATTR_TITLE, "Toolbar");
-      set("navigationIcon", "@drawable/abc_ic_ab_back_mtrl_am_alpha");
       set(ATTR_LAYOUT_HEIGHT, "?android:attr/actionBarSize");
     }
     else {
@@ -61,37 +59,47 @@ class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition
   @Override
   Element build(@NotNull Document document) {
     Element toolbarComponent = super.build(document);
-
-    if (myIsAppCompat) {
-      Element navIcon = document.createElement(IMAGE_BUTTON);
-      navIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
-      navIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "?attr/actionBarSize");
-      navIcon.setAttribute("style", "?attr/toolbarNavigationButtonStyle");
-      navIcon.setAttributeNS(ANDROID_URI, ATTR_SRC, "@drawable/abc_ic_ab_back_mtrl_am_alpha");
-      navIcon.setAttributeNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP, group.name());
-      toolbarComponent.appendChild(navIcon);
-
-      // Create a title using the same values that the Toolbar title has when created programmatically.
-      Element title = document.createElement(TEXT_VIEW);
-      title.setAttributeNS(ANDROID_URI, ATTR_TEXT, "Toolbar");
-      title.setAttributeNS(ANDROID_URI, "textAppearance", "@style/TextAppearance.Widget.AppCompat.Toolbar.Title");
-      title.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
-      title.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "?attr/actionBarSize");
-      title.setAttributeNS(ANDROID_URI, ATTR_GRAVITY, VALUE_CENTER_VERTICAL);
-      title.setAttributeNS(ANDROID_URI, "ellipsize", "end");
-      title.setAttributeNS(ANDROID_URI, ATTR_SINGLE_LINE, VALUE_TRUE);
-      title.setAttributeNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP, group.name());
-      toolbarComponent.appendChild(title);
-    }
-
     String attrPrefix = getAttrPrefix(myIsAppCompat);
+
+    Element navIcon = document.createElement(IMAGE_BUTTON);
+    navIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
+    navIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, attrPrefix + "actionBarSize");
+    if (myIsAppCompat) {
+      navIcon.setAttribute("style", "?attr/toolbarNavigationButtonStyle");
+    } else {
+      navIcon.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, "@android:color/transparent");
+      navIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, "10dp");
+    }
+    navIcon.setAttributeNS(ANDROID_URI, ATTR_SRC, attrPrefix + "homeAsUpIndicator");
+    navIcon.setAttributeNS(ANDROID_URI, "tint", attrPrefix + "actionMenuTextColor");
+    navIcon.setAttributeNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP, group.name());
+    toolbarComponent.appendChild(navIcon);
+
+    // Create a title using the same values that the Toolbar title has when created programmatically.
+    Element title = document.createElement(TEXT_VIEW);
+    title.setAttributeNS(ANDROID_URI, ATTR_TEXT, "Toolbar");
+    if (myIsAppCompat) {
+      title.setAttributeNS(ANDROID_URI, "textAppearance", "@style/TextAppearance.Widget.AppCompat.Toolbar.Title");
+    } else {
+      title.setAttributeNS(ANDROID_URI, "textAppearance", "@android:style/TextAppearance.Material.Widget.Toolbar.Title");
+    }
+    title.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
+    title.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, attrPrefix + "actionBarSize");
+    title.setAttributeNS(ANDROID_URI, ATTR_GRAVITY, VALUE_CENTER_VERTICAL);
+    title.setAttributeNS(ANDROID_URI, "ellipsize", "end");
+    title.setAttributeNS(ANDROID_URI, ATTR_SINGLE_LINE, VALUE_TRUE);
+    title.setAttributeNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP, group.name());
+    toolbarComponent.appendChild(title);
+
     Element menuIcon = document.createElement(IMAGE_BUTTON);
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, "40dp");
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, attrPrefix + "actionBarSize");
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, attrPrefix + "selectableItemBackground");
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY, GRAVITY_VALUE_RIGHT);
+    menuIcon.setAttribute("style", "?attr/toolbarNavigationButtonStyle");
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_SRC, "@drawable/abc_ic_menu_moreoverflow_mtrl_alpha");
     menuIcon.setAttributeNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP, group.name());
+    menuIcon.setAttributeNS(ANDROID_URI, "tint", attrPrefix + "actionMenuTextColor");
     toolbarComponent.appendChild(menuIcon);
 
     return toolbarComponent;
