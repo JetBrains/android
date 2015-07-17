@@ -458,7 +458,7 @@ public class ThemeEditorStyle {
                                           ThemeEditorUtils.getOriginalApiLevel(value, myProject));
     final FolderConfiguration sourceConfiguration = findAcceptableSourceFolderConfiguration(myConfiguration.getModule(), minAcceptableApi,
                                                                                             selectedFolders);
-    List<ResourceItem> styleResourceItems = getStyleResourceItems();
+    final List<ResourceItem> styleResourceItems = getStyleResourceItems();
 
     // Find a valid source style that we can copy to the new API level
     final ResourceItem sourceStyle = Iterables.find(styleResourceItems, new Predicate<ResourceItem>() {
@@ -500,23 +500,38 @@ public class ThemeEditorStyle {
         }
 
         if (copyStyle && sourceStyle != null) {
-          XmlTag sourceXmlTag = LocalResourceRepository.getItemTag(myProject, sourceStyle);
-          assert sourceXmlTag != null;
-          // copy this theme at the minimum api level for this attribute
-          ThemeEditorUtils.copyTheme(minAcceptableApi, sourceXmlTag);
+          final VersionQualifier qualifier = new VersionQualifier(minAcceptableApi);
 
-          AndroidFacet facet = AndroidFacet.getInstance(getModuleForAcquiringResources());
-          if (facet != null) {
-            facet.refreshResources();
+          // Does the theme already exist at the minimum acceptable API level?
+          boolean acceptableApiExists = Iterables.any(styleResourceItems, new Predicate<ResourceItem>() {
+            @Override
+            public boolean apply(ResourceItem input) {
+              return input.getQualifiers().contains(qualifier.getFolderSegment());
+            }
+          });
+
+          if (!acceptableApiExists) {
+            XmlTag sourceXmlTag = LocalResourceRepository.getItemTag(myProject, sourceStyle);
+            assert sourceXmlTag != null;
+            // copy this theme at the minimum api level for this attribute
+            ThemeEditorUtils.copyTheme(minAcceptableApi, sourceXmlTag);
+
+            AndroidFacet facet = AndroidFacet.getInstance(getModuleForAcquiringResources());
+            if (facet != null) {
+              facet.refreshResources();
+            }
           }
+
           List<ResourceItem> newResources = getStyleResourceItems();
-          VersionQualifier qualifier = new VersionQualifier(minAcceptableApi);
           for (ResourceItem resourceItem : newResources) {
             if (resourceItem.getQualifiers().contains(qualifier.getFolderSegment())) {
               final XmlTag sourceXml = LocalResourceRepository.getItemTag(myProject, resourceItem);
               assert sourceXml != null;
 
-              final XmlTag child = sourceXml.createChildTag(SdkConstants.TAG_ITEM, sourceXml.getNamespace(), value, false);
+              XmlTag child = getValueTag(sourceXml, attribute);
+              if (child == null) {
+                child = sourceXml.createChildTag(SdkConstants.TAG_ITEM, sourceXml.getNamespace(), value, false);
+              }
               child.setAttribute(SdkConstants.ATTR_NAME, attribute);
               sourceXml.addSubTag(child, false);
               break;
