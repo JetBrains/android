@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.JavaArtifact;
 import com.android.sdklib.IAndroidTarget;
+import com.google.common.base.Joiner;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.compiler.CompileScope;
@@ -79,8 +80,15 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       return;
     }
 
-    handlePlatformJar(classPath, platform, (JavaArtifact)testArtifact);
-    handleJavaResources(module, ideaAndroidProject, classPath);
+    String originalClassPath = classPath.getPathsString();
+    try {
+      handlePlatformJar(classPath, platform, (JavaArtifact)testArtifact);
+      handleJavaResources(module, ideaAndroidProject, classPath);
+    }
+    catch (Exception e) {
+      throw new RuntimeException(String.format("Error patching the JUnit class path. Original class path:%n%s", originalClassPath),
+                                 e);
+    }
   }
 
   // Removes real android.jar from the classpath and puts the mockable one at the end.
@@ -126,7 +134,8 @@ public class AndroidJunitPatcher extends JUnitPatcher {
         }
       }
 
-      throw new IllegalStateException("Could not find matching mockable platform jar.");
+      throw new IllegalStateException(String.format("Could not find matching mockable platform jar. Mockable jars found: [%s].",
+                                                    Joiner.on(',').join(mockableJars)));
     }
   }
 
