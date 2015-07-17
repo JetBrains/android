@@ -67,7 +67,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Processor;
@@ -78,8 +80,6 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.inspections.lint.IntellijLintClient;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -463,12 +463,30 @@ public class ThemeEditorUtils {
     VersionQualifier qualifier = new VersionQualifier(apiLevel);
     config.setVersionQualifier(qualifier);
     String folder = config.getFolderName(folderType);
-    final AndroidLintQuickFix action = OverrideResourceAction.createFix(folder);
-    // Context needed for calls on action, but has no effect, simply has to be non null
-    final AndroidQuickfixContexts.DesignerContext context = AndroidQuickfixContexts.DesignerContext.getInstance();
 
-    // Copies the theme to the new file
-    action.apply(toBeCopied, toBeCopied, context);
+    if (folderType != ResourceFolderType.VALUES) {
+      OverrideResourceAction.forkResourceFile((XmlFile)file, folder, false);
+    }
+    else {
+      XmlTag tag = OverrideResourceAction.getValueTag(PsiTreeUtil.getParentOfType(toBeCopied, XmlTag.class, false));
+      if (tag != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(toBeCopied);
+        if (facet != null) {
+          PsiDirectory dir = null;
+          PsiDirectory resFolder = file.getParent();
+          if (resFolder != null) {
+            resFolder = resFolder.getParent();
+          }
+          if (resFolder != null) {
+            dir = resFolder.findSubdirectory(folder);
+            if (dir == null) {
+              dir = resFolder.createSubdirectory(folder);
+            }
+          }
+          OverrideResourceAction.forkResourceValue(toBeCopied.getProject(), tag, file, facet, dir, false);
+        }
+      }
+    }
   }
 
   /**
