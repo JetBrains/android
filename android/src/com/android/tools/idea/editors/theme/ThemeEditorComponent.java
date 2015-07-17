@@ -44,6 +44,7 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.ResourceNotificationManager;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
 import com.google.common.collect.ImmutableList;
@@ -55,12 +56,14 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.MutableCollectionComboBoxModel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
@@ -71,6 +74,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -147,6 +151,13 @@ public class ThemeEditorComponent extends Splitter {
       @Override
       public void actionPerformed(ActionEvent e) {
         reload(myThemeName, mySubStyleName, getSelectedModule().getName());
+      }
+    });
+    moduleCombo.setRenderer(new ListCellRendererWrapper<Module>() {
+      @Override
+      public void customize(JList list, Module value, int index, boolean selected, boolean hasFocus) {
+        setIcon(GradleUtil.getModuleIcon(value));
+        setText(value.getName());
       }
     });
 
