@@ -31,6 +31,7 @@ import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -71,6 +72,7 @@ import static com.android.tools.idea.wizard.WizardConstants.SKIPPED_INSTALL_REQU
  */
 public class SdkQuickfixWizard extends DynamicWizard {
   private final List<IPkgDesc> myRequestedPackages;
+  private boolean myIsExiting = false;
 
   public SdkQuickfixWizard(@Nullable Project project, @Nullable Module module, List<IPkgDesc> requestedPackages) {
     this(project, module, requestedPackages, new DialogWrapperHost(project));
@@ -124,18 +126,28 @@ public class SdkQuickfixWizard extends DynamicWizard {
     }
     if (selectedOption == 0) {
       startSdkManagerAndExit();
+      myIsExiting = true;
+      return;
     }
-    else {
-      for (IPkgDesc desc : myRequestedPackages) {
-        if (selectedOption == 2 && problems.contains(desc)) {
-          state.listPush(SKIPPED_INSTALL_REQUESTS_KEY, desc);
-        }
-        else {
-          state.listPush(INSTALL_REQUESTS_KEY, desc);
-        }
+
+    for (IPkgDesc desc : myRequestedPackages) {
+      if (selectedOption == 2 && problems.contains(desc)) {
+        state.listPush(SKIPPED_INSTALL_REQUESTS_KEY, desc);
+      }
+      else {
+        state.listPush(INSTALL_REQUESTS_KEY, desc);
       }
     }
     super.init();
+  }
+
+  @Override
+  public boolean showAndGet() {
+    if (myIsExiting) {
+      Disposer.dispose(myHost.getDisposable());
+      return false;
+    }
+    return super.showAndGet();
   }
 
   private void startSdkManagerAndExit() {
