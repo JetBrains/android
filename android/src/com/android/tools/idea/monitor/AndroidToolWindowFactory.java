@@ -25,6 +25,7 @@ import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.monitor.cpu.CpuMonitorView;
 import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.android.tools.idea.monitor.memory.MemoryMonitorView;
+import com.android.tools.idea.monitor.network.NetworkMonitorView;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -129,6 +130,9 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     Content gpuContent = createGpuContent(layoutUi, project, deviceContext);
     layoutUi.addContent(gpuContent, 3, PlaceInGrid.center, false);
 
+    Content networkContent = createNetworkContent(layoutUi, project, deviceContext);
+    layoutUi.addContent(networkContent, 4, PlaceInGrid.center, false);
+
     layoutUi.getOptions().setLeftToolbar(getToolbarActions(project, deviceContext), ActionPlaces.UNKNOWN);
 
     final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), project);
@@ -221,6 +225,15 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
                                           @NotNull DeviceContext deviceContext) {
     GpuMonitorView view = new GpuMonitorView(project, deviceContext);
     Content content = layoutUi.createContent("GPU", view.createComponent(), "GPU", AndroidIcons.GpuMonitor, null);
+    content.setCloseable(false);
+    return content;
+  }
+
+  private static Content createNetworkContent(@NotNull RunnerLayoutUi layoutUi,
+                                              @NotNull Project project,
+                                              @NotNull DeviceContext deviceContext) {
+    NetworkMonitorView view = new NetworkMonitorView(project, deviceContext);
+    Content content = layoutUi.createContent("Network", view.createComponent(), "Network", AndroidIcons.NetworkMonitor, null);
     content.setCloseable(false);
     return content;
   }
