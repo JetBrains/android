@@ -17,8 +17,6 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +25,6 @@ import javax.swing.ComboBoxModel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -114,7 +111,9 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     }
 
     mySelectedObject = anItem;
-    buildEditOptionsList(mySelectedObject);
+    if (mySelectedObject instanceof ThemeEditorStyle) {
+      buildEditOptionsList(mySelectedObject);
+    }
 
     fireContentsChanged(this, -1, -1);
   }
