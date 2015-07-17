@@ -425,9 +425,14 @@ public class AppResourceRepository extends MultiResourceRepository {
       if (provider == null) {
         return false;
       }
-      assert myFacet.getIdeaAndroidProject() != null; // enforced in getResourceVisibility()
-      myResourceVisibility = provider.get(myFacet.getIdeaAndroidProject().getDelegate(),
-                                         myFacet.getIdeaAndroidProject().getSelectedVariant());
+      IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
+      if (project == null) {
+        // normally doesn't happen since we check in getResourceVisibility,
+        // but can be triggered during a sync (b/22523040)
+        return false;
+      }
+      myResourceVisibility = provider.get(project.getDelegate(),
+                                          project.getSelectedVariant());
     }
 
     return myResourceVisibility.isPrivate(type, name);
