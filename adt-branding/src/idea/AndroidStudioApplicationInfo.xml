@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <component>
-  <version major="1" minor="3" micro="0" patch="7" full="{0}.{1} RC 2" eap="true" />
+  <version major="1" minor="3" micro="0" patch="7" full="{0}.{1} RC 2" eap="false" />
   <company name="Google" url="http://developer.android.com"/>
   <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="141.1532.4"/>
   <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
