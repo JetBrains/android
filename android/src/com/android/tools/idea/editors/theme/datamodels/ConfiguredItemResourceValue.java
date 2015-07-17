@@ -18,6 +18,8 @@ package com.android.tools.idea.editors.theme.datamodels;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,10 +28,14 @@ import org.jetbrains.annotations.NotNull;
 public class ConfiguredItemResourceValue implements Configurable {
   final FolderConfiguration myFolderConfiguration;
   final ItemResourceValue myValue;
+  final ThemeEditorStyle mySourceStyle;
 
-  public ConfiguredItemResourceValue(@NotNull FolderConfiguration folderConfiguration, @NotNull ItemResourceValue value) {
+  public ConfiguredItemResourceValue(@NotNull FolderConfiguration folderConfiguration,
+                                     @NotNull ItemResourceValue value,
+                                     @NotNull ThemeEditorStyle sourceStyle) {
     myFolderConfiguration = folderConfiguration;
     myValue = value;
+    mySourceStyle = sourceStyle;
   }
 
   /**
@@ -46,8 +52,14 @@ public class ConfiguredItemResourceValue implements Configurable {
     return myValue;
   }
 
+  @NotNull
+  public ThemeEditorStyle getSourceStyle() {
+    return mySourceStyle;
+  }
+
   @Override
   public String toString() {
-    return String.format("[%1$s] %2$s", myFolderConfiguration, myValue);
+    return String.format("[%1$s] %2$s = %3$s (%4$s)", myFolderConfiguration, ResolutionUtils.getQualifiedItemName(myValue),
+                         ResolutionUtils.getQualifiedValue(myValue), mySourceStyle.getQualifiedName());
   }
 }
