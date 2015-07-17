@@ -104,7 +104,7 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
       ClassInstance classInstance = (ClassInstance)myValueData;
       for (ClassInstance.FieldValue entry : classInstance.getValues()) {
         if (charBufferArray == null && "value".equals(entry.getField().getName())) {
-          if (entry.getValue() instanceof ArrayInstance) {
+          if (entry.getValue() instanceof ArrayInstance && ((ArrayInstance)entry.getValue()).getArrayType() == Type.CHAR) {
             charBufferArray = (ArrayInstance)entry.getValue();
           }
         }
