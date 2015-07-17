@@ -139,7 +139,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     if (folderType != ResourceFolderType.VALUES) {
       forkResourceFile((XmlFile)file, null, true);
     } else if (editor != null) {
-      forkResourceValue(project, editor, file, facet, null);
+      forkResourceValue(project, editor, file, facet, null, true);
     }
   }
 
@@ -147,12 +147,13 @@ public class OverrideResourceAction extends AbstractIntentionAction {
                                         @NotNull Editor editor,
                                         @NotNull PsiFile file,
                                         @NotNull AndroidFacet facet,
-                                        @Nullable PsiDirectory dir) {
+                                        @Nullable PsiDirectory dir,
+                                        boolean open) {
     XmlTag tag = getValueTag(editor, file);
     if (tag == null) {
       return; // shouldn't happen; we checked in isAvailable
     }
-    forkResourceValue(project, tag, file, facet, dir);
+    forkResourceValue(project, tag, file, facet, dir, open);
   }
 
   @Nullable
@@ -161,8 +162,21 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     return resourceFolder == null ? null : resourceFolder.getParent();
   }
 
-  protected static void forkResourceValue(@NotNull Project project, @NotNull XmlTag tag, @NotNull PsiFile file,
-                                          @NotNull AndroidFacet facet, @Nullable PsiDirectory dir) {
+  /**
+   * Create a variation (copy) of a given resource.
+   * @param project Current project
+   * @param tag Resource to be copied
+   * @param file File containing the resource
+   * @param facet Facet to contain the new resource
+   * @param dir Directory to contain the new resource, or null to ask the user
+   * @param open if true, open the file containing the new resource
+   */
+  public static void forkResourceValue(@NotNull Project project,
+                                       @NotNull XmlTag tag,
+                                       @NotNull PsiFile file,
+                                       @NotNull AndroidFacet facet,
+                                       @Nullable PsiDirectory dir,
+                                       boolean open) {
 
     PsiDirectory resFolder = findRes(file);
     if (resFolder == null) {
@@ -178,7 +192,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     }
     if (dir != null) {
       String value = PsiResourceItem.getTextContent(tag).trim();
-      createValueResource(file, facet, dir, name, value, type, tag.getText());
+      createValueResource(file, facet, dir, name, value, type, tag.getText(), open);
     }
   }
 
@@ -198,7 +212,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
   }
 
   @Nullable
-  private static XmlTag getValueTag(@Nullable XmlTag tag) {
+  public static XmlTag getValueTag(@Nullable XmlTag tag) {
     XmlTag current = null;
     if (tag != null) {
       current = tag;
@@ -222,7 +236,8 @@ public class OverrideResourceAction extends AbstractIntentionAction {
                                           @NotNull final String resName,
                                           @NotNull final String value,
                                           @NotNull final ResourceType type,
-                                          @NotNull final String oldTagText) {
+                                          @NotNull final String oldTagText,
+                                          boolean open) {
     final String filename = file.getName();
     final List<String> dirNames = Collections.singletonList(dir.getName());
     final Module module = facet.getModule();
@@ -257,7 +272,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     };
     action.execute();
     PsiElement tag = openAfter.get();
-    if (tag != null) {
+    if (open && tag != null) {
       NavigationUtil.openFileWithPsiElement(tag, true, true);
     }
   }
@@ -541,7 +556,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
                     }
                   }
                 }
-                forkResourceValue(startElement.getProject(), tag, file, facet, dir);
+                forkResourceValue(startElement.getProject(), tag, file, facet, dir, true);
               }
             }
           }
