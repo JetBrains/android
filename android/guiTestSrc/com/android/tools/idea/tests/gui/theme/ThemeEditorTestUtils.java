@@ -15,11 +15,21 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredItemResourceValue;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Utility class for static methods used in UI tests for the Theme Editor
@@ -48,5 +58,20 @@ public class ThemeEditorTestUtils {
   public static void enableThemeEditor() {
     // TODO: remove once the theme editor flag has been removed
     System.setProperty("enable.theme.editor", "true");
+  }
+
+  /**
+   * Returns the attributes that were defined in the theme itself and not its parents.
+   */
+  public static Collection<EditedStyleItem> getStyleLocalValues(@NotNull final ThemeEditorStyle style) {
+    final Set<String> localAttributes = style.getConfiguredValues().keySet();
+
+    return Collections2.filter(ThemeEditorUtils.resolveAllAttributes(style), new Predicate<EditedStyleItem>() {
+      @Override
+      public boolean apply(@javax.annotation.Nullable EditedStyleItem input) {
+        assert input != null;
+        return localAttributes.contains(input.getQualifiedName());
+      }
+    });
   }
 }
