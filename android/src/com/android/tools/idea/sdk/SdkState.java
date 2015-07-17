@@ -197,7 +197,11 @@ public class SdkState {
     // If we are on the dispatch thread, show progress while waiting.
     ProgressManager pm = ProgressManager.getInstance();
     ProgressIndicator indicator = pm.getProgressIndicator();
-    indicator = indicator == null ? new ProgressWindow(false, false, null) : indicator;
+    boolean startedProgress;
+    indicator = (startedProgress = indicator == null) ? new ProgressWindow(false, false, null) : indicator;
+    if (startedProgress) {
+      indicator.start();
+    }
     pm.executeProcessUnderProgress(new Runnable() {
       @Override
       public void run() {
@@ -218,6 +222,9 @@ public class SdkState {
         }
       }
     }, indicator);
+    if (startedProgress) {
+      indicator.stop();
+    }
     return result;
   }
 
