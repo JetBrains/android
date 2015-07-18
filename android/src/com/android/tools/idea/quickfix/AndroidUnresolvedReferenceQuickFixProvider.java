@@ -17,6 +17,7 @@ package com.android.tools.idea.quickfix;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.google.common.collect.Sets;
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar;
 import com.intellij.codeInsight.daemon.impl.quickfix.OrderEntryFix;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -24,18 +25,19 @@ import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider;
 import com.intellij.jarFinder.FindJarFix;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packageDependencies.DependencyValidationManager;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForPsiElement;
@@ -43,12 +45,11 @@ import static com.intellij.openapi.module.ModuleUtilCore.findModuleForPsiElement
 public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedReferenceQuickFixProvider<PsiJavaCodeReferenceElement> {
 
   @Override
-  public void registerFixes(@NotNull PsiJavaCodeReferenceElement reference, @NotNull QuickFixActionRegistrar registrar) {
+  public void registerFixes(final @NotNull PsiJavaCodeReferenceElement reference, @NotNull QuickFixActionRegistrar registrar) {
     Module contextModule = findModuleForPsiElement(reference);
     if (contextModule == null) {
       return;
     }
-
     AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(contextModule);
     if (gradleFacet == null) {
       return;
@@ -61,6 +62,10 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
 
     PsiFile contextFile = reference.getContainingFile();
     if (contextFile == null) {
+      return;
+    }
+    final VirtualFile classVFile = contextFile.getVirtualFile();
+    if (classVFile == null) {
       return;
     }
 
@@ -82,8 +87,7 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
       return;
     }
 
-    // TODO implement a quickfix that could properly "add junit dependency", "add library dependency" to the gradle file.
-
+    // TODO implement a quickfix that could properly "add junit dependency" to the gradle file.
     PsiElement psiElement = reference.getElement();
     String referenceName = reference.getRangeInElement().substring(psiElement.getText());
     Project project = psiElement.getProject();
@@ -94,8 +98,57 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
 
     if (!allowedDependencies.isEmpty()) {
       classes = allowedDependencies.toArray(new PsiClass[allowedDependencies.size()]);
-      registrar.register(new AddGradleProjectDependencyFix(contextModule, contextFile.getVirtualFile(), classes, reference));
+      registrar.register(new AddGradleProjectDependencyFix(contextModule, classVFile, classes, reference));
     }
+
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(psiElement.getProject());
+    ProjectFileIndex fileIndex = ProjectRootManager.getInstance(project).getFileIndex();
+
+    Set<Object> librariesToAdd = Sets.newHashSet();
+    for (PsiClass aClass : classes) {
+      if (!facade.getResolveHelper().isAccessible(aClass, psiElement, aClass)) {
+        continue;
+      }
+      PsiFile psiFile = aClass.getContainingFile();
+      if (psiFile == null) {
+        continue;
+      }
+      VirtualFile virtualFile = psiFile.getVirtualFile();
+      if (virtualFile == null) {
+        continue;
+      }
+      ModuleFileIndex moduleFileIndex = ModuleRootManager.getInstance(contextModule).getFileIndex();
+      for (OrderEntry orderEntry : fileIndex.getOrderEntriesForFile(virtualFile)) {
+        if (orderEntry instanceof LibraryOrderEntry) {
+          LibraryOrderEntry libraryEntry = (LibraryOrderEntry)orderEntry;
+          Library library = libraryEntry.getLibrary();
+          if (library == null) {
+            continue;
+          }
+          VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
+          if (files.length == 0) {
+            continue;
+          }
+          final VirtualFile jar = files[0];
+
+          if (jar == null || libraryEntry.isModuleLevel() && !librariesToAdd.add(jar) || !librariesToAdd.add(library)) {
+            continue;
+          }
+          OrderEntry entryForFile = moduleFileIndex.getOrderEntryForFile(virtualFile);
+          if (entryForFile != null) {
+            if (entryForFile instanceof ExportableOrderEntry &&
+                ((ExportableOrderEntry)entryForFile).getScope() == DependencyScope.TEST &&
+                !ModuleRootManager.getInstance(contextModule).getFileIndex().isInTestSourceContent(classVFile)) {
+            }
+            else {
+              continue;
+            }
+          }
+          registrar.register(new AddGradleLibraryDependencyFix(libraryEntry, contextModule, aClass, reference));
+        }
+      }
+    }
+
   }
 
   // Duplicated from com.intellij.codeInsight.daemon.impl.quickfix.OrderEntryFix.filterAllowedDependencies

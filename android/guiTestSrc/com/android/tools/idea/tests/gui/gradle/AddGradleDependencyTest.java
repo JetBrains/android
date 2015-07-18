@@ -27,8 +27,12 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
+import static com.intellij.openapi.util.io.FileUtil.appendToFile;
+import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.vcsUtil.VcsUtil.getFileContent;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
@@ -55,6 +59,38 @@ public class AddGradleDependencyTest extends GuiTestCase {
                               "Add dependency on module 'library3'");
 
     assertBuildFileContains(projectFrame, "app/build.gradle", "androidTestCompile project(':library3')");
+  }
+
+  @Test @IdeGuiTest
+  public void testAddLibDependencyDeclaredInJavaProject() throws IOException {
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    File buildFile = new File(projectFrame.getProjectPath(), join("library3", FN_BUILD_GRADLE));
+    assertThat(buildFile).isFile();
+    appendToFile(buildFile, "dependencies { compile 'com.google.guava:guava:18.0' }");
+    projectFrame.requestProjectSync();
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/androidTest/java/com/android/multimodule/ApplicationTest.java");
+    typeImportAndInvokeAction(projectFrame, "com.android.multimodule;\n^","import com.google.common.base.Obje^cts;",
+                              "Add library 'com.google.guava:guava:18.0' to classpath");
+
+    assertBuildFileContains(projectFrame, "app/build.gradle", "compile 'com.google.guava:guava:18.0'");
+  }
+
+  @Test @IdeGuiTest
+  public void testAddLibDependencyDeclaredInAndroidProject() throws IOException {
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    File buildFile = new File(projectFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
+    assertThat(buildFile).isFile();
+    appendToFile(buildFile, "dependencies { compile 'com.google.guava:guava:18.0' }");
+    projectFrame.requestProjectSync();
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("library3/src/main/java/com/example/MyLibrary.java");
+    typeImportAndInvokeAction(projectFrame, "package com.example;\n^", "import com.google.common.base.Obje^cts;",
+                              "Add library 'com.google.guava:guava:18.0' to classpath");
+
+    assertBuildFileContains(projectFrame, "app/build.gradle", "compile 'com.google.guava:guava:18.0'");
   }
 
   private static void typeImportAndInvokeAction(@NotNull IdeFrameFixture projectFrame, @NotNull String lineToType,
