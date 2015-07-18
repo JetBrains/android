@@ -20,19 +20,19 @@ import com.android.tools.idea.configurations.ThemeSelectionDialog;
 import com.android.tools.idea.editors.theme.ParentThemesListModel;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.ComboBox;
-
-import java.awt.Component;
-import javax.swing.JTable;
-import javax.swing.table.TableCellRenderer;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
+import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.JTable;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  * Custom Renderer and Editor for the theme parent attribute.
@@ -43,6 +43,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
   private final ComboBox myComboBox;
   private @Nullable String myResultValue;
   private final ThemeEditorContext myContext;
+  private final JBLabel myReadOnlyLabel;
 
   public ParentRendererEditor(@NotNull ThemeEditorContext context) {
     myContext = context;
@@ -50,17 +51,22 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
     //noinspection GtkPreferredJComboBoxRenderer
     myComboBox.setRenderer(new StyleListCellRenderer(context));
     myComboBox.addActionListener(new ParentChoiceListener());
+    myReadOnlyLabel = new JBLabel();
   }
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    final Component component;
+    final TableModel model = table.getModel();
+    if (!model.isCellEditable(row, column)) {
+      final ThemeEditorStyle style = (ThemeEditorStyle)value;
+      myReadOnlyLabel.setText(style.getName());
+      return myReadOnlyLabel;
+    }
 
     myComboBox.removeAllItems();
     myComboBox.addItem(value);
-    component = myComboBox;
 
-    return component;
+    return myComboBox;
   }
 
   @Override
