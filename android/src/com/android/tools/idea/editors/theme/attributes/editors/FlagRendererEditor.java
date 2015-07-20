@@ -44,7 +44,13 @@ import java.util.*;
  */
 public class FlagRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
   private final Box myBox = new Box(BoxLayout.LINE_AXIS);
-  private final JLabel myLabel = new JLabel();
+  /** Renderer component, with isShowing overridden because of the use of a {@link CellRendererPane} */
+  private final JLabel myLabel = new JLabel() {
+    @Override
+    public boolean isShowing() {
+      return true;
+    }
+  };
   private final EditorTextField myTextField = new EditorTextField();
   private EditedStyleItem myItem = null;
 
