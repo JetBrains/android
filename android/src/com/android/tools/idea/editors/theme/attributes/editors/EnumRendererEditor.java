@@ -36,7 +36,13 @@ public class EnumRendererEditor extends TypedCellEditor<EditedStyleItem, String>
   private final ComboBox myComboBox;
 
   public EnumRendererEditor() {
-    myComboBox = new ComboBox();
+    // Override isShowing because of the use of a {@link CellRendererPane}
+    myComboBox = new ComboBox() {
+      @Override
+      public boolean isShowing() {
+        return true;
+      }
+    };
     myComboBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {

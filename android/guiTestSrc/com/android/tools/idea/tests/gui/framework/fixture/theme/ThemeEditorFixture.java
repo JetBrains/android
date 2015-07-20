@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JPanel;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
@@ -57,8 +58,8 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
   }
 
   @NotNull
-  public JTableFixture getPropertiesTable() {
-    return new JTableFixture(robot(), robot().finder().findByType(this.target().getSecondComponent(), ThemeEditorTable.class));
+  public ThemeEditorTableFixture getPropertiesTable() {
+    return ThemeEditorTableFixture.find(robot());
   }
 
   @NotNull

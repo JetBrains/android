@@ -86,6 +86,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   private final JLabel myR_after = new JLabel("");
   private final JLabel myG_after = new JLabel("");
   private final JLabel myB_after = new JLabel("");
+  private final JLabel myHexLabel = new JLabel("#");
   private final JComboBox myFormat = new JComboBox() {
     @Override
     public Dimension getPreferredSize() {
@@ -112,6 +113,11 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     myBlue = createColorField(false);
     myHex = createColorField(true);
     myOpacityInPercent = opacityInPercent;
+    myA.setLabelFor(myAlpha);
+    myR.setLabelFor(myRed);
+    myG.setLabelFor(myGreen);
+    myB.setLabelFor(myBlue);
+    myHexLabel.setLabelFor(myHex);
     setLayout(new BorderLayout());
     setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
 
@@ -469,7 +475,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     final JPanel hexPanel = new JPanel();
     hexPanel.setLayout(new BoxLayout(hexPanel, BoxLayout.X_AXIS));
     hexPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-    hexPanel.add(new JLabel("#"));
+    hexPanel.add(myHexLabel);
     hexPanel.add(myHex);
 
     result.add(hexPanel, BorderLayout.EAST);
