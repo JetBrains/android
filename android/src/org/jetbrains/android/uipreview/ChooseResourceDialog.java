@@ -370,14 +370,14 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   protected ValidationInfo doValidate() {
     Component selectedComponent = myContentPanel.getSelectedComponent();
 
-    final boolean oKActionEnabled;
+    final boolean okActionEnabled;
     ValidationInfo error = null;
 
     if (selectedComponent == mySystemPanel.myComponent || selectedComponent ==myProjectPanel.myComponent) {
       boolean isProjectPanel = selectedComponent == myProjectPanel.myComponent;
       ResourcePanel panel = isProjectPanel ? myProjectPanel : mySystemPanel;
       ResourceItem element = getSelectedElement(panel.myTreeBuilder, ResourceItem.class);
-      oKActionEnabled = element != null;
+      okActionEnabled = element != null;
     }
     else {
       // if name is hidden, then we allow any value
@@ -393,13 +393,13 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
           error = tabComponent.getLocationSettings().doValidate();
         }
       }
-      oKActionEnabled = error == null;
+      okActionEnabled = error == null;
     }
 
     // Need to always manually update the setOKActionEnabled as the DialogWrapper
     // only updates it if we go from having a error string to not having one
     // or the other way round, but not if the error string state has not changed.
-    setOKActionEnabled(oKActionEnabled);
+    setOKActionEnabled(okActionEnabled);
 
     return error;
   }
