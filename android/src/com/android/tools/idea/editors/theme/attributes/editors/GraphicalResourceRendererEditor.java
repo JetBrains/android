@@ -68,7 +68,13 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
 
   public GraphicalResourceRendererEditor(@NotNull ThemeEditorContext context, boolean isEditor) {
     myContext = context;
-    myComponent = new ResourceComponent();
+    // Override isShowing because of the use of a {@link CellRendererPane}
+    myComponent = new ResourceComponent() {
+      @Override
+      public boolean isShowing() {
+        return true;
+      }
+    };
 
     if (isEditor) {
       myComponent.addVariantItemListener(new VariantItemListener());

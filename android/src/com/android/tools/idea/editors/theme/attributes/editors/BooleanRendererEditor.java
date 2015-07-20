@@ -49,7 +49,13 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Stri
 
   public BooleanRendererEditor(@NotNull ThemeEditorContext context) {
     myContext = context;
-    myComboBox = new ComboBox();
+    // Override isShowing because of the use of a {@link CellRendererPane}
+    myComboBox = new ComboBox() {
+      @Override
+      public boolean isShowing() {
+        return true;
+      }
+    };
     myComboBox.addActionListener(new BooleanChoiceListener());
   }
 

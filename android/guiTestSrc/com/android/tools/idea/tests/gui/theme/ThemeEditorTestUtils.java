@@ -29,7 +29,7 @@ public class ThemeEditorTestUtils {
 
   @NotNull
   public static ThemeEditorFixture openThemeEditor(@NotNull IdeFrameFixture projectFrame) {
-    // Make sure to have focus, no always automatic depending on window manager
+    // Makes sure Android Studio has focus, useful when running with a window manager
     projectFrame.focus();
 
     EditorFixture editor = projectFrame.getEditor();
