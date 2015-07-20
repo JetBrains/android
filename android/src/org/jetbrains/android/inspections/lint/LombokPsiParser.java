@@ -34,7 +34,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.ArrayUtil;
@@ -948,6 +947,22 @@ public class LombokPsiParser extends JavaParser {
             if (!method.isConstructor()) {
               result.add(new ResolvedPsiMethod(method));
             }
+          }
+          return result;
+        }
+      }
+      return Collections.emptyList();
+    }
+
+    @NonNull
+    @Override
+    public Iterable<ResolvedField> getFields(boolean includeInherited) {
+      if (myClass != null) {
+        PsiField[] fields = includeInherited ? myClass.getAllFields() : myClass.getFields();
+        if (fields.length > 0) {
+          List<ResolvedField> result = Lists.newArrayListWithExpectedSize(fields.length);
+          for (PsiField field : fields) {
+            result.add(new ResolvedPsiField(field));
           }
           return result;
         }
