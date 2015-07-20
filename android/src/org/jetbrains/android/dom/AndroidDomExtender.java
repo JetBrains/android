@@ -111,6 +111,11 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }
   };
 
+  @Override
+  public boolean supportsStubs() {
+    return false;
+  }
+
   @Nullable
   public static String getNamespaceKeyByResourcePackage(@NotNull AndroidFacet facet, @Nullable String resPackage) {
     if (resPackage == null) {
