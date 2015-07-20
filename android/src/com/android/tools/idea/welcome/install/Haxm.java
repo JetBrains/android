@@ -99,6 +99,10 @@ public final class Haxm extends InstallableComponent {
       CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(command);
       return FullRevision.parseRevision(process.runProcess().getStdout());
     }
+    catch (NumberFormatException e) {
+      LOG.warn("Invalid HAXM version found.", e);
+      return new FullRevision(0);
+    }
     catch (ExecutionException e) {
       throw new WizardException("Failed to get HAXM version", e);
     }
