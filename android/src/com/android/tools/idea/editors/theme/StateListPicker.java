@@ -22,6 +22,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.attributes.editors.ColorRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
@@ -35,6 +36,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -47,6 +49,7 @@ import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -78,12 +81,14 @@ public class StateListPicker extends JPanel {
   private final Module myModule;
   private final Configuration myConfiguration;
   private final StateList myStateList;
+  private final List<StateComponent> myStateComponents;
   private @Nullable final RenderTask myRenderTask;
 
   public StateListPicker(@NotNull StateList stateList, @NotNull Module module, @NotNull Configuration configuration) {
     myStateList = stateList;
     myModule = module;
     myConfiguration = configuration;
+    myStateComponents = Lists.newArrayListWithCapacity(stateList.getStates().size());
     myRenderTask = DrawableRendererEditor.configureRenderTask(module, configuration);
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
@@ -98,6 +103,7 @@ public class StateListPicker extends JPanel {
   @NotNull
   private StateComponent createStateComponent(@NotNull final StateListState state) {
     final StateComponent stateComponent = new StateComponent();
+    myStateComponents.add(stateComponent);
 
     String stateValue = state.getValue();
     updateComponent(stateComponent, stateValue, state.getAlpha());
@@ -228,9 +234,11 @@ public class StateListPicker extends JPanel {
             for (String attributeName : attributes.keySet()) {
               child.setAttribute(attributeName, SdkConstants.ANDROID_URI, attributes.get(attributeName).toString());
             }
+
             if (state.getAlpha() != null) {
               child.setAttribute("alpha", SdkConstants.ANDROID_URI, state.getAlpha());
             }
+
             if (selector instanceof ColorSelector) {
               child.setAttribute(SdkConstants.ATTR_COLOR, SdkConstants.ANDROID_URI, state.getValue());
             }
@@ -241,6 +249,44 @@ public class StateListPicker extends JPanel {
         }
       }
     }.execute();
+  }
+
+  /**
+   * Returns a {@Link ValidationInfo} specifying which of the state list component has a value which is a private resource.
+   * If there is no such component, returns null.
+   */
+  @Nullable
+  public ValidationInfo getPrivateResourceError() {
+    IAndroidTarget target = myConfiguration.getTarget();
+    assert target != null;
+    final AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, myModule);
+    assert androidTargetData != null;
+
+    ValidationInfo error = null;
+    String errorText = "%s is a private Android resource";
+    String resourceValue;
+
+    for (StateComponent component : myStateComponents) {
+      resourceValue = component.getResourceValue();
+      if (isResourcePrivate(resourceValue, androidTargetData)) {
+        error = component.getResourceComponent().createSwatchValidationInfo(String.format(errorText, resourceValue));
+        break;
+      }
+      else {
+        resourceValue = component.getAlphaValue();
+        if (isResourcePrivate(resourceValue, androidTargetData)) {
+          error = new ValidationInfo(String.format(errorText, resourceValue), component.getAlphaComponent());
+          break;
+        }
+      }
+    }
+
+    return error;
+  }
+
+  private static boolean isResourcePrivate(@NotNull String resourceValue, @NotNull AndroidTargetData targetData) {
+    ResourceUrl url = ResourceUrl.parse(resourceValue);
+    return url != null && url.framework && !targetData.isResourcePublic(url.type.getName(), url.name);
   }
 
   class ValueActionListener implements ActionListener {
@@ -508,6 +554,16 @@ public class StateListPicker extends JPanel {
       myResourceComponent.setSwatchIcons(SwatchComponent.colorListOf(colorList));
       List<NumericalIcon> list = Collections.singletonList(new NumericalIcon(alpha, getFont()));
       myAlphaComponent.setSwatchIcons(list);
+    }
+
+    @NotNull
+    public String getResourceValue() {
+      return myResourceComponent.getValueText();
+    }
+
+    @NotNull
+    public String getAlphaValue() {
+      return myAlphaComponent.getText();
     }
 
     public void addValueActionListener(@NotNull ValueActionListener listener) {
