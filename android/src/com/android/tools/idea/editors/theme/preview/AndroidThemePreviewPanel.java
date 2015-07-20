@@ -45,9 +45,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.Query;
@@ -62,9 +59,6 @@ import org.w3c.dom.Node;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.event.DocumentEvent;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import javax.xml.parsers.ParserConfigurationException;
 import java.awt.Color;
 import java.awt.Component;
@@ -81,7 +75,6 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -121,13 +114,11 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
   private final ThemeEditorContext myContext;
   protected final NavigationComponent<Breadcrumb> myBreadcrumbs;
-  protected final SearchTextField mySearchTextField;
   protected final AndroidPreviewPanel myAndroidPreviewPanel;
   protected final JBScrollPane myScrollPane;
 
   private final ScheduledExecutorService mySearchScheduler = Executors.newSingleThreadScheduledExecutor();
   /** Next pending search. The {@link ScheduledFuture} allows us to cancel the next search before it runs. */
-  private ScheduledFuture<?> myPendingSearch;
 
   protected DumbService myDumbService;
 
@@ -221,48 +212,11 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     myScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     myScrollPane.setBorder(null);
     myScrollPane.setViewportBorder(null);
-    mySearchTextField = new SearchTextField(true);
-    // Avoid search box stretching more than 1 line.
-    mySearchTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, mySearchTextField.getPreferredSize().height));
-    mySearchTextField.setBorder(IdeBorderFactory.createEmptyBorder(0, 30, 0, 30));
-    final Runnable delayedUpdate = new Runnable() {
-      @Override
-      public void run() {
-        rebuild();
-      }
-    };
-
-    // We use a timer when we detect a change in the search field to avoid re-creating the preview if it's not necessary.
-    mySearchTextField.addDocumentListener(new DocumentAdapter() {
-      @Override
-      protected void textChanged(DocumentEvent e) {
-        Document document = e.getDocument();
-        try {
-          String search = document.getText(0, document.getLength());
-
-          // Only use search terms longer than 3 characters.
-          String newSearchTerm = search.length() < 3 ? "" : search;
-          if (newSearchTerm.equals(mySearchTerm)) {
-            return;
-          }
-          if (myPendingSearch != null) {
-            myPendingSearch.cancel(true);
-          }
-          mySearchTerm = newSearchTerm;
-          myPendingSearch = mySearchScheduler.schedule(delayedUpdate, 300, TimeUnit.MILLISECONDS);
-        }
-        catch (BadLocationException e1) {
-          LOG.error(e1);
-        }
-      }
-    });
 
     myBreadcrumbs.setRootItem(new Breadcrumb("All components"));
 
     add(Box.createRigidArea(new Dimension(0, 5)));
     add(myBreadcrumbs);
-    add(Box.createRigidArea(new Dimension(0, 10)));
-    add(mySearchTextField);
     add(Box.createRigidArea(new Dimension(0, 10)));
     add(myScrollPane);
 
@@ -286,8 +240,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
           if (view == null) {
             return;
           }
-
-          mySearchTextField.setText("");
 
           Object cookie = view.getCookie();
           if (cookie instanceof MergeCookie) {
@@ -323,12 +275,22 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     });
   }
 
+  /**
+   * Set a search term to filter components in a preview, will trigger a delayed update.
+   */
+  public void setSearchTerm(@NotNull String searchTerm) {
+    if (searchTerm.equals(mySearchTerm)) {
+      return;
+    }
+    mySearchTerm = searchTerm;
+    rebuild();
+  }
+
   @Override
   public void setBackground(Color bg) {
     super.setBackground(bg);
 
     myScrollPane.getViewport().setBackground(bg);
-    mySearchTextField.setBackground(bg);
     myBreadcrumbs.setBackground(bg);
   }
 
