@@ -44,6 +44,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   public static final int COL_COUNT = 2;
   /** Cells containing values with classes in WIDE_CLASSES are going to have column span 2 */
   private static final Set<Class<?>> WIDE_CLASSES = ImmutableSet.of(Color.class, DrawableDomElement.class);
+  public static final String NO_PARENT = "[no parent]";
 
   protected final List<EditedStyleItem> myAttributes;
   private List<TableLabel> myLabels;
@@ -198,7 +199,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
       else {
         ThemeEditorStyle parent = mySelectedStyle.getParent();
-        return parent == null ? "[no parent]" : parent;
+        return parent == null ? NO_PARENT : parent;
       }
     }
 
