@@ -27,8 +27,6 @@ import com.sun.jdi.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-
 public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
   private static final int MAX_VALUE_TEXT_LENGTH = 1024;
   @NotNull private ObjectReferenceImpl myObjectReference;
@@ -99,28 +97,46 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
       myTruncatedValueText = String.format(" \"class %s\"", ((ClassObj)myValueData).getClassName());
     }
     else if (isString()) {
+      int count = -1;
+      int offset = 0;
       ArrayInstance charBufferArray = null;
       assert (myValueData instanceof ClassInstance);
       ClassInstance classInstance = (ClassInstance)myValueData;
       for (ClassInstance.FieldValue entry : classInstance.getValues()) {
-        if ("value".equals(entry.getField().getName())) {
-          charBufferArray = (ArrayInstance)entry.getValue();
+        if (charBufferArray == null && "value".equals(entry.getField().getName())) {
+          if (entry.getValue() instanceof ArrayInstance) {
+            charBufferArray = (ArrayInstance)entry.getValue();
+          }
+        }
+        else if ("count".equals(entry.getField().getName())) {
+          if (entry.getValue() instanceof Integer) {
+            count = (Integer)entry.getValue();
+          }
+        }
+        else if ("offset".equals(entry.getField().getName())) {
+          if (entry.getValue() instanceof Integer) {
+            offset = (Integer)entry.getValue();
+          }
         }
       }
-      assert (charBufferArray != null);
 
-      char[] stringChars = charBufferArray.asCharArray(MAX_VALUE_TEXT_LENGTH);
-      int charLength = stringChars.length;
-      StringBuilder builder = new StringBuilder(6 + charLength);
-      builder.append(" \"");
-      if (charLength == MAX_VALUE_TEXT_LENGTH) {
-        builder.append(stringChars, 0, charLength - 1).append("...");
+      if (charBufferArray != null) {
+        char[] stringChars = charBufferArray.asCharArray(offset >= 0 ? offset : 0, Math.max(Math.min(count, MAX_VALUE_TEXT_LENGTH), 0));
+        int charLength = stringChars.length;
+        StringBuilder builder = new StringBuilder(6 + charLength);
+        builder.append(" \"");
+        if (charLength == MAX_VALUE_TEXT_LENGTH) {
+          builder.append(stringChars, 0, charLength - 1).append("...");
+        }
+        else {
+          builder.append(stringChars);
+        }
+        builder.append("\"");
+        myTruncatedValueText = builder.toString();
       }
       else {
-        builder.append(stringChars);
+        myTruncatedValueText = " ...<invalid string value>...";
       }
-      builder.append("\"");
-      myTruncatedValueText = builder.toString();
     }
     else {
       myTruncatedValueText = "";
