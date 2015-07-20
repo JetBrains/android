@@ -26,16 +26,20 @@ import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFi
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.google.common.collect.ImmutableList;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.DialogFixture;
+import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTreeFixture;
+import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.swing.JButton;
 import java.awt.Dialog;
 import java.io.IOException;
 import java.util.List;
@@ -107,7 +111,18 @@ public class ThemeSelectorTest extends GuiTestCase {
     projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
     DialogFixture message = new DialogFixture(myRobot, myRobot.finder().findByType(Dialog.class));
     message.focus();
-    GuiTests.findAndClickOkButton(message);
+    JButton OkButton = GuiTests.waitUntilFound(myRobot, message.target(), new GenericTypeMatcher<JButton>(JButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull JButton button) {
+        String buttonText = button.getText();
+        if (buttonText != null) {
+          return "OK".equals(buttonText.trim()) && button.isShowing();
+        }
+        return false;
+      }
+    });
+    JButtonFixture OkFixture = new JButtonFixture(myRobot, OkButton);
+    OkFixture.click();
     themeEditor.waitForThemeSelection("[AppTheme]");
     projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     assertEquals(-1, editor.findOffset(null, "name=\"NewAppTheme", true));
