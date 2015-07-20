@@ -22,6 +22,7 @@ import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.RenderResources;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
@@ -445,6 +446,28 @@ public class ThemeEditorUtils {
       return apiLookup.getFieldVersion("android/R$" + namePieces[0], AndroidResourceUtil.getFieldNameByResourceName(namePieces[1]));
     }
     return -1;
+  }
+
+  /**
+   * Checks if the theme selected in the configuration is AppCompat based.
+   */
+  public static boolean isAppCompatTheme(@NotNull Configuration configuration) {
+    ResourceResolver resources = configuration.getResourceResolver();
+
+    if (resources == null) {
+      LOG.error("ResourceResolver is null");
+      return false;
+    }
+
+    StyleResourceValue theme = resources.getDefaultTheme();
+    for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && theme != null; i++) {
+      // for loop ensures that we don't run into cyclic theme inheritance.
+      if (theme.getName().startsWith("Theme.AppCompat")) {
+        return true;
+      }
+      theme = resources.getParent(theme);
+    }
+    return false;
   }
 
   /**

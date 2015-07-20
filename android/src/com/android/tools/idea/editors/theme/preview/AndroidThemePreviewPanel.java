@@ -24,6 +24,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewBuilder.ComponentDefinition;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedViewHierarchy;
@@ -266,7 +267,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
       public boolean changed(int flags) {
         refreshConfiguration();
 
-        if (isAppCompatTheme(myContext.getConfiguration()) != myIsAppCompatTheme) {
+        if (ThemeEditorUtils.isAppCompatTheme(myContext.getConfiguration()) != myIsAppCompatTheme) {
           rebuild();
         }
 
@@ -381,7 +382,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
         .addComponentFilter(new ThemePreviewBuilder.ApiLevelFilter(minApiLevel))
         .addComponentFilter(myGroupFilter);
 
-      myIsAppCompatTheme = isAppCompatTheme(configuration);
+      myIsAppCompatTheme = ThemeEditorUtils.isAppCompatTheme(configuration);
       if (myIsAppCompatTheme) {
         builder
           .addComponentFilter(mySupportReplacementsFilter)
@@ -431,28 +432,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
    */
   public void invalidateGraphicsRenderer() {
     myAndroidPreviewPanel.invalidateGraphicsRenderer();
-  }
-
-  /**
-   * Checks if the theme selected in the configuration is AppCompat based.
-   */
-  static boolean isAppCompatTheme(Configuration configuration) {
-    ResourceResolver resources = configuration.getResourceResolver();
-
-    if (resources == null) {
-      LOG.error("ResourceResolver is null");
-      return false;
-    }
-
-    StyleResourceValue defaultTheme = resources.getDefaultTheme();
-    for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && defaultTheme != null; i++) {
-      // for loop ensures that we don't run into cyclic theme inheritance.
-      if (defaultTheme.getName().startsWith("Theme.AppCompat")) {
-        return true;
-      }
-      defaultTheme = resources.getParent(defaultTheme);
-    }
-    return false;
   }
 
   // Implements RenderContext
