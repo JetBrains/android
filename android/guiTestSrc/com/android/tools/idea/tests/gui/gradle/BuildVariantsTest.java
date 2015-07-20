@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.SdkConstants;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -23,13 +26,17 @@ import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindo
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
+import static com.intellij.openapi.util.io.FileUtil.appendToFile;
+import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
@@ -86,7 +93,7 @@ public class BuildVariantsTest extends GuiTestCase {
   public void switchingTestArtifacts() throws IOException {
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
     BuildVariantsToolWindowFixture buildVariants = projectFrame.getBuildVariantsWindow();
-    buildVariants.activate();
+    assertEquals("Android Instrumentation Tests", buildVariants.getSelectedTestArtifact());
 
     String androidTestSrc = MODULE_NAME + "/src/androidTest/java";
     String unitTestSrc = MODULE_NAME + "/src/test/java";
@@ -98,5 +105,99 @@ public class BuildVariantsTest extends GuiTestCase {
 
     testSourceFolders = projectFrame.getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
     assertThat(testSourceFolders).contains(unitTestSrc).excludes(androidTestSrc);
+  }
+
+  @Test @IdeGuiTest
+  public void generatedFolders_1_0() throws IOException {
+    doTestGeneratedFolders("1.0.1", "2.2.1");
+  }
+
+  @Test @IdeGuiTest
+  public void generatedFolders_1_1() throws IOException {
+    doTestGeneratedFolders("1.1.3", "2.2.1");
+  }
+
+  @Test @IdeGuiTest
+  public void generatedFolders_1_2() throws IOException {
+    doTestGeneratedFolders("1.2.3", "2.4");
+  }
+
+  @Test @IdeGuiTest
+  public void generatedFolders_1_3() throws IOException {
+    doTestGeneratedFolders("1.3.0-beta3", "2.4");
+  }
+
+  private void doTestGeneratedFolders(@NotNull String pluginVersion, @NotNull String gradleVersion) throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    projectFrame.updateAndroidModelVersion(pluginVersion);
+    projectFrame.updateGradleWrapperVersion(gradleVersion);
+
+    // Add generated folders to all kinds of variants.
+    File appBuildFile = new File(projectFrame.getProjectPath(), join("app", SdkConstants.FN_BUILD_GRADLE));
+    assertThat(appBuildFile).isFile();
+    String gradleSnippet = "project.afterEvaluate {\n" +
+                  "  android.applicationVariants.all { variant ->\n" +
+                  "    if (variant.name != 'debug') return" +
+                  "\n" +
+                  "" +
+                  "    File sourceFolder = file(\"${buildDir}/generated/customCode/${variant.dirName}\")\n" +
+                  "    variant.addJavaSourceFoldersToModel(sourceFolder)\n" +
+                  "\n" +
+                  "    def androidTestVariant = variant.testVariant\n" +
+                  "    File androidTestSourceFolder = file(\"${buildDir}/generated/customCode/${androidTestVariant.dirName}\")\n" +
+                  "    androidTestVariant.addJavaSourceFoldersToModel(androidTestSourceFolder)\n";
+
+    if (pluginVersion.startsWith("1.3")) {
+      gradleSnippet +=
+                  "\n" +
+                  "    def unitTestVariant = variant.unitTestVariant\n" +
+                  "    File unitTestSourceFolder = file(\"${buildDir}/generated/customCode/${unitTestVariant.dirName}\")\n" +
+                  "    unitTestVariant.addJavaSourceFoldersToModel(unitTestSourceFolder)\n";
+    }
+
+    gradleSnippet += "}\n}";
+
+    appendToFile(appBuildFile, gradleSnippet);
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    BuildVariantsToolWindowFixture buildVariants = projectFrame.getBuildVariantsWindow();
+    assertEquals("Android Instrumentation Tests", buildVariants.getSelectedTestArtifact());
+
+    String generatedSourceDirPath = MODULE_NAME + "/build/generated/customCode/";
+    String mainSrc = generatedSourceDirPath + "debug";
+    String androidTestSrc =  generatedSourceDirPath + "androidTest/debug";
+    String unitTestSrc = generatedSourceDirPath + "test/debug";
+
+    if (compareVersions(pluginVersion, "1.1") < 0) {
+      // In 1.0, we used "test/debug" for android tests and there was no concept of unit testing.
+      androidTestSrc = unitTestSrc;
+      unitTestSrc = null;
+    }
+
+    Collection<String> sourceFolders = projectFrame.getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
+    assertThat(sourceFolders).contains(mainSrc).excludes(androidTestSrc, unitTestSrc);
+    Collection<String> testSourceFolders = projectFrame.getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
+    assertThat(testSourceFolders).contains(androidTestSrc).excludes(unitTestSrc, mainSrc);
+
+    if (compareVersions(pluginVersion, "1.1") >= 0) {
+      buildVariants.selectTestArtifact("Unit Tests");
+
+      sourceFolders = projectFrame.getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
+      assertThat(sourceFolders).contains(mainSrc).excludes(androidTestSrc, unitTestSrc);
+
+      testSourceFolders = projectFrame.getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
+      if (compareVersions(pluginVersion, "1.3") >= 0) {
+        // In 1.3 we started to include unit testing generated folders in the model.
+        assertThat(testSourceFolders).contains(unitTestSrc).excludes(androidTestSrc, mainSrc);
+      } else {
+        assertThat(testSourceFolders).excludes(unitTestSrc, androidTestSrc, mainSrc);
+      }
+    }
+  }
+
+  private static int compareVersions(@NotNull String lhs, @NotNull String rhs) {
+    return PreciseRevision.parseRevision(lhs).compareTo(PreciseRevision.parseRevision(rhs),
+                                                        // Treat 1.3.0-beta3 as 1.3:
+                                                        FullRevision.PreviewComparison.IGNORE);
   }
 }

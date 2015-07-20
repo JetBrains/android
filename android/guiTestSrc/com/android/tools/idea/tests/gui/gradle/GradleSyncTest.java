@@ -394,9 +394,7 @@ public class GradleSyncTest extends GuiTestCase {
     });
 
     // Use old, unsupported Gradle in the wrapper.
-    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
-    assertNotNull(wrapperPropertiesFile);
-    updateGradleDistributionUrl("1.12", wrapperPropertiesFile);
+    projectFrame.updateGradleWrapperVersion("1.12");
 
     GradleProjectSettings settings = getGradleProjectSettings(project);
     assertNotNull(settings);
