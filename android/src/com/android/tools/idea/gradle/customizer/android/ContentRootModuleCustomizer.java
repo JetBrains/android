@@ -16,11 +16,13 @@
 package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.*;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -117,34 +119,56 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
   private void addSourceFolders(@NotNull IdeaAndroidProject androidProject,
                                 @NotNull Collection<ContentEntry> contentEntries,
-                                @NotNull BaseArtifact androidArtifact,
+                                @NotNull BaseArtifact artifact,
                                 boolean isTest,
                                 @NotNull List<RootSourceFolder> orphans) {
-    if (androidArtifact instanceof AndroidArtifact) {
-      addGeneratedSourceFolder(androidProject, contentEntries, (AndroidArtifact) androidArtifact, isTest, orphans);
-    }
+    addGeneratedSourceFolders(androidProject, contentEntries, artifact, isTest, orphans);
 
-    SourceProvider variantSourceProvider = androidArtifact.getVariantSourceProvider();
+    SourceProvider variantSourceProvider = artifact.getVariantSourceProvider();
     if (variantSourceProvider != null) {
       addSourceFolder(androidProject, contentEntries, variantSourceProvider, isTest, orphans);
     }
 
-    SourceProvider multiFlavorSourceProvider = androidArtifact.getMultiFlavorSourceProvider();
+    SourceProvider multiFlavorSourceProvider = artifact.getMultiFlavorSourceProvider();
     if (multiFlavorSourceProvider != null) {
       addSourceFolder(androidProject, contentEntries, multiFlavorSourceProvider, isTest, orphans);
     }
   }
 
-  private void addGeneratedSourceFolder(@NotNull IdeaAndroidProject androidProject,
-                                        @NotNull Collection<ContentEntry> contentEntries,
-                                        @NotNull AndroidArtifact androidArtifact,
-                                        boolean isTest,
-                                        @NotNull List<RootSourceFolder> orphans) {
+  private void addGeneratedSourceFolders(@NotNull IdeaAndroidProject androidProject,
+                                         @NotNull Collection<ContentEntry> contentEntries,
+                                         @NotNull BaseArtifact artifact,
+                                         boolean isTest,
+                                         @NotNull List<RootSourceFolder> orphans) {
     JpsModuleSourceRootType sourceType = getSourceType(isTest);
-    addSourceFolders(androidProject, contentEntries, androidArtifact.getGeneratedSourceFolders(), sourceType, true, orphans);
 
-    sourceType = getResourceSourceType(isTest);
-    addSourceFolders(androidProject, contentEntries, androidArtifact.getGeneratedResourceFolders(), sourceType, true, orphans);
+    if (artifact instanceof AndroidArtifact || modelVersionIsAtLeast(androidProject, "1.2")) {
+      // getGeneratedSourceFolders used to be in AndroidArtifact only.
+      Collection<File> generatedSourceFolders = artifact.getGeneratedSourceFolders();
+
+      //noinspection ConstantConditions - this returned null in 1.2
+      if (generatedSourceFolders != null) {
+        addSourceFolders(androidProject, contentEntries, generatedSourceFolders, sourceType, true, orphans);
+      }
+    }
+
+    if (artifact instanceof AndroidArtifact) {
+      sourceType = getResourceSourceType(isTest);
+      addSourceFolders(androidProject, contentEntries, ((AndroidArtifact)artifact).getGeneratedResourceFolders(), sourceType, true,
+                       orphans);
+    }
+  }
+
+  private static boolean modelVersionIsAtLeast(@NotNull IdeaAndroidProject androidProject, @NotNull String revision) {
+    String original = androidProject.getDelegate().getModelVersion();
+    FullRevision modelVersion;
+    try {
+      modelVersion = FullRevision.parseRevision(original);
+    } catch (NumberFormatException e) {
+      Logger.getInstance(IdeaAndroidProject.class).warn("Failed to parse '" + original + "'", e);
+      return false;
+    }
+    return modelVersion.compareTo(FullRevision.parseRevision(revision), FullRevision.PreviewComparison.IGNORE) >= 0;
   }
 
   private void addSourceFolder(@NotNull IdeaAndroidProject androidProject,
