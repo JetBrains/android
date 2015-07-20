@@ -413,7 +413,8 @@ public class ThemeEditorUtils {
 
   /**
    * Returns the Api level at which was defined the attribute or value with the name passed as argument.
-   * Returns -1 if the name argument is null or not the name of a framework attribute or resource.
+   * Returns -1 if the name argument is null or not the name of a framework attribute or resource,
+   * or if it is the name of a framework attribute or resource defined in API 1.
    */
   public static int getOriginalApiLevel(@Nullable String name, @NotNull Project project) {
     if (name == null) {
