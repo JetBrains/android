@@ -172,7 +172,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   }
 
   @Test @IdeGuiTest
-  public void testResoucePickerNameError() throws IOException {
+  public void testResourcePickerNameError() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
 
@@ -185,16 +185,24 @@ public class ThemeEditorTableTest extends GuiTestCase {
     // click on a color
     colorCell.click();
 
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
+    final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
     JTextComponentFixture name = dialog.getNameTextField();
 
     // add mistake into name field
     String badText = "(";
-    name.enterText(badText);
+    name.deleteText();
+    name.enterText("color" + badText);
     String text = name.text();
     assertNotNull(text);
     assertTrue(text.endsWith(badText));
 
-    assertEquals("<html><font color='#ff0000'><left>'"+badText+"' is not a valid resource name character</left></b></font></html>", dialog.getError());
+    final String expectedError = "<html><font color='#ff0000'><left>'" + badText +
+                                 "' is not a valid resource name character</left></b></font></html>";
+    pause(new Condition("Waiting for error to update") {
+      @Override
+      public boolean test() {
+        return dialog.getError().equals(expectedError);
+      }
+    }, GuiTests.SHORT_TIMEOUT);
   }
 }
