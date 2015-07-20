@@ -99,6 +99,8 @@ import static com.android.tools.idea.gradle.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
 import static com.google.common.io.Files.write;
@@ -903,6 +905,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         return jvmArgs.equals(settings.getGradleVmOptions());
       }
     }, SHORT_TIMEOUT);
+
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture updateGradleWrapperVersion(@NotNull String version) throws IOException {
+    File wrapperPropertiesFile = findWrapperPropertiesFile(getProject());
+    assertNotNull(wrapperPropertiesFile);
+    updateGradleDistributionUrl(version, wrapperPropertiesFile);
 
     return this;
   }
