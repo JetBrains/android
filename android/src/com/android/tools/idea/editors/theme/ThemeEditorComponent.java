@@ -498,7 +498,7 @@ public class ThemeEditorComponent extends Splitter {
       myAttributesFilter.setFilterEnabled(false);
       myAttributesSorter.setRowFilter(myAttributesFilter);
     } else {
-      mySimpleModeFilter.configure(myModel.getDefinedAttributes());
+      mySimpleModeFilter.configure(myModel.getDefinedAttributes(), ThemeEditorUtils.isAppCompatTheme(myThemeEditorContext.getConfiguration()));
       myAttributesSorter.setRowFilter(mySimpleModeFilter);
     }
   }
@@ -822,11 +822,11 @@ public class ThemeEditorComponent extends Splitter {
       filterAttributes = new HashSet<String>();
     }
 
-    public void configure(final Set<String> availableAttributes) {
+    public void configure(final Set<String> availableAttributes, boolean appCompat) {
       filterAttributes.clear();
 
       for (final String candidate : ATTRIBUTES_DEFAULT_FILTER) {
-        if (availableAttributes.contains(candidate)) {
+        if (appCompat && availableAttributes.contains(candidate)) {
           filterAttributes.add(candidate);
         } else {
           filterAttributes.add(SdkConstants.ANDROID_NS_NAME_PREFIX + candidate);
