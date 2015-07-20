@@ -20,6 +20,7 @@ import com.android.tools.idea.configurations.ThemeSelectionDialog;
 import com.android.tools.idea.editors.theme.ParentThemesListModel;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.ComboBox;
@@ -64,8 +65,13 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
     final TableModel model = table.getModel();
     if (!model.isCellEditable(row, column)) {
-      final ThemeEditorStyle style = (ThemeEditorStyle)value;
-      myReadOnlyLabel.setText(style.getName());
+      if (AttributesTableModel.NO_PARENT.equals(value)) {
+        myReadOnlyLabel.setText(AttributesTableModel.NO_PARENT);
+      }
+      else {
+        final ThemeEditorStyle style = (ThemeEditorStyle)value;
+        myReadOnlyLabel.setText(style.getName());
+      }
       return myReadOnlyLabel;
     }
     myComboBox.removeAllItems();
