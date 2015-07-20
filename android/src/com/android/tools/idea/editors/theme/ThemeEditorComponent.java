@@ -56,15 +56,16 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameDialog;
+import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.MutableCollectionComboBoxModel;
+import com.intellij.ui.SearchTextField;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
@@ -72,17 +73,22 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.RowFilter;
+import javax.swing.event.DocumentEvent;
 import javax.swing.plaf.PanelUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -95,6 +101,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 
 public class ThemeEditorComponent extends Splitter {
@@ -131,6 +141,7 @@ public class ThemeEditorComponent extends Splitter {
   private boolean myIsSubscribedResourceNotification;
   private final GoToListener myGoToListener;
   private MutableCollectionComboBoxModel<Module> myModuleComboModel;
+  private ScheduledFuture<?> myScheduledSearch;
 
   public interface GoToListener {
     void goTo(@NotNull EditedStyleItem value);
@@ -350,10 +361,47 @@ public class ThemeEditorComponent extends Splitter {
     ActionManager actionManager = ActionManager.getInstance();
     ActionToolbar actionToolbar = actionManager.createActionToolbar("ThemeToolbar", group, true);
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
-    JPanel myConfigToolbar = myPanel.getConfigToolbar();
-    myConfigToolbar.add(actionToolbar.getComponent());
 
-    setFirstComponent(myPreviewPanel);
+    final JPanel toolbar = new JPanel(null);
+    toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
+    toolbar.setBorder(BorderFactory.createMatteBorder(7, 14, 7, 14, PREVIEW_BACKGROUND));
+    toolbar.setBackground(PREVIEW_BACKGROUND);
+
+    final JComponent actionToolbarComponent = actionToolbar.getComponent();
+    actionToolbarComponent.setBackground(PREVIEW_BACKGROUND);
+    for (Component component : actionToolbarComponent.getComponents()) {
+      component.setBackground(PREVIEW_BACKGROUND);
+    }
+    toolbar.add(actionToolbarComponent);
+
+    final SearchTextField textField = new SearchTextField(true);
+    // Avoid search box stretching more than 1 line.
+    textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, textField.getPreferredSize().height));
+    textField.setBackground(PREVIEW_BACKGROUND);
+
+    final ScheduledExecutorService searchUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
+    textField.addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent e) {
+        if (myScheduledSearch != null) {
+          myScheduledSearch.cancel(false);
+        }
+
+        myScheduledSearch = searchUpdateScheduler.schedule(new Runnable() {
+          @Override
+          public void run() {
+            myPreviewPanel.setSearchTerm(textField.getText());
+          }
+        }, 300, TimeUnit.MILLISECONDS);
+      }
+    });
+    toolbar.add(textField);
+
+    final JPanel previewPanel = new JPanel(new BorderLayout());
+    previewPanel.add(myPreviewPanel, BorderLayout.CENTER);
+    previewPanel.add(toolbar, BorderLayout.NORTH);
+
+    setFirstComponent(previewPanel);
     setSecondComponent(myPanel.getRightPanel());
     setShowDividerControls(false);
 
