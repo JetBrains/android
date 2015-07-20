@@ -96,6 +96,8 @@ public final class GuiTests {
 
   private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
 
+  private static final File TMP_PROJECT_ROOT = createTempProjectCreationDir();
+
   // Called by MethodInvoker via reflection
   @SuppressWarnings("unused")
   public static void failIfIdeHasFatalErrors() {
@@ -262,17 +264,21 @@ public final class GuiTests {
 
   @NotNull
   public static File getProjectCreationDirPath() {
-    // Disabled by default because Theme editor tests break on Mac. Need to investigate further.
-    boolean createTempDir = SystemProperties.getBooleanProperty("gui.tests.new.projects.in.temp.dir", false);
-    if (createTempDir) {
-      try {
-        return createTempDir();
-      }
-      catch (RuntimeException e) {
-        Logger.getInstance(GuiTests.class).info("Failed to create temp directory for project creation in UI tests", e);
-      }
+   return TMP_PROJECT_ROOT;
+  }
+
+  @NotNull
+  public static File createTempProjectCreationDir() {
+    try {
+      // The temporary location might contain symlinks, such as /var@ -> /private/var on MacOS.
+      // EditorFixture seems to require a canonical path when opening the file.
+      return createTempDir().getCanonicalFile();
     }
-    return new File(getTestProjectsRootDirPath(), "newProjects");
+    catch (IOException ex) {
+      // For now, keep the original behavior and point inside the source tree.
+      ex.printStackTrace();
+      return new File(getTestProjectsRootDirPath(), "newProjects");
+    }
   }
 
   @NotNull
