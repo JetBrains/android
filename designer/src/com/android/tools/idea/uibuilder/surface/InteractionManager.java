@@ -565,9 +565,12 @@ public class InteractionManager {
             final NlModel model = screenView.getModel();
             try {
               DnDTransferItem item = getTransferItem(event.getTransferable(), true /* allow placeholders */);
-              boolean isCopy = event.getDropAction() == DnDConstants.ACTION_COPY;
-              InsertType insertType = model.determineInsertType(item, true /* preview */, isCopy);
+              DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
+              InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
               List<NlComponent> dragged = model.createComponents(screenView, item, insertType);
+              if (dragged == null) {
+                continue;
+              }
               int yOffset = 0;
               for (NlComponent component : dragged) {
                 // todo: place the components like they were originally placed?
@@ -644,13 +647,15 @@ public class InteractionManager {
               boolean dropCancelled = true;
               if (component != null) {
                 if (component.getTag().getName().equals("placeholder")) {
-                  // If we were unable to read the transfer data on dragEnter, replace the tag here:
+                  // If we were unable to read the transfer data on dragEnter, fix it here:
                   final DnDTransferItem item = getTransferItem(event.getTransferable(), false /* do not allow placeholders */);
-                  boolean isCopy = event.getDropAction() == DnDConstants.ACTION_COPY;
-                  InsertType insertType = model.determineInsertType(item, true /* preview */, isCopy);
+                  DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
+                  InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
                   draggedComponents = model.createComponents(screenView, item, insertType);
-                  component = draggedComponents.size() == 1 ? draggedComponents.get(0) : null;
+                  component = draggedComponents != null && draggedComponents.size() == 1 ? draggedComponents.get(0) : null;
                 }
+              }
+              if (component != null) {
                 if (component.needsDefaultId()) {
                   component.assignId();
                 }
@@ -672,7 +677,6 @@ public class InteractionManager {
                   }
                 }
               }
-              return;
             }
           }
         };

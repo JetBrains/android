@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -49,8 +48,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     when(myScreen.getModel()).thenReturn(myModel);
     when(myScreen.getSelectionModel()).thenReturn(myModel.getSelectionModel());
     when(mySurface.getCurrentScreenView()).thenReturn(myScreen);
-    myTree = new NlComponentTree();
-    myTree.setDesignSurface(mySurface);
+    myTree = new NlComponentTree(mySurface);
   }
 
   public void testTreeStructure() {
