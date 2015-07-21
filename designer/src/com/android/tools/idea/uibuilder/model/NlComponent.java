@@ -145,6 +145,19 @@ public class NlComponent {
   }
 
   @Nullable
+  public NlComponent getNextSibling() {
+    if (myParent == null) {
+      return null;
+    }
+    for (int index = 0; index < myParent.getChildCount(); index++) {
+      if (myParent.getChild(index) == this) {
+        return myParent.getChild(index + 1);
+      }
+    }
+    return null;
+  }
+
+  @Nullable
   public NlComponent findViewByTag(@NonNull XmlTag tag) {
     if (myTag == tag) {
       return this;

@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.LightToolWindowContent;
@@ -35,7 +34,7 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent {
   private final NlPropertiesPanel myPropertiesPanel;
 
   public NlStructurePanel(@NonNull DesignSurface designSurface) {
-    myTree = new NlComponentTree();
+    myTree = new NlComponentTree(designSurface);
     JScrollPane pane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     myPropertiesPanel = new NlPropertiesPanel(designSurface);
     Splitter splitter = new Splitter(true, 0.4f);
@@ -43,7 +42,6 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent {
     splitter.setSecondComponent(myPropertiesPanel);
     setLayout(new BorderLayout());
     add(splitter, BorderLayout.CENTER);
-    setDesignSurface(designSurface);
   }
 
   public void setDesignSurface(@Nullable DesignSurface designSurface) {
@@ -58,10 +56,5 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent {
   @Override
   public void dispose() {
     myTree.dispose();
-  }
-
-  @VisibleForTesting
-  JTree getTree2() {
-    return myTree;
   }
 }

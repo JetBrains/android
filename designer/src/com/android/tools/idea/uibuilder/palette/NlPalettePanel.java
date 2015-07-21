@@ -31,6 +31,10 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.CopyProvider;
+import com.intellij.ide.CutProvider;
+import com.intellij.ide.DeleteProvider;
+import com.intellij.ide.PasteProvider;
 import com.intellij.ide.dnd.DnDAction;
 import com.intellij.ide.dnd.DnDDragStartBean;
 import com.intellij.ide.dnd.DnDManager;
@@ -42,6 +46,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
 import com.intellij.openapi.actionSystem.impl.MenuItemPresentationFactory;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -51,6 +56,7 @@ import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
+import org.jetbrains.annotations.NonNls;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -59,11 +65,13 @@ import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.Collections;
+import java.util.List;
 
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-public class NlPalettePanel extends JPanel implements LightToolWindowContent, ConfigurationListener, LafManagerListener {
+public class NlPalettePanel extends JPanel implements LightToolWindowContent, ConfigurationListener, LafManagerListener, DataProvider {
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
   private static final double PREVIEW_SCALE = 0.5;
 
@@ -176,6 +184,17 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     }
     myTree.setBackground(background);
     myTree.setForeground(foreground);
+  }
+
+  @Override
+  public Object getData(@NonNls String dataId) {
+    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
+        PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
+      return new ActionHandler();
+    }
+    return null;
   }
 
   // ---- implements ConfigurationListener ----
@@ -441,6 +460,70 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       }
       NlPaletteItem item = (NlPaletteItem)content;
       return compare(item.getTitle(), pattern);
+    }
+  }
+
+  private class ActionHandler implements DeleteProvider, CutProvider, CopyProvider, PasteProvider {
+
+    @Override
+    public void performCopy(@NonNull DataContext dataContext) {
+      TreePath path = myTree.getSelectionPath();
+      if (path != null) {
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+        Object content = node.getUserObject();
+        if (content instanceof NlPaletteItem) {
+          NlPaletteItem item = (NlPaletteItem)content;
+          DnDTransferComponent component = new DnDTransferComponent(item.getId(), item.getRepresentation(), 0, 0);
+          CopyPasteManager.getInstance().setContents(new ItemTransferable(new DnDTransferItem(component)));
+        }
+      }
+    }
+
+    @Override
+    public boolean isCopyEnabled(@NonNull DataContext dataContext) {
+      return true;
+    }
+
+    @Override
+    public boolean isCopyVisible(@NonNull DataContext dataContext) {
+      return true;
+    }
+
+    @Override
+    public void performCut(@NonNull DataContext dataContext) {
+    }
+
+    @Override
+    public boolean isCutEnabled(@NonNull DataContext dataContext) {
+      return false;
+    }
+
+    @Override
+    public boolean isCutVisible(@NonNull DataContext dataContext) {
+      return false;
+    }
+
+    @Override
+    public void deleteElement(@NonNull DataContext dataContext) {
+    }
+
+    @Override
+    public boolean canDeleteElement(@NonNull DataContext dataContext) {
+      return false;
+    }
+
+    @Override
+    public void performPaste(@NonNull DataContext dataContext) {
+    }
+
+    @Override
+    public boolean isPastePossible(@NonNull DataContext dataContext) {
+      return false;
+    }
+
+    @Override
+    public boolean isPasteEnabled(@NonNull DataContext dataContext) {
+      return false;
     }
   }
 }

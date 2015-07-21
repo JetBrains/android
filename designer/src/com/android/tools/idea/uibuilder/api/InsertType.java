@@ -47,9 +47,14 @@ public enum InsertType {
 
   /**
    * The view is being inserted here as a result of a copy/paste from elsewhere
-   * (including drags, but not from the palette)
    */
   PASTE,
+
+  /**
+   * The view is being inserted here as a result of a move with a modifier key.
+   * This is functionally the same as a PASTE (with a different user feedback)
+   */
+  COPY,
 
   /**
    * The view is created programmatically from a view handler
@@ -65,5 +70,36 @@ public enum InsertType {
    */
   public boolean isCreate() {
     return this == CREATE || this == CREATE_PREVIEW;
+  }
+
+  /**
+   * Returns true if this insert type is from a move within the current model.
+   * Moves from other models is considered a COPY.
+   *
+   * @return true if this {@link InsertType} is a move
+   */
+  public boolean isMove() {
+    return this == MOVE_WITHIN || this == MOVE_INTO;
+  }
+
+  /**
+   * Return the {@link DragType} this insert type correspond to.
+   * The drag type will normally be used as the command name for a write transaction.
+   */
+  public DragType getDragType() {
+    switch (this) {
+      case CREATE:
+      case CREATE_PREVIEW:
+      case VIEW_HANDLER:
+        return DragType.CREATE;
+      case MOVE_INTO:
+      case MOVE_WITHIN:
+        return DragType.MOVE;
+      case COPY:
+        return DragType.COPY;
+      case PASTE:
+      default:
+        return DragType.PASTE;
+    }
   }
 }
