@@ -533,13 +533,27 @@ public class AndroidResourceUtil {
   }
 
   @NotNull
-  public static ResourceElement addValueResource(@NotNull final ResourceType resType, @NotNull final Resources resources) {
+  public static ResourceElement addValueResource(@NotNull final ResourceType resType, @NotNull final Resources resources,
+                                                 @Nullable final String value) {
     switch (resType) {
       case STRING:
         return resources.addString();
       case PLURALS:
         return resources.addPlurals();
       case DIMEN:
+        if (value != null && value.trim().endsWith("%")) {
+          // Deals with dimension values in the form of percentages, e.g. "65%"
+          final Item item = resources.addItem();
+          item.getType().setStringValue(ResourceType.DIMEN.getName());
+          return item;
+        }
+        if (value != null && value.indexOf('.') > 0) {
+          // Deals with dimension values in the form of floating-point numbers, e.g. "0.24"
+          final Item item = resources.addItem();
+          item.getType().setStringValue(ResourceType.DIMEN.getName());
+          item.getFormat().setStringValue("float");
+          return item;
+        }
         return resources.addDimen();
       case COLOR:
         return resources.addColor();
@@ -779,17 +793,18 @@ public class AndroidResourceUtil {
   }
 
   public static boolean createValueResource(@NotNull Module module,
-                                              @NotNull String resourceName,
-                                              @NotNull final ResourceType resourceType,
-                                              @NotNull String fileName,
-                                              @NotNull List<String> dirNames,
-                                              @NotNull Processor<ResourceElement> afterAddedProcessor) {
+                                            @NotNull String resourceName,
+                                            @Nullable String resourceValue,
+                                            @NotNull final ResourceType resourceType,
+                                            @NotNull String fileName,
+                                            @NotNull List<String> dirNames,
+                                            @NotNull Processor<ResourceElement> afterAddedProcessor) {
     final Project project = module.getProject();
     final AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
 
     try {
-      return addValueResource(facet, resourceName, resourceType, fileName, dirNames, afterAddedProcessor);
+      return addValueResource(facet, resourceName, resourceType, fileName, dirNames, resourceValue, afterAddedProcessor);
     }
     catch (Exception e) {
       final String message = CreateElementActionBase.filterMessage(e.getMessage());
@@ -821,7 +836,7 @@ public class AndroidResourceUtil {
                                             @NotNull List<String> dirNames,
                                             @NotNull final String value,
                                             @Nullable final List<ResourceElement> outTags) {
-    return createValueResource(module, resourceName, resourceType, fileName, dirNames, new Processor<ResourceElement>() {
+    return createValueResource(module, resourceName, value, resourceType, fileName, dirNames, new Processor<ResourceElement>() {
       @Override
       public boolean process(ResourceElement element) {
         if (value.length() > 0) {
@@ -846,6 +861,7 @@ public class AndroidResourceUtil {
                                           @NotNull final ResourceType resourceType,
                                           @NotNull String fileName,
                                           @NotNull List<String> dirNames,
+                                          @Nullable final String resourceValue,
                                           @NotNull final Processor<ResourceElement> afterAddedProcessor) throws Exception {
     if (dirNames.size() == 0) {
       return false;
@@ -888,7 +904,7 @@ public class AndroidResourceUtil {
       @Override
       protected void run(@NotNull Result<Void> result) {
         for (Resources resources : resourcesElements) {
-          final ResourceElement element = addValueResource(resourceType, resources);
+          final ResourceElement element = addValueResource(resourceType, resources, resourceValue);
           element.getName().setValue(resourceName);
           afterAddedProcessor.process(element);
         }
