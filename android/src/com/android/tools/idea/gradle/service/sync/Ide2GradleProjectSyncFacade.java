@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.service.sync;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.service.sync.change.*;
+import com.android.tools.idea.gradle.service.sync.change.ProjectStructureChange;
 import com.android.tools.idea.gradle.service.sync.service.Ide2GradleModuleDependencyService;
 import com.android.tools.idea.gradle.service.sync.service.Ide2GradleProjectSyncService;
 import com.google.common.annotations.VisibleForTesting;
@@ -169,10 +169,10 @@ public class Ide2GradleProjectSyncFacade implements StartupActivity {
     ProjectData projectData = new ProjectData(ProjectSystemId.IDE, project.getName(), DUMMY_VALUE, DUMMY_VALUE);
     DataNode<ProjectData> result = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      if (!GradleConstants.SYSTEM_ID.getId().equals(module.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY))) {
+      if (!GradleConstants.SYSTEM_ID.getId().equals(module.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID))) {
         continue;
       }
-      String linkedProjectPath = module.getOptionValue(ExternalSystemConstants.LINKED_PROJECT_PATH_KEY);
+      String linkedProjectPath = module.getOptionValue(ExternalSystemConstants.LINKED_PROJECT_PATH);
       if (Strings.isNullOrEmpty(linkedProjectPath)) {
         continue;
       }
@@ -201,7 +201,7 @@ public class Ide2GradleProjectSyncFacade implements StartupActivity {
       if (dependencyModule == null) {
         continue;
       }
-      String externalSystemId = dependencyModule.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY);
+      String externalSystemId = dependencyModule.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID);
       if (externalSystemId != null && !GradleConstants.SYSTEM_ID.getId().equals(externalSystemId)) {
         // Skip ide modules mapped to another external system.
         continue;
@@ -215,7 +215,7 @@ public class Ide2GradleProjectSyncFacade implements StartupActivity {
   private static ModuleData buildModuleData(@NotNull Module module, @Nullable String linkedExternalProjectPath) {
     String linkedExternalProjectPathToUse = linkedExternalProjectPath;
     if (linkedExternalProjectPathToUse == null) {
-      linkedExternalProjectPathToUse = module.getOptionValue(ExternalSystemConstants.LINKED_PROJECT_PATH_KEY);
+      linkedExternalProjectPathToUse = module.getOptionValue(ExternalSystemConstants.LINKED_PROJECT_PATH);
     }
     if (linkedExternalProjectPathToUse == null) {
       linkedExternalProjectPathToUse = DUMMY_VALUE;

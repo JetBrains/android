@@ -203,14 +203,10 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     final List<Module> unsupportedModules = new ArrayList<Module>();
 
     for (Module module : modules) {
-      final ModuleType moduleType = ModuleType.get(module);
-
-      if (moduleType instanceof JavaModuleType) {
-        final String externalSystemId = module.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY);
-
-        if (!GradleConstants.SYSTEM_ID.getId().equals(externalSystemId)) {
-          unsupportedModules.add(module);
-        }
+      ModuleType moduleType = ModuleType.get(module);
+      if (moduleType instanceof JavaModuleType &&
+          !GradleConstants.SYSTEM_ID.getId().equals(module.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID))) {
+        unsupportedModules.add(module);
       }
     }
 
