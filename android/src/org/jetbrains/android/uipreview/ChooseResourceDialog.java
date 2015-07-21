@@ -209,7 +209,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   public ChooseResourceDialog(@NotNull Module module,
                               @NotNull Configuration configuration,
                               @NotNull ResourceType[] types,
-                              @NotNull StateListPicker.StateList stateList,
+                              @NotNull ResourceHelper.StateList stateList,
                               ResourceNameVisibility resourceNameVisibility,
                               @Nullable String resourceName) {
     this(module, configuration, types, null, null,resourceNameVisibility, resourceName, stateList);
@@ -222,7 +222,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
                                @Nullable XmlTag tag,
                                ResourceNameVisibility resourceNameVisibility,
                                @Nullable String resourceName,
-                               @Nullable StateListPicker.StateList stateList) {
+                               @Nullable ResourceHelper.StateList stateList) {
     super(module.getProject());
     myModule = module;
     myTag = tag;

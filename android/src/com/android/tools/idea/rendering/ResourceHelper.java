@@ -24,17 +24,15 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.editors.theme.StateListPicker;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.lang.databinding.DbUtil;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -43,6 +41,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -53,12 +52,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Queue;
 
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
@@ -351,157 +346,40 @@ public class ResourceHelper {
    * it will pick the simplest/fallback color.
    *
    * @param resources the resource resolver to use to follow color references
-   * @param color the color to resolve
+   * @param colorValue the color to resolve
    * @param project the current project
    * @return the corresponding {@link Color} color, or null
    */
   @Nullable
-  public static Color resolveColor(@NotNull RenderResources resources, @Nullable ResourceValue color, @NotNull Project project) {
-    if (color != null) {
-      color = resources.resolveResValue(color);
+  public static Color resolveColor(@NotNull RenderResources resources, @Nullable ResourceValue colorValue, @NotNull Project project) {
+    if (colorValue != null) {
+      colorValue = resources.resolveResValue(colorValue);
     }
-    if (color == null) {
+    if (colorValue == null) {
       return null;
     }
 
-    final Iterator<String> iterator = new StateListIterable(resources, color, project, MAX_RESOURCE_INDIRECTION,
-                                                            ATTR_COLOR, false).iterator();
-    if (iterator.hasNext()) {
-      return parseColor(iterator.next());
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * Configurable breadth-first traversal of resources through state-lists
-   * (can be configured to traverse either all options or only default one)
-   */
-  private static class StateListIterable implements Iterable<String> {
-    private final RenderResources myRenderResources;
-    private final ResourceValue myStartValue;
-    private final Project myProject;
-    private final int myMaximumSteps;
-    private final String myAttributeType;
-    private final boolean myTraverseAllOptions;
-
-    private StateListIterable(RenderResources renderResources,
-                              ResourceValue startValue,
-                              Project project,
-                              int maximumSteps,
-                              String attributeType,
-                              boolean traverseAllOptions) {
-      myRenderResources = renderResources;
-      myAttributeType = attributeType;
-      myStartValue = startValue;
-      myMaximumSteps = maximumSteps;
-      myTraverseAllOptions = traverseAllOptions;
-      myProject = project;
-    }
-
-    @Override
-    public Iterator<String> iterator() {
-      return new StateListIterator(myStartValue);
-    }
-
-    private class StateListIterator implements Iterator<String> {
-      private int myStepsMade = 0;
-
-      // The queue contains items to be traversed. First component of a pair contains
-      // resource (which is just a string w/ filepath, color or @-resource url).
-      // Second element is a boolean flag whether it's a framework resource or not.
-      // It's needed to call RenderResources.findResValue correctly
-      private final Queue<Pair<String, Boolean>> myQueue = new LinkedList<Pair<String, Boolean>>();
-
-      private String myLastValue = null;
-
-      public StateListIterator(final ResourceValue value) {
-        if (value == null) {
-          return;
-        }
-
-        myQueue.add(Pair.create(value.getValue(), value.isFramework()));
-        myLastValue = getNext();
+    StateList stateList = resolveStateList(resources, colorValue, project);
+    if (stateList != null) {
+      List<StateListState> states = stateList.getStates();
+      StateListState state = states.get(states.size() - 1);
+      Color stateColor = parseColor(state.getValue());
+      if (stateColor == null) {
+        stateColor = resolveColor(resources, resources.findResValue(state.getValue(), false), project);
       }
-
-      private String getNext() {
-        while (myStepsMade < myMaximumSteps && !myQueue.isEmpty()) {
-          myStepsMade++;
-
-          final Pair<String, Boolean> pair = myQueue.poll();
-          final String value = pair.getFirst();
-          if (value.startsWith(PREFIX_RESOURCE_REF)) {
-            final ResourceUrl url = ResourceUrl.parse(value);
-            if (url != null) {
-              boolean isFramework = pair.getSecond() || url.framework;
-              final ResourceValue resValue = myRenderResources.findResValue(value, isFramework);
-              if (resValue != null) {
-                myQueue.add(Pair.create(resValue.getValue(), isFramework));
-                continue;
-              }
-            }
-          } else {
-            VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(value);
-            if (virtualFile != null) {
-              PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myProject, virtualFile);
-              if (psiFile instanceof XmlFile) {
-                // Parse
-                try {
-                  XmlTag rootTag = ((XmlFile)psiFile).getRootTag();
-                  if (rootTag != null) {
-                    final Boolean isFramework = pair.getSecond();
-                    if (myTraverseAllOptions) {
-                      for (final String nextValue : getAllFromStateList(rootTag, myAttributeType)) {
-                        myQueue.add(Pair.create(nextValue, isFramework));
-                      }
-                    }
-                    else {
-                      final String nextValue = findInStateList(rootTag, myAttributeType);
-                      if (!Strings.isNullOrEmpty(nextValue)) {
-                        myQueue.add(Pair.create(nextValue, isFramework));
-                      }
-                    }
-                    continue;
-                  }
-                }
-                catch (Exception e) {
-                  LOG.warn(String.format("Failed parsing state list file %1$s", virtualFile.getName()), e);
-                }
-              }
-            }
-          }
-
-          // If we got here, then we have a value that we've failed to handle
-          // Thus, we want to return this value to a user such that they can decide
-          // what to do with it
-          return value;
-        }
-
-        // for-loop is over, we either have exhausted queue or ran out of available steps
+      if (stateColor == null) {
         return null;
       }
-
-      @Override
-      public boolean hasNext() {
-        return myLastValue != null;
+      try {
+        return makeColorWithAlpha(resources, stateColor, state.getAlpha());
       }
-
-      @Override
-      public String next() {
-        if (myLastValue == null) {
-          throw new NoSuchElementException();
-        }
-
-        final String result = myLastValue;
-        myLastValue = getNext();
-        return result;
-      }
-
-      @Override
-      public void remove() {
-        throw new UnsupportedOperationException();
+      catch (NumberFormatException e) {
+        LOG.error(String.format("The alpha attribute in %s/%s does not resolve to a floating point number", stateList.getDirName(),
+                                stateList.getFileName()));
       }
     }
+
+    return parseColor(colorValue.getValue());
   }
 
   /**
@@ -509,41 +387,91 @@ public class ResourceHelper {
    * possibilities are explored.
    */
   @NotNull
-  public static List<Color> resolveMultipleColors(@NotNull RenderResources resources, @Nullable ResourceValue color,
+  public static List<Color> resolveMultipleColors(@NotNull RenderResources resources, @Nullable ResourceValue value,
                                                   @NotNull Project project) {
-    if (color != null) {
-      color = resources.resolveResValue(color);
+    if (value != null) {
+      value = resources.resolveResValue(value);
     }
-    if (color == null) {
+    if (value == null) {
       return Collections.emptyList();
     }
 
     final List<Color> result = new ArrayList<Color>();
-    for (final String maybeColor : new StateListIterable(resources, color, project, MAX_RESOURCE_INDIRECTION, ATTR_COLOR, true)) {
-      if (maybeColor.startsWith("#")) {
-        final Color parsedColor = parseColor(maybeColor);
-        if (parsedColor != null) {
-          result.add(parsedColor);
+
+    StateList stateList = resolveStateList(resources, value, project);
+    if (stateList != null) {
+      for (StateListState state : stateList.getStates()) {
+        List<Color> stateColors;
+        ResourceValue resolvedStateResource = resources.findResValue(state.getValue(), false);
+        if (resolvedStateResource != null) {
+          stateColors = resolveMultipleColors(resources, resolvedStateResource, project);
         }
+        else {
+          Color color = parseColor(state.getValue());
+          stateColors = color == null ? Collections.<Color>emptyList() : ImmutableList.of(color);
+        }
+        for (Color color : stateColors) {
+          try {
+            result.add(makeColorWithAlpha(resources, color, state.getAlpha()));
+          }
+          catch (NumberFormatException e) {
+            LOG.error(String.format("The alpha attribute in %s/%s does not resolve to a floating point number", stateList.getDirName(),
+                                    stateList.getFileName()));
+          }
+        }
+      }
+    }
+    else {
+      Color color = parseColor(value.getValue());
+      if (color != null) {
+        result.add(color);
       }
     }
     return result;
   }
 
+  @NotNull
+  public static String resolveStringValue(@NotNull RenderResources resources, @NotNull String value) {
+    ResourceValue resValue = resources.findResValue(value, false);
+    if (resValue == null) {
+      return value;
+    }
+    ResourceValue finalValue = resources.resolveResValue(resValue);
+    if (finalValue == null || finalValue.getValue() == null) {
+      return value;
+    }
+    return finalValue.getValue();
+  }
+
+  @NotNull
+  private static Color makeColorWithAlpha(@NotNull RenderResources resources, @NotNull Color color, @Nullable String alphaValue)
+    throws NumberFormatException {
+    float alpha = 1.0f;
+    if (alphaValue != null) {
+      alpha = Float.parseFloat(resolveStringValue(resources, alphaValue));
+    }
+
+    int combinedAlpha = (int)(color.getAlpha() * alpha);
+    if (combinedAlpha < 0) {
+      combinedAlpha = 0;
+    }
+    if (combinedAlpha > 255) {
+      combinedAlpha = 255;
+    }
+    return ColorUtil.toAlpha(color, combinedAlpha);
+  }
+
   /**
-   * Returns StateListPicker.StateList description of the statelist value, or null if value is not a statelist.
+   * Returns a {@link StateList} description of the state list value, or null if value is not a state list.
    */
   @Nullable
-  public static StateListPicker.StateList resolveStateList(@NotNull RenderResources renderResources,
-                                                           @NotNull ResourceValue value,
-                                                           @NotNull Project project) {
+  public static StateList resolveStateList(@NotNull RenderResources renderResources,
+                                           @NotNull ResourceValue value,
+                                           @NotNull Project project) {
     if (value.getValue().startsWith(PREFIX_RESOURCE_REF)) {
-      final ResourceUrl url = ResourceUrl.parse(value.getValue());
-      if (url != null) {
-        final ResourceValue resValue = renderResources.findResValue(value.getValue(), value.isFramework());
-        if (resValue != null) {
-          return resolveStateList(renderResources, resValue, project);
-        }
+      final ResourceValue resValue = renderResources.findResValue(value.getValue(), value.isFramework());
+      if (resValue != null) {
+        return resolveStateList(renderResources, resValue, project);
       }
     }
     else {
@@ -553,10 +481,9 @@ public class ResourceHelper {
         if (psiFile instanceof XmlFile) {
           // Parse
           try {
-            ResourceFolderType folderType = ResourceFolderType.getFolderType(psiFile.getContainingDirectory().getName());
             XmlTag rootTag = ((XmlFile)psiFile).getRootTag();
             if (rootTag != null && TAG_SELECTOR.equals(rootTag.getName())) {
-              StateListPicker.StateList stateList = new StateListPicker.StateList(folderType);
+              StateList stateList = new StateList(psiFile.getName(), psiFile.getContainingDirectory().getName());
               for (XmlTag subTag : rootTag.findSubTags(TAG_ITEM)) {
                 stateList.addState(createStateListState(subTag, value.isFramework()));
               }
@@ -573,10 +500,10 @@ public class ResourceHelper {
   }
 
   /**
-   * Returns a StateListState representing the state in tag.
+   * Returns a {@link StateListState} representing the state in tag.
    */
   @NotNull
-  private static StateListPicker.StateListState createStateListState(XmlTag tag, boolean isFramework) {
+  private static StateListState createStateListState(XmlTag tag, boolean isFramework) {
     String stateValue = null;
     String alphaValue = null;
     Map<String, Boolean> stateAttributes = new HashMap<String, Boolean>();
@@ -586,12 +513,7 @@ public class ResourceHelper {
       String value = attr.getValue();
       if (value != null && (SdkConstants.ATTR_COLOR.equals(name) || SdkConstants.ATTR_DRAWABLE.equals(name))) {
         ResourceUrl url = ResourceUrl.parse(value, isFramework);
-        if (url != null) {
-          stateValue = url.toString();
-        }
-        else {
-          stateValue = value;
-        }
+        stateValue = url != null ? url.toString() : value;
       }
       else if (value != null && "alpha".equals(name)) {
         ResourceUrl url = ResourceUrl.parse(value, isFramework);
@@ -604,66 +526,14 @@ public class ResourceHelper {
     if (stateValue == null) {
       throw new IllegalArgumentException("Not a valid item");
     }
-    return new StateListPicker.StateListState(stateValue, stateAttributes, alphaValue);
-  }
-
-  /**
-   * Searches a color XML file for the color definition element that does not
-   * have an associated state and returns its color
-   */
-  @Nullable
-  private static String findInStateList(@NotNull XmlTag rootTag, String attributeName) {
-    String color = null;
-    for (XmlTag subTag : rootTag.findSubTags(TAG_ITEM)) {
-      // Find non-state color definition
-      String newColor = subTag.getAttributeValue(attributeName, ANDROID_URI);
-      if (newColor == null) {
-        continue;
-      }
-      else {
-        color = newColor;
-      }
-      boolean hasState = false;
-      XmlAttribute[] attributes = subTag.getAttributes();
-      for (XmlAttribute attr : attributes) {
-        if (attr.getName().startsWith(STATE_NAME_PREFIX)) {
-          hasState = true;
-          break;
-        }
-      }
-
-      if (!hasState) {
-        return color;
-      }
-    }
-
-    // If no match, return the last mentioned item
-    return color;
-  }
-
-  @NotNull
-  private static List<String> getAllFromStateList(@NotNull XmlTag rootTag, final String attributeName) {
-    XmlTag[] subTags = rootTag.findSubTags(TAG_ITEM);
-    if (subTags.length == 0) {
-      return Collections.emptyList();
-    }
-
-    final List<String> result = new ArrayList<String>();
-
-    for (XmlTag tag : subTags) {
-      final String value = tag.getAttributeValue(attributeName, ANDROID_URI);
-      if (!Strings.isNullOrEmpty(value)) {
-        result.add(value);
-      }
-    }
-
-    return result;
+    return new StateListState(stateValue, stateAttributes, alphaValue);
   }
 
   /**
    * Converts the supported color formats (#rgb, #argb, #rrggbb, #aarrggbb to a Color
    * http://developer.android.com/guide/topics/resources/more-resources.html#Color
    */
+  @SuppressWarnings("UseJBColor")
   @Nullable
   public static Color parseColor(String s) {
     if (StringUtil.isEmpty(s)) {
@@ -737,15 +607,17 @@ public class ResourceHelper {
       return null;
     }
 
-    final Iterator<String> iterator = new StateListIterable(resources, drawable, project, MAX_RESOURCE_INDIRECTION,
-                                                            ATTR_DRAWABLE, false).iterator();
-    if (iterator.hasNext()) {
-      final String result = iterator.next();
-      final File file = new File(result);
-      return file.exists() ? file : null;
-    } else {
-      return null;
+    String result = drawable.getValue();
+
+    StateList stateList = resolveStateList(resources, drawable, project);
+    if (stateList != null) {
+      List<StateListState> states = stateList.getStates();
+      StateListState state = states.get(states.size() - 1);
+      result = state.getValue();
     }
+
+    final File file = new File(result);
+    return file.isFile() ? file : null;
   }
 
   /**
@@ -825,5 +697,82 @@ public class ResourceHelper {
     }
 
     return name;
+  }
+
+  /**
+   * Stores the information contained in a resource state list.
+   */
+  public static class StateList {
+    private final String myFileName;
+    private final String myDirName;
+    private final List<StateListState> myStates;
+
+    public StateList(@NotNull String fileName, @NotNull String dirName) {
+      myFileName = fileName;
+      myDirName = dirName;
+      myStates = new ArrayList<StateListState>();
+    }
+
+    @NotNull
+    public String getFileName() {
+      return myFileName;
+    }
+
+    @NotNull
+    public String getDirName() {
+      return myDirName;
+    }
+
+    @NotNull
+    public ResourceFolderType getType() {
+      return ResourceFolderType.getFolderType(myDirName);
+    }
+
+    @NotNull
+    public List<StateListState> getStates() {
+      return myStates;
+    }
+
+    public void addState(@NotNull StateListState state) {
+      myStates.add(state);
+    }
+  }
+
+  /**
+   * Stores information about a particular state of a resource state list.
+   */
+  public static class StateListState {
+    private String myValue;
+    private String myAlpha;
+    private final Map<String, Boolean> myAttributes;
+
+    public StateListState(@NotNull String value, @NotNull Map<String, Boolean> attributes, @Nullable String alpha) {
+      myValue = value;
+      myAttributes = attributes;
+      myAlpha = alpha;
+    }
+
+    public void setValue(@NotNull String value) {
+      myValue = value;
+    }
+
+    public void setAlpha(String alpha) {
+      myAlpha = alpha;
+    }
+
+    @NotNull
+    public String getValue() {
+      return myValue;
+    }
+
+    @Nullable
+    public String getAlpha() {
+      return myAlpha;
+    }
+
+    @NotNull
+    public Map<String, Boolean> getAttributes() {
+      return myAttributes;
+    }
   }
 }

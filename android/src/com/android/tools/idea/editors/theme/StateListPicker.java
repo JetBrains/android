@@ -43,7 +43,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
@@ -70,7 +69,6 @@ import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -80,11 +78,11 @@ public class StateListPicker extends JPanel {
 
   private final Module myModule;
   private final Configuration myConfiguration;
-  private final StateList myStateList;
+  private final ResourceHelper.StateList myStateList;
   private final List<StateComponent> myStateComponents;
   private @Nullable final RenderTask myRenderTask;
 
-  public StateListPicker(@NotNull StateList stateList, @NotNull Module module, @NotNull Configuration configuration) {
+  public StateListPicker(@NotNull ResourceHelper.StateList stateList, @NotNull Module module, @NotNull Configuration configuration) {
     myStateList = stateList;
     myModule = module;
     myConfiguration = configuration;
@@ -92,7 +90,7 @@ public class StateListPicker extends JPanel {
     myRenderTask = DrawableRendererEditor.configureRenderTask(module, configuration);
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-    for (StateListState state : myStateList.getStates()) {
+    for (ResourceHelper.StateListState state : myStateList.getStates()) {
       StateComponent stateComponent = createStateComponent(state);
       stateComponent.addValueActionListener(new ValueActionListener(state, stateComponent));
       stateComponent.addAlphaActionListener(new AlphaActionListener(state, stateComponent));
@@ -101,7 +99,7 @@ public class StateListPicker extends JPanel {
   }
 
   @NotNull
-  private StateComponent createStateComponent(@NotNull final StateListState state) {
+  private StateComponent createStateComponent(@NotNull ResourceHelper.StateListState state) {
     final StateComponent stateComponent = new StateComponent();
     myStateComponents.add(stateComponent);
 
@@ -110,13 +108,15 @@ public class StateListPicker extends JPanel {
 
     Map<String, Boolean> attributes = state.getAttributes();
     List<String> attributeDescriptions = new ArrayList<String>();
-    for(Map.Entry<String, Boolean> attribute : attributes.entrySet()) {
+
+    for (Map.Entry<String, Boolean> attribute : attributes.entrySet()) {
       String description = attribute.getKey().substring(ResourceHelper.STATE_NAME_PREFIX.length());
       if (!attribute.getValue()) {
         description = "Not " + description;
       }
       attributeDescriptions.add(StringUtil.capitalize(description));
     }
+
     String stateDescription = attributeDescriptions.size() == 0 ? "Default" : Joiner.on(", ").join(attributeDescriptions);
     stateComponent.setNameText(String.format(LABEL_TEMPLATE, ThemeEditorConstants.RESOURCE_ITEM_COLOR.toString(), stateDescription));
 
@@ -126,7 +126,8 @@ public class StateListPicker extends JPanel {
   }
 
   @NotNull
-  private JBPopupMenu createAlphaPopupMenu(@NotNull final StateListState state, @NotNull final StateComponent stateComponent) {
+  private JBPopupMenu createAlphaPopupMenu(@NotNull final ResourceHelper.StateListState state,
+                                           @NotNull final StateComponent stateComponent) {
     JBPopupMenu popupMenu = new JBPopupMenu();
     final JMenuItem deleteAlpha = new JMenuItem("Delete alpha");
     popupMenu.add(deleteAlpha);
@@ -164,25 +165,6 @@ public class StateListPicker extends JPanel {
     });
 
     return popupMenu;
-  }
-
-  @NotNull
-  private String resolveResource(@NotNull String resourceValue, boolean isFrameworkValue) {
-    ResourceUrl resourceUrl = ResourceUrl.parse(resourceValue);
-    if (resourceUrl == null) {
-      return resourceValue;
-    }
-    ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
-    assert resourceResolver != null;
-    ResourceValue resValue = resourceResolver.findResValue(resourceValue, isFrameworkValue || resourceUrl.framework);
-    if (resValue == null) {
-      return resourceValue;
-    }
-    ResourceValue finalValue = resourceResolver.resolveResValue(resValue);
-    if (finalValue == null || finalValue.getValue() == null) {
-      return resourceValue;
-    }
-    return finalValue.getValue();
   }
 
   public void updateStateList(@NotNull List<VirtualFile> files) {
@@ -226,7 +208,7 @@ public class StateListPicker extends JPanel {
           for (XmlTag subtag : tag.getSubTags()) {
             subtag.delete();
           }
-          for (StateListState state : myStateList.getStates()) {
+          for (ResourceHelper.StateListState state : myStateList.getStates()) {
             XmlTag child = tag.createChildTag(SdkConstants.TAG_ITEM, tag.getNamespace(), null, false);
             child = tag.addSubTag(child, false);
 
@@ -290,10 +272,10 @@ public class StateListPicker extends JPanel {
   }
 
   class ValueActionListener implements ActionListener {
-    private final StateListState myState;
+    private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
 
-    public ValueActionListener(StateListState state, StateComponent stateComponent) {
+    public ValueActionListener(ResourceHelper.StateListState state, StateComponent stateComponent) {
       myState = state;
       myComponent = stateComponent;
     }
@@ -318,19 +300,16 @@ public class StateListPicker extends JPanel {
 
       ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
       assert resourceResolver != null;
-      String resolvedResource;
-      ResourceUrl url = ResourceUrl.parse(itemValue);
-      if (url != null) {
-        ResourceValue resValue = resourceResolver.findResValue(itemValue, url.framework);
+      String resolvedResource = itemValue;
+
+      ResourceValue resValue = resourceResolver.findResValue(itemValue, false);
+      if (resValue != null) {
         if (resValue.getResourceType() == ResourceType.COLOR) {
           resolvedResource = ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, resValue, myModule.getProject()));
         }
         else {
           resolvedResource = resourceResolver.resolveResValue(resValue).getName();
         }
-      }
-      else {
-        resolvedResource = itemValue;
       }
 
       ResourceType[] allowedTypes;
@@ -360,10 +339,10 @@ public class StateListPicker extends JPanel {
   }
 
   private class AlphaActionListener implements ActionListener {
-    private final StateListState myState;
+    private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
 
-    public AlphaActionListener(StateListState state, StateComponent stateComponent) {
+    public AlphaActionListener(ResourceHelper.StateListState state, StateComponent stateComponent) {
       myState = state;
       myComponent = stateComponent;
     }
@@ -375,15 +354,9 @@ public class StateListPicker extends JPanel {
 
       ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
       assert resourceResolver != null;
-      String resolvedResource;
-      ResourceUrl url = ResourceUrl.parse(itemValue);
-      if (url != null) {
-        ResourceValue resValue = resourceResolver.findResValue(itemValue, url.framework);
-        resolvedResource = resourceResolver.resolveResValue(resValue).getName();
-      }
-      else {
-        resolvedResource = itemValue;
-      }
+
+      ResourceValue resValue = resourceResolver.findResValue(itemValue, false);
+      String resolvedResource = resValue != null ? resourceResolver.resolveResValue(resValue).getName() : itemValue;
 
       final ChooseResourceDialog dialog = new ChooseResourceDialog(myModule, DIMENSIONS_ONLY, resolvedResource, null);
 
@@ -404,79 +377,34 @@ public class StateListPicker extends JPanel {
     component.setValueText(resourceName);
     component.setAlphaVisible(alphaValue != null);
 
-    ResourceValue resValue = null;
-    String value = resourceName;
-    ResourceUrl url = ResourceUrl.parse(resourceName);
-    if (url != null) {
-      ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
-      assert resourceResolver != null;
-      resValue = resourceResolver.findResValue(resourceName, url.framework);
-      value = resourceResolver.resolveResValue(resValue).getValue();
-    }
+    ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
+    assert resourceResolver != null;
+
+    ResourceValue resValue = resourceResolver.findResValue(resourceName, false);
+    String value = resValue != null ? resourceResolver.resolveResValue(resValue).getValue() : resourceName;
+
     if (resValue != null && resValue.getResourceType() != ResourceType.COLOR && myRenderTask != null) {
       component.setValueIcons(SwatchComponent.imageListOf(myRenderTask.renderDrawableAllStates(resValue)));
     }
     else {
-      component.setSwatchColorWithAlpha(value, alphaValue);
-    }
-  }
+      Color color = ResourceHelper.parseColor(value);
+      assert color != null;
+      List<Color> colorList = ImmutableList.of(color);
+      component.setValueIcons(SwatchComponent.colorListOf(colorList));
 
-  public static class StateList {
-    private final ResourceFolderType myType;
-    private final List<StateListState> myStates;
-
-    public StateList(@NotNull ResourceFolderType type) {
-      myType = type;
-      myStates = new ArrayList<StateListState>();
-    }
-
-    @NotNull
-    public ResourceFolderType getType() {
-      return myType;
-    }
-
-    @NotNull
-    public List<StateListState> getStates() {
-      return myStates;
-    }
-
-    public void addState(@NotNull StateListState state) {
-      myStates.add(state);
-    }
-  }
-
-  public static class StateListState {
-    private String myValue;
-    private String myAlpha;
-    private final Map<String, Boolean> myAttributes;
-
-    public StateListState(@NotNull String value, @NotNull Map<String, Boolean> attributes, @Nullable String alpha) {
-      myValue = value;
-      myAttributes = attributes;
-      myAlpha = alpha;
-    }
-
-    public void setValue(@NotNull String value) {
-      myValue = value;
-    }
-
-    public void setAlpha(String alpha) {
-      myAlpha = alpha;
-    }
-
-    @NotNull
-    public String getValue() {
-      return myValue;
-    }
-
-    @Nullable
-    public String getAlpha() {
-      return myAlpha;
-    }
-
-    @NotNull
-    public Map<String, Boolean> getAttributes() {
-      return myAttributes;
+      if (alphaValue != null) {
+        try {
+          float alpha = Float.parseFloat(ResourceHelper.resolveStringValue(resourceResolver, alphaValue));
+          component.getAlphaComponent().setText(alphaValue);
+          List<NumericalIcon> list = ImmutableList.of(new NumericalIcon(alpha, getFont()));
+          component.getAlphaComponent().setSwatchIcons(list);
+        }
+        catch (NumberFormatException e) {
+          AndroidUtils.reportError(myModule.getProject(), String
+            .format("The alpha attribute in %s/%s does not resolve to a floating point number", myStateList.getDirName(),
+                    myStateList.getFileName()));
+        }
+      }
     }
   }
 
@@ -526,34 +454,6 @@ public class StateListPicker extends JPanel {
 
     public void setValueIcons(List<SwatchComponent.SwatchIcon> icons) {
       myResourceComponent.setSwatchIcons(icons);
-    }
-
-    public void setSwatchColorWithAlpha(@NotNull String colorValue, @Nullable String alphaValue) {
-      float alpha = 1.0f;
-      if (alphaValue != null) {
-        myAlphaComponent.setText(alphaValue);
-        try {
-          alpha = Float.parseFloat(resolveResource(alphaValue, false));
-        }
-        catch (NumberFormatException e) {
-          AndroidUtils.reportError(myModule.getProject(), "The value for alpha needs to be a floating point number");
-        }
-      }
-
-      Color color = ResourceHelper.parseColor(colorValue);
-      assert color != null;
-      int combinedAlpha = (int)(color.getAlpha() * alpha);
-      if (combinedAlpha < 0) {
-        combinedAlpha = 0;
-      }
-      if (combinedAlpha > 255) {
-        combinedAlpha = 255;
-      }
-      Color colorWithAlpha = ColorUtil.toAlpha(color, combinedAlpha);
-      List<Color> colorList = ImmutableList.of(colorWithAlpha);
-      myResourceComponent.setSwatchIcons(SwatchComponent.colorListOf(colorList));
-      List<NumericalIcon> list = Collections.singletonList(new NumericalIcon(alpha, getFont()));
-      myAlphaComponent.setSwatchIcons(list);
     }
 
     @NotNull
