@@ -169,10 +169,10 @@ public class Ide2GradleProjectSyncFacade implements StartupActivity {
     ProjectData projectData = new ProjectData(ProjectSystemId.IDE, project.getName(), DUMMY_VALUE, DUMMY_VALUE);
     DataNode<ProjectData> result = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      if (!GradleConstants.SYSTEM_ID.getId().equals(module.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID))) {
+      if (!GradleConstants.SYSTEM_ID.getId().equals(module.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY))) {
         continue;
       }
-      String linkedProjectPath = module.getOptionValue(ExternalSystemConstants.LINKED_PROJECT_PATH);
+      String linkedProjectPath = module.getOptionValue(ExternalSystemConstants.LINKED_PROJECT_PATH_KEY);
       if (Strings.isNullOrEmpty(linkedProjectPath)) {
         continue;
       }
@@ -201,7 +201,7 @@ public class Ide2GradleProjectSyncFacade implements StartupActivity {
       if (dependencyModule == null) {
         continue;
       }
-      String externalSystemId = dependencyModule.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID);
+      String externalSystemId = dependencyModule.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY);
       if (externalSystemId != null && !GradleConstants.SYSTEM_ID.getId().equals(externalSystemId)) {
         // Skip ide modules mapped to another external system.
         continue;
@@ -215,7 +215,7 @@ public class Ide2GradleProjectSyncFacade implements StartupActivity {
   private static ModuleData buildModuleData(@NotNull Module module, @Nullable String linkedExternalProjectPath) {
     String linkedExternalProjectPathToUse = linkedExternalProjectPath;
     if (linkedExternalProjectPathToUse == null) {
-      linkedExternalProjectPathToUse = module.getOptionValue(ExternalSystemConstants.LINKED_PROJECT_PATH);
+      linkedExternalProjectPathToUse = module.getOptionValue(ExternalSystemConstants.LINKED_PROJECT_PATH_KEY);
     }
     if (linkedExternalProjectPathToUse == null) {
       linkedExternalProjectPathToUse = DUMMY_VALUE;
