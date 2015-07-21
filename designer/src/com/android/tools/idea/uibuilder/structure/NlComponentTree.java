@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.treeStructure.Tree;
@@ -36,20 +35,22 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
+import javax.swing.tree.*;
+import java.awt.*;
 import java.awt.Insets;
 import java.util.*;
+import java.awt.dnd.DropTarget;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.UPDATE_DELAY_MSECS;
+import static com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint.INSERT_INTO;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
-public class NlComponentTree extends Tree implements Disposable, DesignSurfaceListener, ModelListener, SelectionListener {
+public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener {
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
 
   private final StructureTreeDecorator myDecorator;
@@ -58,15 +59,19 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
 
+  private ScreenView myScreenView;
   private NlModel myModel;
   private boolean myWasExpanded;
+  private TreePath myInsertionPath;
+  private InsertionPoint myInsertionPoint;
 
-  public NlComponentTree() {
+  public NlComponentTree(@NonNull DesignSurface designSurface) {
     myDecorator = StructureTreeDecorator.get();
     myComponent2Node = new HashMap<NlComponent, DefaultMutableTreeNode>();
     myId2Node = new HashMap<String, DefaultMutableTreeNode>();
     mySelectionIsUpdating = new AtomicBoolean(false);
-    myUpdateQueue = new MergingUpdateQueue("android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, this, null, SWING_THREAD);
+    myUpdateQueue = new MergingUpdateQueue(
+      "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, designSurface, null, SWING_THREAD);
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(null);
     DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
     setModel(treeModel);
@@ -80,11 +85,28 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
     createCellRenderer();
     addTreeSelectionListener(new StructurePaneSelectionListener());
 //todo:    new StructureSpeedSearch(myTree);
-//todo:    enableDnD(myTree);
+    enableDnD();
+    setDesignSurface(designSurface);
+  }
+
+  private void enableDnD() {
+    setDragEnabled(true);
+    setTransferHandler(new TreeTransferHandler());
+    setDropTarget(new DropTarget(this, new NlDropListener(this)));
   }
 
   public void setDesignSurface(@Nullable DesignSurface designSurface) {
-    setModel(designSurface != null && designSurface.getCurrentScreenView() != null ? designSurface.getCurrentScreenView().getModel() : null);
+    setScreenView(designSurface != null ? designSurface.getCurrentScreenView() : null);
+  }
+
+  private void setScreenView(@Nullable ScreenView screenView) {
+    myScreenView = screenView;
+    setModel(screenView != null ? screenView.getModel() : null);
+  }
+
+  @Nullable
+  public ScreenView getScreenView() {
+    return myScreenView;
   }
 
   private void setModel(@Nullable NlModel model) {
@@ -100,16 +122,21 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
     loadData();
   }
 
-  @Override
+  @Nullable
+  public NlModel getDesignerModel() {
+    return myModel;
+  }
+
   public void dispose() {
     if (myModel != null) {
       myModel.removeListener(this);
       myModel.getSelectionModel().removeListener(this);
+      myModel = null;
     }
   }
 
   private void createCellRenderer() {
-    setCellRenderer(new ColoredTreeCellRenderer() {
+    ColoredTreeCellRenderer renderer = new ColoredTreeCellRenderer() {
       @Override
       public void customizeCellRenderer(@NonNull JTree tree,
                                         Object value,
@@ -125,7 +152,9 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
         }
         myDecorator.decorate(component, this, true);
       }
-    });
+    };
+    renderer.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+    setCellRenderer(renderer);
   }
 
   private void loadData() {
@@ -208,8 +237,7 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
     if (root.getTagName().equals(COORDINATOR_LAYOUT)) {
       // Find first child that is not an AppBarLayout and not anchored to anything.
       for (NlComponent child : root.getChildren()) {
-        if (!child.getTagName().equals(APP_BAR_LAYOUT) &&
-            child.getTag().getAttribute(ATTR_LAYOUT_ANCHOR, AUTO_URI) == null) {
+        if (!child.getTagName().equals(APP_BAR_LAYOUT) && child.getTag().getAttribute(ATTR_LAYOUT_ANCHOR, AUTO_URI) == null) {
           // If this is a NestedScrollView look inside:
           if (child.getTagName().equals(SdkConstants.CLASS_NESTED_SCROLL_VIEW) && child.children != null && !child.children.isEmpty()) {
             child = child.getChild(0);
@@ -247,6 +275,71 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
     }
   }
 
+  @Override
+  public void paint(Graphics g) {
+    super.paint(g);
+    if (myInsertionPath != null) {
+      paintInsertionPoint(g);
+    }
+  }
+
+  enum InsertionPoint {
+    INSERT_INTO,
+    INSERT_BEFORE,
+    INSERT_AFTER
+  }
+
+  private void paintInsertionPoint(Graphics g) {
+    if (myInsertionPath != null) {
+      Rectangle pathBounds = getPathBounds(myInsertionPath);
+      if (pathBounds == null) {
+        return;
+      }
+      int y = pathBounds.y;
+      switch (myInsertionPoint) {
+        case INSERT_BEFORE:
+          break;
+        case INSERT_AFTER:
+          y += pathBounds.height;
+          break;
+        case INSERT_INTO:
+          y += pathBounds.height / 2;
+          break;
+      }
+      Rectangle bounds = getBounds();
+      Polygon triangle = new Polygon();
+      triangle.addPoint(bounds.x + 6, y);
+      triangle.addPoint(bounds.x, y + 3);
+      triangle.addPoint(bounds.x, y - 3);
+      g.setColor(UIUtil.getTreeForeground());
+      if (myInsertionPoint != INSERT_INTO) {
+        g.drawLine(bounds.x, y, bounds.x + bounds.width, y);
+      }
+      g.drawPolygon(triangle);
+      g.fillPolygon(triangle);
+    }
+  }
+
+  public void markInsertionPoint(@Nullable TreePath path, @NonNull InsertionPoint insertionPoint) {
+    if (myInsertionPath != path || myInsertionPoint != insertionPoint) {
+      myInsertionPath = path;
+      myInsertionPoint = insertionPoint;
+      repaint();
+    }
+  }
+
+  public List<NlComponent> getSelectedComponents() {
+    List<NlComponent> selected = new ArrayList<NlComponent>();
+    TreePath[] paths = getSelectionPaths();
+    if (paths != null) {
+      for (TreePath path : paths) {
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+        selected.add((NlComponent)node.getUserObject());
+      }
+    }
+    return selected;
+  }
+
   // ---- Implemented SelectionListener ----
   @Override
   public void selectionChanged(@NonNull SelectionModel model, @NonNull List<NlComponent> selection) {
@@ -281,7 +374,7 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
 
   @Override
   public void screenChanged(@NonNull DesignSurface surface, @Nullable ScreenView screenView) {
-    setModel(screenView != null ? screenView.getModel() : null);
+    setScreenView(screenView);
   }
 
   @Override
@@ -382,15 +475,7 @@ public class NlComponentTree extends Tree implements Disposable, DesignSurfaceLi
         return;
       }
       try {
-        List<NlComponent> selected = new ArrayList<NlComponent>();
-        TreePath[] paths = getSelectionPaths();
-        if (paths != null) {
-          for (TreePath path : paths) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-            selected.add((NlComponent)node.getUserObject());
-          }
-        }
-        myModel.getSelectionModel().setSelection(selected);
+        myModel.getSelectionModel().setSelection(getSelectedComponents());
       } finally {
         mySelectionIsUpdating.set(false);
       }

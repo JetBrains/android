@@ -46,7 +46,7 @@ public class StructureTreeDecorator {
     myPaletteModel = NlPaletteModel.get();
   }
 
-  public void decorate(NlComponent component, SimpleColoredComponent renderer, boolean full) {
+  public void decorate(@NonNull NlComponent component, @NonNull SimpleColoredComponent renderer, boolean full) {
     String id = component.getId();
     id = LintUtils.stripIdPrefix(id);
     id = StringUtil.nullize(id);
