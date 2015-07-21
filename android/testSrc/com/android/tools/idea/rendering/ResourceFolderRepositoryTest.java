@@ -58,6 +58,7 @@ import static com.android.tools.idea.rendering.ResourceFolderRepository.ourFullR
 public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT1 = "resourceRepository/layout.xml";
   private static final String LAYOUT2 = "resourceRepository/layout2.xml";
+  private static final String LAYOUT_ID_SCAN = "resourceRepository/layout_for_id_scan.xml";
   private static final String LAYOUT_WITH_DATA_BINDING = "resourceRepository/layout_with_data_binding.xml";
   private static final String VALUES1 = "resourceRepository/values.xml";
   private static final String VALUES_EMPTY = "resourceRepository/empty.xml";
@@ -2081,6 +2082,16 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     //noinspection ConstantConditions
     assertEquals("My Application 574",
                  resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+  }
+
+  public void testIdScanFromLayout() throws Exception {
+    // Test for http://b.android.com/172239
+    myFixture.copyFileToProject(LAYOUT_ID_SCAN, "res/layout/layout1.xml");
+    ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    Collection<String> ids = resources.getItemsOfType(ResourceType.ID);
+    assertNotNull(ids);
+    assertContainsElements(ids, "header", "image", "styledView", "imageView", "imageView2", "imageButton", "nonExistent");
   }
 
   public void testSync() throws Exception {
