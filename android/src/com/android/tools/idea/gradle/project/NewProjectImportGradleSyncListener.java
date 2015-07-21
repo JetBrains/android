@@ -82,7 +82,7 @@ public abstract class NewProjectImportGradleSyncListener implements GradleSyncLi
       Module module = moduleManager.newModule(moduleFile.getPath(), StdModuleTypes.JAVA.getId());
 
       // This prevents the balloon "Unsupported Modules detected".
-      module.setOption(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY, GradleConstants.SYSTEM_ID.getId());
+      module.setOption(ExternalSystemConstants.EXTERNAL_SYSTEM_ID, GradleConstants.SYSTEM_ID.getId());
 
       ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
       model.addContentEntry(contentRoot);

@@ -64,9 +64,8 @@ public class GradleAwareSourceRootRenameValidator implements RenameInputValidato
     VirtualFile virtualFile = ((PsiDirectory)element).getVirtualFile();
     Module[] modules = ModuleManager.getInstance(element.getProject()).getModules();
     for (Module module : modules) {
-      if (!GradleConstants.SYSTEM_ID.getId().equals(module.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY))
-          || Strings.isNullOrEmpty(module.getOptionValue(ExternalSystemConstants.LINKED_PROJECT_PATH_KEY)))
-      {
+      if (!GradleConstants.SYSTEM_ID.getId().equals(module.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID))
+          || Strings.isNullOrEmpty(module.getOptionValue(ExternalSystemConstants.LINKED_PROJECT_PATH))) {
         // Ignore modules not backed by gradle.
         continue;
       }
