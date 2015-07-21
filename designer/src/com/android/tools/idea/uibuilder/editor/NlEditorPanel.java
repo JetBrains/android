@@ -22,8 +22,12 @@ import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
+import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.designer.DesignerEditorPanelFacade;
@@ -33,6 +37,7 @@ import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.PasteProvider;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
@@ -48,6 +53,7 @@ import org.jetbrains.annotations.NonNls;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 /**
  * Assembles a designer editor from various components
@@ -174,32 +180,37 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
 
     @Override
     public void performCopy(@NonNull DataContext dataContext) {
+      ScreenView screenView = myEditor.getSurface().getCurrentScreenView();
+      if (screenView == null) {
+        return;
+      }
+      CopyPasteManager.getInstance().setContents(screenView.getModel().getSelectionAsTransferable());
     }
 
     @Override
     public boolean isCopyEnabled(@NonNull DataContext dataContext) {
-      ScreenView screenView = myEditor.getSurface().getCurrentScreenView();
-      return screenView != null && !screenView.getSelectionModel().isEmpty();
+      return hasNonEmptySelection();
     }
 
     @Override
     public boolean isCopyVisible(@NonNull DataContext dataContext) {
-      return false;
+      return true;
     }
 
     @Override
     public void performCut(@NonNull DataContext dataContext) {
+      performCopy(dataContext);
+      deleteElement(dataContext);
     }
 
     @Override
     public boolean isCutEnabled(@NonNull DataContext dataContext) {
-      ScreenView screenView = myEditor.getSurface().getCurrentScreenView();
-      return screenView != null && !screenView.getSelectionModel().isEmpty();
+      return hasNonEmptySelection();
     }
 
     @Override
     public boolean isCutVisible(@NonNull DataContext dataContext) {
-      return false;
+      return true;
     }
 
     @Override
@@ -217,24 +228,81 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
 
     @Override
     public boolean canDeleteElement(@NonNull DataContext dataContext) {
-      ScreenView screenView = myEditor.getSurface().getCurrentScreenView();
-      return screenView != null && !screenView.getSelectionModel().isEmpty();
+      return hasNonEmptySelection();
     }
 
     @Override
     public void performPaste(@NonNull DataContext dataContext) {
+      pasteOperation(false /* check and perform the actual paste */);
     }
 
     @Override
     public boolean isPastePossible(@NonNull DataContext dataContext) {
-      // TODO: Look at clipboard
-      return false;
+      return true;
     }
 
     @Override
     public boolean isPasteEnabled(@NonNull DataContext dataContext) {
-      // TODO: Look at clipboard
-      return false;
+      return pasteOperation(true /* check only */);
+    }
+
+    private boolean hasNonEmptySelection() {
+      ScreenView screenView = myEditor.getSurface().getCurrentScreenView();
+      return screenView != null && !screenView.getSelectionModel().isEmpty();
+    }
+
+    private boolean pasteOperation(boolean checkOnly) {
+      ScreenView screenView = myEditor.getSurface().getCurrentScreenView();
+      if (screenView == null) {
+        return false;
+      }
+      List<NlComponent> selection = screenView.getSelectionModel().getSelection();
+      if (selection.size() != 1) {
+        return false;
+      }
+      NlComponent receiver = selection.get(0);
+      NlComponent before;
+      NlModel model = screenView.getModel();
+      ViewHandlerManager handlerManager = ViewHandlerManager.get(model.getProject());
+      ViewHandler handler = handlerManager.getHandler(receiver);
+      if (handler instanceof ViewGroupHandler) {
+        before = receiver.getChild(0);
+      } else {
+        before = receiver.getNextSibling();
+        receiver = receiver.getParent();
+        if (receiver == null) {
+          return false;
+        }
+      }
+
+      DnDTransferItem item = getClipboardData();
+      if (item == null) {
+        return false;
+      }
+      InsertType insertType = model.determineInsertType(DragType.PASTE, item, checkOnly);
+      List<NlComponent> pasted = model.createComponents(screenView, item, insertType);
+      if (!model.canAddComponents(pasted, receiver, before)) {
+        return false;
+      }
+      if (checkOnly) {
+        return true;
+      }
+      model.addComponents(pasted, receiver, before, insertType);
+      return true;
+    }
+
+    @Nullable
+    private static DnDTransferItem getClipboardData() {
+      try {
+        Object data = CopyPasteManager.getInstance().getContents(ItemTransferable.DESIGNER_FLAVOR);
+        if (!(data instanceof DnDTransferItem)) {
+          return null;
+        }
+        return (DnDTransferItem)data;
+      }
+      catch (Exception e) {
+        return null;
+      }
     }
   }
 
