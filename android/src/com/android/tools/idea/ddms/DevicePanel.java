@@ -246,15 +246,24 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       }
 
       Client[] clients = device.getClients();
+      // There's a chance we got this update because a client we were debugging
+      // just crashed or was closed. We still want to keep it in the list
+      // though so the user can look over any final error messages / profiling
+      // states.
+      boolean selectedClientDied = true;
       Arrays.sort(clients, new ClientCellRenderer.ClientComparator());
-
       for (Client client : clients) {
         myClientCombo.addItem(client);
-        if (client == toSelect) {
-          myClientCombo.setSelectedItem(toSelect);
-          update = toSelect != selected;
+        if (selected == client) {
+          selectedClientDied = false;
         }
       }
+      if (selectedClientDied) {
+        myClientCombo.addItem(selected);
+      }
+
+      myClientCombo.setSelectedItem(toSelect);
+      update = toSelect != selected;
     }
 
     myIgnoreActionEvents = false;
