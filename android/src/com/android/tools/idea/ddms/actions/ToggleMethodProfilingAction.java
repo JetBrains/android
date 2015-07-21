@@ -29,38 +29,27 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-public class ToggleMethodProfilingAction extends ToggleAction {
+public class ToggleMethodProfilingAction extends AbstractClientToggleAction {
   private final Project myProject;
-  private final DeviceContext myDeviceContext;
 
   public ToggleMethodProfilingAction(@NotNull Project p, @NotNull DeviceContext context) {
-    super(AndroidBundle.message("android.ddms.actions.methodprofile.start"),
+    super(context,
+          AndroidBundle.message("android.ddms.actions.methodprofile.start"),
           null,
           AndroidIcons.Ddms.StartMethodProfiling);
 
     myProject = p;
-    myDeviceContext = context;
   }
 
   @Override
-  public boolean isSelected(AnActionEvent e) {
-    Client c = myDeviceContext.getSelectedClient();
-    if (c == null) {
-      return false;
-    }
-
+  protected boolean isSelected(@NotNull Client c) {
     ClientData cd = c.getClientData();
     return cd.getMethodProfilingStatus() == ClientData.MethodProfilingStatus.TRACER_ON ||
            cd.getMethodProfilingStatus() == ClientData.MethodProfilingStatus.SAMPLER_ON;
   }
 
   @Override
-  public void setSelected(AnActionEvent e, boolean state) {
-    Client c = myDeviceContext.getSelectedClient();
-    if (c == null) {
-      return;
-    }
-
+  protected void setSelected(@NotNull Client c) {
     ClientData cd = c.getClientData();
     try {
       if (cd.getMethodProfilingStatus() == ClientData.MethodProfilingStatus.TRACER_ON) {
@@ -75,20 +64,11 @@ public class ToggleMethodProfilingAction extends ToggleAction {
     }
   }
 
+  @NotNull
   @Override
-  public void update(AnActionEvent e) {
-    super.update(e);
-
-    Client c = myDeviceContext.getSelectedClient();
-    if (c == null) {
-      e.getPresentation().setEnabled(false);
-      return;
-    }
-
-    String text = c.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.TRACER_ON ?
+  protected String getActiveText(@NotNull Client c) {
+    return c.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.TRACER_ON ?
                   AndroidBundle.message("android.ddms.actions.methodprofile.stop") :
                   AndroidBundle.message("android.ddms.actions.methodprofile.start");
-    e.getPresentation().setText(text);
-    e.getPresentation().setEnabled(true);
   }
 }
