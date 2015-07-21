@@ -989,6 +989,22 @@ public class LombokPsiParser extends JavaParser {
       return Collections.emptyList();
     }
 
+    @NonNull
+    @Override
+    public Iterable<ResolvedField> getFields(boolean includeInherited) {
+      if (myClass != null) {
+        PsiField[] fields = includeInherited ? myClass.getAllFields() : myClass.getFields();
+        if (fields.length > 0) {
+          List<ResolvedField> result = Lists.newArrayListWithExpectedSize(fields.length);
+          for (PsiField field : fields) {
+            result.add(new ResolvedPsiField(field));
+          }
+          return result;
+        }
+      }
+      return Collections.emptyList();
+    }
+
     @Nullable
     @Override
     public ResolvedField getField(@NonNull String name, boolean includeInherited) {
