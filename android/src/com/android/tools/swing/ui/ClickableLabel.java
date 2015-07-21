@@ -15,7 +15,12 @@
  */
 package com.android.tools.swing.ui;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.SwingConstants;
+import javax.swing.plaf.ButtonUI;
+import javax.swing.plaf.basic.BasicButtonUI;
 
 /**
  * Class that implements a label that supports action listeners
@@ -24,9 +29,6 @@ public class ClickableLabel extends JButton {
   public ClickableLabel(String text, Icon icon, int horizontalAlignment) {
     super(text, icon);
 
-    setFocusPainted(false);
-    setBorderPainted(false);
-    setContentAreaFilled(false);
     setBorder(BorderFactory.createEmptyBorder());
     setHorizontalAlignment(horizontalAlignment);
   }
@@ -37,5 +39,10 @@ public class ClickableLabel extends JButton {
 
   public ClickableLabel() {
     this(null);
+  }
+
+  @Override
+  public void updateUI() {
+    setUI((ButtonUI)BasicButtonUI.createUI(this));
   }
 }
