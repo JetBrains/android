@@ -141,6 +141,8 @@ public class ThemeEditorComponent extends Splitter {
   private boolean myIsSubscribedResourceNotification;
   private final GoToListener myGoToListener;
   private MutableCollectionComboBoxModel<Module> myModuleComboModel;
+
+  /** Next pending search. The {@link ScheduledFuture} allows us to cancel the next search before it runs. */
   private ScheduledFuture<?> myScheduledSearch;
 
   public interface GoToListener {
