@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.quickfix;
 
-import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.parser.*;
+import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.application.options.ModuleListCellRenderer;
 import com.intellij.codeInsight.CodeInsightUtilBase;
@@ -28,7 +25,6 @@ import com.intellij.codeInsight.daemon.QuickFixBundle;
 import com.intellij.codeInsight.daemon.impl.actions.AddImportAction;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -42,8 +38,6 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,8 +55,6 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
  * {@link AddGradleProjectDependencyFix#addDependencyOnModule} method
  */
 public class AddGradleProjectDependencyFix extends GradleDependencyFix {
-  private static final Logger LOG = Logger.getInstance(AddGradleProjectDependencyFix.class);
-
   private final Set<Module> myModules = Sets.newHashSet();
   private final Module myCurrentModule;
   private final VirtualFile myClassVFile;
@@ -223,9 +215,8 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
     }
   }
 
-  private static void showCircularWarningAndContinue(@NotNull final Project project, @NotNull final Pair<Module, Module> circularModules,
-                                                     @NotNull final Module classModule,
-                                                     @NotNull final Runnable doit) {
+  private static void showCircularWarningAndContinue(@NotNull final Project project, @NotNull Pair<Module, Module> circularModules,
+                                                     @NotNull Module classModule, @NotNull final Runnable doit) {
     final String message = QuickFixBundle.message("orderEntry.fix.circular.dependency.warning", classModule.getName(),
                                                   circularModules.getFirst().getName(), circularModules.getSecond().getName());
     if (ApplicationManager.getApplication().isUnitTestMode()) throw new RuntimeException(message);
@@ -248,40 +239,11 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
   }
 
   // TODO use new gradle build file API to add dependencies.
-  private static void addDependency(@NotNull Module from, @NotNull final Module to, boolean test) {
+  private static void addDependency(@NotNull Module from, @NotNull Module to, boolean test) {
     String gradlePath = getGradlePath(to);
     if (gradlePath != null) {
       Dependency dependency = new Dependency(getDependencyScope(from, test), Dependency.Type.MODULE, gradlePath);
       addDependency(from, dependency);
     }
-  }
-
-  private static void addDependency(@NotNull final Module module, final @NotNull Dependency dependency) {
-    final GradleBuildFile gradleBuildFile = GradleBuildFile.get(module);
-
-    if (gradleBuildFile == null) {
-      LOG.error("Run add dependency quickfix on a module that has no module level 'gradle.build' file");
-      return;
-    }
-
-    final List<BuildFileStatement> dependencies = Lists.newArrayList(gradleBuildFile.getDependencies());
-    dependencies.add(dependency);
-
-    gradleBuildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
-  }
-
-  @NotNull
-  private static Dependency.Scope getDependencyScope(@NotNull Module module, boolean test) {
-    Dependency.Scope testScope = Dependency.Scope.TEST_COMPILE;
-    if (test) {
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null) {
-        IdeaAndroidProject androidProject = androidFacet.getIdeaAndroidProject();
-        if (androidProject != null && AndroidProject.ARTIFACT_ANDROID_TEST.equals(androidProject.getSelectedTestArtifactName())) {
-          testScope = Dependency.Scope.ANDROID_TEST_COMPILE;
-        }
-      }
-    }
-    return test ? testScope : Dependency.Scope.COMPILE;
   }
 }
