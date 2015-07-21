@@ -17,9 +17,7 @@ package com.android.tools.idea.editors.theme.preview;
 
 
 import com.android.ide.common.rendering.api.MergeCookie;
-import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.RenderContext;
@@ -73,9 +71,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 
 
 /**
@@ -117,9 +112,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   protected final NavigationComponent<Breadcrumb> myBreadcrumbs;
   protected final AndroidPreviewPanel myAndroidPreviewPanel;
   protected final JBScrollPane myScrollPane;
-
-  private final ScheduledExecutorService mySearchScheduler = Executors.newSingleThreadScheduledExecutor();
-  /** Next pending search. The {@link ScheduledFuture} allows us to cancel the next search before it runs. */
 
   protected DumbService myDumbService;
 
