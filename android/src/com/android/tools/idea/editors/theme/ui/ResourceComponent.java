@@ -109,6 +109,7 @@ public class ResourceComponent extends JPanel {
     mySwatchComponent.setText(value);
   }
 
+  @NotNull
   public String getValueText() {
     return mySwatchComponent.getText();
   }
