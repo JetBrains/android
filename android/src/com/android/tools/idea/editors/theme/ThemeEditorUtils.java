@@ -385,7 +385,7 @@ public class ThemeEditorUtils {
       protected void run(@NotNull Result<Boolean> result) {
         CommandProcessor.getInstance().markCurrentCommandAsGlobal(myThemeEditorContext.getProject());
         result.setResult(AndroidResourceUtil.
-          createValueResource(myThemeEditorContext.getCurrentContextModule(), dialog.getStyleName(),
+          createValueResource(myThemeEditorContext.getCurrentContextModule(), dialog.getStyleName(), null,
                               ResourceType.STYLE, fileName, dirNames, new Processor<ResourceElement>() {
               @Override
               public boolean process(ResourceElement element) {
