@@ -578,6 +578,7 @@ public class ResourceHelper {
   @NotNull
   private static StateListPicker.StateListState createStateListState(XmlTag tag, boolean isFramework) {
     String stateValue = null;
+    String alphaValue = null;
     Map<String, Boolean> stateAttributes = new HashMap<String, Boolean>();
     XmlAttribute[] attributes = tag.getAttributes();
     for (XmlAttribute attr : attributes) {
@@ -592,6 +593,10 @@ public class ResourceHelper {
           stateValue = value;
         }
       }
+      else if (value != null && "alpha".equals(name)) {
+        ResourceUrl url = ResourceUrl.parse(value, isFramework);
+        alphaValue = url != null ? url.toString() : value;
+      }
       else if (name.startsWith(STATE_NAME_PREFIX)) {
         stateAttributes.put(name, Boolean.valueOf(value));
       }
@@ -599,7 +604,7 @@ public class ResourceHelper {
     if (stateValue == null) {
       throw new IllegalArgumentException("Not a valid item");
     }
-    return new StateListPicker.StateListState(stateValue, stateAttributes);
+    return new StateListPicker.StateListState(stateValue, stateAttributes, alphaValue);
   }
 
   /**
