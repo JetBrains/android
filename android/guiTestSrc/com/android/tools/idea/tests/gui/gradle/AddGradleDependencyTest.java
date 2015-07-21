@@ -34,41 +34,43 @@ import static org.junit.Assert.assertTrue;
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class AddGradleDependencyTest extends GuiTestCase {
   @Test @IdeGuiTest
-  public void testAddProdDependency() throws IOException {
+  public void testAddProdModuleDependency() throws IOException {
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/java/com/android/multimodule/MainActivity.java");
 
-    typeImportAndInvokeAction(projectFrame);
+    typeImportAndInvokeAction(projectFrame, "com.android.multimodule;\n^", "import com.example.MyLib^rary;",
+                              "Add dependency on module 'library3'");
 
     assertBuildFileContains(projectFrame, "app/build.gradle", "compile project(':library3')");
   }
 
   @Test @IdeGuiTest
-  public void testAddTestDependency() throws IOException {
+  public void testAddTestModuleDependency() throws IOException {
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/androidTest/java/com/android/multimodule/ApplicationTest.java");
 
-    typeImportAndInvokeAction(projectFrame);
+    typeImportAndInvokeAction(projectFrame, "com.android.multimodule;\n^", "import com.example.MyLib^rary;",
+                              "Add dependency on module 'library3'");
 
     assertBuildFileContains(projectFrame, "app/build.gradle", "androidTestCompile project(':library3')");
   }
 
-  private static void typeImportAndInvokeAction(@NotNull IdeFrameFixture projectFrame) {
+  private static void typeImportAndInvokeAction(@NotNull IdeFrameFixture projectFrame, @NotNull String lineToType,
+                                                @NotNull String testImportStatement, @NotNull String intention) {
     EditorFixture editor = projectFrame.getEditor();
-    editor.moveTo(editor.findOffset("com.android.multimodule;\n^"));
-    editor.enterText("\nimport com.example.MyLibrary;");
+    editor.moveTo(editor.findOffset(lineToType));
+    editor.enterText("\n" + testImportStatement.replace("^", ""));
 
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
 
-    editor.moveTo(editor.findOffset("com.example.MyLib^rary;"));
-    editor.invokeIntentionAction("Add dependency on module 'library3'");
+    editor.moveTo(editor.findOffset(testImportStatement));
+    editor.invokeIntentionAction(intention);
 
     projectFrame.waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
-
   private static void assertBuildFileContains(@NotNull IdeFrameFixture projectFrame, @NotNull String relativePath,
                                               @NotNull String content) {
     String newBuildFileContent = getFileContent(new File(projectFrame.getProjectPath(), relativePath).getPath());

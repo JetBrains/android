@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.quickfix;
 
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar;
 import com.intellij.codeInsight.daemon.impl.quickfix.OrderEntryFix;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -29,7 +31,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -42,16 +43,22 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
 
   @Override
   public void registerFixes(@NotNull PsiJavaCodeReferenceElement reference, @NotNull QuickFixActionRegistrar registrar) {
-    final Module contextModule = findModuleForPsiElement(reference);
+    Module contextModule = findModuleForPsiElement(reference);
     if (contextModule == null) {
       return;
     }
 
-    final AndroidFacet facet = AndroidFacet.getInstance(contextModule);
-    if (facet == null) {
+    AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(contextModule);
+    if (gradleFacet == null) {
       return;
     }
-    final PsiFile contextFile = reference.getContainingFile();
+
+    GradleBuildFile gradleBuildFile = GradleBuildFile.get(contextModule);
+    if (gradleBuildFile == null) {
+      return;
+    }
+
+    PsiFile contextFile = reference.getContainingFile();
     if (contextFile == null) {
       return;
     }
