@@ -17,13 +17,12 @@ package com.android.tools.idea.uibuilder.model;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.api.DragType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.awt.datatransfer.Transferable;
+import java.util.*;
 
 /**
  * Represents a selection of components
@@ -168,5 +167,13 @@ public class SelectionModel {
   /** Returns true if the given component is part of the selection */
   public boolean isSelected(@NonNull NlComponent component) {
     return mySelection.contains(component);
+  }
+
+  public Transferable getTransferable(long modelId) {
+    List<DnDTransferComponent> components = new ArrayList<DnDTransferComponent>(mySelection.size());
+    for (NlComponent component : mySelection) {
+      components.add(new DnDTransferComponent(component.getTagName(), component.getTag().getText(), component.w, component.h));
+    }
+    return new ItemTransferable(new DnDTransferItem(modelId, components));
   }
 }

@@ -19,16 +19,17 @@ package com.android.tools.idea.uibuilder.api;
  * Describes different types of drag modes. The semantics of how a drop is handled
  * can vary:
  * <ul>
- * <li>Copy. This is typically what happens when dragging from the palette;
- * a new copy of the components are created. This can also be achieved when
- * dragging with a modifier key.</li>
+ * <li>Create. This is typically what happens when dragging from the palette;
+ * a new copy of the component is created.</li>
+ * <li>Copy. This is typically what happens when dragging with a modifier key;
+ * a new copy of the components are created.</li>
  * <li>Move. This is typically done by dragging one or more widgets around in
  * the canvas; when moving the widget within a single parent, it may only
  * translate into some updated layout parameters or widget reordering, whereas
  * when moving from one parent to another widgets are moved in the hierarchy
- * as well.</li>
- * <li>Move within same parent.</li>
- * <li>A paste is similar to a copy. It typically tries to preserve internal
+ * as well. This is also used for dragging widgets from one designer to another;
+ * then a new copy of the components are created.</li>
+ * <li>Paste. Is similar to a copy. It typically tries to preserve internal
  * relationships and id's when possible. If you for example select 3 widgets and
  * cut them, if you paste them the widgets will come back in the exact same place
  * with the same id's. If you paste a second time, the widgets will now all have
@@ -36,6 +37,8 @@ package com.android.tools.idea.uibuilder.api;
  * </ul>
  */
 public enum DragType {
+  /** Create the dragged components */
+  CREATE("Create Components"),
   /** Copy the dragged components */
   COPY("Copy Components"),
   /** Move the dragged components */

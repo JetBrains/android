@@ -24,10 +24,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceVersion;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -47,8 +44,10 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
@@ -60,6 +59,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 
 import javax.swing.Timer;
 import java.awt.*;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
@@ -90,7 +90,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private int myRenderDelay = 10;
   private AndroidPreviewProgressIndicator myCurrentIndicator;
   private static final Object PROGRESS_LOCK = new Object();
-
 
   @NonNull
   public static NlModel create(@NonNull DesignSurface surface, @Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
@@ -787,6 +786,107 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return child;
   }
 
+  @NonNull
+  public Transferable getSelectionAsTransferable() {
+    return mySelectionModel.getTransferable(myId);
+  }
+
+  /**
+   * Returns true if the specified components can be added to the specified receiver.
+   */
+  public boolean canAddComponents(@Nullable List<NlComponent> toAdd, @NonNull NlComponent receiver, @Nullable NlComponent before) {
+    if (before != null && before.getParent() != receiver) {
+      return false;
+    }
+    ViewHandlerManager handlerManager = ViewHandlerManager.get(getProject());
+    ViewHandler parentHandler = handlerManager.getHandler(receiver);
+    if (!(parentHandler instanceof ViewGroupHandler)) {
+      return false;
+    }
+    final ViewGroupHandler groupHandler = (ViewGroupHandler)parentHandler;
+
+    if (toAdd == null || toAdd.isEmpty()) {
+      return false;
+    }
+    for (NlComponent component : toAdd) {
+      if (!groupHandler.acceptsChild(receiver, component)) {
+        return false;
+      }
+      ViewHandler handler = handlerManager.getHandler(component);
+      if (handler != null && !handler.acceptsParent(receiver, component)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Adds components to the specified receiver before the given sibling.
+   * If insertType is a move the components specified should be components from this model.
+   */
+  public void addComponents(@Nullable final List<NlComponent> toAdd,
+                            @NonNull final NlComponent receiver,
+                            @Nullable final NlComponent before,
+                            @NonNull final InsertType insertType) {
+    if (!canAddComponents(toAdd, receiver, before)) {
+      return;
+    }
+    assert toAdd != null;
+
+    WriteCommandAction<Void> action = new WriteCommandAction<Void>(getProject(), insertType.getDragType().getDescription(), myFile) {
+      @Override
+      protected void run(@NonNull Result<Void> result) throws Throwable {
+        handleAddition(toAdd, receiver, before, insertType);
+      }
+    };
+    action.execute();
+  }
+
+  private void handleAddition(@NonNull List<NlComponent> added,
+                              @NonNull NlComponent receiver,
+                              @Nullable NlComponent before,
+                              @NonNull InsertType insertType) {
+    ViewHandlerManager handlerManager = ViewHandlerManager.get(getProject());
+    ViewGroupHandler groupHandler = (ViewGroupHandler)handlerManager.getHandler(receiver);
+    assert groupHandler != null;
+    for (NlComponent component : added) {
+      if (insertType.isMove()) {
+        insertType = component.getParent() == receiver ? InsertType.MOVE_WITHIN : InsertType.MOVE_INTO;
+      }
+      if (component.needsDefaultId() && (StringUtil.isEmpty(component.getId()) || !insertType.isMove())) {
+        component.assignId();
+      }
+      groupHandler.onChildInserted(receiver, component, insertType);
+
+      NlComponent parent = component.getParent();
+      if (parent != null) {
+        parent.removeChild(component);
+      }
+      receiver.addChild(component, before);
+      if (receiver.getTag() != component.getTag()) {
+        XmlTag prev = component.getTag();
+        if (before != null) {
+          component.setTag((XmlTag)receiver.getTag().addBefore(component.getTag(), before.getTag()));
+        }
+        else {
+          component.setTag(receiver.getTag().addSubTag(component.getTag(), false));
+        }
+        if (insertType.isMove()) {
+          prev.delete();
+        }
+      }
+      removeNamespaceAttributes(component);
+    }
+  }
+
+  private static void removeNamespaceAttributes(NlComponent component) {
+    for (XmlAttribute attribute : component.getTag().getAttributes()) {
+      if (attribute.getName().startsWith(XMLNS_PREFIX)) {
+        attribute.delete();
+      }
+    }
+  }
+
   @Nullable
   public List<NlComponent> createComponents(@NonNull ScreenView screenView,
                                             @NonNull DnDTransferItem item,
@@ -858,16 +958,21 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @NonNull
-  public InsertType determineInsertType(@NonNull DnDTransferItem item, boolean asPreview, boolean isCopy) {
-    InsertType insertType;
+  public InsertType determineInsertType(@NonNull DragType dragType, @NonNull DnDTransferItem item, boolean asPreview) {
     if (item.isFromPalette()) {
-      insertType = asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
-    } else if (!isCopy && myId == item.getModelId()) {
-      insertType = InsertType.MOVE_INTO;
-    } else {
-      insertType = InsertType.PASTE;
+      return asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
     }
-    return insertType;
+    switch (dragType) {
+      case CREATE:
+        return asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
+      case MOVE:
+        return myId == item.getModelId() ? InsertType.MOVE_INTO : InsertType.COPY;
+      case COPY:
+        return InsertType.COPY;
+      case PASTE:
+      default:
+        return InsertType.PASTE;
+    }
   }
 
   @Override
