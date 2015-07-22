@@ -33,6 +33,9 @@ import com.intellij.packageDependencies.DependencyValidationManager;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtil;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -87,10 +90,20 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
       return;
     }
 
-    // TODO implement a quickfix that could properly "add junit dependency" to the gradle file.
     PsiElement psiElement = reference.getElement();
     String referenceName = reference.getRangeInElement().substring(psiElement.getText());
     Project project = psiElement.getProject();
+
+    // Check if it is a JUnit class reference.
+    if ("TestCase".equals(referenceName) || isAnnotation(psiElement) && isJunitAnnotationName(referenceName, psiElement)) {
+      final boolean isJunit4 = !referenceName.equals("TestCase");
+      String className = isJunit4 ? "org.junit." + referenceName : "junit.framework.TestCase";
+      PsiClass found =
+        JavaPsiFacade.getInstance(project).findClass(className, contextModule.getModuleWithDependenciesAndLibrariesScope(true));
+      if (found == null) {
+        registrar.register(new AddGradleJUnitDependencyFix(contextModule, reference, className, isJunit4));
+      }
+    }
 
     // Check if we could fix it by introduce gradle dependency.
     PsiClass[] classes = PsiShortNamesCache.getInstance(project).getClassesByName(referenceName, GlobalSearchScope.allScope(project));
@@ -163,6 +176,32 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
       }
     }
     return result;
+  }
+
+  // Duplicated from com.intellij.codeInsight.daemon.impl.quickfix.OrderEntryFix.isAnnotation
+  private static boolean isAnnotation(@NotNull final PsiElement psiElement) {
+    return PsiTreeUtil.getParentOfType(psiElement, PsiAnnotation.class) != null && PsiUtil.isLanguageLevel5OrHigher(psiElement);
+  }
+
+  // Duplicated from com.intellij.codeInsight.daemon.impl.quickfix.OrderEntryFix.isJunitAnnotationName
+  private static boolean isJunitAnnotationName(@NonNls final String referenceName, @NotNull final PsiElement psiElement) {
+    if ("Test".equals(referenceName) || "Ignore".equals(referenceName) || "RunWith".equals(referenceName) ||
+        "Before".equals(referenceName) || "BeforeClass".equals(referenceName) ||
+        "After".equals(referenceName) || "AfterClass".equals(referenceName)) {
+      return true;
+    }
+    final PsiElement parent = psiElement.getParent();
+    if (parent != null && !(parent instanceof PsiAnnotation)) {
+      final PsiReference reference = parent.getReference();
+      if (reference != null) {
+        final String referenceText = parent.getText();
+        if (isJunitAnnotationName(reference.getRangeInElement().substring(referenceText), parent)) {
+          final int lastDot = referenceText.lastIndexOf('.');
+          return lastDot > -1 && referenceText.substring(0, lastDot).equals("org.junit");
+        }
+      }
+    }
+    return false;
   }
 
   @NotNull
