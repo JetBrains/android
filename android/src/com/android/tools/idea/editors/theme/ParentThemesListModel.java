@@ -37,12 +37,19 @@ public class ParentThemesListModel extends AbstractListModel implements MutableC
   private final SeparatedList myAllItems;
   private final ArrayList<ThemeEditorStyle> myRecentParentThemeList = new ArrayList<ThemeEditorStyle>();
 
-  public ParentThemesListModel(@NotNull ImmutableList<ThemeEditorStyle> defaultThemeList, @Nullable ThemeEditorStyle parent) {
-    if (parent != null && !defaultThemeList.contains(parent)) {
-      myRecentParentThemeList.add(parent);
+  /**
+   * @param defaultThemeList Default theme list in the combo, usually is taken from {@link ThemeEditorUtils#getDefaultThemes(ThemeResolver)}
+   */
+  public ParentThemesListModel(@NotNull ImmutableList<ThemeEditorStyle> defaultThemeList, @Nullable ThemeEditorStyle defaultParent) {
+    // If default parent is not in the theme list, add it
+    if (defaultParent != null && !defaultThemeList.contains(defaultParent)) {
+      myRecentParentThemeList.add(defaultParent);
     }
+
     myAllItems = new SeparatedList(SEPARATOR, group(myRecentParentThemeList), group(defaultThemeList), group(SHOW_ALL_THEMES));
-    setSelectedItem(myAllItems.get(0));
+
+    // Set default parent if present, first item otherwise
+    setSelectedItem(defaultParent == null ? myAllItems.get(0) : defaultParent);
   }
 
   @Override
