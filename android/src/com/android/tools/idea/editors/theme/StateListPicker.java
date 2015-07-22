@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -54,7 +55,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -93,8 +96,8 @@ public class StateListPicker extends JPanel {
   }
 
   @NotNull
-  private StateComponent createStateComponent(@NotNull StateListState state) {
-    StateComponent stateComponent = new StateComponent();
+  private StateComponent createStateComponent(@NotNull final StateListState state) {
+    final StateComponent stateComponent = new StateComponent();
 
     String stateValue = state.getValue();
     updateComponent(stateComponent, stateValue, state.getAlpha());
@@ -110,7 +113,51 @@ public class StateListPicker extends JPanel {
     }
     String stateDescription = attributeDescriptions.size() == 0 ? "Default" : Joiner.on(", ").join(attributeDescriptions);
     stateComponent.setNameText(String.format(LABEL_TEMPLATE, ThemeEditorConstants.RESOURCE_ITEM_COLOR.toString(), stateDescription));
+
+    stateComponent.setComponentPopupMenu(createAlphaPopupMenu(state, stateComponent));
+
     return stateComponent;
+  }
+
+  @NotNull
+  private JBPopupMenu createAlphaPopupMenu(@NotNull final StateListState state, @NotNull final StateComponent stateComponent) {
+    JBPopupMenu popupMenu = new JBPopupMenu();
+    final JMenuItem deleteAlpha = new JMenuItem("Delete alpha");
+    popupMenu.add(deleteAlpha);
+    deleteAlpha.setVisible(state.getAlpha() != null);
+
+    final JMenuItem createAlpha = new JMenuItem("Create alpha");
+    popupMenu.add(createAlpha);
+    createAlpha.setVisible(state.getAlpha() == null);
+
+    deleteAlpha.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        stateComponent.getAlphaComponent().setVisible(false);
+        state.setAlpha(null);
+        updateComponent(stateComponent, state.getValue(), state.getAlpha());
+        deleteAlpha.setVisible(false);
+        createAlpha.setVisible(true);
+      }
+    });
+
+    createAlpha.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        AlphaActionListener listener = stateComponent.getAlphaActionListener();
+        if (listener == null) {
+          return;
+        }
+        listener.actionPerformed(new ActionEvent(stateComponent.getAlphaComponent(), ActionEvent.ACTION_PERFORMED, null));
+        if (state.getAlpha() != null) {
+          stateComponent.getAlphaComponent().setVisible(true);
+          createAlpha.setVisible(false);
+          deleteAlpha.setVisible(true);
+        }
+      }
+    });
+
+    return popupMenu;
   }
 
   @NotNull
@@ -390,6 +437,7 @@ public class StateListPicker extends JPanel {
   private class StateComponent extends Box {
     private final ResourceComponent myResourceComponent;
     private final SwatchComponent myAlphaComponent;
+    private AlphaActionListener myAlphaActionListener;
 
     public StateComponent() {
       super(BoxLayout.PAGE_AXIS);
@@ -397,7 +445,8 @@ public class StateListPicker extends JPanel {
 
       myResourceComponent = new ResourceComponent();
       add(myResourceComponent);
-      myResourceComponent.setMaximumSize(new Dimension(myResourceComponent.getMaximumSize().width, myResourceComponent.getPreferredSize().height));
+      myResourceComponent
+        .setMaximumSize(new Dimension(myResourceComponent.getMaximumSize().width, myResourceComponent.getPreferredSize().height));
       myResourceComponent.setVariantComboVisible(false);
 
       myAlphaComponent = new SwatchComponent((short)1);
@@ -461,12 +510,25 @@ public class StateListPicker extends JPanel {
       myAlphaComponent.setSwatchIcons(list);
     }
 
-    public void addValueActionListener(@NotNull ActionListener listener) {
+    public void addValueActionListener(@NotNull ValueActionListener listener) {
       myResourceComponent.addActionListener(listener);
     }
 
-    public void addAlphaActionListener(@NotNull ActionListener listener) {
+    public void addAlphaActionListener(@NotNull AlphaActionListener listener) {
       myAlphaComponent.addActionListener(listener);
+      myAlphaActionListener = listener;
+    }
+
+    @Nullable
+    public AlphaActionListener getAlphaActionListener() {
+      return myAlphaActionListener;
+    }
+
+    @Override
+    public void setComponentPopupMenu(JPopupMenu popup) {
+      super.setComponentPopupMenu(popup);
+      myResourceComponent.setComponentPopupMenu(popup);
+      myAlphaComponent.setComponentPopupMenu(popup);
     }
   }
 
