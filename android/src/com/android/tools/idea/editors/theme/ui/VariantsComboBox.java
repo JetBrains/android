@@ -33,9 +33,12 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import javax.swing.plaf.ButtonUI;
+import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.ItemSelectable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -56,7 +59,12 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
   private static final Border VARIANT_ITEM_BORDER = new JBEmptyBorder(5);
   private static final JBColor VARIANT_MENU_BACKGROUND_COLOR = JBColor.WHITE;
 
-  private JButton myButton = new JButton();
+  private JButton myButton = new JButton() {
+    @Override
+    public void updateUI() {
+      setUI((ButtonUI)BasicButtonUI.createUI(this));
+    }
+  };
   private ComboBoxModel myModel = new DefaultComboBoxModel();
   private ListDataListener myListDataListener = new ListDataListener() {
     @Override
@@ -78,11 +86,7 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
   public VariantsComboBox() {
     add(myButton);
 
-    myButton.setFocusPainted(false);
-    myButton.setBorderPainted(false);
-    myButton.setContentAreaFilled(false);
     myButton.setBorder(BorderFactory.createEmptyBorder());
-    myButton.setOpaque(false);
     myButton.setIcon(PlatformIcons.COMBOBOX_ARROW_ICON);
     myButton.setHorizontalTextPosition(SwingConstants.LEFT);
     myButton.setHorizontalAlignment(SwingConstants.RIGHT);
