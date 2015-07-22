@@ -13,24 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.structure;
+package com.android.tools.idea.uibuilder.model;
 
 import com.android.annotations.NonNull;
 
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 
 /**
  * This class encapsulates either a {@see DropTargetDragEvent} or a {@see DropTargetDropEvent}
  * such that we can access either instance in code common for the 2 cases.
- * This class is used in {@link NlDropListener}.
+ * <p/>
+ * Also ensure that accept is called before data is retrieved from a source that has text flavor but no designer flavor.
  */
 public class NlDropEvent {
   private final DropTargetDragEvent myDragEvent;
   private final DropTargetDropEvent myDropEvent;
+  private boolean myStatusSpecified;
 
   public NlDropEvent(@NonNull DropTargetDragEvent dragEvent) {
     myDragEvent = dragEvent;
@@ -46,7 +49,8 @@ public class NlDropEvent {
   public Point getLocation() {
     if (myDragEvent != null) {
       return myDragEvent.getLocation();
-    } else {
+    }
+    else {
       return myDropEvent.getLocation();
     }
   }
@@ -54,7 +58,8 @@ public class NlDropEvent {
   public boolean isDataFlavorSupported(@NonNull DataFlavor flavor) {
     if (myDragEvent != null) {
       return myDragEvent.isDataFlavorSupported(flavor);
-    } else {
+    }
+    else {
       return myDropEvent.isDataFlavorSupported(flavor);
     }
   }
@@ -62,33 +67,54 @@ public class NlDropEvent {
   public int getDropAction() {
     if (myDragEvent != null) {
       return myDragEvent.getDropAction();
-    } else {
+    }
+    else {
       return myDropEvent.getDropAction();
     }
   }
 
   @NonNull
   public Transferable getTransferable() {
+    if (!myStatusSpecified &&
+        !isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR) &&
+        isDataFlavorSupported(DataFlavor.stringFlavor)) {
+      accept(DnDConstants.ACTION_COPY);
+    }
     if (myDragEvent != null) {
       return myDragEvent.getTransferable();
-    } else {
+    }
+    else {
       return myDropEvent.getTransferable();
     }
   }
 
   public void accept(int dropAction) {
-    if (myDragEvent != null) {
-      myDragEvent.acceptDrag(dropAction);
-    } else {
-      myDropEvent.acceptDrop(dropAction);
+    if (!myStatusSpecified) {
+      if (myDragEvent != null) {
+        myDragEvent.acceptDrag(dropAction);
+      }
+      else {
+        myDropEvent.acceptDrop(dropAction);
+      }
+      myStatusSpecified = true;
     }
   }
 
   public void reject() {
-    if (myDragEvent != null) {
-      myDragEvent.rejectDrag();
-    } else {
-      myDropEvent.rejectDrop();
+    if (!myStatusSpecified) {
+      if (myDragEvent != null) {
+        myDragEvent.rejectDrag();
+      }
+      else {
+        myDropEvent.rejectDrop();
+      }
+      myStatusSpecified = true;
+    }
+  }
+
+  public void complete() {
+    if (myDropEvent != null) {
+      myDropEvent.dropComplete(true);
     }
   }
 }
