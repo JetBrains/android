@@ -338,15 +338,12 @@ public class ThemeEditorUtils {
   /**
    * Creates a new style by displaying the dialog of the {@link NewStyleDialog}.
    * @param parentStyle is used in NewStyleDialog, will be preselected in the parent text field and name will be suggested based on it.
-   * @param newAttributeName, if it is not null, a new attribute will be added to the style with the value specified in newAttributeValue.
    * @param isTheme whether theme or style will be created
    * @param message is used in NewStyleDialog to display message to user
    * @return the new style name or null if the style wasn't created.
    */
   @Nullable
   public static String createNewStyle(@Nullable ThemeEditorStyle parentStyle,
-                                      @Nullable final String newAttributeName,
-                                      @Nullable final String newAttributeValue,
                                       @NotNull final ThemeEditorContext myThemeEditorContext,
                                       boolean isTheme,
                                       @Nullable final String message) {
@@ -362,10 +359,9 @@ public class ThemeEditorUtils {
     }
 
     int minModuleApi = getMinApiLevel(myThemeEditorContext.getCurrentContextModule());
-    int themeParentApiLevel = getOriginalApiLevel(dialog.getStyleParentName(), myThemeEditorContext.getProject());
-    int newAttributeApiLevel = getOriginalApiLevel(newAttributeName, myThemeEditorContext.getProject());
-    int newValueApiLevel = getOriginalApiLevel(newAttributeValue, myThemeEditorContext.getProject());
-    int minAcceptableApi = Math.max(Math.max(themeParentApiLevel, newAttributeApiLevel), newValueApiLevel);
+    //int newAttributeApiLevel = getOriginalApiLevel(newAttributeName, myThemeEditorContext.getProject());
+    //int newValueApiLevel = getOriginalApiLevel(newAttributeValue, myThemeEditorContext.getProject());
+    int minAcceptableApi = getOriginalApiLevel(dialog.getStyleParentName(), myThemeEditorContext.getProject());
 
     final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STYLE);
     FolderConfiguration config = new FolderConfiguration();
@@ -393,15 +389,6 @@ public class ThemeEditorUtils {
                 final Style style = (Style)element;
 
                 style.getParentStyle().setStringValue(dialog.getStyleParentName());
-
-                if (!Strings.isNullOrEmpty(newAttributeName)) {
-                  StyleItem newItem = style.addItem();
-                  newItem.getName().setStringValue(newAttributeName);
-
-                  if (!Strings.isNullOrEmpty(newAttributeValue)) {
-                    newItem.setStringValue(newAttributeValue);
-                  }
-                }
 
                 return true;
               }
