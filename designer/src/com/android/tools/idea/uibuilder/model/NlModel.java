@@ -59,9 +59,13 @@ import org.jetbrains.android.facet.AndroidFacet;
 
 import javax.swing.Timer;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.InvalidDnDOperationException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -71,6 +75,7 @@ import static com.android.SdkConstants.*;
  * Model for an XML file
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
+  private static final Logger LOG = Logger.getInstance(NlModel.class);
   @AndroidCoordinate public static final int EMPTY_COMPONENT_SIZE = 5;
   @AndroidCoordinate public static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
 
@@ -888,6 +893,33 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @Nullable
+  public static DnDTransferItem getTransferItem(@NonNull Transferable transferable, boolean allowPlaceholder) {
+    DnDTransferItem item = null;
+    try {
+      if (transferable.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) {
+        item = (DnDTransferItem)transferable.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
+      }
+      else if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+        String xml = (String)transferable.getTransferData(DataFlavor.stringFlavor);
+        if (!StringUtil.isEmpty(xml)) {
+          item = new DnDTransferItem(new DnDTransferComponent("", xml, 200, 100));
+        }
+      }
+    } catch (InvalidDnDOperationException ex) {
+      if (!allowPlaceholder) {
+        return null;
+      }
+      String defaultXml = "<placeholder xmlns:android=\"http://schemas.android.com/apk/res/android\"/>";
+      item = new DnDTransferItem(new DnDTransferComponent("", defaultXml, 200, 100));
+    } catch (IOException ex) {
+      LOG.warn(ex);
+    } catch (UnsupportedFlavorException ex) {
+      LOG.warn(ex);
+    }
+    return item;
+  }
+
+  @Nullable
   public List<NlComponent> createComponents(@NonNull ScreenView screenView,
                                             @NonNull DnDTransferItem item,
                                             @NonNull InsertType insertType) {
@@ -958,15 +990,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @NonNull
-  public InsertType determineInsertType(@NonNull DragType dragType, @NonNull DnDTransferItem item, boolean asPreview) {
-    if (item.isFromPalette()) {
+  public InsertType determineInsertType(@NonNull DragType dragType, @Nullable DnDTransferItem item, boolean asPreview) {
+    if (item != null && item.isFromPalette()) {
       return asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
     }
     switch (dragType) {
       case CREATE:
         return asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
       case MOVE:
-        return myId == item.getModelId() ? InsertType.MOVE_INTO : InsertType.COPY;
+        return item != null && myId != item.getModelId() ? InsertType.COPY : InsertType.MOVE_INTO;
       case COPY:
         return InsertType.COPY;
       case PASTE:
