@@ -44,7 +44,6 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.ResourceNotificationManager;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
 import com.google.common.collect.ImmutableList;
@@ -169,7 +168,6 @@ public class ThemeEditorComponent extends Splitter {
     moduleCombo.setRenderer(new ListCellRendererWrapper<Module>() {
       @Override
       public void customize(JList list, Module value, int index, boolean selected, boolean hasFocus) {
-        setIcon(GradleUtil.getModuleIcon(value));
         setText(value.getName());
       }
     });
