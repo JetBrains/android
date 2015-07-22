@@ -42,7 +42,7 @@ public class ReplaceTagFix extends WriteCommandAction<Void> {
   }
 
   @Override
-  protected void run(Result<Void> result) throws Throwable {
+  protected void run(@NotNull Result<Void> result) throws Throwable {
     Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(myFile, XmlTag.class);
     if (!xmlTags.isEmpty()) {
       List<XmlTag> matching = Lists.newArrayListWithExpectedSize(xmlTags.size());
