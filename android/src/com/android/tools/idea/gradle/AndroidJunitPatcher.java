@@ -121,8 +121,6 @@ public class AndroidJunitPatcher extends JUnitPatcher {
           return;
         }
       }
-
-      throw new IllegalStateException("Could not find matching mockable platform jar.");
     }
   }
 
