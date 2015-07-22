@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -128,6 +129,25 @@ public class AddGradleDependencyTest extends GuiTestCase {
     } catch (AssertionError e) {
       assertTrue(e.getMessage().startsWith("Did not find menu item with prefix"));
     }
+  }
+
+  @Test @IdeGuiTest
+  public void testAddJUnitDependency() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    BuildVariantsToolWindowFixture buildVariants = projectFrame.getBuildVariantsWindow();
+    buildVariants.activate();
+    buildVariants.selectUnitTests();
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/test/java/google/simpleapplication/UnitTest.java");
+
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 3);
+    editor.moveTo(editor.findOffset("@^Test"));
+    editor.invokeIntentionAction("Add JUnit to classpath");
+
+    projectFrame.waitForGradleProjectSyncToFinish();
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
+
+    assertBuildFileContains(projectFrame, "app/build.gradle", "testCompile 'junit:junit:4.12'");
   }
 
   private static void typeImportAndInvokeAction(@NotNull IdeFrameFixture projectFrame, @NotNull String lineToType,
