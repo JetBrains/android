@@ -452,11 +452,13 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       DefaultMutableTreeNode parent = (DefaultMutableTreeNode)path.getLastPathComponent();
       DefaultMutableTreeNode node = null;
       String id = component.getId();
-      if (id != null) {
+      if (id != null && !myId2Node.containsKey(id)) {
         node = myId2TempNode.get(id);
       }
       if (node == null) {
         node = new DefaultMutableTreeNode(component);
+      } else {
+        node.setUserObject(component);
       }
       if (id != null) {
         myId2Node.put(id, node);

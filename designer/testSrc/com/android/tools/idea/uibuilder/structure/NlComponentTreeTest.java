@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ui.UIUtil;
 import org.mockito.Mock;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+import java.util.Collections;
 import java.util.Iterator;
 
 import static com.android.SdkConstants.*;
@@ -52,16 +55,27 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   public void testTreeStructure() {
-    NlComponent expectedRoot = myModel.getComponents().get(0);
-    DefaultMutableTreeNode hidden = (DefaultMutableTreeNode)myTree.getModel().getRoot();
-    assertEquals(1, hidden.getChildCount());
-    DefaultMutableTreeNode root = (DefaultMutableTreeNode)hidden.getFirstChild();
-    assertEquals("Unexpected root", expectedRoot, root.getUserObject());
-    assertEquals(expectedRoot.getChildCount(), root.getChildCount());
-    for (int i=0; i<root.getChildCount(); i++) {
-      assertEquals(expectedRoot.getChild(i), ((DefaultMutableTreeNode)root.getChildAt(i)).getUserObject());
-      assertEquals(0, root.getChildAt(i).getChildCount());
-    }
+    UIUtil.dispatchAllInvocationEvents();
+    assertEquals("<RelativeLayout>  [expanded]\n" +
+                 "    <LinearLayout>\n" +
+                 "        <Button>\n" +
+                 "    <TextView>\n" +
+                 "    <AbsoluteLayout>\n", toTree());
+  }
+
+  public void testTreeStructureOfAppBar() {
+    NlModel model = createModelWithAppBar();
+    when(myScreen.getModel()).thenReturn(model);
+    when(myScreen.getSelectionModel()).thenReturn(model.getSelectionModel());
+    myTree.setDesignSurface(mySurface);
+    UIUtil.dispatchAllInvocationEvents();
+    assertEquals("<android.support.design.widget.CoordinatorLayout>  [expanded]\n" +
+                 "    <android.support.design.widget.AppBarLayout>\n" +
+                 "        <android.support.design.widget.CollapsingToolbarLayout>\n" +
+                 "            <ImageView>\n" +
+                 "            <android.support.v7.widget.Toolbar>\n" +
+                 "    <android.support.v4.widget.NestedScrollView>  [expanded]\n" +
+                 "        <TextView>\n", toTree());
   }
 
   public void testSelectionInTreeIsPropagatedToModel() {
@@ -99,36 +113,149 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertEquals(button, ((DefaultMutableTreeNode)selection[1].getLastPathComponent()).getUserObject());
   }
 
-  @NotNull
+  public void testHierarchyUpdate() {
+    // Extract each of the components
+    NlComponent oldRelativeLayout = myModel.getComponents().get(0);
+    NlComponent oldLinearLayout = oldRelativeLayout.getChild(0);
+    NlComponent oldButton = oldLinearLayout.getChild(0);
+    NlComponent oldTextView = oldRelativeLayout.getChild(1);
+    NlComponent oldAbsoluteLayout = oldRelativeLayout.getChild(2);
+
+    // Extract xml
+    XmlTag tagLinearLayout = oldLinearLayout.getTag();
+    XmlTag tagTextView = oldTextView.getTag();
+    XmlTag tagAbsoluteLayout = oldAbsoluteLayout.getTag();
+
+    // Mix the component references
+    oldRelativeLayout.children = null;
+    oldLinearLayout.setTag(tagAbsoluteLayout);
+    oldLinearLayout.setSnapshot(null);
+    oldLinearLayout.children = null;
+    oldTextView.setTag(tagLinearLayout);
+    oldTextView.setSnapshot(null);
+    oldTextView.children = null;
+    oldAbsoluteLayout.setTag(tagTextView);
+    oldAbsoluteLayout.setSnapshot(null);
+    oldAbsoluteLayout.children = null;
+
+    NlComponent newRelativeLayout = oldRelativeLayout;
+    NlComponent newLinearLayout = oldTextView;
+    NlComponent newButton = oldButton;
+    NlComponent newTextView = oldAbsoluteLayout;
+    NlComponent newAbsoluteLayout = oldLinearLayout;
+    newRelativeLayout.addChild(newLinearLayout);
+    newRelativeLayout.addChild(newTextView);
+    newRelativeLayout.addChild(newAbsoluteLayout);
+    newLinearLayout.addChild(newButton);
+
+    myTree.modelRendered(myModel);
+    UIUtil.dispatchAllInvocationEvents();
+    assertEquals("<RelativeLayout>  [expanded]\n" +
+                 "    <LinearLayout>\n" +
+                 "        <Button>\n" +
+                 "    <TextView>\n" +
+                 "    <AbsoluteLayout>\n", toTree());
+  }
+
+  private String toTree() {
+    StringBuilder sb = new StringBuilder();
+    DefaultMutableTreeNode root = (DefaultMutableTreeNode)myTree.getModel().getRoot();
+    TreePath rootPath = new TreePath(myTree.getModel().getRoot());
+    if (root.getChildCount() > 0) {
+      TreePath path = rootPath.pathByAddingChild(root.getChildAt(0));
+      describe(sb, path, 0);
+    }
+    return sb.toString();
+  }
+
+  private void describe(StringBuilder sb, TreePath path, int depth) {
+    for (int i = 0; i < depth; i++) {
+      sb.append("    ");
+    }
+    DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+    NlComponent component = (NlComponent)node.getUserObject();
+    sb.append("<").append(component.getTagName())
+      .append(">");
+    if (myTree.isExpanded(path)) {
+      sb.append("  [expanded]");
+    }
+    if (myTree.isPathSelected(path)) {
+      sb.append("  [selected]");
+    }
+    sb.append("\n");
+    for (Object subNodeAsObject : Collections.list(node.children())) {
+      TreePath subPath = path.pathByAddingChild(subNodeAsObject);
+      describe(sb, subPath, depth + 1);
+    }
+  }
+
+  @NonNull
   private NlModel createModel() {
-    ModelBuilder builder = model("linear.xml",
-                                 component(LINEAR_LAYOUT)
+    ModelBuilder builder = model("relative.xml",
+                                 component(RELATIVE_LAYOUT)
                                    .withBounds(0, 0, 1000, 1000)
                                    .matchParentWidth()
                                    .matchParentHeight()
                                    .children(
+                                     component(LINEAR_LAYOUT)
+                                       .withBounds(0, 0, 200, 200)
+                                       .wrapContentWidth()
+                                       .wrapContentHeight()
+                                       .children(
+                                         component(BUTTON)
+                                           .withBounds(0, 0, 100, 100)
+                                           .id("@+id/myButton")
+                                           .width("100dp")
+                                           .height("100dp")),
                                      component(TEXT_VIEW)
-                                       .withBounds(100, 100, 100, 100)
-                                       .id("myText")
+                                       .withBounds(0, 200, 100, 100)
+                                       .id("@+id/myText")
                                        .width("100dp")
                                        .height("100dp"),
-                                     component(BUTTON)
-                                       .withBounds(100, 200, 100, 100)
-                                       .id("myButton")
-                                       .width("100dp")
-                                       .height("100dp"),
-                                     component(RADIO_BUTTON)
-                                       .withBounds(100, 100, 100, 100)
-                                       .id("myRadioButton")
+                                     component(ABSOLUTE_LAYOUT)
+                                       .withBounds(0, 300, 400, 500)
                                        .width("400dp")
-                                       .height("100dp")
-                                   ));
+                                       .height("500dp")));
     final NlModel model = builder.build();
     assertEquals(1, model.getComponents().size());
-    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000}\n" +
-                 "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}\n" +
-                 "    NlComponent{tag=<Button>, bounds=[100,200:100x100}\n" +
-                 "    NlComponent{tag=<RadioButton>, bounds=[100,100:100x100}",
+    assertEquals("NlComponent{tag=<RelativeLayout>, bounds=[0,0:1000x1000}\n" +
+                 "    NlComponent{tag=<LinearLayout>, bounds=[0,0:200x200}\n" +
+                 "        NlComponent{tag=<Button>, bounds=[0,0:100x100}\n" +
+                 "    NlComponent{tag=<TextView>, bounds=[0,200:100x100}\n" +
+                 "    NlComponent{tag=<AbsoluteLayout>, bounds=[0,300:400x500}", NlComponent.toTree(model.getComponents()));
+    return model;
+  }
+
+  @NonNull
+  private NlModel createModelWithAppBar() {
+    ModelBuilder builder = model("coordinator.xml",
+                                 component(COORDINATOR_LAYOUT)
+                                   .withBounds(0, 0, 1000, 1000)
+                                   .matchParentWidth()
+                                   .matchParentHeight()
+                                   .children(
+                                     component(APP_BAR_LAYOUT)
+                                       .withBounds(0, 0, 1000, 192).matchParentWidth().height("192dp").children(
+                                       component(COLLAPSING_TOOLBAR_LAYOUT).withBounds(0, 0, 1000, 192).matchParentHeight()
+                                         .matchParentWidth()
+                                         .children(component(IMAGE_VIEW).withBounds(0, 0, 1000, 192).matchParentWidth().matchParentHeight(),
+                                                   component("android.support.v7.widget.Toolbar").withBounds(0, 0, 1000, 18)
+                                                     .height("?attr/actionBarSize").matchParentWidth())),
+                                     component(CLASS_NESTED_SCROLL_VIEW).withBounds(0, 192, 1000, 808).matchParentWidth()
+                                       .matchParentHeight().withAttribute(AUTO_URI, "layout_behavior",
+                                                                          "android.support.design.widget.AppBarLayout$ScrollingViewBehavior")
+                                       .children(component(TEXT_VIEW).withBounds(0, 192, 1000, 808).matchParentWidth().wrapContentHeight()
+                                                   .text("@string/stuff"))));
+
+    final NlModel model = builder.build();
+    assertEquals(1, model.getComponents().size());
+    assertEquals("NlComponent{tag=<android.support.design.widget.CoordinatorLayout>, bounds=[0,0:1000x1000}\n" +
+                 "    NlComponent{tag=<android.support.design.widget.AppBarLayout>, bounds=[0,0:1000x192}\n" +
+                 "        NlComponent{tag=<android.support.design.widget.CollapsingToolbarLayout>, bounds=[0,0:1000x192}\n" +
+                 "            NlComponent{tag=<ImageView>, bounds=[0,0:1000x192}\n" +
+                 "            NlComponent{tag=<android.support.v7.widget.Toolbar>, bounds=[0,0:1000x18}\n" +
+                 "    NlComponent{tag=<android.support.v4.widget.NestedScrollView>, bounds=[0,192:1000x808}\n" +
+                 "        NlComponent{tag=<TextView>, bounds=[0,192:1000x808}",
                  NlComponent.toTree(model.getComponents()));
     return model;
   }
