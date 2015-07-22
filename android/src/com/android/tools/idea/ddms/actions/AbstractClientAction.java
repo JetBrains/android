@@ -38,19 +38,19 @@ public abstract class AbstractClientAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public final void update(AnActionEvent e) {
     e.getPresentation().setEnabled(isEnabled());
   }
 
-  protected boolean isEnabled() {
-    return myDeviceContext.getSelectedClient() != null;
+  protected final boolean isEnabled() {
+    Client c = myDeviceContext.getSelectedClient();
+    return (c != null && c.isValid());
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
-    Client c = myDeviceContext.getSelectedClient();
-    if (c != null) {
-      performAction(c);
+  public final void actionPerformed(AnActionEvent e) {
+    if (isEnabled()) {
+      performAction(myDeviceContext.getSelectedClient());
     }
   }
 
