@@ -120,7 +120,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
     final String commandName = add ? DatabaseMessages.message("command.name.add.data.source")
                                    : DatabaseMessages.message("command.name.remove.data.source");
     new WriteCommandAction(project, commandName) {
-      protected void run(final Result result) throws Throwable {
+      protected void run(@NotNull final Result result) throws Throwable {
         action.redo();
         UndoManager.getInstance(project).undoableActionPerformed(action);
       }
