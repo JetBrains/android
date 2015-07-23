@@ -46,15 +46,21 @@ import static org.junit.Assert.assertNotNull;
 
 public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, ThemeEditorComponent> {
   private final JComboBoxFixture myThemesComboBox;
+  private final JComboBoxFixture myModulesComboBox;
 
   public ThemeEditorFixture(@NotNull Robot robot, @NotNull ThemeEditorComponent themeEditorComponent) {
     super(ThemeEditorFixture.class, robot, themeEditorComponent);
     myThemesComboBox = new JComboBoxFixture(robot(), robot().finder().findByName(this.target().getSecondComponent(), AttributesPanel.THEME_SELECTOR_NAME, JComboBox.class));
+    myModulesComboBox = new JComboBoxFixture(robot(), robot().finder().findByName(this.target().getSecondComponent(), AttributesPanel.MODULE_SELECTOR_NAME, JComboBox.class));
   }
 
   @NotNull
   public JComboBoxFixture getThemesComboBox() {
     return myThemesComboBox;
+  }
+
+  public JComboBoxFixture getModulesComboBox() {
+    return myModulesComboBox;
   }
 
   @NotNull
@@ -70,9 +76,12 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
 
   @NotNull
   public List<String> getThemesList() {
-    JComboBoxFixture themesCombo = getThemesComboBox();
+    return ImmutableList.copyOf(myThemesComboBox.contents());
+  }
 
-    return ImmutableList.copyOf(themesCombo.contents());
+  @NotNull
+  public List<String> getModulesList() {
+    return ImmutableList.copyOf(myModulesComboBox.contents());
   }
 
   public void waitForThemeSelection(@NotNull final String themeName) {
