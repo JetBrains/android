@@ -272,12 +272,13 @@ public class GradleInvoker {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null) {
       JpsAndroidModuleProperties properties = androidFacet.getProperties();
+
+      // Make sure all the generated sources, unpacked aars and mockable jars are in place. They are usually up to date, since we
+      // generate them at sync time, so Gradle will just skip those tasks. The generated files can be missing if this is a "Rebuild
+      // Project" run or if the user cleaned the project from the command line. The mockable jar is necessary to run unit tests, but the
+      // compilation tasks don't depend on it, so we have to call it explicitly.
+      addAfterSyncTasks(tasks, gradlePath, properties);
       switch (buildMode) {
-        case SOURCE_GEN:
-          for (String taskName : properties.AFTER_SYNC_TASK_NAMES) {
-            addTaskIfSpecified(tasks, gradlePath, taskName);
-          }
-          break;
         case ASSEMBLE:
           tasks.add(createBuildTask(gradlePath, properties.ASSEMBLE_TASK_NAME));
 
@@ -293,6 +294,7 @@ public class GradleInvoker {
             tasks.add(createBuildTask(gradlePath, properties.COMPILE_JAVA_TASK_NAME));
           }
           addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TEST_TASK_NAME);
+          break;
       }
     }
     else {
@@ -306,6 +308,12 @@ public class GradleInvoker {
           tasks.add(createBuildTask(gradlePath, JavaGradleFacet.TEST_CLASSES_TASK_NAME));
         }
       }
+    }
+  }
+
+  private static void addAfterSyncTasks(@NotNull List<String> tasks, String gradlePath, JpsAndroidModuleProperties properties) {
+    for (String taskName : properties.AFTER_SYNC_TASK_NAMES) {
+      addTaskIfSpecified(tasks, gradlePath, taskName);
     }
   }
 
