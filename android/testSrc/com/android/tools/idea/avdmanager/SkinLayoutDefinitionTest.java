@@ -16,8 +16,6 @@
 package com.android.tools.idea.avdmanager;
 
 import com.google.common.base.Splitter;
-import com.intellij.util.containers.Stack;
-import junit.framework.TestCase;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -91,29 +89,29 @@ public class SkinLayoutDefinitionTest {
     Assert.assertEquals("{\n" +
                         "  layouts    {\n" +
                         "    portrait    {\n" +
-                        "      height    380\n" +
                         "      color    0x1f1f1f\n" +
                         "      event    EV_SW:0:1\n" +
+                        "      height    380\n" +
                         "      width    380\n" +
-                        "      part2    {\n" +
-                        "        name    device\n" +
-                        "        y    30\n" +
-                        "        x    30\n" +
+                        "      onion    {\n" +
+                        "        alpha    100\n" +
+                        "        image    circle_mask_380px_onion.png\n" +
+                        "        rotation    0\n" +
                         "      }\n" +
                         "      part1    {\n" +
                         "        name    portrait\n" +
-                        "        y    0\n" +
                         "        x    0\n" +
+                        "        y    0\n" +
+                        "      }\n" +
+                        "      part2    {\n" +
+                        "        name    device\n" +
+                        "        x    30\n" +
+                        "        y    30\n" +
                         "      }\n" +
                         "      part3    {\n" +
                         "        name    controls\n" +
-                        "        y    0\n" +
                         "        x    0\n" +
-                        "      }\n" +
-                        "      onion    {\n" +
-                        "        rotation    0\n" +
-                        "        alpha    100\n" +
-                        "        image    circle_mask_380px_onion.png\n" +
+                        "        y    0\n" +
                         "      }\n" +
                         "    }\n" +
                         "  }\n" +
