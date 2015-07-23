@@ -28,6 +28,10 @@ import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInsight.intention.IntentionManager;
+import com.intellij.codeInsight.intention.impl.config.IntentionManagerImpl;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.actions.TemplateProjectSettingsGroup;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
@@ -57,6 +61,7 @@ import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.util.PlatformUtils;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.TimeoutUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -68,10 +73,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.tools.idea.gradle.util.GradleUtil.cleanUpPreferences;
@@ -541,6 +543,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
     hideMiscActions();
 
+    hideUnwantedIntentions();
+
     registerAppClosing();
 
     // Always reset the Default scheme to match Android standards
@@ -581,6 +585,35 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       buildMenuGroup.add(new EditFlavorsAction());
       buildMenuGroup.add(new EditLibraryAndDependenciesAction());
       buildMenuGroup.add(new SelectBuildVariantAction());
+    }
+  }
+
+  private static Set<String> unwantedIntetionFamilyNames = Sets.newHashSet("Add testng.jar to classpath", /* TestNGOrderEntryFix */
+                                                                           "Add jcip-annotations.jar to classpath" /* JCiPOrderEntryFix */);
+
+  /**
+   * Disable the intentions that we don't want in android studio.
+   */
+  private void hideUnwantedIntentions() {
+    IntentionManager intentionManager = IntentionManager.getInstance();
+    if (!(intentionManager instanceof IntentionManagerImpl)) {
+      return;
+    }
+
+    // IntentionManagerImpl.hasActiveRequests equals true when there is unprocessed register extension request, theoretically, it is
+    // possible that two requests have a relative big time gap, so that hasActiveRequests could become true after first request has been
+    // processed but the second one haven't been sent, thus cause us skipping the intentions we care about.
+    // In reality this isn't problem so far because all the extension register requests are sent through a loop.
+    // TODO Ideally, we want make IntentionManagerImpl.registerIntentionFromBean as protected method so we could override it and ignore the
+    // unwanted intentions in the first place.
+    while (((IntentionManagerImpl)intentionManager).hasActiveRequests()) {
+      TimeoutUtil.sleep(100);
+    }
+
+    for (IntentionAction intentionAction : intentionManager.getIntentionActions()) {
+      if (unwantedIntetionFamilyNames.contains(intentionAction.getFamilyName())) {
+        intentionManager.unregisterIntention(intentionAction);
+      }
     }
   }
 }
