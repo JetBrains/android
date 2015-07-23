@@ -333,7 +333,7 @@ public abstract class IdeaSourceProvider {
    */
   @NotNull
   public static List<IdeaSourceProvider> getCurrentSourceProviders(@NotNull AndroidFacet facet) {
-    if (!facet.isGradleProject()) {
+    if (!facet.requiresAndroidModel()) {
       return Collections.singletonList(facet.getMainIdeaSourceProvider());
     }
 
@@ -367,7 +367,7 @@ public abstract class IdeaSourceProvider {
 
   @NotNull
   public static List<IdeaSourceProvider> getCurrentTestSourceProviders(@NotNull AndroidFacet facet) {
-    if (!facet.isGradleProject()) {
+    if (!facet.requiresAndroidModel()) {
       return Collections.emptyList();
     }
 
@@ -519,11 +519,11 @@ public abstract class IdeaSourceProvider {
    */
   @NotNull
   public static List<SourceProvider> getAllSourceProviders(@NotNull AndroidFacet facet) {
-    if (!facet.isGradleProject() || facet.getIdeaAndroidProject() == null) {
+    if (!facet.requiresAndroidModel() || facet.getAndroidModel() == null) {
       return Collections.singletonList(facet.getMainSourceProvider());
     }
 
-    AndroidProject androidProject = facet.getIdeaAndroidProject().getDelegate();
+    AndroidProject androidProject = facet.getAndroidModel().getAndroidProject();
     Collection<Variant> variants = androidProject.getVariants();
     List<SourceProvider> providers = Lists.newArrayList();
 
@@ -574,7 +574,7 @@ public abstract class IdeaSourceProvider {
    */
   @NotNull
   public static List<IdeaSourceProvider> getAllIdeaSourceProviders(@NotNull AndroidFacet facet) {
-    if (!facet.isGradleProject() || facet.getIdeaAndroidProject() == null) {
+    if (!facet.requiresAndroidModel() || facet.getAndroidModel() == null) {
       return Collections.singletonList(facet.getMainIdeaSourceProvider());
     }
 
@@ -669,7 +669,7 @@ public abstract class IdeaSourceProvider {
       return false;
     }
 
-    if (facet.isGradleProject()) {
+    if (facet.requiresAndroidModel()) {
       for (IdeaSourceProvider provider : getCurrentSourceProviders(facet)) {
         if (candidate.equals(provider.getManifestFile())) {
           return true;
@@ -685,7 +685,7 @@ public abstract class IdeaSourceProvider {
   @NotNull
   public static List<VirtualFile> getManifestFiles(@NotNull AndroidFacet facet) {
     VirtualFile main = facet.getMainIdeaSourceProvider().getManifestFile();
-    if (!facet.isGradleProject()) {
+    if (!facet.requiresAndroidModel()) {
       return main != null ? Collections.singletonList(main) : Collections.<VirtualFile>emptyList();
     }
     List<VirtualFile> files = Lists.newArrayList();

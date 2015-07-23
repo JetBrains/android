@@ -26,43 +26,43 @@ import java.io.*;
  * Tests for {@link IdeaAndroidProject}.
  */
 public class IdeaAndroidProjectTest extends AndroidGradleTestCase {
-  private AndroidProjectStub myDelegate;
-  private IdeaAndroidProject myAndroidProject;
+  private AndroidProjectStub myAndroidProject;
+  private IdeaAndroidProject myAndroidModel;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     File rootDirPath = new File(getProject().getBasePath());
-    myDelegate = TestProjects.createFlavorsProject();
-    myAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myDelegate.getName(), rootDirPath, myDelegate, "f1fa-debug",
-                                              AndroidProject.ARTIFACT_ANDROID_TEST);
+    myAndroidProject = TestProjects.createFlavorsProject();
+    myAndroidModel = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDirPath, myAndroidProject, "f1fa-debug",
+                                            AndroidProject.ARTIFACT_ANDROID_TEST);
   }
 
   public void testFindBuildType() throws Exception {
     String buildTypeName = "debug";
-    BuildTypeContainer buildType = myAndroidProject.findBuildType(buildTypeName);
+    BuildTypeContainer buildType = myAndroidModel.findBuildType(buildTypeName);
     assertNotNull(buildType);
-    assertSame(myDelegate.findBuildType(buildTypeName), buildType);
+    assertSame(myAndroidProject.findBuildType(buildTypeName), buildType);
   }
 
   public void testFindProductFlavor() throws Exception {
     String flavorName = "fa";
-    ProductFlavorContainer flavor = myAndroidProject.findProductFlavor(flavorName);
+    ProductFlavorContainer flavor = myAndroidModel.findProductFlavor(flavorName);
     assertNotNull(flavor);
-    assertSame(myDelegate.findProductFlavor(flavorName), flavor);
+    assertSame(myAndroidProject.findProductFlavor(flavorName), flavor);
   }
 
   public void testFindSelectedTestArtifactInSelectedVariant() throws Exception {
-    BaseArtifact instrumentationTestArtifact = myAndroidProject.findSelectedTestArtifactInSelectedVariant();
-    VariantStub firstVariant = myDelegate.getFirstVariant();
+    BaseArtifact instrumentationTestArtifact = myAndroidModel.findSelectedTestArtifactInSelectedVariant();
+    VariantStub firstVariant = myAndroidProject.getFirstVariant();
     assertNotNull(firstVariant);
     assertSame(firstVariant.getInstrumentTestArtifact(), instrumentationTestArtifact);
   }
 
   public void testGetSelectedVariant() throws Exception {
-    Variant selectedVariant = myAndroidProject.getSelectedVariant();
+    Variant selectedVariant = myAndroidModel.getSelectedVariant();
     assertNotNull(selectedVariant);
-    assertSame(myDelegate.getFirstVariant(), selectedVariant);
+    assertSame(myAndroidProject.getFirstVariant(), selectedVariant);
   }
 
   public void testReadWriteObject() throws Exception {
@@ -73,24 +73,24 @@ public class IdeaAndroidProjectTest extends AndroidGradleTestCase {
 
     loadProject("projects/projectWithAppandLib");
 
-    IdeaAndroidProject ideaAndroidProject = myAndroidFacet.getIdeaAndroidProject();
+    IdeaAndroidProject androidModel = myAndroidFacet.getAndroidModel();
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     ObjectOutputStream oos;
     oos = new ObjectOutputStream(outputStream);
-    oos.writeObject(ideaAndroidProject);
+    oos.writeObject(androidModel);
     oos.close();
 
     ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
     ObjectInputStream ois = new ObjectInputStream(inputStream);
-    IdeaAndroidProject newIdeaAndroidProject = (IdeaAndroidProject)ois.readObject();
+    IdeaAndroidProject newAndroidModel = (IdeaAndroidProject)ois.readObject();
     ois.close();
 
-    assertEquals(ideaAndroidProject.getProjectSystemId(), newIdeaAndroidProject.getProjectSystemId());
-    assertEquals(ideaAndroidProject.getModuleName(), newIdeaAndroidProject.getModuleName());
-    assertEquals(ideaAndroidProject.getRootDirPath(), newIdeaAndroidProject.getRootDirPath());
-    assertEquals(ideaAndroidProject.getDelegate().getName(), newIdeaAndroidProject.getDelegate().getName());
-    assertEquals(ideaAndroidProject.getSelectedVariant().getName(), newIdeaAndroidProject.getSelectedVariant().getName());
-    assertEquals(ideaAndroidProject.getSelectedTestArtifactName(), newIdeaAndroidProject.getSelectedTestArtifactName());
+    assertEquals(androidModel.getProjectSystemId(), newAndroidModel.getProjectSystemId());
+    assertEquals(androidModel.getModuleName(), newAndroidModel.getModuleName());
+    assertEquals(androidModel.getRootDirPath(), newAndroidModel.getRootDirPath());
+    assertEquals(androidModel.getAndroidProject().getName(), newAndroidModel.getAndroidProject().getName());
+    assertEquals(androidModel.getSelectedVariant().getName(), newAndroidModel.getSelectedVariant().getName());
+    assertEquals(androidModel.getSelectedTestArtifactName(), newAndroidModel.getSelectedTestArtifactName());
   }
 }

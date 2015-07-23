@@ -27,10 +27,11 @@ import org.jetbrains.annotations.Nullable;
 public interface ModuleCustomizer<T> {
   /**
    * Customizes the given module (e.g. add facets, SDKs, etc.)
+   *
    * @param project              project that owns the module to customize.
-   * @param ideaModuleModel      modifiable root module of the module to customize. The caller is responsible to commit the changes to model
+   * @param moduleModel          modifiable root module of the module to customize. The caller is responsible to commit the changes to model
    *                             and the customizer should not call commit on the model.
    * @param externalProjectModel the imported Gradle model.
    */
-  void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel ideaModuleModel, @Nullable T externalProjectModel);
+  void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable T externalProjectModel);
 }

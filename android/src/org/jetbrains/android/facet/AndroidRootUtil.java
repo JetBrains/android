@@ -81,7 +81,7 @@ public class AndroidRootUtil {
   @Nullable
   @Deprecated
   public static VirtualFile getManifestFile(@NotNull AndroidFacet facet) {
-    if (facet.isGradleProject()) {
+    if (facet.requiresAndroidModel()) {
       return facet.getMainIdeaSourceProvider().getManifestFile();
     }
     return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
@@ -518,10 +518,10 @@ public class AndroidRootUtil {
 
   @Nullable
   public static String getApkPath(@NotNull AndroidFacet facet) {
-    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    if (ideaAndroidProject != null) {
+    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    if (androidModel != null) {
       // For Android-Gradle projects, IdeaAndroidProject is not null.
-      Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+      Variant selectedVariant = androidModel.getSelectedVariant();
       AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
       AndroidArtifactOutput output = getOutput(mainArtifact);
       File outputFile = output.getMainOutputFile().getOutputFile();

@@ -430,14 +430,14 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     if (facet == null) {
       return results;
     }
-    IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
-    if (gradleProject == null) {
+    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    if (androidModel == null) {
       return results;
     }
     switch(myBuildFileKey) {
       case BUILD_TYPES:
-        for (String name : gradleProject.getBuildTypeNames()) {
-          BuildTypeContainer buildTypeContainer = gradleProject.findBuildType(name);
+        for (String name : androidModel.getBuildTypeNames()) {
+          BuildTypeContainer buildTypeContainer = androidModel.findBuildType(name);
           NamedObject obj = new UndeletableNamedObject(name);
           if (buildTypeContainer == null) {
             break;
@@ -455,8 +455,8 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
         }
         break;
       case FLAVORS:
-        for (String name : gradleProject.getProductFlavorNames()) {
-          ProductFlavorContainer productFlavorContainer = gradleProject.findProductFlavor(name);
+        for (String name : androidModel.getProductFlavorNames()) {
+          ProductFlavorContainer productFlavorContainer = androidModel.findProductFlavor(name);
           NamedObject obj = new UndeletableNamedObject(name);
           if (productFlavorContainer == null) {
             break;

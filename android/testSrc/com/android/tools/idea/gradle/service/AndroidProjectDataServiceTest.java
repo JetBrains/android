@@ -47,7 +47,7 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
   private static final String DEBUG = "debug";
 
   private AndroidProjectStub myAndroidProject;
-  private IdeaAndroidProject myIdeaAndroidProject;
+  private IdeaAndroidProject myAndroidModel;
   private ModuleCustomizer<IdeaAndroidProject> myCustomizer1;
   private ModuleCustomizer<IdeaAndroidProject> myCustomizer2;
 
@@ -61,7 +61,7 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     myAndroidProject.addVariant(DEBUG);
     myAndroidProject.addBuildType(DEBUG);
     File rootDir = myAndroidProject.getRootDir();
-    myIdeaAndroidProject =
+    myAndroidModel =
       new IdeaAndroidProject(GRADLE_SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject, DEBUG, ARTIFACT_ANDROID_TEST);
     //noinspection unchecked
     myCustomizer1 = createMock(ModuleCustomizer.class);
@@ -91,17 +91,17 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     }
     List<DataNode<IdeaAndroidProject>> nodes = Lists.newArrayList();
     Key<IdeaAndroidProject> key = AndroidProjectKeys.IDE_ANDROID_PROJECT;
-    nodes.add(new DataNode<IdeaAndroidProject>(key, myIdeaAndroidProject, null));
+    nodes.add(new DataNode<IdeaAndroidProject>(key, myAndroidModel, null));
 
     assertEquals(key, service.getTargetDataKey());
 
     // ModuleCustomizers should be called.
     //noinspection ConstantConditions
-    myCustomizer1.customizeModule(eq(myProject), rootModelOfModule(myModule), eq(myIdeaAndroidProject));
+    myCustomizer1.customizeModule(eq(myProject), rootModelOfModule(myModule), eq(myAndroidModel));
     expectLastCall();
 
     //noinspection ConstantConditions
-    myCustomizer2.customizeModule(eq(myProject), rootModelOfModule(myModule), eq(myIdeaAndroidProject));
+    myCustomizer2.customizeModule(eq(myProject), rootModelOfModule(myModule), eq(myAndroidModel));
     expectLastCall();
 
     replay(myCustomizer1, myCustomizer2);

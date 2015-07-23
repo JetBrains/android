@@ -58,12 +58,12 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       return;
     }
 
-    IdeaAndroidProject ideaAndroidProject = androidFacet.getIdeaAndroidProject();
-    if (ideaAndroidProject == null) {
+    IdeaAndroidProject androidModel = androidFacet.getAndroidModel();
+    if (androidModel == null) {
       return;
     }
 
-    BaseArtifact testArtifact = ideaAndroidProject.findSelectedTestArtifactInSelectedVariant();
+    BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
     if (testArtifact == null) {
       return;
     }
@@ -83,7 +83,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     String originalClassPath = classPath.getPathsString();
     try {
       handlePlatformJar(classPath, platform, (JavaArtifact)testArtifact);
-      handleJavaResources(module, ideaAndroidProject, classPath);
+      handleJavaResources(module, androidModel, classPath);
     }
     catch (Exception e) {
       throw new RuntimeException(String.format("Error patching the JUnit class path. Original class path:%n%s", originalClassPath),
@@ -163,7 +163,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
    * @see com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer#customizeModule(Project, ModifiableRootModel, IdeaAndroidProject)
    */
   private static void handleJavaResources(@NotNull Module module,
-                                          @NotNull IdeaAndroidProject ideaAndroidProject,
+                                          @NotNull IdeaAndroidProject androidModel,
                                           @NotNull PathsList classPath) {
     final CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
     CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
@@ -171,10 +171,10 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     for (Module affectedModule : scope.getAffectedModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(affectedModule);
       if (facet != null) {
-        IdeaAndroidProject affectedIdeaAndroidProject = facet.getIdeaAndroidProject();
-        if (affectedIdeaAndroidProject != null) {
+        IdeaAndroidProject affectedAndroidModel = facet.getAndroidModel();
+        if (affectedAndroidModel != null) {
           try {
-            classPath.add(affectedIdeaAndroidProject.getSelectedVariant().getMainArtifact().getJavaResourcesFolder());
+            classPath.add(affectedAndroidModel.getSelectedVariant().getMainArtifact().getJavaResourcesFolder());
           }
           catch (UnsupportedMethodException e) {
             // Java resources were not present in older versions of the gradle plugin.
@@ -184,7 +184,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     }
 
     // The only test resources we want to use, are the ones from the module where the test is.
-    BaseArtifact testArtifact = ideaAndroidProject.findSelectedTestArtifactInSelectedVariant();
+    BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
     if (testArtifact != null) {
       try {
         classPath.add(testArtifact.getJavaResourcesFolder());

@@ -65,11 +65,11 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   @Override
   @NotNull
   protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel model,
-                                                                @NotNull IdeaAndroidProject androidProject) {
+                                                                @NotNull IdeaAndroidProject androidModel) {
 
-    List<ContentEntry> contentEntries = Lists.newArrayList(model.addContentEntry(androidProject.getRootDir()));
-    File buildFolderPath = androidProject.getDelegate().getBuildFolder();
-    if (!isAncestor(androidProject.getRootDirPath(), buildFolderPath, false)) {
+    List<ContentEntry> contentEntries = Lists.newArrayList(model.addContentEntry(androidModel.getRootDir()));
+    File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
+    if (!isAncestor(androidModel.getRootDirPath(), buildFolderPath, false)) {
       contentEntries.add(model.addContentEntry(FilePaths.pathToIdeaUrl(buildFolderPath)));
     }
     return contentEntries;
@@ -78,89 +78,89 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   @Override
   protected void setUpContentEntries(@NotNull ModifiableRootModel ideaModuleModel,
                                      @NotNull Collection<ContentEntry> contentEntries,
-                                     @NotNull IdeaAndroidProject androidProject,
+                                     @NotNull IdeaAndroidProject androidModel,
                                      @NotNull List<RootSourceFolder> orphans) {
-    Variant selectedVariant = androidProject.getSelectedVariant();
+    Variant selectedVariant = androidModel.getSelectedVariant();
 
     AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
-    addSourceFolders(androidProject, contentEntries, mainArtifact, false, orphans);
+    addSourceFolders(androidModel, contentEntries, mainArtifact, false, orphans);
 
-    BaseArtifact testArtifact = androidProject.findSelectedTestArtifact(androidProject.getSelectedVariant());
+    BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(androidModel.getSelectedVariant());
     if (testArtifact != null) {
-      addSourceFolders(androidProject, contentEntries, testArtifact, true, orphans);
+      addSourceFolders(androidModel, contentEntries, testArtifact, true, orphans);
     }
 
     for (String flavorName : selectedVariant.getProductFlavors()) {
-      ProductFlavorContainer flavor = androidProject.findProductFlavor(flavorName);
+      ProductFlavorContainer flavor = androidModel.findProductFlavor(flavorName);
       if (flavor != null) {
-        addSourceFolder(androidProject, contentEntries, flavor, orphans);
+        addSourceFolder(androidModel, contentEntries, flavor, orphans);
       }
     }
 
     String buildTypeName = selectedVariant.getBuildType();
-    BuildTypeContainer buildTypeContainer = androidProject.findBuildType(buildTypeName);
+    BuildTypeContainer buildTypeContainer = androidModel.findBuildType(buildTypeName);
     if (buildTypeContainer != null) {
-      addSourceFolder(androidProject, contentEntries, buildTypeContainer.getSourceProvider(), false, orphans);
+      addSourceFolder(androidModel, contentEntries, buildTypeContainer.getSourceProvider(), false, orphans);
 
       Collection<SourceProvider> testSourceProviders =
-        androidProject.getSourceProvidersForSelectedTestArtifact(buildTypeContainer.getExtraSourceProviders());
+        androidModel.getSourceProvidersForSelectedTestArtifact(buildTypeContainer.getExtraSourceProviders());
 
 
       for (SourceProvider testSourceProvider : testSourceProviders) {
-        addSourceFolder(androidProject, contentEntries, testSourceProvider, true, orphans);
+        addSourceFolder(androidModel, contentEntries, testSourceProvider, true, orphans);
       }
     }
 
-    ProductFlavorContainer defaultConfig = androidProject.getDelegate().getDefaultConfig();
-    addSourceFolder(androidProject, contentEntries, defaultConfig, orphans);
+    ProductFlavorContainer defaultConfig = androidModel.getAndroidProject().getDefaultConfig();
+    addSourceFolder(androidModel, contentEntries, defaultConfig, orphans);
 
-    addExcludedOutputFolders(contentEntries, androidProject);
+    addExcludedOutputFolders(contentEntries, androidModel);
   }
 
-  private void addSourceFolders(@NotNull IdeaAndroidProject androidProject,
+  private void addSourceFolders(@NotNull IdeaAndroidProject androidModel,
                                 @NotNull Collection<ContentEntry> contentEntries,
                                 @NotNull BaseArtifact artifact,
                                 boolean isTest,
                                 @NotNull List<RootSourceFolder> orphans) {
-    addGeneratedSourceFolders(androidProject, contentEntries, artifact, isTest, orphans);
+    addGeneratedSourceFolders(androidModel, contentEntries, artifact, isTest, orphans);
 
     SourceProvider variantSourceProvider = artifact.getVariantSourceProvider();
     if (variantSourceProvider != null) {
-      addSourceFolder(androidProject, contentEntries, variantSourceProvider, isTest, orphans);
+      addSourceFolder(androidModel, contentEntries, variantSourceProvider, isTest, orphans);
     }
 
     SourceProvider multiFlavorSourceProvider = artifact.getMultiFlavorSourceProvider();
     if (multiFlavorSourceProvider != null) {
-      addSourceFolder(androidProject, contentEntries, multiFlavorSourceProvider, isTest, orphans);
+      addSourceFolder(androidModel, contentEntries, multiFlavorSourceProvider, isTest, orphans);
     }
   }
 
-  private void addGeneratedSourceFolders(@NotNull IdeaAndroidProject androidProject,
+  private void addGeneratedSourceFolders(@NotNull IdeaAndroidProject androidModel,
                                          @NotNull Collection<ContentEntry> contentEntries,
                                          @NotNull BaseArtifact artifact,
                                          boolean isTest,
                                          @NotNull List<RootSourceFolder> orphans) {
     JpsModuleSourceRootType sourceType = getSourceType(isTest);
 
-    if (artifact instanceof AndroidArtifact || modelVersionIsAtLeast(androidProject, "1.2")) {
+    if (artifact instanceof AndroidArtifact || modelVersionIsAtLeast(androidModel, "1.2")) {
       // getGeneratedSourceFolders used to be in AndroidArtifact only.
       Collection<File> generatedSourceFolders = artifact.getGeneratedSourceFolders();
 
       //noinspection ConstantConditions - this returned null in 1.2
       if (generatedSourceFolders != null) {
-        addSourceFolders(androidProject, contentEntries, generatedSourceFolders, sourceType, true, orphans);
+        addSourceFolders(androidModel, contentEntries, generatedSourceFolders, sourceType, true, orphans);
       }
     }
 
     if (artifact instanceof AndroidArtifact) {
       sourceType = getResourceSourceType(isTest);
-      addSourceFolders(androidProject, contentEntries, ((AndroidArtifact)artifact).getGeneratedResourceFolders(), sourceType, true,
+      addSourceFolders(androidModel, contentEntries, ((AndroidArtifact)artifact).getGeneratedResourceFolders(), sourceType, true,
                        orphans);
     }
   }
 
-  private static boolean modelVersionIsAtLeast(@NotNull IdeaAndroidProject androidProject, @NotNull String revision) {
-    String original = androidProject.getDelegate().getModelVersion();
+  private static boolean modelVersionIsAtLeast(@NotNull IdeaAndroidProject androidModel, @NotNull String revision) {
+    String original = androidModel.getAndroidProject().getModelVersion();
     FullRevision modelVersion;
     try {
       modelVersion = FullRevision.parseRevision(original);
@@ -171,36 +171,36 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     return modelVersion.compareTo(FullRevision.parseRevision(revision), FullRevision.PreviewComparison.IGNORE) >= 0;
   }
 
-  private void addSourceFolder(@NotNull IdeaAndroidProject androidProject,
+  private void addSourceFolder(@NotNull IdeaAndroidProject androidModel,
                                @NotNull Collection<ContentEntry> contentEntries,
                                @NotNull ProductFlavorContainer flavor,
                                @NotNull List<RootSourceFolder> orphans) {
-    addSourceFolder(androidProject, contentEntries, flavor.getSourceProvider(), false, orphans);
+    addSourceFolder(androidModel, contentEntries, flavor.getSourceProvider(), false, orphans);
 
     Collection<SourceProvider> testSourceProviders =
-      androidProject.getSourceProvidersForSelectedTestArtifact(flavor.getExtraSourceProviders());
+      androidModel.getSourceProvidersForSelectedTestArtifact(flavor.getExtraSourceProviders());
 
     for (SourceProvider sourceProvider : testSourceProviders) {
-      addSourceFolder(androidProject, contentEntries, sourceProvider, true, orphans);
+      addSourceFolder(androidModel, contentEntries, sourceProvider, true, orphans);
     }
   }
 
-  private void addSourceFolder(@NotNull IdeaAndroidProject androidProject,
+  private void addSourceFolder(@NotNull IdeaAndroidProject androidModel,
                                @NotNull Collection<ContentEntry> contentEntries,
                                @NotNull SourceProvider sourceProvider,
                                boolean isTest,
                                @NotNull List<RootSourceFolder> orphans) {
     JpsModuleSourceRootType sourceType = getResourceSourceType(isTest);
-    addSourceFolders(androidProject, contentEntries, sourceProvider.getResDirectories(), sourceType, false, orphans);
-    addSourceFolders(androidProject, contentEntries, sourceProvider.getResourcesDirectories(), sourceType, false, orphans);
-    addSourceFolders(androidProject, contentEntries, sourceProvider.getAssetsDirectories(), sourceType, false, orphans);
+    addSourceFolders(androidModel, contentEntries, sourceProvider.getResDirectories(), sourceType, false, orphans);
+    addSourceFolders(androidModel, contentEntries, sourceProvider.getResourcesDirectories(), sourceType, false, orphans);
+    addSourceFolders(androidModel, contentEntries, sourceProvider.getAssetsDirectories(), sourceType, false, orphans);
 
     sourceType = getSourceType(isTest);
-    addSourceFolders(androidProject, contentEntries, sourceProvider.getAidlDirectories(), sourceType, false, orphans);
-    addSourceFolders(androidProject, contentEntries, sourceProvider.getJavaDirectories(), sourceType, false, orphans);
-    addSourceFolders(androidProject, contentEntries, sourceProvider.getCDirectories(), sourceType, false, orphans);
-    addSourceFolders(androidProject, contentEntries, sourceProvider.getCppDirectories(), sourceType, false, orphans);
-    addSourceFolders(androidProject, contentEntries, sourceProvider.getRenderscriptDirectories(), sourceType, false, orphans);
+    addSourceFolders(androidModel, contentEntries, sourceProvider.getAidlDirectories(), sourceType, false, orphans);
+    addSourceFolders(androidModel, contentEntries, sourceProvider.getJavaDirectories(), sourceType, false, orphans);
+    addSourceFolders(androidModel, contentEntries, sourceProvider.getCDirectories(), sourceType, false, orphans);
+    addSourceFolders(androidModel, contentEntries, sourceProvider.getCppDirectories(), sourceType, false, orphans);
+    addSourceFolders(androidModel, contentEntries, sourceProvider.getRenderscriptDirectories(), sourceType, false, orphans);
   }
 
   @NotNull
@@ -213,15 +213,15 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     return isTest ? TEST_SOURCE : SOURCE;
   }
 
-  private void addSourceFolders(@NotNull IdeaAndroidProject androidProject,
+  private void addSourceFolders(@NotNull IdeaAndroidProject androidModel,
                                 @NotNull Collection<ContentEntry> contentEntries,
                                 @NotNull Collection<File> folderPaths,
                                 @NotNull JpsModuleSourceRootType type,
                                 boolean generated,
                                 @NotNull List<RootSourceFolder> orphans) {
     for (File folderPath : folderPaths) {
-      if (generated && !isGeneratedAtCorrectLocation(folderPath, androidProject.getDelegate())) {
-        androidProject.registerExtraGeneratedSourceFolder(folderPath);
+      if (generated && !isGeneratedAtCorrectLocation(folderPath, androidModel.getAndroidProject())) {
+        androidModel.registerExtraGeneratedSourceFolder(folderPath);
       }
       addSourceFolder(contentEntries, folderPath, type, generated, orphans);
     }
@@ -232,8 +232,8 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     return isAncestor(generatedFolderPath, folderPath, false);
   }
 
-  private void addExcludedOutputFolders(@NotNull Collection<ContentEntry> contentEntries, @NotNull IdeaAndroidProject androidProject) {
-    File buildFolderPath = androidProject.getDelegate().getBuildFolder();
+  private void addExcludedOutputFolders(@NotNull Collection<ContentEntry> contentEntries, @NotNull IdeaAndroidProject androidModel) {
+    File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
     ContentEntry parentContentEntry = findParentContentEntry(buildFolderPath, contentEntries);
     if (parentContentEntry == null) {
       return;
@@ -248,7 +248,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     // Iterate through the build folder's children, excluding any folders that are not "generated" and haven't been already excluded.
     File[] children = notNullize(buildFolderPath.listFiles());
     for (File child : children) {
-      if (androidProject.shouldManuallyExclude(child)) {
+      if (androidModel.shouldManuallyExclude(child)) {
         addExcludedFolder(parentContentEntry, child);
       }
     }

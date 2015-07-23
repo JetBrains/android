@@ -53,8 +53,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
     loadProject("projects/projectWithAppandLib");
     assertNotNull(myAndroidFacet);
-    IdeaAndroidProject gradleProject = myAndroidFacet.getIdeaAndroidProject();
-    assertNotNull(gradleProject);
+    IdeaAndroidProject androidModel = myAndroidFacet.getAndroidModel();
+    assertNotNull(androidModel);
 
     // Set up modules
     for (Module m : ModuleManager.getInstance(getProject()).getModules()) {
@@ -263,8 +263,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   }
 
   public void testFindSourceProvider() throws Exception {
-    assertNotNull(myAppFacet.getIdeaAndroidProject());
-    VirtualFile moduleFile = myAppFacet.getIdeaAndroidProject().getRootDir();
+    assertNotNull(myAppFacet.getAndroidModel());
+    VirtualFile moduleFile = myAppFacet.getAndroidModel().getRootDir();
     assertNotNull(moduleFile);
 
     // Try finding main flavor
@@ -281,7 +281,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  actualProvider.getManifestFile());
 
     // Try finding paid flavor
-    ProductFlavorContainer paidFlavor = myAppFacet.getIdeaAndroidProject().findProductFlavor("paid");
+    ProductFlavorContainer paidFlavor = myAppFacet.getAndroidModel().findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
@@ -419,13 +419,13 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   }
 
   public void testSourceProviderContainsFile() throws Exception {
-    assertNotNull(myAppFacet.getIdeaAndroidProject());
-    ProductFlavorContainer paidFlavor = myAppFacet.getIdeaAndroidProject().findProductFlavor("paid");
+    assertNotNull(myAppFacet.getAndroidModel());
+    ProductFlavorContainer paidFlavor = myAppFacet.getAndroidModel().findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
 
-    VirtualFile moduleFile = myAppFacet.getIdeaAndroidProject().getRootDir();
+    VirtualFile moduleFile = myAppFacet.getAndroidModel().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);
@@ -440,13 +440,13 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
 
   public void testSourceProviderIsContainedByFolder() throws Exception {
-    assertNotNull(myAppFacet.getIdeaAndroidProject());
-    ProductFlavorContainer paidFlavor = myAppFacet.getIdeaAndroidProject().findProductFlavor("paid");
+    assertNotNull(myAppFacet.getAndroidModel());
+    ProductFlavorContainer paidFlavor = myAppFacet.getAndroidModel().findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
 
-    VirtualFile moduleFile = myAppFacet.getIdeaAndroidProject().getRootDir();
+    VirtualFile moduleFile = myAppFacet.getAndroidModel().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);

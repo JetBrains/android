@@ -603,8 +603,8 @@ public class RenderErrorPanel extends JPanel {
       final Module module = logger.getModule();
       if (module != null) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null && facet.isGradleProject() && facet.getIdeaAndroidProject() != null) {
-          AndroidProject androidProject = facet.getIdeaAndroidProject().getDelegate();
+        if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
+          AndroidProject androidProject = facet.getAndroidModel().getAndroidProject();
           String modelVersion = androidProject.getModelVersion();
           if (hasLayoutRenderingIssue(androidProject)) {
             builder.addBold("Using an obsolete version of the Gradle plugin (" + modelVersion +
@@ -1237,7 +1237,7 @@ public class RenderErrorPanel extends JPanel {
       }
 
       AndroidFacet facet = AndroidFacet.getInstance(logger.getModule());
-      if (facet != null && !facet.isGradleProject()) {
+      if (facet != null && !facet.requiresAndroidModel()) {
         Project project = logger.getModule().getProject();
         builder.addLink("Rebuild project with '-target 1.6'", myLinkManager.createRunnableLink(new RebuildWith16Fix(project)));
         builder.newline();

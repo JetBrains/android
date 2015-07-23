@@ -152,7 +152,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
     assert facet != null;
     myFacet = facet;
-    if (facet.isGradleProject()) {
+    if (facet.requiresAndroidModel()) {
       // Ensure that the app resources have been initialized first, since
       // we want it to add its own variant listeners before ours (such that
       // when the variant changes, the project resources get notified and updated

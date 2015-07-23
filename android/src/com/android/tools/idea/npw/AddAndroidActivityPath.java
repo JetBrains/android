@@ -215,12 +215,12 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   }
 
   private static Map<String, Object> selectSourceProvider(@NotNull SourceProvider sourceProvider,
-                                                          @NotNull IdeaAndroidProject gradleProject,
+                                                          @NotNull IdeaAndroidProject androidModel,
                                                           @NotNull Module module,
                                                           @NotNull String packageName) {
     Map<String, Object> paths = Maps.newHashMap();
     // Look up the resource directories inside this source set
-    File moduleDirPath = gradleProject.getRootDirPath();
+    File moduleDirPath = androidModel.getRootDirPath();
     File javaDir = findSrcDirectory(sourceProvider);
     File testDir = findTestDirectory(module);
     String javaPath = getJavaPath(moduleDirPath, javaDir);
@@ -248,7 +248,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       paths.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
     if (testDir == null) {
-      String absolutePath = Joiner.on('/').join(gradleProject.getRootDir().getPath(), TemplateWizard.TEST_SOURCE_PATH,
+      String absolutePath = Joiner.on('/').join(androidModel.getRootDir().getPath(), TemplateWizard.TEST_SOURCE_PATH,
                                                 TemplateWizard.JAVA_SOURCE_PATH);
       testDir = new File(FileUtil.toSystemDependentName(absolutePath));
     }
@@ -434,9 +434,9 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
 
   private String getApplicationPackageName() {
     //noinspection ConstantConditions
-    IdeaAndroidProject gradleProject = AndroidFacet.getInstance(getModule()).getIdeaAndroidProject();
-    assert gradleProject != null;
-    return gradleProject.computePackageName();
+    IdeaAndroidProject androidModel = AndroidFacet.getInstance(getModule()).getAndroidModel();
+    assert androidModel != null;
+    return androidModel.computePackageName();
   }
 
   private Map<String, Object> getDirectories() {
@@ -454,13 +454,13 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     }
     // Read minSdkVersion and package from manifest and/or build.gradle files
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
-    IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
+    IdeaAndroidProject androidModel = facet.getAndroidModel();
 
     SourceProvider sourceProvider1 = myState.get(KEY_SOURCE_PROVIDER);
-    if (sourceProvider1 != null && gradleProject != null) {
+    if (sourceProvider1 != null && androidModel != null) {
       String packageName = myState.get(KEY_PACKAGE_NAME);
       assert packageName != null;
-      templateParameters.putAll(selectSourceProvider(sourceProvider1, gradleProject, module, packageName));
+      templateParameters.putAll(selectSourceProvider(sourceProvider1, androidModel, module, packageName));
     }
     AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
     String minSdkName = minSdkVersion.getApiString();

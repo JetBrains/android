@@ -417,9 +417,9 @@ public class TemplateManager {
           final Module module = LangDataKeys.MODULE.getData(e.getDataContext());
           final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
           Presentation presentation = e.getPresentation();
-          boolean isProjectReady = facet != null && facet.getIdeaAndroidProject() != null;
+          boolean isProjectReady = facet != null && facet.getAndroidModel() != null;
           presentation.setText(category + (isProjectReady ? "" : " (Project not ready)"));
-          presentation.setVisible(getChildrenCount() > 0 && view != null && facet != null && facet.isGradleProject());
+          presentation.setVisible(getChildrenCount() > 0 && view != null && facet != null && facet.requiresAndroidModel());
         }
       };
       categoryGroup.setPopup(true);

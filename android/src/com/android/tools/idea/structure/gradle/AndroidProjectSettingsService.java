@@ -234,6 +234,6 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   }
 
   private boolean isGradleProjectInAndroidStudio() {
-    return AndroidStudioSpecificInitializer.isAndroidStudio() && Projects.isGradleProject(myProject);
+    return AndroidStudioSpecificInitializer.isAndroidStudio() && Projects.requiresAndroidModel(myProject);
   }
 }

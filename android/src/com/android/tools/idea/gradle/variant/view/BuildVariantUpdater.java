@@ -96,13 +96,13 @@ class BuildVariantUpdater {
         for (Module module : modules) {
           AndroidFacet androidFacet = AndroidFacet.getInstance(module);
           assert androidFacet != null;
-          final IdeaAndroidProject ideaAndroidProject = androidFacet.getIdeaAndroidProject();
-          assert ideaAndroidProject != null;
+          IdeaAndroidProject androidModel = androidFacet.getAndroidModel();
+          assert androidModel != null;
 
-          if (!ideaAndroidProject.getSelectedTestArtifactName().equals(testArtifactName)) {
-            ideaAndroidProject.setSelectedTestArtifactName(testArtifactName);
+          if (!androidModel.getSelectedTestArtifactName().equals(testArtifactName)) {
+            androidModel.setSelectedTestArtifactName(testArtifactName);
             androidFacet.syncSelectedVariantAndTestArtifact();
-            invokeCustomizers(androidFacet.getModule(), ideaAndroidProject);
+            invokeCustomizers(androidFacet.getModule(), androidModel);
             affectedFacets.add(androidFacet);
           }
         }
@@ -127,12 +127,12 @@ class BuildVariantUpdater {
     if (facet == null) {
       return null;
     }
-    IdeaAndroidProject androidProject = getAndroidProject(facet, variant);
-    if (androidProject == null) {
+    IdeaAndroidProject androidModel = getAndroidModel(facet, variant);
+    if (androidModel == null) {
       return null;
     }
 
-    if (!updateSelectedVariant(facet, androidProject, variant, affectedFacets)) {
+    if (!updateSelectedVariant(facet, androidModel, variant, affectedFacets)) {
       return null;
     }
     affectedFacets.add(facet);
@@ -146,18 +146,18 @@ class BuildVariantUpdater {
   }
 
   private boolean updateSelectedVariant(@NotNull AndroidFacet androidFacet,
-                                        @NotNull IdeaAndroidProject androidProject,
+                                        @NotNull IdeaAndroidProject androidModel,
                                         @NotNull String variantToSelect,
                                         @NotNull List<AndroidFacet> affectedFacets) {
-    Variant selectedVariant = androidProject.getSelectedVariant();
+    Variant selectedVariant = androidModel.getSelectedVariant();
     if (variantToSelect.equals(selectedVariant.getName())) {
       return false;
     }
-    androidProject.setSelectedVariantName(variantToSelect);
+    androidModel.setSelectedVariantName(variantToSelect);
     androidFacet.syncSelectedVariantAndTestArtifact();
-    Module module = invokeCustomizers(androidFacet.getModule(), androidProject);
+    Module module = invokeCustomizers(androidFacet.getModule(), androidModel);
 
-    selectedVariant = androidProject.getSelectedVariant();
+    selectedVariant = androidModel.getSelectedVariant();
     for (AndroidLibrary library : selectedVariant.getMainArtifact().getDependencies().getLibraries()) {
       String gradlePath = library.getProject();
       if (StringUtil.isEmpty(gradlePath)) {
@@ -183,12 +183,12 @@ class BuildVariantUpdater {
   }
 
   @NotNull
-  private static Module invokeCustomizers(@NotNull Module module, @NotNull IdeaAndroidProject androidProject) {
+  private static Module invokeCustomizers(@NotNull Module module, @NotNull IdeaAndroidProject androidModel) {
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
     try {
-      for (ModuleCustomizer<IdeaAndroidProject> customizer : getCustomizers(androidProject.getProjectSystemId())) {
-        customizer.customizeModule(module.getProject(), rootModel, androidProject);
+      for (ModuleCustomizer<IdeaAndroidProject> customizer : getCustomizers(androidModel.getProjectSystemId())) {
+        customizer.customizeModule(module.getProject(), rootModel, androidModel);
       }
     }
     finally {
@@ -234,12 +234,12 @@ class BuildVariantUpdater {
     if (facet == null) {
       return;
     }
-    IdeaAndroidProject androidProject = getAndroidProject(facet, variant);
-    if (androidProject == null) {
+    IdeaAndroidProject androidModel = getAndroidModel(facet, variant);
+    if (androidModel == null) {
       return;
     }
 
-    if (!updateSelectedVariant(facet, androidProject, variant, affectedFacets)) {
+    if (!updateSelectedVariant(facet, androidModel, variant, affectedFacets)) {
       return;
     }
     affectedFacets.add(facet);
@@ -256,12 +256,12 @@ class BuildVariantUpdater {
   }
 
   @Nullable
-  private static IdeaAndroidProject getAndroidProject(@NotNull AndroidFacet facet, @NotNull String variantToSelect) {
-    IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-    if (androidProject == null) {
+  private static IdeaAndroidProject getAndroidModel(@NotNull AndroidFacet facet, @NotNull String variantToSelect) {
+    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    if (androidModel == null) {
       logAndShowUpdateFailure(variantToSelect, String.format("Cannot find AndroidProject for module '%1$s'.", facet.getModule().getName()));
     }
-    return androidProject;
+    return androidModel;
   }
 
   private static void logAndShowUpdateFailure(@NotNull String buildVariantName, @NotNull String reason) {

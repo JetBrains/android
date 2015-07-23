@@ -40,10 +40,10 @@ import static org.jetbrains.android.util.AndroidUtils.addRunConfiguration;
 public class RunConfigModuleCustomizer implements ModuleCustomizer<IdeaAndroidProject> {
   @Override
   public void customizeModule(@NotNull Project project,
-                              @NotNull ModifiableRootModel ideaModuleModel,
-                              @Nullable IdeaAndroidProject androidProject) {
-    if (androidProject != null) {
-      Module module = ideaModuleModel.getModule();
+                              @NotNull ModifiableRootModel moduleModel,
+                              @Nullable IdeaAndroidProject androidModel) {
+    if (androidModel != null) {
+      Module module = moduleModel.getModule();
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && !facet.isLibraryProject()) {
         RunManager runManager = RunManager.getInstance(project);

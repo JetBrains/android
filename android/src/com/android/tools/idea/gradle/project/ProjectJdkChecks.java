@@ -57,14 +57,14 @@ final class ProjectJdkChecks {
 
   static boolean hasCorrectJdkVersion(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.getIdeaAndroidProject() != null) {
-      return hasCorrectJdkVersion(module, facet.getIdeaAndroidProject());
+    if (facet != null && facet.getAndroidModel() != null) {
+      return hasCorrectJdkVersion(module, facet.getAndroidModel());
     }
     return true;
   }
 
-  static boolean hasCorrectJdkVersion(@NotNull Module module, @NotNull IdeaAndroidProject model) {
-    AndroidProject androidProject = model.getDelegate();
+  static boolean hasCorrectJdkVersion(@NotNull Module module, @NotNull IdeaAndroidProject androidModel) {
+    AndroidProject androidProject = androidModel.getAndroidProject();
     String compileTarget = androidProject.getCompileTarget();
 
     AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);

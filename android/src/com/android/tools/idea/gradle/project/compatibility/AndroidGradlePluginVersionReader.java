@@ -43,9 +43,9 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
   public String getComponentVersion(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-      if (androidProject != null) {
-        return androidProject.getDelegate().getModelVersion();
+      IdeaAndroidProject androidModel = facet.getAndroidModel();
+      if (androidModel != null) {
+        return androidModel.getAndroidProject().getModelVersion();
       }
     }
     return null;
