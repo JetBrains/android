@@ -16,12 +16,9 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.psi.xml.XmlTag;
-
-import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
