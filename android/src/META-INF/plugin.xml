@@ -634,8 +634,7 @@
     <projectService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureService"/>
     <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
                     serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
-    <projectService serviceInterface="com.android.tools.idea.dependencies.DependencyManager"
-                    serviceImplementation="com.android.tools.idea.dependencies.impl.GradleDependencyManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.dependencies.impl.GradleDependencyManager"/>
 
     <applicationConfigurable groupId="build" groupWeight="200" instance="com.android.tools.idea.run.CloudTestingConfigurable"/>
 

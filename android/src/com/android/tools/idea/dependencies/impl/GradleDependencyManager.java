@@ -124,7 +124,7 @@ public class GradleDependencyManager extends DependencyManager {
       @Override
       protected void run(@NotNull final Result result) throws Throwable {
         addDependencies(gradleBuildFile, module, missingLibraryCoordinates);
-        GradleProjectImporter.getInstance().requestProjectSync(project, false /* do not generate sources */, makeListener(callback));
+        GradleProjectImporter.getInstance().requestProjectSync(project, false /* do not generate sources */, createSyncListener(callback));
       }
     }.execute();
   }
@@ -145,7 +145,7 @@ public class GradleDependencyManager extends DependencyManager {
   }
 
   @Nullable
-  private static GradleSyncListener makeListener(@Nullable final Runnable callback) {
+  private static GradleSyncListener createSyncListener(@Nullable final Runnable callback) {
     if (callback == null) {
       return null;
     }
