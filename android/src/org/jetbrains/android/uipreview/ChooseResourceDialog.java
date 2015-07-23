@@ -393,6 +393,9 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
           error = tabComponent.getLocationSettings().doValidate();
         }
       }
+      if (error == null && selectedComponent == myStateListPickerPanel) {
+        error = myStateListPicker.getPrivateResourceError();
+      }
       okActionEnabled = error == null;
     }
 
