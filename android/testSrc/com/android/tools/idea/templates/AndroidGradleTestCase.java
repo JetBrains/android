@@ -37,9 +37,11 @@ import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
-import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.CapturingProcessHandler;
+import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -70,6 +72,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -417,12 +420,21 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     assertTrue(gradlew.exists());
     File pwd = base.getAbsoluteFile();
     // TODO: Add in --no-daemon, anything to suppress total time?
-    Process process = Runtime.getRuntime().exec(new String[]{gradlew.getPath(), "assembleDebug"}, null, pwd);
-    int exitCode = process.waitFor();
-    byte[] stdout = ByteStreams.toByteArray(process.getInputStream());
-    byte[] stderr = ByteStreams.toByteArray(process.getErrorStream());
-    String errors = new String(stderr, Charsets.UTF_8);
-    String output = new String(stdout, Charsets.UTF_8);
+    GeneralCommandLine cmdLine = new GeneralCommandLine(new String[]{gradlew.getPath(), "assembleDebug"}).withWorkDirectory(pwd);
+    CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
+    // Building currently takes about 30s, so a 5min timeout should give a safe margin.
+    int timeoutInMilliseconds = 5 * 60 * 1000;
+    ProcessOutput processOutput = process.runProcess(timeoutInMilliseconds, true);
+    if (processOutput.isTimeout()) {
+      throw new TimeoutException("\"gradlew assembleDebug\" did not terminate within test timeout value.\n" +
+                                 "[stdout]\n" +
+                                 processOutput.getStdout() + "\n" +
+                                 "[stderr]\n" +
+                                 processOutput.getStderr() + "\n");
+    }
+    String errors = processOutput.getStderr();
+    String output = processOutput.getStdout();
+    int exitCode = processOutput.getExitCode();
     int expectedExitCode = 0;
     if (output.contains("BUILD FAILED") && errors.contains("Could not find any version that matches com.android.tools.build:gradle:")) {
       // We ignore this assertion. We got here because we are using a version of the Android Gradle plug-in that is not available in Maven

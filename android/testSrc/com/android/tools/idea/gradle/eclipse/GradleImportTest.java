@@ -13,8 +13,10 @@ import com.android.utils.StdLogger;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.CapturingProcessHandler;
+import com.intellij.execution.process.ProcessOutput;
 import org.jetbrains.android.AndroidTestCase;
 
 import javax.imageio.ImageIO;
@@ -25,6 +27,7 @@ import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.*;
@@ -3642,13 +3645,23 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
       return;
     }
     File pwd = base.getAbsoluteFile();
-    Process process = Runtime.getRuntime().exec(new String[]{gradlew.getPath(),
-      "assembleDebug"}, null, pwd);
-    int exitCode = process.waitFor();
-    byte[] stdout = ByteStreams.toByteArray(process.getInputStream());
-    byte[] stderr = ByteStreams.toByteArray(process.getErrorStream());
-    String errors = new String(stderr, UTF_8);
-    String output = new String(stdout, UTF_8);
+
+    GeneralCommandLine cmdLine = new GeneralCommandLine(new String[]{gradlew.getPath(), "assembleDebug"}).withWorkDirectory(pwd);
+    CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
+    // Building currently takes about 30s, so a 5min timeout should give a safe margin.
+    int timeoutInMilliseconds = 5 * 60 * 1000;
+    ProcessOutput processOutput = process.runProcess(timeoutInMilliseconds, true);
+    if (processOutput.isTimeout()) {
+      throw new TimeoutException("\"gradlew assembleDebug\" did not terminate within test timeout value.\n" +
+                                 "[stdout]\n" +
+                                 processOutput.getStdout() + "\n" +
+                                 "[stderr]\n" +
+                                 processOutput.getStderr() + "\n");
+    }
+    String errors = processOutput.getStderr();
+    String output = processOutput.getStdout();
+    int exitCode = processOutput.getExitCode();
+
     int expectedExitCode = 0;
     if (output.contains("BUILD FAILED") && errors.contains(
       "Could not find any version that matches com.android.tools.build:gradle:")) {
