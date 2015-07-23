@@ -20,6 +20,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -89,7 +90,13 @@ public class NlDefaultRenderer extends NlAttributeRenderer implements NlProperty
       return getColorIcon(text);
     }
 
-    ResourceResolver resolver = property.getComponent().getModel().getConfiguration().getResourceResolver();
+    Configuration configuration = property.getComponent().getModel().getConfiguration();
+    //noinspection ConstantConditions
+    if (configuration == null) { // happens in unit test
+      return null;
+    }
+
+    ResourceResolver resolver = configuration.getResourceResolver();
     if (resolver == null) {
       return null;
     }
