@@ -207,10 +207,6 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTest {
     doTestHighlighting();
   }
 
-  public void testCustomXmlFileCompletion1() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml");
-  }
-
   public void testCustomXmlFileCompletion2() throws Throwable {
     VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(file);
