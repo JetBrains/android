@@ -25,7 +25,7 @@ public class CleanProjectAction extends AnAction {
   @Override
   public void update(AnActionEvent e) {
     Project project = e.getProject();
-    boolean isGradleProject = project != null && Projects.isGradleProject(project);
+    boolean isGradleProject = project != null && Projects.requiresAndroidModel(project);
     e.getPresentation().setEnabledAndVisible(isGradleProject);
   }
 }

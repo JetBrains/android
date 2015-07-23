@@ -405,8 +405,8 @@ public class LayoutPreviewTest extends GuiTestCase {
     @SuppressWarnings("ConstantConditions")
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
-    IdeaAndroidProject project = projectFrame.getGradleProject("app");
-    String modelVersion = project.getDelegate().getModelVersion();
+    IdeaAndroidProject androidModel = projectFrame.getAndroidModel("app");
+    String modelVersion = androidModel.getAndroidProject().getModelVersion();
     assertNotNull(modelVersion);
     FullRevision version = FullRevision.parseRevision(modelVersion);
     assertNotNull("Could not parse version " + modelVersion, version);

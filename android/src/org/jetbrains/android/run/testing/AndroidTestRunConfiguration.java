@@ -86,20 +86,20 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   protected Pair<Boolean, String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet) {
-    if (!facet.isGradleProject()) {
+    if (!facet.requiresAndroidModel()) {
       // Non Gradle projects always require an application
       return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
     }
 
-    final IdeaAndroidProject project = facet.getIdeaAndroidProject();
-    if (project == null) {
+    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    if (androidModel == null) {
       return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
     }
 
     // Gradle only supports testing against a single build type (which could be anything, but is "debug" build type by default)
     // Currently, the only information the model exports that we can use to detect whether the current build type
     // is testable is by looking at the test task name and checking whether it is null.
-    BaseArtifact testArtifact = project.findSelectedTestArtifactInSelectedVariant();
+    BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
     String testTask = testArtifact != null ? testArtifact.getAssembleTaskName() : null;
     return new Pair<Boolean, String>(testTask != null, AndroidBundle.message("android.cannot.run.library.project.in.this.buildtype"));
   }
@@ -180,7 +180,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     final AndroidFacet facet = state.getFacet();
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
 
-    if (!facet.isGradleProject() && !configuration.getState().PACK_TEST_CODE) {
+    if (!facet.requiresAndroidModel() && !configuration.getState().PACK_TEST_CODE) {
       final Module module = facet.getModule();
       final int count = getTestSourceRootCount(module);
       
@@ -209,7 +209,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     assert module != null;
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-    if (facet.getIdeaAndroidProject() != null && Projects.isBuildWithGradle(module)) {
+    if (facet.getAndroidModel() != null && Projects.isBuildWithGradle(module)) {
       return new GradleApkProvider(facet, true);
     }
     return new NonGradleApkProvider(facet, null);
@@ -300,9 +300,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public static String findInstrumentationRunner(@NotNull AndroidFacet facet) {
     String runner = getRunnerFromManifest(facet);
 
-    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    if (runner == null && ideaAndroidProject != null) {
-      Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    if (runner == null && androidModel != null) {
+      Variant selectedVariant = androidModel.getSelectedVariant();
       String testRunner = selectedVariant.getMergedFlavor().getTestInstrumentationRunner();
       if (testRunner != null) {
         runner = testRunner;

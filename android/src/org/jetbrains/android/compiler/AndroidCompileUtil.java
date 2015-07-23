@@ -616,7 +616,7 @@ public class AndroidCompileUtil {
   }
 
   public static boolean createGenModulesAndSourceRoots(@NotNull AndroidFacet facet, @NotNull ModifiableRootModel model) {
-    if (facet.isGradleProject() || !facet.getProperties().ENABLE_SOURCES_AUTOGENERATION) {
+    if (facet.requiresAndroidModel() || !facet.getProperties().ENABLE_SOURCES_AUTOGENERATION) {
       return false;
     }
     final Module module = facet.getModule();
@@ -934,7 +934,7 @@ public class AndroidCompileUtil {
         final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
 
         for (final AndroidFacet facet : facets) {
-          if (facet.isGradleProject()) {
+          if (facet.requiresAndroidModel()) {
             continue;
           }
           final Module module = facet.getModule();

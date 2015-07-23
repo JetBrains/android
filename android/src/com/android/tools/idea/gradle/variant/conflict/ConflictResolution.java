@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.variant.conflict;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public final class ConflictResolution {
   private ConflictResolution() {
@@ -71,18 +72,18 @@ public final class ConflictResolution {
 
   private static boolean solveSelectionConflict(@NotNull Conflict conflict, boolean showConflictResolutionDialog) {
     AndroidFacet facet = AndroidFacet.getInstance(conflict.getSource());
-    if (facet == null || !facet.isGradleProject()) {
+    if (facet == null || !facet.requiresAndroidModel()) {
       // project structure may have changed and the conflict is not longer applicable.
       return true;
     }
-    IdeaAndroidProject source = facet.getIdeaAndroidProject();
+    IdeaAndroidProject source = facet.getAndroidModel();
     if (source == null) {
       return false;
     }
     Collection<String> variants = conflict.getVariants();
     if (variants.size() == 1) {
-      String expectedVariant = ContainerUtil.getFirstItem(variants);
-      if (StringUtil.isNotEmpty(expectedVariant)) {
+      String expectedVariant = getFirstItem(variants);
+      if (isNotEmpty(expectedVariant)) {
         source.setSelectedVariantName(expectedVariant);
         facet.syncSelectedVariantAndTestArtifact();
         return true;
@@ -92,7 +93,7 @@ public final class ConflictResolution {
       ConflictResolutionDialog dialog = new ConflictResolutionDialog(conflict);
       if (dialog.showAndGet()) {
         String selectedVariant = dialog.getSelectedVariant();
-        if (StringUtil.isNotEmpty(selectedVariant)) {
+        if (isNotEmpty(selectedVariant)) {
           source.setSelectedVariantName(selectedVariant);
           facet.syncSelectedVariantAndTestArtifact();
           return true;

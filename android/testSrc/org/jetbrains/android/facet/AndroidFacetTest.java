@@ -32,12 +32,12 @@ import static org.fest.assertions.Assertions.assertThat;
  * Tests for {@link AndroidFacet}.
  */
 public class AndroidFacetTest extends AndroidTestCase {
-  private IdeaAndroidProject myAndroidProject;
+  private IdeaAndroidProject myAndroidModel;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myAndroidProject = createMock(IdeaAndroidProject.class);
+    myAndroidModel = createMock(IdeaAndroidProject.class);
   }
 
   public void testProjectSyncCompletedNotification() {
@@ -49,7 +49,7 @@ public class AndroidFacetTest extends AndroidTestCase {
 
     myFacet.addListener(listener1);
     // This should notify listener1.
-    myFacet.setIdeaAndroidProject(myAndroidProject);
+    myFacet.setAndroidModel(myAndroidModel);
     notifyBuildComplete();
     verify(listener1);
   }

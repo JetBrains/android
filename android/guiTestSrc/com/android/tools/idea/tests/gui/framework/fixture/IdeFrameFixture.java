@@ -188,10 +188,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public IdeaAndroidProject getAndroidProjectForModule(@NotNull String name) {
     Module module = getModule(name);
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.isGradleProject()) {
-      IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-      if (androidProject != null) {
-        return androidProject;
+    if (facet != null && facet.requiresAndroidModel()) {
+      IdeaAndroidProject androidModel = facet.getAndroidModel();
+      if (androidModel != null) {
+        return androidModel;
       }
     }
     throw new AssertionError("Unable to find IdeaAndroidProject for module " + quote(name));
@@ -283,16 +283,16 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeaAndroidProject getGradleProject(@NotNull String moduleName) {
+  public IdeaAndroidProject getAndroidModel(@NotNull String moduleName) {
     Module module = getModule(moduleName);
     assertNotNull("Could not find module " + moduleName, module);
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertNotNull("Module " + moduleName + " is not an Android module", facet);
-    assertTrue("Module " + moduleName + " is not a Gradle project", facet.isGradleProject());
-    IdeaAndroidProject project = facet.getIdeaAndroidProject();
-    assertNotNull("Module " + moduleName + " does not have a Gradle project (not synced yet or sync failed?)", project);
+    assertTrue("Module " + moduleName + " is not a Gradle project", facet.requiresAndroidModel());
+    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    assertNotNull("Module " + moduleName + " does not have a Gradle project (not synced yet or sync failed?)", androidModel);
 
-    return project;
+    return androidModel;
   }
 
   @NotNull

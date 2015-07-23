@@ -47,15 +47,16 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
    * <li>the given module was created by importing an {@code AndroidProject}</li>
    * <li>there is a matching Android SDK already defined in IDEA</li>
    * </ol>
-   * @param project         project that owns the module to customize.
-   * @param ideaModuleModel modifiable root module of the module to customize.
-   * @param androidProject  the imported Android-Gradle project.
+   *
+   * @param project      project that owns the module to customize.
+   * @param moduleModel  modifiable root module of the module to customize.
+   * @param androidModel the imported Android model.
    */
   @Override
   public void customizeModule(@NotNull Project project,
-                              @NotNull ModifiableRootModel ideaModuleModel,
-                              @Nullable IdeaAndroidProject androidProject) {
-    if (androidProject == null) {
+                              @NotNull ModifiableRootModel moduleModel,
+                              @Nullable IdeaAndroidProject androidModel) {
+    if (androidModel == null) {
       return;
     }
     File androidSdkHomePath = IdeSdks.getAndroidSdkPath();
@@ -64,12 +65,12 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
       return;
     }
 
-    LanguageLevel languageLevel = androidProject.getJavaLanguageLevel();
+    LanguageLevel languageLevel = androidModel.getJavaLanguageLevel();
     if (languageLevel != null) {
-      ideaModuleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
+      moduleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
     }
 
-    String compileTarget = androidProject.getDelegate().getCompileTarget();
+    String compileTarget = androidModel.getAndroidProject().getCompileTarget();
 
     Sdk sdk = findSuitableAndroidSdk(compileTarget);
     if (sdk == null) {
@@ -77,11 +78,11 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
     }
 
     if (sdk != null) {
-      ideaModuleModel.setSdk(sdk);
+      moduleModel.setSdk(sdk);
       return;
     }
 
-    String text = String.format("Module '%1$s': platform '%2$s' not found.", ideaModuleModel.getModule().getName(), compileTarget);
+    String text = String.format("Module '%1$s': platform '%2$s' not found.", moduleModel.getModule().getName(), compileTarget);
     LOG.info(text);
 
     Message msg = new Message(FAILED_TO_SET_UP_SDK, Message.Type.ERROR, text);

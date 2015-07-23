@@ -141,7 +141,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
         boolean hasExtraGeneratedFolders = false;
 
-        Map<String, IdeaAndroidProject> androidProjectsByModuleName = indexByModuleName(toImport);
+        Map<String, IdeaAndroidProject> androidModelsByModuleName = indexByModuleName(toImport);
 
         Charset ideEncoding = EncodingProjectManager.getInstance(project).getDefaultCharset();
         FullRevision oneDotTwoModelVersion = new PreciseRevision(1, 2, 0);
@@ -154,11 +154,11 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         for (Module module : moduleManager.getModules()) {
-          IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
+          IdeaAndroidProject androidModel = androidModelsByModuleName.get(module.getName());
 
-          customizeModule(module, project, androidProject);
-          if (androidProject != null) {
-            AndroidProject delegate = androidProject.getDelegate();
+          customizeModule(module, project, androidModel);
+          if (androidModel != null) {
+            AndroidProject delegate = androidModel.getAndroidProject();
 
             checkBuildToolsCompatibility(module, delegate, modulesUsingBuildTools23rc1);
 
@@ -186,11 +186,11 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
             // Get the Java language version from the model.
             if (javaLangVersion == null) {
-              javaLangVersion = androidProject.getJavaLanguageLevel();
+              javaLangVersion = androidModel.getJavaLanguageLevel();
             }
 
             // Warn users that there are generated source folders at the wrong location.
-            File[] sourceFolders = androidProject.getExtraGeneratedSourceFolders();
+            File[] sourceFolders = androidModel.getExtraGeneratedSourceFolders();
             if (sourceFolders.length > 0) {
               hasExtraGeneratedFolders = true;
             }
@@ -316,18 +316,18 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   private static Map<String, IdeaAndroidProject> indexByModuleName(@NotNull Collection<DataNode<IdeaAndroidProject>> dataNodes) {
     Map<String, IdeaAndroidProject> index = Maps.newHashMap();
     for (DataNode<IdeaAndroidProject> d : dataNodes) {
-      IdeaAndroidProject androidProject = d.getData();
-      index.put(androidProject.getModuleName(), androidProject);
+      IdeaAndroidProject androidModel = d.getData();
+      index.put(androidModel.getModuleName(), androidModel);
     }
     return index;
   }
 
-  private void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
+  private void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject androidModel) {
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
     try {
       for (ModuleCustomizer<IdeaAndroidProject> customizer : myCustomizers) {
-        customizer.customizeModule(project, rootModel, ideaAndroidProject);
+        customizer.customizeModule(project, rootModel, androidModel);
       }
     }
     finally {

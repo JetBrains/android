@@ -55,7 +55,7 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull private ProjectSystemId myProjectSystemId;
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
-  @NotNull private AndroidProject myDelegate;
+  @NotNull private AndroidProject myAndroidProject;
 
   @Nullable private transient CountDownLatch myProxyDelegateLatch;
   @Nullable private AndroidProject myProxyDelegate;
@@ -79,22 +79,23 @@ public class IdeaAndroidProject implements Serializable {
 
   /**
    * Creates a new {@link IdeaAndroidProject}.
+   *
    * @param projectSystemId     the external system used to build the project (e.g. Gradle).
    * @param moduleName          the name of the IDEA module, created from {@code delegate}.
    * @param rootDirPath         the root directory of the imported Android-Gradle project.
-   * @param delegate            imported Android-Gradle project.
+   * @param androidProject      imported Android-Gradle project.
    * @param selectedVariantName name of the selected build variant.
    */
   public IdeaAndroidProject(@NotNull ProjectSystemId projectSystemId,
                             @NotNull String moduleName,
                             @NotNull File rootDirPath,
-                            @NotNull AndroidProject delegate,
+                            @NotNull AndroidProject androidProject,
                             @NotNull String selectedVariantName,
                             @NotNull String selectedTestArtifactName) {
     myProjectSystemId = projectSystemId;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
-    myDelegate = delegate;
+    myAndroidProject = androidProject;
 
     // Compute the proxy object to avoid re-proxying the model during every serialization operation and also schedule it to run
     // asynchronously to avoid blocking the project sync operation for reproxying to complete.
@@ -102,7 +103,7 @@ public class IdeaAndroidProject implements Serializable {
       @Override
       public void run() {
         myProxyDelegateLatch = new CountDownLatch(1);
-        myProxyDelegate = reproxy(AndroidProject.class, myDelegate);
+        myProxyDelegate = reproxy(AndroidProject.class, myAndroidProject);
         myProxyDelegateLatch.countDown();
       }
     });
@@ -116,21 +117,21 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   private void populateBuildTypesByName() {
-    for (BuildTypeContainer container : myDelegate.getBuildTypes()) {
+    for (BuildTypeContainer container : myAndroidProject.getBuildTypes()) {
       String name = container.getBuildType().getName();
       myBuildTypesByName.put(name, container);
     }
   }
 
   private void populateProductFlavorsByName() {
-    for (ProductFlavorContainer container : myDelegate.getProductFlavors()) {
+    for (ProductFlavorContainer container : myAndroidProject.getProductFlavors()) {
       String name = container.getProductFlavor().getName();
       myProductFlavorsByName.put(name, container);
     }
   }
 
   private void populateVariantsByName() {
-    for (Variant variant : myDelegate.getVariants()) {
+    for (Variant variant : myAndroidProject.getVariants()) {
       myVariantsByName.put(variant.getName(), variant);
     }
   }
@@ -217,8 +218,8 @@ public class IdeaAndroidProject implements Serializable {
    * @return the imported Android-Gradle project.
    */
   @NotNull
-  public AndroidProject getDelegate() {
-    return myDelegate;
+  public AndroidProject getAndroidProject() {
+    return myAndroidProject;
   }
 
   /**
@@ -296,7 +297,7 @@ public class IdeaAndroidProject implements Serializable {
 
   @Nullable
   public LanguageLevel getJavaLanguageLevel() {
-    JavaCompileOptions compileOptions = myDelegate.getJavaCompileOptions();
+    JavaCompileOptions compileOptions = myAndroidProject.getJavaCompileOptions();
     String sourceCompatibility = compileOptions.getSourceCompatibility();
     return LanguageLevel.parse(sourceCompatibility);
   }
@@ -310,7 +311,7 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   public boolean isLibrary() {
-    return getDelegate().isLibrary();
+    return getAndroidProject().isLibrary();
   }
 
   /**
@@ -321,7 +322,7 @@ public class IdeaAndroidProject implements Serializable {
    */
   public boolean overridesManifestPackage() {
     if (myOverridesManifestPackage == null) {
-      myOverridesManifestPackage = getDelegate().getDefaultConfig().getProductFlavor().getApplicationId() != null;
+      myOverridesManifestPackage = getAndroidProject().getDefaultConfig().getProductFlavor().getApplicationId() != null;
 
       Variant variant = getSelectedVariant();
 
@@ -357,7 +358,7 @@ public class IdeaAndroidProject implements Serializable {
     if (myMinSdkVersion == null) {
       ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
       if (minSdkVersion != null && minSdkVersion.getCodename() != null) {
-        ApiVersion defaultConfigVersion  = getDelegate().getDefaultConfig().getProductFlavor().getMinSdkVersion();
+        ApiVersion defaultConfigVersion  = getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
         if (defaultConfigVersion != null) {
           minSdkVersion = defaultConfigVersion;
         }
@@ -445,13 +446,13 @@ public class IdeaAndroidProject implements Serializable {
   @Nullable
   public Collection<SyncIssue> getSyncIssues() {
     if (supportsIssueReporting()) {
-      return myDelegate.getSyncIssues();
+      return myAndroidProject.getSyncIssues();
     }
     return null;
   }
 
   private boolean supportsIssueReporting() {
-    String original = myDelegate.getModelVersion();
+    String original = myAndroidProject.getModelVersion();
     FullRevision modelVersion;
     try {
       modelVersion = FullRevision.parseRevision(original);
@@ -464,11 +465,11 @@ public class IdeaAndroidProject implements Serializable {
 
   @Nullable
   public SourceFileContainerInfo containsSourceFile(@NotNull File file) {
-    ProductFlavorContainer defaultConfig = myDelegate.getDefaultConfig();
+    ProductFlavorContainer defaultConfig = myAndroidProject.getDefaultConfig();
     if (containsSourceFile(defaultConfig, file)) {
       return new SourceFileContainerInfo();
     }
-    for (Variant variant : myDelegate.getVariants()) {
+    for (Variant variant : myAndroidProject.getVariants()) {
       AndroidArtifact artifact = variant.getMainArtifact();
       if (containsSourceFile(artifact, file)) {
         return new SourceFileContainerInfo(variant, artifact);
@@ -601,8 +602,8 @@ public class IdeaAndroidProject implements Serializable {
     myProjectSystemId = (ProjectSystemId)in.readObject();
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
-    myDelegate = (AndroidProject)in.readObject();
-    myProxyDelegate = myDelegate;
+    myAndroidProject = (AndroidProject)in.readObject();
+    myProxyDelegate = myAndroidProject;
 
     myBuildTypesByName = Maps.newHashMap();
     myProductFlavorsByName = Maps.newHashMap();

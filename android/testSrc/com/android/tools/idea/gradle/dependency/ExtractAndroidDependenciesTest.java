@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dependency;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
@@ -32,11 +31,13 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
+
 /**
  * Tests for {@link Dependency#extractFrom(com.android.tools.idea.gradle.IdeaAndroidProject)}.
  */
 public class ExtractAndroidDependenciesTest extends IdeaTestCase {
-  private IdeaAndroidProject myIdeaAndroidProject;
+  private IdeaAndroidProject myAndroidModel;
   private AndroidProjectStub myAndroidProject;
   private VariantStub myVariant;
 
@@ -48,8 +49,8 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     assertNotNull(myVariant);
 
     File rootDir = myAndroidProject.getRootDir();
-    myIdeaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
-                                                  myVariant.getName(), AndroidProject.ARTIFACT_ANDROID_TEST);
+    myAndroidModel = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
+                                            myVariant.getName(), ARTIFACT_ANDROID_TEST);
   }
 
   @Override
@@ -66,7 +67,7 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     myVariant.getMainArtifact().getDependencies().addJar(jarFile);
     myVariant.getInstrumentTestArtifact().getDependencies().addJar(jarFile);
 
-    Collection<LibraryDependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject).onLibraries();
+    Collection<LibraryDependency> dependencies = Dependency.extractFrom(myAndroidModel).onLibraries();
     assertEquals(1, dependencies.size());
 
     LibraryDependency dependency = ContainerUtil.getFirstItem(dependencies);
@@ -91,7 +92,7 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     myVariant.getMainArtifact().getDependencies().addLibrary(library);
     myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
-    Collection<ModuleDependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject).onModules();
+    Collection<ModuleDependency> dependencies = Dependency.extractFrom(myAndroidModel).onModules();
     assertEquals(1, dependencies.size());
 
     ModuleDependency dependency = ContainerUtil.getFirstItem(dependencies);
@@ -120,7 +121,7 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     myVariant.getMainArtifact().getDependencies().addLibrary(library);
     myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
-    Collection<LibraryDependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject).onLibraries();
+    Collection<LibraryDependency> dependencies = Dependency.extractFrom(myAndroidModel).onLibraries();
     assertEquals(1, dependencies.size());
 
     LibraryDependency dependency = ContainerUtil.getFirstItem(dependencies);
@@ -147,7 +148,7 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     myVariant.getMainArtifact().getDependencies().addLibrary(library);
     myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
-    List<LibraryDependency> dependencies = Lists.newArrayList(Dependency.extractFrom(myIdeaAndroidProject).onLibraries());
+    List<LibraryDependency> dependencies = Lists.newArrayList(Dependency.extractFrom(myAndroidModel).onLibraries());
     assertEquals(1, dependencies.size());
 
     LibraryDependency dependency = dependencies.get(0);
@@ -165,7 +166,7 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     String gradlePath = "abc:xyz:library";
     myVariant.getMainArtifact().getDependencies().addProject(gradlePath);
     myVariant.getInstrumentTestArtifact().getDependencies().addProject(gradlePath);
-    Collection<ModuleDependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject).onModules();
+    Collection<ModuleDependency> dependencies = Dependency.extractFrom(myAndroidModel).onModules();
     assertEquals(1, dependencies.size());
 
     ModuleDependency dependency = ContainerUtil.getFirstItem(dependencies);

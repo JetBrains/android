@@ -37,22 +37,22 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
   implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
   @Override
   public void customizeModule(@NotNull Project project,
-                              @NotNull ModifiableRootModel ideaModuleModel,
-                              @Nullable IdeaAndroidProject androidProject) {
-    if (androidProject == null) {
+                              @NotNull ModifiableRootModel moduleModel,
+                              @Nullable IdeaAndroidProject androidModel) {
+    if (androidModel == null) {
       return;
     }
-    String modelVersion = androidProject.getDelegate().getModelVersion();
+    String modelVersion = androidModel.getAndroidProject().getModelVersion();
     if (isEmpty(modelVersion)) {
       // We are dealing with old model that does not have 'class' folder.
       return;
     }
-    Variant selectedVariant = androidProject.getSelectedVariant();
+    Variant selectedVariant = androidModel.getSelectedVariant();
     File mainClassesFolder = selectedVariant.getMainArtifact().getClassesFolder();
-    BaseArtifact testArtifact = androidProject.findSelectedTestArtifact(selectedVariant);
+    BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(selectedVariant);
     File testClassesFolder = testArtifact == null ? null : testArtifact.getClassesFolder();
 
-    setOutputPaths(ideaModuleModel, mainClassesFolder, testClassesFolder);
+    setOutputPaths(moduleModel, mainClassesFolder, testClassesFolder);
   }
 
   @Override

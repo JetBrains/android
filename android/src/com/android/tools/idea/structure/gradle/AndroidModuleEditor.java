@@ -78,7 +78,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
     if (myGenericSettingsPanel == null) {
       myEditors.clear();
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.isGradleProject()) {
+      if (facet != null && facet.requiresAndroidModel()) {
         myEditors.add(new GenericEditor<SingleObjectPanel>("Properties", new Callable<SingleObjectPanel>() {
           @Override
           public SingleObjectPanel call() {
