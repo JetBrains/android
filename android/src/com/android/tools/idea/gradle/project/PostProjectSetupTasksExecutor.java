@@ -518,7 +518,7 @@ public class PostProjectSetupTasksExecutor {
 
     for (Module module : moduleManager.getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
+      if (androidFacet != null && androidFacet.getAndroidModel() != null) {
         Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
         if (sdk != null && !invalidAndroidSdks.contains(sdk) && (isMissingAndroidLibrary(sdk) || shouldRemoveAnnotationsJar(sdk))) {
           // First try to recreate SDK; workaround for issue 78072
@@ -550,8 +550,8 @@ public class PostProjectSetupTasksExecutor {
           }
         }
 
-        IdeaAndroidProject androidProject = androidFacet.getIdeaAndroidProject();
-        if (checkJdkVersion && !hasCorrectJdkVersion(module, androidProject)) {
+        IdeaAndroidProject androidModel = androidFacet.getAndroidModel();
+        if (checkJdkVersion && !hasCorrectJdkVersion(module, androidModel)) {
           // we already displayed the error, no need to check each module.
           checkJdkVersion = false;
         }

@@ -81,7 +81,7 @@ public class NonGradleApkProviderTest extends AndroidTestCase {
    * A non-Gradle APK provider can be used when an IdeaAndroidProject is present if Projects.isBuildWithGradle is false.
    */
   public void testGetPackageNameForIdeaAndroidProject() throws Exception {
-    myFacet.setIdeaAndroidProject(getIdeaAndroidProject());
+    myFacet.setAndroidModel(getAndroidModel());
 
     NonGradleApkProvider provider = new NonGradleApkProvider(myFacet, null);
     assertEquals("app.variantname", provider.getPackageName());
@@ -91,7 +91,7 @@ public class NonGradleApkProviderTest extends AndroidTestCase {
 
   public void testGetApksForIdeaAndroidProject() throws Exception {
     IDevice device = Mockito.mock(IDevice.class);
-    myFacet.setIdeaAndroidProject(getIdeaAndroidProject());
+    myFacet.setAndroidModel(getAndroidModel());
 
     NonGradleApkProvider provider = new NonGradleApkProvider(myFacet, null);
     Collection<ApkInfo> apks = provider.getApks(device);
@@ -102,7 +102,7 @@ public class NonGradleApkProviderTest extends AndroidTestCase {
     assertTrue(apk.getFile().getPath().endsWith("_main_-variantName.apk"));
   }
 
-  private IdeaAndroidProject getIdeaAndroidProject() throws Exception {
+  private IdeaAndroidProject getAndroidModel() throws Exception {
     AndroidProjectStub androidProject = new AndroidProjectStub("projectName");
     VariantStub variant = androidProject.addVariant("variantName");
     return new IdeaAndroidProject(

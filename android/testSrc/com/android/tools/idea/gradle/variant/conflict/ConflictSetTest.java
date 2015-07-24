@@ -90,7 +90,7 @@ public class ConflictSetTest extends IdeaTestCase {
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
       AndroidFacet facet = createFacet(facetManager, false);
-      facet.setIdeaAndroidProject(myApp);
+      facet.setAndroidModel(myApp);
       facetModel.addFacet(facet);
     }
     finally {
@@ -103,7 +103,7 @@ public class ConflictSetTest extends IdeaTestCase {
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
       AndroidFacet androidFacet = createFacet(facetManager, true);
-      androidFacet.setIdeaAndroidProject(myLib);
+      androidFacet.setAndroidModel(myLib);
       facetModel.addFacet(androidFacet);
 
       AndroidGradleFacet gradleFacet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);

@@ -222,16 +222,16 @@ public final class GradleUtil {
     if (androidProject != null) {
       return androidProject.isLibrary() ? AndroidIcons.LibraryModule : AndroidIcons.AppModule;
     }
-    return isGradleProject(module.getProject()) ? AllIcons.Nodes.PpJdk : AllIcons.Nodes.Module;
+    return requiresAndroidModel(module.getProject()) ? AllIcons.Nodes.PpJdk : AllIcons.Nodes.Module;
   }
 
   @Nullable
   public static AndroidProject getAndroidProject(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-      if (androidProject != null) {
-        return androidProject.getDelegate();
+      IdeaAndroidProject androidModel = facet.getAndroidModel();
+      if (androidModel != null) {
+        return androidModel.getAndroidProject();
       }
     }
     return null;
@@ -268,17 +268,13 @@ public final class GradleUtil {
   /**
    * Returns the library dependencies in the given variant. This method checks dependencies in the main and test (as currently selected
    * in the UI) artifacts. The dependency lookup is not transitive (only direct dependencies are returned.)
-   *
-   * @param variant the given variant.
-   * @param ideaAndroidProject
-   * @return the library dependencies in the given variant.
    */
   @NotNull
   public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant,
-                                                                  @NotNull IdeaAndroidProject ideaAndroidProject) {
+                                                                  @NotNull IdeaAndroidProject androidModel) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
     libraries.addAll(variant.getMainArtifact().getDependencies().getLibraries());
-    BaseArtifact testArtifact = ideaAndroidProject.findSelectedTestArtifact(variant);
+    BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(variant);
     if (testArtifact != null) {
       libraries.addAll(testArtifact.getDependencies().getLibraries());
     }
@@ -307,6 +303,7 @@ public final class GradleUtil {
   /**
    * Returns the build.gradle file in the given module. This method first checks if the Gradle model has the path of the build.gradle
    * file for the given module. If it doesn't find it, it tries to find a build.gradle inside the module's root directory.
+   *
    * @param module the given module.
    * @return the build.gradle file in the given module, or {@code null} if it cannot be found.
    */
@@ -417,8 +414,8 @@ public final class GradleUtil {
     GradleProjectSettings projectSettings = getGradleProjectSettings(project);
     if (projectSettings == null) {
       File baseDirPath = getBaseDirPath(project);
-      String msg = String.format("Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'", project.getName(),
-                                 baseDirPath.getPath());
+      String msg = String
+        .format("Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'", project.getName(), baseDirPath.getPath());
       LOG.info(msg);
       return null;
     }
@@ -834,7 +831,7 @@ public final class GradleUtil {
   /**
    * Tries to find the version of the Android Gradle plug-in declared in build.gradle files. If the project contains complicated build
    * logic, this may be incorrect.
-   *
+   * <p/>
    * <p>
    * The version is returned as it is specified in build files if it does not use "+" notation.
    * </p>
@@ -991,9 +988,9 @@ public final class GradleUtil {
   /**
    * Delegates to the {@link #forPluginDefinition(String, String, Function)} and just returns target plugin's definition string (unquoted).
    *
-   * @param fileContents  target gradle config text
-   * @param pluginName    target plugin's name in a form <code>'group-id:artifact-id:'</code>
-   * @return              target plugin's definition string if found (unquoted); <code>null</code> otherwise
+   * @param fileContents target gradle config text
+   * @param pluginName   target plugin's name in a form <code>'group-id:artifact-id:'</code>
+   * @return target plugin's definition string if found (unquoted); <code>null</code> otherwise
    * @see #forPluginDefinition(String, String, Function)
    */
   @Nullable
@@ -1029,11 +1026,11 @@ public final class GradleUtil {
    * (with quotes), i.e. we can get exact text range for the target string in case we need to do something like replacing plugin's
    * version.
    *
-   * @param fileContents  target gradle config text
-   * @param pluginName    target plugin's name in a form <code>'group-id:artifact-id:'</code>
-   * @param consumer      a callback to be notified for the target plugin's definition string
-   * @param <T>           given callback's return type
-   * @return              given callback's call result if target plugin definition is found; <code>null</code> otherwise
+   * @param fileContents target gradle config text
+   * @param pluginName   target plugin's name in a form <code>'group-id:artifact-id:'</code>
+   * @param consumer     a callback to be notified for the target plugin's definition string
+   * @param <T>          given callback's return type
+   * @return given callback's call result if target plugin definition is found; <code>null</code> otherwise
    */
   @Nullable
   public static <T> T forPluginDefinition(@NotNull String fileContents,
@@ -1274,15 +1271,15 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns {@code true} if the given project depends on the given artifact, which consists of a group id and an artifact id, such as
+   * Returns {@code true} if the given Android model depends on the given artifact, which consists of a group id and an artifact id, such as
    * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
-   * @param project  the Gradle project to check
-   * @param artifact the artifact
+   * @param androidModel the Android model to check
+   * @param artifact     the artifact
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
-  public static boolean dependsOn(@NonNull IdeaAndroidProject project, @NonNull String artifact) {
-    Dependencies dependencies = project.getSelectedVariant().getMainArtifact().getDependencies();
+  public static boolean dependsOn(@NonNull IdeaAndroidProject androidModel, @NonNull String artifact) {
+    Dependencies dependencies = androidModel.getSelectedVariant().getMainArtifact().getDependencies();
     return dependsOn(dependencies, artifact);
   }
 

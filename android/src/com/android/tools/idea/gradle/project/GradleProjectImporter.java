@@ -254,7 +254,7 @@ public class GradleProjectImporter {
                              @NotNull ProgressExecutionMode progressExecutionMode,
                              @NotNull ImportOptions options,
                              @Nullable final GradleSyncListener listener) throws ConfigurationException {
-    if (isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
+    if (requiresAndroidModel(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
       resetProject(project);
@@ -302,7 +302,7 @@ public class GradleProjectImporter {
         for (Module module : moduleManager.getModules()) {
           AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet != null) {
-            facet.setIdeaAndroidProject(null);
+            facet.setAndroidModel(null);
           }
         }
       }

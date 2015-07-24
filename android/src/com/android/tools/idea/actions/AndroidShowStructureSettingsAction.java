@@ -32,7 +32,7 @@ public class AndroidShowStructureSettingsAction extends AnAction {
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
-    if (project == null || Projects.isGradleProject(project)) {
+    if (project == null || Projects.requiresAndroidModel(project)) {
       if (project == null) {
         project = ProjectManager.getInstance().getDefaultProject();
       }

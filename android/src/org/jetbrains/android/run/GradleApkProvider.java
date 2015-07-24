@@ -57,14 +57,14 @@ public class GradleApkProvider implements ApkProvider {
   @Override
   @NotNull
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
-    IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
-    assert ideaAndroidProject != null; // This is a Gradle project, there must be an IdeaAndroidProject.
-    Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+    IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+    assert androidModel != null; // This is a Gradle project, there must be an IdeaAndroidProject.
+    Variant selectedVariant = androidModel.getSelectedVariant();
 
     List<ApkInfo> apkList = new ArrayList<ApkInfo>();
 
     // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
-    if (!ideaAndroidProject.getDelegate().isLibrary()) {
+    if (!androidModel.getAndroidProject().isLibrary()) {
       File apk = getApk(selectedVariant, device);
       if (apk == null) {
         String message = AndroidBundle.message("deployment.failed.cannot.determine.apk", selectedVariant.getDisplayName(), device.getName());
@@ -74,7 +74,7 @@ public class GradleApkProvider implements ApkProvider {
     }
 
     if (myTest) {
-      BaseArtifact testArtifactInfo = ideaAndroidProject.findSelectedTestArtifactInSelectedVariant();
+      BaseArtifact testArtifactInfo = androidModel.findSelectedTestArtifactInSelectedVariant();
       if (testArtifactInfo instanceof AndroidArtifact) {
         AndroidArtifactOutput output = GradleUtil.getOutput((AndroidArtifact)testArtifactInfo);
         File testApk = output.getMainOutputFile().getOutputFile();
@@ -94,11 +94,11 @@ public class GradleApkProvider implements ApkProvider {
 
   @Override
   public String getTestPackageName() throws ApkProvisionException {
-    IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
-    assert ideaAndroidProject != null; // This is a Gradle project, there must be an IdeaAndroidProject.
+    IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+    assert androidModel != null; // This is a Gradle project, there must be an IdeaAndroidProject.
     // In the case of Gradle projects, either the merged flavor provides a test package name,
     // or we just append ".test" to the source package name
-    Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+    Variant selectedVariant = androidModel.getSelectedVariant();
     String testPackageName = selectedVariant.getMergedFlavor().getTestApplicationId();
     return (testPackageName != null) ? testPackageName : getPackageName() + DEFAULT_TEST_PACKAGE_SUFFIX;
   }

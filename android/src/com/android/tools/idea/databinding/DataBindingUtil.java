@@ -176,16 +176,16 @@ public class DataBindingUtil {
   }
 
   private static boolean resolveHasDataBinding(AndroidFacet facet) {
-    if (!facet.isGradleProject()) {
+    if (!facet.requiresAndroidModel()) {
       return false;
     }
-    if (facet.getIdeaAndroidProject() == null) {
+    if (facet.getAndroidModel() == null) {
       return false;
     }
     // TODO Instead of checking library dependency, we should be checking whether data binding plugin is
     // applied to this facet or not. Having library dependency does not guarantee data binding
     // unless the plugin is applied as well.
-    return GradleUtil.dependsOn(facet.getIdeaAndroidProject(), SdkConstants.DATA_BINDING_LIB_ARTIFACT);
+    return GradleUtil.dependsOn(facet.getAndroidModel(), SdkConstants.DATA_BINDING_LIB_ARTIFACT);
   }
 
   static PsiClass getOrCreatePsiClass(DataBindingInfo info) {

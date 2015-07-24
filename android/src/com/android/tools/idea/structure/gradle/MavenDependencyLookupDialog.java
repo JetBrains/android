@@ -225,9 +225,9 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-        if (androidProject != null) {
-          ApiVersion minSdkVersion = androidProject.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+        IdeaAndroidProject androidModel = facet.getAndroidModel();
+        if (androidModel != null) {
+          ApiVersion minSdkVersion = androidModel.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
           if (minSdkVersion != null) {
             preview = new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename()).isPreview();
           }

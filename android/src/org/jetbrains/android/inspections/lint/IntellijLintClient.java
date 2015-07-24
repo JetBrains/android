@@ -375,9 +375,9 @@ public class IntellijLintClient extends LintClient implements Disposable {
     Module module = getModule();
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      return facet != null && facet.isGradleProject();
+      return facet != null && facet.requiresAndroidModel();
     }
-    return Projects.isGradleProject(myProject);
+    return Projects.requiresAndroidModel(myProject);
   }
 
   // Overridden such that lint doesn't complain about missing a bin dir property in the event

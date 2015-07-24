@@ -90,7 +90,7 @@ public class IdeaITNProxy {
 
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
     for (int i = 0; i < projects.length; i++) {
-      params.add(Pair.create("is.gradle.project." + i, Boolean.toString(Projects.isGradleProject(projects[i]))));
+      params.add(Pair.create("is.gradle.project." + i, Boolean.toString(Projects.requiresAndroidModel(projects[i]))));
     }
 
     return params;

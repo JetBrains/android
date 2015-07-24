@@ -183,7 +183,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
                              final RunConfiguration configuration,
                              ExecutionEnvironment env,
                              final MakeBeforeRunTask task) {
-    if (!Projects.isGradleProject(myProject) || !Projects.isDirectGradleInvocationEnabled(myProject)) {
+    if (!Projects.requiresAndroidModel(myProject) || !Projects.isDirectGradleInvocationEnabled(myProject)) {
       CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
     }

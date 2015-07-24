@@ -41,7 +41,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -155,6 +155,6 @@ public class CleanImportProjectAction extends DumbAwareAction {
   }
 
   private static boolean isGradleProjectIfNotNull(@Nullable Project project) {
-    return project != null && isGradleProject(project);
+    return project != null && requiresAndroidModel(project);
   }
 }

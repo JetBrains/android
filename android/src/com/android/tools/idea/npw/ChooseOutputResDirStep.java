@@ -182,8 +182,8 @@ public class ChooseOutputResDirStep extends TemplateWizardStep {
         return;
       }
 
-      IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
-      if (gradleProject != null) {
+      IdeaAndroidProject androidModel = facet.getAndroidModel();
+      if (androidModel != null) {
         show(myVariantComboBox, myResDirLabel);
         DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel();
         String moduleRoot = FileUtil.toSystemIndependentName(AndroidRootUtil.getModuleDirPath(facet.getModule()));

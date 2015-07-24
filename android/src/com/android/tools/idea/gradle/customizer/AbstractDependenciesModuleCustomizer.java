@@ -41,13 +41,13 @@ import static java.io.File.separatorChar;
 
 public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleCustomizer<T> {
   @Override
-  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel ideaModuleModel, @Nullable T externalProjectModel) {
+  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable T externalProjectModel) {
     if (externalProjectModel == null) {
       return;
     }
 
-    removeExistingDependencies(ideaModuleModel);
-    setUpDependencies(ideaModuleModel, externalProjectModel);
+    removeExistingDependencies(moduleModel);
+    setUpDependencies(moduleModel, externalProjectModel);
   }
 
   protected abstract void setUpDependencies(@NotNull ModifiableRootModel rootModel, @NotNull T model);

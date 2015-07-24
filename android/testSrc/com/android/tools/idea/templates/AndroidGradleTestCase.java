@@ -148,7 +148,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         // Since we don't really open the project, but we manually register listeners in the gradle importer
         // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
         // that here, otherwise the testsuite will leak
-        if (Projects.isGradleProject(project)) {
+        if (Projects.requiresAndroidModel(project)) {
           AndroidGradleProjectComponent projectComponent = ServiceManager.getService(project, AndroidGradleProjectComponent.class);
           projectComponent.projectClosed();
         }
@@ -249,7 +249,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     importProject(project, project.getName(), projectRoot, listener);
 
-    assertTrue(Projects.isGradleProject(project));
+    assertTrue(Projects.requiresAndroidModel(project));
     assertFalse(Projects.isIdeaAndroidProject(project));
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);

@@ -43,7 +43,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository impl
   private DynamicResourceValueRepository(@NotNull AndroidFacet facet) {
     super("Gradle Dynamic");
     myFacet = facet;
-    assert facet.isGradleProject();
+    assert facet.requiresAndroidModel();
     facet.addListener(this);
     BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(this);
   }
@@ -57,15 +57,15 @@ public class DynamicResourceValueRepository extends LocalResourceRepository impl
   @NonNull
   protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
     if (mItems.isEmpty()) {
-      IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
-      if (project == null) {
+      IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+      if (androidModel == null) {
         return mItems;
       }
 
-      Variant selectedVariant = project.getSelectedVariant();
+      Variant selectedVariant = androidModel.getSelectedVariant();
 
       // Reverse overlay order because when processing lower order ones, we ignore keys already processed
-      BuildTypeContainer buildType = project.findBuildType(selectedVariant.getBuildType());
+      BuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
       if (buildType != null) {
         addValues(buildType.getBuildType().getResValues());
       }
