@@ -48,7 +48,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -357,7 +357,7 @@ public final class IdeSdks {
     List<Pair<Project, LocalProperties>> localPropertiesToUpdate = Lists.newArrayList();
 
     for (Project project : openProjects) {
-      if (!isGradleProject(project)) {
+      if (!requiresAndroidModel(project)) {
         continue;
       }
       try {

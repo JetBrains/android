@@ -361,7 +361,7 @@ public class ResourceNotificationManager implements ProjectComponent {
     }
 
     private void registerListeners() {
-      if (myFacet.isGradleProject()) {
+      if (myFacet.requiresAndroidModel()) {
         // Ensure that the app resources have been initialized first, since
         // we want it to add its own variant listeners before ours (such that
         // when the variant changes, the project resources get notified and updated
@@ -372,7 +372,7 @@ public class ResourceNotificationManager implements ProjectComponent {
     }
 
     private void unregisterListeners() {
-      if (myFacet.isGradleProject()) {
+      if (myFacet.requiresAndroidModel()) {
         myFacet.getResourceFolderManager().removeListener(this);
       }
     }

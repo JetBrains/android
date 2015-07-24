@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.run;
 
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.ManifestInfo;
 import com.google.common.base.Predicates;
 import com.intellij.execution.ExecutionException;
@@ -38,7 +37,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.manifest.IntentFilter;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.Service;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -48,6 +46,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 
 /**
  * @author Eugene.Kudelevsky
@@ -97,7 +97,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     assert module != null;
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-    if (facet.getIdeaAndroidProject() != null && Projects.isBuildWithGradle(module)) {
+    if (facet.getAndroidModel() != null && isBuildWithGradle(module)) {
       return new GradleApkProvider(facet, false);
     }
     return new NonGradleApkProvider(facet, ARTIFACT_NAME);

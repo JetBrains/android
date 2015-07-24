@@ -151,7 +151,7 @@ public final class ProjectResourceRepository extends MultiResourceRepository {
   private static void moduleRootsChanged(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      if (facet.isGradleProject() && facet.getIdeaAndroidProject() == null) {
+      if (facet.requiresAndroidModel() && facet.getAndroidModel() == null) {
         // Project not yet fully initialized; no need to do a sync now because our
         // GradleProjectAvailableListener will be called as soon as it is and do a proper sync
         return;

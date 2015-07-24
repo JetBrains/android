@@ -117,7 +117,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   @Nullable
   public static String getNamespaceKeyByResourcePackage(@NotNull AndroidFacet facet, @Nullable String resPackage) {
     if (resPackage == null) {
-      if (facet.getProperties().LIBRARY_PROJECT || facet.isGradleProject()) {
+      if (facet.getProperties().LIBRARY_PROJECT || facet.requiresAndroidModel()) {
         return AUTO_URI;
       }
       Manifest manifest = facet.getManifest();

@@ -41,7 +41,7 @@ import static java.util.Collections.sort;
  */
 public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   private AndroidProjectStub myAndroidProject;
-  private IdeaAndroidProject myIdeaAndroidProject;
+  private IdeaAndroidProject myAndroidModel;
 
   private ContentRootModuleCustomizer myCustomizer;
 
@@ -57,8 +57,8 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     Collection<Variant> variants = myAndroidProject.getVariants();
     Variant selectedVariant = getFirstItem(variants);
     assertNotNull(selectedVariant);
-    myIdeaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), baseDir, myAndroidProject,
-                                                  selectedVariant.getName(), ARTIFACT_ANDROID_TEST);
+    myAndroidModel = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), baseDir, myAndroidProject,
+                                            selectedVariant.getName(), ARTIFACT_ANDROID_TEST);
 
     addContentEntry();
     myCustomizer = new ContentRootModuleCustomizer();
@@ -93,7 +93,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
     try {
-      myCustomizer.customizeModule(myProject, rootModel, myIdeaAndroidProject);
+      myCustomizer.customizeModule(myProject, rootModel, myAndroidModel);
     }
     finally {
       rootModel.commit();

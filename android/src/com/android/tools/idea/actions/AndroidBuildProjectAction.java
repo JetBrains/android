@@ -30,7 +30,7 @@ public abstract class AndroidBuildProjectAction extends AndroidActionRemover {
   @Override
   public final void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null && Projects.isGradleProject(project) && Projects.isDirectGradleInvocationEnabled(project)) {
+    if (project != null && Projects.requiresAndroidModel(project) && Projects.isDirectGradleInvocationEnabled(project)) {
       buildGradleProject(project, e.getDataContext());
       return;
     }

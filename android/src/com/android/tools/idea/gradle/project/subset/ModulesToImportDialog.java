@@ -665,8 +665,8 @@ public class ModulesToImportDialog extends DialogWrapper {
       if (!children.isEmpty()) {
         DataNode<IdeaAndroidProject> child = getFirstItem(children);
         if (child != null) {
-          IdeaAndroidProject androidProject = child.getData();
-          return androidProject.getDelegate().isLibrary() ? LibraryModule : AppModule;
+          IdeaAndroidProject androidModel = child.getData();
+          return androidModel.getAndroidProject().isLibrary() ? LibraryModule : AppModule;
         }
       }
       return PpJdk;

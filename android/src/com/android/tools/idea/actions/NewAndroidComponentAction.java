@@ -67,8 +67,8 @@ public class NewAndroidComponentAction extends AnAction {
 
   @Override
   public void update(AnActionEvent e) {
-    final DataContext dataContext = e.getDataContext();
-    final Module module = LangDataKeys.MODULE.getData(dataContext);
+    DataContext dataContext = e.getDataContext();
+    Module module = LangDataKeys.MODULE.getData(dataContext);
     if (module == null) {
       return;
     }
@@ -86,18 +86,20 @@ public class NewAndroidComponentAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    final DataContext dataContext = e.getDataContext();
+    DataContext dataContext = e.getDataContext();
 
-    final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
+    IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
     if (view == null) {
       return;
     }
 
-    final Module module = LangDataKeys.MODULE.getData(dataContext);
+    Module module = LangDataKeys.MODULE.getData(dataContext);
 
-    if (module == null) return;
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || facet.getIdeaAndroidProject() == null) {
+    if (module == null) {
+      return;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null || facet.getAndroidModel() == null) {
       return;
     }
     VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);

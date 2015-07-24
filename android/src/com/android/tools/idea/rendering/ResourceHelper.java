@@ -682,9 +682,9 @@ public class ResourceHelper {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        IdeaAndroidProject p = facet.getIdeaAndroidProject();
-        if (p != null) {
-          String resourcePrefix = LintUtils.computeResourcePrefix(p.getDelegate());
+        IdeaAndroidProject androidModel = facet.getAndroidModel();
+        if (androidModel != null) {
+          String resourcePrefix = LintUtils.computeResourcePrefix(androidModel.getAndroidProject());
           if (resourcePrefix != null) {
             if (name != null) {
               return name.startsWith(resourcePrefix) ? name : LintUtils.computeResourceName(resourcePrefix, name);

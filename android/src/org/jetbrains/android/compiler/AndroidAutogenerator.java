@@ -73,7 +73,7 @@ public class AndroidAutogenerator {
   public static boolean supportsAutogeneration(@NotNull AndroidFacet facet) {
     // This is a cheap way to figure out that a module has the Android-Gradle facet.
     // Don't generate anything if a module has an Android-Gradle facet.
-    return !facet.isGradleProject();
+    return !facet.requiresAndroidModel();
   }
 
   public static void run(@NotNull AndroidAutogeneratorMode mode,

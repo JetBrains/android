@@ -400,9 +400,9 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
           collectProcessNames(xmlElement, result);
         }
       }
-      final IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-      if (androidProject != null) {
-        collectApplicationIds(androidProject, result);
+      final IdeaAndroidProject androidModel = facet.getAndroidModel();
+      if (androidModel != null) {
+        collectApplicationIds(androidModel, result);
       }
     }
 
@@ -424,8 +424,8 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     });
   }
 
-  private static void collectApplicationIds(IdeaAndroidProject androidProject, Set<String> result) {
-    final Collection<Variant> allVariants = androidProject.getDelegate().getVariants();
+  private static void collectApplicationIds(IdeaAndroidProject androidModel, Set<String> result) {
+    final Collection<Variant> allVariants = androidModel.getAndroidProject().getVariants();
     for (Variant v : allVariants) {
       String applicationId = v.getMergedFlavor().getApplicationId();
       if (applicationId != null) {
