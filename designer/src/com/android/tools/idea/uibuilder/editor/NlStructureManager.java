@@ -77,16 +77,22 @@ public class NlStructureManager extends NlAbstractWindowManager {
 
   @Override
   protected LightToolWindow createContent(@NotNull DesignerEditorPanelFacade designer) {
+    if (!(designer instanceof NlEditorPanel)) {
+      // The preview tool window does not have a structure pane.
+      return null;
+    }
     NlStructurePanel structurePanel = new NlStructurePanel(getDesignSurface(designer));
 
-    return createContent(designer,
-                         structurePanel,
-                         "Structure",
-                         AllIcons.Toolwindows.ToolWindowStructure,
-                         structurePanel.getPanel(),
-                         structurePanel.getPanel(),
-                         320,
-                         null);  }
+    return createContent(designer, structurePanel, "Structure", AllIcons.Toolwindows.ToolWindowStructure, structurePanel.getPanel(),
+                         structurePanel.getPanel(), 320, null);
+  }
+
+  @Override
+  public void disposeComponent() {
+    if (myStructurePanel != null) {
+      myStructurePanel.dispose();
+    }
+  }
 
   @NotNull
   @Override
