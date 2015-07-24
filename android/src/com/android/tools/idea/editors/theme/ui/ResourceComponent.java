@@ -23,6 +23,7 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -155,5 +156,9 @@ public class ResourceComponent extends JPanel {
   @NotNull
   public ValidationInfo createSwatchValidationInfo(@NotNull String errorText) {
     return new ValidationInfo(errorText, mySwatchComponent);
+  }
+
+  public void addVariantComboAction(@NotNull Action action) {
+    myVariantCombo.addAction(action);
   }
 }

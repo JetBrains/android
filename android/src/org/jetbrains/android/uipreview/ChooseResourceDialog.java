@@ -525,6 +525,14 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     return myAllowCreateResource;
   }
 
+  /**
+   * Expands the location settings panel
+   */
+  public void openLocationSettings() {
+    ResourceDialogTabComponent tabComponent = (ResourceDialogTabComponent)myContentPanel.getSelectedComponent();
+    tabComponent.openLocationSettings();
+  }
+
   @Override
   protected void dispose() {
     super.dispose();
@@ -1197,6 +1205,10 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     @NotNull
     public CreateXmlResourcePanel getLocationSettings() {
       return myLocationSettings;
+    }
+
+    public void openLocationSettings() {
+      mySouthPanel.setOn(true);
     }
   }
 }
