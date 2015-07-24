@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.IJSwingUtilities;
@@ -71,7 +72,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     myId2Node = new HashMap<String, DefaultMutableTreeNode>();
     mySelectionIsUpdating = new AtomicBoolean(false);
     myUpdateQueue = new MergingUpdateQueue(
-      "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, designSurface, null, SWING_THREAD);
+      "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(null);
     DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
     setModel(treeModel);
@@ -133,6 +134,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       myModel.getSelectionModel().removeListener(this);
       myModel = null;
     }
+    Disposer.dispose(myUpdateQueue);
   }
 
   private void createCellRenderer() {
