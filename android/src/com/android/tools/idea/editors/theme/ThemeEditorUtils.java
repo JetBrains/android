@@ -617,7 +617,7 @@ public class ThemeEditorUtils {
     assert resourceResolver != null;
     ChooseResourceDialog dialog;
 
-    StateListPicker.StateList stateList = ResourceHelper.resolveStateList(resourceResolver, item.getSelectedValue(), context.getProject());
+    ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(resourceResolver, item.getSelectedValue(), context.getProject());
     if (stateList != null) {
       dialog = new ChooseResourceDialog(context.getModuleForResources(), context.getConfiguration(), allowedTypes, stateList,
                                         ChooseResourceDialog.ResourceNameVisibility.FORCE, resourceName);
