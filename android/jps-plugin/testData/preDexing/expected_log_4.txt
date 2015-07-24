@@ -2,7 +2,7 @@ ______ENTRY_0:
 $JAVA_PATH$
 -Xmx1024M
 -classpath
-$IDEA_RT_PATH$
+$IDEA_RT_PATH$;$CLASSPATH_TMP$
 com.intellij.rt.execution.CommandLineWrapper
 $CLASSPATH_TMP$
 org.jetbrains.android.compiler.tools.AndroidDxRunner
@@ -17,7 +17,7 @@ ______ENTRY_1:
 $JAVA_PATH$
 -Xmx1024M
 -classpath
-$IDEA_RT_PATH$
+$IDEA_RT_PATH$;$CLASSPATH_TMP$
 com.intellij.rt.execution.CommandLineWrapper
 $CLASSPATH_TMP$
 org.jetbrains.android.compiler.tools.AndroidDxRunner
@@ -32,7 +32,7 @@ ______ENTRY_2:
 $JAVA_PATH$
 -Xmx1024M
 -classpath
-$IDEA_RT_PATH$
+$IDEA_RT_PATH$;$CLASSPATH_TMP$
 com.intellij.rt.execution.CommandLineWrapper
 $CLASSPATH_TMP$
 org.jetbrains.android.compiler.tools.AndroidDxRunner
@@ -47,7 +47,7 @@ ______ENTRY_3:0,1,2
 $JAVA_PATH$
 -Xmx1024M
 -classpath
-$IDEA_RT_PATH$
+$IDEA_RT_PATH$;$CLASSPATH_TMP$
 com.intellij.rt.execution.CommandLineWrapper
 $CLASSPATH_TMP$
 org.jetbrains.android.compiler.tools.AndroidDxRunner
