@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme.ui;
 
 import com.android.tools.swing.ui.ClickableLabel;
 import com.android.tools.swing.ui.SwatchComponent;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -146,5 +147,13 @@ public class ResourceComponent extends JPanel {
 
   public void setVariantComboVisible(boolean isVisible) {
     myVariantCombo.setVisible(isVisible);
+  }
+
+  /**
+   * Returns a {@link ValidationInfo} for the {@link SwatchComponent}.
+   */
+  @NotNull
+  public ValidationInfo createSwatchValidationInfo(@NotNull String errorText) {
+    return new ValidationInfo(errorText, mySwatchComponent);
   }
 }
