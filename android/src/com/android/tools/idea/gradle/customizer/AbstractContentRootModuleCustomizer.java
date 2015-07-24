@@ -35,22 +35,22 @@ import static com.android.tools.idea.gradle.util.FilePaths.*;
 
 public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCustomizer<T> {
   @Override
-  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel ideaModuleModel, @Nullable T externalProjectModel) {
+  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable T externalProjectModel) {
     if (externalProjectModel == null) {
       return;
     }
 
-    for (ContentEntry contentEntry : ideaModuleModel.getContentEntries()) {
-      ideaModuleModel.removeContentEntry(contentEntry);
+    for (ContentEntry contentEntry : moduleModel.getContentEntries()) {
+      moduleModel.removeContentEntry(contentEntry);
     }
 
-    Collection<ContentEntry> contentEntries = findOrCreateContentEntries(ideaModuleModel, externalProjectModel);
+    Collection<ContentEntry> contentEntries = findOrCreateContentEntries(moduleModel, externalProjectModel);
     List<RootSourceFolder> orphans = Lists.newArrayList();
-    setUpContentEntries(ideaModuleModel, contentEntries, externalProjectModel, orphans);
+    setUpContentEntries(moduleModel, contentEntries, externalProjectModel, orphans);
 
     for (RootSourceFolder orphan : orphans) {
       File path = orphan.getPath();
-      ContentEntry contentEntry = ideaModuleModel.addContentEntry(pathToIdeaUrl(path));
+      ContentEntry contentEntry = moduleModel.addContentEntry(pathToIdeaUrl(path));
       addSourceFolder(contentEntry, path, orphan.getType(), orphan.isGenerated());
     }
   }

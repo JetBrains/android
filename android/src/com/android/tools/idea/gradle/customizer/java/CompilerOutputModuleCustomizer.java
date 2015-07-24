@@ -35,17 +35,15 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
   @NonNls private static final String CLASSES_FOLDER_NAME = "classes";
 
   @Override
-  public void customizeModule(@NotNull Project project,
-                              @NotNull ModifiableRootModel ideaModuleModel,
-                              @Nullable IdeaJavaProject javaProject) {
-    if (javaProject == null) {
+  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable IdeaJavaProject javaModel) {
+    if (javaModel == null) {
       return;
     }
     File mainClassesFolder = null;
     File testClassesFolder = null;
-    ExtIdeaCompilerOutput compilerOutput = javaProject.getCompilerOutput();
+    ExtIdeaCompilerOutput compilerOutput = javaModel.getCompilerOutput();
     if (compilerOutput == null) {
-      File buildFolderPath = javaProject.getBuildFolderPath();
+      File buildFolderPath = javaModel.getBuildFolderPath();
       if (buildFolderPath != null) {
         mainClassesFolder = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, "main"));
         testClassesFolder = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, "test"));
@@ -59,7 +57,7 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
     if (mainClassesFolder != null) {
       // This folder is null for modules that are just folders containing other modules. This type of modules are later on removed by
       // PostProjectSyncTaskExecutor.
-      setOutputPaths(ideaModuleModel, mainClassesFolder, testClassesFolder);
+      setOutputPaths(moduleModel, mainClassesFolder, testClassesFolder);
     }
   }
 }

@@ -171,9 +171,9 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     VariantStub variant = androidProject.getFirstVariant();
     assertNotNull(variant);
     File rootDir = androidProject.getRootDir();
-    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, androidProject.getName(), rootDir,
-                                                                   androidProject, variant.getName(), AndroidProject.ARTIFACT_ANDROID_TEST);
-    myFacet.setIdeaAndroidProject(ideaAndroidProject);
+    IdeaAndroidProject androidModel = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, androidProject.getName(), rootDir,
+                                                             androidProject, variant.getName(), AndroidProject.ARTIFACT_ANDROID_TEST);
+    myFacet.setAndroidModel(androidModel);
 
     File bundle = new File(rootDir, "bundle.aar");
     File libJar = new File(rootDir, "bundle_aar" + File.separatorChar + "library.jar");

@@ -30,7 +30,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
+import static com.android.tools.idea.gradle.util.GradleUtil.getDirectLibraryDependencies;
+import static com.android.tools.idea.gradle.util.Projects.getAndroidModel;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 
 /**
@@ -63,8 +64,8 @@ public class ConflictSet {
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      IdeaAndroidProject currentProject = getAndroidProject(module);
-      if (currentProject == null || !currentProject.isLibrary()) {
+      IdeaAndroidProject currentAndroidModel = getAndroidModel(module);
+      if (currentAndroidModel == null || !currentAndroidModel.isLibrary()) {
         continue;
       }
       String gradlePath = GradleUtil.getGradlePath(module);
@@ -72,14 +73,14 @@ public class ConflictSet {
         continue;
       }
 
-      String selectedVariant = currentProject.getSelectedVariant().getName();
+      String selectedVariant = currentAndroidModel.getSelectedVariant().getName();
 
       for (Module dependent : ModuleUtilCore.getAllDependentModules(module)) {
-        IdeaAndroidProject dependentProject = getAndroidProject(dependent);
-        if (dependentProject == null) {
+        IdeaAndroidProject dependentAndroidModel = getAndroidModel(dependent);
+        if (dependentAndroidModel == null) {
           continue;
         }
-        String expectedVariant = getExpectedVariant(dependentProject, gradlePath);
+        String expectedVariant = getExpectedVariant(dependentAndroidModel, gradlePath);
         if (StringUtil.isEmpty(expectedVariant)) {
           continue;
         }
@@ -101,15 +102,6 @@ public class ConflictSet {
     return new ConflictSet(project, selectionConflicts.values(), filteredStructureConflicts);
   }
 
-  @Nullable
-  private static IdeaAndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || !facet.isGradleProject()) {
-      return null;
-    }
-    return facet.getIdeaAndroidProject();
-  }
-
   private static void addConflict(@NotNull Map<String, Conflict> allConflicts,
                                   @NotNull Module source,
                                   @NotNull String selectedVariant,
@@ -125,8 +117,8 @@ public class ConflictSet {
   }
 
   @Nullable
-  private static String getExpectedVariant(@NotNull IdeaAndroidProject dependentProject, @NotNull String dependencyGradlePath) {
-    List<AndroidLibrary> dependencies = GradleUtil.getDirectLibraryDependencies(dependentProject.getSelectedVariant(), dependentProject);
+  private static String getExpectedVariant(@NotNull IdeaAndroidProject dependentAndroidModel, @NotNull String dependencyGradlePath) {
+    List<AndroidLibrary> dependencies = getDirectLibraryDependencies(dependentAndroidModel.getSelectedVariant(), dependentAndroidModel);
     for (AndroidLibrary dependency : dependencies) {
       if (!dependencyGradlePath.equals(dependency.getProject())) {
         continue;

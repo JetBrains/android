@@ -167,7 +167,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   private static List<File> findAarLibraries(AndroidFacet facet, List<AndroidFacet> dependentFacets) {
     // Use the gradle model if available, but if not, fall back to using plain IntelliJ library dependencies
     // which have been persisted since the most recent sync
-    if (facet.isGradleProject() && facet.getIdeaAndroidProject() != null) {
+    if (facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
       List<AndroidLibrary> libraries = Lists.newArrayList();
       addGradleLibraries(libraries, facet);
       for (AndroidFacet f : dependentFacets) {
@@ -181,9 +181,9 @@ public class AppResourceRepository extends MultiResourceRepository {
   @NotNull
   public static Collection<AndroidLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
-    if (facet.isGradleProject()) {
-      IdeaAndroidProject project = facet.getIdeaAndroidProject();
-      if (project != null) {
+    if (facet.requiresAndroidModel()) {
+      IdeaAndroidProject androidModel = facet.getAndroidModel();
+      if (androidModel != null) {
         List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
         addGradleLibraries(libraries, facet);
         for (AndroidFacet dependentFacet : dependentFacets) {
@@ -271,9 +271,9 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   private static void addGradleLibraries(List<AndroidLibrary> list, AndroidFacet facet) {
-    IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
-    if (gradleProject != null) {
-      Collection<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
+    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    if (androidModel != null) {
+      Collection<AndroidLibrary> libraries = androidModel.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
       Set<File> unique = Sets.newHashSet();
       for (AndroidLibrary library : libraries) {
         addGradleLibrary(list, library, unique);
@@ -388,7 +388,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @Nullable
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
     if (myResourceVisibilityProvider == null) {
-      if (!myFacet.isGradleProject() || myFacet.getIdeaAndroidProject() == null) {
+      if (!myFacet.requiresAndroidModel() || myFacet.getAndroidModel() == null) {
         return null;
       }
       myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
@@ -399,13 +399,13 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @NonNull
   public ResourceVisibilityLookup getResourceVisibility(@NonNull AndroidFacet facet) {
-    IdeaAndroidProject project = facet.getIdeaAndroidProject();
-    if (project != null) {
+    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    if (androidModel != null) {
       ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
       if (provider != null) {
-        AndroidProject delegate = project.getDelegate();
-        Variant variant = project.getSelectedVariant();
-        return provider.get(delegate, variant);
+        AndroidProject androidProject = androidModel.getAndroidProject();
+        Variant variant = androidModel.getSelectedVariant();
+        return provider.get(androidProject, variant);
       }
     }
 
@@ -425,14 +425,13 @@ public class AppResourceRepository extends MultiResourceRepository {
       if (provider == null) {
         return false;
       }
-      IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
-      if (project == null) {
+      IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+      if (androidModel == null) {
         // normally doesn't happen since we check in getResourceVisibility,
         // but can be triggered during a sync (b/22523040)
         return false;
       }
-      myResourceVisibility = provider.get(project.getDelegate(),
-                                          project.getSelectedVariant());
+      myResourceVisibility = provider.get(androidModel.getAndroidProject(), androidModel.getSelectedVariant());
     }
 
     return myResourceVisibility.isPrivate(type, name);

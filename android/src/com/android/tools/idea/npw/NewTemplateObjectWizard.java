@@ -78,7 +78,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateW
   @VisibleForTesting RasterAssetSetStep myAssetSetStep;
   @VisibleForTesting ChooseTemplateStep myChooseTemplateStep;
   private List<SourceProvider> mySourceProviders;
-  private IdeaAndroidProject myGradleProject;
+  private IdeaAndroidProject myAndroidModel;
   protected TemplateParameterStep myTemplateParameterStep;
   protected ChooseSourceSetStep myChooseSourceSetStep;
   private File myTemplateFile;
@@ -153,16 +153,16 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateW
     int minSdkVersion;
     String minSdkName;
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
-    IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
+    IdeaAndroidProject androidModel = facet.getAndroidModel();
 
 
-    if (gradleProject != null) {
-      myGradleProject = gradleProject;
+    if (androidModel != null) {
+      myAndroidModel = androidModel;
       // Select the source set that we're targeting
       mySourceProviders = IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFolder, facet.getMainSourceProvider());
       SourceProvider sourceProvider = mySourceProviders.get(0);
 
-      selectSourceProvider(sourceProvider, gradleProject);
+      selectSourceProvider(sourceProvider, androidModel);
     }
 
     minSdkVersion = moduleInfo.getMinSdkVersion().getFeatureLevel();
@@ -217,9 +217,9 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateW
     }
   }
 
-  private void selectSourceProvider(@NotNull SourceProvider sourceProvider, @NotNull IdeaAndroidProject gradleProject) {
+  private void selectSourceProvider(@NotNull SourceProvider sourceProvider, @NotNull IdeaAndroidProject androidModel) {
     // Look up the resource directories inside this source set
-    File moduleDirPath = gradleProject.getRootDirPath();
+    File moduleDirPath = androidModel.getRootDirPath();
     File javaDir = findSrcDirectory(sourceProvider);
     if (javaDir != null) {
       String javaPath = FileUtil.getRelativePath(moduleDirPath, javaDir);
@@ -428,8 +428,8 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateW
 
   @Override
   public void sourceProviderSelected(@NotNull SourceProvider sourceProvider) {
-    if (myGradleProject != null) {
-      selectSourceProvider(sourceProvider, myGradleProject);
+    if (myAndroidModel != null) {
+      selectSourceProvider(sourceProvider, myAndroidModel);
     }
   }
 

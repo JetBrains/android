@@ -67,6 +67,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.Projects.getAndroidModel;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 
 /**
@@ -131,9 +132,9 @@ public class BuildVariantView {
     myTestArtifactComboBox.setToolTipText(tooltip);
 
     if (hasModules) {
-      IdeaAndroidProject androidProject = getAndroidProject(modules.get(0));
-      assert androidProject != null; // getGradleModules() returns only android modules and at this stage we have the IdeaAndroidProject.
-      String selectedTestArtifactName = androidProject.getSelectedTestArtifactName();
+      IdeaAndroidProject androidModel = getAndroidModel(modules.get(0));
+      assert androidModel != null; // getGradleModules() returns only android modules and at this stage we have the IdeaAndroidProject.
+      String selectedTestArtifactName = androidModel.getSelectedTestArtifactName();
       for (int i = 0; i < myTestArtifactComboBox.getItemCount(); i++) {
         NamedArtifactType namedArtifactType = (NamedArtifactType)myTestArtifactComboBox.getModel().getElementAt(i);
         if (namedArtifactType.artifactType.equals(selectedTestArtifactName)) {
@@ -154,10 +155,10 @@ public class BuildVariantView {
     List<Module> modules = Lists.newArrayList();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.isGradleProject()) {
-        IdeaAndroidProject ideaAndroidProject = androidFacet.getIdeaAndroidProject();
-        if (ideaAndroidProject != null) {
-          if (!supportsUnitTests(ideaAndroidProject.getDelegate(), minimumSupportedVersion)) {
+      if (androidFacet != null && androidFacet.requiresAndroidModel()) {
+        IdeaAndroidProject androidModel = androidFacet.getAndroidModel();
+        if (androidModel != null) {
+          if (!supportsUnitTests(androidModel.getAndroidProject(), minimumSupportedVersion)) {
             return Collections.emptyList();
           }
           modules.add(module);
@@ -247,9 +248,9 @@ public class BuildVariantView {
       BuildVariantItem[] variantNames = getVariantNames(module);
       if (variantNames != null) {
         // If we got here IdeaAndroidProject is *not* null.
-        IdeaAndroidProject androidProject = getAndroidProject(module);
-        assert androidProject != null;
-        variantName = androidProject.getSelectedVariant().getName();
+        IdeaAndroidProject androidModel = getAndroidModel(module);
+        assert androidModel != null;
+        variantName = androidModel.getSelectedVariant().getName();
         variantNamesPerRow.add(variantNames);
       }
 
@@ -279,7 +280,7 @@ public class BuildVariantView {
     List<Module> gradleModules = Lists.newArrayList();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.isGradleProject() && androidFacet.getIdeaAndroidProject() != null) {
+      if (androidFacet != null && androidFacet.requiresAndroidModel() && androidFacet.getAndroidModel() != null) {
         gradleModules.add(module);
       }
     }
@@ -298,11 +299,11 @@ public class BuildVariantView {
 
   @Nullable
   private static BuildVariantItem[] getVariantNames(@NotNull Module module) {
-    IdeaAndroidProject androidProject = getAndroidProject(module);
-    if (androidProject == null) {
+    IdeaAndroidProject androidModel = getAndroidModel(module);
+    if (androidModel == null) {
       return null;
     }
-    Collection<String> variantNames = androidProject.getVariantNames();
+    Collection<String> variantNames = androidModel.getVariantNames();
     BuildVariantItem[] items = new BuildVariantItem[variantNames.size()];
     int i = 0;
     for (String name : variantNames) {
@@ -310,12 +311,6 @@ public class BuildVariantView {
     }
     Arrays.sort(items);
     return items;
-  }
-
-  @Nullable
-  private static IdeaAndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    return androidFacet != null ? androidFacet.getIdeaAndroidProject() : null;
   }
 
   public void updateContents(@NotNull List<Conflict> conflicts) {
@@ -665,9 +660,9 @@ public class BuildVariantView {
         public void actionPerformed(ActionEvent e) {
           if (myValue instanceof Module) {
             Module module = (Module)myValue;
-            IdeaAndroidProject ideaAndroidProject = getAndroidProject(module);
-            assert ideaAndroidProject != null;
-            ModuleVariantsInfoDialog dialog = new ModuleVariantsInfoDialog(module, ideaAndroidProject);
+            IdeaAndroidProject androidModel = getAndroidModel(module);
+            assert androidModel != null;
+            ModuleVariantsInfoDialog dialog = new ModuleVariantsInfoDialog(module, androidModel);
             dialog.show();
           }
         }

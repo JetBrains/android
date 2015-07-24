@@ -50,22 +50,22 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
 
   @Override
-  protected void setUpDependencies(@NotNull ModifiableRootModel moduleModel, @NotNull IdeaAndroidProject androidProject) {
-    DependencySet dependencies = Dependency.extractFrom(androidProject);
+  protected void setUpDependencies(@NotNull ModifiableRootModel moduleModel, @NotNull IdeaAndroidProject androidModel) {
+    DependencySet dependencies = Dependency.extractFrom(androidModel);
     for (LibraryDependency dependency : dependencies.onLibraries()) {
-      updateLibraryDependency(moduleModel, dependency, androidProject.getDelegate());
+      updateLibraryDependency(moduleModel, dependency, androidModel.getAndroidProject());
     }
     for (ModuleDependency dependency : dependencies.onModules()) {
-      updateModuleDependency(moduleModel, dependency, androidProject.getDelegate());
+      updateModuleDependency(moduleModel, dependency, androidModel.getAndroidProject());
     }
 
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(moduleModel.getProject());
-    Collection<SyncIssue> syncIssues = androidProject.getSyncIssues();
+    Collection<SyncIssue> syncIssues = androidModel.getSyncIssues();
     if (syncIssues != null) {
       messages.reportSyncIssues(syncIssues, moduleModel.getModule());
     }
     else {
-      Collection<String> unresolvedDependencies = androidProject.getDelegate().getUnresolvedDependencies();
+      Collection<String> unresolvedDependencies = androidModel.getAndroidProject().getUnresolvedDependencies();
       messages.reportUnresolvedDependencies(unresolvedDependencies, moduleModel.getModule());
     }
   }

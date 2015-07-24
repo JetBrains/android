@@ -29,7 +29,7 @@ import java.util.List;
 
 public class ActivityLocatorUtils {
   public static boolean shouldUseMergedManifest(@NotNull AndroidFacet facet) {
-    return facet.isGradleProject() || facet.getProperties().ENABLE_MANIFEST_MERGING;
+    return facet.requiresAndroidModel() || facet.getProperties().ENABLE_MANIFEST_MERGING;
   }
 
   public static boolean containsLauncherIntent(@NotNull List<IntentFilter> intentFilters) {

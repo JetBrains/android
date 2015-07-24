@@ -179,12 +179,12 @@ public final class ModuleClassLoader extends RenderClassLoader {
     VirtualFile vOutFolder = extension.getCompilerOutputPath();
     if (vOutFolder == null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.isGradleProject()) {
+      if (facet != null && facet.requiresAndroidModel()) {
         // Try a bit harder; we don't have a compiler module extension or mechanism
         // to query this yet, so just hardcode it (ugh!)
-        IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
-        if (gradleProject != null) {
-          Variant variant = gradleProject.getSelectedVariant();
+        IdeaAndroidProject androidModel = facet.getAndroidModel();
+        if (androidModel != null) {
+          Variant variant = androidModel.getSelectedVariant();
           String variantName = variant.getName();
           AndroidArtifact mainArtifactInfo = variant.getMainArtifact();
           File classesFolder = mainArtifactInfo.getClassesFolder();
@@ -273,7 +273,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
               // User modifications on the source file might not always result on a new .class file.
               // If it's a gradle project, we use the project modification time instead to display the warning
               // more reliably.
-              long lastBuildTimestamp = facet != null && facet.isGradleProject()
+              long lastBuildTimestamp = facet != null && facet.requiresAndroidModel()
                                         ? PostProjectBuildTasksExecutor.getInstance(myModule.getProject()).getLastBuildTimestamp()
                                         : classFileModified;
               if (sourceFileModified > lastBuildTimestamp && lastBuildTimestamp != -1) {

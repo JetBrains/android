@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.util.BuildMode.*;
 import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
-import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 
 /**
  * Builds a project, regardless of the compiler strategy being used (JPS or "direct Gradle invocation.")
@@ -50,7 +50,7 @@ public class ProjectBuilder {
   }
 
   public void assembleTranslate() {
-    if (isGradleProject(myProject)) {
+    if (requiresAndroidModel(myProject)) {
       if (isDirectGradleInvocationEnabled(myProject)) {
         GradleInvoker.getInstance(myProject).assembleTranslate();
         return;
@@ -60,7 +60,7 @@ public class ProjectBuilder {
   }
 
   public void compileJava() {
-    if (isGradleProject(myProject)) {
+    if (requiresAndroidModel(myProject)) {
       if (isDirectGradleInvocationEnabled(myProject)) {
         Module[] modules = ModuleManager.getInstance(myProject).getModules();
         GradleInvoker.getInstance(myProject).compileJava(modules, GradleInvoker.TestCompileType.NONE);
@@ -71,7 +71,7 @@ public class ProjectBuilder {
   }
 
   public void clean() {
-    if (isGradleProject(myProject)) {
+    if (requiresAndroidModel(myProject)) {
       if (isDirectGradleInvocationEnabled(myProject)) {
         GradleInvoker.getInstance(myProject).cleanProject();
         return;
@@ -88,7 +88,7 @@ public class ProjectBuilder {
     if (!isSourceGenerationEnabled()) {
       return;
     }
-    if (isGradleProject(myProject)) {
+    if (requiresAndroidModel(myProject)) {
       if (isDirectGradleInvocationEnabled(myProject)) {
         GradleInvoker.getInstance(myProject).generateSources();
       }
@@ -99,7 +99,7 @@ public class ProjectBuilder {
   }
 
   public boolean isSourceGenerationEnabled() {
-    if (isGradleProject(myProject)) {
+    if (requiresAndroidModel(myProject)) {
       int moduleCount = ModuleManager.getInstance(myProject).getModules().length;
       GradleExperimentalSettings settings = GradleExperimentalSettings.getInstance();
       return isSourceGenerationEnabled(settings, moduleCount);

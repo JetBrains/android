@@ -16,8 +16,6 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.npw.NewProjectWizardState;
-import com.android.tools.idea.npw.TemplateWizardModuleBuilder;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -68,7 +66,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
   @Override
   public ProjectTemplate[] createTemplates(@Nullable String group, WizardContext context) {
     Project project = context.getProject();
-    if (project != null && !Projects.isGradleProject(project)) {
+    if (project != null && !Projects.requiresAndroidModel(project)) {
       return EMPTY_PROJECT_TEMPLATES;
     }
     TemplateManager manager = TemplateManager.getInstance();

@@ -84,7 +84,7 @@ public class UnimportedModuleNotificationProvider extends EditorNotifications.Pr
   @Nullable
   @Override
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    if (!Projects.isGradleProject(myProject) || myIsImporting.get()) {
+    if (!Projects.requiresAndroidModel(myProject) || myIsImporting.get()) {
       return null;
     }
     GradleSyncState syncState = GradleSyncState.getInstance(myProject);

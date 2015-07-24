@@ -148,7 +148,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private LocalResourceRepository myModuleResources;
   private AppResourceRepository myAppResources;
   private ProjectResourceRepository myProjectResources;
-  private IdeaAndroidProject myIdeaAndroidProject;
+  private IdeaAndroidProject myAndroidModel;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
   private SourceProvider myMainSourceSet;
@@ -158,7 +158,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private DataBindingUtil.LightBrClass myLightBrClass;
 
   public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
-    //noinspection ConstantConditions
     super(getFacetType(), module, name, configuration, null);
     configuration.setFacet(this);
   }
@@ -167,8 +166,31 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myAutogenerationEnabled;
   }
 
-  public boolean isGradleProject() {
+  /**
+   * Indicates whether the project requires a {@link AndroidProject} (obtained from a build system. To check if a project is a "Gradle
+   * project," please use the method {@link Projects#isBuildWithGradle(Project)}.
+   * @return {@code true} if the project hasa {@code AndroidProject}; {@code false} otherwise.
+   */
+  public boolean requiresAndroidModel() {
     return !getProperties().ALLOW_USER_CONFIGURATION;
+  }
+
+  /**
+   * @return the Android model associated to this facet.
+   */
+  @Nullable
+  public IdeaAndroidProject getAndroidModel() {
+    return myAndroidModel;
+  }
+
+  /**
+   * Associates the given Android model to this facet.
+   *
+   * @param androidModel the new Android model.
+   */
+  public void setAndroidModel(@Nullable IdeaAndroidProject androidModel) {
+    myAndroidModel = androidModel;
+    DataBindingUtil.onIdeaProjectSet(this);
   }
 
   public boolean isLibraryProject() {
@@ -180,13 +202,13 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Returns the main source provider for the project. For non-Gradle projects it returns a {@link SourceProvider} wrapper
-   * which provides information about the old project.
+   * Returns the main source provider for the project. For projects that are not backed by an {@link AndroidProject}, this method returns a
+   * {@link SourceProvider} wrapper which provides information about the old project.
    */
   @NotNull
   public SourceProvider getMainSourceProvider() {
-    if (myIdeaAndroidProject != null) {
-      return myIdeaAndroidProject.getDelegate().getDefaultConfig().getSourceProvider();
+    if (myAndroidModel != null) {
+      return myAndroidModel.getAndroidProject().getDefaultConfig().getSourceProvider();
     } else {
       if (myMainSourceSet == null) {
         myMainSourceSet = new LegacySourceProvider();
@@ -197,7 +219,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @NotNull
   public IdeaSourceProvider getMainIdeaSourceProvider() {
-    if (!isGradleProject()) {
+    if (!requiresAndroidModel()) {
       if (myMainIdeaSourceSet == null) {
         myMainIdeaSourceSet = IdeaSourceProvider.create(this);
       }
@@ -213,15 +235,15 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @NotNull
   public List<IdeaSourceProvider> getMainIdeaTestSourceProviders() {
-    if (!isGradleProject() || myIdeaAndroidProject == null) {
+    if (!requiresAndroidModel() || myAndroidModel == null) {
       return Collections.emptyList();
     }
 
     Collection<SourceProviderContainer> extraSourceProviders =
-      myIdeaAndroidProject.getDelegate().getDefaultConfig().getExtraSourceProviders();
+      myAndroidModel.getAndroidProject().getDefaultConfig().getExtraSourceProviders();
 
     List<IdeaSourceProvider> providers = Lists.newArrayList();
-    for (SourceProvider sourceProvider : myIdeaAndroidProject.getSourceProvidersForSelectedTestArtifact(extraSourceProviders)) {
+    for (SourceProvider sourceProvider : myAndroidModel.getSourceProvidersForSelectedTestArtifact(extraSourceProviders)) {
       providers.add(IdeaSourceProvider.create(sourceProvider));
     }
 
@@ -229,16 +251,16 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Returns the source provider for the current build type, which will never be null for a Gradle based
-   * Android project, and always null for a legacy Android project
+   * Returns the source provider for the current build type, which will never be {@code null} for a project backed by an
+   * {@link AndroidProject}, and always {@code null} for a legacy Android project.
    *
-   * @return the build type source set or null
+   * @return the build type source set or {@code null}.
    */
   @Nullable
   public SourceProvider getBuildTypeSourceProvider() {
-    if (myIdeaAndroidProject != null) {
-      Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
-      BuildTypeContainer buildType = myIdeaAndroidProject.findBuildType(selectedVariant.getBuildType());
+    if (myAndroidModel != null) {
+      Variant selectedVariant = myAndroidModel.getSelectedVariant();
+      BuildTypeContainer buildType = myAndroidModel.findBuildType(selectedVariant.getBuildType());
       assert buildType != null;
       return buildType.getSourceProvider();
     } else {
@@ -247,10 +269,10 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Like {@link #getBuildTypeSourceProvider()} but typed for internal IntelliJ usage with
-   * {@link VirtualFile} instead of {@link File} references
+   * Like {@link #getBuildTypeSourceProvider()} but typed for internal IntelliJ usage with {@link VirtualFile} instead of {@link File}
+   * references.
    *
-   * @return the build type source set or null
+   * @return the build type source set or {@code null}.
    */
   @Nullable
   public IdeaSourceProvider getIdeaBuildTypeSourceProvider() {
@@ -264,17 +286,17 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @NotNull
   public List<IdeaSourceProvider> getIdeaBuildTypeTestSourceProvider() {
-    if (myIdeaAndroidProject == null) {
+    if (myAndroidModel == null) {
       return Collections.emptyList();
     }
 
     List<IdeaSourceProvider> providers = Lists.newArrayList();
-    Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
-    BuildTypeContainer buildType = myIdeaAndroidProject.findBuildType(selectedVariant.getBuildType());
+    Variant selectedVariant = myAndroidModel.getSelectedVariant();
+    BuildTypeContainer buildType = myAndroidModel.findBuildType(selectedVariant.getBuildType());
     assert buildType != null;
 
     Collection<SourceProvider> testSourceProviders =
-      myIdeaAndroidProject.getSourceProvidersForSelectedTestArtifact(buildType.getExtraSourceProviders());
+      myAndroidModel.getSourceProvidersForSelectedTestArtifact(buildType.getExtraSourceProviders());
 
 
     for (SourceProvider sourceProvider : testSourceProviders) {
@@ -289,9 +311,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Returns all resource directories, in the overlay order
-   *
-   * @return a list of all resource directories
+   * @return all resource directories, in the overlay order.
    */
   @NotNull
   public List<VirtualFile> getAllResourceDirectories() {
@@ -299,27 +319,27 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * @return the name of the build type
+   * @return the name of the build type.
    */
   @Nullable
   public String getBuildTypeName() {
-    return myIdeaAndroidProject != null ? myIdeaAndroidProject.getSelectedVariant().getName() : null;
+    return myAndroidModel != null ? myAndroidModel.getSelectedVariant().getName() : null;
   }
 
   /**
-   * Returns the source providers for the available flavors, which will never be null for a Gradle based
-   * Android project, and always null for a legacy Android project
+   * Returns the source providers for the available flavors, which will never be {@code null} for a project backed by an
+   * {@link AndroidProject}, and always null for a legacy Android project.
    *
-   * @return the flavor source providers or null in legacy projects
+   * @return the flavor source providers or null in legacy projects.
    */
   @Nullable
   public List<SourceProvider> getFlavorSourceProviders() {
-    if (myIdeaAndroidProject != null) {
-      Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
+    if (myAndroidModel != null) {
+      Variant selectedVariant = myAndroidModel.getSelectedVariant();
       List<String> productFlavors = selectedVariant.getProductFlavors();
       List<SourceProvider> providers = Lists.newArrayList();
       for (String flavor : productFlavors) {
-        ProductFlavorContainer productFlavor = myIdeaAndroidProject.findProductFlavor(flavor);
+        ProductFlavorContainer productFlavor = myAndroidModel.findProductFlavor(flavor);
         assert productFlavor != null;
         providers.add(productFlavor.getSourceProvider());
       }
@@ -352,19 +372,19 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @NotNull
   public List<IdeaSourceProvider> getIdeaFlavorTestSourceProviders() {
-    if (myIdeaAndroidProject == null) {
+    if (myAndroidModel == null) {
       return Collections.emptyList();
     }
 
-    Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
+    Variant selectedVariant = myAndroidModel.getSelectedVariant();
     List<String> productFlavors = selectedVariant.getProductFlavors();
     List<IdeaSourceProvider> providers = Lists.newArrayList();
     for (String flavor : productFlavors) {
-      ProductFlavorContainer productFlavor = myIdeaAndroidProject.findProductFlavor(flavor);
+      ProductFlavorContainer productFlavor = myAndroidModel.findProductFlavor(flavor);
       assert productFlavor != null;
 
       Collection<SourceProvider> testSourceProviders =
-        myIdeaAndroidProject.getSourceProvidersForSelectedTestArtifact(productFlavor.getExtraSourceProviders());
+        myAndroidModel.getSourceProvidersForSelectedTestArtifact(productFlavor.getExtraSourceProviders());
 
       for (SourceProvider sourceProvider : testSourceProviders) {
         providers.add(IdeaSourceProvider.create(sourceProvider));
@@ -381,8 +401,8 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   @Nullable
   public SourceProvider getMultiFlavorSourceProvider() {
-    if (myIdeaAndroidProject != null) {
-      Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
+    if (myAndroidModel != null) {
+      Variant selectedVariant = myAndroidModel.getSelectedVariant();
       AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
       SourceProvider provider = mainArtifact.getMultiFlavorSourceProvider();
       if (provider != null) {
@@ -412,12 +432,12 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   /**
    * Returns the source provider specific to the variant, if any.
    *
-   * @return the source provider or null
+   * @return the source provider or {@code null}.
    */
   @Nullable
   public SourceProvider getVariantSourceProvider() {
-    if (myIdeaAndroidProject != null) {
-      Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
+    if (myAndroidModel != null) {
+      Variant selectedVariant = myAndroidModel.getSelectedVariant();
       AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
       SourceProvider provider = mainArtifact.getVariantSourceProvider();
       if (provider != null) {
@@ -445,12 +465,11 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * This returns the primary resource directory; the default location to place
-   * newly created resources etc.  This method is marked deprecated since we should
-   * be gradually adding in UI to allow users to choose specific resource folders
-   * among the available flavors (see {@link #getFlavorSourceProviders()} etc).
+   * This returns the primary resource directory; the default location to place newly created resources etc.  This method is marked
+   * deprecated since we should be gradually adding in UI to allow users to choose specific resource folders among the available flavors
+   * (see {@link #getFlavorSourceProviders()} etc).
    *
-   * @return the primary resource dir, if any
+   * @return the primary resource dir, if any.
    */
   @Deprecated
   @Nullable
@@ -536,9 +555,8 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       MessageBuildingSdkLog log = new MessageBuildingSdkLog();
       manager.reloadAvds(log);
       if (!log.getErrorMessage().isEmpty()) {
-        Messages
-          .showErrorDialog(getModule().getProject(), AndroidBundle.message("cant.load.avds.error.prefix") + ' ' + log.getErrorMessage(),
-                           CommonBundle.getErrorTitle());
+        String message = AndroidBundle.message("cant.load.avds.error.prefix") + ' ' + log.getErrorMessage();
+        Messages.showErrorDialog(getModule().getProject(), message, CommonBundle.getErrorTitle());
       }
       return true;
     }
@@ -626,7 +644,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public void launchEmulator(@Nullable String avdName, @NotNull String commands) {
     File sdkLocation = null;
-    if (Projects.isGradleProject(getModule().getProject()) && isAndroidStudio()) {
+    if (Projects.requiresAndroidModel(getModule().getProject()) && isAndroidStudio()) {
       sdkLocation = IdeSdks.getAndroidSdkPath();
     }
     else {
@@ -1118,16 +1136,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Associates the given Android-Gradle project to this facet.
-   *
-   * @param project the new project.
-   */
-  public void setIdeaAndroidProject(@Nullable IdeaAndroidProject project) {
-    myIdeaAndroidProject = project;
-    DataBindingUtil.onIdeaProjectSet(this);
-  }
-
-  /**
    * Returns true if this facet includes data binding library
    *
    * @return True if data binding is enabled for this Facet
@@ -1151,23 +1159,15 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, listener);
   }
 
-  /**
-   * @return the Android-Gradle project associated to this facet.
-   */
-  @Nullable
-  public IdeaAndroidProject getIdeaAndroidProject() {
-    return myIdeaAndroidProject;
-  }
-
   public void syncSelectedVariantAndTestArtifact() {
-    if (myIdeaAndroidProject != null) {
-      Variant variant = myIdeaAndroidProject.getSelectedVariant();
+    if (myAndroidModel != null) {
+      Variant variant = myAndroidModel.getSelectedVariant();
       JpsAndroidModuleProperties state = getProperties();
       state.SELECTED_BUILD_VARIANT = variant.getName();
-      state.SELECTED_TEST_ARTIFACT = myIdeaAndroidProject.getSelectedTestArtifactName();
+      state.SELECTED_TEST_ARTIFACT = myAndroidModel.getSelectedTestArtifactName();
 
       AndroidArtifact mainArtifact = variant.getMainArtifact();
-      BaseArtifact testArtifact = myIdeaAndroidProject.findSelectedTestArtifactInSelectedVariant();
+      BaseArtifact testArtifact = myAndroidModel.findSelectedTestArtifactInSelectedVariant();
       updateGradleTaskNames(state, mainArtifact, testArtifact);
     }
   }
@@ -1258,7 +1258,8 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myLightBrClass;
   }
 
-  // Compatibility bridge for old (non-Gradle) projects. Also used in Gradle projects before the module has been synced.
+  // Compatibility bridge for old (non-AndroidProject-backed) projects. Also used in AndroidProject-backed projects before the module has
+  // been synced.
   private class LegacySourceProvider implements SourceProvider {
     @NonNull
     @Override
@@ -1272,7 +1273,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       Module module = getModule();
       VirtualFile manifestFile = getFileByRelativeModulePath(module, getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
       if (manifestFile == null) {
-        VirtualFile root = !isGradleProject() ? AndroidRootUtil.getMainContentRoot(AndroidFacet.this) : null;
+        VirtualFile root = !requiresAndroidModel() ? getMainContentRoot(AndroidFacet.this) : null;
         if (root != null) {
           return new File(virtualToIoFile(root), ANDROID_MANIFEST_XML);
         } else {
@@ -1314,7 +1315,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     @NonNull
     @Override
     public Set<File> getRenderscriptDirectories() {
-      VirtualFile dir = AndroidRootUtil.getRenderscriptGenDir(AndroidFacet.this);
+      VirtualFile dir = getRenderscriptGenDir(AndroidFacet.this);
       return dir == null ? Collections.<File>emptySet() : Collections.singleton(virtualToIoFile(dir));
     }
 
@@ -1351,5 +1352,4 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       return Collections.emptyList();
     }
   }
-
 }

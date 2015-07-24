@@ -349,7 +349,7 @@ public class IntellijLintUtils {
   /** Returns the resource directories to use for the given module */
   @NotNull
   public static List<File> getResourceDirectories(@NotNull AndroidFacet facet) {
-    if (facet.isGradleProject()) {
+    if (facet.requiresAndroidModel()) {
       List<File> resDirectories = new ArrayList<File>();
       resDirectories.addAll(facet.getMainSourceProvider().getResDirectories());
       List<SourceProvider> flavorSourceProviders = facet.getFlavorSourceProviders();

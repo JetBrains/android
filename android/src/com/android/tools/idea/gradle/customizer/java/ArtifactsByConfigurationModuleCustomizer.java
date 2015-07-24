@@ -39,9 +39,9 @@ import static com.intellij.openapi.util.text.StringUtil.endsWithIgnoreCase;
 
 public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomizer<IdeaJavaProject> {
   @Override
-  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable IdeaJavaProject model) {
-    if (model != null) {
-      Map<String, Set<File>> artifactsByConfiguration = model.getArtifactsByConfiguration();
+  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable IdeaJavaProject javaModel) {
+    if (javaModel != null) {
+      Map<String, Set<File>> artifactsByConfiguration = javaModel.getArtifactsByConfiguration();
       if (artifactsByConfiguration != null) {
         for (Map.Entry<String, Set<File>> entry : artifactsByConfiguration.entrySet()) {
           Set<File> artifacts = entry.getValue();

@@ -53,7 +53,7 @@ public class AndroidActionGroupRemover extends ActionGroup {
   public void update(AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     Project project = e.getProject();
-    if (project != null && Projects.isGradleProject(project)) {
+    if (project != null && Projects.requiresAndroidModel(project)) {
       presentation.setEnabledAndVisible(false);
       return;
     }

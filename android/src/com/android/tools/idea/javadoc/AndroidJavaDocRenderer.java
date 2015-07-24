@@ -326,14 +326,14 @@ public class AndroidJavaDocRenderer {
       List<ItemInfo> results = Lists.newArrayList();
 
       AppResourceRepository resources = getAppResources();
-      IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-      if (ideaAndroidProject != null) {
-        assert facet.isGradleProject();
-        AndroidProject delegate = ideaAndroidProject.getDelegate();
-        Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+      IdeaAndroidProject androidModel = facet.getAndroidModel();
+      if (androidModel != null) {
+        assert facet.requiresAndroidModel();
+        AndroidProject androidProject = androidModel.getAndroidProject();
+        Variant selectedVariant = androidModel.getSelectedVariant();
         Set<SourceProvider> selectedProviders = Sets.newHashSet();
 
-        BuildTypeContainer buildType = ideaAndroidProject.findBuildType(selectedVariant.getBuildType());
+        BuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
         assert buildType != null;
         SourceProvider sourceProvider = buildType.getSourceProvider();
         String buildTypeName = selectedVariant.getName();
@@ -345,19 +345,19 @@ public class AndroidJavaDocRenderer {
         // Iterate in *reverse* order
         for (int i = productFlavors.size() - 1; i >= 0; i--) {
           String flavorName = productFlavors.get(i);
-          ProductFlavorContainer productFlavor = ideaAndroidProject.findProductFlavor(flavorName);
+          ProductFlavorContainer productFlavor = androidModel.findProductFlavor(flavorName);
           assert productFlavor != null;
           SourceProvider provider = productFlavor.getSourceProvider();
           addItemsFromSourceSet(flavorName, MASK_FLAVOR_SELECTED, rank++, provider, type, resourceName, results, facet);
           selectedProviders.add(provider);
         }
 
-        SourceProvider main = delegate.getDefaultConfig().getSourceProvider();
+        SourceProvider main = androidProject.getDefaultConfig().getSourceProvider();
         addItemsFromSourceSet("main", MASK_FLAVOR_SELECTED, rank++, main, type, resourceName, results, facet);
         selectedProviders.add(main);
 
         // Next display any source sets that are *not* in the selected flavors or build types!
-        Collection<BuildTypeContainer> buildTypes = delegate.getBuildTypes();
+        Collection<BuildTypeContainer> buildTypes = androidProject.getBuildTypes();
         for (BuildTypeContainer container : buildTypes) {
           SourceProvider provider = container.getSourceProvider();
           if (!selectedProviders.contains(provider)) {
@@ -366,7 +366,7 @@ public class AndroidJavaDocRenderer {
           }
         }
 
-        Collection<ProductFlavorContainer> flavors = delegate.getProductFlavors();
+        Collection<ProductFlavorContainer> flavors = androidProject.getProductFlavors();
         for (ProductFlavorContainer container : flavors) {
           SourceProvider provider = container.getSourceProvider();
           if (!selectedProviders.contains(provider)) {

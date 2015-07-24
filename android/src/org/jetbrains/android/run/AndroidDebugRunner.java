@@ -136,7 +136,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     final RunProfile runProfile = environment.getRunProfile();
     if (runProfile instanceof AndroidTestRunConfiguration) {
       // attempt to set the target package only in case on non Gradle projects
-      if (!state.getFacet().isGradleProject()) {
+      if (!state.getFacet().requiresAndroidModel()) {
         String targetPackage = getTargetPackage((AndroidTestRunConfiguration)runProfile, state);
         if (targetPackage == null) {
           throw new ExecutionException(AndroidBundle.message("target.package.not.specified.error"));

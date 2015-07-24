@@ -43,7 +43,6 @@ import com.android.tools.idea.rendering.ResourceFolderRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.lint.checks.ApiLookup;
 import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableCollection;
@@ -79,7 +78,6 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
-import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.IntellijLintClient;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
@@ -563,15 +561,15 @@ public class ThemeEditorUtils {
     Set<SourceProvider> inactiveProviders = Sets.newHashSet();
     selectedProviders.add(facet.getMainSourceProvider());
 
-    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    if (ideaAndroidProject != null) {
-      assert facet.isGradleProject();
+    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    if (androidModel != null) {
+      assert facet.requiresAndroidModel();
 
       selectedProviders.add(facet.getBuildTypeSourceProvider());
       selectedProviders.add(facet.getMultiFlavorSourceProvider());
 
       // Add inactive SourceSets
-      AndroidProject project = ideaAndroidProject.getDelegate();
+      AndroidProject project = androidModel.getAndroidProject();
       for (BuildTypeContainer buildType : project.getBuildTypes()) {
         inactiveProviders.add(buildType.getSourceProvider());
       }

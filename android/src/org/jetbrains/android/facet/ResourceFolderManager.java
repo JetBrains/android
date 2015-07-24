@@ -100,11 +100,11 @@ public class ResourceFolderManager implements ModificationTracker {
   }
 
   private List<VirtualFile> computeFolders() {
-    if (myFacet.isGradleProject()) {
+    if (myFacet.requiresAndroidModel()) {
       JpsAndroidModuleProperties state = myFacet.getConfiguration().getState();
-      IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
+      IdeaAndroidProject androidModel = myFacet.getAndroidModel();
       List<VirtualFile> resDirectories = new ArrayList<VirtualFile>();
-      if (ideaAndroidProject == null) {
+      if (androidModel == null) {
         // Read string property
         if (state != null) {
           String path = state.RES_FOLDERS_RELATIVE_PATH;
@@ -253,7 +253,7 @@ public class ResourceFolderManager implements ModificationTracker {
   }
 
   private static boolean isAarDependency(@NotNull AndroidFacet facet, @NotNull OrderEntry orderEntry) {
-    if (facet.isGradleProject() && orderEntry instanceof LibraryOrderEntry) {
+    if (facet.requiresAndroidModel() && orderEntry instanceof LibraryOrderEntry) {
       VirtualFile[] files = orderEntry.getFiles(OrderRootType.CLASSES);
       if (files.length >= 2) {
         for (VirtualFile file : files) {
