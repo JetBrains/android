@@ -25,12 +25,14 @@ import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
+import com.intellij.openapi.ui.JBMenuItem;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.AbstractAction;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -52,9 +54,16 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
   public ColorRendererEditor(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel, boolean isEditor) {
     super(context, isEditor);
 
+    final ColorEditorActionListener colorEditorListener = new ColorEditorActionListener();
     if (isEditor) {
-      myComponent.addActionListener(new ColorEditorActionListener());
+      myComponent.addActionListener(colorEditorListener);
     }
+    myComponent.addVariantComboAction(new AbstractAction("Add variation") {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        colorEditorListener.actionPerformed(e);
+      }
+    });
     myPreviewPanel = previewPanel;
   }
 
@@ -101,6 +110,11 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
           myPreviewPanel.invalidateGraphicsRenderer();
         }
       });
+
+      if (e.getSource() instanceof JBMenuItem) {
+        // This has been triggered from the "Add variations" menu option so display location settings
+        dialog.openLocationSettings();
+      }
 
       dialog.show();
 

@@ -23,8 +23,9 @@ import com.intellij.ui.components.JBLabel;
 
 import java.awt.Color;
 import java.awt.Component;
-import javax.swing.*;
-import org.jetbrains.android.actions.CreateXmlResourceDialog;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 public class ResourceDialogSouthPanel {
   private JTextField myResourceNameField;
@@ -32,21 +33,32 @@ public class ResourceDialogSouthPanel {
   private JPanel myFullPanel;
   private JPanel myExpertPlaceholder;
   private JPanel myExpertPanel;
+  private HideableDecorator myExpertDecorator;
 
   public ResourceDialogSouthPanel() {
     Color backgroundColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
     myResourceNameMessage.setBackground(backgroundColor == null ? JBColor.YELLOW : backgroundColor);
-    HideableDecorator myExpertDecorator = new HideableDecorator(myExpertPlaceholder, "Location", true) {
-      @Override
-      protected void off() {
-        super.off();
-        // Hack to not shrink the window too small when we close the advanced panel.
+    myExpertDecorator = new HideableDecorator(myExpertPlaceholder, "Location", true) {
+      private void pack() {
+        // Hack to not shrink the window too small when we close or open the advanced panel.
         SwingUtilities.invokeLater(new Runnable() {
           @Override
           public void run() {
             SwingUtilities.getWindowAncestor(myExpertPlaceholder).pack();
           }
         });
+      }
+
+      @Override
+      protected void on() {
+        super.on();
+        pack();
+      }
+
+      @Override
+      protected void off() {
+        super.off();
+        pack();
       }
     };
     myExpertDecorator.setContentComponent(myExpertPanel);
@@ -67,5 +79,9 @@ public class ResourceDialogSouthPanel {
 
   public JTextField getResourceNameField() {
     return myResourceNameField;
+  }
+
+  public void setOn(boolean on) {
+    myExpertDecorator.setOn(on);
   }
 }
