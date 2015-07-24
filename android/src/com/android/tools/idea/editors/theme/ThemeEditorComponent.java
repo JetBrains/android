@@ -52,6 +52,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
@@ -498,7 +499,8 @@ public class ThemeEditorComponent extends Splitter {
       myAttributesFilter.setFilterEnabled(false);
       myAttributesSorter.setRowFilter(myAttributesFilter);
     } else {
-      mySimpleModeFilter.configure(myModel.getDefinedAttributes(), ThemeEditorUtils.isAppCompatTheme(myThemeEditorContext.getConfiguration()));
+      mySimpleModeFilter.configure(myModel.getDefinedAttributes(), ThemeEditorUtils.isAppCompatTheme(
+        myThemeEditorContext.getConfiguration()));
       myAttributesSorter.setRowFilter(mySimpleModeFilter);
     }
   }
@@ -508,7 +510,7 @@ public class ThemeEditorComponent extends Splitter {
    * @return whether creation of new theme succeeded.
    */
   private boolean createNewTheme() {
-    String newThemeName = ThemeEditorUtils.createNewStyle(getSelectedTheme(), null, null, myThemeEditorContext, !isSubStyleSelected(), null);
+    String newThemeName = ThemeEditorUtils.createNewStyle(getSelectedTheme(), myThemeEditorContext, !isSubStyleSelected(), null);
     if (newThemeName != null) {
       // We don't need to call reload here, because myResourceChangeListener will take care of it
       myThemeName = newThemeName;
@@ -621,7 +623,7 @@ public class ThemeEditorComponent extends Splitter {
    * @param rv The attribute to set, including the current value.
    * @param strValue The new value.
    */
-  private void createNewThemeWithAttributeValue(@NotNull EditedStyleItem rv, @NotNull String strValue) {
+  private void createNewThemeWithAttributeValue(@NotNull final EditedStyleItem rv, @NotNull final String strValue) {
     if (strValue.equals(rv.getValue())) {
       // No modification required.
       return;
@@ -638,11 +640,21 @@ public class ThemeEditorComponent extends Splitter {
       .format("<html>The %1$s '<code>%2$s</code>' is Read-Only.<br/>A new %1$s will be created to modify '<code>%3$s</code>'.<br/></html>",
               isSubStyleSelected() ? "style" : "theme", selectedStyle.getQualifiedName(), rv.getName());
 
-    String newStyleName = ThemeEditorUtils.createNewStyle(selectedStyle, rv.getQualifiedName(), strValue, myThemeEditorContext, !isSubStyleSelected(), message);
+    final String newStyleName = ThemeEditorUtils.createNewStyle(selectedStyle, myThemeEditorContext, !isSubStyleSelected(), message);
 
     if (newStyleName == null) {
       return;
     }
+
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        myThemeEditorContext.updateThemeResolver();
+        ThemeEditorStyle newStyle = myThemeEditorContext.getThemeResolver().getTheme(newStyleName);
+        assert newStyle != null;
+        newStyle.setValue(rv.getQualifiedName(), strValue);
+      }
+    });
 
     if (!isSubStyleSelected()) {
       // We changed a theme, so we are done.
@@ -661,9 +673,9 @@ public class ThemeEditorComponent extends Splitter {
     // Decide what property we need to modify.
     // If the modified style was pointed by a theme attribute, we need to use that theme attribute value
     // as property. Otherwise, just update the original property name with the new style.
-    String sourcePropertyName = mySubStyleSourceAttribute.isAttr() ?
-                                mySubStyleSourceAttribute.getAttrPropertyName():
-                                mySubStyleSourceAttribute.getQualifiedName();
+    final String sourcePropertyName = mySubStyleSourceAttribute.isAttr() ?
+                                      mySubStyleSourceAttribute.getAttrPropertyName():
+                                      mySubStyleSourceAttribute.getQualifiedName();
 
     // We've modified a sub-style so we need to modify the attribute that was originally pointing to this.
     if (selectedTheme.isReadOnly()) {
@@ -673,11 +685,20 @@ public class ThemeEditorComponent extends Splitter {
                               "A new theme will be created to point to the modified style '%3$s'.<br/></html>",
                               selectedTheme.getQualifiedName(), rv.getName(), newStyleName);
 
-      String newThemeName = ThemeEditorUtils.createNewStyle(selectedTheme, sourcePropertyName, newStyleName, myThemeEditorContext, true, message);
+      final String newThemeName = ThemeEditorUtils.createNewStyle(selectedTheme, myThemeEditorContext, true, message);
       if (newThemeName != null) {
         // We don't need to call reload, because myResourceChangeListener will take care of it
         myThemeName = newThemeName;
         mySubStyleName = newStyleName;
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            myThemeEditorContext.updateThemeResolver();
+            ThemeEditorStyle newTheme = myThemeEditorContext.getThemeResolver().getTheme(newThemeName);
+            assert newTheme != null;
+            newTheme.setValue(sourcePropertyName, newStyleName);
+          }
+        });
       }
     }
     else {
