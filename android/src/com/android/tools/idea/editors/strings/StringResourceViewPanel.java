@@ -315,8 +315,8 @@ public class StringResourceViewPanel implements HyperlinkListener {
 
     // Version code
     String versionCode = null;
-    if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
-        Variant variant = myFacet.getIdeaAndroidProject().getSelectedVariant();
+    if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
+        Variant variant = myFacet.getAndroidModel().getSelectedVariant();
       ProductFlavor flavor = variant.getMergedFlavor();
       if (flavor.getVersionCode() != null) {
         versionCode = flavor.getVersionCode().toString();

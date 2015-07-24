@@ -235,7 +235,7 @@ public class RenderService {
              public void run() {
                Project project = module.getProject();
                ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-               if (Projects.isGradleProject(project) && service instanceof AndroidProjectSettingsService) {
+               if (Projects.requiresAndroidModel(project) && service instanceof AndroidProjectSettingsService) {
                  ((AndroidProjectSettingsService)service).openSdkSettings();
                  return;
                }

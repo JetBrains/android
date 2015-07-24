@@ -17,7 +17,6 @@ package com.android.tools.idea.npw;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.npw.*;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -62,8 +61,8 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
 
     loadProject("projects/projectWithAppandLib");
     assertNotNull(myAndroidFacet);
-    IdeaAndroidProject gradleProject = myAndroidFacet.getIdeaAndroidProject();
-    assertNotNull(gradleProject);
+    IdeaAndroidProject androidModel = myAndroidFacet.getAndroidModel();
+    assertNotNull(androidModel);
 
     // Set up modules
     for (Module m : ModuleManager.getInstance(getProject()).getModules()) {
@@ -96,8 +95,8 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
 
   public void testInit() throws Exception {
     // Test with invocation target = module directory (so we should default to app package)
-    assertNotNull(myAppFacet.getIdeaAndroidProject());
-    VirtualFile moduleFile = myAppFacet.getIdeaAndroidProject().getRootDir();
+    assertNotNull(myAppFacet.getAndroidModel());
+    VirtualFile moduleFile = myAppFacet.getAndroidModel().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/main/java/com/example/projectwithappandlib/app");
     assertNotNull(javaSrcFile);
@@ -160,8 +159,8 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     assertNotNull(wizard.myWizardState.get(ATTR_TARGET_API_STRING));
 
     // Test library invocation
-    assertNotNull(myLibFacet.getIdeaAndroidProject());
-    wizard = new NewTemplateObjectWizard(myLibModule.getProject(), myLibModule, myLibFacet.getIdeaAndroidProject().getRootDir(),
+    assertNotNull(myLibFacet.getAndroidModel());
+    wizard = new NewTemplateObjectWizard(myLibModule.getProject(), myLibModule, myLibFacet.getAndroidModel().getRootDir(),
                                          Template.CATEGORY_OTHER);
     Disposer.register(getTestRootDisposable(), wizard.getDisposable());
     assertEquals(true, wizard.myWizardState.getBoolean(ATTR_IS_LIBRARY_MODULE));
@@ -210,11 +209,11 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     String expectedPath = "src/main/java";
 
     // Test with primary module
-    assertNotNull(myAppFacet.getIdeaAndroidProject());
+    assertNotNull(myAppFacet.getAndroidModel());
     SourceProvider provider = getFirstSourceProvider(myAppFacet, null);
     File srcDir = NewTemplateObjectWizard.findSrcDirectory(provider);
 
-    VirtualFile moduleFile = myAppFacet.getIdeaAndroidProject().getRootDir();
+    VirtualFile moduleFile = myAppFacet.getAndroidModel().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile expectedFile = moduleFile.findFileByRelativePath(expectedPath);
     assertNotNull(expectedFile);
@@ -234,12 +233,12 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     assertEquals(VfsUtilCore.virtualToIoFile(expectedFile), srcDir);
 
     // Test with lib module
-    assertNotNull(myLibFacet.getIdeaAndroidProject());
+    assertNotNull(myLibFacet.getAndroidModel());
     provider = getFirstSourceProvider(myLibFacet, null);
     srcDir = NewTemplateObjectWizard.findSrcDirectory(provider);
 
     expectedPath = "src/main/java";
-    moduleFile = myLibFacet.getIdeaAndroidProject().getRootDir();
+    moduleFile = myLibFacet.getAndroidModel().getRootDir();
     assertNotNull(moduleFile);
     expectedFile = moduleFile.findFileByRelativePath(expectedPath);
     assertNotNull(expectedFile);
@@ -252,11 +251,11 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     String expectedPath = "src/main/res";
 
     // Test with primary module
-    assertNotNull(myAppFacet.getIdeaAndroidProject());
+    assertNotNull(myAppFacet.getAndroidModel());
     SourceProvider provider = getFirstSourceProvider(myAppFacet, null);
     File resDir = NewTemplateObjectWizard.findResDirectory(provider);
 
-    VirtualFile moduleFile = myAppFacet.getIdeaAndroidProject().getRootDir();
+    VirtualFile moduleFile = myAppFacet.getAndroidModel().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile expectedFile = moduleFile.findFileByRelativePath(expectedPath);
     assertNotNull(expectedFile);
@@ -276,12 +275,12 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     assertEquals(VfsUtilCore.virtualToIoFile(expectedFile), resDir);
 
     // Test with lib module
-    assertNotNull(myLibFacet.getIdeaAndroidProject());
+    assertNotNull(myLibFacet.getAndroidModel());
     provider = getFirstSourceProvider(myLibFacet, null);
     resDir = NewTemplateObjectWizard.findResDirectory(provider);
 
     expectedPath = "src/main/res";
-    moduleFile = myLibFacet.getIdeaAndroidProject().getRootDir();
+    moduleFile = myLibFacet.getAndroidModel().getRootDir();
     assertNotNull(moduleFile);
     expectedFile = moduleFile.findFileByRelativePath(expectedPath);
     assertNotNull(expectedFile);
@@ -294,11 +293,11 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     String expectedPath = "src/main";
 
     // Test with primary module, main source set
-    assertNotNull(myAppFacet.getIdeaAndroidProject());
+    assertNotNull(myAppFacet.getAndroidModel());
     SourceProvider provider = getFirstSourceProvider(myAppFacet, null);
     File manifestDir = NewTemplateObjectWizard.findManifestDirectory(provider);
 
-    VirtualFile moduleFile = myAppFacet.getIdeaAndroidProject().getRootDir();
+    VirtualFile moduleFile = myAppFacet.getAndroidModel().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile expectedFile = moduleFile.findFileByRelativePath(expectedPath);
     assertNotNull(expectedFile);
@@ -318,12 +317,12 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     assertEquals(VfsUtilCore.virtualToIoFile(expectedFile), manifestDir);
 
     // Test with lib module
-    assertNotNull(myLibFacet.getIdeaAndroidProject());
+    assertNotNull(myLibFacet.getAndroidModel());
     provider = getFirstSourceProvider(myLibFacet, null);
     manifestDir = NewTemplateObjectWizard.findManifestDirectory(provider);
 
     expectedPath = "src/main";
-    moduleFile = myLibFacet.getIdeaAndroidProject().getRootDir();
+    moduleFile = myLibFacet.getAndroidModel().getRootDir();
     assertNotNull(moduleFile);
     expectedFile = moduleFile.findFileByRelativePath(expectedPath);
     assertNotNull(expectedFile);
@@ -335,8 +334,8 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     TemplateWizardState wizardState = new TemplateWizardState();
     wizardState.put(ATTR_PACKAGE_NAME, "wizard.state.default.value");
 
-    assertNotNull(myAppFacet.getIdeaAndroidProject());
-    VirtualFile moduleFile = myAppFacet.getIdeaAndroidProject().getRootDir();
+    assertNotNull(myAppFacet.getAndroidModel());
+    VirtualFile moduleFile = myAppFacet.getAndroidModel().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile javaDir = moduleFile.findFileByRelativePath("src/main/java");
     assertNotNull(javaDir);

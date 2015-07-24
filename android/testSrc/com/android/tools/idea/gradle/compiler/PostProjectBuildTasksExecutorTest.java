@@ -31,8 +31,8 @@ import static org.easymock.classextension.EasyMock.*;
  * Tests for {@link PostProjectBuildTasksExecutor}.
  */
 public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
-  private IdeaAndroidProject myAndroidProject1;
-  private IdeaAndroidProject myAndroidProject2;
+  private IdeaAndroidProject myAndroidModel1;
+  private IdeaAndroidProject myAndroidModel2;
 
   private PostProjectBuildTasksExecutor myExecutor;
 
@@ -49,54 +49,54 @@ public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
       }
     });
 
-    myAndroidProject1 = addMockAndroidProject(myModule);
-    myAndroidProject2 = addMockAndroidProject(module);
+    myAndroidModel1 = addMockAndroidProject(myModule);
+    myAndroidModel2 = addMockAndroidProject(module);
 
     myExecutor = new PostProjectBuildTasksExecutor(myProject);
   }
 
   public void testGetMaxJavaLangLevel() {
-    expect(myAndroidProject1.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_6);
-    expect(myAndroidProject2.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_7);
-    replay(myAndroidProject1, myAndroidProject2);
+    expect(myAndroidModel1.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_6);
+    expect(myAndroidModel2.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_7);
+    replay(myAndroidModel1, myAndroidModel2);
 
     LanguageLevel maxJavaLangLevel = myExecutor.getMaxJavaLangLevel();
     assertEquals(LanguageLevel.JDK_1_7, maxJavaLangLevel);
 
-    verify(myAndroidProject1, myAndroidProject2);
+    verify(myAndroidModel1, myAndroidModel2);
   }
 
   public void testGetMaxJavaLangLevel2() {
-    expect(myAndroidProject1.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_7);
-    expect(myAndroidProject2.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_6);
-    replay(myAndroidProject1, myAndroidProject2);
+    expect(myAndroidModel1.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_7);
+    expect(myAndroidModel2.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_6);
+    replay(myAndroidModel1, myAndroidModel2);
 
     LanguageLevel maxJavaLangLevel = myExecutor.getMaxJavaLangLevel();
     assertEquals(LanguageLevel.JDK_1_7, maxJavaLangLevel);
 
-    verify(myAndroidProject1, myAndroidProject2);
+    verify(myAndroidModel1, myAndroidModel2);
   }
 
   public void testGetMaxJavaLangLevel3() {
-    expect(myAndroidProject1.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_7);
-    expect(myAndroidProject2.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_7);
-    replay(myAndroidProject1, myAndroidProject2);
+    expect(myAndroidModel1.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_7);
+    expect(myAndroidModel2.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_7);
+    replay(myAndroidModel1, myAndroidModel2);
 
     LanguageLevel maxJavaLangLevel = myExecutor.getMaxJavaLangLevel();
     assertEquals(LanguageLevel.JDK_1_7, maxJavaLangLevel);
 
-    verify(myAndroidProject1, myAndroidProject2);
+    verify(myAndroidModel1, myAndroidModel2);
   }
 
   public void testGetMaxJavaLangLevel4() {
-    expect(myAndroidProject1.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_6);
-    expect(myAndroidProject2.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_6);
-    replay(myAndroidProject1, myAndroidProject2);
+    expect(myAndroidModel1.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_6);
+    expect(myAndroidModel2.getJavaLanguageLevel()).andReturn(LanguageLevel.JDK_1_6);
+    replay(myAndroidModel1, myAndroidModel2);
 
     LanguageLevel maxJavaLangLevel = myExecutor.getMaxJavaLangLevel();
     assertEquals(LanguageLevel.JDK_1_6, maxJavaLangLevel);
 
-    verify(myAndroidProject1, myAndroidProject2);
+    verify(myAndroidModel1, myAndroidModel2);
   }
 
   private static void addAndroidFacet(@NotNull Module module) {
@@ -112,10 +112,10 @@ public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
 
   @NotNull
   private static IdeaAndroidProject addMockAndroidProject(@NotNull Module module) {
-    IdeaAndroidProject androidProject = createMock(IdeaAndroidProject.class);
+    IdeaAndroidProject androidModel = createMock(IdeaAndroidProject.class);
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-    facet.setIdeaAndroidProject(androidProject);
-    return androidProject;
+    facet.setAndroidModel(androidModel);
+    return androidModel;
   }
 }

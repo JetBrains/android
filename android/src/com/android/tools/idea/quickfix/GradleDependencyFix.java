@@ -69,8 +69,8 @@ abstract class GradleDependencyFix implements IntentionAction, LocalQuickFix, Hi
     if (test) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null) {
-        IdeaAndroidProject androidProject = androidFacet.getIdeaAndroidProject();
-        if (androidProject != null && AndroidProject.ARTIFACT_ANDROID_TEST.equals(androidProject.getSelectedTestArtifactName())) {
+        IdeaAndroidProject androidModel = androidFacet.getAndroidModel();
+        if (androidModel != null && AndroidProject.ARTIFACT_ANDROID_TEST.equals(androidModel.getSelectedTestArtifactName())) {
           testScope = Dependency.Scope.ANDROID_TEST_COMPILE;
         }
       }

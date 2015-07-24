@@ -325,8 +325,8 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
             myManifests.add(getManifestPermissions(manifest));
           }
         }
-        if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
-          Collection<AndroidLibrary> libraries = myFacet.getIdeaAndroidProject().getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
+        if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
+          Collection<AndroidLibrary> libraries = myFacet.getAndroidModel().getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
           myLibraries = Lists.newArrayList();
           for (AndroidLibrary library : libraries) {
             myLibraries.add(getLibraryPermissions(library));

@@ -188,8 +188,8 @@ public final class ProjectSubset {
   private static ModuleSearchResult containsSourceFile(@NotNull DataNode<ModuleData> moduleNode, @NotNull File file, boolean selected) {
     DataNode<IdeaAndroidProject> androidProjectNode = find(moduleNode, IDE_ANDROID_PROJECT);
     if (androidProjectNode != null) {
-      IdeaAndroidProject androidProject = androidProjectNode.getData();
-      SourceFileContainerInfo result = androidProject.containsSourceFile(file);
+      IdeaAndroidProject androidModel = androidProjectNode.getData();
+      SourceFileContainerInfo result = androidModel.containsSourceFile(file);
       if (result != null) {
         return new ModuleSearchResult(moduleNode, result, selected);
       }

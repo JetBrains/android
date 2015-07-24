@@ -54,13 +54,13 @@ public class CompilerOutputModuleCustomizerTest extends IdeaTestCase {
 
   public void testCustomizeModule() {
     File rootDir = androidProject.getRootDir();
-    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myModule.getName(), rootDir, androidProject,
-                                                                   "debug", AndroidProject.ARTIFACT_ANDROID_TEST);
+    IdeaAndroidProject androidModel = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myModule.getName(), rootDir, androidProject,
+                                                             "debug", AndroidProject.ARTIFACT_ANDROID_TEST);
     String compilerOutputPath = "";
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
     try {
-      customizer.customizeModule(myProject, rootModel, ideaAndroidProject);
+      customizer.customizeModule(myProject, rootModel, androidModel);
       CompilerModuleExtension compilerSettings = rootModel.getModuleExtension(CompilerModuleExtension.class);
       compilerOutputPath = compilerSettings.getCompilerOutputUrl();
     }
@@ -68,7 +68,7 @@ public class CompilerOutputModuleCustomizerTest extends IdeaTestCase {
       rootModel.commit();
     }
 
-    File classesFolder = ideaAndroidProject.getSelectedVariant().getMainArtifact().getClassesFolder();
+    File classesFolder = androidModel.getSelectedVariant().getMainArtifact().getClassesFolder();
     String path = FileUtil.toSystemIndependentName(classesFolder.getPath());
     String expected = VfsUtilCore.pathToUrl(ExternalSystemApiUtil.toCanonicalPath(path));
     assertEquals(expected, compilerOutputPath);

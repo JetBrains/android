@@ -40,15 +40,15 @@ import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
  */
 public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<IdeaJavaProject> {
   @Override
-  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel ideaModuleModel, @Nullable IdeaJavaProject javaProject) {
-    if (javaProject == null) {
+  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable IdeaJavaProject javaModel) {
+    if (javaModel == null) {
       return;
     }
-    LanguageLevel languageLevel = javaProject.getJavaLanguageLevel();
+    LanguageLevel languageLevel = javaModel.getJavaLanguageLevel();
 
     if (isNotSupported(languageLevel)) {
       // Java language 1.8 is not supported, fall back to the minimum Java language level in dependent modules.
-      List<Module> dependents = getAllDependentModules(ideaModuleModel.getModule());
+      List<Module> dependents = getAllDependentModules(moduleModel.getModule());
       languageLevel = getMinimumLanguageLevelForAndroidModules(dependents.toArray(new Module[dependents.size()]));
     }
 
@@ -63,7 +63,7 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<IdeaJ
       languageLevel = JDK_1_6; // The minimum safe Java language level.
     }
 
-    ideaModuleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
+    moduleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
   }
 
   private static boolean isNotSupported(@Nullable LanguageLevel languageLevel) {
@@ -99,9 +99,9 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<IdeaJ
   private static LanguageLevel getLanguageLevelForAndroidModule(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-      if (androidProject != null) {
-        return androidProject.getJavaLanguageLevel();
+      IdeaAndroidProject androidModel = facet.getAndroidModel();
+      if (androidModel != null) {
+        return androidModel.getJavaLanguageLevel();
       }
     }
     return null;

@@ -53,7 +53,7 @@ import static com.android.tools.idea.gradle.util.ui.ToolWindowAlikePanel.createT
 class ModuleVariantsInfoDialog extends DialogWrapper {
   @NotNull private final JPanel myPanel;
 
-  ModuleVariantsInfoDialog(@NotNull Module module, @NotNull IdeaAndroidProject ideaAndroidProject) {
+  ModuleVariantsInfoDialog(@NotNull Module module, @NotNull IdeaAndroidProject androidModel) {
     super(module.getProject());
     setTitle(String.format("Dependency Details for Module '%1$s'", module.getName()));
     myPanel = new JPanel(new BorderLayout());
@@ -62,8 +62,8 @@ class ModuleVariantsInfoDialog extends DialogWrapper {
     Splitter splitter = new Splitter(false, 0.5f);
     myPanel.add(splitter, BorderLayout.CENTER);
 
-    splitter.setFirstComponent(createTreePanel("Dependencies", createDependenciesTree(module, ideaAndroidProject)));
-    splitter.setSecondComponent(createTreePanel("Dependents", createDependentsTree(module, ideaAndroidProject)));
+    splitter.setFirstComponent(createTreePanel("Dependencies", createDependenciesTree(module, androidModel)));
+    splitter.setSecondComponent(createTreePanel("Dependents", createDependentsTree(module, androidModel)));
 
     init();
   }

@@ -56,7 +56,7 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
                                              @NotNull Collection<AbstractTreeNode> children,
                                              ViewSettings settings) {
     Project project = parent.getProject();
-    if (project != null && Projects.isGradleProject(project)) {
+    if (project != null && Projects.requiresAndroidModel(project)) {
       if (parent instanceof NamedLibraryElementNode) {
         NamedLibraryElement value = ((NamedLibraryElementNode)parent).getValue();
         LibraryOrSdkOrderEntry orderEntry = value.getOrderEntry();

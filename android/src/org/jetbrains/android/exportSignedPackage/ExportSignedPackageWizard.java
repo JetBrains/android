@@ -107,7 +107,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     else {
       myFacet = facets.get(0);
     }
-    boolean useGradleToSign = facets.get(0).isGradleProject();
+    boolean useGradleToSign = facets.get(0).requiresAndroidModel();
 
     if (signed) {
       addStep(new KeystoreStep(this, useGradleToSign));
@@ -131,7 +131,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     super.doOKAction();
 
     assert myFacet != null;
-    if (myFacet.isGradleProject()) {
+    if (myFacet.requiresAndroidModel()) {
       buildAndSignGradleProject();
     } else {
       buildAndSignIntellijProject();
@@ -168,13 +168,13 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         }
         String gradleProjectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
 
-        IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
-        if (ideaAndroidProject == null) {
-          LOG.error("Unable to obtain gradle project model. Did the last Gradle sync complete successfully?");
+        IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+        if (androidModel == null) {
+          LOG.error("Unable to obtain Android project model. Did the last Gradle sync complete successfully?");
           return;
         }
 
-        List<String> assembleTasks = getAssembleTasks(gradleProjectPath, ideaAndroidProject.getDelegate(), myBuildType, myFlavors);
+        List<String> assembleTasks = getAssembleTasks(gradleProjectPath, androidModel.getAndroidProject(), myBuildType, myFlavors);
 
         List<String> projectProperties = Lists.newArrayList();
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));

@@ -172,10 +172,10 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
         // ? If so, skip it.
         AndroidFacet facet = AndroidFacet.getInstance(file);
         VirtualFile virtualFile = file.getVirtualFile();
-        if (facet != null && facet.isGradleProject() && virtualFile != null) {
-          IdeaAndroidProject project = facet.getIdeaAndroidProject();
-          if (project != null) {
-            VirtualFile buildFolder = VfsUtil.findFileByIoFile(project.getDelegate().getBuildFolder(), false);
+        if (facet != null && facet.requiresAndroidModel() && virtualFile != null) {
+          IdeaAndroidProject androidModel = facet.getAndroidModel();
+          if (androidModel != null) {
+            VirtualFile buildFolder = VfsUtil.findFileByIoFile(androidModel.getAndroidProject().getBuildFolder(), false);
             if (buildFolder != null && VfsUtilCore.isAncestor(buildFolder, virtualFile, false)) {
               return false;
             }

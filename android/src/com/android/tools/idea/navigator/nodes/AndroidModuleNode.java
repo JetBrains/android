@@ -58,7 +58,7 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
   public Collection<AbstractTreeNode> getChildren() {
     Module module = getValue();
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || facet.getIdeaAndroidProject() == null) {
+    if (facet == null || facet.getAndroidModel() == null) {
       return super.getChildren();
     }
 

@@ -195,7 +195,7 @@ public class RenderLogger extends LayoutLog {
     if (LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR.equals(tag) && myModule != null
         && BuildSettings.getInstance(myModule.getProject()).getBuildMode() == BuildMode.SOURCE_GEN) {
       AndroidFacet facet = AndroidFacet.getInstance(myModule);
-      if (facet != null && facet.isGradleProject()) {
+      if (facet != null && facet.requiresAndroidModel()) {
         description = "Still building project; theme resources from libraries may be missing. Layout should refresh when the " +
                       "build is complete.\n\n" + description;
         tag = TAG_STILL_BUILDING;

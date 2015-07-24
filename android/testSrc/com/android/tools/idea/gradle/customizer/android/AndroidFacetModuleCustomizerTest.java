@@ -59,12 +59,12 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     VariantStub selectedVariant = myAndroidProject.getFirstVariant();
     assertNotNull(selectedVariant);
     String selectedVariantName = selectedVariant.getName();
-    IdeaAndroidProject project = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
-                                                        selectedVariantName, AndroidProject.ARTIFACT_ANDROID_TEST);
+    IdeaAndroidProject androidModel = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
+                                                             selectedVariantName, AndroidProject.ARTIFACT_ANDROID_TEST);
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
     try {
-      myCustomizer.customizeModule(myProject, rootModel, project);
+      myCustomizer.customizeModule(myProject, rootModel, androidModel);
     }
     finally {
       rootModel.commit();
@@ -73,7 +73,7 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     // Verify that AndroidFacet was added and configured.
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
-    assertSame(project, facet.getIdeaAndroidProject());
+    assertSame(androidModel, facet.getAndroidModel());
 
     JpsAndroidModuleProperties facetState = facet.getProperties();
     assertFalse(facetState.ALLOW_USER_CONFIGURATION);

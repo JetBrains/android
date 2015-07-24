@@ -159,7 +159,7 @@ public class PostProjectBuildTasksExecutor {
 
   @VisibleForTesting
   void onBuildCompletion(Iterator<String> errorMessages, int errorCount) {
-    if (isGradleProject(myProject)) {
+    if (requiresAndroidModel(myProject)) {
       executeProjectChanges(myProject, new Runnable() {
         @Override
         public void run() {
@@ -221,18 +221,18 @@ public class PostProjectBuildTasksExecutor {
 
     for (Module module : moduleManager.getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.isGradleProject()) {
+      if (facet != null && facet.requiresAndroidModel()) {
         excludeOutputFolders(facet);
       }
     }
   }
 
   private static void excludeOutputFolders(@NotNull AndroidFacet facet) {
-    IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-    if (androidProject == null) {
+    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    if (androidModel == null) {
       return;
     }
-    File buildFolderPath = androidProject.getDelegate().getBuildFolder();
+    File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
     if (!buildFolderPath.isDirectory()) {
       return;
     }
@@ -260,7 +260,7 @@ public class PostProjectBuildTasksExecutor {
       }
 
       for (File outputFolderPath : outputFolderPaths) {
-        if (!androidProject.shouldManuallyExclude(outputFolderPath)) {
+        if (!androidModel.shouldManuallyExclude(outputFolderPath)) {
           continue;
         }
         boolean alreadyExcluded = false;
@@ -364,9 +364,9 @@ public class PostProjectBuildTasksExecutor {
       if (facet == null) {
         continue;
       }
-      IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-      if (androidProject != null) {
-        LanguageLevel langLevel = androidProject.getJavaLanguageLevel();
+      IdeaAndroidProject androidModel = facet.getAndroidModel();
+      if (androidModel != null) {
+        LanguageLevel langLevel = androidModel.getJavaLanguageLevel();
         if (langLevel != null && (maxLangLevel == null || maxLangLevel.compareTo(langLevel) < 0)) {
           maxLangLevel = langLevel;
         }
