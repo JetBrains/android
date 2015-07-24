@@ -43,7 +43,7 @@ ______ENTRY_3:
 $JAVA_PATH$
 -Xmx1024M
 -classpath
-$IDEA_RT_PATH$
+$IDEA_RT_PATH$;$CLASSPATH_TMP$
 com.intellij.rt.execution.CommandLineWrapper
 $CLASSPATH_TMP$
 org.jetbrains.android.compiler.tools.AndroidDxRunner
@@ -84,7 +84,7 @@ ______ENTRY_5:4
 $JAVA_PATH$
 -Xmx1024M
 -classpath
-$IDEA_RT_PATH$
+$IDEA_RT_PATH$;$CLASSPATH_TMP$
 com.intellij.rt.execution.CommandLineWrapper
 $CLASSPATH_TMP$
 org.jetbrains.android.compiler.tools.AndroidDxRunner

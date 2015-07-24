@@ -1278,7 +1278,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
                                                               "/android_combined_assets\\d*tmp");
     executor.addRegexPathPatternPrefix("COMBINED_RESOURCES_TMP", FileUtil.toSystemIndependentName(tempDirectory) +
                                                               "/android_combined_resources\\d*tmp");
-    executor.addRegexPathPatternPrefix("CLASSPATH_TMP", FileUtil.toSystemIndependentName(tempDirectory) + "/classpath\\d*\\.tmp");
+    executor.addRegexPathPatternPrefix("CLASSPATH_TMP", FileUtil.toSystemIndependentName(tempDirectory) + "/classpath\\d*\\.jar");
     executor.addRegexPathPattern("JAVA_PATH", ".*/java");
     executor.addRegexPathPattern("IDEA_RT_PATH", ".*/idea_rt.jar");
     executor.addRegexPathPattern("PROGUARD_INPUT_JAR", ".*/proguard_input\\S*\\.jar");
