@@ -103,8 +103,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     checkJavadoc("/javadoc/drawables/Activity1.java",
                  String.format("<html><body><table>" +
                  "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
-                 "<tr><td %1$s>drawable</td><td %1$s>%2$s%3$s</div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)<BR/>\n" +
-                 "@drawable/ic_launcher => ic_launcher.png<BR/>\n" +
+                 "<tr><td %1$s>drawable</td><td %1$s>%2$s%3$s</div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)<BR/>" +
+                 "@drawable/ic_launcher => ic_launcher.png<BR/>" +
                  "</td></tr>" +
                  "<tr><td %1$s>drawable-hdpi</td><td %1$s>%2$s%4$s</div>12&#xd7;12 px (8&#xd7;8 dp @ hdpi)" +
                  "</td></tr>" +
@@ -125,8 +125,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     checkJavadoc("/javadoc/mipmaps/Activity1.java",
                  String.format("<html><body><table>" +
                                "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
-                               "<tr><td %1$s>mipmap</td><td %1$s>%2$s%3$s</div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)<BR/>\n" +
-                               "@mipmap/ic_launcher => ic_launcher.png<BR/>\n" +
+                               "<tr><td %1$s>mipmap</td><td %1$s>%2$s%3$s</div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)<BR/>" +
+                               "@mipmap/ic_launcher => ic_launcher.png<BR/>" +
                                "</td></tr>" +
                                "<tr><td %1$s>mipmap-hdpi</td><td %1$s>%2$s%4$s</div>12&#xd7;12 px (8&#xd7;8 dp @ hdpi)" +
                                "</td></tr>" +
@@ -250,8 +250,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "#ffffff" +
                  "</td>" +
                  "</tr>" +
-                 "</table><BR/>\n" +
-                 "@android:color/my_white => #ffffff<BR/>\n" +
+                 "</table><BR/>" +
+                 "@android:color/my_white => #ffffff<BR/>" +
                  "</body></html>");
   }
 
@@ -265,8 +265,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:white\">#80000000" +
                  "</td>" +
                  "</tr>" +
-                 "</table><BR/>\n" +
-                 "@color/my_color => #80000000<BR/>\n" +
+                 "</table><BR/>" +
+                 "@color/my_color => #80000000<BR/>" +
                  "</body></html>");
   }
 
@@ -285,8 +285,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "#aa44aa" +
                  "</td>" +
                  "</tr>" +
-                 "</table><BR/>\n" +
-                 "@color/first => @color/second => @color/third => third.xml => @color/fourth => #aa44aa<BR/>\n" +
+                 "</table><BR/>" +
+                 "@color/first => @color/second => @color/third => third.xml => @color/fourth => #aa44aa<BR/>" +
                  "</body></html>");
   }
 
@@ -294,18 +294,18 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/styles/AndroidManifest.xml", "AndroidManifest.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/styles/styles.xml", "res/values/styles.xml");
     checkJavadoc("/javadoc/styles/layout.xml", "res/layout/layout.xml",
-                 "<html><body><BR/>\n" +
-                 "?android:attr/textAppearanceMedium => @android:style/TextAppearance.Medium<BR/>\n" +
-                 "<BR/>\n" +
-                 "<hr><B>TextAppearance.Medium</B>:<BR/>\n" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColor</B> = ?textColorPrimary<BR/>\n" +
-                 "<table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table>&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textSize</B> = 18sp<BR/>\n" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textStyle</B> = normal<BR/>\n" +
-                 "<BR/>\n" +
-                 "Inherits from: @android:style/TextAppearance:<BR/>\n" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHint</B> = ?textColorHint => ?textColorHint<BR/>\n" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorLink</B> = #5C5CFF<BR/>\n" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHighlight</B> = #FFFF9200<BR/>\n" +
+                 "<html><body><BR/>" +
+                 "?android:attr/textAppearanceMedium => @android:style/TextAppearance.Medium<BR/>" +
+                 "<BR/>" +
+                 "<hr><B>TextAppearance.Medium</B>:<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColor</B> = ?textColorPrimary<BR/>" +
+                 "<table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table>&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textSize</B> = 18sp<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textStyle</B> = normal<BR/>" +
+                 "<BR/>" +
+                 "Inherits from: @android:style/TextAppearance:<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHint</B> = ?textColorHint => ?textColorHint<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorLink</B> = #5C5CFF<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHighlight</B> = #FFFF9200<BR/>" +
                  "</body></html>");
   }
 
