@@ -112,31 +112,31 @@ public class RenderErrorPanelTest extends AndroidTestCase {
   public void testPanel() {
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml"), null);
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
-      "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>\n" +
-      "&lt;LinearLayout> does not set the required layout_width attribute: <BR/>\n" +
-      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:0\">Set to wrap_content</A>, <A HREF=\"command:1\">Set to match_parent</A><BR/>\n" +
-      "&lt;LinearLayout> does not set the required layout_height attribute: <BR/>\n" +
-      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:2\">Set to wrap_content</A>, <A HREF=\"command:3\">Set to match_parent</A><BR/>\n" +
-      "<BR/>\n" +
-      "Or: <A HREF=\"command:4\">Automatically add all missing attributes</A><BR/>\n" +
-      "<BR/>\n" +
-      "<BR/>\n" +
-      "The following classes could not be found:<DL>\n" +
-      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>)\n" +
-      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>\n" +
-      "<BR/>\n" +
+      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
+      "&lt;LinearLayout> does not set the required layout_width attribute: <BR/>" +
+      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:0\">Set to wrap_content</A>, <A HREF=\"command:1\">Set to match_parent</A><BR/>" +
+      "&lt;LinearLayout> does not set the required layout_height attribute: <BR/>" +
+      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:2\">Set to wrap_content</A>, <A HREF=\"command:3\">Set to match_parent</A><BR/>" +
+      "<BR/>" +
+      "Or: <A HREF=\"command:4\">Automatically add all missing attributes</A><BR/>" +
+      "<BR/>" +
+      "<BR/>" +
+      "The following classes could not be found:<DL>" +
+      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>)" +
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "<BR/>" +
       "</body></html>", html);
   }
 
   public void testTypo() {
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml"), null);
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
-      "The following classes could not be found:<DL>\n" +
-      "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>)\n" +
-      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>\n" +
-      "<BR/>\n" +
+      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "The following classes could not be found:<DL>" +
+      "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>)" +
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "<BR/>" +
       "</body></html>", html);
   }
 
@@ -215,13 +215,13 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
 
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
-      "This is an error with entities: &amp; &lt; \"<BR/>\n" +
-      "<BR/>\n" +
+      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "This is an error with entities: &amp; &lt; \"<BR/>" +
+      "<BR/>" +
       "&lt;CalendarView> and &lt;DatePicker> are broken in this version of the rendering library. " +
       "Try updating your SDK in the SDK Manager when issue 59732 is fixed. " +
-      "(<A HREF=\"http://b.android.com/59732\">Open Issue 59732</A>, <A HREF=\"runnable:0\">Show Exception</A>)<BR/>\n" +
-      "<BR/>\n" +
+      "(<A HREF=\"http://b.android.com/59732\">Open Issue 59732</A>, <A HREF=\"runnable:0\">Show Exception</A>)<BR/>" +
+      "<BR/>" +
       "</body></html>", html);
   }
 
@@ -293,29 +293,29 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     boolean havePlatformSources = AndroidSdkUtils.findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
-        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
-        "java.lang.ArithmeticException: / by zero<BR/>\n" +
-        "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(<A HREF=\"file:$SDK_HOME/sources/android-18/java/lang/reflect/Constructor.java:513\">Constructor.java:513</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:755\">LayoutInflater.java:755</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater_Delegate.java:64\">LayoutInflater_Delegate.java:64</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:727\">LayoutInflater.java:727</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:492\">LayoutInflater.java:492</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:373\">LayoutInflater.java:373</A>)<BR/>\n" +
-        "<A HREF=\"runnable:0\">Copy stack to clipboard</A><BR/>\n" +
+        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+        "java.lang.ArithmeticException: / by zero<BR/>" +
+        "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
+        "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(<A HREF=\"file:$SDK_HOME/sources/android-18/java/lang/reflect/Constructor.java:513\">Constructor.java:513</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:755\">LayoutInflater.java:755</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater_Delegate.java:64\">LayoutInflater_Delegate.java:64</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:727\">LayoutInflater.java:727</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:492\">LayoutInflater.java:492</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:373\">LayoutInflater.java:373</A>)<BR/>" +
+        "<A HREF=\"runnable:0\">Copy stack to clipboard</A><BR/>" +
         "</body></html>", html);
     } else {
       assertHtmlEquals(
-        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
-        "java.lang.ArithmeticException: / by zero<BR/>\n" +
-        "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:755)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(LayoutInflater.java:727)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>\n" +
-        "<A HREF=\"runnable:0\">Copy stack to clipboard</A><BR/>\n" +
+        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+        "java.lang.ArithmeticException: / by zero<BR/>" +
+        "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
+        "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:755)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(LayoutInflater.java:727)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
+        "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
+        "<A HREF=\"runnable:0\">Copy stack to clipboard</A><BR/>" +
         "</body></html>", html);
     }
   }
@@ -398,14 +398,14 @@ public class RenderErrorPanelTest extends AndroidTestCase {
 
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
-      "Resource error: Attempted to load a bitmap as a color state list.<BR/>\n" +
-      "Verify that your style/theme attributes are correct, and make sure layouts are using the right attributes.<BR/>\n" +
-      "<BR/>\n" +
-      "The relevant image is " + path + "<BR/>\n" +
-      "<BR/>\n" +
-      "Widgets possibly involved: Button, TextView<BR/>\n" +
-      "<BR/>\n" +
+      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "Resource error: Attempted to load a bitmap as a color state list.<BR/>" +
+      "Verify that your style/theme attributes are correct, and make sure layouts are using the right attributes.<BR/>" +
+      "<BR/>" +
+      "The relevant image is " + path + "<BR/>" +
+      "<BR/>" +
+      "Widgets possibly involved: Button, TextView<BR/>" +
+      "<BR/>" +
       "</body></html>", html);
   }
 
@@ -521,31 +521,31 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     boolean havePlatformSources = AndroidSdkUtils.findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
-        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
-        "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>\n" +
-        "<BR/>\n" +
-        "Read access not allowed during rendering (/)<BR/>\n" +
-        "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityException.create(RenderSecurityException.java:52)<BR/>\n" +
-        "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityManager.checkRead(RenderSecurityManager.java:204)<BR/>\n" +
-        "&nbsp;&nbsp;at java.io.File.list(<A HREF=\"file:$SDK_HOME/sources/android-18/java/io/File.java:971\">File.java:971</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at java.io.File.listFiles(<A HREF=\"file:$SDK_HOME/sources/android-18/java/io/File.java:1051\">File.java:1051</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at com.example.app.MyButton.onDraw(<A HREF=\"open:com.example.app.MyButton#onDraw;MyButton.java:70\">MyButton.java:70</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14433\">View.java:14433</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14318\">View.java:14318</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14316\">View.java:14316</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14316\">View.java:14316</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14436\">View.java:14436</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14318\">View.java:14318</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14436\">View.java:14436</A>)<BR/>\n" +
-        "<A HREF=\"runnable:0\">Copy stack to clipboard</A><BR/>\n" +
+        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+        "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +
+        "<BR/>" +
+        "Read access not allowed during rendering (/)<BR/>" +
+        "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityException.create(RenderSecurityException.java:52)<BR/>" +
+        "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityManager.checkRead(RenderSecurityManager.java:204)<BR/>" +
+        "&nbsp;&nbsp;at java.io.File.list(<A HREF=\"file:$SDK_HOME/sources/android-18/java/io/File.java:971\">File.java:971</A>)<BR/>" +
+        "&nbsp;&nbsp;at java.io.File.listFiles(<A HREF=\"file:$SDK_HOME/sources/android-18/java/io/File.java:1051\">File.java:1051</A>)<BR/>" +
+        "&nbsp;&nbsp;at com.example.app.MyButton.onDraw(<A HREF=\"open:com.example.app.MyButton#onDraw;MyButton.java:70\">MyButton.java:70</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:3103\">ViewGroup.java:3103</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file:$SDK_HOME/sources/android-18/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "<A HREF=\"runnable:0\">Copy stack to clipboard</A><BR/>" +
         "</body></html>", html);
     } else {
       assertHtmlEquals(
