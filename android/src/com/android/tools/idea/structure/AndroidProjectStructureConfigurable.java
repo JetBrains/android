@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.structure.gradle.AndroidModuleConfigurable;
 import com.android.tools.idea.structure.gradle.AndroidProjectConfigurable;
 import com.android.tools.idea.structure.services.DeveloperService;
@@ -341,35 +342,38 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         // Populate the "Developer Services" section
         removeServices();
 
-        DefaultComboBoxModel moduleList = new DefaultComboBoxModel();
-        for (AndroidModuleConfigurable moduleConfigurable : moduleConfigurables) {
-          // Collect only Android modules
-          if (AndroidFacet.getInstance(moduleConfigurable.getModule()) != null) {
-            moduleList.addElement(moduleConfigurable.getModule());
-          }
-        }
-
-        if (!myProject.isDefault() && moduleList.getSize() > 0) {
-          // We may have modified service values previous but then cancelled this dialog. To be
-          // safe, we restore our old values now.
-          // TODO: We really should do this on cancel but it doesn't look like we have any hooks
-          // into that event.
-          for (int i = 0; i < moduleList.getSize(); i++) {
-            Module module = (Module)moduleList.getElementAt(i);
-            for (DeveloperService service : DeveloperServices.getAll(module)) {
-              service.getContext().restore();
+        if (Projects.isBuildWithGradle(myProject)) {
+          DefaultComboBoxModel moduleList = new DefaultComboBoxModel();
+          for (AndroidModuleConfigurable moduleConfigurable : moduleConfigurables) {
+            // Collect only Android modules
+            if (AndroidFacet.getInstance(moduleConfigurable.getModule()) != null) {
+              moduleList.addElement(moduleConfigurable.getModule());
             }
           }
 
-          Module module = (Module)moduleList.getSelectedItem();
-          Set<ServiceCategory> categories = Sets.newHashSet();
-          for (DeveloperService s : DeveloperServices.getAll(module)) {
-            categories.add(s.getCategory());
-          }
-          ArrayList<ServiceCategory> categoriesSorted = Lists.newArrayList(categories);
-          Collections.sort(categoriesSorted);
-          for (ServiceCategory category : categoriesSorted) {
-            myConfigurables.add(new ServiceCategoryConfigurable(moduleList, category));
+          if (!myProject.isDefault() && moduleList.getSize() > 0) {
+            // This may not be our first time opening the developer services dialog. User may have
+            // modified developer service values last time but then pressed cancel. To be safe, we
+            // restore our old values before reentering.
+            // TODO: We really should do this on cancel but it doesn't look like we have any hooks
+            // into that event.
+            for (int i = 0; i < moduleList.getSize(); i++) {
+              Module module = (Module)moduleList.getElementAt(i);
+              for (DeveloperService service : DeveloperServices.getAll(module)) {
+                service.getContext().restore();
+              }
+            }
+
+            Module module = (Module)moduleList.getSelectedItem();
+            Set<ServiceCategory> categories = Sets.newHashSet();
+            for (DeveloperService s : DeveloperServices.getAll(module)) {
+              categories.add(s.getCategory());
+            }
+            ArrayList<ServiceCategory> categoriesSorted = Lists.newArrayList(categories);
+            Collections.sort(categoriesSorted);
+            for (ServiceCategory category : categoriesSorted) {
+              myConfigurables.add(new ServiceCategoryConfigurable(moduleList, category));
+            }
           }
         }
 
