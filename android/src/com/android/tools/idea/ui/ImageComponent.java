@@ -29,7 +29,7 @@ import java.awt.image.BufferedImage;
  * externally.
  */
 public class ImageComponent extends OpaquePanel {
-  private Icon myIcon = null;
+  protected Icon myIcon = null;
 
   public ImageComponent() {
   }
@@ -45,7 +45,6 @@ public class ImageComponent extends OpaquePanel {
     final BufferedImage image = UIUtil.createImage(myIcon.getIconWidth(), myIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
     final Graphics2D gg = image.createGraphics();
     myIcon.paintIcon(this, gg, 0, 0);
-
     g.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), this);
   }
 

@@ -200,14 +200,38 @@ public final class TemplateWizardContextAdapter implements AssetStudioContext {
     return (String)myWizardState.get(ATTR_ASSET_THEME);
   }
 
-  @Nullable
-  @Override
-  public String getErrorLog()  {
-    return (String)myWizardState.get(ATTR_ERROR_LOG);
-  }
-
   @Override
   public void setErrorLog(String log) {
     myWizardState.put(ATTR_ERROR_LOG, log);
+  }
+
+  @Override
+  public String getVectorWidth()  {
+    return myWizardState.getString(ATTR_VECTOR_DRAWBLE_WIDTH);
+  }
+
+  @Override
+  public String getVectorHeight()  {
+    return myWizardState.getString(ATTR_VECTOR_DRAWBLE_HEIGHT);
+  }
+
+  @Override
+  public void setOriginalWidth(int width) {
+    myWizardState.put(ATTR_ORIGINAL_WIDTH, width);
+  }
+
+  @Override
+  public void setOriginalHeight(int height) {
+    myWizardState.put(ATTR_ORIGINAL_HEIGHT, height);
+  }
+
+  @Override
+  public int getVectorOpacity()  {
+    return myWizardState.getInt(ATTR_VECTOR_DRAWBLE_OPACTITY);
+  }
+
+  @Override
+  public boolean getVectorAutoMirrored()  {
+    return myWizardState.getBoolean(ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED);
   }
 }

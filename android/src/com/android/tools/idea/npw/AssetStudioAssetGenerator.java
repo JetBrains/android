@@ -17,8 +17,10 @@
 package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.assetstudiolib.*;
 import com.android.assetstudiolib.vectordrawable.Svg2Vector;
+import com.android.assetstudiolib.vectordrawable.VdOverrideInfo;
 import com.android.assetstudiolib.vectordrawable.VdPreview;
 import com.android.resources.Density;
 import com.android.tools.idea.rendering.ImageUtils;
@@ -34,8 +36,12 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 import javax.imageio.ImageIO;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -65,6 +71,12 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   public static final String ATTR_ASSET_THEME = "assetTheme";
   public static final String ATTR_ASSET_NAME = "assetName";
   public static final String ATTR_ERROR_LOG = "errorLog";
+  public static final String ATTR_VECTOR_DRAWBLE_WIDTH = "vectorDrawableWidth";
+  public static final String ATTR_VECTOR_DRAWBLE_HEIGHT = "vectorDrawableHeight";
+  public static final String ATTR_ORIGINAL_WIDTH = "originalWidth";
+  public static final String ATTR_ORIGINAL_HEIGHT = "originalHeight";
+  public static final String ATTR_VECTOR_DRAWBLE_OPACTITY = "vectorDrawableOpacity";
+  public static final String ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED = "vectorDrawableAutoMirror";
 
   public static final String ERROR_MESSAGE_EMPTY_PREVIEW_IMAGE = "Empty preview image!";
 
@@ -75,6 +87,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   private final ActionBarIconGenerator myActionBarIconGenerator;
   private final NotificationIconGenerator myNotificationIconGenerator;
   private final LauncherIconGenerator myLauncherIconGenerator;
+  private final VectorIconGenerator myVectorIconGenerator;
 
   private AssetStudioContext myContext;
 
@@ -118,9 +131,9 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     void setClipartName(String clipartName);
 
     @Nullable
-    public String getVectorLibIconPath();
+    String getVectorLibIconPath();
 
-    public void setVectorLibIconPath(String path);
+    void setVectorLibIconPath(String path);
 
     Color getForegroundColor();
 
@@ -154,9 +167,21 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     String getAssetTheme();
 
     @Nullable
-    public String getErrorLog();
+    void setErrorLog(String log);
 
-    public void setErrorLog(String log);
+    @NotNull
+    String getVectorWidth();
+
+    @NotNull
+    String getVectorHeight();
+
+    int getVectorOpacity();
+
+    boolean getVectorAutoMirrored();
+
+    void setOriginalWidth(int width);
+
+    void setOriginalHeight(int height);
   }
 
   public static class ImageGeneratorException extends Exception {
@@ -276,26 +301,41 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   }
 
   public AssetStudioAssetGenerator(AssetStudioContext context) {
-    this(context, new ActionBarIconGenerator(), new NotificationIconGenerator(), new LauncherIconGenerator());
+    this(context, new ActionBarIconGenerator(), new NotificationIconGenerator(),
+         new LauncherIconGenerator(), new VectorIconGenerator());
   }
 
   public AssetStudioAssetGenerator(TemplateWizardState state) {
-    this(new TemplateWizardContextAdapter(state), new ActionBarIconGenerator(), new NotificationIconGenerator(),
-         new LauncherIconGenerator());
+    this(new TemplateWizardContextAdapter(state), new ActionBarIconGenerator(),
+         new NotificationIconGenerator(), new LauncherIconGenerator(),
+         new VectorIconGenerator());
   }
 
   /**
-   * Allows dependency injection for testing
+   * Allows dependency injection for testing.
+   * If one incoming generator is null, then a new one will be generated
+   * inside this function.
+   * There is no functional difference if the generators are null
+   * or not.
+   *
+   * @param context the context of the asset studio.
+   * @param actionBarIconGenerator the image generator for action bar icons.
+   * @param notificationIconGenerator the image generator for notification icons.
+   * @param launcherIconGenerator the image generator for launcher icons.
+   * @param vectorIconGenerator the image generator for vector icons.
    */
   @SuppressWarnings("UseJBColor") // These colors are for the graphics generator, not the plugin UI
-  public AssetStudioAssetGenerator(@NotNull AssetStudioContext context,
+  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
+  AssetStudioAssetGenerator(@NotNull AssetStudioContext context,
                                    @Nullable ActionBarIconGenerator actionBarIconGenerator,
                                    @Nullable NotificationIconGenerator notificationIconGenerator,
-                                   @Nullable LauncherIconGenerator launcherIconGenerator) {
+                                   @Nullable LauncherIconGenerator launcherIconGenerator,
+                                   @Nullable VectorIconGenerator vectorIconGenerator) {
     myContext = context;
     myActionBarIconGenerator = actionBarIconGenerator != null ? actionBarIconGenerator : new ActionBarIconGenerator();
     myNotificationIconGenerator = notificationIconGenerator != null ? notificationIconGenerator : new NotificationIconGenerator();
     myLauncherIconGenerator = launcherIconGenerator != null ? launcherIconGenerator : new LauncherIconGenerator();
+    myVectorIconGenerator = vectorIconGenerator != null ? vectorIconGenerator : new VectorIconGenerator();
 
     myContext.setText("Aa");
     myContext.setFont("Arial Black");
@@ -442,60 +482,66 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     GraphicGenerator.Options options = null;
     String baseName = Strings.nullToEmpty(myContext.getAssetName());
 
-    switch (type) {
-      case LAUNCHER: {
-        generator = myLauncherIconGenerator;
-        LauncherIconGenerator.LauncherOptions launcherOptions = new LauncherIconGenerator.LauncherOptions();
-        launcherOptions.shape = myContext.getShape();
-        launcherOptions.crop = Scaling.CROP.equals(myContext.getScaling());
-        launcherOptions.style = GraphicGenerator.Style.SIMPLE;
-        launcherOptions.backgroundColor = myContext.getBackgroundColor().getRGB();
-        launcherOptions.isWebGraphic = !previewOnly;
-        if (dogEar) {
-          launcherOptions.isDogEar = true;
-        }
-        options = launcherOptions;
+    // When source type is vector, then there is only one target type supported,
+    // and we only need to generate one bitmap.
+    // When the source type is not vector, then it must be raster image (either
+    // image, clipart or text), and it has 3 target types to deal with (either
+    // launcher icon, action bar icon or notification icon).
+    if (sourceType == SourceType.SVG || sourceType == SourceType.VECTORDRAWABLE) {
+      generator = myVectorIconGenerator;
+      options = new VectorIconGenerator.VectorIconOptions();
+      options.density = Density.ANYDPI;
+    } else {
+      switch (type) {
+        case LAUNCHER: {
+          generator = myLauncherIconGenerator;
+          LauncherIconGenerator.LauncherOptions launcherOptions = new LauncherIconGenerator.LauncherOptions();
+          launcherOptions.shape = myContext.getShape();
+          launcherOptions.crop = Scaling.CROP.equals(myContext.getScaling());
+          launcherOptions.style = GraphicGenerator.Style.SIMPLE;
+          launcherOptions.backgroundColor = myContext.getBackgroundColor().getRGB();
+          launcherOptions.isWebGraphic = !previewOnly;
+          if (dogEar) {
+            launcherOptions.isDogEar = true;
+          }
+          options = launcherOptions;
         }
         break;
-      case ACTIONBAR: {
-        generator = myActionBarIconGenerator;
-        ActionBarIconGenerator.ActionBarOptions actionBarOptions = new ActionBarIconGenerator.ActionBarOptions();
-        String themeName = myContext.getAssetTheme();
-        if (!StringUtil.isEmpty(themeName)) {
-          ActionBarIconGenerator.Theme theme = ActionBarIconGenerator.Theme.valueOf(themeName);
-          if (theme != null) {
-            switch (theme) {
-              case HOLO_DARK:
-                actionBarOptions.theme = ActionBarIconGenerator.Theme.HOLO_DARK;
-                break;
-              case HOLO_LIGHT:
-                actionBarOptions.theme = ActionBarIconGenerator.Theme.HOLO_LIGHT;
-                break;
-              case CUSTOM:
-                actionBarOptions.theme = ActionBarIconGenerator.Theme.CUSTOM;
-                actionBarOptions.customThemeColor = myContext.getForegroundColor().getRGB();
-                break;
+        case ACTIONBAR: {
+          generator = myActionBarIconGenerator;
+          ActionBarIconGenerator.ActionBarOptions actionBarOptions = new ActionBarIconGenerator.ActionBarOptions();
+          String themeName = myContext.getAssetTheme();
+          if (!StringUtil.isEmpty(themeName)) {
+            ActionBarIconGenerator.Theme theme = ActionBarIconGenerator.Theme.valueOf(themeName);
+            if (theme != null) {
+              switch (theme) {
+                case HOLO_DARK:
+                  actionBarOptions.theme = ActionBarIconGenerator.Theme.HOLO_DARK;
+                  break;
+                case HOLO_LIGHT:
+                  actionBarOptions.theme = ActionBarIconGenerator.Theme.HOLO_LIGHT;
+                  break;
+                case CUSTOM:
+                  actionBarOptions.theme = ActionBarIconGenerator.Theme.CUSTOM;
+                  actionBarOptions.customThemeColor = myContext.getForegroundColor().getRGB();
+                  break;
+              }
             }
           }
-        }
-        actionBarOptions.sourceIsClipart = (sourceType == SourceType.CLIPART);
+          actionBarOptions.sourceIsClipart = (sourceType == SourceType.CLIPART);
 
-        options = actionBarOptions;
+          options = actionBarOptions;
         }
         break;
-      case NOTIFICATION:
-        generator = myNotificationIconGenerator;
-        NotificationIconGenerator.NotificationOptions notificationOptions = new NotificationIconGenerator.NotificationOptions();
-        notificationOptions.version = NotificationIconGenerator.Version.V11;
-        options = notificationOptions;
-        break;
+        case NOTIFICATION:
+          generator = myNotificationIconGenerator;
+          NotificationIconGenerator.NotificationOptions notificationOptions = new NotificationIconGenerator.NotificationOptions();
+          notificationOptions.version = NotificationIconGenerator.Version.V11;
+          options = notificationOptions;
+          break;
+      }
     }
-
     options.sourceImage = sourceImage;
-    // Override the density since we only want to generate one image in these cases.
-    if (sourceType == SourceType.SVG || sourceType == SourceType.VECTORDRAWABLE) {
-      options.density = Density.ANYDPI;
-    }
     generator.generate(null, categoryMap, this, options, baseName);
   }
 
@@ -543,9 +589,48 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     outputImagesIntoVariantRoot(directory);
   }
 
+  /**
+   * Parse the VectorDrawable's XML file into a document object.
+   *
+   * @param xmlFileContent the content of the VectorDrawable's XML file.
+   * @param errorLog when errors were found, log them in this builder if it is not null.
+   * @return parsed document or null if errors happened.
+   */
+  @Nullable
+  public static Document parseVdStringIntoDocument(@NotNull String xmlFileContent,
+                                                   @Nullable StringBuilder errorLog) {
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    DocumentBuilder db;
+    Document document;
+    try {
+      db = dbf.newDocumentBuilder();
+      document = db.parse(new InputSource(new StringReader(xmlFileContent)));
+    }
+    catch (Exception e) {
+      if (errorLog != null) {
+        errorLog.append("Exception while parsing XML file:\n").append(e.getMessage());
+      }
+      return null;
+    }
+    return document;
+  }
+
+  /**
+   * Convert the input file into the VectorDrawable's XML, and then generate
+   * a BufferedImage according to the XML content.
+   *
+   * The pipeline is :
+   * SVG files or XML icons
+   *      |  (conversion)
+   *      V
+   * Original VectorDrawable's XML
+   *      |  (overriden by user input)
+   *      V
+   * Overriden VectorDrawable's XML
+   */
   @NotNull
-  private static BufferedImage getSvgImage(@NotNull String path, StringBuilder errorLog,
-                                           SourceType sourceType) {
+  private BufferedImage getSvgImage(@NotNull String path, @NotNull StringBuilder errorLog,
+                                    @NotNull SourceType sourceType) {
     String xmlFileContent;
     if (sourceType == SourceType.SVG) {
       xmlFileContent = generateVectorXml(new File(path), errorLog);
@@ -553,9 +638,27 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
       assert sourceType == SourceType.VECTORDRAWABLE;
       xmlFileContent = readXmlFile(path);
     }
-    final VdPreview.Size imageSize = VdPreview.Size.createSizeFromWidth(SVG_PREVIEW_WIDTH);
-    BufferedImage image = VdPreview.getPreviewFromVectorXml(imageSize, xmlFileContent, errorLog);
 
+    BufferedImage image = null;
+    Document vdDocument = parseVdStringIntoDocument(xmlFileContent, errorLog);
+    if (vdDocument != null) {
+      // Get the original file's size info here, and save it into context.
+      VdPreview.SourceSize vdSrcSize = VdPreview.getVdOriginalSize(vdDocument);
+      int vdWidth = vdSrcSize.getWidth();
+      int vdHeight = vdSrcSize.getHeight();
+      if (vdWidth > 0 && vdHeight > 0) {
+        myContext.setOriginalWidth(vdWidth);
+        myContext.setOriginalHeight(vdHeight);
+      }
+
+      // Now get the real image!
+      String overrideContent = overrideXmlFileContent(vdDocument, errorLog);
+      if (overrideContent != null) {
+        xmlFileContent = overrideContent;
+      }
+      final VdPreview.TargetSize imageTargetSize = VdPreview.TargetSize.createSizeFromWidth(SVG_PREVIEW_WIDTH);
+      image = VdPreview.getPreviewFromVectorXml(imageTargetSize, xmlFileContent, errorLog);
+    }
     if (image == null) {
       //noinspection UndesirableClassUsage
       image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
@@ -563,6 +666,41 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
       errorLog.insert(0, ERROR_MESSAGE_EMPTY_PREVIEW_IMAGE + "\n");
     }
     return image;
+  }
+
+  /**
+   * Override the XML file by parsing it, modifying attributes and saving
+   * to an String.
+   */
+  @Nullable
+  private String overrideXmlFileContent(@NotNull Document vdDocument,
+                                        @Nullable StringBuilder errorLog) {
+    int targetWidth = 0;
+    int targetHeight = 0;
+    try {
+      targetWidth = Integer.parseInt(myContext.getVectorWidth());
+      targetHeight = Integer.parseInt(myContext.getVectorHeight());
+    } catch (NumberFormatException e) {
+      // Keep the width as 0, which means do not override the size.
+      errorLog.append("Invalid size " + myContext.getVectorWidth() +
+                      " X " + myContext.getVectorHeight());
+      return null;
+    }
+    if (targetWidth < 0 || targetHeight < 0) {
+      errorLog.append("Size can't be negative !");
+      return null;
+    }
+    if (targetWidth > VdPreview.MAX_PREVIEW_IMAGE_SIZE ||
+        targetHeight > VdPreview.MAX_PREVIEW_IMAGE_SIZE) {
+      errorLog.append("Size can't be bigger than " + VdPreview.MAX_PREVIEW_IMAGE_SIZE);
+      return null;
+    }
+    VdOverrideInfo info = new VdOverrideInfo(targetWidth, targetHeight,
+                                             myContext.getVectorOpacity(),
+                                             myContext.getVectorAutoMirrored());
+    String xmlFileContent = VdPreview.overrideXmlContent(vdDocument, info, errorLog);
+
+    return xmlFileContent;
   }
 
   /**
@@ -586,6 +724,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     String xmlFileContent;
     if (sourceType == SourceType.SVG) {
       String currentFilePath = myContext.getImagePath();
+
       // At output step, we can ignore the errors since they have been exposed in the previous step.
       xmlFileContent = generateVectorXml(new File(currentFilePath), null);
     } else {
@@ -594,6 +733,15 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
       xmlFileContent = readXmlFile(currentIconPath);
     }
 
+    Document vdDocument = parseVdStringIntoDocument(xmlFileContent, null);
+    if (vdDocument == null) {
+      LOG.error("Error in parsing vector drawable's XML");
+      return;
+    }
+    String overrideContent = overrideXmlFileContent(vdDocument, null);
+    if (overrideContent != null) {
+      xmlFileContent = overrideContent;
+    }
     String xmlFileName = myContext.getAssetName();
     // Here get the XML file content, and write into targetResDir / drawable / ***.xml
     File file = new File(targetResDir, SdkConstants.FD_RES_DRAWABLE + File.separator +
@@ -615,6 +763,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   @Nullable
   private static String generateVectorXml(@NotNull File inputSvgFile, StringBuilder error) {
     OutputStream outStream = new ByteArrayOutputStream();
+
     String parseError = Svg2Vector.parseSvgToXml(inputSvgFile, outStream);
     if (error != null) {
       error.append(Strings.nullToEmpty(parseError));
