@@ -996,6 +996,41 @@ public class GradleSyncTest extends GuiTestCase {
     assertThat(moduleDependency.getModuleName()).isEqualTo("library2");
   }
 
+  // See https://code.google.com/p/android/issues/detail?id=169778
+  @Test @IdeGuiTest
+  public void testJavaToAndroidModuleDependencies() throws IOException {
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    Module library3 = projectFrame.getModule("library3");
+    assertNull(AndroidFacet.getInstance(library3));
+
+    File library3BuildFile = new File(projectFrame.getProjectPath(), join("library3", FN_BUILD_GRADLE));
+    assertThat(library3BuildFile).isFile();
+    appendToFile(library3BuildFile, "dependencies { compile project(':app') }");
+
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(library3);
+    // Verify that the module "library3" doesn't depend on module "app"
+    ModuleOrderEntry moduleDependency = null;
+    for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
+      if (orderEntry instanceof ModuleOrderEntry) {
+        moduleDependency = (ModuleOrderEntry)orderEntry;
+        break;
+      }
+    }
+
+    assertNull(moduleDependency);
+
+    ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    MessageFixture message = syncMessages.findMessage(WARNING,
+                                                      firstLineStartingWith("Ignoring dependency of module 'app' on module 'library3'."));
+
+    // Verify if the error message's link goes to the build file.
+    VirtualFile buildFile = getGradleBuildFile(library3);
+    assertNotNull(buildFile);
+    message.requireLocation(new File(buildFile.getPath()), 0);
+  }
+
   // See https://code.google.com/p/android/issues/detail?id=73087
   @Test @IdeGuiTest
   public void testUserDefinedLibraryAttachments() throws IOException {

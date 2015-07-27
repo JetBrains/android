@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
@@ -32,6 +33,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,8 +93,14 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       }
     }
     if (found != null) {
-      ModuleOrderEntry orderEntry = moduleModel.addModuleOrderEntry(found);
-      orderEntry.setExported(true);
+      AndroidFacet androidFacet = AndroidFacet.getInstance(found);
+      if (androidFacet == null) {
+        ModuleOrderEntry orderEntry = moduleModel.addModuleOrderEntry(found);
+        orderEntry.setExported(true);
+      } else {
+        // If it depends on an android module, we should skip that.
+        setupErrors.addInvalidModuleDependency(moduleModel.getModule(), found.getName(), "Java modules cannot depend on Android modules");
+      }
       return;
     }
     setupErrors.addMissingModule(moduleName, moduleModel.getModule().getName(), null);
