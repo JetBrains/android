@@ -20,34 +20,18 @@ import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PsiNavigateUtil;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.*;
 import java.awt.event.*;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
 
@@ -58,8 +42,6 @@ import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIU
  * interactions and in order to update the interactions along the way.
  */
 public class InteractionManager {
-  private static final Logger LOG = Logger.getInstance(InteractionManager.class);
-
   /** The canvas which owns this {@linkplain InteractionManager}. */
   @NonNull
   private final DesignSurface mySurface;
@@ -548,65 +530,72 @@ public class InteractionManager {
     // ---- Implements DropTargetListener ----
 
     @Override
-    public void dragEnter(DropTargetDragEvent event) {
+    public void dragEnter(DropTargetDragEvent dragEvent) {
       if (myCurrentInteraction == null) {
+        NlDropEvent event = new NlDropEvent(dragEvent);
         Point location = event.getLocation();
         myLastMouseX = location.x;
         myLastMouseY = location.y;
 
-        for (DataFlavor flavor : event.getCurrentDataFlavors()) {
-          if (flavor.equals(ItemTransferable.DESIGNER_FLAVOR) ||
-              flavor.getMimeType().startsWith("text/plain;") || flavor.getMimeType().equals("text/plain")) {
-            event.acceptDrag(DnDConstants.ACTION_COPY);
-            ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-            if (screenView == null) {
-              continue;
-            }
-            final NlModel model = screenView.getModel();
-            try {
-              DnDTransferItem item = getTransferItem(event.getTransferable(), true /* allow placeholders */);
-              DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
-              InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
-              List<NlComponent> dragged = model.createComponents(screenView, item, insertType);
-              if (dragged == null) {
-                continue;
-              }
-              int yOffset = 0;
-              for (NlComponent component : dragged) {
-                // todo: place the components like they were originally placed?
-                component.x = Coordinates.getAndroidX(screenView, myLastMouseX) - component.w / 2;
-                component.y = Coordinates.getAndroidY(screenView, myLastMouseY) - component.h / 2 + yOffset;
-                yOffset += component.h;
-              }
-              DragDropInteraction interaction = new DragDropInteraction(mySurface, dragged);
-              interaction.setType(DragType.COPY);
-              startInteraction(myLastMouseX, myLastMouseY, interaction, 0);
-              break;
-            }
-            catch (Exception ignore) {
-              LOG.debug(ignore);
-            }
-          }
+        ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
+        if (screenView == null) {
+          event.reject();
+          return;
         }
+        NlModel model = screenView.getModel();
+        DnDTransferItem item = NlModel.getTransferItem(event.getTransferable(), true /* allow placeholders */);
+        if (item == null) {
+          event.reject();
+          return;
+        }
+        DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
+        InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
+        List<NlComponent> dragged = model.createComponents(screenView, item, insertType);
+        if (dragged == null) {
+          event.reject();
+          return;
+        }
+        int yOffset = 0;
+        for (NlComponent component : dragged) {
+          // todo: keep original relative position?
+          component.x = Coordinates.getAndroidX(screenView, myLastMouseX) - component.w / 2;
+          component.y = Coordinates.getAndroidY(screenView, myLastMouseY) - component.h / 2 + yOffset;
+          yOffset += component.h;
+        }
+        DragDropInteraction interaction = new DragDropInteraction(mySurface, dragged);
+        interaction.setType(dragType);
+        interaction.setTransferItem(item);
+        startInteraction(myLastMouseX, myLastMouseY, interaction, 0);
+
+        // This determines the icon presented to the user while dragging.
+        // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
+        // that reflects the users choice i.e. controlled by the modifier key.
+        event.accept(insertType.isCreate() ? DnDConstants.ACTION_COPY : event.getDropAction());
       }
     }
 
     @Override
-    public void dragOver(DropTargetDragEvent event) {
+    public void dragOver(DropTargetDragEvent dragEvent) {
+      NlDropEvent event = new NlDropEvent(dragEvent);
       Point location = event.getLocation();
       myLastMouseX = location.x;
       myLastMouseY = location.y;
-      if (myCurrentInteraction instanceof DragDropInteraction) {
-        myCurrentInteraction.update(myLastMouseX, myLastMouseY, myLastStateMask);
-      }
+      ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
+      if (screenView != null && myCurrentInteraction instanceof DragDropInteraction) {
+        DragDropInteraction interaction = (DragDropInteraction)myCurrentInteraction;
+        interaction.update(myLastMouseX, myLastMouseY, myLastStateMask);
+        DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
+        interaction.setType(dragType);
+        NlModel model = screenView.getModel();
+        InsertType insertType = model.determineInsertType(dragType, interaction.getTransferItem(), true /* preview */);
 
-      for (DataFlavor flavor : event.getCurrentDataFlavors()) {
-        if (flavor.equals(ItemTransferable.DESIGNER_FLAVOR) || String.class == flavor.getRepresentationClass()) {
-          event.acceptDrag(DnDConstants.ACTION_COPY);
-          return;
-        }
+        // This determines the icon presented to the user while dragging.
+        // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
+        // that reflects the users choice i.e. controlled by the modifier key.
+        event.accept(insertType.isCreate() ? DnDConstants.ACTION_COPY : event.getDropAction());
+      } else {
+        event.reject();
       }
-      event.rejectDrag();
     }
 
     @Override
@@ -616,106 +605,82 @@ public class InteractionManager {
     @Override
     public void dragExit(DropTargetEvent event) {
       if (myCurrentInteraction instanceof DragDropInteraction) {
-        finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true);
+        finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true /* cancel interaction */);
       }
     }
 
     @Override
-    public void drop(final DropTargetDropEvent event) {
+    public void drop(final DropTargetDropEvent dropEvent) {
+      NlDropEvent event = new NlDropEvent(dropEvent);
       Point location = event.getLocation();
       myLastMouseX = location.x;
       myLastMouseY = location.y;
-
-      final ScreenView screenView = mySurface.getScreenView(location.x, location.y);
-      if (screenView == null) {
-        event.rejectDrop();
-        return;
-      }
-
-      try {
-        event.acceptDrop(DnDConstants.ACTION_MOVE);
-        final NlModel model = screenView.getModel();
-        final Project project = model.getFacet().getModule().getProject();
-        final XmlFile file = model.getFile();
-        WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Drop", file) {
-          @Override
-          protected void run(@NonNull Result<Void> result) throws Throwable {
-            if (myCurrentInteraction instanceof DragDropInteraction) {
-              DragDropInteraction dragDrop = (DragDropInteraction)myCurrentInteraction;
-              List<NlComponent> draggedComponents = dragDrop.getDraggedComponents();
-              NlComponent component = draggedComponents.size() == 1 ? draggedComponents.get(0) : null;
-              boolean dropCancelled = true;
-              if (component != null) {
-                if (component.getTag().getName().equals("placeholder")) {
-                  // If we were unable to read the transfer data on dragEnter, fix it here:
-                  final DnDTransferItem item = getTransferItem(event.getTransferable(), false /* do not allow placeholders */);
-                  DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
-                  InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
-                  draggedComponents = model.createComponents(screenView, item, insertType);
-                  component = draggedComponents != null && draggedComponents.size() == 1 ? draggedComponents.get(0) : null;
-                }
-              }
-              if (component != null) {
-                if (component.needsDefaultId()) {
-                  component.assignId();
-                }
-                ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(getProject());
-                ViewHandler viewHandler = viewHandlerManager.getHandler(component);
-                if (viewHandler != null && dragDrop.getDragReceiver() != null) {
-                  ViewEditor editor = new ViewEditorImpl(screenView);
-                  dropCancelled = !viewHandler.onCreate(editor, dragDrop.getDragReceiver(), component, InsertType.CREATE);
-                } else {
-                  dropCancelled = false;
-                }
-              }
-              finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, dropCancelled);
-              if (component != null && component.getTag().isValid() && component.getTag().getParent() instanceof XmlTag) {
-                // Remove any xmlns: attributes once the element is added into the document
-                for (XmlAttribute attribute : component.getTag().getAttributes()) {
-                  if (attribute.getName().startsWith(XMLNS_PREFIX)) {
-                    attribute.delete();
-                  }
-                }
-              }
-            }
-          }
-        };
-        action.execute();
-        event.getDropTargetContext().dropComplete(true); // or just event.dropComplete() ?
-        model.notifyModified();
-      }
-      catch (Exception ignore) {
-        LOG.debug(ignore);
-        event.rejectDrop();
+      InsertType insertType = performDrop(event.getDropAction(), event.getTransferable());
+      if (insertType != null) {
+        // This determines how the DnD source acts to a completed drop.
+        event.accept(insertType == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
+        event.complete();
+      } else {
+        event.reject();
       }
     }
-  }
 
-  @NonNull
-  private static DnDTransferItem getTransferItem(@NonNull Transferable transferable, boolean allowPlaceholder)
-    throws IOException, UnsupportedFlavorException {
-    DnDTransferItem item = null;
-    try {
-      if (transferable.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) {
-        item = (DnDTransferItem)transferable.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
+    @Nullable
+    private InsertType performDrop(int dropAction, @Nullable Transferable transferable) {
+      if (!(myCurrentInteraction instanceof DragDropInteraction)) {
+        return null;
       }
-      else if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-        String xml = (String)transferable.getTransferData(DataFlavor.stringFlavor);
-        if (!StringUtil.isEmpty(xml)) {
-          item = new DnDTransferItem(new DnDTransferComponent("", xml, 200, 100));
+      InsertType insertType = updateDropInteraction(dropAction, transferable);
+      finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, (insertType == null));
+      return insertType;
+    }
+
+    @Nullable
+    private InsertType updateDropInteraction(int dropAction, @Nullable Transferable transferable) {
+      if (transferable == null) {
+        return null;
+      }
+      DnDTransferItem item = NlModel.getTransferItem(transferable, false /* no placeholders */);
+      if (item == null) {
+        return null;
+      }
+      ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
+      if (screenView == null) {
+        return null;
+      }
+
+      NlModel model = screenView.getModel();
+      DragType dragType = dropAction == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
+      InsertType insertType = model.determineInsertType(dragType, item, false /* not for preview */);
+
+      DragDropInteraction interaction = (DragDropInteraction)myCurrentInteraction;
+      assert interaction != null;
+      interaction.setType(dragType);
+      interaction.setTransferItem(item);
+
+      List<NlComponent> dragged = interaction.getDraggedComponents();
+      List<NlComponent> components;
+      if (insertType.isMove()) {
+        components = model.getSelectionModel().getSelection();
+      }
+      else {
+        components = model.createComponents(screenView, item, insertType);
+        if (components == null) {
+          return null;  // User cancelled
         }
       }
-    } catch (InvalidDnDOperationException ex) {
-      if (!allowPlaceholder) {
-        throw ex;
+      if (dragged.size() != components.size()) {
+        throw new AssertionError(
+          String.format("Problem with drop: dragged.size(%1$d) != components.size(%1$d)", dragged.size(), components.size()));
       }
-      String defaultXml = "<placeholder xmlns:android=\"http://schemas.android.com/apk/res/android\"/>";
-      item = new DnDTransferItem(new DnDTransferComponent("", defaultXml, 200, 100));
+      for (int index = 0; index < dragged.size(); index++) {
+        components.get(index).x = dragged.get(index).x;
+        components.get(index).y = dragged.get(index).y;
+      }
+      dragged.clear();
+      dragged.addAll(components);
+      return insertType;
     }
-    if (item == null) {
-      throw new UnsupportedFlavorException(null);
-    }
-    return item;
   }
 
   @VisibleForTesting
