@@ -243,6 +243,8 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   private void updateDbCombo() {
     if (!myPanel.isShowing()) return; // comboboxes do weird stuff when loosing focus
     String selectedPackage = getSelectedPackage();
+    String selectedDatabase = getSelectedDatabase();
+    boolean databaseIsCustom = StringUtil.isNotEmpty(selectedDatabase) && ((DefaultComboBoxModel)myDataBaseComboBox.getModel()).getIndexOf(selectedDatabase) < 0;
 
     if (myInternalStorageRadioButton.isSelected()) {
       List<String> dbList = myDatabaseMap.get(selectedPackage);
@@ -250,6 +252,9 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     }
     else {
       myDataBaseComboBox.setModel(new DefaultComboBoxModel(DEFAULT_EXTERNAL_DB_PATTERNS));
+    }
+    if (databaseIsCustom) {
+      myDataBaseComboBox.getEditor().setItem(selectedDatabase);
     }
   }
 
