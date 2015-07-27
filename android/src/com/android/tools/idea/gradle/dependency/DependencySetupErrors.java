@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dependency;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +39,8 @@ public class DependencySetupErrors {
 
   @NotNull private final Set<String> myDependentsOnModulesWithoutName = Sets.newHashSet();
   @NotNull private final Set<String> myDependentsOnLibrariesWithoutBinaryPath = Sets.newHashSet();
+
+  @NotNull private final Set<InvalidModuleDependency> myInvalidModuleDependencies = Sets.newHashSet();
 
   public void addMissingModule(@NotNull String dependencyName, @NotNull String dependentName, @Nullable String backupLibraryName) {
     Map<String, MissingModule> mapping = isNotEmpty(backupLibraryName) ? myMissingModulesWithBackupLibraries : myMissingModules;
@@ -63,6 +66,10 @@ public class DependencySetupErrors {
    */
   public void addMissingBinaryPath(@NotNull String dependentName) {
     myDependentsOnLibrariesWithoutBinaryPath.add(dependentName);
+  }
+
+  public void addInvalidModuleDependency(@NotNull Module module, @NotNull String targetModuleName, @NotNull String detail) {
+    myInvalidModuleDependencies.add(new InvalidModuleDependency(module, targetModuleName, detail));
   }
 
   @NotNull
@@ -104,6 +111,11 @@ public class DependencySetupErrors {
   }
 
   @NotNull
+  public Set<InvalidModuleDependency> getInvalidModuleDependencies() {
+    return myInvalidModuleDependencies;
+  }
+
+  @NotNull
   private static List<String> sortSet(@NotNull Set<String> set) {
     if (set.isEmpty()) {
       return Collections.emptyList();
@@ -134,6 +146,18 @@ public class DependencySetupErrors {
       if (!dependentNames.isEmpty()) {
         sort(dependentNames);
       }
+    }
+  }
+
+  public static class InvalidModuleDependency {
+    @NotNull public final Module dependency;
+    @NotNull public final String dependent;
+    @NotNull public final String detail;
+
+    InvalidModuleDependency(@NotNull Module dependency, @NotNull String dependent, @NotNull String detail) {
+      this.dependency = dependency;
+      this.dependent = dependent;
+      this.detail = detail;
     }
   }
 }
