@@ -21,6 +21,7 @@ import com.intellij.codeInsight.daemon.QuickFixActionRegistrar;
 import com.intellij.codeInsight.daemon.impl.quickfix.OrderEntryFix;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider;
+import com.intellij.jarFinder.FindJarFix;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
@@ -66,12 +67,13 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
     // Since this is a gradle android project, we need to unregister:
     //  "add module dependency fix",
     //  "add junit to module quick fix",
-    //  "all add library to module quick fix",
+    //  "add library to module quick fix",
+    //  "add jar from web quick fix",
     // since those quick fixes would make the iml file and the gradle file out of sync.
     registrar.unregister(new Condition<IntentionAction>() {
       @Override
       public boolean value(IntentionAction intentionAction) {
-        return intentionAction instanceof OrderEntryFix;
+        return intentionAction instanceof OrderEntryFix || intentionAction instanceof FindJarFix;
       }
     });
 
