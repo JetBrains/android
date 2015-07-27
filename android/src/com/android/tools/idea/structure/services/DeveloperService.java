@@ -80,7 +80,6 @@ public final class DeveloperService {
       }
     }.execute();
     getContext().snapshot();
-    getContext().installed().set(true);
 
     UsageTracker.getInstance()
       .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_DEVELOPER_SERVICES_INSTALLED, getMetadata().getName(),
@@ -124,9 +123,35 @@ public final class DeveloperService {
       GradleProjectImporter.getInstance().requestProjectSync(getModule().getProject(), null);
     }
 
-    getContext().installed().set(false);
-
     UsageTracker.getInstance()
       .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_DEVELOPER_SERVICES_REMOVED, getMetadata().getName(), null);
+  }
+
+  /**
+   * We are not the authority of whether a service is installed or not - instead, we need to check
+   * the build model to find out. This method should be triggered externally by a manager class
+   * which listens to whenever the build model is modified.
+   */
+  void updateInstalledState() {
+    boolean isInstalled = false;
+    final GradleBuildFile gradleFile = GradleBuildFile.get(getModule());
+    if (gradleFile != null) {
+      final List<BuildFileStatement> dependencies = gradleFile.getDependencies();
+      for (BuildFileStatement statement : dependencies) {
+        if (!(statement instanceof Dependency)) {
+          continue;
+        }
+
+        Dependency dependency = (Dependency)statement;
+        for (String dependencyValue : getMetadata().getDependencies()) {
+          if (dependency.getValueAsString().equals(dependencyValue)) {
+            isInstalled = true;
+            break;
+          }
+        }
+      }
+
+      getContext().installed().set(isInstalled);
+    }
   }
 }

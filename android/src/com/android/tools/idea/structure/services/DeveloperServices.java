@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.structure.services;
 
+import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
@@ -25,6 +27,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ModuleAdapter;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
  * interface to access them.
  */
 public final class DeveloperServices {
+
   private static final Logger LOG = Logger.getInstance(DeveloperService.class);
 
   private static Multimap<Module, DeveloperService> ourServices = ArrayListMultimap.create();
@@ -50,7 +54,7 @@ public final class DeveloperServices {
     });
   }
 
-  private static void initializeFor(@NotNull Module module) {
+  private static void initializeFor(@NotNull final Module module) {
     if (ourServices.containsKey(module)) {
       return;
     }
@@ -69,12 +73,24 @@ public final class DeveloperServices {
       }
     }
 
-    final MessageBusConnection connection = module.getMessageBus().connect();
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null;
+    facet.addListener(new GradleSyncListener.Adapter() {
+      @Override
+      public void syncSucceeded(@NotNull Project project) {
+        for (DeveloperService service : ourServices.get(module)) {
+          service.updateInstalledState();
+        }
+      }
+    });
+
+    final MessageBusConnection connection = module.getMessageBus().connect(module);
     connection.subscribe(ProjectTopics.MODULES, new ModuleAdapter() {
       @Override
-      public void moduleRemoved(Project project, Module module) {
-        ourServices.removeAll(module);
-        connection.disconnect();
+      public void moduleRemoved(Project project, Module moduleRemoved) {
+        if (module == moduleRemoved) {
+          ourServices.removeAll(module);
+        }
       }
     });
   }
