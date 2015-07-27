@@ -343,9 +343,13 @@ class AndroidDbUtil {
                                             @NotNull String dbName,
                                             boolean external,
                                             @NotNull AndroidDbErrorReporter errorReporter) {
-    final String command = getRunAsPrefix(packageName, external) + TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH +
-                           " " + getDatabaseRemoteFilePath(packageName, dbName, external);
-    final String s = executeSingleCommand(device, errorReporter, command);
+    String databaseRemoteFilePath = getDatabaseRemoteFilePath(packageName, dbName, external);
+    final String command = getRunAsPrefix(packageName, external) + TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH + " " + databaseRemoteFilePath;
+    String s = executeSingleCommand(device, errorReporter, command);
+
+    if (s != null && s.contains("Permission denied")) {
+      s = executeSingleCommand(device, errorReporter, TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH + " " + databaseRemoteFilePath);
+    }
 
     if (s == null) {
       return null;
