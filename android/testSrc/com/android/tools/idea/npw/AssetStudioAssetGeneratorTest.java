@@ -47,6 +47,7 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
   private NotificationIconGenerator myNotificationIconGenerator;
   private ActionBarIconGenerator myActionBarIconGenerator;
   private LauncherIconGenerator myLauncherIconGenerator;
+  private VectorIconGenerator myVectorIconGenerator;
   private TemplateWizardState myState = new TemplateWizardState();
   private AssetStudioAssetGenerator myAssetGenerator;
   private static final String ASSET_NAME = "ThisIsTheFileName";
@@ -57,8 +58,10 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
     myNotificationIconGenerator = mock(NotificationIconGenerator.class);
     myActionBarIconGenerator = mock(ActionBarIconGenerator.class);
     myLauncherIconGenerator = mock(LauncherIconGenerator.class);
+    myVectorIconGenerator = mock(VectorIconGenerator.class);
     myAssetGenerator = new AssetStudioAssetGenerator(new TemplateWizardContextAdapter(myState), myActionBarIconGenerator,
-                                                     myNotificationIconGenerator, myLauncherIconGenerator);
+                                                     myNotificationIconGenerator, myLauncherIconGenerator,
+                                                     myVectorIconGenerator);
     pickImage(myState);
     myState.put(ATTR_ASSET_NAME, ASSET_NAME);
   }
@@ -90,12 +93,17 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
     verify(myLauncherIconGenerator, never())
       .generate(anyString(), any(Map.class),
                 any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class), anyString());
+
+    verify(myVectorIconGenerator, never())
+      .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
+    verify(myVectorIconGenerator, never())
+      .generate(anyString(), any(Map.class),
+                any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class), anyString());
   }
 
   public void testLauncherIcons() throws Exception {
     myState.put(ATTR_ASSET_TYPE, AssetType.LAUNCHER.name());
     myAssetGenerator.generateImages(true);
-
 
     verify(myNotificationIconGenerator, never())
       .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
@@ -114,6 +122,12 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
     verify(myLauncherIconGenerator, times(1))
       .generate(isNull(String.class), any(Map.class), eq(myAssetGenerator),
                 any(LauncherIconGenerator.LauncherOptions.class), eq(ASSET_NAME));
+
+    verify(myVectorIconGenerator, never())
+      .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
+    verify(myVectorIconGenerator, never())
+      .generate(anyString(), any(Map.class),
+                any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class), anyString());
   }
 
   public void testNotificationIcons() throws Exception {
@@ -135,6 +149,12 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
     verify(myLauncherIconGenerator, never())
       .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
     verify(myLauncherIconGenerator, never())
+      .generate(anyString(), any(Map.class),
+                any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class), anyString());
+
+    verify(myVectorIconGenerator, never())
+      .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
+    verify(myVectorIconGenerator, never())
       .generate(anyString(), any(Map.class),
                 any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class), anyString());
   }
@@ -160,6 +180,51 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
     verify(myLauncherIconGenerator, never())
       .generate(anyString(), any(Map.class),
                 any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class), anyString());
+
+    verify(myVectorIconGenerator, never())
+      .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
+    verify(myVectorIconGenerator, never())
+      .generate(anyString(), any(Map.class),
+                any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class), anyString());
+  }
+
+  public void testVectorIcons() throws Exception {
+    myState.put(ATTR_SOURCE_TYPE, SourceType.SVG);
+    myState.put(ATTR_ASSET_TYPE, AssetType.ACTIONBAR.name());
+    myState.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), FileUtil
+      .join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME, "root",
+            "res", "mipmap-anydpi", "test.svg"))
+      .getAbsolutePath());
+    myState.put(ATTR_VECTOR_DRAWBLE_WIDTH, "24");
+    myState.put(ATTR_VECTOR_DRAWBLE_HEIGHT, "24");
+    myState.put(ATTR_VECTOR_DRAWBLE_OPACTITY, 100);
+    myState.put(ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED, false);
+
+    myAssetGenerator.generateImages(true);
+
+    verify(myNotificationIconGenerator, never())
+      .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
+    verify(myNotificationIconGenerator, never())
+      .generate(anyString(), any(Map.class), any(GraphicGeneratorContext.class),
+                any(GraphicGenerator.Options.class), anyString());
+
+    verify(myActionBarIconGenerator, never())
+      .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
+    verify(myActionBarIconGenerator, never())
+      .generate(anyString(), any(Map.class),
+                any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class), anyString());
+
+    verify(myLauncherIconGenerator, never())
+      .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
+    verify(myLauncherIconGenerator, never())
+      .generate(anyString(), any(Map.class),
+                any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class), anyString());
+
+    verify(myVectorIconGenerator, never())
+      .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
+    verify(myVectorIconGenerator, times(1))
+      .generate(isNull(String.class), any(Map.class),
+                eq(myAssetGenerator), any(VectorIconGenerator.Options.class), eq(ASSET_NAME));
   }
 
   public void testThemes() throws Exception {
@@ -177,7 +242,7 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
 
     TemplateWizardState state = new TemplateWizardState();
     AssetStudioAssetGenerator studioGenerator = new AssetStudioAssetGenerator(new TemplateWizardContextAdapter(state),
-                                                                              generator, null, null);
+                                                                              generator, null, null, null);
     pickImage(state);
     state.put(ATTR_ASSET_TYPE, AssetType.ACTIONBAR.name());
     state.put(ATTR_ASSET_THEME, theme.name());

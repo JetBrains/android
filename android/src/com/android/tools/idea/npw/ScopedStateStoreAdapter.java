@@ -209,14 +209,38 @@ public class ScopedStateStoreAdapter implements AssetStudioAssetGenerator.AssetS
     return myState.get(ATTR_ASSET_THEME);
   }
 
-  @Nullable
-  @Override
-  public String getErrorLog()  {
-    return (String)myState.get(ATTR_ERROR_LOG);
-  }
-
   @Override
   public void setErrorLog(String log) {
     myState.put(ATTR_ERROR_LOG, log);
+  }
+
+  @Override
+  public String getVectorWidth()  {
+    return myState.get(ATTR_VECTOR_DRAWBLE_WIDTH);
+  }
+
+  @Override
+  public String getVectorHeight()  {
+    return myState.get(ATTR_VECTOR_DRAWBLE_HEIGHT);
+  }
+
+  @Override
+  public void setOriginalWidth(int width) {
+    myState.put(ATTR_ORIGINAL_WIDTH, width);
+  }
+
+  @Override
+  public void setOriginalHeight(int height) {
+    myState.put(ATTR_ORIGINAL_HEIGHT, height);
+  }
+
+  @Override
+  public int getVectorOpacity()  {
+    return myState.get(ATTR_VECTOR_DRAWBLE_OPACTITY);
+  }
+
+  @Override
+  public boolean getVectorAutoMirrored()  {
+    return myState.get(ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED);
   }
 }
