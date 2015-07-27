@@ -18,6 +18,7 @@ package com.android.tools.idea.structure.services.view;
 import com.android.tools.idea.structure.EditorPanel;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServiceMetadata;
+import com.android.tools.idea.structure.services.ServiceContext;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.Observable;
@@ -70,6 +71,7 @@ public final class DeveloperServicePanel extends EditorPanel {
   public DeveloperServicePanel(@NotNull DeveloperService service) {
     super(new BorderLayout());
     myService = service;
+    ServiceContext context = service.getContext();
 
     DeveloperServiceMetadata developerServiceMetadata = service.getMetadata();
 
@@ -78,13 +80,11 @@ public final class DeveloperServicePanel extends EditorPanel {
     initializeFooterPanel(developerServiceMetadata);
 
     final SelectedProperty enabledCheckboxSelected = new SelectedProperty(myEnabledCheckbox);
-    myBindings.bind(new VisibleProperty(myDetailsPanel), enabledCheckboxSelected.and(not(service.getContext().installed())));
+    myBindings.bind(new VisibleProperty(myDetailsPanel), enabledCheckboxSelected.and(not(context.installed())));
 
     // This definition might be modified from the user interacting with the service earlier but not
     // yet committing to install it.
-    if (service.getContext().installed().get() || service.getContext().modified().get()) {
-      myEnabledCheckbox.setSelected(true);
-    }
+    myBindings.bind(new SelectedProperty(myEnabledCheckbox), context.installed().or(context.modified()));
 
     enabledCheckboxSelected.addListener(new InvalidationListener() {
       @Override
