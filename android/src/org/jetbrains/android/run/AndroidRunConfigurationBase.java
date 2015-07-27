@@ -68,7 +68,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.util.Projects.isGradleProjectWithoutModel;
+import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 import static com.android.tools.idea.run.CloudConfiguration.Kind.MATRIX;
 import static com.android.tools.idea.run.CloudConfiguration.Kind.SINGLE_DEVICE;
 
@@ -121,7 +121,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     Project project = module.getProject();
-    if (isGradleProjectWithoutModel(project)) {
+    if (requiredAndroidModelMissing(project)) {
       // This only shows an error message on the "Run Configuration" dialog, but does not prevent user from running app.
       throw new RuntimeConfigurationException(GRADLE_SYNC_FAILED_ERR_MSG);
     }
@@ -214,7 +214,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     Project project = env.getProject();
 
-    if (isGradleProjectWithoutModel(project)) {
+    if (requiredAndroidModelMissing(project)) {
       // This prevents user from running the app.
       throw new ExecutionException(GRADLE_SYNC_FAILED_ERR_MSG);
     }
