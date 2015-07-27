@@ -219,7 +219,7 @@ class AndroidDbUtil {
     if (abi == null) {
       abi = "armeabi";
     }
-    final String urlStr = "/native_tools/" + abi + "/get_modification_time";
+    final String urlStr = "/native_tools/non_pie/" + abi + "/get_modification_time";
     final URL url = AndroidDbUtil.class.getResource(urlStr);
 
     if (url == null) {
