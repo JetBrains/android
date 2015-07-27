@@ -47,9 +47,9 @@ public class ThemeEditorContext {
   private @NotNull Configuration myConfiguration;
 
   /**
-   * Stores {@link ThemeEditorStyle#mySourceModule} of a ThemeEditorStyle currently being edited
+   * Stores ThemeEditorStyle currently being edited
    */
-  private @Nullable Module mySelectedStyleSourceModule;
+  private @Nullable ThemeEditorStyle myCurrentTheme;
 
   // Field is initialized in method called from constructor which checker doesn't see, warning could be ignored
   @SuppressWarnings("NullableProblems")
@@ -80,8 +80,13 @@ public class ThemeEditorContext {
     return myConfiguration.getModule();
   }
 
-  public void setSelectedStyleSourceModule(@Nullable Module module) {
-    mySelectedStyleSourceModule = module;
+  public void setCurrentTheme(@Nullable ThemeEditorStyle currentTheme) {
+    myCurrentTheme = currentTheme;
+  }
+
+  @Nullable
+  public ThemeEditorStyle getCurrentTheme() {
+    return myCurrentTheme;
   }
 
   /**
@@ -90,9 +95,9 @@ public class ThemeEditorContext {
    */
   @NotNull
   public Module getModuleForResources() {
-    if (mySelectedStyleSourceModule != null) {
+    if (myCurrentTheme != null && myCurrentTheme.getSourceModule() != null) {
       // If we have a source module, we want to use it for resolving possible values
-      return mySelectedStyleSourceModule;
+      return myCurrentTheme.getSourceModule();
     }
     // Otherwise, it should be a library theme or framework theme, in which case we will create
     // a new theme in the current rendering context, which we are returning here;
