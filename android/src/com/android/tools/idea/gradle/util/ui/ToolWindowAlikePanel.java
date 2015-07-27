@@ -20,7 +20,6 @@ import com.intellij.ide.DataManager;
 import com.intellij.ide.DefaultTreeExpander;
 import com.intellij.ide.TreeExpander;
 import com.intellij.ide.ui.UISettings;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -195,8 +194,7 @@ public class ToolWindowAlikePanel extends JPanel {
       ActionManagerEx actionManager = ActionManagerEx.getInstanceEx();
       InputEvent inputEvent = e.getSource() instanceof InputEvent ? (InputEvent)e.getSource() : null;
       //noinspection ConstantConditions
-      AnActionEvent event =
-        new AnActionEvent(inputEvent, dataContext, UNKNOWN, myAction.getTemplatePresentation(), ActionManager.getInstance(), 0);
+      AnActionEvent event = AnActionEvent.createFromAnAction(myAction, inputEvent, UNKNOWN, dataContext);
       actionManager.fireBeforeActionPerformed(myAction, dataContext, event);
       myAction.actionPerformed(event);
     }
