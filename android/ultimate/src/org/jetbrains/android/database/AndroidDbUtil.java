@@ -219,7 +219,8 @@ class AndroidDbUtil {
     if (abi == null) {
       abi = "armeabi";
     }
-    final String urlStr = "/native_tools/non_pie/" + abi + "/get_modification_time";
+    String pieDir = arePositionIndependentExecutablesSupported(device) ? "pie" : "non_pie";
+    final String urlStr = "/native_tools/" + pieDir + "/" + abi + "/get_modification_time";
     final URL url = AndroidDbUtil.class.getResource(urlStr);
 
     if (url == null) {
@@ -420,6 +421,16 @@ class AndroidDbUtil {
       builder.append(c);
     }
     return builder.toString();
+  }
+
+  private static boolean arePositionIndependentExecutablesSupported(IDevice device) {
+    try {
+      return Integer.parseInt(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)) >= 16;
+    }
+    catch (NumberFormatException e) {
+      LOG.info(e);
+      return false;
+    }
   }
 
   @NotNull
