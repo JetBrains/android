@@ -80,6 +80,9 @@ public class DragDropInteraction extends Interaction {
   /** The last accessed screen view. */
   private ScreenView myScreenView;
 
+  /** The transfer item for this drag if any */
+  private DnDTransferItem myTransferItem;
+
   public DragDropInteraction(@NonNull DesignSurface designSurface, @NonNull List<NlComponent> dragged) {
     myDesignSurface = designSurface;
     myDraggedComponents = dragged;
@@ -90,6 +93,15 @@ public class DragDropInteraction extends Interaction {
     if (myDragHandler != null) {
       myDragHandler.setDragType(type);
     }
+  }
+
+  public void setTransferItem(@NonNull DnDTransferItem item) {
+    myTransferItem = item;
+  }
+
+  @Nullable
+  public DnDTransferItem getTransferItem() {
+    return myTransferItem;
   }
 
   @Override
@@ -164,7 +176,7 @@ public class DragDropInteraction extends Interaction {
       String error = myDragHandler.update(ax, ay, modifiers);
       final List<NlComponent> added = Lists.newArrayList();
       if (commit && error == null) {
-        NlModel model = myScreenView.getModel();
+        final NlModel model = myScreenView.getModel();
         XmlFile file = model.getFile();
         String label = myType.getDescription();
         WriteCommandAction action = new WriteCommandAction(project, label, file) {
@@ -178,53 +190,8 @@ public class DragDropInteraction extends Interaction {
               before = myDragReceiver.getChild(insertIndex);
             }
 
-            ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(getProject());
-
-            // Move the widget and schedule a re-render
-            for (NlComponent component : myDraggedComponents) {
-              if (!myCurrentHandler.acceptsChild(myDragReceiver, component)) {
-                continue;
-              }
-              ViewHandler viewHandler = viewHandlerManager.getHandler(component);
-              if (viewHandler != null && !viewHandler.acceptsParent(myDragReceiver, component)) {
-                continue;
-              }
-
-              // Notify parent & child about the creation and allow them to customize the objects
-              InsertType insertType =  myType == DragType.COPY ? InsertType.MOVE_INTO :
-                                       (component.getParent() != myDragReceiver ? InsertType.MOVE_INTO : InsertType.MOVE_WITHIN);
-              myCurrentHandler.onChildInserted(myDragReceiver, component, insertType);
-              if (viewHandler != null) {
-                ViewEditor editor = new ViewEditorImpl(myScreenView);
-                boolean ok = viewHandler.onCreate(editor, myDragReceiver, component, insertType);
-                if (!ok) {
-                  return;
-                }
-              }
-
-              // Also update the component hierarchy directly.
-              // This will be corrected after the next rendering job too, but anticipate it
-              // here such that tests etc can immediately see the result
-              NlComponent parent = component.getParent();
-              if (parent != null) {
-                parent.removeChild(component);
-              }
-              myDragReceiver.addChild(component, before);
-              added.add(component);
-
-              // Move XML tags
-              if (myDragReceiver.getTag() != component.getTag()) {
-                XmlTag prev = component.getTag();
-                if (before != null) {
-                  component.setTag((XmlTag)myDragReceiver.getTag().addBefore(component.getTag(), before.getTag()));
-                } else {
-                  component.setTag(myDragReceiver.getTag().addSubTag(component.getTag(), false));
-                }
-                if (myType == DragType.MOVE) {
-                  prev.delete();
-                }
-              }
-            }
+            InsertType insertType = model.determineInsertType(myType, myTransferItem, false /* not for preview */);
+            model.addComponents(myDraggedComponents, myDragReceiver, before, insertType);
           }
         };
         action.execute();
