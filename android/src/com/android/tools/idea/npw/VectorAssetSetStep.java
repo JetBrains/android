@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.resources.Density;
-import com.android.tools.idea.ui.ImageComponent;
+import com.android.tools.idea.ui.VectorImageComponent;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
@@ -33,10 +33,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.text.NumberFormatter;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -48,12 +49,15 @@ import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
  */
 public class VectorAssetSetStep extends CommonAssetSetStep {
   private static final Logger LOG = Logger.getInstance(VectorAssetSetStep.class);
+  public static final String ANDROID_DEFAULT_SIZE = "24";
+  public static final int MAX_VECTOR_DRAWABLE_SIZE = 4096;
+  public static final int MIN_VECTOR_DRAWABLE_SIZE = 1;
 
   private JPanel myPanel;
   private JLabel myError;
   private JLabel myDescription;
 
-  private ImageComponent myImagePreview;
+  private VectorImageComponent myImagePreview;
 
   private TextFieldWithBrowseButton myImageFile;
   private JLabel myImageFileLabel;
@@ -70,10 +74,38 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
   private JRadioButton myLocalSVGFilesRadioButton;
   private JRadioButton myMaterialIconsRadioButton;
   private JPanel myImageFileBrowserPanel;
+  private JTextField myWidthTextField;
+  private JTextField myHeightTextField;
+  private JCheckBox myEnableAutoMirroredCheckBox;
+  private JPanel myPreviewPanel;
+  private JPanel myFilePanel;
+  private JPanel myPropertyPanel;
+  private JSlider myOpacitySlider;
+  private JCheckBox myUseManualSizeCheckBox;
+  private JPanel myResizePanel;
+  private JPanel mySliderPanel;
+  private JLabel myOpacityLabel;
+  private JLabel mySizeLabel;
+  private JLabel myDpXLabel;
+  private JLabel myDpLabel;
+
+  private AbstractAction myEnterKeyButtonAction = new AbstractAction() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (e.getSource() instanceof JButton) {
+        JButton button = (JButton)e.getSource();
+        button.doClick();
+      }
+    }
+  };
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
-  public VectorAssetSetStep(TemplateWizardState state, @Nullable Project project, @Nullable Module module,
-                      @Nullable Icon sidePanelIcon, UpdateListener updateListener, @Nullable VirtualFile invocationTarget) {
+  public VectorAssetSetStep(TemplateWizardState state,
+                            @Nullable Project project,
+                            @Nullable Module module,
+                            @Nullable Icon sidePanelIcon,
+                            UpdateListener updateListener,
+                            @Nullable VirtualFile invocationTarget) {
     super(state, project, module, sidePanelIcon, updateListener, invocationTarget);
 
     myImageFile.addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileDescriptor("svg"));
@@ -88,10 +120,56 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
     register(ATTR_SOURCE_TYPE, myMaterialIconsRadioButton, AssetStudioAssetGenerator.SourceType.VECTORDRAWABLE);
     register(ATTR_SOURCE_TYPE, myLocalSVGFilesRadioButton, AssetStudioAssetGenerator.SourceType.SVG);
 
+    myEnableAutoMirroredCheckBox.setSelected(false);
+
+    myWidthTextField.setText(ANDROID_DEFAULT_SIZE);
+    myHeightTextField.setText(ANDROID_DEFAULT_SIZE);
+    myWidthTextField.setEnabled(false);
+    myHeightTextField.setEnabled(false);
+
+    register(ATTR_VECTOR_DRAWBLE_WIDTH, myWidthTextField);
+    register(ATTR_VECTOR_DRAWBLE_HEIGHT, myHeightTextField);
+    register(ATTR_VECTOR_DRAWBLE_OPACTITY, myOpacitySlider);
+    register(ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED, myEnableAutoMirroredCheckBox);
+
+    // Support both mouse and enter key.
+    myIconPickerButton.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "DoClick");
+    myIconPickerButton.getActionMap().put("DoClick", myEnterKeyButtonAction);
     myIconPickerButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         displayVectorIconDialog();
+      }
+    });
+
+    myTemplateState.put(ATTR_ORIGINAL_WIDTH, 0);
+    myTemplateState.put(ATTR_ORIGINAL_HEIGHT, 0);
+
+    // Use item listener instead of action listener to make sure this is
+    // triggered by setSelect() call, too.
+    myUseManualSizeCheckBox.addItemListener(new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent event) {
+        // When the override is checked, we use the original size such that the
+        // user can get the original aspect ratio if they want.
+        // Otherwise, we use the default vector size.
+        String finalWidthString = ANDROID_DEFAULT_SIZE;
+        String finalHeightString = ANDROID_DEFAULT_SIZE;
+        if (event.getStateChange() == ItemEvent.SELECTED) {
+          int originalWidth = myTemplateState.getInt(ATTR_ORIGINAL_WIDTH);
+          int originalHeight = myTemplateState.getInt(ATTR_ORIGINAL_HEIGHT);
+          if (originalWidth > 0 && originalHeight > 0) {
+            finalWidthString = String.valueOf(originalWidth);
+            finalHeightString = String.valueOf(originalHeight);
+          }
+          myWidthTextField.setEnabled(true);
+          myHeightTextField.setEnabled(true);
+        } else {
+          myWidthTextField.setEnabled(false);
+          myHeightTextField.setEnabled(false);
+        }
+        myWidthTextField.setText(finalWidthString);
+        myHeightTextField.setText(finalHeightString);
       }
     });
   }
@@ -119,6 +197,35 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
     }
   }
 
+  /**
+   * @return true if the path for the current source type (vector drawable or SVG) is
+   *              empty or null.
+   */
+  private boolean isVectorPathEmpty() {
+    SourceType sourceType = (SourceType) myTemplateState.get(ATTR_SOURCE_TYPE);
+    boolean isPathEmpty = false;
+    if (sourceType == SourceType.SVG) {
+      if (myTemplateState.hasAttr(ATTR_IMAGE_PATH)) {
+        String path = myTemplateState.getString(ATTR_IMAGE_PATH);
+        if (path == null || path.isEmpty()) {
+          isPathEmpty = true;
+        }
+      } else {
+        isPathEmpty = true;
+      }
+    } else {
+      if (myTemplateState.hasAttr(ATTR_VECTOR_LIB_ICON_PATH)) {
+        String path = myTemplateState.getString(ATTR_VECTOR_LIB_ICON_PATH);
+        if (path == null || path.isEmpty()) {
+          isPathEmpty = true;
+        }
+      } else {
+        isPathEmpty = true;
+      }
+    }
+    return isPathEmpty;
+  }
+
   @Override
   public void deriveValues() {
     super.deriveValues();
@@ -131,6 +238,15 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
       });
     }
 
+    // If the path for the vector asset is empty, then reset and disable the controls
+    // in the properties panel.
+    boolean isPathEmpty = isVectorPathEmpty();
+    if (isPathEmpty) {
+      togglePropertiesPanel(false);
+    } else {
+      togglePropertiesPanel(true);
+    }
+
     if (myMaterialIconsRadioButton.isSelected()) {
       show(myIconPickerPanel, myIconLabel);
       hide(myImageFileBrowserPanel, myImageFileLabel);
@@ -140,7 +256,28 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
       show(myImageFileBrowserPanel, myImageFileLabel);
       hide(myIconPickerPanel, myIconLabel);
     }
+  }
 
+  private void togglePropertiesPanel(boolean enable) {
+    if (!enable) {
+      // De-select the checkboxs and reset slider before disabling them.
+      if (myUseManualSizeCheckBox.isSelected()) {
+        myUseManualSizeCheckBox.setSelected(false);
+      }
+      if (myEnableAutoMirroredCheckBox.isSelected()) {
+        myEnableAutoMirroredCheckBox.setSelected(false);
+      }
+      if (myOpacitySlider.getValue() != 100) {
+        myOpacitySlider.setValue(100);
+      }
+    }
+    myUseManualSizeCheckBox.setEnabled(enable);
+    myEnableAutoMirroredCheckBox.setEnabled(enable);
+    myOpacitySlider.setEnabled(enable);
+    myOpacityLabel.setEnabled(enable);
+    myDpXLabel.setEnabled(enable);
+    myDpLabel.setEnabled(enable);
+    mySizeLabel.setEnabled(enable);
   }
 
   @Override
@@ -179,14 +316,14 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
     boolean isPreviewValid = !errorMessage.startsWith(ERROR_MESSAGE_EMPTY_PREVIEW_IMAGE);
     int firstLineBreak = errorMessage.indexOf("\n");
     boolean moreErrors = firstLineBreak > 0 && firstLineBreak < errorMessage.length() - 1;
-    String firstLineError =
-        moreErrors ? errorMessage.substring(0, firstLineBreak) : errorMessage;
+    String firstLineError = moreErrors ? errorMessage.substring(0, firstLineBreak) : errorMessage;
     myConvertError.setText(firstLineError);
     if (moreErrors) {
       myMoreErrors.setVisible(true);
       myMoreErrors.setHyperlinkText("More...");
       myMoreErrorHyperlinkAdapter.setErrorMessage(errorMessage);
-    } else {
+    }
+    else {
       myMoreErrors.setVisible(false);
     }
     return isPreviewValid;
@@ -240,7 +377,7 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myImageFile;
+    return myIconPickerButton;
   }
 
   @NotNull
