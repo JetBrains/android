@@ -150,6 +150,17 @@ public class AddGradleDependencyTest extends GuiTestCase {
     assertBuildFileContains(projectFrame, "app/build.gradle", "testCompile 'junit:junit:4.12'");
   }
 
+  @Test @IdeGuiTest
+  public void testAddJetbrainsAnnotationDependency() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/java/google/simpleapplication/MyActivity.java");
+
+    typeImportAndInvokeAction(projectFrame, "onCreate(^Bundle savedInstanceState) {", "@Not^Null ", "Add 'annotations.jar' to classpath");
+
+    assertBuildFileContains(projectFrame, "app/build.gradle", "compile 'org.jetbrains:annotations:13.0'");
+  }
+
   private static void typeImportAndInvokeAction(@NotNull IdeFrameFixture projectFrame, @NotNull String lineToType,
                                                 @NotNull String testImportStatement, @NotNull String intention) {
     EditorFixture editor = projectFrame.getEditor();
