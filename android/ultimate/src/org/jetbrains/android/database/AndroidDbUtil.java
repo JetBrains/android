@@ -214,7 +214,7 @@ class AndroidDbUtil {
   private static boolean installGetModificationTimeTool(@NotNull IDevice device,
                                                         @NotNull AndroidDbErrorReporter reporter,
                                                         @NotNull ProgressIndicator progressIndicator) {
-    String abi = device.getProperty("ro.product.cpu.abi");
+    String abi = device.getProperty(IDevice.PROP_DEVICE_CPU_ABI);
 
     if (abi == null) {
       abi = "armeabi";
@@ -445,7 +445,7 @@ class AndroidDbUtil {
 
     public MyShellOutputReceiver(@Nullable ProgressIndicator progressIndicator, @NotNull IDevice device) {
       myProgressIndicator = progressIndicator;
-      myAndroid43 = "18".equals(device.getProperty("ro.build.version.sdk"));
+      myAndroid43 = "18".equals(device.getProperty(IDevice.PROP_BUILD_API_LEVEL));
     }
 
     @Override
