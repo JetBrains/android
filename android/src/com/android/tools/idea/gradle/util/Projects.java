@@ -171,7 +171,7 @@ public final class Projects {
    * Indicates whether the last sync with Gradle failed.
    */
   public static boolean lastGradleSyncFailed(@NotNull Project project) {
-    return !GradleSyncState.getInstance(project).isSyncInProgress() && isGradleProjectWithoutModel(project);
+    return !GradleSyncState.getInstance(project).isSyncInProgress() && isBuildWithGradle(project) && requiredAndroidModelMissing(project);
   }
 
   public static boolean hasErrors(@NotNull Project project) {
@@ -202,8 +202,7 @@ public final class Projects {
   }
 
   /**
-   * Indicates the given project is an Gradle-based Android project that does not contain any Gradle model. Possible causes for this
-   * scenario to happen are:
+   * Indicates the given project requires an Android model, but the model is {@code null}. Possible causes for this scenario to happen are:
    * <ul>
    * <li>the last sync with Gradle failed</li>
    * <li>Studio just started up and it has not synced the project yet</li>
@@ -212,7 +211,7 @@ public final class Projects {
    * @param project the project.
    * @return {@code true} if the project is a Gradle-based Android project that does not contain any Gradle model.
    */
-  public static boolean isGradleProjectWithoutModel(@NotNull Project project) {
+  public static boolean requiredAndroidModelMissing(@NotNull Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() == null) {
@@ -418,9 +417,10 @@ public final class Projects {
    */
   public static boolean isGradleProjectModule(@NotNull Module module) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet != null && androidFacet.requiresAndroidModel()) {
+    if (androidFacet != null && androidFacet.requiresAndroidModel() && isBuildWithGradle(module)) {
       // If the module is an Android project, check that the module's path is the same as the project's.
-      File moduleRootDirPath = new File(toSystemDependentName(module.getModuleFilePath())).getParentFile();
+      File moduleFilePath = new File(toSystemDependentName(module.getModuleFilePath()));
+      File moduleRootDirPath = moduleFilePath.getParentFile();
       return pathsEqual(moduleRootDirPath.getPath(), module.getProject().getBasePath());
     }
     // For non-Android project modules, the top-level one is the one without an "Android-Gradle" facet.
