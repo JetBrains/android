@@ -113,6 +113,12 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
+  @NotNull
+  public Map<String, String> getTestInstrumentationRunnerArguments() {
+    return Collections.emptyMap();
+  }
+
+  @Override
   @Nullable
   public Boolean getTestHandleProfiling() {
     throw new UnsupportedOperationException();
