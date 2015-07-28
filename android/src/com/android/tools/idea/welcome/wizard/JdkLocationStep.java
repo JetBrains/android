@@ -43,7 +43,7 @@ public class JdkLocationStep extends FirstRunWizardStep {
   @NotNull private final FirstRunWizardMode myMode;
   private JPanel myContents;
   private TextFieldWithBrowseButton myJdkPath;
-  private JButton myDownloadPageLink;
+  private com.intellij.ui.HyperlinkLabel myDownloadPageLink;
   private JLabel myError;
   private JButton myDetectButton;
   // Show errors only after the user touched the value
@@ -53,8 +53,8 @@ public class JdkLocationStep extends FirstRunWizardStep {
     super("Java Settings");
     myPathKey = pathKey;
     myMode = mode;
-    myDownloadPageLink.setText(getLinkText());
-    WelcomeUIUtils.makeButtonAHyperlink(myDownloadPageLink, Jdks.DOWNLOAD_JDK_7_URL);
+    myDownloadPageLink.setHyperlinkText(getLinkText());
+    myDownloadPageLink.setHyperlinkTarget(Jdks.DOWNLOAD_JDK_7_URL);
     myDownloadPageLink.getParent().invalidate();
     setComponent(myContents);
     myError.setForeground(JBColor.red);

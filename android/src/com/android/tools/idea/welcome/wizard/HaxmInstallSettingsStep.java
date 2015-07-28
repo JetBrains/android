@@ -48,7 +48,7 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
   private final ScopedStateStore.Key<Boolean> myKeyInstallHaxm;
   private JPanel myRoot;
-  private JButton myIntelHAXMDocumentationButton;
+  private com.intellij.ui.HyperlinkLabel myIntelHAXMDocumentationButton;
   private JSlider myMemorySlider;
   private JSpinner myMemorySize;
   private JLabel myUnitLabel;
@@ -63,7 +63,8 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
     myUnitLabel.setText(UI_UNITS.toString());
     myKeyEmulatorMemory = keyEmulatorMemory;
     final long memorySize = Haxm.getMemorySize();
-    WelcomeUIUtils.makeButtonAHyperlink(myIntelHAXMDocumentationButton, FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL);
+    myIntelHAXMDocumentationButton.setHyperlinkText("Intel® HAXM Documentation");
+    myIntelHAXMDocumentationButton.setHyperlinkTarget(FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL);
     myRecommendedMemorySize = setupSliderAndSpinner(memorySize, myMemorySlider, myMemorySize);
     setComponent(myRoot);
     myRecommended.addActionListener(new ActionListener() {
