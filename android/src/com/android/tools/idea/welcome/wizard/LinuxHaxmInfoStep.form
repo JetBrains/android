@@ -58,11 +58,9 @@
               <text value="Search for install instructions for your particular Linux configuration ("/>
             </properties>
           </component>
-          <component id="6992d" class="javax.swing.JButton" binding="myLink">
+          <component id="bebb4" class="com.intellij.ui.HyperlinkLabel" binding="myLink">
             <constraints/>
-            <properties>
-              <text value="Android KVM Linux Installation"/>
-            </properties>
+            <properties/>
           </component>
           <component id="d8d91" class="javax.swing.JLabel">
             <constraints/>
