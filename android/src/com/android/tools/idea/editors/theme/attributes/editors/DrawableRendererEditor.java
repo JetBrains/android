@@ -28,6 +28,7 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.JBMenuItem;
+import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
@@ -88,9 +89,8 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     if (myRenderTask != null) {
       component.setSwatchIcons(SwatchComponent.imageListOf(myRenderTask.renderDrawableAllStates(item.getSelectedValue())));
     }
-
     String nameText =
-      String.format(LABEL_TEMPLATE, ThemeEditorConstants.RESOURCE_ITEM_COLOR.toString(), ThemeEditorUtils.getDisplayHtml(item));
+      String.format(LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), ThemeEditorUtils.getDisplayHtml(item));
     component.setNameText(nameText);
     component.setValueText(item.getValue());
   }
