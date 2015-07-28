@@ -536,10 +536,10 @@ public class GuidelineHandler {
       if (value != null) {
         n.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN, null);
         // These may be individually replaced later as we're applying constraints
-        n.setAttribute(ATTR_LAYOUT_MARGIN_LEFT, ANDROID_URI, value);
-        n.setAttribute(ATTR_LAYOUT_MARGIN_RIGHT, ANDROID_URI, value);
-        n.setAttribute(ATTR_LAYOUT_MARGIN_TOP, ANDROID_URI, value);
-        n.setAttribute(ATTR_LAYOUT_MARGIN_BOTTOM, ANDROID_URI, value);
+        n.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, value);
+        n.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, value);
+        n.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, value);
+        n.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, value);
       }
     }
 
