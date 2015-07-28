@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.sdklib.repository.FullRevision;
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
@@ -218,7 +219,7 @@ public class GradleUtilTest extends TestCase {
     String expectedScript = "allprojects {\n" +
                             "  buildscript {\n" +
                             "    repositories {\n" +
-                            "      maven { url '" + repoPath.getPath() + "'}\n" +
+                            "      maven { url '" + GradleImport.escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
                             "    }\n" +
                             "  }\n" +
                             "}\n";
