@@ -167,6 +167,10 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     Disposer.register(project, this);
   }
 
+  public Project getProject() {
+    return myProject;
+  }
+
   public boolean isCentered() {
     return myCentered;
   }
