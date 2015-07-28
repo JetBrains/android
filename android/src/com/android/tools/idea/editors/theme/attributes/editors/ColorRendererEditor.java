@@ -26,6 +26,7 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.openapi.ui.JBMenuItem;
+import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
@@ -77,7 +78,7 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
                                                                     context.getProject());
     String colorText = colors.isEmpty() ? LABEL_EMPTY : ResourceHelper.colorToString(colors.get(0));
     component.setSwatchIcons(SwatchComponent.colorListOf(colors));
-    component.setNameText(String.format(LABEL_TEMPLATE, ThemeEditorConstants.RESOURCE_ITEM_COLOR.toString(), item.getQualifiedName(), colorText));
+    component.setNameText(String.format(LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), item.getQualifiedName(), colorText));
     component.setValueText(item.getValue());
   }
 
