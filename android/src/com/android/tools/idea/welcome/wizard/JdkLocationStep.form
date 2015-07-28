@@ -50,12 +50,9 @@
               <text value="or download and install JDK for your operating system and architecture: "/>
             </properties>
           </component>
-          <component id="2d093" class="javax.swing.JButton" binding="myDownloadPageLink">
+          <component id="a1b70" class="com.intellij.ui.HyperlinkLabel" binding="myDownloadPageLink">
             <constraints/>
-            <properties>
-              <horizontalAlignment value="2"/>
-              <text value="Button"/>
-            </properties>
+            <properties/>
           </component>
           <component id="84064" class="javax.swing.JLabel">
             <constraints/>
