@@ -111,7 +111,7 @@ import java.util.concurrent.TimeUnit;
 public class ThemeEditorComponent extends Splitter {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
 
-  private static final JBColor PREVIEW_BACKGROUND = new JBColor(new Color(0xFAFAFA), new Color(0x606162));
+  private static final JBColor PREVIEW_BACKGROUND = new JBColor(new Color(0xFAFAFA), new Color(0x343739));
 
   public static final float HEADER_FONT_SCALE = 1.3f;
   public static final int REGULAR_CELL_PADDING = 4;
