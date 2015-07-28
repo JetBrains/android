@@ -75,7 +75,6 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     mySurface.setModel(model);
 
     myContentSplitter = new ThreeComponentsSplitter();
-    Disposer.register(editor, myContentSplitter);
 
     // The {@link LightFillLayout} provides the UI for the minimized forms of the {@link LightToolWindow}
     // used for the palette and the structure/properties panes.
@@ -141,6 +140,9 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
   }
 
   public void dispose() {
+    NlPaletteManager.get(mySurface.getProject()).dispose(this);
+    NlStructureManager.get(mySurface.getProject()).dispose(this);
+    myContentSplitter.dispose();
   }
 
   public void activate() {

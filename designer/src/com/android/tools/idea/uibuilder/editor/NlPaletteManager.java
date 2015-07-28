@@ -94,6 +94,12 @@ public class NlPaletteManager extends NlAbstractWindowManager {
 
   @Override
   protected LightToolWindow createContent(@NonNull DesignerEditorPanelFacade designer) {
+    LightToolWindow toolWindow = (LightToolWindow)designer.getClientProperty(getComponentName());
+    if (toolWindow != null) {
+      // Avoid memory leaks for palettes created for the preview form (the palette is shared for all files).
+      return toolWindow;
+    }
+
     NlPalettePanel palette = new NlPalettePanel(designer);
     palette.setDesignSurface(getDesignSurface(designer));
 
@@ -112,6 +118,13 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     return new LightToolWindow(palette, "Palette", AllIcons.Toolwindows.ToolWindowPalette, palette, palette.getFocusedComponent(),
                                designer.getContentSplitter(), anchor, this, myProject, propertiesComponent,
                                getVisibilityKeyName(designer), 180, palette.getActions());
+  }
+
+  @Override
+  public void disposeComponent() {
+    if (myPalette != null) {
+      myPalette.dispose();
+    }
   }
 
   @NonNull
