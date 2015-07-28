@@ -25,14 +25,15 @@ import javax.swing.*;
  */
 public class LinuxHaxmInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
-  private JButton myLink;
+  private com.intellij.ui.HyperlinkLabel myLink;
 
   private static final String KVM_DOCUMENTATION_URL = "http://developer.android.com/tools/devices/emulator.html#vm-linux";
 
   public LinuxHaxmInfoStep() {
     super("Emulator Settings");
     setComponent(myRoot);
-    WelcomeUIUtils.makeButtonAHyperlink(myLink, KVM_DOCUMENTATION_URL);
+    myLink.setHyperlinkText("Android KVM Linux Installation");
+    myLink.setHyperlinkTarget(KVM_DOCUMENTATION_URL);
   }
 
   @Override
