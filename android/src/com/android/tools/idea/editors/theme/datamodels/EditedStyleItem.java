@@ -55,7 +55,7 @@ public class EditedStyleItem {
    * that exist in the project but are not selected.
    */
   public EditedStyleItem(@NotNull ConfiguredItemResourceValue selectedValue,
-                         @NotNull Collection<ConfiguredItemResourceValue> nonSelectedValues,
+                         @NotNull Iterable<ConfiguredItemResourceValue> nonSelectedValues,
                          @NotNull ThemeEditorStyle sourceTheme) {
     mySourceTheme = sourceTheme;
     myNonSelectedValues = ImmutableList.copyOf(nonSelectedValues);

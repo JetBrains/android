@@ -24,15 +24,21 @@ import com.android.tools.idea.editors.theme.datamodels.ConfiguredItemResourceVal
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.tests.gui.theme.ThemeEditorTestUtils;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Set;
 
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class ThemeEditorStyleTest extends AndroidTestCase {
 
@@ -64,9 +70,9 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     assertNotNull(parent);
 
     FolderConfiguration defaultConfig = new FolderConfiguration();
-    ConfiguredItemResourceValue hasItem = new ConfiguredItemResourceValue(defaultConfig, new ItemResourceValue("myColor", false, "?android:attr/colorBackground", false));
-    ConfiguredItemResourceValue hasNotItem = new ConfiguredItemResourceValue(defaultConfig, new ItemResourceValue("myHasNot", false, "?android:attr/colorBackground", false));
-    ConfiguredItemResourceValue hasInParent = new ConfiguredItemResourceValue(defaultConfig, new ItemResourceValue("editTextStyle", true, "?android:attr/colorBackground", true));
+    ConfiguredItemResourceValue hasItem = new ConfiguredItemResourceValue(defaultConfig, new ItemResourceValue("myColor", false, "?android:attr/colorBackground", false), theme);
+    ConfiguredItemResourceValue hasNotItem = new ConfiguredItemResourceValue(defaultConfig, new ItemResourceValue("myHasNot", false, "?android:attr/colorBackground", false), theme);
+    ConfiguredItemResourceValue hasInParent = new ConfiguredItemResourceValue(defaultConfig, new ItemResourceValue("editTextStyle", true, "?android:attr/colorBackground", true), theme);
     assertTrue(theme.hasItem(new EditedStyleItem(hasItem, theme)));
     assertFalse(theme.hasItem(new EditedStyleItem(hasNotItem, theme)));
     assertTrue(theme.getParent().hasItem(new EditedStyleItem(hasInParent, parent)));
@@ -313,19 +319,21 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/qualifiers/stylesApi-v21.xml", "res/values-v21/styles.xml");
 
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    assertNotNull(configuration.getTarget());
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 22, null));
 
     ThemeEditorStyle myTheme = ResolutionUtils.getStyle(configuration, "@style/Theme.MyTheme", null);
     assertNotNull(myTheme);
     Set<String> expectedAttributes = Sets.newHashSet("actionModeStyle", "windowIsFloating", "checkedTextViewStyle");
-    for(EditedStyleItem item : myTheme.getValues()) {
+    for(EditedStyleItem item : ThemeEditorTestUtils.getStyleLocalValues(myTheme)) {
       assertTrue(expectedAttributes.remove(item.getName()));
 
       if ("windowIsFloating".equals(item.getName())) {
         Set<String> seenConfigurations = Sets.newHashSet();
         // We should have selected the highest
         assertEquals("-v21", item.getSelectedValueConfiguration().getUniqueKey());
-        assertSize(2, item.getNonSelectedItemResourceValues());
+        // In the non-selected list we have 2 from the local theme and 1 inherited from @android:style/Theme for "default"
+        assertSize(3, item.getNonSelectedItemResourceValues());
         seenConfigurations.add(item.getSelectedValueConfiguration().toString());
         // The other values can not be default or repeated
         for(ConfiguredItemResourceValue value : item.getNonSelectedItemResourceValues()) {
@@ -336,12 +344,17 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
       }
       else if ("actionModeStyle".equals(item.getName())) {
         // actionModeStyle is only in two configurations v21 and v14 but it has different values
-        assertSize(1, item.getNonSelectedItemResourceValues());
+        assertSize(3, item.getNonSelectedItemResourceValues());
         assertEquals("-v21", item.getSelectedValueConfiguration().getUniqueKey());
         assertEquals("@null", item.getValue());
-        ConfiguredItemResourceValue v14Item = item.getNonSelectedItemResourceValues().iterator().next();
-        assertEquals("-v14", v14Item.getConfiguration().getUniqueKey());
-        assertEquals("@style/ActionModeStyle", v14Item.getItemResourceValue().getValue());
+        assertTrue(Iterables.any(item.getNonSelectedItemResourceValues(), new Predicate<ConfiguredItemResourceValue>() {
+          @Override
+          public boolean apply(@Nullable ConfiguredItemResourceValue input) {
+            assert input != null;
+            return "-v14".equals(input.getConfiguration().getUniqueKey()) &&
+                   "@style/ActionModeStyle".equals(input.getItemResourceValue().getValue());
+          }
+        }));
       }
     }
     assertEmpty(expectedAttributes);
@@ -350,12 +363,15 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 14, null));
     myTheme = ResolutionUtils.getStyle(configuration, "@style/Theme.MyTheme", null);
     assertNotNull(myTheme);
-    assertSize(3, myTheme.getValues());
-    for(EditedStyleItem item : myTheme.getValues()) {
+
+    Collection<EditedStyleItem> values = ThemeEditorTestUtils.getStyleLocalValues(myTheme);
+
+    assertSize(3, values);
+    for(EditedStyleItem item : values) {
       if ("windowIsFloating".equals(item.getName())) {
         // We should have selected the v14
         assertEquals("-v14", item.getSelectedValueConfiguration().getUniqueKey());
-        assertSize(2, item.getNonSelectedItemResourceValues());
+        assertSize(3, item.getNonSelectedItemResourceValues());
 
         for(ConfiguredItemResourceValue value : item.getNonSelectedItemResourceValues()) {
           assertNotEquals("-v14", value.getConfiguration().getUniqueKey());
