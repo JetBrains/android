@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.ApiVersion;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.ProductFlavor;
@@ -109,6 +110,12 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @Nullable
   public String getTestInstrumentationRunner() {
+    throw new UnsupportedOperationException();
+  }
+
+  @NonNull
+  @Override
+  public Map<String, String> getTestInstrumentationRunnerArguments() {
     throw new UnsupportedOperationException();
   }
 
