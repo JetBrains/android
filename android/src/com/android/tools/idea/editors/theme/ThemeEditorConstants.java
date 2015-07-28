@@ -25,5 +25,5 @@ public class ThemeEditorConstants {
   /**
    * Color used to display resources values in the attributes table
    */
-  public static final JBColor RESOURCE_ITEM_COLOR = new JBColor(new Color(0x6F6F6F)/*light*/, new Color(0xAAAAA)/*dark*/);
+  public static final JBColor RESOURCE_ITEM_COLOR = new JBColor(new Color(0x6F6F6F)/*light*/, new Color(0xAAAAAA)/*dark*/);
 }
