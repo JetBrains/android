@@ -23,7 +23,6 @@ import com.android.ide.common.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -36,8 +35,6 @@ import org.jetbrains.annotations.Nullable;
  * Utility methods for style resolution.
  */
 public class ResolutionUtils {
-  @SuppressWarnings("ConstantNamingConvention") private static final Logger LOG = Logger.getInstance(ResolutionUtils.class);
-
   // Utility methods class isn't meant to be constructed, all methods are static.
   private ResolutionUtils() { }
 
@@ -69,8 +66,10 @@ public class ResolutionUtils {
     return url == null ? item.getRawXmlValue() : url.toString();
   }
 
+
+
   @Nullable
-  private static StyleResourceValue getStyleResourceValue(@NotNull Configuration configuration, @NotNull String qualifiedStyleName) {
+  private static StyleResourceValue getStyleResourceValue(@NotNull ResourceResolver resolver, @NotNull String qualifiedStyleName) {
     String styleName;
     boolean isFrameworkStyle;
 
@@ -85,22 +84,24 @@ public class ResolutionUtils {
       isFrameworkStyle = false;
     }
 
-    ResourceResolver resolver = configuration.getResourceResolver();
-    assert resolver != null;
     return resolver.getStyle(styleName, isFrameworkStyle);
   }
 
   /**
-   * Construct a ThemeEditorStyle instance for a theme with given name and source module, resolved in a given configuration.
-   *
-   * @param module source module of a theme, should be null only for framework or libraries themes.
-   *               If you don't know source module of a theme, you should use {@link ThemeResolver#getTheme(String)} instead
-   * @return returns ThemeEditorStyle for a qualifiedStyleName, if style doesn't exist will return null
+   * Constructs a {@link ThemeEditorStyle} instance for a theme with the given name and source module, using the passed resolver.
    */
   @Nullable
-  public static ThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull final String qualifiedStyleName, @Nullable Module module) {
-    final StyleResourceValue style = getStyleResourceValue(configuration, qualifiedStyleName);
+  public static ThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull ResourceResolver resolver, @NotNull final String qualifiedStyleName, @Nullable Module module) {
+    final StyleResourceValue style = getStyleResourceValue(resolver, qualifiedStyleName);
     return style == null ? null : new ThemeEditorStyle(configuration, style, module);
+  }
+
+  @Nullable
+  public static ThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull final String qualifiedStyleName, @Nullable Module module) {
+    ResourceResolver resolver = configuration.getResourceResolver();
+    assert resolver != null;
+
+    return getStyle(configuration, configuration.getResourceResolver(), qualifiedStyleName, module);
   }
 
   @Nullable

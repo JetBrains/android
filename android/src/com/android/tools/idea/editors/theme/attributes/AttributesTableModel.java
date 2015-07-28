@@ -16,7 +16,9 @@
 package com.android.tools.idea.editors.theme.attributes;
 
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
@@ -47,6 +49,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   public static final String NO_PARENT = "[no parent]";
 
   protected final List<EditedStyleItem> myAttributes;
+  private final Configuration myConfiguration;
   private List<TableLabel> myLabels;
 
   protected final ThemeEditorStyle mySelectedStyle;
@@ -74,7 +77,8 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     return builder.build();
   }
 
-  public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle, @NotNull AttributesGrouper.GroupBy groupBy) {
+  public AttributesTableModel(@NotNull Configuration configuration, @NotNull ThemeEditorStyle selectedStyle, @NotNull AttributesGrouper.GroupBy groupBy) {
+    myConfiguration = configuration;
     myAttributes = new ArrayList<EditedStyleItem>();
     myLabels = new ArrayList<TableLabel>();
     mySelectedStyle = selectedStyle;
@@ -372,7 +376,9 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return false;
       }
       String propertyName = rv.getQualifiedName();
-      mySelectedStyle.setValue(rv.getSelectedValueConfiguration(), propertyName, strValue);
+      // Select the closest config to the current one selected to preview and make the change
+      FolderConfiguration configurationToModify = mySelectedStyle.findBestConfiguration(myConfiguration.getFullConfig());
+      mySelectedStyle.setValue(configurationToModify, propertyName, strValue);
       return true;
     }
   }

@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.DeviceMenuAction;
@@ -703,7 +704,8 @@ public class ThemeEditorComponent extends Splitter {
     }
     else {
       // The theme pointing to the new style is writable, so go ahead.
-      selectedTheme.setValue(rv.getSelectedValueConfiguration(), sourcePropertyName, newStyleName);
+      FolderConfiguration configurationToModify = selectedTheme.findBestConfiguration(myThemeEditorContext.getConfiguration().getFullConfig());
+      selectedTheme.setValue(configurationToModify, sourcePropertyName, newStyleName);
       // We don't need to call reload, because myResourceChangeListener will take care of it
       mySubStyleName = newStyleName;
     }
@@ -761,7 +763,7 @@ public class ThemeEditorComponent extends Splitter {
     configuration.setTheme(selectedTheme.getQualifiedName());
 
     assert configuration.getResourceResolver() != null; // ResourceResolver is only null if no theme was set.
-    myModel = new AttributesTableModel(selectedStyle, getSelectedAttrGroup());
+    myModel = new AttributesTableModel(configuration, selectedStyle, getSelectedAttrGroup());
 
     myModel.addThemePropertyChangedListener(new AttributesTableModel.ThemePropertyChangedListener() {
       @Override
