@@ -54,7 +54,7 @@ public final class AsyncValidatorTest extends TestCase {
       submit(new Callable<IdeaTestApplication>() {
         @Override
         public IdeaTestApplication call() throws Exception {
-          return IdeaTestApplication.getInstance(null);
+          return IdeaTestApplication.getInstance();
         }
       });
     application.get(30, TimeUnit.SECONDS); // Wait for the application instantiation
