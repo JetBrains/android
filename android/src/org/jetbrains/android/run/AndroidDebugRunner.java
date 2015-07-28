@@ -17,6 +17,7 @@ package org.jetbrains.android.run;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.*;
@@ -54,7 +55,6 @@ import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
-import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -373,9 +373,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       RemoteDebugProcessHandler process = new RemoteDebugProcessHandler(myProject);
       myState.setProcessHandler(process);
       myConsoleView = myState.getConfiguration().attachConsole(myState, executor);
-      final LogcatExecutionConsole console = new LogcatExecutionConsole(myProject, myDevice, myConsoleView,
-                                                                            myState.getConfiguration().getType().getId());
-      return new DefaultExecutionResult(console, process);
+      return new DefaultExecutionResult(myConsoleView, process);
     }
 
     @Override
