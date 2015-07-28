@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * This class holds methods for checking and adding Android dependencies to a module.
  * For now only Gradle projects are supported, eventually we will need an implementation
- * for both Intellij and Blaze.
+ * for both Blaze and legacy IDEA Android projects.
  */
 public abstract class DependencyManager {
 

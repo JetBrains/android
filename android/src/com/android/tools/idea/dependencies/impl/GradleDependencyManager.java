@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
@@ -36,7 +37,6 @@ import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
@@ -75,7 +75,7 @@ public class GradleDependencyManager extends DependencyManager {
 
   private static List<String> findMissingLibrariesFromGradleBuildFile(@NotNull GradleBuildFile gradleBuildFile,
                                                                       @NotNull Iterable<String> pathIds) {
-    List<String> missingLibraries = new ArrayList<String>();
+    List<String> missingLibraries = Lists.newArrayList();
     RepositoryUrlManager manager = RepositoryUrlManager.get();
     for (String pathId : pathIds) {
       String libraryCoordinate = manager.getLibraryCoordinate(pathId);
@@ -113,7 +113,7 @@ public class GradleDependencyManager extends DependencyManager {
                                                    @Nullable final Runnable callback) {
     assert !missing.isEmpty();
 
-    final List<String> missingLibraryCoordinates = new ArrayList<String>();
+    final List<String> missingLibraryCoordinates = Lists.newArrayList();
     RepositoryUrlManager manager = RepositoryUrlManager.get();
     for (String pathId : missing) {
       missingLibraryCoordinates.add(manager.getLibraryCoordinate(pathId));
