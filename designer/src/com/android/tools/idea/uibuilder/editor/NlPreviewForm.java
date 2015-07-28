@@ -339,8 +339,11 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
   @Override
   public void putClientProperty(Object key, Object value) {
+    Project project = myManager.getProject();
+    NlPaletteManager paletteManager = NlPaletteManager.get(project);
+    String paletteKey = paletteManager.getComponentName();
     myContentSplitter.putClientProperty(key, value);
-    if (value instanceof LightToolWindow) {
+    if (key.equals(paletteKey)) {
       myToolWindow = (LightToolWindow) value;
     }
   }

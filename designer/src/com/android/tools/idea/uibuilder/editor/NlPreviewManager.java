@@ -143,6 +143,13 @@ public class NlPreviewManager implements ProjectComponent {
   public void projectClosed() {
     if (myToolWindowForm != null) {
       Disposer.dispose(myToolWindowForm);
+      NlPaletteManager paletteManager = NlPaletteManager.get(myProject);
+      String paletteKey = paletteManager.getComponentName();
+      LightToolWindow toolWindow = (LightToolWindow)myToolWindowForm.getClientProperty(paletteKey);
+      if (toolWindow != null) {
+        myToolWindowForm.putClientProperty(paletteKey, null);
+        toolWindow.dispose();
+      }
       myToolWindowForm = null;
       myToolWindow = null;
       myToolWindowDisposed = true;
