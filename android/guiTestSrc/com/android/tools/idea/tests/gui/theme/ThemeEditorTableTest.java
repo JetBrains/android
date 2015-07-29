@@ -209,12 +209,12 @@ public class ThemeEditorTableTest extends GuiTestCase {
     ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
-    TableCell cell = row(3).column(0);
+    TableCell cell = row(1).column(0);
     Component colorRenderer = themeEditorTable.getRendererComponent(cell);
     assertNotNull(colorRenderer);
     ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)colorRenderer);
 
-    assertEquals("colorBackground", resourceComponent.getAttributeName());
+    assertEquals("android:colorBackground", resourceComponent.getAttributeName());
     assertEquals(Font.PLAIN, resourceComponent.getValueFont().getStyle());
     assertEquals("@android:color/background_holo_light", resourceComponent.getValueString());
 
@@ -231,7 +231,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     assertNotNull(colorRenderer);
     resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)colorRenderer);
 
-    assertEquals("colorBackground", resourceComponent.getAttributeName());
+    assertEquals("android:colorBackground", resourceComponent.getAttributeName());
     assertEquals(ResourceHelper.colorToString(color), resourceComponent.getColorValue());
     assertEquals(Font.BOLD, resourceComponent.getValueFont().getStyle());
     assertEquals("@color/background_holo_light", resourceComponent.getValueString());
