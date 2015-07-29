@@ -25,6 +25,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.*;
 import com.android.tools.idea.wizard.dynamic.*;
@@ -265,7 +266,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     if (myState.get(DISPLAY_NAME_KEY) == null || myState.get(DISPLAY_NAME_KEY).isEmpty()) {
       assert device != null && systemImage != null;
       String avdName = String.format(Locale.getDefault(), "%1$s API %2$d", device.getDisplayName(), systemImage.getVersion().getApiLevel());
-      avdName = uniquifyDisplayName(avdName);
+      avdName = AvdManagerConnection.getDefaultAvdManagerConnection().uniquifyDisplayName(avdName);
       myState.put(DISPLAY_NAME_KEY, avdName);
     }
     myAvdConfigurationOptionHelpPanel.setSystemImageDescription(systemImage);
@@ -326,24 +327,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     myState.put(BACKUP_SKIN_FILE_KEY, hasFrame ? null : displayFile);
 
     return super.commitStep();
-  }
-
-  private static String uniquifyDisplayName(String name) {
-    int suffix = 1;
-    String result = name;
-    while (findAvdWithName(result)) {
-      result = String.format("%1$s %2$d", name, ++suffix);
-    }
-    return result;
-  }
-
-  private static boolean findAvdWithName(String name) {
-    for (AvdInfo avd : AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false)) {
-      if (AvdManagerConnection.getAvdDisplayName(avd).equals(name)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @Override
@@ -429,7 +412,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     String displayName = myState.get(DISPLAY_NAME_KEY);
     if (displayName != null) {
       displayName = displayName.trim();
-      if (!displayName.equals(myOriginalName) && findAvdWithName(displayName)) {
+      if (!displayName.equals(myOriginalName) && AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithName(displayName)) {
         setErrorState(String.format("An AVD with the name \"%1$s\" already exists.", displayName), myAvdDisplayNamePanel, myAvdNameLabel);
         valid = false;
       }
@@ -513,6 +496,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private void registerComponents() {
     register(DISPLAY_NAME_KEY, myAvdDisplayName);
     register(AVD_ID_KEY, myAvdId);
+    final AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
     registerValueDeriver(AVD_ID_KEY, new ValueDeriver<String>() {
       @Nullable
       @Override
@@ -526,7 +510,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         String displayName = state.get(DISPLAY_NAME_KEY);
         if (displayName != null) {
           return AvdEditWizard
-            .cleanAvdName(AvdManagerConnection.getDefaultAvdManagerConnection(), displayName, !displayName.equals(myOriginalName));
+            .cleanAvdName(connection, displayName, !displayName.equals(myOriginalName));
         }
         return "";
       }
@@ -586,7 +570,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
           Device device = state.get(DEVICE_DEFINITION_KEY);
           SystemImageDescription systemImage = state.get(SYSTEM_IMAGE_KEY);
           if (device != null && systemImage != null) { // Should always be the case
-            return uniquifyDisplayName(
+            return connection.uniquifyDisplayName(
               String.format(Locale.getDefault(), "%1$s API %2$d", device.getDisplayName(), systemImage.getVersion().getApiLevel()));
           }
           return null; // Should never occur
