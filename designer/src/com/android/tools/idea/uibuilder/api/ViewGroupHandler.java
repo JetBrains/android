@@ -20,6 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
+import org.intellij.lang.annotations.Language;
 
 import java.util.List;
 
@@ -27,6 +28,28 @@ import java.util.List;
  * Handler for views that are layout managers.
  */
 public class ViewGroupHandler extends ViewHandler {
+
+  @Override
+  @NonNull
+  @Language("XML")
+  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+    switch (xmlType) {
+      case COMPONENT_CREATION:
+        // Most layout managers are rendered by this simple XML.
+        return String.format("<%1$s\n" +
+                             "  android:layout_width=\"match_parent\"\n" +
+                             "  android:layout_height=\"match_parent\">\n" +
+                             "</%1$s>\n", tagName);
+      case PREVIEW_ON_PALETTE:
+      case DRAG_PREVIEW:
+        // Most layout managers will use their palette icon for previewing.
+        // Make that the default here.
+        return NO_PREVIEW;
+      default:
+        throw new AssertionError(xmlType);
+    }
+  }
+
   /**
    * Returns whether the given layout accepts the given proposed child.
    *

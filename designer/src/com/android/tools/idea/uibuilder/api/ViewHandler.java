@@ -25,7 +25,7 @@ import java.awt.*;
 import java.util.EnumSet;
 
 /** A view handler is a tool handler for a given Android view class */
-public class ViewHandler {
+public class ViewHandler extends StructurePaneComponentHandler {
   /**
    * Returns whether the given component accepts the given parent layout as a potential container
    *
@@ -35,7 +35,7 @@ public class ViewHandler {
    * @return true if the proposed parent is accepted
    */
   public boolean acceptsParent(@NonNull NlComponent layout,
-                              @NonNull NlComponent newChild) {
+                               @NonNull NlComponent newChild) {
     return true;
   }
 
