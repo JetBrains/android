@@ -138,6 +138,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.support.v7.widget.Toolbar"
+        library="appcompat-v7"
         tag="android.support.v7.widget.Toolbar">
 
     <palette title="Toolbar" icon="AndroidIcons.Views.Button"
@@ -1386,6 +1387,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.support.design.widget.FloatingActionButton"
+        library="design"
         tag="android.support.design.widget.FloatingActionButton">
 
     <palette title="Floating Action Button" icon="AndroidIcons.Views.ToggleButton"/>
@@ -1465,6 +1467,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewContainer"
         class="android.support.design.widget.CoordinatorLayout"
+        library="design"
         tag="android.support.design.widget.CoordinatorLayout">
 
     <palette title="CoordinatorLayout" icon="AndroidIcons.Views.AbsoluteLayout"
@@ -1485,6 +1488,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewContainer"
         class="android.support.design.widget.CollapsingToolbarLayout"
+        library="design"
         tag="android.support.design.widget.CollapsingToolbarLayout">
 
     <palette title="CollapsingToolbarLayout" icon="AndroidIcons.Views.VerticalLinearLayout"
@@ -1503,6 +1507,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewContainer"
         class="android.support.design.widget.AppBarLayout"
+        library="design"
         tag="android.support.design.widget.AppBarLayout">
 
     <palette title="AppBarLayout" icon="AndroidIcons.Views.FrameLayout"
@@ -1620,6 +1625,7 @@
         layout="com.intellij.android.designer.model.layout.grid.RadGridLayout"
         class="android.support.v7.widget.GridLayout"
         tag="android.support.v7.widget.GridLayout"
+        library="gridlayout-v7"
         fill="both">
 
     <properties inplace="rowCount columnCount orientation "

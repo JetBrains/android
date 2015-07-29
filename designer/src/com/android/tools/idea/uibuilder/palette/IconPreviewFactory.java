@@ -117,6 +117,9 @@ public class IconPreviewFactory {
     }
     NlModel model = screenView.getModel();
     NlComponent component = model.createComponent(screenView, tag, null, null, InsertType.CREATE_PREVIEW);
+    if (component == null) {
+      return null;
+    }
 
     // Some components require a parent to render correctly.
     xml = String.format(LINEAR_LAYOUT, component.getTag().getText());
