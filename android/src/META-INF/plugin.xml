@@ -588,7 +588,7 @@
 
     <xml.elementDescriptorProvider implementation="org.jetbrains.android.dom.AndroidDomElementDescriptorProvider" order="first"/>
 
-    <facet.toolWindow id="Android"
+    <facet.toolWindow id="Android Monitor"
                       facetIdList="android"
                       anchor="bottom"
                       icon="AndroidIcons.AndroidToolWindow"
