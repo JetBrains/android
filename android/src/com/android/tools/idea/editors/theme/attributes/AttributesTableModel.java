@@ -20,6 +20,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
@@ -55,6 +56,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   protected final ThemeEditorStyle mySelectedStyle;
 
   private final AttributesGrouper.GroupBy myGroupBy;
+  private final ThemeEditorContext myContext;
 
   private final List<ThemePropertyChangedListener> myThemePropertyChangedListeners = new ArrayList<ThemePropertyChangedListener>();
   public final ParentAttribute parentAttribute = new ParentAttribute();
@@ -77,8 +79,12 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     return builder.build();
   }
 
-  public AttributesTableModel(@NotNull Configuration configuration, @NotNull ThemeEditorStyle selectedStyle, @NotNull AttributesGrouper.GroupBy groupBy) {
+  public AttributesTableModel(@NotNull Configuration configuration,
+                              @NotNull ThemeEditorStyle selectedStyle,
+                              @NotNull AttributesGrouper.GroupBy groupBy,
+                              @NotNull ThemeEditorContext context) {
     myConfiguration = configuration;
+    myContext = context;
     myAttributes = new ArrayList<EditedStyleItem>();
     myLabels = new ArrayList<TableLabel>();
     mySelectedStyle = selectedStyle;
@@ -87,7 +93,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   private void reloadContent() {
-    final List<EditedStyleItem> rawAttributes = ThemeEditorUtils.resolveAllAttributes(mySelectedStyle);
+    final List<EditedStyleItem> rawAttributes = ThemeEditorUtils.resolveAllAttributes(mySelectedStyle, myContext);
     myAttributes.clear();
     myLabels = AttributesGrouper.generateLabels(myGroupBy, rawAttributes, myAttributes);
     fireTableStructureChanged();
