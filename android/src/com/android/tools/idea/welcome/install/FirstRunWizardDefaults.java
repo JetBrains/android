@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.welcome.install;
 
+import com.android.SdkConstants;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -102,19 +104,22 @@ public class FirstRunWizardDefaults {
    */
   @NotNull
   private static File getDefaultSdkLocation() {
-    String userHome = System.getProperty("user.home");
-    String path;
-    if (SystemInfo.isWindows) {
-      path = FileUtil.join(userHome, "AppData", "Local", "Android", "Sdk");
-    }
-    else if (SystemInfo.isMac) {
-      path = FileUtil.join(userHome, "Library", "Android", "sdk");
-    }
-    else if (SystemInfo.isLinux) {
-      path = FileUtil.join(userHome, "Android", "Sdk");
-    }
-    else {
-      throw new IllegalStateException("Unsupported OS");
+    String path = System.getenv(SdkConstants.ANDROID_HOME_ENV);
+    
+    if (Strings.isNullOrEmpty(path)) {
+      String userHome = System.getProperty("user.home");
+      if (SystemInfo.isWindows) {
+        path = FileUtil.join(userHome, "AppData", "Local", "Android", "Sdk");
+      }
+      else if (SystemInfo.isMac) {
+        path = FileUtil.join(userHome, "Library", "Android", "sdk");
+      }
+      else if (SystemInfo.isLinux) {
+        path = FileUtil.join(userHome, "Android", "Sdk");
+      }
+      else {
+        throw new IllegalStateException("Unsupported OS");
+      }
     }
     return new File(path);
   }

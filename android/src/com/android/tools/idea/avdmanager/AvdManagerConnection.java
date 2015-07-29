@@ -519,4 +519,22 @@ public class AvdManagerConnection {
     }
     return displayName;
   }
+
+  public String uniquifyDisplayName(String name) {
+    int suffix = 1;
+    String result = name;
+    while (findAvdWithName(result)) {
+      result = String.format("%1$s %2$d", name, ++suffix);
+    }
+    return result;
+  }
+
+  public boolean findAvdWithName(String name) {
+    for (AvdInfo avd : getDefaultAvdManagerConnection().getAvds(false)) {
+      if (getAvdDisplayName(avd).equals(name)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
