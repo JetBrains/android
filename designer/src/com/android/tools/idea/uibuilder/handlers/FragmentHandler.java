@@ -33,6 +33,9 @@ public class FragmentHandler extends ViewHandler {
                           @NonNull NlComponent newChild,
                           @NonNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
+      if (newChild.getAttribute(ANDROID_URI, ATTR_NAME) != null) {
+        return true;
+      }
       String src = editor.displayClassInput(Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT), null);
       if (src != null) {
         newChild.setAttribute(ANDROID_URI, ATTR_NAME, src);
