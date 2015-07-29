@@ -204,10 +204,13 @@ public class ThemeEditorUtils {
    * Find every attribute in the theme hierarchy and all the possible configurations where it's present.
    * @param style the theme to retrieve all the attributes from
    * @param attributeConfigurations a {@link HashMultimap} where all the attributes and configurations will be stored
+   * @param context
    */
-  private static void findAllAttributes(@NotNull final ThemeEditorStyle style, @NotNull HashMultimap<String, FolderConfiguration> attributeConfigurations) {
-    for (ThemeEditorStyle parent : style.getAllParents()) {
-      findAllAttributes(parent, attributeConfigurations);
+  private static void findAllAttributes(@NotNull final ThemeEditorStyle style,
+                                        @NotNull HashMultimap<String, FolderConfiguration> attributeConfigurations,
+                                        @Nullable ThemeEditorContext context) {
+    for (ThemeEditorStyle parent : style.getAllParents(context == null ? null : context.getThemeResolver())) {
+      findAllAttributes(parent, attributeConfigurations, context);
     }
 
     Multimap<String, ConfiguredItemResourceValue> configuredValues = style.getConfiguredValues();
@@ -259,9 +262,9 @@ public class ThemeEditorUtils {
     }
   }
 
-  public static List<EditedStyleItem> resolveAllAttributes(@NotNull final ThemeEditorStyle style) {
+  public static List<EditedStyleItem> resolveAllAttributes(@NotNull final ThemeEditorStyle style, @Nullable ThemeEditorContext context) {
     HashMultimap<String, FolderConfiguration> attributes = HashMultimap.create();
-    findAllAttributes(style, attributes);
+    findAllAttributes(style, attributes, context);
 
     ImmutableSet<FolderConfiguration> allConfigurations = ImmutableSet.copyOf(attributes.values());
 
