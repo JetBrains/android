@@ -274,13 +274,14 @@ public class ThemeEditorStyle {
   /**
    * Returns all the possible parents of this style. Parents might differ depending on the folder configuration, this returns all the
    * variants for this style.
+   * @param themeResolver
    */
-  public Collection<ThemeEditorStyle> getAllParents() {
+  public Collection<ThemeEditorStyle> getAllParents(@Nullable ThemeResolver themeResolver) {
     if (isFramework()) {
-      ThemeEditorStyle parent = getParent();
+      ThemeEditorStyle parent = getParent(themeResolver);
 
       if (parent != null) {
-        return ImmutableList.of(getParent());
+        return ImmutableList.of(parent);
       } else {
         return Collections.emptyList();
       }
@@ -298,7 +299,14 @@ public class ThemeEditorStyle {
         continue;
       }
 
-      ThemeEditorStyle style = ResolutionUtils.getStyle(myConfiguration, resolver, parentName, getModuleForAcquiringResources());
+      final ThemeEditorStyle style;
+      if (themeResolver == null) {
+        style = ResolutionUtils.getStyle(myConfiguration, resolver, parentName, getModuleForAcquiringResources());
+      }
+      else {
+        style = themeResolver.getTheme(parentName);
+      }
+
       if (style != null) {
         parents.add(style);
       }

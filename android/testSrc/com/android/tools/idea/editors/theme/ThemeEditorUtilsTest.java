@@ -187,7 +187,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     ThemeEditorStyle theme = ResolutionUtils.getStyle(configuration, "AppTheme", null);
     assertNotNull(theme);
-    List<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(theme);
+    List<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(theme, null);
 
     HashMap<String, EditedStyleItem> items = Maps.newHashMapWithExpectedSize(attributes.size());
     for (EditedStyleItem item : attributes) {
@@ -229,7 +229,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     ThemeEditorStyle style = themeResolver.getTheme("@style/AppTheme");
     assertNotNull(style);
-    Collection<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(style);
+    Collection<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(style, null);
 
     EditedStyleItem myBaseAttribute = findAttribute("myBase", attributes);
     EditedStyleItem myAttribute = findAttribute("myAttribute", attributes);
@@ -246,7 +246,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     style = themeResolver.getTheme("@style/AppTheme");
     assertNotNull(style);
-    attributes = ThemeEditorUtils.resolveAllAttributes(style);
+    attributes = ThemeEditorUtils.resolveAllAttributes(style, null);
 
     myBaseAttribute = findAttribute("myBase", attributes);
     myAttribute = findAttribute("myAttribute", attributes);
@@ -272,7 +272,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     // AppThemeParent is defined in v20 only but it's parent it's defoned in both v20 AND v19
     ThemeEditorStyle style = themeResolver.getTheme("@style/AppThemeParent");
     assertNotNull(style);
-    Collection<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(style);
+    Collection<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(style, null);
 
     EditedStyleItem myAttribute = findAttribute("myAttribute", attributes);
     System.out.println(myAttribute);
