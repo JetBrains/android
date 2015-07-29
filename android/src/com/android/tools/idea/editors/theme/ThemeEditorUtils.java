@@ -694,7 +694,7 @@ public class ThemeEditorUtils {
   public static ChooseResourceDialog getResourceDialog(@NotNull EditedStyleItem item, @NotNull ThemeEditorContext context,
                                                        ResourceType[] allowedTypes) {
     String itemValue = item.getValue();
-    final String resourceName;
+    String resourceName;
     // If it points to an existing resource.
     if (!RenderResources.REFERENCE_EMPTY.equals(itemValue) &&
         !RenderResources.REFERENCE_NULL.equals(itemValue) &&
@@ -706,6 +706,8 @@ public class ThemeEditorUtils {
       // Otherwise use the name of the attribute.
       resourceName = item.getName();
     }
+
+    resourceName = getDefaultResourceName(context, resourceName);
 
     Module module = context.getModuleForResources();
     final Configuration configuration = getConfigurationForModule(module);
@@ -732,5 +734,41 @@ public class ThemeEditorUtils {
                                         ChooseResourceDialog.ResourceNameVisibility.FORCE, resourceName);
     }
     return dialog;
+  }
+
+  /**
+   * Build a name for a new resource based on a provided name.
+   * @param initialName a name that result should be based on (that might not be vacant)
+   */
+  @NotNull
+  private static String getDefaultResourceName(@NotNull ThemeEditorContext context, final @NotNull String initialName) {
+    if (context.getCurrentTheme() == null || !context.getCurrentTheme().isReadOnly()) {
+      // If the currently selected theme is not read-only, then the expected
+      // behaviour of color picker would be to edit the existing resource.
+      return initialName;
+    }
+
+    final ResourceResolver resolver = context.getResourceResolver();
+    assert resolver != null;
+    final ResourceValue value = resolver.findResValue(SdkConstants.COLOR_RESOURCE_PREFIX + initialName, false);
+
+    // Value doesn't exist, safe to use initial guess
+    if (value == null) {
+      return initialName;
+    }
+
+    // Given value exist, need to add a suffix to initialName to make it unique
+    for (int i = 1; i <= 50; ++i) {
+      final String name = initialName + "_" + i;
+
+      if (resolver.findResValue(SdkConstants.COLOR_RESOURCE_PREFIX + name, false) == null) {
+        // Found a vacant name
+        return name;
+      }
+    }
+
+    // Made 50 iterations and still no luck finding a vacant name
+    // Just set a default name to empty string so user have to insert the name manually
+    return "";
   }
 }
