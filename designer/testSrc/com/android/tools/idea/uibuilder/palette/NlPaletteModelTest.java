@@ -130,9 +130,9 @@ public class NlPaletteModelTest extends TestCase {
 
   private static final List<NlPaletteGroup> GROUP_WITH_ITEM_OVERRIDES = Collections.singletonList(
     makeGroup("Layouts",
-              new NlPaletteItem("FrameLayout", "AndroidIcons.Views.FrameLayout", "A Layout for a single item.", FRAME_LAYOUT_CREATION, "FrameLayoutId", "FrameLayout", null),
-              new NlPaletteItem("LinearLayout (Horizontal)", "AndroidIcons.Views.LinearLayout", "A Layout for a single row.", HORIZONTAL_LINEAR_LAYOUT_CREATION, "HorizontalLayout", "LinearLayout", " (%orientation%)"),
-              new NlPaletteItem("LinearLayout (Vertical)", "AndroidIcons.Views.VerticalLinearLayout", "A Layout for a single column.", VERTICAL_LINEAR_LAYOUT_CREATION, "VerticalLayout", "LinearLayout", " (%orientation%)"))
+              new NlPaletteItem("FrameLayout", "AndroidIcons.Views.FrameLayout", "A Layout for a single item.", FRAME_LAYOUT_CREATION, "FrameLayoutId", "", "FrameLayout", null),
+              new NlPaletteItem("LinearLayout (Horizontal)", "AndroidIcons.Views.LinearLayout", "A Layout for a single row.", HORIZONTAL_LINEAR_LAYOUT_CREATION, "HorizontalLayout", "", "LinearLayout", " (%orientation%)"),
+              new NlPaletteItem("LinearLayout (Vertical)", "AndroidIcons.Views.VerticalLinearLayout", "A Layout for a single column.", VERTICAL_LINEAR_LAYOUT_CREATION, "VerticalLayout", "", "LinearLayout", " (%orientation%)"))
   );
 
   public void testSingleGroupWithItemOverrides() throws Exception {
@@ -218,7 +218,7 @@ public class NlPaletteModelTest extends TestCase {
     "</meta-model>";
 
   private static final List<NlPaletteGroup> GROUP_WITH_MISSING_DATA = Collections.singletonList(
-    makeGroup("Layouts", new NlPaletteItem("ConstraintLayout", "", "", CONSTRAINT_LAYOUT_CREATION, "ConstraintLayout", "ConstraintLayout", null))
+    makeGroup("Layouts", new NlPaletteItem("ConstraintLayout", "", "", CONSTRAINT_LAYOUT_CREATION, "ConstraintLayout", "", "ConstraintLayout", null))
   );
 
   public void testGroupWithMissingData() throws Exception {

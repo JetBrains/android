@@ -17,9 +17,12 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.google.common.base.Splitter;
 import com.intellij.openapi.util.IconLoader;
 
 import javax.swing.*;
+import java.util.Collections;
+import java.util.List;
 
 public class NlPaletteItem {
   private final String myTitle;
@@ -27,17 +30,19 @@ public class NlPaletteItem {
   private final String myIconPath;
   private final String myRepresentation;
   private final String myId;
+  private final List<String> myLibraries;
   private String myStructureTitle;
   private String myFormat;
   private Icon myIcon;
 
   public NlPaletteItem(@NonNull String title, @NonNull String iconPath, @NonNull String tooltip, @NonNull String representation,
-                       @NonNull String id, @NonNull String structureTitle, @Nullable String format) {
+                       @NonNull String id, @NonNull String libraries, @NonNull String structureTitle, @Nullable String format) {
     myTitle = title;
     myIconPath = iconPath;
     myTooltip = tooltip;
     myRepresentation = representation;
     myId = id;
+    myLibraries = fromCommaSeparatedList(libraries);
     myStructureTitle = structureTitle;
     myFormat = format;
   }
@@ -76,6 +81,11 @@ public class NlPaletteItem {
   }
 
   @NonNull
+  public List<String> getLibraries() {
+    return myLibraries;
+  }
+
+  @NonNull
   public String getStructureTitle() {
     return myStructureTitle;
   }
@@ -85,4 +95,11 @@ public class NlPaletteItem {
     return myFormat;
   }
 
+  @NonNull
+  private static List<String> fromCommaSeparatedList(@NonNull String libraries) {
+    if (libraries.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return Splitter.on(",").splitToList(libraries);
+  }
 }

@@ -18,16 +18,14 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.HashMap;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class NlPaletteModel {
   private static final Logger LOG = Logger.getInstance(NlPaletteModel.class);
@@ -45,9 +43,11 @@ public class NlPaletteModel {
   private static final String ATTR_TITLE = "title";
   private static final String ATTR_TOOLTIP = "tooltip";
   private static final String ATTR_ICON = "icon";
+  private static final String ATTR_LIBRARY = "library";
 
   private final List<NlPaletteGroup> myGroups;
   private final Map<String, NlPaletteItem> myTag2Item;
+  private final Set<String> myLibrariesUsed;
   private static NlPaletteModel ourInstance;
 
   @NonNull
@@ -64,6 +64,11 @@ public class NlPaletteModel {
     return myGroups;
   }
 
+  @NonNull
+  public Set<String> getLibrariesUsed() {
+    return myLibrariesUsed;
+  }
+
   @Nullable
   public NlPaletteItem getItemByTagName(@NonNull String tagName) {
     return myTag2Item.get(tagName);
@@ -73,6 +78,7 @@ public class NlPaletteModel {
   NlPaletteModel() {
     myGroups = new ArrayList<NlPaletteGroup>();
     myTag2Item = new HashMap<String, NlPaletteItem>();
+    myLibrariesUsed = new HashSet<String>();
   }
 
   private void loadPalette() {
@@ -144,6 +150,7 @@ public class NlPaletteModel {
           continue;
         }
         group.add(item);
+        myLibrariesUsed.addAll(item.getLibraries());
         for (Element subItemElement : itemElement.getChildren(ELEM_ITEM)) {
           NlPaletteItem subItem = loadItem(tag, subItemElement, null, item);
           if (subItem == null) {
@@ -163,6 +170,9 @@ public class NlPaletteModel {
       String tooltip = getAttributeValue(itemElement, ATTR_TOOLTIP, base != null ? base.getTooltip() : "");
       String iconPath = getAttributeValue(itemElement, ATTR_ICON, base != null ? base.getIconPath() : "");
       String id = getAttributeValue(itemElement, ATTR_ID, base != null ? base.getId() : "");
+      String libraries = base != null
+                         ? Joiner.on(",").join(base.getLibraries())
+                         : getAttributeValue(modelElement, ATTR_LIBRARY, "");
       String creation = base != null
                         ? getElementValue(itemElement, ELEM_CREATION, base.getRepresentation())
                         : getElementValue(modelElement, ELEM_CREATION, "");
@@ -178,7 +188,7 @@ public class NlPaletteModel {
       if (id.isEmpty()) {
         id = tagName;
       }
-      return new NlPaletteItem(title, iconPath, tooltip, creation, id, structureTitle, format);
+      return new NlPaletteItem(title, iconPath, tooltip, creation, id, libraries, structureTitle, format);
     }
 
     @NonNull
