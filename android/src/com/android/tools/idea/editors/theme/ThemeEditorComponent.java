@@ -756,7 +756,7 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
 
-    myThemeEditorContext.setSelectedStyleSourceModule(selectedTheme.getSourceModule());
+    myThemeEditorContext.setCurrentTheme(selectedTheme);
     myPanel.setSubstyleName(mySubStyleName);
     myPanel.getBackButton().setVisible(mySubStyleName != null);
     final Configuration configuration = myThemeEditorContext.getConfiguration();
