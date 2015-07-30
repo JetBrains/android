@@ -32,6 +32,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.PsiNavigateUtil;
 
 import javax.swing.*;
@@ -155,7 +156,9 @@ public class InteractionManager {
     layeredPane.addMouseListener(myListener);
     layeredPane.addKeyListener(myListener);
 
-    myDropTarget = new DropTarget(mySurface.getLayeredPane(), DnDConstants.ACTION_COPY_OR_MOVE, myListener, true, null);
+    if (!ApplicationManager.getApplication().isHeadlessEnvironment()) {
+      myDropTarget = new DropTarget(mySurface.getLayeredPane(), DnDConstants.ACTION_COPY_OR_MOVE, myListener, true, null);
+    }
     myHoverTimer.addActionListener(myListener);
   }
 

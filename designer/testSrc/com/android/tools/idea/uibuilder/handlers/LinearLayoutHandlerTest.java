@@ -29,7 +29,7 @@ public class LinearLayoutHandlerTest extends AbstractViewHandlerTest {
 
   public void testDragNothing() throws Exception {
     surface().screen(createModel())
-      .get("myText1")
+      .get("@id/myText1")
       .resize(TOP, RIGHT)
       .drag(0, 0)
       .release()
@@ -39,7 +39,7 @@ public class LinearLayoutHandlerTest extends AbstractViewHandlerTest {
 
   public void testCancel() throws Exception {
     surface().screen(createModel())
-      .get("myText1")
+      .get("@id/myText1")
       .resize(TOP)
       .drag(20, 30)
       .cancel()
@@ -49,7 +49,7 @@ public class LinearLayoutHandlerTest extends AbstractViewHandlerTest {
 
   public void testDragBottomRight() throws Exception {
     surface().screen(createModel())
-      .get("myText1")
+      .get("@id/myText1")
       .resize(BOTTOM, RIGHT)
       .drag(20, 30)
       .release()
@@ -59,7 +59,7 @@ public class LinearLayoutHandlerTest extends AbstractViewHandlerTest {
 
   public void testResizeTopLeft() throws Exception {
     surface().screen(createModel())
-      .get("myText1")
+      .get("@id/myText1")
       .resize(TOP, LEFT)
       .drag(-20, -30)
       .release()
@@ -69,7 +69,7 @@ public class LinearLayoutHandlerTest extends AbstractViewHandlerTest {
 
   public void testDrag() throws Exception {
     surface().screen(createModel())
-      .get("myText1")
+      .get("@id/myText1")
       .drag()
       .drag(20, 30)
       .release()
@@ -77,7 +77,7 @@ public class LinearLayoutHandlerTest extends AbstractViewHandlerTest {
       .expectWidth("100dp")
       .expectHeight("100dp")
       .expectXml("<TextView\n" +
-                 "            android:id=\"myText1\"\n" +
+                 "            android:id=\"@id/myText1\"\n" +
                  "            android:layout_width=\"100dp\"\n" +
                  "            android:layout_height=\"100dp\"/>");
   }
@@ -92,12 +92,12 @@ public class LinearLayoutHandlerTest extends AbstractViewHandlerTest {
                        .children(
                          component(TEXT_VIEW)
                            .withBounds(100, 100, 100, 100)
-                           .id("myText1")
+                           .id("@id/myText1")
                            .width("100dp")
                            .height("100dp"),
                          component(BUTTON)
                            .withBounds(100, 200, 100, 100)
-                           .id("myText2")
+                           .id("@id/myText2")
                            .width("100dp")
                            .height("100dp")
                            .withAttribute("android:layout_weight", "1.0")

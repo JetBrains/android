@@ -119,11 +119,14 @@ public class LayoutTestUtilities {
     dropListener.drop(dropEvent);
 
     verify(dropEvent, times(1)).acceptDrop(anyInt());
-    verify(context, times(1)).dropComplete(true);
+    verify(dropEvent, times(1)).dropComplete(true);
   }
 
   public static NlModel createModel(DesignSurface surface, AndroidFacet facet, XmlFile xmlFile) {
-    return NlModel.create(surface, null, facet, xmlFile);
+    NlModel model = NlModel.create(surface, null, facet, xmlFile);
+    model.setParentDisposable(model);
+    model.renderImmediately();
+    return model;
   }
 
   public static ScreenView createScreen(DesignSurface surface, NlModel model, SelectionModel selectionModel) {

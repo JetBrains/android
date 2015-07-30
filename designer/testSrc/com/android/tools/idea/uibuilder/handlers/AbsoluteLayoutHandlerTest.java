@@ -30,7 +30,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
 
   public void testDragNothing() throws Exception {
     surface().screen(createModel())
-      .get("myText")
+      .get("@id/myText")
       .resize(TOP, RIGHT)
       .drag(0, 0)
       .release()
@@ -40,7 +40,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
 
   public void testCancel() throws Exception {
     surface().screen(createModel())
-      .get("myText")
+      .get("@id/myText")
       .resize(TOP)
       .drag(20, 30)
       .cancel()
@@ -50,7 +50,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
 
   public void testDragBottomRight() throws Exception {
     surface().screen(createModel())
-      .get("myText")
+      .get("@id/myText")
       .resize(BOTTOM, RIGHT)
       .drag(20, 30)
       .release()
@@ -60,7 +60,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
 
   public void testResizeTopLeft() throws Exception {
     surface().screen(createModel())
-      .get("myText")
+      .get("@id/myText")
       .resize(TOP, LEFT)
       .drag(-20, -30)
       .release()
@@ -72,7 +72,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
 
   public void testDrag() throws Exception {
     surface().screen(createModel())
-      .get("myText")
+      .get("@id/myText")
       .drag()
       .drag(20, 30)
       .release()
@@ -82,7 +82,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
       .expectWidth("100dp")
       .expectHeight("100dp")
       .expectXml("<TextView\n" +
-                 "            android:id=\"myText\"\n" +
+                 "            android:id=\"@id/myText\"\n" +
                  "            android:layout_width=\"100dp\"\n" +
                  "            android:layout_height=\"100dp\"\n" +
                  "            android:layout_x=\"120dp\"\n" +
@@ -97,7 +97,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
                                    .matchParentWidth()
                                    .matchParentHeight()
                                    .withAttribute(ANDROID_URI, ATTR_ORIENTATION, VALUE_VERTICAL)
-                                   .children(component(TEXT_VIEW).withBounds(0, 0, 1000, 150).id("myText").width("100dp").height("100dp")
+                                   .children(component(TEXT_VIEW).withBounds(0, 0, 1000, 150).id("@id/myText").width("100dp").height("100dp")
                                                .withAttribute("android:layout_x", "100dp").withAttribute("android:layout_y", "100dp"),
                                              component(ABSOLUTE_LAYOUT).withBounds(0, 150, 1000, 850).id("myAbsLayout").matchParentWidth()
                                                .matchParentHeight()));
@@ -109,7 +109,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
                  NlComponent.toTree(model.getComponents()));
 
 
-    surface().screen(createModel()).get("myText")
+    surface().screen(createModel()).get("@id/myText")
       .drag()
       .drag(50, 300) // into AbsoluteLayout child
       .release()
@@ -118,7 +118,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
                           "                android:layout_width=\"match_parent\"\n" +
                           "                android:layout_height=\"match_parent\">\n" +
                           "    <TextView\n" +
-                          "            android:id=\"myText\"\n" +
+                          "            android:id=\"@id/myText\"\n" +
                           "            android:layout_width=\"100dp\"\n" +
                           "            android:layout_height=\"100dp\"\n" +
                           "            android:layout_x=\"150dp\"\n" +
@@ -136,7 +136,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
                                    .withAttribute(ANDROID_URI, ATTR_ORIENTATION, VALUE_VERTICAL)
                                    .children(component(ABSOLUTE_LAYOUT).withBounds(0, 0, 1000, 850).id("myAbsLayout").matchParentWidth()
                                                .height("0dp").withAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT, VALUE_1),
-                                             component(TEXT_VIEW).withBounds(0, 850, 1000, 150).id("myText").width("1000px")
+                                             component(TEXT_VIEW).withBounds(0, 850, 1000, 150).id("@id/myText").width("1000px")
                                                .height("150px")));
     @Language("XML") String xml = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                   "  android:layout_width=\"match_parent\"\n" +
@@ -148,7 +148,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
                                   "    android:layout_height=\"0dp\"\n" +
                                   "    android:layout_weight=\"1\"/>\n" +
                                   "  <TextView\n" +
-                                  "    android:id=\"myText\"\n" +
+                                  "    android:id=\"@id/myText\"\n" +
                                   "    android:layout_width=\"1000px\"\n" +
                                   "    android:layout_height=\"150px\"/>\n" +
                                   "</LinearLayout>\n";
@@ -161,7 +161,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
                  "    NlComponent{tag=<TextView>, bounds=[0,850:1000x150}", NlComponent.toTree(model.getComponents()));
 
     surface().screen(model)
-      .get("myText")
+      .get("@id/myText")
       .drag()
       .drag(50, -300) // into AbsoluteLayout sibling
       .release()
@@ -176,7 +176,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
                  "    android:layout_height=\"0dp\"\n" +
                  "    android:layout_weight=\"1\">\n" +
                  "      <TextView\n" +
-                 "        android:id=\"myText\"\n" +
+                 "        android:id=\"@id/myText\"\n" +
                  "        android:layout_width=\"1000px\"\n" +
                  "        android:layout_height=\"150px\" android:layout_x=\"50dp\" android:layout_y=\"550dp\"/>\n" +
                  "  </AbsoluteLayout>\n" +
@@ -193,7 +193,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
                        .children(
                          component(TEXT_VIEW)
                            .withBounds(100, 100, 100, 100)
-                           .id("myText")
+                           .id("@id/myText")
                            .width("100dp")
                            .height("100dp")
                            .withAttribute("android:layout_x", "100dp")
@@ -215,7 +215,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
                  "                android:layout_width=\"match_parent\"\n" +
                  "                android:layout_height=\"match_parent\">\n" +
                  "    <TextView\n" +
-                 "            android:id=\"myText\"\n" +
+                 "            android:id=\"@id/myText\"\n" +
                  "            android:layout_width=\"100dp\"\n" +
                  "            android:layout_height=\"100dp\"\n" +
                  "            android:layout_x=\"100dp\"\n" +
