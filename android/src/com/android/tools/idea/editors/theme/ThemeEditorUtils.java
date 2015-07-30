@@ -204,13 +204,14 @@ public class ThemeEditorUtils {
    * Find every attribute in the theme hierarchy and all the possible configurations where it's present.
    * @param style the theme to retrieve all the attributes from
    * @param attributeConfigurations a {@link HashMultimap} where all the attributes and configurations will be stored
-   * @param context
+   * @param resolver ThemeResolver that would be used to find themes by name. Can be null when user doesn't care about returned
+   *                 ThemeEditorStyle instances have proper source modules set up, e.g. in unit tests
    */
   private static void findAllAttributes(@NotNull final ThemeEditorStyle style,
                                         @NotNull HashMultimap<String, FolderConfiguration> attributeConfigurations,
-                                        @Nullable ThemeEditorContext context) {
-    for (ThemeEditorStyle parent : style.getAllParents(context == null ? null : context.getThemeResolver())) {
-      findAllAttributes(parent, attributeConfigurations, context);
+                                        @Nullable ThemeResolver resolver) {
+    for (ThemeEditorStyle parent : style.getAllParents(resolver)) {
+      findAllAttributes(parent, attributeConfigurations, resolver);
     }
 
     Multimap<String, ConfiguredItemResourceValue> configuredValues = style.getConfiguredValues();
@@ -262,9 +263,9 @@ public class ThemeEditorUtils {
     }
   }
 
-  public static List<EditedStyleItem> resolveAllAttributes(@NotNull final ThemeEditorStyle style, @Nullable ThemeEditorContext context) {
+  public static List<EditedStyleItem> resolveAllAttributes(@NotNull final ThemeEditorStyle style, @Nullable ThemeResolver themeResolver) {
     HashMultimap<String, FolderConfiguration> attributes = HashMultimap.create();
-    findAllAttributes(style, attributes, context);
+    findAllAttributes(style, attributes, themeResolver);
 
     ImmutableSet<FolderConfiguration> allConfigurations = ImmutableSet.copyOf(attributes.values());
 
