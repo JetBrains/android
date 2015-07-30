@@ -35,11 +35,13 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
   @NotNull private final AndroidFacet myFacet;
   private final boolean myNeedsLaunch;
   @NotNull private final ActivityLocator myActivityLocator;
+  @NotNull private final String myActivityExtraFlags;
 
-  public AndroidActivityLauncher(@NotNull AndroidFacet facet, boolean needsLaunch, @NotNull ActivityLocator locator) {
+  public AndroidActivityLauncher(@NotNull AndroidFacet facet, boolean needsLaunch, @NotNull ActivityLocator locator, @NotNull String activityExtraFlags) {
     myFacet = facet;
     myNeedsLaunch = needsLaunch;
     myActivityLocator = locator;
+    myActivityExtraFlags = activityExtraFlags;
   }
 
   public void checkConfiguration() throws RuntimeConfigurationException {
@@ -104,7 +106,7 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
 
     while (true) {
       if (state.isStopped()) return LaunchResult.STOP;
-      String command = getStartActivityCommand(activityPath, getDebugFlags(state));
+      String command = getStartActivityCommand(activityPath, getDebugFlags(state), myActivityExtraFlags);
       boolean deviceNotResponding = false;
       try {
         state.executeDeviceCommandAndWriteToConsole(device, command, receiver);
@@ -140,12 +142,13 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
 
   @VisibleForTesting
   @NotNull
-  static String getStartActivityCommand(@NotNull String activityPath, @NotNull String debugFlags) {
+  static String getStartActivityCommand(@NotNull String activityPath, @NotNull String debugFlags, @NotNull String extraFlags) {
     return "am start " +
            debugFlags +
            " -n \"" + activityPath + "\" " +
            "-a android.intent.action.MAIN " +
-           "-c android.intent.category.LAUNCHER";
+           "-c android.intent.category.LAUNCHER" +
+           (extraFlags.isEmpty() ? "" : " " + extraFlags);
   }
 
   @VisibleForTesting
