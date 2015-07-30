@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import org.intellij.lang.annotations.Language;
 
@@ -27,6 +28,10 @@ import java.awt.datatransfer.Transferable;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 
 public class InteractionManagerTest extends LayoutTestCase {
+  @Override
+  protected boolean requireRecentSdk() {
+    return true;
+  }
 
   public void testDragAndDrop() throws Exception {
     // Drops a fragment (xmlFragment below) into the design surface (via drag & drop events) and verifies that
@@ -44,6 +49,7 @@ public class InteractionManagerTest extends LayoutTestCase {
 
     DesignSurface surface = createSurface();
     NlModel model = createModel(surface, myFacet, xmlFile);
+
     ScreenView screenView = createScreen(surface, model, new SelectionModel());
     DesignSurface designSurface = screenView.getSurface();
     InteractionManager manager = createManager(designSurface);
@@ -57,6 +63,7 @@ public class InteractionManagerTest extends LayoutTestCase {
                          "/>";
     Transferable transferable = createTransferable(DataFlavor.stringFlavor, xmlFragment);
     dragDrop(manager, 0, 0, 100, 100, transferable);
+    Disposer.dispose(model);
 
     @Language("XML")
     String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -65,11 +72,11 @@ public class InteractionManagerTest extends LayoutTestCase {
                       "    android:layout_height=\"0dp\"\n" +
                       "    android:orientation=\"vertical\">\n" +
                       "\n" +
-                      "    <TextView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                      "              android:layout_width=\"match_parent\"\n" +
-                      "              android:layout_height=\"wrap_content\"\n" +
-                      "              android:text=\"Hello World\"\n" +
-                      "            />\n" +
+                      "    <TextView\n" +
+                      "            android:layout_width=\"wrap_content\"\n" +
+                      "            android:layout_height=\"wrap_content\"\n" +
+                      "            android:text=\"Hello World\"\n" +
+                      "            android:id=\"@+id/textView\"/>\n" +
                       "</LinearLayout>\n";
     assertEquals(expected, xmlFile.getText());
   }
