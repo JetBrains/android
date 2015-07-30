@@ -28,6 +28,9 @@ import com.android.tools.idea.uibuilder.actions.SelectAllAction;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
 import com.google.common.collect.Lists;
+import com.intellij.ide.IdeTooltip;
+import com.intellij.ide.IdeTooltipManager;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -227,12 +230,14 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       if (myScreenMode == ScreenMode.SCREEN_ONLY) {
         myLayers.add(new ScreenViewLayer(myScreenView));
         myLayers.add(new SelectionLayer(myScreenView));
+        myLayers.add(new WarningLayer(myScreenView));
       } else if (myScreenMode == ScreenMode.BOTH) {
         myBlueprintView = new ScreenView(this, model);
         assert screenSize != null;
         myBlueprintView.setLocation(myScreenX + screenSize.width + 10, myScreenY);
         myLayers.add(new ScreenViewLayer(myScreenView));
         myLayers.add(new SelectionLayer(myScreenView));
+        myLayers.add(new WarningLayer(myScreenView));
         myLayers.add(new BlueprintLayer(myBlueprintView));
         myLayers.add(new SelectionLayer(myBlueprintView));
       } else if (myScreenMode == ScreenMode.BLUEPRINT_ONLY) {
@@ -317,6 +322,37 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       return myBlueprintView;
     }
     return myScreenView;
+  }
+
+  public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
+    if (myErrorPanel.isVisible() && HighlightSeverity.ERROR.equals(myErrorPanel.getSeverity())) {
+      // don't show any warnings on hover if there is already some errors that are being displayed
+      // TODO: we should really move this logic into the error panel itself
+      return;
+    }
+
+    // Currently, we use the hover action only to check whether we need to show a warning.
+    for (Layer layer : myLayers) {
+      String tooltip = layer.getTooltip(x, y);
+      if (tooltip != null) {
+        myErrorPanel.showWarning(tooltip);
+        if (!myErrorPanel.isVisible()) {
+          myErrorPanel.setVisible(true);
+          revalidate();
+        } else {
+          repaint();
+        }
+        break;
+      }
+    }
+  }
+
+  public void resetHover() {
+    // if we were showing some warnings, then close it.
+    // TODO: similar to hover() method above, this logic of warning/error should be inside the error panel itself
+    if (HighlightSeverity.WARNING.equals(myErrorPanel.getSeverity())) {
+      myErrorPanel.setVisible(false);
+    }
   }
 
   public void zoom(@NonNull ZoomType type) {
@@ -577,24 +613,25 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     int width = getWidth();
     int size;
     if (SIZE_ERROR_PANEL_DYNAMICALLY) { // TODO: Only do this when the error panel is showing
-      if (myErrorPanelHeight == -1) {
-        // Make the layout take up to 3/4ths of the height, and at least 1/4th, but
-        // anywhere in between based on what the actual text requires
-        size = height * 3 / 4;
-        int preferredHeight = myErrorPanel.getPreferredHeight(width) + 8;
-        if (preferredHeight < size) {
-          size = Math.max(preferredHeight, Math.min(height / 4, size));
-          myErrorPanelHeight = size;
-        }
-      } else {
-        size = myErrorPanelHeight;
-      }
+      boolean showingErrors = HighlightSeverity.ERROR.equals(myErrorPanel.getSeverity());
+      size = computeErrorPanelHeight(showingErrors, height, myErrorPanel.getPreferredHeight(width) + 16);
     } else {
       size = height / 2;
     }
 
     myErrorPanel.setSize(width, size);
     myErrorPanel.setLocation(RULER_SIZE_PX, height - size);
+  }
+
+  private static int computeErrorPanelHeight(boolean showingErrors, int designerHeight, int preferredHeight) {
+    int maxSize = designerHeight * 3/4; // error panel can take up to 3/4th of the designer
+    int minSize = showingErrors ? designerHeight / 4 : 16; // but is at least 1/4th if errors are being shown
+    if (preferredHeight < maxSize) {
+      return Math.max(preferredHeight, minSize);
+    }
+    else {
+      return maxSize;
+    }
   }
 
   private static class MyScrollPane extends JBScrollPane {

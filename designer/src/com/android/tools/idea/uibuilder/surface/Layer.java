@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.intellij.openapi.Disposable;
 
 import javax.swing.*;
@@ -79,5 +81,11 @@ public abstract class Layer implements Disposable {
    */
   public void setHidden(boolean hidden) {
     myHidden = hidden;
+  }
+
+  /** Returns a tooltip from this layer if one is appropriate at the given co-ordinates. */
+  @Nullable
+  public String getTooltip(@SwingCoordinate int x, @SwingCoordinate int y) {
+    return null;
   }
 }

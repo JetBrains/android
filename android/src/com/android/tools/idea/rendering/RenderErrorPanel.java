@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.RenderSecurityManager;
@@ -132,53 +133,9 @@ public class RenderErrorPanel extends JPanel {
   private JEditorPane myHTMLViewer;
   private final HyperlinkListener myHyperLinkListener;
   private RenderResult myResult;
+  private HighlightSeverity mySeverity; // severity of messages shown, currently just warning or error
   private HtmlLinkManager myLinkManager;
   private final JScrollPane myScrollPane;
-
-  public void dispose(){
-    removeAll();
-    if (myHTMLViewer != null) {
-      myHTMLViewer.removeHyperlinkListener(myHyperLinkListener);
-      myHTMLViewer = null;
-    }
-  }
-
-  @Nullable
-  public String showErrors(@NotNull final RenderResult result) {
-    RenderLogger logger = result.getLogger();
-    if (!logger.hasProblems()) {
-      showErrors(null, null, null);
-      return null;
-    }
-
-    try {
-      String html = generateHtml(result, result.getLogger().getLinkManager());
-      showErrors(html, result, logger.getLinkManager());
-      return html;
-    }
-    catch (Exception e) {
-      showEmpty();
-      return null;
-    }
-  }
-
-  public void showErrors(@Nullable String html, @Nullable RenderResult result, @Nullable HtmlLinkManager linkManager) {
-    if (html == null) {
-      myResult = null;
-      showEmpty();
-      return;
-    }
-    try {
-      myHTMLViewer.read(new StringReader(html), null);
-      setupStyle();
-      myHTMLViewer.setCaretPosition(0);
-      myResult = result;
-      myLinkManager = linkManager;
-    }
-    catch (Exception e) {
-      showEmpty();
-    }
-  }
 
   public RenderErrorPanel() {
     super(new BorderLayout());
@@ -213,6 +170,63 @@ public class RenderErrorPanel extends JPanel {
     setupStyle();
 
     add(myScrollPane, BorderLayout.CENTER);
+  }
+
+  public void dispose(){
+    removeAll();
+    if (myHTMLViewer != null) {
+      myHTMLViewer.removeHyperlinkListener(myHyperLinkListener);
+      myHTMLViewer = null;
+    }
+  }
+
+  @Nullable
+  public String showErrors(@NotNull final RenderResult result) {
+    RenderLogger logger = result.getLogger();
+    if (!logger.hasProblems()) {
+      showErrors(null, null, null);
+      return null;
+    }
+
+    try {
+      String html = generateHtml(result, result.getLogger().getLinkManager());
+      showErrors(html, result, logger.getLinkManager());
+      return html;
+    }
+    catch (Exception e) {
+      showEmpty();
+      return null;
+    }
+  }
+
+  public void showErrors(@Nullable String html, @Nullable RenderResult result, @Nullable HtmlLinkManager linkManager) {
+    showErrors(HighlightSeverity.ERROR, html, result, linkManager);
+  }
+
+  public void showWarning(@Nullable String html) {
+    showErrors(HighlightSeverity.WARNING, html, null, null);
+  }
+
+  private void showErrors(@NonNull HighlightSeverity severity,
+                         @Nullable String html,
+                         @Nullable RenderResult result,
+                         @Nullable HtmlLinkManager linkManager) {
+    mySeverity = severity;
+    if (html == null) {
+      myResult = null;
+      showEmpty();
+      return;
+    }
+    try {
+      myHTMLViewer.read(new StringReader(html), null);
+      setupStyle();
+      myHTMLViewer.setCaretPosition(0);
+      myResult = result;
+      myLinkManager = linkManager;
+    }
+    catch (Exception e) {
+      showEmpty();
+    }
   }
 
   @VisibleForTesting
@@ -269,6 +283,11 @@ public class RenderErrorPanel extends JPanel {
 
   public int getPreferredHeight(@SuppressWarnings("UnusedParameters") int width) {
     return myHTMLViewer.getPreferredSize().height;
+  }
+
+  @Nullable
+  public HighlightSeverity getSeverity() {
+    return mySeverity;
   }
 
   public String generateHtml(@NotNull RenderResult result, @NotNull HtmlLinkManager linkManager) {
