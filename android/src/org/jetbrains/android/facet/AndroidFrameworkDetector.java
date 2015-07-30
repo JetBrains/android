@@ -52,7 +52,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 
 /**
  * @author nik
@@ -69,7 +69,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
   public List<? extends DetectedFrameworkDescription> detect(@NotNull Collection<VirtualFile> newFiles,
                                                              @NotNull FrameworkDetectionContext context) {
     Project project = context.getProject();
-    if (project != null && isBuildWithGradle(project)) {
+    if (project != null && requiresAndroidModel(project)) {
       return Collections.emptyList();
     }
     return super.detect(newFiles, context);
