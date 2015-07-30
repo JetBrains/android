@@ -58,6 +58,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @NonNls public static final String DO_NOTHING = "do_nothing";
 
   public String ACTIVITY_CLASS = "";
+  public String ACTIVITY_EXTRA_FLAGS = "";
   public String MODE = LAUNCH_DEFAULT_ACTIVITY;
   public boolean DEPLOY = true;
   public String ARTIFACT_NAME = "";
@@ -153,7 +154,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @NotNull
   @Override
   protected AndroidActivityLauncher getApplicationLauncher(@NotNull AndroidFacet facet) {
-    return new AndroidActivityLauncher(facet, needsLaunch(), getActivityLocator(facet));
+    return new AndroidActivityLauncher(facet, needsLaunch(), getActivityLocator(facet), ACTIVITY_EXTRA_FLAGS);
   }
 
   @NotNull
