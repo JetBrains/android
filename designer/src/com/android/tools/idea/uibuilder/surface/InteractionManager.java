@@ -22,6 +22,16 @@ import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.Lists;
+import com.intellij.ide.IdeTooltipManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.registry.Registry;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PsiNavigateUtil;
 
 import javax.swing.*;
@@ -42,6 +52,8 @@ import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIU
  * interactions and in order to update the interactions along the way.
  */
 public class InteractionManager {
+  private static final int HOVER_DELAY_MS = Registry.intValue("ide.tooltip.initialDelay");
+
   /** The canvas which owns this {@linkplain InteractionManager}. */
   @NonNull
   private final DesignSurface mySurface;
@@ -83,6 +95,13 @@ public class InteractionManager {
   protected int myLastStateMask;
 
   /**
+   * A timer used to control when to initiate a mouse hover action. It is active only when
+   * the mouse is within the design surface. It gets reset every time the mouse is moved, and
+   * fires after a certain delay once the mouse comes to rest.
+   */
+  private final Timer myHoverTimer;
+
+  /**
    * Listener for mouse motion, click and keyboard events.
    */
   private Listener myListener;
@@ -98,6 +117,9 @@ public class InteractionManager {
    */
   public InteractionManager(@NonNull DesignSurface surface) {
     mySurface = surface;
+
+    myHoverTimer = new Timer(HOVER_DELAY_MS, null);
+    myHoverTimer.setRepeats(false);
   }
 
   /**
@@ -134,6 +156,7 @@ public class InteractionManager {
     layeredPane.addKeyListener(myListener);
 
     myDropTarget = new DropTarget(mySurface.getLayeredPane(), DnDConstants.ACTION_COPY_OR_MOVE, myListener, true, null);
+    myHoverTimer.addActionListener(myListener);
   }
 
   /**
@@ -142,6 +165,7 @@ public class InteractionManager {
    */
   public void unregisterListeners() {
     myDropTarget.removeDropTargetListener(myListener);
+    myHoverTimer.removeActionListener(myListener);
   }
 
   /**
@@ -238,7 +262,6 @@ public class InteractionManager {
       NlComponent component = selectionModel.findComponent(mx, my);
       if (component == null || component.isRoot()) {
         // Finally pick any unselected component in the model under the cursor
-        // Finally pick any unselected component in the model under the cursor
         component = screenView.getModel().findLeafAt(mx, my, false);
       }
 
@@ -258,7 +281,7 @@ public class InteractionManager {
    * Helper class which implements the {@link MouseMotionListener},
    * {@link MouseListener} and {@link KeyListener} interfaces.
    */
-  private class Listener implements MouseMotionListener, MouseListener, KeyListener, DropTargetListener {
+  private class Listener implements MouseMotionListener, MouseListener, KeyListener, DropTargetListener, ActionListener {
 
     // --- Implements MouseListener ----
 
@@ -333,10 +356,14 @@ public class InteractionManager {
 
     @Override
     public void mouseEntered(@NonNull MouseEvent event) {
+      myHoverTimer.restart();
+      mySurface.resetHover();
     }
 
     @Override
     public void mouseExited(@NonNull MouseEvent event) {
+      myHoverTimer.stop();
+      mySurface.resetHover();
     }
 
     // --- Implements MouseMotionListener ----
@@ -407,6 +434,9 @@ public class InteractionManager {
         }
         startInteraction(x, y, interaction, modifiers);
       }
+
+      myHoverTimer.restart();
+      mySurface.resetHover();
     }
 
     @Override
@@ -425,6 +455,9 @@ public class InteractionManager {
       } else {
         updateCursor(x, y);
       }
+
+      myHoverTimer.restart();
+      mySurface.resetHover();
     }
 
     // --- Implements KeyListener ----
@@ -680,6 +713,21 @@ public class InteractionManager {
       dragged.clear();
       dragged.addAll(components);
       return insertType;
+    }
+
+    // --- Implements ActionListener ----
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (e.getSource() != myHoverTimer) {
+        return;
+      }
+
+      int x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
+      int y = myLastMouseY;
+
+      // TODO: find the correct tooltip? to show
+      mySurface.hover(x, y);
     }
   }
 
