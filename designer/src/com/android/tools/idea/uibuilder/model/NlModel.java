@@ -27,6 +27,7 @@ import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceVers
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.utils.XmlUtils;
@@ -45,6 +46,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -87,6 +89,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final List<ModelListener> myListeners = Lists.newArrayList();
   private List<NlComponent> myComponents = Lists.newArrayList();
   private final SelectionModel mySelectionModel;
+  private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
   private Disposable myParent;
   private boolean myActive;
@@ -158,6 +161,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NonNull
   public SelectionModel getSelectionModel() {
     return mySelectionModel;
+  }
+
+  @Nullable
+  public LintAnnotationsModel getLintAnnotationsModel() {
+    return myLintAnnotationsModel;
+  }
+
+  public void setLintAnnotationsModel(@Nullable LintAnnotationsModel model) {
+    myLintAnnotationsModel = model;
+    requestRender();
   }
 
   /** Like {@link #requestRender()}, but tries to do it as quickly as possible (flushes rendering queue) */
@@ -571,6 +584,20 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
 
     return result;
+  }
+
+  @Nullable
+  public NlComponent findViewByPsi(@Nullable PsiElement element) {
+    assert ApplicationManager.getApplication().isReadAccessAllowed();
+
+    while (element != null) {
+      if (element instanceof XmlTag) {
+        return findViewByTag((XmlTag)element);
+      }
+      element = element.getParent();
+    }
+
+    return null;
   }
 
   /**
