@@ -35,7 +35,6 @@ import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.AbstractAction;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.util.List;
@@ -49,7 +48,6 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
   public static final ResourceType[] COLORS_AND_DRAWABLES = {ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP};
 
   private final AndroidThemePreviewPanel myPreviewPanel;
-  private EditedStyleItem myItem;
 
   public ColorRendererEditor(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel, boolean isEditor) {
     super(context, isEditor);
@@ -58,20 +56,12 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
     if (isEditor) {
       myComponent.addActionListener(colorEditorListener);
     }
-    myComponent.addVariantComboAction(new AbstractAction("Add variation") {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        colorEditorListener.actionPerformed(e);
-      }
-    });
     myPreviewPanel = previewPanel;
   }
 
   @Override
   protected void updateComponent(@NotNull ThemeEditorContext context, @NotNull ResourceComponent component, @NotNull EditedStyleItem item) {
     assert context.getResourceResolver() != null;
-
-    myItem = item;
 
     final List<Color> colors = ResourceHelper.resolveMultipleColors(context.getResourceResolver(), item.getSelectedValue(),
                                                                     context.getProject());

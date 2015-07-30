@@ -292,12 +292,11 @@ public class ThemeEditorStyle {
 
     ResourceResolverCache resolverCache = ResourceResolverCache.create(myConfiguration.getConfigurationManager());
     ImmutableList.Builder<ConfiguredElement<ThemeEditorStyle>> parents = ImmutableList.builder();
-    Set<String> parentNames = Sets.newHashSet();
     for (ResourceItem item : getStyleResourceItems()) {
       ResourceResolver resolver = resolverCache.getResourceResolver(myConfiguration.getTarget(), getQualifiedName(), item.getConfiguration());
       StyleResourceValue parent = resolver.getParent(myStyleResourceValue);
       String parentName = parent == null ? null : ResolutionUtils.getQualifiedStyleName(parent);
-      if (parentName == null || !parentNames.add(parentName)) {
+      if (parentName == null) {
         // The parent name is null or was already added
         continue;
       }
