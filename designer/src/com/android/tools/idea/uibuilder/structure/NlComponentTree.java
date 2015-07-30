@@ -91,9 +91,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   private void enableDnD() {
-    setDragEnabled(true);
-    setTransferHandler(new TreeTransferHandler());
-    setDropTarget(new DropTarget(this, new NlDropListener(this)));
+    if (!ApplicationManager.getApplication().isHeadlessEnvironment()) {
+      setDragEnabled(true);
+      setTransferHandler(new TreeTransferHandler());
+      setDropTarget(new DropTarget(this, new NlDropListener(this)));
+    }
   }
 
   public void setDesignSurface(@Nullable DesignSurface designSurface) {
