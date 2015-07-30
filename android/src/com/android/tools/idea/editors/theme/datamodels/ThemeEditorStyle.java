@@ -274,7 +274,8 @@ public class ThemeEditorStyle {
   /**
    * Returns all the possible parents of this style. Parents might differ depending on the folder configuration, this returns all the
    * variants for this style.
-   * @param themeResolver
+   * @param themeResolver ThemeResolver, used for getting resolved themes by name.
+   *                      Can be null if the user doesn't care about source module information in result.
    */
   public Collection<ThemeEditorStyle> getAllParents(@Nullable ThemeResolver themeResolver) {
     if (isFramework()) {

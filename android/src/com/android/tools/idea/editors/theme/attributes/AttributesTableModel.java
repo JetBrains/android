@@ -93,7 +93,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   private void reloadContent() {
-    final List<EditedStyleItem> rawAttributes = ThemeEditorUtils.resolveAllAttributes(mySelectedStyle, myContext);
+    final List<EditedStyleItem> rawAttributes = ThemeEditorUtils.resolveAllAttributes(mySelectedStyle, myContext.getThemeResolver());
     myAttributes.clear();
     myLabels = AttributesGrouper.generateLabels(myGroupBy, rawAttributes, myAttributes);
     fireTableStructureChanged();
