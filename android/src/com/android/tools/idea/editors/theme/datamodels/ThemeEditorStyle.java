@@ -275,9 +275,8 @@ public class ThemeEditorStyle {
    * Returns all the possible parents of this style. Parents might differ depending on the folder configuration, this returns all the
    * variants for this style.
    * @param themeResolver ThemeResolver, used for getting resolved themes by name.
-   *                      Can be null if the user doesn't care about source module information in result.
    */
-  public Collection<ThemeEditorStyle> getAllParents(@Nullable ThemeResolver themeResolver) {
+  public Collection<ThemeEditorStyle> getAllParents(@NotNull ThemeResolver themeResolver) {
     if (isFramework()) {
       ThemeEditorStyle parent = getParent(themeResolver);
 
@@ -300,13 +299,7 @@ public class ThemeEditorStyle {
         continue;
       }
 
-      final ThemeEditorStyle style;
-      if (themeResolver == null) {
-        style = ResolutionUtils.getStyle(myConfiguration, resolver, parentName, getModuleForAcquiringResources());
-      }
-      else {
-        style = themeResolver.getTheme(parentName);
-      }
+      final ThemeEditorStyle style = themeResolver.getTheme(parentName);
 
       if (style != null) {
         parents.add(style);
