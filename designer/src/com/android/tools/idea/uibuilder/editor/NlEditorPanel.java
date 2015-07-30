@@ -142,7 +142,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
   public void dispose() {
     NlPaletteManager.get(mySurface.getProject()).dispose(this);
     NlStructureManager.get(mySurface.getProject()).dispose(this);
-    myContentSplitter.dispose();
+    Disposer.dispose(myContentSplitter);
   }
 
   public void activate() {
