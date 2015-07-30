@@ -17,29 +17,41 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.attributes.variants.VariantItemListener;
 import com.android.tools.idea.editors.theme.attributes.variants.VariantsComboItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.qualifiers.QualifierUtils;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
+import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.AbstractAction;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Abstract class that implements a {@link JTable} renderer and editor for attributes based on the {@link ResourceComponent} component.
@@ -54,6 +66,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
 
   protected final ThemeEditorContext myContext;
   protected final ResourceComponent myComponent;
+  protected static EditedStyleItem myItem;
   protected String myEditorValue;
 
   public GraphicalResourceRendererEditor(@NotNull ThemeEditorContext context, boolean isEditor) {
@@ -110,6 +123,9 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
     final String currentVariantColor = ColorUtil.toHex(ThemeEditorConstants.CURRENT_VARIANT_COLOR);
     final String notSelectedVariantColor = ColorUtil.toHex(ThemeEditorConstants.NOT_SELECTED_VARIANT_COLOR);
     final ImmutableList.Builder<VariantsComboItem> variantsListBuilder = ImmutableList.builder();
+
+    myItem = item;
+
     FolderConfiguration restrictedConfig = restrictConfiguration(manager, item, item.getSelectedValueConfiguration());
     variantsListBuilder.add(new VariantsComboItem(
       String.format(ThemeEditorConstants.CURRENT_VARIANT_TEMPLATE, currentVariantColor, item.getSelectedValueConfiguration().toShortDisplayString()),

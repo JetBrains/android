@@ -36,7 +36,6 @@ import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
 
 /**
@@ -46,7 +45,6 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
   @Nullable
   private RenderTask myRenderTask;
   private final AndroidThemePreviewPanel myPreviewPanel;
-  private EditedStyleItem myItem;
 
   public DrawableRendererEditor(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel, boolean isEditor) {
     super(context, isEditor);
@@ -57,12 +55,6 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     if (isEditor) {
       myComponent.addActionListener(editorClickListener);
     }
-    myComponent.addVariantComboAction(new AbstractAction("Add variation") {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        editorClickListener.actionPerformed(e);
-      }
-    });
     myPreviewPanel = previewPanel;
   }
 
@@ -81,8 +73,6 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
   @Override
   protected void updateComponent(@NotNull ThemeEditorContext context, @NotNull ResourceComponent component, @NotNull EditedStyleItem item) {
     assert context.getResourceResolver() != null;
-
-    myItem = item;
 
     if (myRenderTask != null) {
       component.setSwatchIcons(SwatchComponent.imageListOf(myRenderTask.renderDrawableAllStates(item.getSelectedValue())));
