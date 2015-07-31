@@ -802,7 +802,7 @@ class IntellijLintProject extends Project {
 
       IdeaAndroidProject androidModel = myFacet.getAndroidModel();
       if (androidModel != null) {
-        return androidModel.computePackageName();
+        return androidModel.getApplicationId();
       }
 
       return null;

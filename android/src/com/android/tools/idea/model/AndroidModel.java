@@ -73,7 +73,6 @@ public interface AndroidModel {
 
   /**
    * @return the current application ID.
-   * See {@link com.android.tools.idea.gradle.IdeaAndroidProject#computePackageName()}
    */
   @NotNull
   String getApplicationId();
