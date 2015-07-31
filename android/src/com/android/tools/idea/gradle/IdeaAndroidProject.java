@@ -242,7 +242,11 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
   @Nullable
   @Override
   public AndroidVersion getTargetSdkVersion() {
-    throw new UnsupportedOperationException("Not yet implemented.");
+    ApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+      if (targetSdkVersion != null) {
+        return new AndroidVersion(targetSdkVersion.getApiLevel(), targetSdkVersion.getCodename());
+      }
+    return null;
   }
 
   @NotNull
