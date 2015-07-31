@@ -16,7 +16,6 @@
 package com.android.tools.idea.model;
 
 import com.android.builder.model.ApiVersion;
-import com.android.builder.model.BuildTypeContainer;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.module.Module;
@@ -91,9 +90,9 @@ public class AndroidModuleInfo {
 
   @NotNull
   public AndroidVersion getMinSdkVersion() {
-    IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+    AndroidModel androidModel = myFacet.getAndroidModel();
     if (androidModel != null) {
-      AndroidVersion minSdkVersion = androidModel.getConfigMinSdkVersion();
+      AndroidVersion minSdkVersion = androidModel.getMinSdkVersion();
       if (minSdkVersion != null) {
         return minSdkVersion;
       }
