@@ -60,8 +60,6 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.tree.DefaultTreeSelectionModel;
-import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -215,17 +213,6 @@ public class SdkUpdaterConfigPanel {
     new CheckboxClickListener(tt, renderer).installOn(tt);
     TreeUtil.installActions(tt.getTree());
 
-    tt.getTree().setSelectionModel(new DefaultTreeSelectionModel() {
-      @Override
-      public void addSelectionPaths(TreePath[] path) {
-        // do nothing
-      }
-
-      @Override
-      public void setSelectionPaths(TreePath[] path) {
-        // do nothing
-      }
-    });
     tt.getTree().setToggleClickCount(0);
     tt.getTree().setShowsRootHandles(true);
 
