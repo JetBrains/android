@@ -43,7 +43,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -84,7 +83,7 @@ public class ThemeEditorStyle {
 
   /**
    * Source module of the theme, set to null if the theme comes from external libraries or the framework.
-   * For currently edited theme stored in {@link ThemeEditorContext#mySelectedStyleSourceModule}.
+   * For currently edited theme stored in {@link ThemeEditorContext#getCurrentContextModule()}.
    */
   private final @Nullable Module mySourceModule;
 
