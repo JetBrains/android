@@ -39,7 +39,7 @@ public class SdkPaths {
    */
   @NotNull
   public static ValidationResult validateAndroidSdk(@Nullable File sdkPath, boolean includePathInMessage) {
-    return validatedSdkPath(sdkPath, "SDK", true, includePathInMessage);
+    return validatedSdkPath(sdkPath, "SDK", false, includePathInMessage);
   }
 
   /**
@@ -52,23 +52,20 @@ public class SdkPaths {
   @NotNull
   public static ValidationResult validateAndroidNdk(@Nullable File ndkPath, boolean includePathInMessage) {
     ValidationResult validationResult = validatedSdkPath(ndkPath, "NDK", false, includePathInMessage);
-    if (!validationResult.success) {
-      return validationResult;
-    }
-
-    File toolchainsDirPath = new File(ndkPath, "toolchains");
-    if (!toolchainsDirPath.isDirectory()) {
-      String message;
-      if (includePathInMessage) {
-        message = String.format("The NDK at\n'%1$s'\ndoes not contain any toolchains.", ndkPath.getPath());
+    if (validationResult.success && ndkPath != null) {
+      File toolchainsDirPath = new File(ndkPath, "toolchains");
+      if (!toolchainsDirPath.isDirectory()) {
+        String message;
+        if (includePathInMessage) {
+          message = String.format("The NDK at\n'%1$s'\ndoes not contain any toolchains.", ndkPath.getPath());
+        }
+        else {
+          message = "NDK does not contain any toolchains.";
+        }
+        return ValidationResult.error(message);
       }
-      else {
-        message = "NDK does not contain any toolchains.";
-      }
-      return ValidationResult.error(message);
     }
-
-    return ValidationResult.SUCCESS;
+    return validationResult;
   }
 
   @NotNull
