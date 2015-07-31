@@ -436,7 +436,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     //noinspection ConstantConditions
     IdeaAndroidProject androidModel = AndroidFacet.getInstance(getModule()).getAndroidModel();
     assert androidModel != null;
-    return androidModel.computePackageName();
+    return androidModel.getApplicationId();
   }
 
   private Map<String, Object> getDirectories() {

@@ -170,7 +170,7 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
   @NotNull
   @Override
   public String getApplicationId() {
-    throw new UnsupportedOperationException("Not yet implemented.");
+    return getSelectedVariant().getMainArtifact().getApplicationId();
   }
 
   @NotNull
@@ -360,14 +360,6 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
     JavaCompileOptions compileOptions = myAndroidProject.getJavaCompileOptions();
     String sourceCompatibility = compileOptions.getSourceCompatibility();
     return LanguageLevel.parse(sourceCompatibility);
-  }
-
-  /**
-   * Returns the package name used for the current variant in the given project.
-   */
-  @NotNull
-  public String computePackageName() {
-    return getSelectedVariant().getMainArtifact().getApplicationId();
   }
 
   public boolean isLibrary() {
