@@ -164,7 +164,41 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
   @NotNull
   @Override
   public List<SourceProvider> getAllSourceProviders() {
-    throw new UnsupportedOperationException("Not yet implemented.");
+    Collection<Variant> variants = myAndroidProject.getVariants();
+    List<SourceProvider> providers = Lists.newArrayList();
+
+    // Add main source set
+    providers.add(getDefaultSourceProvider());
+
+    // Add all flavors
+    Collection<ProductFlavorContainer> flavors = myAndroidProject.getProductFlavors();
+    for (ProductFlavorContainer pfc : flavors) {
+      providers.add(pfc.getSourceProvider());
+    }
+
+    // Add the multi-flavor source providers
+    for (Variant v : variants) {
+      SourceProvider provider = v.getMainArtifact().getMultiFlavorSourceProvider();
+      if (provider != null) {
+        providers.add(provider);
+      }
+    }
+
+    // Add all the build types
+    Collection<BuildTypeContainer> buildTypes = myAndroidProject.getBuildTypes();
+    for (BuildTypeContainer btc : buildTypes) {
+      providers.add(btc.getSourceProvider());
+    }
+
+    // Add all the variant source providers
+    for (Variant v : variants) {
+      SourceProvider provider = v.getMainArtifact().getVariantSourceProvider();
+      if (provider != null) {
+        providers.add(provider);
+      }
+    }
+
+    return providers;
   }
 
   @NotNull
