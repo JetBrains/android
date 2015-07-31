@@ -204,12 +204,11 @@ public class ThemeEditorUtils {
    * Find every attribute in the theme hierarchy and all the possible configurations where it's present.
    * @param style the theme to retrieve all the attributes from
    * @param attributeConfigurations a {@link HashMultimap} where all the attributes and configurations will be stored
-   * @param resolver ThemeResolver that would be used to find themes by name. Can be null when user doesn't care about returned
-   *                 ThemeEditorStyle instances have proper source modules set up, e.g. in unit tests
+   * @param resolver ThemeResolver that would be used to find themes by name.
    */
   private static void findAllAttributes(@NotNull final ThemeEditorStyle style,
                                         @NotNull HashMultimap<String, FolderConfiguration> attributeConfigurations,
-                                        @Nullable ThemeResolver resolver) {
+                                        @NotNull ThemeResolver resolver) {
     for (ThemeEditorStyle parent : style.getAllParents(resolver)) {
       findAllAttributes(parent, attributeConfigurations, resolver);
     }
@@ -263,7 +262,7 @@ public class ThemeEditorUtils {
     }
   }
 
-  public static List<EditedStyleItem> resolveAllAttributes(@NotNull final ThemeEditorStyle style, @Nullable ThemeResolver themeResolver) {
+  public static List<EditedStyleItem> resolveAllAttributes(@NotNull final ThemeEditorStyle style, @NotNull ThemeResolver themeResolver) {
     HashMultimap<String, FolderConfiguration> attributes = HashMultimap.create();
     findAllAttributes(style, attributes, themeResolver);
 
