@@ -181,7 +181,11 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
 
   @Override
   public Boolean isDebuggable() {
-    throw new UnsupportedOperationException("Not yet implemented.");
+    BuildTypeContainer buildTypeContainer = findBuildType(getSelectedVariant().getBuildType());
+    if (buildTypeContainer != null) {
+      return buildTypeContainer.getBuildType().isDebuggable();
+    }
+    return null;
   }
 
   @Nullable
