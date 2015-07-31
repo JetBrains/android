@@ -195,10 +195,48 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
     return null;
   }
 
+  private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
+
+  /**
+   * Returns the {@code }minSdkVersion} specified by the user (in the default config or product flavors).
+   * This is normally the merged value, but for example when using preview platforms, the Gradle plugin
+   * will set minSdkVersion and targetSdkVersion to match the level of the compileSdkVersion; in this case
+   * we want tools like lint's API check to continue to look for the intended minSdkVersion specified in
+   * the build.gradle file
+   *
+   * @return the {@link AndroidVersion} to use for this Gradle project, or null if not specified
+   */
   @Nullable
   @Override
   public AndroidVersion getMinSdkVersion() {
-    return getConfigMinSdkVersion();
+    if (myMinSdkVersion == null) {
+      ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+      if (minSdkVersion != null && minSdkVersion.getCodename() != null) {
+        ApiVersion defaultConfigVersion  = getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
+        if (defaultConfigVersion != null) {
+          minSdkVersion = defaultConfigVersion;
+        }
+
+        List<String> flavors = getSelectedVariant().getProductFlavors();
+        for (String flavor : flavors) {
+          ProductFlavorContainer productFlavor = findProductFlavor(flavor);
+          assert productFlavor != null;
+          ApiVersion flavorVersion = productFlavor.getProductFlavor().getMinSdkVersion();
+          if (flavorVersion != null) {
+            minSdkVersion = flavorVersion;
+            break;
+          }
+        }
+      }
+
+      if (minSdkVersion != null) {
+        myMinSdkVersion = LintUtils.convertVersion(minSdkVersion, null);
+      } else {
+        myMinSdkVersion = NOT_SPECIFIED;
+      }
+    }
+
+    return myMinSdkVersion != NOT_SPECIFIED ? myMinSdkVersion : null;
   }
 
   @Nullable
@@ -404,49 +442,6 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
     }
 
     return myOverridesManifestPackage.booleanValue();
-  }
-
-  private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
-
-  /**
-   * Returns the {@code }minSdkVersion} specified by the user (in the default config or product flavors).
-   * This is normally the merged value, but for example when using preview platforms, the Gradle plugin
-   * will set minSdkVersion and targetSdkVersion to match the level of the compileSdkVersion; in this case
-   * we want tools like lint's API check to continue to look for the intended minSdkVersion specified in
-   * the build.gradle file
-   *
-   * @return the {@link AndroidVersion} to use for this Gradle project, or null if not specified
-   */
-  @Nullable
-  public AndroidVersion getConfigMinSdkVersion() {
-    if (myMinSdkVersion == null) {
-      ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-      if (minSdkVersion != null && minSdkVersion.getCodename() != null) {
-        ApiVersion defaultConfigVersion  = getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
-        if (defaultConfigVersion != null) {
-          minSdkVersion = defaultConfigVersion;
-        }
-
-        List<String> flavors = getSelectedVariant().getProductFlavors();
-        for (String flavor : flavors) {
-          ProductFlavorContainer productFlavor = findProductFlavor(flavor);
-          assert productFlavor != null;
-          ApiVersion flavorVersion = productFlavor.getProductFlavor().getMinSdkVersion();
-          if (flavorVersion != null) {
-            minSdkVersion = flavorVersion;
-            break;
-          }
-        }
-      }
-
-      if (minSdkVersion != null) {
-        myMinSdkVersion = LintUtils.convertVersion(minSdkVersion, null);
-      } else {
-        myMinSdkVersion = NOT_SPECIFIED;
-      }
-    }
-
-    return myMinSdkVersion != NOT_SPECIFIED ? myMinSdkVersion : null;
   }
 
   /**
