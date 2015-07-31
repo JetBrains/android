@@ -763,6 +763,8 @@
                     interface="com.android.tools.idea.run.CloudConfigurationProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.structure.services.developerServiceCreators"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceCreators"/>
+    <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
+                    interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
@@ -809,6 +811,11 @@
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer"/>
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer"/>
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer"/>
+
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.ide">
+    <sdkEventListener implementation="com.android.tools.idea.sdk.GradleAndroidSdkEventListener"/>
   </extensions>
 
   <!-- Layout editor -->
