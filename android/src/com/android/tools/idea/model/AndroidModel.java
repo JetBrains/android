@@ -92,7 +92,6 @@ public interface AndroidModel {
 
   /**
    * @return whether the application is debuggable, or null if not specified.
-   * {@link AndroidModuleInfo#isDebuggable()}
    */
   Boolean isDebuggable();
 
