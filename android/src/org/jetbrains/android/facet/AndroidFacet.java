@@ -208,7 +208,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @NotNull
   public SourceProvider getMainSourceProvider() {
     if (myAndroidModel != null) {
-      return myAndroidModel.getAndroidProject().getDefaultConfig().getSourceProvider();
+      return myAndroidModel.getDefaultSourceProvider();
     } else {
       if (myMainSourceSet == null) {
         myMainSourceSet = new LegacySourceProvider();
