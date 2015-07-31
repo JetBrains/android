@@ -158,17 +158,16 @@ public class ThemeEditorTable extends CellSpanTable {
       popupMenu.add(myJavadocAction);
 
       final ThemeEditorStyle selectedStyle = model.getSelectedStyle();
-      if (selectedStyle.isReadOnly() || !selectedStyle.equals(item.getSourceStyle())) {
-        return popupMenu;
+      if (!selectedStyle.isReadOnly() && selectedStyle.hasItem(item)) {
+        popupMenu.add(new AbstractAction("Reset value") {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            selectedStyle.removeAttribute(item.getQualifiedName());
+            model.fireTableCellUpdated(attribute.getRowIndex(), 0);
+          }
+        });
       }
 
-      popupMenu.add(new AbstractAction("Reset value") {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          selectedStyle.removeAttribute(item.getQualifiedName());
-          model.fireTableCellUpdated(attribute.getRowIndex(), 0);
-        }
-      });
       return popupMenu;
     }
     else if (contents instanceof AttributesTableModel.ParentAttribute) {
