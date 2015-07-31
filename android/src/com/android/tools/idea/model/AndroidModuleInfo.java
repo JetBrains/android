@@ -60,9 +60,9 @@ public class AndroidModuleInfo {
   /** Obtains the package name for the current variant, or if not specified, from the primary manifest. */
   @Nullable
   public String getPackage() {
-    IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+    AndroidModel androidModel = myFacet.getAndroidModel();
     if (androidModel != null) {
-      return androidModel.computePackageName();
+      return androidModel.getApplicationId();
     }
 
     // Read from the manifest: Not overridden in the configuration
