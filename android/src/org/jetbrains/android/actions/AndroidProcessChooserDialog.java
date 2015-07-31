@@ -15,13 +15,12 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.builder.model.Variant;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.executors.DefaultDebugExecutor;
@@ -400,9 +399,9 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
           collectProcessNames(xmlElement, result);
         }
       }
-      final IdeaAndroidProject androidModel = facet.getAndroidModel();
+      final AndroidModel androidModel = facet.getAndroidModel();
       if (androidModel != null) {
-        collectApplicationIds(androidModel, result);
+        result.addAll(androidModel.getAllApplicationIds());
       }
     }
 
@@ -422,16 +421,6 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
         }
       }
     });
-  }
-
-  private static void collectApplicationIds(IdeaAndroidProject androidModel, Set<String> result) {
-    final Collection<Variant> allVariants = androidModel.getAndroidProject().getVariants();
-    for (Variant v : allVariants) {
-      String applicationId = v.getMergedFlavor().getApplicationId();
-      if (applicationId != null) {
-        result.add(applicationId);
-      }
-    }
   }
 
   @Override
