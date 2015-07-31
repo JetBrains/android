@@ -186,7 +186,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
         if (androidModel != null) {
           Variant variant = androidModel.getSelectedVariant();
           String variantName = variant.getName();
-          AndroidArtifact mainArtifactInfo = variant.getMainArtifact();
+          AndroidArtifact mainArtifactInfo = androidModel.getMainArtifact();
           File classesFolder = mainArtifactInfo.getClassesFolder();
 
           // Older models may not supply it; in that case, we rely on looking relative
