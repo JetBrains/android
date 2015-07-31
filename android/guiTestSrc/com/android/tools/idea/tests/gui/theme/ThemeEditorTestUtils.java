@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -64,7 +65,8 @@ public class ThemeEditorTestUtils {
   public static Collection<EditedStyleItem> getStyleLocalValues(@NotNull final ThemeEditorStyle style) {
     final Set<String> localAttributes = style.getConfiguredValues().keySet();
 
-    return Collections2.filter(ThemeEditorUtils.resolveAllAttributes(style, null), new Predicate<EditedStyleItem>() {
+    final ThemeResolver resolver = new ThemeResolver(style.getConfiguration());
+    return Collections2.filter(ThemeEditorUtils.resolveAllAttributes(style, resolver), new Predicate<EditedStyleItem>() {
       @Override
       public boolean apply(@javax.annotation.Nullable EditedStyleItem input) {
         assert input != null;
