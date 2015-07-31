@@ -81,7 +81,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
     AndroidProject androidProject = androidModel.getAndroidProject();
     facetState.LIBRARY_PROJECT = androidProject.isLibrary();
 
-    SourceProvider sourceProvider = androidProject.getDefaultConfig().getSourceProvider();
+    SourceProvider sourceProvider = androidModel.getDefaultSourceProvider();
 
     syncSelectedVariantAndTestArtifact(facetState, androidModel);
 
