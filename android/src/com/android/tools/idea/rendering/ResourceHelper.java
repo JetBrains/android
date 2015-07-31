@@ -362,7 +362,10 @@ public class ResourceHelper {
     StateList stateList = resolveStateList(resources, colorValue, project);
     if (stateList != null) {
       List<StateListState> states = stateList.getStates();
+
+      // Getting the last color of the state list, because it's supposed to be the simplest / fallback one
       StateListState state = states.get(states.size() - 1);
+
       Color stateColor = parseColor(state.getValue());
       if (stateColor == null) {
         stateColor = resolveColor(resources, resources.findResValue(state.getValue(), false), project);
