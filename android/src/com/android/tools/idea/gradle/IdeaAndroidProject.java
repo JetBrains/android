@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle;
 import com.android.builder.model.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -47,7 +48,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
-public class IdeaAndroidProject implements Serializable {
+public class IdeaAndroidProject implements AndroidModel, Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
   private static final Logger LOG = Logger.getInstance(IdeaAndroidProject.class);
@@ -134,6 +135,65 @@ public class IdeaAndroidProject implements Serializable {
     for (Variant variant : myAndroidProject.getVariants()) {
       myVariantsByName.put(variant.getName(), variant);
     }
+  }
+
+  @NotNull
+  @Override
+  public AndroidArtifact getMainArtifact() {
+    return getSelectedVariant().getMainArtifact();
+  }
+
+  @NotNull
+  @Override
+  public SourceProvider getDefaultSourceProvider() {
+    return getAndroidProject().getDefaultConfig().getSourceProvider();
+  }
+
+  @NotNull
+  @Override
+  public List<SourceProvider> getActiveSourceProviders() {
+    throw new UnsupportedOperationException("Not yet implemented.");
+  }
+
+  @NotNull
+  @Override
+  public List<SourceProvider> getTestSourceProviders() {
+    throw new UnsupportedOperationException("Not yet implemented.");
+  }
+
+  @NotNull
+  @Override
+  public List<SourceProvider> getAllSourceProviders() {
+    throw new UnsupportedOperationException("Not yet implemented.");
+  }
+
+  @NotNull
+  @Override
+  public String getApplicationId() {
+    throw new UnsupportedOperationException("Not yet implemented.");
+  }
+
+  @NotNull
+  @Override
+  public Set<String> getAllApplicationIds() {
+    throw new UnsupportedOperationException("Not yet implemented.");
+  }
+
+  @Override
+  public Boolean isDebuggable() {
+    throw new UnsupportedOperationException("Not yet implemented.");
+  }
+
+  @Nullable
+  @Override
+  public AndroidVersion getMinSdkVersion() {
+    return getConfigMinSdkVersion();
+  }
+
+  @Nullable
+  @Override
+  public AndroidVersion getTargetSdkVersion() {
+    throw new UnsupportedOperationException("Not yet implemented.");
   }
 
   @NotNull
@@ -320,6 +380,7 @@ public class IdeaAndroidProject implements Serializable {
    *
    * @return true if the manifest package is overridden
    */
+  @Override
   public boolean overridesManifestPackage() {
     if (myOverridesManifestPackage == null) {
       myOverridesManifestPackage = getAndroidProject().getDefaultConfig().getProductFlavor().getApplicationId() != null;
