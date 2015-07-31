@@ -176,7 +176,14 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
   @NotNull
   @Override
   public Set<String> getAllApplicationIds() {
-    throw new UnsupportedOperationException("Not yet implemented.");
+    Set<String> ids = Sets.newHashSet();
+    for (Variant v : myAndroidProject.getVariants()) {
+      String applicationId = v.getMergedFlavor().getApplicationId();
+      if (applicationId != null) {
+        ids.add(applicationId);
+      }
+    }
+    return ids;
   }
 
   @Override
