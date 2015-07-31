@@ -16,14 +16,13 @@
 package com.android.tools.idea.model;
 
 import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A common interface for Android module models.
@@ -36,14 +35,6 @@ public interface AndroidModel {
   @Deprecated
   @NotNull
   AndroidArtifact getMainArtifact();
-
-  /**
-   * @return the currently selected test artifact produced by this Android module.
-   * TODO: Remove this method - it exposes Gradle-specific BaseArtifact.
-   */
-  @Deprecated
-  @Nullable
-  BaseArtifact getTestArtifact();
 
   /**
    * @return the default source provider.
@@ -81,13 +72,6 @@ public interface AndroidModel {
   List<SourceProvider> getAllSourceProviders();
 
   /**
-   * @return the current version code for this Android module, or null if not specified.
-   */
-  @Deprecated
-  @Nullable
-  Integer getVersionCode();
-
-  /**
    * @return the current application ID.
    * See {@link com.android.tools.idea.gradle.IdeaAndroidProject#computePackageName()}
    */
@@ -98,7 +82,7 @@ public interface AndroidModel {
    * @return all the application IDs of artifacts this Android module could produce.
    */
   @NotNull
-  Collection<String> getAllApplicationIds();
+  Set<String> getAllApplicationIds();
 
   /**
    * @return whether the manifest package is overriden.
@@ -126,11 +110,4 @@ public interface AndroidModel {
    */
   @Nullable
   AndroidVersion getTargetSdkVersion();
-
-  /**
-   * @return for test execution, the fully-qualified class name of the specified instrumentation runner if present.
-   */
-  @Nullable
-  @Deprecated
-  String getTestInstrumentationRunner();
 }
