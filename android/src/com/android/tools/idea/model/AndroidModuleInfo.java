@@ -104,11 +104,11 @@ public class AndroidModuleInfo {
 
   @NotNull
   public AndroidVersion getTargetSdkVersion() {
-    IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+    AndroidModel androidModel = myFacet.getAndroidModel();
     if (androidModel != null) {
-      ApiVersion targetSdkVersion = androidModel.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+      AndroidVersion targetSdkVersion = androidModel.getTargetSdkVersion();
       if (targetSdkVersion != null) {
-        return new AndroidVersion(targetSdkVersion.getApiLevel(), targetSdkVersion.getCodename());
+        return targetSdkVersion;
       }
       // Else: not specified in gradle files; fall back to manifest
     }
