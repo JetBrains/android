@@ -60,15 +60,15 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     super(false);
   }
 
-  private void compareWithAns(String doc, String ansPath) throws IOException {
-    assertNotNull(doc);
+  private void compareWithGoldenFile(@NotNull String text, @NotNull String goldenFile) throws IOException {
+    final File file = new File(goldenFile);
+    String goldenText = String.format(FileUtils.readFileToString(file), sdkPlatformPath).trim();
 
-    String ansDoc = String.format(FileUtils.readFileToString(new File(ansPath)), sdkPlatformPath);
+    // Add line breaks after "<BR/>" tags for results that are easier to read.
+    // Golden files are already have these line breaks, so there's no need to process them the same way.
+    text = StringUtil.replace(text, "<BR/>", "<BR/>\n");
 
-    doc = StringUtil.replace(doc, "\n", "");
-    ansDoc = StringUtil.replace(ansDoc, "\n", "");
-
-    assertEquals(ansDoc, doc);
+    assertEquals(String.format("Comparing to golden file %s failed", file.getCanonicalPath()), goldenText, text);
   }
 
   public void testGenerateToolTipText() throws IOException {
@@ -91,7 +91,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     for (EditedStyleItem item : values) {
       String doc = ThemeEditorUtils.generateToolTipText(item.getSelectedValue(), myModule, configuration);
-      compareWithAns(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + item.getName() + ".ans");
+      compareWithGoldenFile(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + item.getName() + ".ans");
     }
   }
 
