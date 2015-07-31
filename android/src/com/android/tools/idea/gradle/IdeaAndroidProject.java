@@ -152,13 +152,69 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
   @NotNull
   @Override
   public List<SourceProvider> getActiveSourceProviders() {
-    throw new UnsupportedOperationException("Not yet implemented.");
+    List<SourceProvider> providers = Lists.newArrayList();
+    // Main source provider.
+    providers.add(getDefaultSourceProvider());
+
+    Variant selectedVariant = getSelectedVariant();
+
+    // Flavor source providers.
+    for (String flavor : selectedVariant.getProductFlavors()) {
+      ProductFlavorContainer productFlavor = findProductFlavor(flavor);
+      assert productFlavor != null;
+      providers.add(productFlavor.getSourceProvider());
+    }
+
+    // Multi-flavor source provider.
+    AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+    SourceProvider multiFlavorProvider = mainArtifact.getMultiFlavorSourceProvider();
+    if (multiFlavorProvider != null) {
+      providers.add(multiFlavorProvider);
+    }
+
+    // Build type source provider.
+    BuildTypeContainer buildType = findBuildType(selectedVariant.getBuildType());
+    assert buildType != null;
+    providers.add(buildType.getSourceProvider());
+
+    // Variant  source provider.
+    SourceProvider variantProvider = mainArtifact.getVariantSourceProvider();
+    if (variantProvider != null) {
+      providers.add(variantProvider);
+    }
+    return providers;
   }
 
   @NotNull
   @Override
   public List<SourceProvider> getTestSourceProviders() {
-    throw new UnsupportedOperationException("Not yet implemented.");
+    List<SourceProvider> providers = Lists.newArrayList();
+
+    // Collect the default config test source providers.
+    Collection<SourceProviderContainer> extraSourceProviders =
+      getAndroidProject().getDefaultConfig().getExtraSourceProviders();
+    providers.addAll(getSourceProvidersForSelectedTestArtifact(extraSourceProviders));
+
+    // Collect the product flavor test source providers.
+    Variant selectedVariant = getSelectedVariant();
+    for (String flavor : selectedVariant.getProductFlavors()) {
+      ProductFlavorContainer productFlavor = findProductFlavor(flavor);
+      assert productFlavor != null;
+      providers.addAll(
+        getSourceProvidersForSelectedTestArtifact(productFlavor.getExtraSourceProviders()));
+    }
+
+    // TODO: Does it make sense to add multi-flavor test source providers?
+
+    // Collect the build type test source providers.
+    BuildTypeContainer buildType = findBuildType(selectedVariant.getBuildType());
+    assert buildType != null;
+    providers.addAll(
+      getSourceProvidersForSelectedTestArtifact(buildType.getExtraSourceProviders()));
+
+    // TODO: Does it make sense to add variant test source providers?
+
+    return providers;
   }
 
   @NotNull
