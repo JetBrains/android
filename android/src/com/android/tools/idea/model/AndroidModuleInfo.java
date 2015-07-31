@@ -135,11 +135,11 @@ public class AndroidModuleInfo {
    */
   @Nullable
   public Boolean isDebuggable() {
-    IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+    AndroidModel androidModel = myFacet.getAndroidModel();
     if (androidModel != null) {
-      BuildTypeContainer buildTypeContainer = androidModel.findBuildType(androidModel.getSelectedVariant().getBuildType());
-      if (buildTypeContainer != null) {
-        return buildTypeContainer.getBuildType().isDebuggable();
+      Boolean debuggable = androidModel.isDebuggable();
+      if (debuggable != null) {
+        return debuggable;
       }
     }
 
