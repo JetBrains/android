@@ -233,23 +233,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myMainIdeaSourceSet;
   }
 
-  @NotNull
-  public List<IdeaSourceProvider> getMainIdeaTestSourceProviders() {
-    if (!requiresAndroidModel() || myAndroidModel == null) {
-      return Collections.emptyList();
-    }
-
-    Collection<SourceProviderContainer> extraSourceProviders =
-      myAndroidModel.getAndroidProject().getDefaultConfig().getExtraSourceProviders();
-
-    List<IdeaSourceProvider> providers = Lists.newArrayList();
-    for (SourceProvider sourceProvider : myAndroidModel.getSourceProvidersForSelectedTestArtifact(extraSourceProviders)) {
-      providers.add(IdeaSourceProvider.create(sourceProvider));
-    }
-
-    return providers;
-  }
-
   /**
    * Returns the source provider for the current build type, which will never be {@code null} for a project backed by an
    * {@link AndroidProject}, and always {@code null} for a legacy Android project.
@@ -266,44 +249,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     } else {
       return null;
     }
-  }
-
-  /**
-   * Like {@link #getBuildTypeSourceProvider()} but typed for internal IntelliJ usage with {@link VirtualFile} instead of {@link File}
-   * references.
-   *
-   * @return the build type source set or {@code null}.
-   */
-  @Nullable
-  public IdeaSourceProvider getIdeaBuildTypeSourceProvider() {
-    SourceProvider sourceProvider = getBuildTypeSourceProvider();
-    if (sourceProvider != null) {
-      return IdeaSourceProvider.create(sourceProvider);
-    } else {
-      return null;
-    }
-  }
-
-  @NotNull
-  public List<IdeaSourceProvider> getIdeaBuildTypeTestSourceProvider() {
-    if (myAndroidModel == null) {
-      return Collections.emptyList();
-    }
-
-    List<IdeaSourceProvider> providers = Lists.newArrayList();
-    Variant selectedVariant = myAndroidModel.getSelectedVariant();
-    BuildTypeContainer buildType = myAndroidModel.findBuildType(selectedVariant.getBuildType());
-    assert buildType != null;
-
-    Collection<SourceProvider> testSourceProviders =
-      myAndroidModel.getSourceProvidersForSelectedTestArtifact(buildType.getExtraSourceProviders());
-
-
-    for (SourceProvider sourceProvider : testSourceProviders) {
-      providers.add(IdeaSourceProvider.create(sourceProvider));
-    }
-
-    return providers;
   }
 
   public ResourceFolderManager getResourceFolderManager() {
@@ -350,51 +295,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Like {@link #getFlavorSourceProviders()} but typed for internal IntelliJ usage with {@link VirtualFile} instead of {@link File}
-   * references.
-   *
-   * @return the flavor source providers or {@code null} in legacy projects.
-   */
-  @Nullable
-  public List<IdeaSourceProvider> getIdeaFlavorSourceProviders() {
-    List<SourceProvider> sourceProviders = getFlavorSourceProviders();
-    if (sourceProviders != null) {
-      List<IdeaSourceProvider> ideaSourceProviders = Lists.newArrayListWithExpectedSize(sourceProviders.size());
-      for (SourceProvider provider : sourceProviders) {
-        ideaSourceProviders.add(IdeaSourceProvider.create(provider));
-      }
-
-      return ideaSourceProviders;
-    } else {
-      return null;
-    }
-  }
-
-  @NotNull
-  public List<IdeaSourceProvider> getIdeaFlavorTestSourceProviders() {
-    if (myAndroidModel == null) {
-      return Collections.emptyList();
-    }
-
-    Variant selectedVariant = myAndroidModel.getSelectedVariant();
-    List<String> productFlavors = selectedVariant.getProductFlavors();
-    List<IdeaSourceProvider> providers = Lists.newArrayList();
-    for (String flavor : productFlavors) {
-      ProductFlavorContainer productFlavor = myAndroidModel.findProductFlavor(flavor);
-      assert productFlavor != null;
-
-      Collection<SourceProvider> testSourceProviders =
-        myAndroidModel.getSourceProvidersForSelectedTestArtifact(productFlavor.getExtraSourceProviders());
-
-      for (SourceProvider sourceProvider : testSourceProviders) {
-        providers.add(IdeaSourceProvider.create(sourceProvider));
-      }
-    }
-
-    return providers;
-  }
-
-  /**
    * Returns the source provider specific to the flavor combination, if any.
    *
    * @return the source provider or {@code null}.
@@ -414,22 +314,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Like {@link #getMultiFlavorSourceProvider()} but typed for internal IntelliJ usage with {@link VirtualFile} instead of {@link File}
-   * references.
-   *
-   * @return the flavor source providers or {@code null} in legacy projects.
-   */
-  @Nullable
-  public IdeaSourceProvider getIdeaMultiFlavorSourceProvider() {
-    SourceProvider provider = getMultiFlavorSourceProvider();
-    if (provider != null) {
-      return IdeaSourceProvider.create(provider);
-    }
-
-    return null;
-  }
-
-  /**
    * Returns the source provider specific to the variant, if any.
    *
    * @return the source provider or {@code null}.
@@ -443,22 +327,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       if (provider != null) {
         return provider;
       }
-    }
-
-    return null;
-  }
-
-  /**
-   * Like {@link #getVariantSourceProvider()} but typed for internal IntelliJ usage with {@link VirtualFile} instead of {@link File}
-   * references.
-   *
-   * @return the flavor source providers or {@code null} in legacy projects.
-   */
-  @Nullable
-  public IdeaSourceProvider getIdeaVariantSourceProvider() {
-    SourceProvider provider = getVariantSourceProvider();
-    if (provider != null) {
-      return IdeaSourceProvider.create(provider);
     }
 
     return null;
