@@ -562,6 +562,14 @@ public class AndroidLintTest extends AndroidTestCase {
                   "/res/layout/layout.xml", "xml");
   }
 
+  public void testApiCheck1f() throws Exception {
+    // Check adding a version-check conditional in a Java file
+    createManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection(),
+                  "Surround with if (VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB) { ... }",
+                  "/src/p1/p2/MyActivity.java", "java");
+  }
+
   public void testImlFileOutsideContentRoot() throws Exception {
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "additionalModules/module1/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "additionalModules/module2/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
