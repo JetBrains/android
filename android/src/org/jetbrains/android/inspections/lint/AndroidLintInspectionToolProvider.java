@@ -1138,6 +1138,7 @@ public class AndroidLintInspectionToolProvider {
         }
       }
 
+      list.add(new AddTargetVersionCheckQuickFix(api));
       list.add(new AddTargetApiQuickFix(api, startElement));
 
       return list.toArray(new AndroidLintQuickFix[list.size()]);
