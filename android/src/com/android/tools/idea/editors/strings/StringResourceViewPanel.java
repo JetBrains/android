@@ -95,7 +95,7 @@ public class StringResourceViewPanel implements HyperlinkListener {
     myToolbarPanel.add(toolbar.getComponent(), BorderLayout.CENTER);
 
     if (!HIDE_TRANSLATION_ORDER_LINK) {
-      HyperlinkLabel hyperlinkLabel = new HyperlinkLabel("Order a professional translation...");
+      HyperlinkLabel hyperlinkLabel = new HyperlinkLabel("Order a translation...");
       myToolbarPanel.add(hyperlinkLabel, BorderLayout.EAST);
       hyperlinkLabel.addHyperlinkListener(this);
       myToolbarPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
