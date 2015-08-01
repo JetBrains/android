@@ -107,28 +107,21 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       @Override
       public void run() {
         final Collection<DataNode<ModuleData>> modules = getModulesToImport(projectInfo);
-        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
-            ApplicationManager.getApplication().runWriteAction(new Runnable() {
+            ProjectRootManagerEx.getInstanceEx(myProject).mergeRootsChangesDuring(new Runnable() {
               @Override
               public void run() {
-                if (!myProject.isDisposed()) {
-                  ProjectRootManagerEx.getInstanceEx(myProject).mergeRootsChangesDuring(new Runnable() {
-                    @Override
-                    public void run() {
-                      ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-                      dataManager.importData(ProjectKeys.MODULE, modules, myProject, true /* synchronous */);
-                    }
-                  });
-                }
+                ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
+                dataManager.importData(ProjectKeys.MODULE, modules, myProject, true /* synchronous */);
               }
             });
-            // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
-            // sources for it. This happens on new projects.
-            PostProjectSetupTasksExecutor.getInstance(myProject).onProjectSyncCompletion();
           }
         });
+        // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
+        // sources for it. This happens on new projects.
+        PostProjectSetupTasksExecutor.getInstance(myProject).onProjectSyncCompletion();
       }
     });
   }
