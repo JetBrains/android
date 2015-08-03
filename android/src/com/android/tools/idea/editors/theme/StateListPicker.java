@@ -74,6 +74,7 @@ import java.util.Map;
 
 public class StateListPicker extends JPanel {
   private static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b>";
+  private static final String API_ERROR_TEXT = "This resource requires at least an API level of %d";
   private static final ResourceType[] DIMENSIONS_ONLY = {ResourceType.DIMEN};
 
   private final Module myModule;
@@ -264,6 +265,25 @@ public class StateListPicker extends JPanel {
     }
 
     return error;
+  }
+
+  /**
+   * Returns a {@Link ValidationInfo} specifying which of the state list component requires an API level higher than minApi.
+   * If there is no such component, returns null.
+   */
+  @Nullable
+  public ValidationInfo getApiError(int minApi) {
+    for (StateComponent component : myStateComponents) {
+      int resourceApi = ThemeEditorUtils.getOriginalApiLevel(component.getResourceValue(), myModule.getProject());
+      if (resourceApi > minApi) {
+        return component.getResourceComponent().createSwatchValidationInfo(String.format(API_ERROR_TEXT, resourceApi));
+      }
+      int alphaApi = ThemeEditorUtils.getOriginalApiLevel(component.getAlphaValue(), myModule.getProject());
+      if (alphaApi > minApi) {
+        return new ValidationInfo(String.format(API_ERROR_TEXT, alphaApi), component.getAlphaComponent());
+      }
+    }
+    return null;
   }
 
   private static boolean isResourcePrivate(@NotNull String resourceValue, @NotNull AndroidTargetData targetData) {

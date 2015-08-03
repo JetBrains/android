@@ -621,6 +621,24 @@ public class ThemeEditorUtils {
   }
 
   /**
+   * Returns the smallest api level of the folders in folderNames.
+   * Returns Integer.MAX_VALUE if folderNames is empty.
+   */
+  public static int getMinFolderApi(@NotNull List<String> folderNames, @NotNull Module module) {
+    int minFolderApi = Integer.MAX_VALUE;
+    int minModuleApi = getMinApiLevel(module);
+    for (String folderName : folderNames) {
+      FolderConfiguration folderConfig = FolderConfiguration.getConfigForFolder(folderName);
+      if (folderConfig != null) {
+        VersionQualifier version = folderConfig.getVersionQualifier();
+        int folderApi = version != null ? version.getVersion() : minModuleApi;
+        minFolderApi = Math.min(minFolderApi, folderApi);
+      }
+    }
+    return minFolderApi;
+  }
+
+  /**
    * Given a {@link SourceProvider}, it returns a list of all the available ResourceFolderRepositories
    */
   @NotNull
