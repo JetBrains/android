@@ -20,6 +20,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.StateListPicker;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
@@ -374,7 +375,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     final boolean okActionEnabled;
     ValidationInfo error = null;
 
-    if (selectedComponent == mySystemPanel.myComponent || selectedComponent ==myProjectPanel.myComponent) {
+    if (selectedComponent == mySystemPanel.myComponent || selectedComponent == myProjectPanel.myComponent) {
       boolean isProjectPanel = selectedComponent == myProjectPanel.myComponent;
       ResourcePanel panel = isProjectPanel ? myProjectPanel : mySystemPanel;
       ResourceItem element = getSelectedElement(panel.myTreeBuilder, ResourceItem.class);
@@ -394,9 +395,16 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
           error = tabComponent.getLocationSettings().doValidate();
         }
       }
+
       if (error == null && selectedComponent == myStateListPickerPanel) {
         error = myStateListPicker.getPrivateResourceError();
       }
+
+      if (error == null && selectedComponent == myStateListPickerPanel) {
+        int minDirectoriesApi = ThemeEditorUtils.getMinFolderApi(myStateListPickerPanel.getLocationSettings().getDirNames(), myModule);
+        error = myStateListPicker.getApiError(minDirectoriesApi);
+      }
+
       okActionEnabled = error == null;
     }
 
