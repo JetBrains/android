@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.JavaArtifact;
 import com.android.sdklib.IAndroidTarget;
-import com.google.common.base.Joiner;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.compiler.CompileScope;
@@ -133,9 +132,6 @@ public class AndroidJunitPatcher extends JUnitPatcher {
           return;
         }
       }
-
-      throw new IllegalStateException(String.format("Could not find matching mockable platform jar. Mockable jars found: [%s].",
-                                                    Joiner.on(',').join(mockableJars)));
     }
   }
 
