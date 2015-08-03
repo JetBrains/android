@@ -523,42 +523,7 @@ public abstract class IdeaSourceProvider {
       return Collections.singletonList(facet.getMainSourceProvider());
     }
 
-    AndroidProject androidProject = facet.getAndroidModel().getAndroidProject();
-    Collection<Variant> variants = androidProject.getVariants();
-    List<SourceProvider> providers = Lists.newArrayList();
-
-    // Add main source set
-    providers.add(facet.getMainSourceProvider());
-
-    // Add all flavors
-    Collection<ProductFlavorContainer> flavors = androidProject.getProductFlavors();
-    for (ProductFlavorContainer pfc : flavors) {
-      providers.add(pfc.getSourceProvider());
-    }
-
-    // Add the multi-flavor source providers
-    for (Variant v : variants) {
-      SourceProvider provider = v.getMainArtifact().getMultiFlavorSourceProvider();
-      if (provider != null) {
-        providers.add(provider);
-      }
-    }
-
-    // Add all the build types
-    Collection<BuildTypeContainer> buildTypes = androidProject.getBuildTypes();
-    for (BuildTypeContainer btc : buildTypes) {
-      providers.add(btc.getSourceProvider());
-    }
-
-    // Add all the variant source providers
-    for (Variant v : variants) {
-      SourceProvider provider = v.getMainArtifact().getVariantSourceProvider();
-      if (provider != null) {
-        providers.add(provider);
-      }
-    }
-
-    return providers;
+    return facet.getAndroidModel().getAllSourceProviders();
   }
 
   /**
