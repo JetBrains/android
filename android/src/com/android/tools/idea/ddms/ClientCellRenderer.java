@@ -61,6 +61,10 @@ public class ClientCellRenderer extends ColoredListCellRenderer {
     }
 
     container.append(String.format(" (%1$d)", cd.getPid()), SimpleTextAttributes.GRAY_ATTRIBUTES);
+
+    if (!c.isValid()) {
+      container.append(" [DEAD]", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+    }
   }
 
   @Override
