@@ -66,7 +66,7 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
   private static final Border VARIANT_ITEM_BORDER = new JBEmptyBorder(5);
   private static final JBColor VARIANT_MENU_BACKGROUND_COLOR = JBColor.WHITE;
 
-  private JButton myButton = new JButton() {
+  private final JButton myButton = new JButton() {
     @Override
     public void updateUI() {
       setUI((ButtonUI)BasicButtonUI.createUI(this));

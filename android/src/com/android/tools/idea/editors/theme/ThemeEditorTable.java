@@ -85,16 +85,28 @@ public class ThemeEditorTable extends CellSpanTable {
 
     CellSpanModel myModel = (CellSpanModel)rawModel;
 
-    setRowHeight(myClassHeights.get(Object.class));
+    int defaultRowHeight = myClassHeights.get(Object.class);
+    setRowHeight(defaultRowHeight);
     for (int row = 0; row < myModel.getRowCount(); row++) {
-      final Class<?> cellClass = myModel.getCellClass(row, 0);
-      final Integer rowHeight = myClassHeights.get(cellClass);
-      if (rowHeight != null) {
-        int viewRow = convertRowIndexToView(row);
+      // Find the maximum row height
+      int maxRowHeight = -1;
+      for (int col = 0; col < myModel.getColumnCount(); col += myModel.getColumnSpan(row, col)) {
+        Class<?> cellClass = myModel.getCellClass(row, col);
+        Integer rowHeight = myClassHeights.get(cellClass);
 
-        if (viewRow != -1) {
-          setRowHeight(viewRow, rowHeight);
+        if (rowHeight != null) {
+          maxRowHeight = Math.max(maxRowHeight, rowHeight);
         }
+      }
+
+      if (maxRowHeight == -1) {
+        // Leave the default size
+        continue;
+      }
+      int viewRow = convertRowIndexToView(row);
+
+      if (viewRow != -1) {
+        setRowHeight(viewRow, maxRowHeight);
       }
     }
   }

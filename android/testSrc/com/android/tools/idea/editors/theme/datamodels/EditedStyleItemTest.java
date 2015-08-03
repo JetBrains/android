@@ -19,16 +19,13 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
-import org.junit.Test;
 
 import java.util.List;
 
 public class EditedStyleItemTest extends AndroidTestCase {
-  @Test
   public void testValueSetters() {
     // Do a simple instantiation and check that the setters update the right value
 
@@ -40,19 +37,18 @@ public class EditedStyleItemTest extends AndroidTestCase {
     assertNotNull(fakeTheme);
 
     //noinspection ConstantConditions
-    List<ConfiguredItemResourceValue> items = ImmutableList.of(
-      new ConfiguredItemResourceValue(FolderConfiguration.getConfigForFolder("values-v21"),
-                                                      new ItemResourceValue("attribute", false, "otherValue", false), fakeTheme)
-    );
+    List<ConfiguredElement<ItemResourceValue>> items = ImmutableList.of(
+      ConfiguredElement.create(FolderConfiguration.getConfigForFolder("values-v21"),
+                                               new ItemResourceValue("attribute", false, "otherValue", false), fakeTheme));
 
     EditedStyleItem editedStyleItem = new EditedStyleItem(
-      new ConfiguredItemResourceValue(new FolderConfiguration(), new ItemResourceValue("attribute", false, "selectedValue", false), fakeTheme),
-      items, fakeTheme);
+      ConfiguredElement.create(new FolderConfiguration(), new ItemResourceValue("attribute", false, "selectedValue", false),
+                                               fakeTheme), items, fakeTheme);
 
     assertEquals("selectedValue", editedStyleItem.getValue());
     assertEquals("selectedValue", editedStyleItem.getSelectedValue().getValue());
     assertEquals(1, editedStyleItem.getNonSelectedItemResourceValues().size());
-    ConfiguredItemResourceValue notSelectedItem = editedStyleItem.getNonSelectedItemResourceValues().iterator().next();
+    ConfiguredElement<ItemResourceValue> notSelectedItem = editedStyleItem.getNonSelectedItemResourceValues().iterator().next();
     assertEquals("otherValue", notSelectedItem.myValue.getValue());
   }
 }

@@ -257,13 +257,6 @@ public class ThemeEditorComponent extends Splitter {
     myAttributesTable.setGoToListener(goToListener);
     final AttributeReferenceRendererEditor styleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
 
-    final JScrollPane scroll = myPanel.getAttributesScrollPane();
-    scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)); // the scroll pane should fill all available space
-
-    myAttributesTable.setBackground(null); // Get rid of default white background of the table.
-    scroll.setBackground(null); // needed for OS X, as by default is set to white
-    scroll.getViewport().setBackground(null); // needed for OS X, as by default is set to white
-
     myAttributesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(new ColorRendererEditor(myThemeEditorContext, myPreviewPanel, false)));
     myAttributesTable.setDefaultRenderer(EditedStyleItem.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
     myAttributesTable.setDefaultRenderer(ThemeEditorStyle.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
@@ -1017,7 +1010,8 @@ public class ThemeEditorComponent extends Splitter {
       Object.class, regularFontSize + REGULAR_CELL_PADDING,
       Color.class, bigCellSize,
       DrawableDomElement.class, bigCellSize,
-      TableLabel.class, headerFontSize + LARGE_CELL_PADDING
+      TableLabel.class, headerFontSize + LARGE_CELL_PADDING,
+      AttributesTableModel.ParentAttribute.class, 3 * (regularFontSize + REGULAR_CELL_PADDING)
     ));
   }
 }
