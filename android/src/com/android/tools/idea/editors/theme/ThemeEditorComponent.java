@@ -50,6 +50,7 @@ import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChan
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Ordering;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -84,6 +85,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.RowFilter;
+import javax.swing.RowSorter;
+import javax.swing.SortOrder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.plaf.PanelUI;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -99,6 +102,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -112,6 +116,28 @@ public class ThemeEditorComponent extends Splitter {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
 
   private static final JBColor PREVIEW_BACKGROUND = new JBColor(new Color(0xFAFAFA), new Color(0x343739));
+
+  /**
+   * Comparator used for simple mode attribute sorting
+   */
+  private static final Comparator SIMPLE_MODE_COMPARATOR = new Comparator() {
+    @Override
+    public int compare(Object o1, Object o2) {
+      // The parent attribute goes always first
+      if (o1 instanceof String) {
+        return -1;
+      } else if (o2 instanceof String) {
+        return 1;
+      }
+
+      if (o1 instanceof EditedStyleItem && o2 instanceof EditedStyleItem) {
+        return ((EditedStyleItem)o1).compareTo((EditedStyleItem)o2);
+      }
+
+      // Fall-back for other comparisons
+      return Ordering.usingToString().compare(o1, o2);
+    }
+  };
 
   public static final float HEADER_FONT_SCALE = 1.3f;
   public static final int REGULAR_CELL_PADDING = 4;
@@ -499,10 +525,12 @@ public class ThemeEditorComponent extends Splitter {
     if (myPanel.isAdvancedMode()) {
       myAttributesFilter.setFilterEnabled(false);
       myAttributesSorter.setRowFilter(myAttributesFilter);
+      myAttributesSorter.setSortKeys(null);
     } else {
       mySimpleModeFilter.configure(myModel.getDefinedAttributes(), ThemeEditorUtils.isAppCompatTheme(
         myThemeEditorContext.getConfiguration()));
       myAttributesSorter.setRowFilter(mySimpleModeFilter);
+      myAttributesSorter.setSortKeys(ImmutableList.of(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
     }
   }
 
@@ -774,6 +802,9 @@ public class ThemeEditorComponent extends Splitter {
 
     myAttributesTable.setRowSorter(null); // Clean any previous row sorters.
     myAttributesSorter = new TableRowSorter<AttributesTableModel>(myModel);
+    // This is only used when the sort keys are set (only set in simple mode).
+    myAttributesSorter.setComparator(0, SIMPLE_MODE_COMPARATOR);
+
     configureFilter();
 
     myAttributesTable.setModel(myModel);

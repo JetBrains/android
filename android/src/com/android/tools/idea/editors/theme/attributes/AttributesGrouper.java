@@ -16,9 +16,17 @@
 package com.android.tools.idea.editors.theme.attributes;
 
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.TreeMultimap;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class AttributesGrouper {
   private AttributesGrouper() { }
@@ -28,7 +36,7 @@ public class AttributesGrouper {
     TYPE("By Type");
 
     final private String myText;
-    
+
     GroupBy(String text) {
       myText = text;
     }
@@ -43,7 +51,13 @@ public class AttributesGrouper {
    * Helper data structure to hold information for (temporary) algorithm for splitting attributes
    * to labelled group.
    */
-  private static class Group {
+  private enum Group {
+    STYLES("Styles", ImmutableList.of("style", "theme")),
+    COLORS("Colors", ImmutableList.of("color")),
+    DRAWABLES("Drawables", ImmutableList.of("drawable")),
+    METRICS("Metrics", ImmutableList.of("size", "width", "height")),
+    OTHER("Everything Else", Collections.<String>emptyList());
+
     /**
      * Group name, as appears on properties panel
      */
@@ -54,88 +68,61 @@ public class AttributesGrouper {
      */
     public final List<String> markers;
 
-    public Group(String name, List<String> markers) {
+    Group(@NotNull String name, @NotNull List<String> markers) {
       this.name = name;
       this.markers = markers;
     }
 
-    public static Group of(String name, String... markers) {
-      return new Group(name, Arrays.asList(markers));
-    }
-  }
-
-  private static final List<Group> GROUPS = Arrays.asList(
-    Group.of("Styles", "style", "theme"),
-    Group.of("Colors", "color"),
-    Group.of("Drawables", "drawable"),
-    Group.of("Metrics", "size", "width", "height")
-  );
-
-  @SuppressWarnings("unchecked")
-  public static List<TableLabel> generateLabelsForType(final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
-
-    final List<EditedStyleItem>[] classes = new List[GROUPS.size() + 1];
-    final int otherGroupIndex = GROUPS.size();
-
-    for (int i = 0; i < classes.length; i++) {
-      classes[i] = new ArrayList<EditedStyleItem>();
-    }
-
-    outer:
-    for (final EditedStyleItem item : source) {
-      final String name = item.getName();
-
-      for (int index = 0; index < GROUPS.size(); index++) {
-        final Group group = GROUPS.get(index);
+    private static Group getGroupFromName(String name) {
+      for (Group group : Group.values()) {
         for (final String marker : group.markers) {
           if (StringUtil.containsIgnoreCase(name, marker)) {
-            classes[index].add(item);
-            continue outer;
+            return group;
           }
         }
       }
+      return OTHER;
+    }
+  }
 
-      // haven't found any group, will put the item into "Other"
-      classes[otherGroupIndex].add(item);
+
+  @NotNull
+  private static List<TableLabel> generateLabelsForType(@NotNull final List<EditedStyleItem> source, @NotNull final List<EditedStyleItem> sink) {
+    final Multimap<Group, EditedStyleItem> classes = HashMultimap.create();
+
+    for (final EditedStyleItem item : source) {
+      final String name = item.getName();
+      classes.put(Group.getGroupFromName(name), item);
     }
 
     final List<TableLabel> labels = new ArrayList<TableLabel>();
     int offset = 0;
-    for (int index = 0; index < GROUPS.size(); index++) {
-      final Group group = GROUPS.get(index);
-      final int size = classes[index].size();
+    for (Group group : Group.values()) {
+      Collection<EditedStyleItem> elements = classes.get(group);
 
-      if (size != 0) {
+      boolean addHeader = !elements.isEmpty();
+      if (addHeader && group == Group.OTHER) {
+        // Adding "Everything else" label only in case when there are at least one other label,
+        // because having "Everything else" as the only label present looks quite silly
+        addHeader = offset != 0;
+      }
+      if (addHeader) {
         labels.add(new TableLabel(group.name, offset));
       }
 
-      offset += size;
-    }
+      sink.addAll(elements);
 
-    final int otherGroupSize = classes[otherGroupIndex].size();
-    // Adding "Everything else" label only in case when there are at least one other label,
-    // because having "Everything else" as the only label present looks quite silly
-    if (otherGroupSize != 0 && labels.size() > 0) {
-      labels.add(new TableLabel("Everything Else", offset));
-    }
-
-    for (final List<EditedStyleItem> list : classes) {
-      for (final EditedStyleItem item : list) {
-        sink.add(item);
-      }
+      offset += elements.size();
     }
 
     return labels;
   }
 
-  private static List<TableLabel> generateLabelsForGroup(final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
-    Map<String, List<EditedStyleItem>> classes = new TreeMap<String, List<EditedStyleItem>>();
+  static List<TableLabel> generateLabelsForGroup(final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
+    TreeMultimap<String, EditedStyleItem> classes = TreeMultimap.create();
     for (EditedStyleItem item : source){
       String group = item.getAttrGroup();
-      if (!classes.containsKey(group)) {
-        classes.put(group, new ArrayList<EditedStyleItem>());
-      }
-      classes.get(group).add(item);
+      classes.put(group, item);
     }
 
     final List<TableLabel> labels = new ArrayList<TableLabel>();
@@ -152,13 +139,16 @@ public class AttributesGrouper {
     return labels;
   }
 
-  public static List<TableLabel> generateLabels(GroupBy group, final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
-    if (group == GroupBy.TYPE) {
-      return generateLabelsForType(source, sink);
+  @NotNull
+  public static List<TableLabel> generateLabels(@NotNull GroupBy group, final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
+    switch(group) {
+      case TYPE:
+        return generateLabelsForType(source, sink);
+      case GROUP:
+        return generateLabelsForGroup(source, sink);
+
+      default:
+        throw new IllegalArgumentException();
     }
-    else if (group == GroupBy.GROUP) {
-      return generateLabelsForGroup(source, sink);
-    }
-    return null;
   }
 }
