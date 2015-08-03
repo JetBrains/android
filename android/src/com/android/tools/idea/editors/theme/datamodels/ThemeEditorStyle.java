@@ -205,17 +205,17 @@ public class ThemeEditorStyle {
   }
 
   /**
-   * Returns all the style attributes and it's values. For each attribute, multiple {@link ConfiguredItemResourceValue} can be returned
+   * Returns all the style attributes and its values. For each attribute, multiple {@link ConfiguredElement} can be returned
    * representing the multiple values in different configurations for each item.
    */
   @NotNull
-  public Multimap<String, ConfiguredItemResourceValue> getConfiguredValues() {
+  public Multimap<String, ConfiguredElement<ItemResourceValue>> getConfiguredValues() {
     // Get a list of all the items indexed by the item name. Each item contains a list of the
     // possible values in this theme in different configurations.
     //
     // If item1 has multiple values in different configurations, there will be an
     // item1 = {folderConfiguration1 -> value1, folderConfiguration2 -> value2}
-    final Multimap<String, ConfiguredItemResourceValue> itemResourceValues = ArrayListMultimap.create();
+    final Multimap<String, ConfiguredElement<ItemResourceValue>> itemResourceValues = ArrayListMultimap.create();
 
     if (isFramework()) {
       assert myConfiguration.getFrameworkResources() != null;
@@ -230,7 +230,7 @@ public class ThemeEditorStyle {
         if (styleResourceValue instanceof StyleResourceValue) {
           for (final ItemResourceValue value : ((StyleResourceValue)styleResourceValue).getValues()) {
             itemResourceValues
-              .put(ResolutionUtils.getQualifiedItemName(value), new ConfiguredItemResourceValue(folderConfiguration, value, this));
+              .put(ResolutionUtils.getQualifiedItemName(value), ConfiguredElement.create(folderConfiguration, value, this));
           }
         }
       }
@@ -249,7 +249,7 @@ public class ThemeEditorStyle {
           for (final ItemResourceValue value : ((StyleResourceValue)styleResourceValue).getValues()) {
             // We use the qualified name since apps and libraries can use the same attribute name twice with and without "android:"
             itemResourceValues
-              .put(ResolutionUtils.getQualifiedItemName(value), new ConfiguredItemResourceValue(folderConfiguration, value, this));
+              .put(ResolutionUtils.getQualifiedItemName(value), ConfiguredElement.create(folderConfiguration, value, this));
           }
         }
       }
@@ -279,19 +279,19 @@ public class ThemeEditorStyle {
    * variants for this style.
    * @param themeResolver ThemeResolver, used for getting resolved themes by name.
    */
-  public Collection<ThemeEditorStyle> getAllParents(@NotNull ThemeResolver themeResolver) {
+  public Collection<ConfiguredElement<ThemeEditorStyle>> getAllParents(@NotNull ThemeResolver themeResolver) {
     if (isFramework()) {
       ThemeEditorStyle parent = getParent(themeResolver);
 
       if (parent != null) {
-        return ImmutableList.of(parent);
+        return ImmutableList.of(ConfiguredElement.create(getConfiguration().getEditedConfig(), parent, this));
       } else {
         return Collections.emptyList();
       }
     }
 
     ResourceResolverCache resolverCache = ResourceResolverCache.create(myConfiguration.getConfigurationManager());
-    ImmutableList.Builder<ThemeEditorStyle> parents = ImmutableList.builder();
+    ImmutableList.Builder<ConfiguredElement<ThemeEditorStyle>> parents = ImmutableList.builder();
     Set<String> parentNames = Sets.newHashSet();
     for (ResourceItem item : getStyleResourceItems()) {
       ResourceResolver resolver = resolverCache.getResourceResolver(myConfiguration.getTarget(), getQualifiedName(), item.getConfiguration());
@@ -305,7 +305,7 @@ public class ThemeEditorStyle {
       final ThemeEditorStyle style = themeResolver.getTheme(parentName);
 
       if (style != null) {
-        parents.add(style);
+        parents.add(ConfiguredElement.create(item.getConfiguration(), style, this));
       }
     }
     resolverCache.reset();

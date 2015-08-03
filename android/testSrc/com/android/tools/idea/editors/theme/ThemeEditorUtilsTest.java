@@ -22,7 +22,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredItemResourceValue;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.AppResourceRepository;
@@ -238,8 +238,8 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertEquals("V20", myBaseAttribute.getValue());
     // This wil contain v19 and default as other configs
     assertSize(2, myBaseAttribute.getNonSelectedItemResourceValues());
-    ConfiguredItemResourceValue value = Iterables.getFirst(myBaseAttribute.getNonSelectedItemResourceValues(), null);
-    assertEquals("V17", value.getItemResourceValue().getValue());
+    ConfiguredElement<ItemResourceValue> value = Iterables.getFirst(myBaseAttribute.getNonSelectedItemResourceValues(), null);
+    assertEquals("V17", value.getElement().getValue());
 
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 17, null));
     themeResolver = new ThemeResolver(configuration);
@@ -295,22 +295,22 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     assertFalse(inheritanceSet.iterator().hasNext());
     ItemResourceValue value = new ItemResourceValue("android:windowBackground", true, "0", true);
-    inheritanceSet.add(new ConfiguredItemResourceValue(defaultFolder, value, theme));
+    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value, theme));
     assertEquals(1, Iterables.size(inheritanceSet));
 
     // This shouldn't add the attribute again
-    inheritanceSet.add(new ConfiguredItemResourceValue(defaultFolder, value, theme));
+    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value, theme));
     assertEquals(1, Iterables.size(inheritanceSet));
 
     // Even when the source theme is different, it shouldn't be added
-    inheritanceSet.add(new ConfiguredItemResourceValue(defaultFolder, value, appTheme));
+    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value, appTheme));
     assertEquals(1, Iterables.size(inheritanceSet));
 
-    inheritanceSet.add(new ConfiguredItemResourceValue(v21Folder, value, appTheme));
+    inheritanceSet.add(ConfiguredElement.create(v21Folder, value, appTheme));
     assertEquals(2, Iterables.size(inheritanceSet));
 
     value = new ItemResourceValue("android:colorForeground", true, "0", true);
-    inheritanceSet.add(new ConfiguredItemResourceValue(defaultFolder, value, theme));
+    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value, theme));
     assertEquals(3, Iterables.size(inheritanceSet));
   }
 }

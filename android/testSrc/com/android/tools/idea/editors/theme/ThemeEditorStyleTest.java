@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredItemResourceValue;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
@@ -38,7 +38,6 @@ import java.util.Collection;
 import java.util.Set;
 
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class ThemeEditorStyleTest extends AndroidTestCase {
 
@@ -70,9 +69,12 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     assertNotNull(parent);
 
     FolderConfiguration defaultConfig = new FolderConfiguration();
-    ConfiguredItemResourceValue hasItem = new ConfiguredItemResourceValue(defaultConfig, new ItemResourceValue("myColor", false, "?android:attr/colorBackground", false), theme);
-    ConfiguredItemResourceValue hasNotItem = new ConfiguredItemResourceValue(defaultConfig, new ItemResourceValue("myHasNot", false, "?android:attr/colorBackground", false), theme);
-    ConfiguredItemResourceValue hasInParent = new ConfiguredItemResourceValue(defaultConfig, new ItemResourceValue("editTextStyle", true, "?android:attr/colorBackground", true), theme);
+    ConfiguredElement<ItemResourceValue> hasItem =
+      ConfiguredElement.create(defaultConfig, new ItemResourceValue("myColor", false, "?android:attr/colorBackground", false), theme);
+    ConfiguredElement<ItemResourceValue> hasNotItem =
+      ConfiguredElement.create(defaultConfig, new ItemResourceValue("myHasNot", false, "?android:attr/colorBackground", false), theme);
+    ConfiguredElement<ItemResourceValue> hasInParent =
+      ConfiguredElement.create(defaultConfig, new ItemResourceValue("editTextStyle", true, "?android:attr/colorBackground", true), theme);
     assertTrue(theme.hasItem(new EditedStyleItem(hasItem, theme)));
     assertFalse(theme.hasItem(new EditedStyleItem(hasNotItem, theme)));
     assertTrue(theme.getParent().hasItem(new EditedStyleItem(hasInParent, parent)));
@@ -336,7 +338,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
         assertSize(3, item.getNonSelectedItemResourceValues());
         seenConfigurations.add(item.getSelectedValueConfiguration().toString());
         // The other values can not be default or repeated
-        for(ConfiguredItemResourceValue value : item.getNonSelectedItemResourceValues()) {
+        for(ConfiguredElement value : item.getNonSelectedItemResourceValues()) {
           String configName = value.getConfiguration().toString();
           assertFalse(seenConfigurations.contains(configName));
           seenConfigurations.add(configName);
@@ -347,12 +349,12 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
         assertSize(3, item.getNonSelectedItemResourceValues());
         assertEquals("-v21", item.getSelectedValueConfiguration().getUniqueKey());
         assertEquals("@null", item.getValue());
-        assertTrue(Iterables.any(item.getNonSelectedItemResourceValues(), new Predicate<ConfiguredItemResourceValue>() {
+        assertTrue(Iterables.any(item.getNonSelectedItemResourceValues(), new Predicate<ConfiguredElement<ItemResourceValue>>() {
           @Override
-          public boolean apply(@Nullable ConfiguredItemResourceValue input) {
+          public boolean apply(@Nullable ConfiguredElement<ItemResourceValue> input) {
             assert input != null;
             return "-v14".equals(input.getConfiguration().getUniqueKey()) &&
-                   "@style/ActionModeStyle".equals(input.getItemResourceValue().getValue());
+                   "@style/ActionModeStyle".equals(input.getElement().getValue());
           }
         }));
       }
@@ -373,7 +375,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
         assertEquals("-v14", item.getSelectedValueConfiguration().getUniqueKey());
         assertSize(3, item.getNonSelectedItemResourceValues());
 
-        for(ConfiguredItemResourceValue value : item.getNonSelectedItemResourceValues()) {
+        for(ConfiguredElement value : item.getNonSelectedItemResourceValues()) {
           assertNotEquals("-v14", value.getConfiguration().getUniqueKey());
         }
       }

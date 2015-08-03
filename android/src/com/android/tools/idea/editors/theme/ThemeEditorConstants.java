@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 
 import java.awt.Color;
 
@@ -26,4 +27,18 @@ public class ThemeEditorConstants {
    * Color used to display resources values in the attributes table
    */
   public static final JBColor RESOURCE_ITEM_COLOR = new JBColor(new Color(0x6F6F6F)/*light*/, new Color(0xAAAAAA)/*dark*/);
+
+  /** Label template for the selected variant in the variants combobox */
+  public static final String CURRENT_VARIANT_TEMPLATE = "<html><nobr><font color=\"#%1$s\">%2$s";
+  /** Label template for the not selected variant in the variants combobox */
+  public static final String NOT_SELECTED_VARIANT_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b><font color=\"#9B9B9B\"> %3$s</font>";
+  @SuppressWarnings("UseJBColor") // LIGHT_GRAY works also in Darcula
+  public static final Color CURRENT_VARIANT_COLOR = Color.LIGHT_GRAY;
+  @SuppressWarnings("UseJBColor")
+  public static final Color NOT_SELECTED_VARIANT_COLOR = new Color(0x70ABE3);
+
+  /** Attribute cell label template */
+  public static final String ATTRIBUTE_LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s";
+  /** Attribute cell gap between the label and the swatch */
+  public static final int ATTRIBUTE_ROW_GAP = JBUI.scale(4);
 }

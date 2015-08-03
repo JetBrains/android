@@ -15,31 +15,28 @@
  */
 package com.android.tools.idea.editors.theme.datamodels;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * {@link ItemResourceValue} associated to the {@link FolderConfiguration} that contains it.
+ * Class that contains any object that has a {@link FolderConfiguration} associated. This class is used to contain
+ * attribute values when they come from a specific folder or theme parents when there are multiple of them coming from
+ * different configurations.
  */
-public class ConfiguredItemResourceValue implements Configurable {
+public class ConfiguredElement<T> implements Configurable {
   final FolderConfiguration myFolderConfiguration;
-  final ItemResourceValue myValue;
+  final T myValue;
   final ThemeEditorStyle mySourceStyle;
 
-  public ConfiguredItemResourceValue(@NotNull FolderConfiguration folderConfiguration,
-                                     @NotNull ItemResourceValue value,
-                                     @NotNull ThemeEditorStyle sourceStyle) {
+  private ConfiguredElement(@NotNull FolderConfiguration folderConfiguration, @NotNull T value, @NotNull ThemeEditorStyle sourceStyle) {
     myFolderConfiguration = folderConfiguration;
     myValue = value;
     mySourceStyle = sourceStyle;
   }
 
   /**
-   * Returns the {@link FolderConfiguration} associated to the {@link ItemResourceValue} returned by {@link #getItemResourceValue()}
+   * Returns the {@link FolderConfiguration} associated to the element returned by {@link #getElement()}
    */
   @Override
   @NotNull
@@ -47,8 +44,9 @@ public class ConfiguredItemResourceValue implements Configurable {
     return myFolderConfiguration;
   }
 
+  /** Returns the configured element */
   @NotNull
-  public ItemResourceValue getItemResourceValue() {
+  public T getElement() {
     return myValue;
   }
 
@@ -57,9 +55,15 @@ public class ConfiguredItemResourceValue implements Configurable {
     return mySourceStyle;
   }
 
-  @Override
-  public String toString() {
-    return String.format("[%1$s] %2$s = %3$s (%4$s)", myFolderConfiguration, ResolutionUtils.getQualifiedItemName(myValue),
-                         ResolutionUtils.getQualifiedValue(myValue), mySourceStyle.getQualifiedName());
+  /**
+   * Factory method to create new ConfiguredElement instances
+   * @param folderConfiguration the {@link FolderConfiguration} associated to the given value
+   * @param value the value for this element
+   * @param sourceStyle the source style of this element
+   */
+  public static <T> ConfiguredElement<T> create(@NotNull FolderConfiguration folderConfiguration,
+                                                @NotNull T value,
+                                                @NotNull ThemeEditorStyle sourceStyle) {
+    return new ConfiguredElement<T>(folderConfiguration, value, sourceStyle);
   }
 }

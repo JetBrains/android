@@ -43,9 +43,8 @@ import java.awt.event.ActionEvent;
  * Class that implements a {@link javax.swing.JTable} renderer and editor for drawable attributes.
  */
 public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
-  static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b><font color=\"#9B9B9B\"></font>";
-
-  @Nullable private RenderTask myRenderTask;
+  @Nullable
+  private RenderTask myRenderTask;
   private final AndroidThemePreviewPanel myPreviewPanel;
   private EditedStyleItem myItem;
 
@@ -88,8 +87,9 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     if (myRenderTask != null) {
       component.setSwatchIcons(SwatchComponent.imageListOf(myRenderTask.renderDrawableAllStates(item.getSelectedValue())));
     }
-    String nameText =
-      String.format(LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), ThemeEditorUtils.getDisplayHtml(item));
+    String nameText = String
+      .format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR),
+              ThemeEditorUtils.getDisplayHtml(item));
     component.setNameText(nameText);
     component.setValueText(item.getValue());
   }
