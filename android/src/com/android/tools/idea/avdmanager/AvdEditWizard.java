@@ -414,7 +414,7 @@ public class AvdEditWizard extends DynamicWizard {
       if (image != null) {
         File[] skins = image.getSkins();
         for (File skin : skins) {
-          if (skin.getPath().endsWith("/" + path.getPath())) {
+          if (skin.getPath().endsWith(File.separator + path.getPath())) {
             return skin;
           }
         }
