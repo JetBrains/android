@@ -166,7 +166,6 @@ public class ThemeEditorComponent extends Splitter {
 
   private final ResourceChangeListener myResourceChangeListener;
   private boolean myIsSubscribedResourceNotification;
-  private final GoToListener myGoToListener;
   private MutableCollectionComboBoxModel<Module> myModuleComboModel;
 
   /** Next pending search. The {@link ScheduledFuture} allows us to cancel the next search before it runs. */
@@ -224,7 +223,7 @@ public class ThemeEditorComponent extends Splitter {
     myPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
     ResourcesCompletionProvider completionProvider = new ResourcesCompletionProvider(myThemeEditorContext);
-    myGoToListener = new GoToListener() {
+    GoToListener goToListener = new GoToListener() {
       @Override
       public void goTo(@NotNull EditedStyleItem value) {
         ResourceResolver resolver = myThemeEditorContext.getResourceResolver();
@@ -251,7 +250,7 @@ public class ThemeEditorComponent extends Splitter {
         ThemeEditorComponent.this.goToParent();
       }
     };
-    myAttributesTable.setGoToListener(myGoToListener);
+    myAttributesTable.setGoToListener(goToListener);
     final AttributeReferenceRendererEditor styleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
 
     final JScrollPane scroll = myPanel.getAttributesScrollPane();
@@ -582,9 +581,8 @@ public class ThemeEditorComponent extends Splitter {
     renameDialog.show();
     if (renameDialog.isOK()) {
       String newName = renameDialog.getNewName();
-      String newQualifiedName = selectedTheme.getQualifiedName().replace(selectedTheme.getName(), newName);
       // We don't need to call reload here, because myResourceChangeListener will take care of it
-      myThemeName = newQualifiedName;
+      myThemeName = selectedTheme.getQualifiedName().replace(selectedTheme.getName(), newName);
       mySubStyleName = null;
       return true;
     }
@@ -675,6 +673,7 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
 
+    // Need invokeLater to wait for the theme resolver to be aware of the newly created style through the resource change listener
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -719,6 +718,8 @@ public class ThemeEditorComponent extends Splitter {
         // We don't need to call reload, because myResourceChangeListener will take care of it
         myThemeName = newThemeName;
         mySubStyleName = newStyleName;
+
+        // Need invokeLater to wait for the theme resolver to be aware of the newly created theme through the resource change listener
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
