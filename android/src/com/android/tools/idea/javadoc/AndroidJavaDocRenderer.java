@@ -1012,14 +1012,7 @@ public class AndroidJavaDocRenderer {
       // vertical-align:middle on divs)
       builder.addHtml("<table style=\"" + css + "\" border=\"0\"><tr height=\"" + height + "\">");
       builder.addHtml("<td align=\"center\" valign=\"middle\" height=\"" + height + "\" style=\"color:" + foregroundColor + "\">");
-      builder.addHtml("#");
-      int alpha = color.getAlpha();
-      // If not opaque, include alpha
-      if (alpha != 255) {
-          String alphaString = Integer.toHexString(alpha);
-          builder.addHtml((alphaString.length() < 2 ? "0" : "") + alphaString);
-      }
-      builder.addHtml(ColorUtil.toHex(color));
+      builder.addHtml(ResourceHelper.colorToString(color));
       builder.addHtml("</td></tr></table>");
     }
   }
