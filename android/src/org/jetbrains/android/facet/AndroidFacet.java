@@ -1025,7 +1025,15 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       @Override
       @Nullable
       public PsiClass compute() {
-        return facade.findClass(className, getModule().getModuleWithDependenciesAndLibrariesScope(true));
+        PsiClass aClass;
+        // facade.findClass uses index to find class by name, which might throw an IndexNotReadyException in dumb mode
+        try {
+          aClass = facade.findClass(className, getModule().getModuleWithDependenciesAndLibrariesScope(true));
+        }
+        catch (IndexNotReadyException e) {
+          aClass = null;
+        }
+        return aClass;
       }
     });
     if (baseClass != null) {
