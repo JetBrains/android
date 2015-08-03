@@ -393,10 +393,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
       final Dimension size = getSize();
       {
         final Graphics2D g2 = (Graphics2D)g;
-        Color controlColor = UIUtil.getControlColor();
-        if (UIUtil.isUnderIntelliJLaF()) {
-          controlColor = getParent().getBackground();
-        }
+        Color controlColor = getParent().getBackground();
         g2.setColor(controlColor);
         final int w = getWidth();
         final int h = getHeight();
