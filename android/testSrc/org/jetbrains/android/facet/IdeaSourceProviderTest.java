@@ -141,6 +141,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Resources Directories: []\n", sb.toString());
   }
 
+  /** TODO: Move this test to {@link com.android.tools.idea.gradle.IdeaAndroidProjectTest} */
   public void testGetAllSourceProviders() throws Exception {
     StringBuilder sb = new StringBuilder();
     File baseDir = new File(getProject().getBaseDir().getPath());
