@@ -127,14 +127,29 @@ public class ViewHandlerManager implements ProjectComponent {
 
   private ViewHandler createHandler(@NonNull String viewTag) {
     // Builtin view. Don't bother with reflection for the common cases.
+    if (FRAME_LAYOUT.equals(viewTag)) {
+      return new FrameLayoutHandler();
+    }
+    if (COORDINATOR_LAYOUT.equals(viewTag)) {
+      return new CoordinatorLayoutHandler();
+    }
+    if (APP_BAR_LAYOUT.equals(viewTag)) {
+      return new AppBarLayoutHandler();
+    }
     if (LINEAR_LAYOUT.equals(viewTag) || FQCN_LINEAR_LAYOUT.equals(viewTag)) {
       return new LinearLayoutHandler();
     }
+    if (TABLE_LAYOUT.equals(viewTag)) {
+      return new TableLayoutHandler();
+    }
+    if (TABLE_ROW.equals(viewTag)) {
+      return new TableRowHandler();
+    }
+    if (GRID_LAYOUT.equals(viewTag)) {
+      return new GridLayoutHandler();
+    }
     if (RELATIVE_LAYOUT.equals(viewTag) || FQCN_RELATIVE_LAYOUT.equals(viewTag)) {
       return new RelativeLayoutHandler();
-    }
-    if (FRAME_LAYOUT.equals(viewTag)) {
-      return new FrameLayoutHandler();
     }
     if (SCROLL_VIEW.equals(viewTag)) {
       return new ScrollViewHandler();
@@ -162,18 +177,6 @@ public class ViewHandlerManager implements ProjectComponent {
     }
     if (ABSOLUTE_LAYOUT.equals(viewTag)) {
       return new AbsoluteLayoutHandler();
-    }
-    if (TABLE_LAYOUT.equals(viewTag)) {
-      return new TableLayoutHandler();
-    }
-    if (TABLE_ROW.equals(viewTag)) {
-      return new TableRowHandler();
-    }
-    if (COORDINATOR_LAYOUT.equals(viewTag)) {
-      return new CoordinatorLayoutHandler();
-    }
-    if (APP_BAR_LAYOUT.equals(viewTag)) {
-      return new AppBarLayoutHandler();
     }
     if (FLOATING_ACTION_BUTTON.equals(viewTag)) {
       return new FloatingActionButtonHandler();
@@ -213,6 +216,7 @@ public class ViewHandlerManager implements ProjectComponent {
         for (PsiClass cls : classes) {
           // Look for bytecode and instantiate if possible, then return
           // TODO: Instantiate
+          // noinspection UseOfSystemOutOrSystemErr
           System.out.println("Find view handler " + cls.getQualifiedName() + " of type " + cls.getClass().getName());
         }
       }
