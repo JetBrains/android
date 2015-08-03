@@ -200,7 +200,9 @@ public class InstancesTreeView implements DataProvider {
 
         myDebuggerTree.getMutableModel().setRoot(newRoot);
         myDebuggerTree.treeChanged();
-        myDebuggerTree.scrollRowToVisible(0);
+        if (myDebuggerTree.getRowCount() > 0) {
+          myDebuggerTree.scrollRowToVisible(0);
+        }
 
         if (singleChild != null) {
           myDebuggerTree.setSelectionInterval(0 , 0);
