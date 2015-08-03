@@ -80,6 +80,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     assertNotNull(AndroidPlatform.getInstance(myLibModule));
   }
 
+  /** TODO: Move this test to {@link com.android.tools.idea.gradle.IdeaAndroidProjectTest}. */
   public void testGetCurrentSourceProviders() throws Exception {
     StringBuilder sb = new StringBuilder();
     VirtualFile baseDir = getProject().getBaseDir();
@@ -142,6 +143,45 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   }
 
   /** TODO: Move this test to {@link com.android.tools.idea.gradle.IdeaAndroidProjectTest} */
+  public void testGetCurrentTestSourceProviders() throws Exception {
+    StringBuilder sb = new StringBuilder();
+    VirtualFile baseDir = getProject().getBaseDir();
+    for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentTestSourceProviders(myAppFacet)) {
+      sb.append(getStringRepresentation(provider, baseDir));
+    }
+
+    assertEquals("Manifest File: null\n" +
+                 "Java Directories: []\n" +
+                 "Res Directories: []\n" +
+                 "Assets Directories: []\n" +
+                 "AIDL Directories: []\n" +
+                 "Renderscript Directories: []\n" +
+                 "Jni Directories: []\n" +
+                 "Resources Directories: []\n" +
+                 "Manifest File: null\n" +
+                 "Java Directories: []\n" +
+                 "Res Directories: []\n" +
+                 "Assets Directories: []\n" +
+                 "AIDL Directories: []\n" +
+                 "Renderscript Directories: []\n" +
+                 "Jni Directories: []\n" +
+                 "Resources Directories: []\n", sb.toString());
+
+    sb = new StringBuilder();
+    for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentTestSourceProviders(myLibFacet)) {
+      sb.append(getStringRepresentation(provider, baseDir));
+    }
+    assertEquals("Manifest File: null\n" +
+                 "Java Directories: []\n" +
+                 "Res Directories: []\n" +
+                 "Assets Directories: []\n" +
+                 "AIDL Directories: []\n" +
+                 "Renderscript Directories: []\n" +
+                 "Jni Directories: []\n" +
+                 "Resources Directories: []\n", sb.toString());
+  }
+
+  /** TODO: Move this test to {@link com.android.tools.idea.gradle.IdeaAndroidProjectTest}. */
   public void testGetAllSourceProviders() throws Exception {
     StringBuilder sb = new StringBuilder();
     File baseDir = new File(getProject().getBaseDir().getPath());
