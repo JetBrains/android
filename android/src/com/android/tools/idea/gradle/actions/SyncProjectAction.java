@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.actions;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
+
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
 
 /**
  * Re-imports (syncs) an Android-Gradle project, without showing the "Import Project" wizard.
@@ -35,7 +37,7 @@ public class SyncProjectAction extends AnAction {
   @Override
   public void actionPerformed(final AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null) {
+    if (project != null && isBuildWithGradle(project)) {
       BuildVariantView.getInstance(project).projectImportStarted();
       Presentation presentation = e.getPresentation();
       presentation.setEnabled(false);
@@ -50,12 +52,16 @@ public class SyncProjectAction extends AnAction {
 
   @Override
   public void update(AnActionEvent e) {
-    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+    if (!isAndroidStudio()) {
+      e.getPresentation().setEnabledAndVisible(false);
+      return;
+    }
+    Project project = e.getProject();
+    if (project != null && !isBuildWithGradle(project)) {
       e.getPresentation().setEnabledAndVisible(false);
       return;
     }
     boolean enabled = false;
-    Project project = e.getProject();
     if (project != null) {
       enabled = !GradleSyncState.getInstance(project).isSyncInProgress();
     }
