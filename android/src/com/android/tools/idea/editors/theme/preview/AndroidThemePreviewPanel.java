@@ -350,7 +350,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
         myCustomComponents = Collections.unmodifiableList(customComponents);
         mySupportLibraryComponents = ImmutableList.copyOf(supportLibraryComponents);
-        if (!myCustomComponents.isEmpty() || mySupportLibraryComponents.isEmpty()) {
+        if (!myCustomComponents.isEmpty() || !mySupportLibraryComponents.isEmpty()) {
           rebuild();
         }
       }
