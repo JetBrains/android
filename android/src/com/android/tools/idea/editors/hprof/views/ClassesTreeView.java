@@ -488,7 +488,9 @@ public class ClassesTreeView implements DataProvider {
     }
     else {
       selectionModel.setClassObj(null);
-      myTree.scrollRowToVisible(0);
+      if (myTree.getRowCount() > 0) {
+        myTree.scrollRowToVisible(0);
+      }
     }
   }
 
