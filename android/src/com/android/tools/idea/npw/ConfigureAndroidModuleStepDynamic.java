@@ -65,25 +65,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     mySdkControls.register(this);
 
     register(WizardConstants.APPLICATION_NAME_KEY, myAppName);
-    register(WizardConstants.PACKAGE_NAME_KEY, myPackageName, new ComponentBinding<String, LabelWithEditLink>() {
-      @Override
-      public void setValue(@Nullable String newValue, @NotNull LabelWithEditLink component) {
-        newValue = newValue == null ? "" : newValue;
-        component.setText(newValue);
-      }
-
-      @Nullable
-      @Override
-      public String getValue(@NotNull LabelWithEditLink component) {
-        return component.getText();
-      }
-
-      @Nullable
-      @Override
-      public Document getDocument(@NotNull LabelWithEditLink component) {
-        return component.getDocument();
-      }
-    });
+    register(WizardConstants.PACKAGE_NAME_KEY, myPackageName);
     registerValueDeriver(WizardConstants.PACKAGE_NAME_KEY, PACKAGE_NAME_DERIVER);
 
     if (StringUtil.isEmptyOrSpaces(myState.get(APPLICATION_NAME_KEY))) {
