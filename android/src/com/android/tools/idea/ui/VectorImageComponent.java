@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui;
 
-import com.android.assetstudiolib.Util;
+import com.android.ide.common.util.AssetUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,6 +67,6 @@ public class VectorImageComponent extends ImageComponent {
     g.draw3DRect(0, 0, getWidth() - 1, getHeight() - 1, false);
 
     Rectangle rect = new Rectangle(0, 0, getWidth(), getHeight());
-    Util.drawCenterInside(g2d, image, rect);
+    AssetUtil.drawCenterInside(g2d, image, rect);
   }
 }

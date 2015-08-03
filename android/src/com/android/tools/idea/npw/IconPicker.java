@@ -18,7 +18,7 @@ package com.android.tools.idea.npw;
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.assetstudiolib.GraphicGenerator;
-import com.android.assetstudiolib.vectordrawable.VdIcon;
+import com.android.ide.common.vectordrawable.VdIcon;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 import com.intellij.openapi.diagnostic.Logger;

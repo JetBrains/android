@@ -16,9 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.assetstudiolib.*;
-import com.android.tools.idea.npw.AssetStudioAssetGenerator;
-import com.android.tools.idea.npw.NewProjectWizardState;
-import com.android.tools.idea.npw.TemplateWizardContextAdapter;
+import com.android.ide.common.util.AssetUtil;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
@@ -36,7 +34,7 @@ import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-import static com.android.assetstudiolib.GeneratorTest.assertImageSimilar;
+import static com.android.assetstudiolib.BitmapGeneratorTest.assertImageSimilar;
 
 /**
  * Tests for generation of asset images.
@@ -333,7 +331,8 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
 
     ArgumentCaptor<ActionBarIconGenerator.ActionBarOptions> argument = runImageTest();
 
-    BufferedImage expectedImage = Util.paddedImage(getImage(myState.getString(ATTR_IMAGE_PATH), false), 50);
+    BufferedImage expectedImage = AssetUtil
+      .paddedImage(getImage(myState.getString(ATTR_IMAGE_PATH), false), 50);
 
     assertImagesSimilar("PaddedImage", expectedImage, argument.getValue().sourceImage, 5.0f);
   }
