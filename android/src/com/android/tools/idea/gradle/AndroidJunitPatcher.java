@@ -170,7 +170,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
         IdeaAndroidProject affectedAndroidModel = facet.getAndroidModel();
         if (affectedAndroidModel != null) {
           try {
-            classPath.add(affectedAndroidModel.getSelectedVariant().getMainArtifact().getJavaResourcesFolder());
+            classPath.add(affectedAndroidModel.getMainArtifact().getJavaResourcesFolder());
           }
           catch (UnsupportedMethodException e) {
             // Java resources were not present in older versions of the gradle plugin.

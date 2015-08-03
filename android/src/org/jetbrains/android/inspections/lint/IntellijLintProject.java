@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.client.api.LintClient;
@@ -342,9 +343,9 @@ class IntellijLintProject extends Project {
                                                @NonNull LintModuleProject project,
                                                @NonNull Map<Project,Module> projectMap,
                                                @NonNull List<Project> dependencies) {
-    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
-      Collection<AndroidLibrary> libraries = androidModel.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
+      Collection<AndroidLibrary> libraries = androidModel.getMainArtifact().getDependencies().getLibraries();
       for (AndroidLibrary library : libraries) {
         Project p = libraryMap.get(library);
         if (p == null) {
@@ -745,10 +746,9 @@ class IntellijLintProject extends Project {
           // the module content root settings
           File dir = null;
           if (myFacet.requiresAndroidModel()) {
-            IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+            AndroidModel androidModel = myFacet.getAndroidModel();
             if (androidModel != null) {
-              Variant variant = androidModel.getSelectedVariant();
-              dir = variant.getMainArtifact().getClassesFolder();
+              dir = androidModel.getMainArtifact().getClassesFolder();
             }
           }
           if (dir != null) {
@@ -770,8 +770,8 @@ class IntellijLintProject extends Project {
       if (SUPPORT_CLASS_FILES) {
         if (mJavaLibraries == null) {
           if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
-            IdeaAndroidProject androidModel = myFacet.getAndroidModel();
-            Collection<JavaLibrary> libs = androidModel.getSelectedVariant().getMainArtifact().getDependencies().getJavaLibraries();
+            AndroidModel androidModel = myFacet.getAndroidModel();
+            Collection<JavaLibrary> libs = androidModel.getMainArtifact().getDependencies().getJavaLibraries();
             mJavaLibraries = Lists.newArrayListWithExpectedSize(libs.size());
             for (JavaLibrary lib : libs) {
               File jar = lib.getJarFile();
