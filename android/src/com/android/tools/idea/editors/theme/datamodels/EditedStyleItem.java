@@ -40,7 +40,7 @@ import java.util.Collections;
  * <p/>
  * If the attribute is declared locally in multiple resource folders, this class also contains the alternative values for the attribute.
  */
-public class EditedStyleItem {
+public class EditedStyleItem implements Comparable<EditedStyleItem> {
   private final static Logger LOG = Logger.getInstance(EditedStyleItem.class);
   private final static String DEPRECATED = "deprecated";
 
@@ -186,5 +186,10 @@ public class EditedStyleItem {
     }
 
     return androidTargetData.isResourcePublic(ResourceType.ATTR.getName(), getName());
+  }
+
+  @Override
+  public int compareTo(EditedStyleItem that) {
+    return getName().compareTo(that.getName());
   }
 }
