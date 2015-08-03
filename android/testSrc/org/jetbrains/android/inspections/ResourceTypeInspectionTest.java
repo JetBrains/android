@@ -839,6 +839,43 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testCombinedIntDefAndIntRange() throws Exception {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.IntDef;\n" +
+            "import android.support.annotation.IntRange;\n" +
+            "\n" +
+            "import java.lang.annotation.Retention;\n" +
+            "import java.lang.annotation.RetentionPolicy;\n" +
+            "\n" +
+            "@SuppressWarnings({\"UnusedParameters\", \"unused\", \"SpellCheckingInspection\"})\n" +
+            "public class X {\n" +
+            "\n" +
+            "    public static final int UNRELATED = 500;\n" +
+            "\n" +
+            "    @IntDef({LENGTH_INDEFINITE, LENGTH_SHORT, LENGTH_LONG})\n" +
+            "    @IntRange(from = 10)\n" +
+            "    @Retention(RetentionPolicy.SOURCE)\n" +
+            "    public @interface Duration {}\n" +
+            "\n" +
+            "    public static final int LENGTH_INDEFINITE = -2;\n" +
+            "    public static final int LENGTH_SHORT = -1;\n" +
+            "    public static final int LENGTH_LONG = 0;\n" +
+            "    public void setDuration(@Duration int duration) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void test() {\n" +
+            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG or value must be ≥ 10 (was 500)*/UNRELATED/**/); /// ERROR: Not right intdef, even if it's in the right number range\n" +
+            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG or value must be ≥ 10 (was -5)*/-5/**/); // ERROR (not right int def or value\n" +
+            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG or value must be ≥ 10 (was 8)*/8/**/); // ERROR (not matching number range)\n" +
+            "        setDuration(8000); // OK (@IntRange applies)\n" +
+            "        setDuration(LENGTH_INDEFINITE); // OK (@IntDef)\n" +
+            "        setDuration(LENGTH_LONG); // OK (@IntDef)\n" +
+            "        setDuration(LENGTH_SHORT); // OK (@IntDef)\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   @Override
   protected String[] getEnvironmentClasses() {
     @Language("JAVA")
@@ -873,7 +910,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
 
     @Language("JAVA")
     String intRange = "@Retention(CLASS)\n" +
-                      "@Target({CONSTRUCTOR,METHOD,PARAMETER,FIELD,LOCAL_VARIABLE})\n" +
+                      "@Target({CONSTRUCTOR,METHOD,PARAMETER,FIELD,LOCAL_VARIABLE,ANNOTATION_TYPE})\n" +
                       "public @interface IntRange {\n" +
                       "    long from() default Long.MIN_VALUE;\n" +
                       "    long to() default Long.MAX_VALUE;\n" +
@@ -944,6 +981,15 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                       "public @interface ColorInt {\n" +
                       "}";
     classes.add(header + colorInt);
+
+    @Language("JAVA")
+    String intDef = "@Retention(SOURCE)\n" +
+                    "@Target({ANNOTATION_TYPE})\n" +
+                    "public @interface IntDef {\n" +
+                    "    long[] value() default {};\n" +
+                    "    boolean flag() default false;\n" +
+                    "}\n";
+    classes.add(header + intDef);
 
     for (ResourceType type : ResourceType.values()) {
       if (type == ResourceType.FRACTION || type == ResourceType.PUBLIC) {
