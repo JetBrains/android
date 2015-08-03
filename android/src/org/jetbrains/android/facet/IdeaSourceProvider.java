@@ -16,6 +16,7 @@
 package org.jetbrains.android.facet;
 
 import com.android.builder.model.*;
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -51,6 +52,15 @@ public abstract class IdeaSourceProvider {
   @NotNull
   public static IdeaSourceProvider create(@NotNull SourceProvider provider) {
     return new IdeaSourceProvider.Gradle(provider);
+  }
+
+  @NotNull
+  private static List<IdeaSourceProvider> createAll(@NotNull List<SourceProvider> providers) {
+    List<IdeaSourceProvider> ideaProviders = Lists.newArrayList();
+    for (SourceProvider provider : providers) {
+      ideaProviders.add(create(provider));
+    }
+    return ideaProviders;
   }
 
   @NotNull
@@ -336,33 +346,10 @@ public abstract class IdeaSourceProvider {
     if (!facet.requiresAndroidModel()) {
       return Collections.singletonList(facet.getMainIdeaSourceProvider());
     }
+    AndroidModel androidModel = facet.getAndroidModel();
+    assert androidModel != null;
 
-    List<IdeaSourceProvider> providers = Lists.newArrayList();
-
-    providers.add(facet.getMainIdeaSourceProvider());
-    List<IdeaSourceProvider> flavorSourceProviders = facet.getIdeaFlavorSourceProviders();
-    if (flavorSourceProviders != null) {
-      for (IdeaSourceProvider provider : flavorSourceProviders) {
-        providers.add(provider);
-      }
-    }
-
-    IdeaSourceProvider multiProvider = facet.getIdeaMultiFlavorSourceProvider();
-    if (multiProvider != null) {
-      providers.add(multiProvider);
-    }
-
-    IdeaSourceProvider buildTypeSourceProvider = facet.getIdeaBuildTypeSourceProvider();
-    if (buildTypeSourceProvider != null) {
-      providers.add(buildTypeSourceProvider);
-    }
-
-    IdeaSourceProvider variantProvider = facet.getIdeaVariantSourceProvider();
-    if (variantProvider != null) {
-      providers.add(variantProvider);
-    }
-
-    return providers;
+    return createAll(androidModel.getActiveSourceProviders());
   }
 
   @NotNull
@@ -370,21 +357,9 @@ public abstract class IdeaSourceProvider {
     if (!facet.requiresAndroidModel()) {
       return Collections.emptyList();
     }
-
-    List<IdeaSourceProvider> providers = Lists.newArrayList();
-
-    providers.addAll(facet.getMainIdeaTestSourceProviders());
-    providers.addAll(facet.getIdeaFlavorTestSourceProviders());
-
-    //TODO: Does this make sense?
-    //providers.addAll(facet.getIdeaMultiFlavorTestSourceProviders());
-
-    providers.addAll(facet.getIdeaBuildTypeTestSourceProvider());
-
-    //TODO: Does this make sense?
-    //providers.addAll(facet.getIdeaVariantTestSourceProvider());
-
-    return providers;
+    AndroidModel androidModel = facet.getAndroidModel();
+    assert androidModel != null;
+    return createAll(androidModel.getTestSourceProviders());
   }
 
   private Collection<VirtualFile> getAllSourceFolders() {
@@ -543,11 +518,7 @@ public abstract class IdeaSourceProvider {
       return Collections.singletonList(facet.getMainIdeaSourceProvider());
     }
 
-    List<IdeaSourceProvider> ideaSourceProviders = Lists.newArrayList();
-    for (SourceProvider sourceProvider : getAllSourceProviders(facet)) {
-      ideaSourceProviders.add(create(sourceProvider));
-    }
-    return ideaSourceProviders;
+    return createAll(getAllSourceProviders(facet));
   }
 
   /**
