@@ -22,6 +22,7 @@ import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.application.ApplicationManager;
@@ -518,11 +519,10 @@ public class AndroidRootUtil {
 
   @Nullable
   public static String getApkPath(@NotNull AndroidFacet facet) {
-    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
-      // For Android-Gradle projects, IdeaAndroidProject is not null.
-      Variant selectedVariant = androidModel.getSelectedVariant();
-      AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+      // For Android-Gradle projects, AndroidModel is not null.
+      AndroidArtifact mainArtifact = androidModel.getMainArtifact();
       AndroidArtifactOutput output = getOutput(mainArtifact);
       File outputFile = output.getMainOutputFile().getOutputFile();
       return outputFile.getAbsolutePath();

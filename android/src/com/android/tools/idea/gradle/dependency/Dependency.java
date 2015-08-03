@@ -86,13 +86,12 @@ public abstract class Dependency {
   @NotNull
   public static DependencySet extractFrom(@NotNull IdeaAndroidProject androidProject) {
     DependencySet dependencies = new DependencySet();
-    Variant selectedVariant = androidProject.getSelectedVariant();
 
     BaseArtifact testArtifact = androidProject.findSelectedTestArtifactInSelectedVariant();
     if (testArtifact != null) {
       populate(dependencies, testArtifact, DependencyScope.TEST);
     }
-    AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+    AndroidArtifact mainArtifact = androidProject.getMainArtifact();
     populate(dependencies, mainArtifact, DependencyScope.COMPILE);
 
     return dependencies;
