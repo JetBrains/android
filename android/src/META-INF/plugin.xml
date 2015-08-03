@@ -733,6 +733,7 @@
     <generatedSourcesFilter implementation="com.android.tools.idea.editors.AndroidGeneratedSourcesFilter"/>
     <codeInsight.unresolvedReferenceQuickFixProvider
         implementation="com.android.tools.idea.quickfix.AndroidUnresolvedReferenceQuickFixProvider" order="last"/>
+    <highlightVisitor implementation="com.android.tools.idea.highlight.AndroidHighlightVisitor" order="last"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
