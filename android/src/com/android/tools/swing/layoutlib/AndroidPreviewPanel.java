@@ -116,6 +116,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
   private double myScale = 1.0;
   private Dimension myLastRenderedSize;
   private Dimension myCachedPreferredSize;
+  private int myCurrentWidth;
 
   public AndroidPreviewPanel(@NotNull Configuration configuration) {
     myConfiguration = configuration;
@@ -134,9 +135,15 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
     Dimension currentSize = getSize();
     synchronized (myGraphicsLayoutRendererLock) {
       if (myGraphicsLayoutRenderer != null && !currentSize.equals(previousSize)) {
-        // Because we use GraphicsLayoutRender in vertical scroll mode, the height passed it's only a minimum. If the actual rendering results
-        // in a bigger size, the GraphicsLayoutRenderer.getPreferredSize() call will return the correct size.
-        myGraphicsLayoutRenderer.setSize(width, 1);
+        // Because we use GraphicsLayoutRender in vertical scroll mode, the height passed it's only a minimum.
+        // If the actual rendering results in a bigger size, the GraphicsLayoutRenderer.getPreferredSize()
+        // call will return the correct size.
+
+        // Older versions of layoutlib do not handle correctly when 1 is passed and don't always recalculate
+        // the height if the width hasn't decreased.
+        // We workaround that by keep track of the last known width and passing height 1 when it decreases.
+        myGraphicsLayoutRenderer.setSize(width, (myCurrentWidth < width) ? 1 : height);
+        myCurrentWidth = width;
       }
     }
   }
