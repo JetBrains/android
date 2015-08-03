@@ -921,8 +921,16 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
   }
 
+  private static int ourInstallationCount = 0;
+
   private static void trackInstallation(@NotNull IDevice device) {
     if (!UsageTracker.getInstance().canTrack()) {
+      return;
+    }
+
+    // only track every 10th installation (just to reduce the load on the server)
+    ourInstallationCount = (ourInstallationCount + 1) % 10;
+    if (ourInstallationCount != 0) {
       return;
     }
 
