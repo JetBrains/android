@@ -36,7 +36,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
@@ -159,19 +158,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     add(southPanel, BorderLayout.SOUTH);
     myTable.getSelectionModel().addListSelectionListener(this);
     TableRowSorter<ListTableModel<SystemImageDescription>> sorter =
-      new TableRowSorter<ListTableModel<SystemImageDescription>>(myModel) {
-        @Override
-        public Comparator<?> getComparator(int column) {
-          if (column == 1) {
-            // API levels: Sort numerically, but the column is of type String.class since
-            // it can contain preview codenames as well
-            return new ApiLevelComparator();
-          }
-          // We could consider sorting
-
-          return super.getComparator(column);
-        }
-      };
+      (TableRowSorter<ListTableModel<SystemImageDescription>>)myTable.getRowSorter();
     sorter.setSortKeys(Collections.singletonList(new RowSorter.SortKey(1, SortOrder.DESCENDING)));
     sorter.setRowFilter(new RowFilter<ListTableModel<SystemImageDescription>, Integer>() {
       @Override
@@ -441,17 +428,6 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         }
         return "Unknown";
       }
-
-      @Nullable
-      @Override
-      public Comparator<SystemImageDescription> getComparator() {
-        return new Comparator<SystemImageDescription>() {
-          @Override
-          public int compare(SystemImageDescription o1, SystemImageDescription o2) {
-            return o1.getVersion().getApiLevel() - o2.getVersion().getApiLevel();
-          }
-        };
-      }
     },
     new SystemImageColumnInfo("ABI", 100) {
       @Nullable
@@ -466,7 +442,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       public String valueOf(SystemImageDescription systemImage) {
         IdDisplay tag = systemImage.getTag();
         String name = systemImage.getName();
-        return tag == null || tag.equals(SystemImage.DEFAULT_TAG) ? name : String.format("%1$s - %2$s", name, tag);
+        return String.format("%1$s %2$s", name, tag.equals(SystemImage.DEFAULT_TAG) ? "" :
+                                                  String.format("(with %s)", tag.getDisplay()));
       }
     },
   };
@@ -616,11 +593,15 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     @Override
     public Comparator<SystemImageDescription> getComparator() {
       return new Comparator<SystemImageDescription>() {
+        ApiLevelComparator myComparator = new ApiLevelComparator();
         @Override
         public int compare(SystemImageDescription o1, SystemImageDescription o2) {
-          String s1 = valueOf(o1);
-          String s2 = valueOf(o2);
-          return Comparing.compare(s1, s2);
+          int res = myComparator.compare(valueOf(o1), valueOf(o2));
+          if (res == 0) {
+            return o1.getTag().compareTo(o2.getTag());
+          }
+          return res;
+
         }
       };
     }
