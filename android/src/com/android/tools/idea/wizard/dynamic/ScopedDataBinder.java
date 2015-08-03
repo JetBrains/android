@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard.dynamic;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
+import com.android.tools.idea.ui.DocumentAccessor;
 import com.android.tools.idea.ui.TextAccessors;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;
@@ -594,7 +595,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     field.getTextField().addFocusListener(this);
   }
 
-  public void register(@NotNull Key<String> key, @NotNull final TextAccessor field) {
+  public void register(@NotNull Key<String> key, @NotNull final DocumentAccessor field) {
     assert field instanceof JComponent;
 
     JComponent component = (JComponent)field;
@@ -605,6 +606,8 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
       myState.put(key, field.getText());
     }
     component.addFocusListener(this);
+    myDocumentsToComponent.put(field.getDocument(), component);
+    field.getDocument().addDocumentListener(this);
   }
 
   /**

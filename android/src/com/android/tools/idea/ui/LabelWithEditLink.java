@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui;
 
+import com.android.tools.idea.ui.DocumentAccessor;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.TextAccessor;
@@ -31,7 +32,7 @@ import java.awt.*;
 /**
  * A label with an "edit" link that turns it into a text button
  */
-public class LabelWithEditLink extends JPanel implements TextAccessor {
+public class LabelWithEditLink extends JPanel implements DocumentAccessor  {
   private static final String EDIT_TEXT = "<html><a>Edit</a></html>";
   private static final String DONE_TEXT = "<html><a>Done</a></html>";
   public static final String DISPLAY = "Display";
