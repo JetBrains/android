@@ -28,6 +28,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -153,9 +154,9 @@ public class ActivityMenuAction extends FlatComboAction {
         String layoutName = ResourceHelper.getResourceName(file);
         Project project = module.getProject();
         String rLayoutFqcn = StringUtil.notNullize(pkg) + '.' + R_CLASS + '.' + ResourceType.LAYOUT.getName();
-        PsiClass layoutClass = JavaPsiFacade.getInstance(project).findClass(rLayoutFqcn, GlobalSearchScope.projectScope(project));
+        PsiClass layoutClass = findClassSafe(JavaPsiFacade.getInstance(project), rLayoutFqcn, GlobalSearchScope.projectScope(project));
         if (layoutClass != null) {
-          PsiClass activityBase = JavaPsiFacade.getInstance(project).findClass(CLASS_ACTIVITY, GlobalSearchScope.allScope(project));
+          PsiClass activityBase = findClassSafe(JavaPsiFacade.getInstance(project), CLASS_ACTIVITY, GlobalSearchScope.allScope(project));
           PsiField field = layoutClass.findFieldByName(layoutName, false);
           if (field != null && activityBase != null) {
             Iterable<PsiReference> allReferences = SearchUtils.findAllReferences(field, GlobalSearchScope.projectScope(project));
@@ -193,6 +194,21 @@ public class ActivityMenuAction extends FlatComboAction {
     }
 
     return group;
+  }
+
+  /**
+   * Try to look up class by name and scope using JavaPsiFacade, return null if IndexNotReadyException is thrown.
+   */
+  @Nullable
+  private static PsiClass findClassSafe(@NotNull JavaPsiFacade facade, @NotNull String qualifiedName, GlobalSearchScope scope) {
+    PsiClass result;
+    try {
+      result = facade.findClass(qualifiedName, scope);
+    }
+    catch (IndexNotReadyException e) {
+      result = null;
+    }
+    return result;
   }
 
   private static class ChooseActivityAction extends AnAction {
