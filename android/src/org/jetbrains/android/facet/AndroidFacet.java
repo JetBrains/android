@@ -302,8 +302,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Nullable
   public SourceProvider getMultiFlavorSourceProvider() {
     if (myAndroidModel != null) {
-      Variant selectedVariant = myAndroidModel.getSelectedVariant();
-      AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+      AndroidArtifact mainArtifact = myAndroidModel.getMainArtifact();
       SourceProvider provider = mainArtifact.getMultiFlavorSourceProvider();
       if (provider != null) {
         return provider;
@@ -321,8 +320,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Nullable
   public SourceProvider getVariantSourceProvider() {
     if (myAndroidModel != null) {
-      Variant selectedVariant = myAndroidModel.getSelectedVariant();
-      AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+      AndroidArtifact mainArtifact = myAndroidModel.getMainArtifact();
       SourceProvider provider = mainArtifact.getVariantSourceProvider();
       if (provider != null) {
         return provider;

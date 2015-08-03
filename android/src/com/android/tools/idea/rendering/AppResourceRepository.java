@@ -273,7 +273,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   private static void addGradleLibraries(List<AndroidLibrary> list, AndroidFacet facet) {
     IdeaAndroidProject androidModel = facet.getAndroidModel();
     if (androidModel != null) {
-      Collection<AndroidLibrary> libraries = androidModel.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
+      Collection<AndroidLibrary> libraries = androidModel.getMainArtifact().getDependencies().getLibraries();
       Set<File> unique = Sets.newHashSet();
       for (AndroidLibrary library : libraries) {
         addGradleLibrary(list, library, unique);

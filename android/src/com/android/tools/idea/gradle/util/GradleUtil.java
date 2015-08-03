@@ -1279,7 +1279,7 @@ public final class GradleUtil {
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
   public static boolean dependsOn(@NonNull IdeaAndroidProject androidModel, @NonNull String artifact) {
-    Dependencies dependencies = androidModel.getSelectedVariant().getMainArtifact().getDependencies();
+    Dependencies dependencies = androidModel.getMainArtifact().getDependencies();
     return dependsOn(dependencies, artifact);
   }
 
