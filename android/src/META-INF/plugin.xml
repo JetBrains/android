@@ -576,7 +576,7 @@
                       icon="AndroidIcons.AndroidToolWindow"
                       factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
     <facet.toolWindow id="Build Variants"
-                      facetIdList="android"
+                      facetIdList="android,android-gradle"
                       anchor="left"
                       secondary="true"
                       icon="AndroidIcons.AndroidToolWindow"
