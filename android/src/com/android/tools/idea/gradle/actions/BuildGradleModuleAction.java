@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.actions;
+package com.android.tools.idea.gradle.actions;
 
 import com.intellij.compiler.actions.CompileActionBase;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.openapi.actionSystem.ActionPlaces.PROJECT_VIEW_POPUP;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 
 /**
  * This action fixes the "update" mechanism of the "Make Module(s)" and "Compile Module(s)" actions.
@@ -31,10 +36,10 @@ import org.jetbrains.annotations.Nullable;
  * <p/>
  * </ul>
  */
-public abstract class AndroidBuildModuleAction extends AndroidBuildProjectAction {
+public abstract class BuildGradleModuleAction extends BuildGradleProjectAction {
   @NotNull private final String myActionName;
 
-  protected AndroidBuildModuleAction(@NotNull CompileActionBase delegate, @NotNull String backupText, @NotNull String actionName) {
+  protected BuildGradleModuleAction(@NotNull CompileActionBase delegate, @NotNull String backupText, @NotNull String actionName) {
     super(delegate, backupText);
     myActionName = actionName;
   }
@@ -43,14 +48,13 @@ public abstract class AndroidBuildModuleAction extends AndroidBuildProjectAction
     DataContext dataContext = e.getDataContext();
 
     Module[] modules = getSelectedModules(dataContext);
-    int moduleCount = modules == null ? 0 : modules.length;
-    boolean hasModules = moduleCount > 0;
+    int moduleCount = modules.length;
 
     Presentation presentation = e.getPresentation();
-    presentation.setEnabled(hasModules);
+    presentation.setEnabled(moduleCount > 0);
 
     String presentationText;
-    if (hasModules) {
+    if (moduleCount > 0) {
       String text = myActionName + (moduleCount == 1 ? " Module" : " Modules");
       for (int i = 0; i < moduleCount; i++) {
         if (text.length() > 30) {
@@ -69,21 +73,21 @@ public abstract class AndroidBuildModuleAction extends AndroidBuildProjectAction
       presentationText = myActionName;
     }
     presentation.setText(presentationText);
-    presentation.setVisible(hasModules || !ActionPlaces.PROJECT_VIEW_POPUP.equals(e.getPlace()));
+    presentation.setVisible(moduleCount > 0 || !PROJECT_VIEW_POPUP.equals(e.getPlace()));
   }
 
-  @Nullable
+  @NotNull
   private static Module[] getSelectedModules(@NotNull DataContext dataContext) {
-    Module[] modules = LangDataKeys.MODULE_CONTEXT_ARRAY.getData(dataContext);
+    Module[] modules = MODULE_CONTEXT_ARRAY.getData(dataContext);
     if (modules != null) {
       return modules;
     }
 
-    Module module = LangDataKeys.MODULE.getData(dataContext);
+    Module module = MODULE.getData(dataContext);
     if (module != null) {
       return new Module[] { module };
     }
 
-    return null;
+    return Module.EMPTY_ARRAY;
   }
 }

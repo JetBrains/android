@@ -13,21 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.actions;
+package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.intellij.compiler.actions.CompileProjectAction;
+import com.intellij.compiler.actions.CompileDirtyAction;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.StatusBar;
+import com.intellij.openapi.wm.WindowManager;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidRebuildProjectAction extends AndroidBuildProjectAction {
-  public AndroidRebuildProjectAction() {
-    super(new CompileProjectAction(), "Rebuild Project");
+public class MakeGradleProjectAction extends BuildGradleProjectAction {
+  public MakeGradleProjectAction() {
+    super(new CompileDirtyAction(), "Make Project");
   }
 
   @Override
   protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
-    GradleInvoker.getInstance(project).rebuild();
+    StatusBar statusBar = WindowManager.getInstance().getStatusBar(project);
+    if (statusBar != null) {
+      // Reset info from the previous runs (if any).
+      statusBar.setInfo(" ");
+    }
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    GradleInvoker.getInstance(project).compileJava(moduleManager.getModules(), GradleInvoker.TestCompileType.NONE);
   }
 }
