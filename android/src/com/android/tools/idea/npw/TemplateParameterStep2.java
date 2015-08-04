@@ -762,9 +762,9 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
         }
       }
       catch (CircularParameterDependencyException exception) {
-        LOG.error("Circular dependency between parameters in template %1$s, participating parameters: %2$s", myCurrentTemplate.getTitle(),
+        LOG.error("Circular dependency between parameters in template %1$s, participating parameters: %2$s", exception,
+                  myCurrentTemplate.getTitle(),
                   Joiner.on(", ").join(exception.getParameterIds()));
-        LOG.error(exception);
       }
     }
     finally {
