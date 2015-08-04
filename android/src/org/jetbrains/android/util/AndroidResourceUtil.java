@@ -710,6 +710,12 @@ public class AndroidResourceUtil {
     return false;
   }
 
+  public static boolean isResourceFile(@NotNull VirtualFile file, @NotNull AndroidFacet facet) {
+    final VirtualFile parent = file.getParent();
+    final VirtualFile resDir = parent != null ? parent.getParent() : null;
+    return resDir != null && facet.getLocalResourceManager().isResourceDir(resDir);
+  }
+
   public static boolean isResourceDirectory(@NotNull PsiDirectory directory) {
     PsiDirectory dir = directory;
     // check facet settings
