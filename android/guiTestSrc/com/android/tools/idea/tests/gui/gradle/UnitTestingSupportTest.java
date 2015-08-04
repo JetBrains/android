@@ -140,6 +140,17 @@ public class UnitTestingSupportTest extends GuiTestCase {
     unitTestTree = getTestTree("Rerun Failed Tests");
     assertTrue(unitTestTree.isAllTestsPassed());
     assertEquals(1, unitTestTree.getAllTestsCount());
+
+    // Rebuild the project and run tests again, they should still run and pass.
+    myProjectFrame.invokeMenuPath("Build", "Rebuild Project");
+    myProjectFrame.waitForBackgroundTasksToFinish();
+
+    myEditor.requestFocus();
+    myEditor.moveTo(myEditor.findOffset("class ", testClass, true));
+    runTestUnderCursor();
+    unitTestTree = getTestTree(testClass);
+    assertTrue(unitTestTree.isAllTestsPassed());
+    assertThat(unitTestTree.getAllTestsCount()).isGreaterThan(1);
   }
 
   @NotNull
