@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.quickfix;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.google.common.base.Function;
 import com.google.common.collect.Sets;
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.intellij.compiler.ModuleCompilerUtil.addingDependencyFormsCircularity;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -66,6 +68,7 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
     Project project = psiElement.getProject();
     JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
     ProjectFileIndex fileIndex = ProjectRootManager.getInstance(project).getFileIndex();
+    ModuleType currentModuleType = getModuleType(currentModule);
 
     for (PsiClass aClass : classes) {
       if (!facade.getResolveHelper().isAccessible(aClass, psiElement, aClass)) {
@@ -79,9 +82,25 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
       if (virtualFile == null) {
         continue;
       }
-      final Module classModule = fileIndex.getModuleForFile(virtualFile);
+      Module classModule = fileIndex.getModuleForFile(virtualFile);
       if (classModule != null && classModule != currentModule && !ModuleRootManager.getInstance(currentModule).isDependsOn(classModule)) {
-        myModules.add(classModule);
+        ModuleType classModuleType = getModuleType(classModule);
+        boolean legalDependency = false;
+        switch (currentModuleType) {
+          case JAVA:
+            legalDependency = classModuleType == ModuleType.JAVA;
+            break;
+          case ANDROID_LIBRARY:
+            legalDependency = classModuleType == ModuleType.JAVA || classModuleType == ModuleType.ANDROID_LIBRARY;
+            break;
+          case ANDROID_APPLICATION:
+            legalDependency = classModuleType != ModuleType.ANDROID_APPLICATION;
+            break;
+        }
+
+        if (legalDependency) {
+          myModules.add(classModule);
+        }
       }
     }
     myCurrentModule = currentModule;
@@ -226,6 +245,22 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
     if (gradlePath != null) {
       Dependency dependency = new Dependency(getDependencyScope(from, test), Dependency.Type.MODULE, gradlePath);
       addDependency(from, dependency);
+    }
+  }
+
+  private enum ModuleType {
+    JAVA,
+    ANDROID_LIBRARY,
+    ANDROID_APPLICATION
+  }
+
+  @NotNull
+  private static ModuleType getModuleType(@NotNull Module module) {
+    AndroidProject androidProject = getAndroidProject(module);
+    if (androidProject == null) {
+      return ModuleType.JAVA;
+    } else {
+      return androidProject.isLibrary() ? ModuleType.ANDROID_LIBRARY : ModuleType.ANDROID_APPLICATION;
     }
   }
 }
