@@ -188,6 +188,8 @@ public class GraphicsLayoutRenderer {
                         logger, target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0);
     params.setForceNoDecor();
     params.setAssetRepository(new AssetRepositoryImpl(facet));
+    // The App Label needs to be not null
+    params.setAppLabel("");
 
     RenderSecurityManager mySecurityManager = RenderSecurityManagerFactory.create(module, platform);
     return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, resourceLookupChain, credential);
