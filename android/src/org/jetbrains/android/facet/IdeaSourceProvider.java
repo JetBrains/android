@@ -43,7 +43,7 @@ import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
  * Like {@link SourceProvider}, but for IntelliJ, which means it provides
  * {@link VirtualFile} references rather than {@link File} references.
  *
- * @see org.jetbrains.android.facet.AndroidSourceType
+ * @see AndroidSourceType
  */
 public abstract class IdeaSourceProvider {
   private IdeaSourceProvider() {
@@ -347,9 +347,10 @@ public abstract class IdeaSourceProvider {
       return Collections.singletonList(facet.getMainIdeaSourceProvider());
     }
     AndroidModel androidModel = facet.getAndroidModel();
-    assert androidModel != null;
-
-    return createAll(androidModel.getActiveSourceProviders());
+    if (androidModel != null) {
+      return createAll(androidModel.getActiveSourceProviders());
+    }
+    return Collections.emptyList();
   }
 
   @NotNull
@@ -358,8 +359,10 @@ public abstract class IdeaSourceProvider {
       return Collections.emptyList();
     }
     AndroidModel androidModel = facet.getAndroidModel();
-    assert androidModel != null;
-    return createAll(androidModel.getTestSourceProviders());
+    if (androidModel != null) {
+      return createAll(androidModel.getTestSourceProviders());
+    }
+    return Collections.emptyList();
   }
 
   private Collection<VirtualFile> getAllSourceFolders() {
