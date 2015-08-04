@@ -31,6 +31,9 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.command.undo.BasicUndoableAction;
+import com.intellij.openapi.command.undo.UndoManager;
+import com.intellij.openapi.command.undo.UnexpectedUndoException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -117,6 +120,20 @@ abstract class GradleDependencyFix implements IntentionAction, LocalQuickFix, Hi
             }
           });
         }
+      }
+    });
+  }
+
+  protected static void registerUndoAction(@NotNull final Project project) {
+    UndoManager.getInstance(project).undoableActionPerformed(new BasicUndoableAction() {
+      @Override
+      public void undo() throws UnexpectedUndoException {
+        GradleProjectImporter.getInstance().requestProjectSync(project, false, null);
+      }
+
+      @Override
+      public void redo() throws UnexpectedUndoException {
+        GradleProjectImporter.getInstance().requestProjectSync(project, false, null);
       }
     });
   }
