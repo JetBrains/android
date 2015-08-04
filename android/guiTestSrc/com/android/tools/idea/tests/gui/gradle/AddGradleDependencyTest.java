@@ -34,6 +34,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.vcsUtil.VcsUtil.getFileContent;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class AddGradleDependencyTest extends GuiTestCase {
@@ -97,6 +98,36 @@ public class AddGradleDependencyTest extends GuiTestCase {
                               "Add library 'com.google.guava:guava:18.0' to classpath");
 
     assertBuildFileContains(projectFrame, "app/build.gradle", "compile 'com.google.guava:guava:18.0'");
+  }
+
+  @Test @IdeGuiTest
+  public void testNoModuleDependencyQuickfixFromJavaToAndroid() throws IOException {
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("library3/src/main/java/com/example/MyLibrary.java");
+
+    try {
+      typeImportAndInvokeAction(projectFrame, "package com.example;\n^", "import com.android.multimodule.Main^Activity;",
+                                "Add dependency on module");
+      fail();
+    } catch (AssertionError e) {
+      assertTrue(e.getMessage().startsWith("Did not find menu item with prefix"));
+    }
+  }
+
+  @Test @IdeGuiTest
+  public void testNoModuleDependencyQuickfixFromAndroidLibToApplication() throws IOException {
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("library/src/main/java/com/android/library/MainActivity.java");
+
+    try {
+      typeImportAndInvokeAction(projectFrame, "package com.android.mylibrary;\n^", "import com.android.multimodule.Main^Activity;",
+                                "Add dependency on module");
+      fail();
+    } catch (AssertionError e) {
+      assertTrue(e.getMessage().startsWith("Did not find menu item with prefix"));
+    }
   }
 
   private static void typeImportAndInvokeAction(@NotNull IdeFrameFixture projectFrame, @NotNull String lineToType,
