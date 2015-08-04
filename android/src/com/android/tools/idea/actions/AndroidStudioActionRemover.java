@@ -15,32 +15,33 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.gradle.util.Projects;
-import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+
 /**
- * Wraps an action and makes it invisible when a Gradle-based Android project is open.
+ * Wraps an action and makes it invisible when an Android-model-based project is open in Android Studio.
  */
-public class AndroidActionRemover extends AnAction {
+public class AndroidStudioActionRemover extends AnAction {
   @NotNull protected final AnAction myDelegate;
 
   /**
-   * Creates a new {@link AndroidActionRemover}.
+   * Creates a new {@link AndroidStudioActionRemover}.
    *
-   * @param delegate the action to hide/remove when having an open Gradle-based Android project.
+   * @param delegate the action to hide/remove when having an open Android-model-based Android project.
    * @param backupText the text to set in this action, in case the the delegate action does not have any text yet.
    */
-  public AndroidActionRemover(@NotNull AnAction delegate, @NotNull String backupText) {
+  public AndroidStudioActionRemover(@NotNull AnAction delegate, @NotNull String backupText) {
     super(delegate.getTemplatePresentation().getTextWithMnemonic(), delegate.getTemplatePresentation().getDescription(),
           delegate.getTemplatePresentation().getIcon());
     myDelegate = delegate;
     Presentation presentation = getTemplatePresentation();
-    if (Strings.isNullOrEmpty(presentation.getText())) {
+    if (isEmpty(presentation.getText())) {
       presentation.setText(backupText);
     }
   }
@@ -54,17 +55,17 @@ public class AndroidActionRemover extends AnAction {
   public void update(AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     Project project = e.getProject();
-    if (project != null && Projects.requiresAndroidModel(project)) {
+    if (project != null && requiresAndroidModel(project)) {
       presentation.setEnabledAndVisible(false);
       return;
     }
     // Update the text and icon of the delegate. The text in the delegate may be null, and some delegate actions (e.g. MakeModuleAction)
     // assume is never null.
-    updateTextAndIcon(getTemplatePresentation(), myDelegate.getTemplatePresentation());
+    copyTextAndIcon(getTemplatePresentation(), myDelegate.getTemplatePresentation());
     myDelegate.update(e);
   }
 
-  protected void updateTextAndIcon(@NotNull Presentation source, @NotNull Presentation destination) {
+  protected void copyTextAndIcon(@NotNull Presentation source, @NotNull Presentation destination) {
     destination.setText(source.getTextWithMnemonic());
     destination.setIcon(source.getIcon());
   }

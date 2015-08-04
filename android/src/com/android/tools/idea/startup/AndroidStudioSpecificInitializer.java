@@ -18,10 +18,7 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
-import com.android.tools.idea.gradle.actions.EditBuildTypesAction;
-import com.android.tools.idea.gradle.actions.EditFlavorsAction;
-import com.android.tools.idea.gradle.actions.EditLibraryAndDependenciesAction;
-import com.android.tools.idea.gradle.actions.SelectBuildVariantAction;
+import com.android.tools.idea.gradle.actions.*;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
@@ -240,13 +237,13 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   private static void replaceIdeaMakeActions() {
     // 'Build' > 'Make Project' action
-    replaceAction("CompileDirty", new AndroidMakeProjectAction());
+    replaceAction("CompileDirty", new MakeGradleProjectAction());
 
     // 'Build' > 'Make Modules' action
-    replaceAction(IdeActions.ACTION_MAKE_MODULE, new AndroidMakeModuleAction());
+    replaceAction(IdeActions.ACTION_MAKE_MODULE, new MakeGradleModuleAction());
 
     // 'Build' > 'Rebuild' action
-    replaceAction(IdeActions.ACTION_COMPILE_PROJECT, new AndroidRebuildProjectAction());
+    replaceAction(IdeActions.ACTION_COMPILE_PROJECT, new RebuildGradleProjectAction());
 
     // 'Build' > 'Compile Modules' action
     hideAction(IdeActions.ACTION_COMPILE, "Compile Module(s)");
@@ -277,7 +274,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   private static void hideAction(@NotNull String actionId, @NotNull String backupText) {
     AnAction oldAction = ActionManager.getInstance().getAction(actionId);
     if (oldAction != null) {
-      AnAction newAction = new AndroidActionRemover(oldAction, backupText);
+      AnAction newAction = new AndroidStudioActionRemover(oldAction, backupText);
       replaceAction(actionId, newAction);
     }
   }
