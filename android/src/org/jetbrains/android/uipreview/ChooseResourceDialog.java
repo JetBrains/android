@@ -285,6 +285,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       myStateListPickerPanel = new ResourceDialogTabComponent(new JPanel(new BorderLayout()), resType, resFolderType);
       myStateListPickerPanel.setBorder(null);
       myStateListPickerPanel.addCenter(myStateListPicker);
+      myStateListPickerPanel.setChangeFileNameVisible(false);
 
       myContentPanel.addTab("StateList", myStateListPickerPanel);
       numberOfTabs++;
@@ -1209,6 +1210,10 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
     public void openLocationSettings() {
       mySouthPanel.setOn(true);
+    }
+
+    public void setChangeFileNameVisible(boolean isVisible) {
+      myLocationSettings.setChangeFileNameVisible(isVisible);
     }
   }
 }
