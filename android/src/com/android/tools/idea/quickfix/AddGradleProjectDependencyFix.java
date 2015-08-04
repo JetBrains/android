@@ -168,6 +168,7 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
               @Override
               public void run() {
                 addDependency(myCurrentModule, module, test);
+                registerUndoAction(project);
                 gradleSyncAndImportClass(module, editor, myReference, new Function<Void, List<PsiClass>>() {
                   @Override
                   public List<PsiClass> apply(@Nullable Void input) {

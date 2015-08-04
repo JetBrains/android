@@ -47,6 +47,9 @@ public class AddGradleDependencyTest extends GuiTestCase {
                               "Add dependency on module 'library3'");
 
     assertBuildFileContains(projectFrame, "app/build.gradle", "compile project(':library3')");
+
+    undo(projectFrame);
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
   }
 
   @Test @IdeGuiTest
@@ -59,6 +62,9 @@ public class AddGradleDependencyTest extends GuiTestCase {
                               "Add dependency on module 'library3'");
 
     assertBuildFileContains(projectFrame, "app/build.gradle", "androidTestCompile project(':library3')");
+
+    undo(projectFrame);
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
   }
 
   @Test @IdeGuiTest
@@ -107,9 +113,16 @@ public class AddGradleDependencyTest extends GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
+
   private static void assertBuildFileContains(@NotNull IdeFrameFixture projectFrame, @NotNull String relativePath,
                                               @NotNull String content) {
     String newBuildFileContent = getFileContent(new File(projectFrame.getProjectPath(), relativePath).getPath());
     assertTrue(newBuildFileContent.contains(content));
+  }
+
+  private static void undo(@NotNull IdeFrameFixture projectFrame) {
+    projectFrame.getEditor().invokeAction(EditorFixture.EditorAction.UNDO);
+    projectFrame.waitForGradleProjectSyncToFinish();
+    projectFrame.findMessageDialog("Undo").clickOk();
   }
 }
