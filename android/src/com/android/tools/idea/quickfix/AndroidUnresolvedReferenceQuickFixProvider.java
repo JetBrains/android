@@ -18,6 +18,7 @@ package com.android.tools.idea.quickfix;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.google.common.collect.Sets;
+import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar;
 import com.intellij.codeInsight.daemon.impl.quickfix.OrderEntryFix;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -105,6 +106,16 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
       }
     }
 
+    // Check if it is a JetBrains annotation class reference.
+    if (isAnnotation(psiElement) && AnnotationUtil.isJetbrainsAnnotation(referenceName)) {
+      String className = "org.jetbrains.annotations." + referenceName;
+      PsiClass found =
+        JavaPsiFacade.getInstance(project).findClass(className, contextModule.getModuleWithDependenciesAndLibrariesScope(true));
+      if (found == null) {
+        registrar.register(new AddGradleJetbrainsAnnotationFix(contextModule, reference, className));
+      }
+    }
+
     // Check if we could fix it by introduce gradle dependency.
     PsiClass[] classes = PsiShortNamesCache.getInstance(project).getClassesByName(referenceName, GlobalSearchScope.allScope(project));
     List<PsiClass> allowedDependencies = filterAllowedDependencies(psiElement, classes);
@@ -114,6 +125,7 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
       registrar.register(new AddGradleProjectDependencyFix(contextModule, classVFile, classes, reference));
     }
 
+    // Check if we could fix it by introduce other library dependency.
     JavaPsiFacade facade = JavaPsiFacade.getInstance(psiElement.getProject());
     ProjectFileIndex fileIndex = ProjectRootManager.getInstance(project).getFileIndex();
 
