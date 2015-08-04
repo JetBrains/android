@@ -23,6 +23,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -1235,6 +1236,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
     MyReceiver receiver = new MyReceiver();
     try {
+      // Wipe any previous cached app data, if any
+      FastDeployManager.wipeData(this, device, remotePath, receiver);
+
       executeDeviceCommandAndWriteToConsole(device, "pm install -r \"" + remotePath + "\"", receiver);
     }
     catch (ShellCommandUnresponsiveException e) {
