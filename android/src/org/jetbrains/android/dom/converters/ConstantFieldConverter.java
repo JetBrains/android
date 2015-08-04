@@ -182,7 +182,9 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
             return true;
           }
           if (added.add(s)) {
-            result.add(LookupElementBuilder.create(pair.getFirst(), s).withCaseSensitivity(false));
+            // LookupElementBuilder should be case sensitive for manifest permission, because otherwise they are inserted in all uppercase
+            final boolean caseSensitive = "android.Manifest.permission".equals(myClass.getQualifiedName());
+            result.add(LookupElementBuilder.create(pair.getFirst(), s).withCaseSensitivity(caseSensitive));
           }
           return true;
         }
