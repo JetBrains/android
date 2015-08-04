@@ -438,8 +438,7 @@ public class RenderTask implements IImageFactory {
     ManifestInfo manifestInfo = ManifestInfo.get(module);
 
     LayoutDirectionQualifier qualifier = myConfiguration.getFullConfig().getLayoutDirectionQualifier();
-    if (qualifier != null && qualifier.getValue() == LayoutDirection.RTL) {
-      params.setRtlSupport(true);
+    if (qualifier != null && qualifier.getValue() == LayoutDirection.RTL && !getLayoutLib().isRtl(myLocale.toLocaleId())) {
       // We don't have a flag to force RTL regardless of locale, so just pick a RTL locale (note that
       // this is decoupled from resource lookup)
       params.setLocale("ur");
