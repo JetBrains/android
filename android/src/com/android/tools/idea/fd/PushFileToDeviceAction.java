@@ -55,6 +55,8 @@ public class PushFileToDeviceAction extends AnAction {
 
         FastDeployManager manager = project.getComponent(FastDeployManager.class);
         boolean forceRestart = (e.getModifiers() & InputEvent.CTRL_MASK) != 0;
+        FastDeployManager.REBUILD_CODE_WITH_GRADLE = (e.getModifiers() & InputEvent.SHIFT_MASK) == 0;
+
         manager.computeDeltas(facet, file, forceRestart);
       }
     }
