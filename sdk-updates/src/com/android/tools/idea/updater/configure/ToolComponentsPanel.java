@@ -85,7 +85,7 @@ public class ToolComponentsPanel {
     myStates.clear();
 
     Set<UpdaterTreeNode> buildToolsNodes = Sets.newHashSet();
-    UpdaterTreeNode buildToolsParent = new ParentTreeNode(null) {
+    UpdaterTreeNode buildToolsParent = new ParentTreeNode(null, null) {
       @Override
       public void customizeRenderer(Renderer renderer,
                                     JTree tree,
