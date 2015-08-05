@@ -25,6 +25,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -48,6 +50,7 @@ import com.intellij.openapi.roots.*;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -92,6 +95,14 @@ import static java.io.File.separatorChar;
 
 public class FastDeployManager implements ProjectComponent, BulkFileListener {
   private static final Logger LOG = Logger.getInstance(FastDeployManager.class);
+
+  /** Build code changes with Gradle rather than IDE hooks? */
+  @SuppressWarnings("SimplifiableConditionalExpression")
+  public static final boolean REBUILD_CODE_WITH_GRADLE = System.getProperty("fd.code") != null ? Boolean.getBoolean("fd.code") : true;
+
+  /** Build resources changes with Gradle rather than IDE hooks? */
+  @SuppressWarnings("SimplifiableConditionalExpression")
+  public static final boolean REBUILD_RESOURCES_WITH_GRADLE = System.getProperty("fd.resources") != null ? Boolean.getBoolean("fd.resources") : false;
 
   /** Local port on the desktop machine that we tunnel to the Android device via */
   public static final int STUDIO_PORT = 8888;
@@ -261,7 +272,11 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       }
 
       // Compile java files
-      addJavaChanges(androidProject, changes, facet, files);
+      if (addJavaChanges(androidProject, changes, facet, files)) {
+        // Already fully handled -- bail (this is for Gradle invocation only) since the actual
+        // computation is async and may process data later
+        return null;
+      }
 
       // TODO: Skip if not a debug build type!
       //Variant variant = androidProject.getSelectedVariant();
@@ -315,7 +330,64 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     return changes;
   }
 
-  private void addJavaChanges(IdeaAndroidProject androidProject, List<ApplicationPatch> changes, AndroidFacet facet, Collection<VirtualFile> files) {
+  private void addJavaChangesWithGradle(final IdeaAndroidProject androidProject, final List<ApplicationPatch> changes, final AndroidFacet facet, Collection<VirtualFile> files) {
+    assert REBUILD_CODE_WITH_GRADLE;
+
+    final String variantName = getVariantName(facet);
+    String taskName = "incrementalSupportDex" + variantName; // TODO: Add to model
+
+    final Project project = facet.getModule().getProject();
+    final GradleInvoker invoker = GradleInvoker.getInstance(project);
+
+    final Ref<GradleInvoker.AfterGradleInvocationTask> reference = Ref.create();
+    final GradleInvoker.AfterGradleInvocationTask task = new GradleInvoker.AfterGradleInvocationTask() {
+      @Override
+      public void execute(@NotNull GradleInvocationResult result) {
+        // Get rid of listener. We should add more direct task listening to the GradleTasksExecutor; this
+        // seems race-condition and unintentional side effect prone.
+        invoker.removeAfterGradleInvocationTask(reference.get());
+
+        // Build is done: send message to app etc
+
+        Variant variant = androidProject.getSelectedVariant();
+        Collection<AndroidArtifactOutput> outputs = variant.getMainArtifact().getOutputs();
+        for (AndroidArtifactOutput output : outputs) {
+          File apk = output.getMainOutputFile().getOutputFile();
+          // TODO: Get intermediates folder from model!
+          File intermediates = new File(apk.getParentFile().getParentFile().getParentFile(), "intermediates");
+
+          File restart = new File(intermediates, "restart-dex" + File.separator + variantName + File.separator + "classes.dex");
+          if (restart.exists()) {
+            try {
+              byte[] bytes = Files.toByteArray(restart);
+              List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(2);
+
+              boolean forceRestart = true;
+              changes.add(new ApplicationPatch("classes.dex", bytes));
+
+              // TODO: Send incremental patch file to the process too, to have it apply immediately
+              File incremental = new File(intermediates, "initial-incremental-dex" + File.separator + variantName + File.separator + "classes.dex");
+              if (incremental.exists()) {
+                forceRestart = false; // let the server device, it has a patch that might work
+                changes.add(new ApplicationPatch("classes.dex.3", bytes));
+              }
+
+              push(facet.getModule().getProject(), changes, forceRestart);
+            } catch (Throwable t) {
+              // TODO
+              t.printStackTrace();
+            }
+            break;
+          }
+        }
+      }
+    };
+    reference.set(task);
+    invoker.addAfterGradleInvocationTask(task);
+    invoker.executeTasks(Collections.singletonList(taskName));
+  }
+
+  private boolean addJavaChanges(IdeaAndroidProject androidProject, List<ApplicationPatch> changes, AndroidFacet facet, Collection<VirtualFile> files) {
     // Could be a mixture of resources and java files: extract the JAva files
     List<VirtualFile> sources = Lists.newArrayListWithExpectedSize(files.size());
     for (VirtualFile file : files) {
@@ -324,7 +396,12 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       }
     }
     if (sources.isEmpty()) {
-      return;
+      return false;
+    }
+
+    if (REBUILD_CODE_WITH_GRADLE) {
+      addJavaChangesWithGradle(androidProject, changes, facet, sources);
+      return true;
     }
 
     // Recompile & redex just these files. I really just want to call
@@ -343,6 +420,8 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     catch (InterruptedException e) {
       e.printStackTrace();
     }
+
+    return false;
   }
 
   private void compileJavaFiles(IdeaAndroidProject androidProject, List<ApplicationPatch> changes, AndroidFacet facet, List<VirtualFile> sources) throws IOException, InterruptedException {
@@ -591,12 +670,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     }
     LocalSdk localSdk = sdkData.getLocalSdk();
 
-    String variantName;
-    if (facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
-      variantName = facet.getAndroidModel().getSelectedVariant().getName();
-    } else {
-      variantName = "debug";
-    }
+    String variantName = getVariantName(facet);
 
     // Try to repackage the XML files
     try {
@@ -758,6 +832,17 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     }
 
     return null;
+  }
+
+  @NotNull
+  private String getVariantName(@NotNull AndroidFacet facet) {
+    String variantName;
+    if (facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
+      variantName = facet.getAndroidModel().getSelectedVariant().getName();
+    } else {
+      variantName = "debug";
+    }
+    return variantName;
   }
 
   private void postBalloon(MessageType type, String message) {
