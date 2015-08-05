@@ -732,6 +732,7 @@ public class ThemeEditorUtils {
     }
   }
 
+  @NotNull
   public static ChooseResourceDialog getResourceDialog(@NotNull EditedStyleItem item, @NotNull ThemeEditorContext context,
                                                        ResourceType[] allowedTypes) {
     String itemValue = item.getValue();
@@ -755,8 +756,8 @@ public class ThemeEditorUtils {
 
     ResourceResolver resourceResolver = configuration.getResourceResolver();
     assert resourceResolver != null;
-    ChooseResourceDialog dialog;
 
+    ChooseResourceDialog dialog;
     ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(resourceResolver, item.getSelectedValue(), context.getProject());
     if (stateList != null) {
       dialog = new ChooseResourceDialog(context.getModuleForResources(), context.getConfiguration(), allowedTypes, stateList,
