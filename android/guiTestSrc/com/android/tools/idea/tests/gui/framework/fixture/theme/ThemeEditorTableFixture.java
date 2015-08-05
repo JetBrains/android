@@ -16,16 +16,20 @@
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
 import com.android.tools.idea.editors.theme.ThemeEditorTable;
+import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import org.fest.swing.annotation.RunsInCurrentThread;
 import org.fest.swing.core.Robot;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.awt.Component;
+import java.awt.Font;
 
 import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.junit.Assert.assertTrue;
 
 public class ThemeEditorTableFixture extends JTableFixture {
   private ThemeEditorTableFixture(Robot robot, ThemeEditorTable target) {
@@ -38,13 +42,67 @@ public class ThemeEditorTableFixture extends JTableFixture {
   }
 
   @Nullable
-  public Component getRendererComponent(final TableCell cell) {
-    return execute(new GuiQuery<Component>() {
-      @Nullable
+  public String attributeNameAt(@NotNull final TableCell cell) {
+    return execute(new GuiQuery<String>() {
       @Override
-      protected Component executeInEDT() throws Throwable {
-        return target().prepareRenderer(target().getCellRenderer(cell.row, cell.column), cell.row, cell.column);
+      protected String executeInEDT() throws Throwable {
+        Component renderer = rendererComponentAt(cell);
+        if (!(renderer instanceof ResourceComponent)) {
+          return null;
+        }
+
+        ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)renderer);
+        return resourceComponent.getAttributeName();
       }
     });
+  }
+
+  @Nullable
+  public Font valueFontAt(@NotNull final TableCell cell) {
+    return execute(new GuiQuery<Font>() {
+      @Override
+      protected Font executeInEDT() throws Throwable {
+        Component renderer = rendererComponentAt(cell);
+        assertTrue(renderer instanceof ResourceComponent);
+        ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)renderer);
+        return resourceComponent.getValueFont();
+      }
+    });
+  }
+
+  @Override
+  @Nullable
+  public String valueAt(@NotNull final TableCell cell) {
+    return execute(new GuiQuery<String>() {
+      @Override
+      protected String executeInEDT() throws Throwable {
+        Component renderer = rendererComponentAt(cell);
+        if (!(renderer instanceof ResourceComponent)) {
+          return ThemeEditorTableFixture.super.valueAt(cell);
+        }
+
+        ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)renderer);
+        return resourceComponent.getValueString();
+      }
+    });
+  }
+
+  @Nullable
+  public String colorValueAt(@NotNull final TableCell cell) {
+    return execute(new GuiQuery<String>() {
+      @Override
+      protected String executeInEDT() throws Throwable {
+        Component renderer = rendererComponentAt(cell);
+        assertTrue(renderer instanceof ResourceComponent);
+        ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)renderer);
+        return resourceComponent.getColorValue();
+      }
+    });
+  }
+
+  @RunsInCurrentThread
+  @Nullable
+  private Component rendererComponentAt(@NotNull final TableCell cell) {
+    return target().prepareRenderer(target().getCellRenderer(cell.row, cell.column), cell.row, cell.column);
   }
 }
