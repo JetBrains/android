@@ -98,7 +98,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
 
   /** Build code changes with Gradle rather than IDE hooks? */
   @SuppressWarnings("SimplifiableConditionalExpression")
-  public static final boolean REBUILD_CODE_WITH_GRADLE = System.getProperty("fd.code") != null ? Boolean.getBoolean("fd.code") : true;
+  public static boolean REBUILD_CODE_WITH_GRADLE = System.getProperty("fd.code") != null ? Boolean.getBoolean("fd.code") : true;
 
   /** Build resources changes with Gradle rather than IDE hooks? */
   @SuppressWarnings("SimplifiableConditionalExpression")
@@ -362,13 +362,13 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
               byte[] bytes = Files.toByteArray(restart);
               List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(2);
 
-              boolean forceRestart = true;
+              boolean forceRestart = false;
               changes.add(new ApplicationPatch("classes.dex", bytes));
 
-              // TODO: Send incremental patch file to the process too, to have it apply immediately
-              File incremental = new File(intermediates, "initial-incremental-dex" + File.separator + variantName + File.separator + "classes.dex");
+              File incremental = new File(intermediates, "reload-dex" + File.separator + variantName + File.separator + "classes.dex");
               if (incremental.exists()) {
                 forceRestart = false; // let the server device, it has a patch that might work
+                bytes = Files.toByteArray(incremental);
                 changes.add(new ApplicationPatch("classes.dex.3", bytes));
               }
 
