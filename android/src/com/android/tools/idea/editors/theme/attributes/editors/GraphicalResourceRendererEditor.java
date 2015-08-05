@@ -34,7 +34,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,6 +52,7 @@ import java.util.ArrayList;
  * and styles on the {@link ResourceComponent}.
  */
 public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
+  static final String DUMB_MODE_MESSAGE = "Editing theme is not possible - indexing is in progress";
   static final String CURRENT_VARIANT_TEMPLATE = "<html><nobr><font color=\"#%1$s\">%2$s</font>";
   static final String NOT_SELECTED_VARIANT_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b><font color=\"#9B9B9B\"> %3$s</font>";
   @SuppressWarnings("UseJBColor") // LIGHT_GRAY works also in Darcula
