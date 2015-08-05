@@ -54,6 +54,7 @@ import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -131,6 +132,7 @@ public class GraphicsLayoutRenderer {
                                                  @NotNull Project project,
                                                  @NotNull Configuration configuration,
                                                  @NotNull ILayoutPullParser parser,
+                                                 @Nullable Color backgroundColor,
                                                  @NotNull SessionParams.RenderingMode renderingMode) throws InitializationException {
     Module module = facet.getModule();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
@@ -191,6 +193,10 @@ public class GraphicsLayoutRenderer {
     // The App Label needs to be not null
     params.setAppLabel("");
 
+    if (backgroundColor != null) {
+      params.setOverrideBgColor(backgroundColor.getRGB());
+    }
+
     RenderSecurityManager mySecurityManager = RenderSecurityManagerFactory.create(module, platform);
     return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, resourceLookupChain, credential);
   }
@@ -199,11 +205,13 @@ public class GraphicsLayoutRenderer {
    * Creates a new {@link GraphicsLayoutRenderer}.
    * @param configuration The configuration to use when rendering.
    * @param parser A layout pull-parser.
+   * @param backgroundColor If not null, this will be use to set the global Android window background
    * @throws InitializationException if layoutlib fails to initialize.
    */
   @NotNull
   public static GraphicsLayoutRenderer create(@NotNull Configuration configuration,
                                               @NotNull ILayoutPullParser parser,
+                                              @Nullable Color backgroundColor,
                                               boolean hasHorizontalScroll,
                                               boolean hasVerticalScroll) throws InitializationException {
     AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
@@ -234,7 +242,7 @@ public class GraphicsLayoutRenderer {
       renderingMode = SessionParams.RenderingMode.NORMAL;
     }
 
-    return create(facet, platform, target, module.getProject(), configuration, parser, renderingMode);
+    return create(facet, platform, target, module.getProject(), configuration, parser, backgroundColor, renderingMode);
   }
 
   /**
