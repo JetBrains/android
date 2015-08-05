@@ -21,6 +21,7 @@ import com.android.sdklib.internal.repository.updater.PkgItem;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collection;
@@ -36,8 +37,9 @@ class SummaryTreeNode extends UpdaterTreeNode {
   private Set<UpdaterTreeNode> myAllChildren;
   private Set<UpdaterTreeNode> myIncludedChildren = Sets.newHashSet();
   private UpdaterTreeNode myPrimaryChild;
+  private final String myVersionName;
 
-  public SummaryTreeNode(AndroidVersion version, Set<UpdaterTreeNode> children) {
+  public SummaryTreeNode(AndroidVersion version, Set<UpdaterTreeNode> children, @Nullable String versionName) {
     myVersion = version;
     myAllChildren = children;
     for (UpdaterTreeNode child : children) {
@@ -48,6 +50,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
         myPrimaryChild = child;
       }
     }
+    myVersionName = versionName;
   }
 
   @Override
@@ -96,7 +99,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
 
   @Override
   public void customizeRenderer(Renderer renderer, JTree tree, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-    renderer.getTextRenderer().append(getDescription(myVersion));
+    renderer.getTextRenderer().append(getDescription(myVersion, myVersionName));
   }
 
   public AndroidVersion getVersion() {
@@ -178,7 +181,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
     return myPrimaryChild;
   }
 
-  public static String getDescription(AndroidVersion version) {
+  public static String getDescription(AndroidVersion version, @Nullable String versionName) {
     StringBuilder result = new StringBuilder();
     result.append("Android ");
     if (version.isPreview()) {
@@ -186,8 +189,12 @@ class SummaryTreeNode extends UpdaterTreeNode {
       result.append(" Preview");
     }
     else {
-      result.append(SdkVersionInfo.getVersionString(version.getApiLevel()));
-      String codeName = SdkVersionInfo.getCodeName(version.getApiLevel());
+      if (versionName == null) {
+        result.append(SdkVersionInfo.getVersionString(version.getApiLevel()));
+      } else {
+        result.append(versionName);
+      }
+      String codeName = version.getCodename();
       if (codeName != null) {
         result.append(" (");
         result.append(codeName);
