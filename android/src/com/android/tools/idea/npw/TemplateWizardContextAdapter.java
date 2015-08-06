@@ -22,6 +22,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.net.URL;
 
 import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
 
@@ -112,13 +113,8 @@ public final class TemplateWizardContextAdapter implements AssetStudioContext {
 
   @Nullable
   @Override
-  public String getVectorLibIconPath() {
-    return (String)myWizardState.get(ATTR_VECTOR_LIB_ICON_PATH);
-  }
-
-  @Override
-  public void setVectorLibIconPath(String path) {
-    myWizardState.put(ATTR_VECTOR_LIB_ICON_PATH, path);
+  public URL getVectorLibIconPath() {
+    return (URL) myWizardState.get(ATTR_VECTOR_LIB_ICON_PATH);
   }
 
   @Override
