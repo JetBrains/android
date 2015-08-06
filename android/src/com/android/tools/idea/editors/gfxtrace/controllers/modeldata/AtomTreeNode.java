@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers.modeldata;
 
-import com.android.tools.idea.editors.gfxtrace.schema.AtomReader;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,8 +26,7 @@ import java.util.List;
 public abstract class AtomTreeNode {
   public abstract List<TextPiece> getTextPieces(@NotNull JTree tree,
                                                 @NotNull TreeNode node,
-                                                @NotNull EnumInfoCache enumInfoCache,
-                                                @NotNull AtomReader atomReader);
+                                                @NotNull AtomList atoms);
 
   public static class TextPiece {
     @NotNull public String myString;

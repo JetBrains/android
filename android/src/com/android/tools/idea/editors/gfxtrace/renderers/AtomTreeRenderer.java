@@ -16,8 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.renderers;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomTreeNode;
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.EnumInfoCache;
-import com.android.tools.idea.editors.gfxtrace.schema.AtomReader;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,20 +30,17 @@ import java.util.List;
  * Note that each atom tree needs its own AtomTreeRenderer.
  */
 public class AtomTreeRenderer extends ColoredTreeCellRenderer {
-  private EnumInfoCache myEnumInfoCache;
-  private AtomReader myAtomReader;
+  private AtomList myAtoms;
 
   public AtomTreeRenderer() {
   }
 
-  public void init(@NotNull EnumInfoCache enumInfoCache, @NotNull AtomReader atomReader) {
-    myEnumInfoCache = enumInfoCache;
-    myAtomReader = atomReader;
+  public void init(@NotNull AtomList atoms) {
+    myAtoms = atoms;
   }
 
   public void clearState() {
-    myEnumInfoCache = null;
-    myAtomReader = null;
+    myAtoms = null;
   }
 
   @Override
@@ -60,7 +56,7 @@ public class AtomTreeRenderer extends ColoredTreeCellRenderer {
     Object userObject = treeNode.getUserObject();
 
     assert (userObject instanceof AtomTreeNode);
-    List<AtomTreeNode.TextPiece> textPieceList = ((AtomTreeNode)userObject).getTextPieces(tree, treeNode, myEnumInfoCache, myAtomReader);
+    List<AtomTreeNode.TextPiece> textPieceList = ((AtomTreeNode)userObject).getTextPieces(tree, treeNode, myAtoms);
     for (AtomTreeNode.TextPiece textPiece : textPieceList) {
       append(textPiece.myString, textPiece.myTextAttributes);
     }
