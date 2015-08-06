@@ -16,21 +16,26 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.intellij.compiler.actions.CompileDirtyAction;
-import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.WindowManager;
 import org.jetbrains.annotations.NotNull;
 
-public class MakeGradleProjectAction extends BuildGradleProjectAction {
+public class MakeGradleProjectAction extends AndroidStudioGradleAction {
   public MakeGradleProjectAction() {
-    super(new CompileDirtyAction(), "Make Project");
+    super("Make Project");
   }
 
   @Override
-  protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
+  protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
+    e.getPresentation().setEnabled(!CompilerManager.getInstance(project).isCompilationActive());
+  }
+
+  @Override
+  protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
     StatusBar statusBar = WindowManager.getInstance().getStatusBar(project);
     if (statusBar != null) {
       // Reset info from the previous runs (if any).
