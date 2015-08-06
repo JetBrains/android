@@ -15,19 +15,27 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.controllers.*;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomNode;
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.EnumInfoCache;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.HierarchyNode;
 import com.android.tools.idea.editors.gfxtrace.renderers.ScrubberCellRenderer;
-import com.android.tools.idea.editors.gfxtrace.rpc.*;
-import com.android.tools.idea.editors.gfxtrace.schema.Atom;
-import com.android.tools.idea.editors.gfxtrace.schema.AtomReader;
-import com.google.common.util.concurrent.*;
+import com.android.tools.idea.editors.gfxtrace.service.Schema;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceClientCache;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceClientRPC;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomMetadata;
+import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
+import com.android.tools.rpclib.binary.Namespace;
+import com.android.tools.rpclib.schema.*;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -53,11 +61,14 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, ScrubberCellRenderer.DimensionChangeListener {
+  @NotNull public static final String SELECT_CAPTURE = "Select a capture";
+  @NotNull public static final String SELECT_ATOM = "Select an atom";
+
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   @NotNull private static final String SERVER_HOST = "localhost";
   @NotNull private static final String SERVER_EXECUTABLE_NAME = "gapis";
@@ -68,25 +79,18 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
 
   @NotNull private final Project myProject;
   @NotNull private final GfxTraceViewPanel myView;
-  @NotNull private final ListeningExecutorService myService = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
+  @NotNull private final ListeningExecutorService myService = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
   private Process myServerProcess;
   private Socket myServerSocket;
-  @NotNull private Client myClient;
-  private Schema mySchema;
-  private EnumInfoCache myEnumInfoCache;
-  private AtomStream myAtomStream;
-  private AtomReader myAtomReader;
+  @NotNull private ServiceClient myClient;
 
-  @NotNull private List<GfxController> myControllers = new ArrayList<GfxController>();
+  @NotNull private List<PathListener> myPathListeners = new ArrayList<PathListener>();
   private ContextController myContextController;
   private AtomController myAtomController;
   private ScrubberController myScrubberController;
   private FrameBufferController myFrameBufferController;
   private StateController myStateController;
   private DocumentationController myDocumentationController;
-
-  volatile private int myCaptureChangeId;
-  private boolean myIsConnectedToServer;
 
   public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
     myProject = project;
@@ -96,27 +100,70 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
 
     try {
       if (connectToServer()) {
-        myClient = new ClientImpl(Executors.newCachedThreadPool(), myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
-        myIsConnectedToServer = true;
+        ServiceClient rpcClient = new ServiceClientRPC(myService , myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
+        myClient = new ServiceClientCache(rpcClient);
 
-        myContextController = new ContextController(this, myView.getDeviceList(), myView.getCapturesList(), myView.getGfxContextList());
+        // prefetch the schema
+        Futures.addCallback(myClient.getSchema(), new FutureCallback<Schema>() {
+          @Override
+          public void onSuccess(Schema schema) {
+            LOG.warn("Schema with " + schema.getClasses().length + " classes, " + schema.getConstants().length + " constant sets");
+            int atoms = 0;
+            for (SchemaClass type : schema.getClasses()) {
+              // Find the atom metadata, if present
+              if (AtomMetadata.find(type) != null) {
+                atoms++;
+              }
+              Dynamic.register(type);
+            }
+            LOG.warn("Schema with " + atoms + " atoms");
+          }
 
-        myAtomController = new AtomController(project, myView.getAtomScrollPane());
+          @Override
+          public void onFailure(Throwable t) {
+            LOG.error(t);
+          }
+        });
+
+        // Upload the trace file
+        byte[] data = file.contentsToByteArray();
+        LOG.warn("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
+        Futures.addCallback(myClient.importCapture(file.getPresentableName(), data), new FutureCallback<CapturePath>() {
+          @Override
+          public void onSuccess(CapturePath path) {
+            LOG.warn("Capture uploaded");
+            // block on the schema before we activate the new capture
+            try {
+              myClient.getSchema().get();
+              if (path != null) {
+                activatePath(path);
+              } else {
+                LOG.error("Invalid capture file "+ file.getPresentableName());
+              }
+            }
+            catch (InterruptedException e) {}
+            catch (ExecutionException e) {}
+          }
+
+          @Override
+          public void onFailure(Throwable t) {
+            LOG.error(t);
+          }
+        });
+
+        myContextController = new ContextController(this, myView.getDeviceList(), myView.getCapturesList());
+
+        myAtomController = new AtomController(this, project, myView.getAtomScrollPane());
         myScrubberController = new ScrubberController(this, myView.getScrubberScrollPane(), myView.getScrubberList());
         myFrameBufferController =
           new FrameBufferController(this, myView.getBufferTabs(), myView.getColorScrollPane(), myView.getWireframeScrollPane(),
                                     myView.getDepthScrollPane());
         myStateController = new StateController(this, myView.getStateScrollPane());
 
-        myControllers.add(myAtomController);
-        myControllers.add(myScrubberController);
-        myControllers.add(myStateController);
-        myControllers.add(myFrameBufferController);
+        // TODO: Rewrite to use IntelliJ documentation view.
+        myDocumentationController = new DocumentationController(this, myView.getDocsPane());
 
         myContextController.initialize();
-
-        // TODO: Rewrite to use IntelliJ documentation view.
-        myDocumentationController = new DocumentationController(myView.getDocsPane());
 
         establishInterViewControls();
       }
@@ -209,45 +256,13 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
   }
 
   @NotNull
-  public Client getClient() {
+  public ServiceClient getClient() {
     return myClient;
-  }
-
-  @Nullable
-  public CaptureId getCaptureId() {
-    if (myContextController.getCurrentCapture() != null) {
-      return myContextController.getCurrentCaptureId();
-    }
-    return null;
-  }
-
-  @Nullable
-  public DeviceId getDeviceId() {
-    if (myContextController.getCurrentDevice() != null) {
-      return myContextController.getCurrentDeviceId();
-    }
-    return null;
   }
 
   @NotNull
   public ListeningExecutorService getService() {
     return myService;
-  }
-
-  @Nullable
-  public Integer getContext() {
-    return myContextController.getCurrentContext();
-  }
-
-  private void clearCaptureState() {
-    mySchema = null;
-    myAtomReader = null;
-  }
-
-  private void clear() {
-    for (GfxController controller : myControllers) {
-      controller.clear();
-    }
   }
 
   @Override
@@ -267,13 +282,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
     }
 
     myService.shutdown();
-  }
-
-  public void notifyDeviceChanged(@SuppressWarnings("UnusedParameters") @NotNull final Device device) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-    for (GfxController controller : myControllers) {
-      controller.clearCache();
-    }
   }
 
   private void sleepThread(int milliseconds) {
@@ -296,6 +304,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
    * @return true if a connection to the server was established.
    */
   private boolean connectToServer() {
+    com.android.tools.idea.editors.gfxtrace.service.Factory.register();
     myServerSocket = null;
     try {
       // Try to connect to an existing server.
@@ -316,10 +325,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
         if (baseDirectory.isDirectory()) {
           File serverDirectory = new File(baseDirectory, SERVER_RELATIVE_PATH);
           File serverExecutable = new File(serverDirectory, SERVER_EXECUTABLE_NAME);
+          LOG.info("launch gapis: \"" + serverExecutable.getAbsolutePath() + "\"");
           ProcessBuilder pb = new ProcessBuilder(serverExecutable.getAbsolutePath());
 
           // Add the server's directory to the path.  This allows the server to find and launch the replayd.
-          java.util.Map<String, String> env = pb.environment();
+          Map<String, String> env = pb.environment();
           String path = env.get("PATH");
           path = serverDirectory.getAbsolutePath() + File.pathSeparator + path;
           env.put("PATH", path);
@@ -354,110 +364,19 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
     return myServerSocket != null;
   }
 
-  public void notifyCaptureChanged(@NotNull final Capture capture) {
-    // We need to keep track of what capture change is the most current, since the user could have changed the capture multiple times
-    // before the client-server transfers are complete. We don't want to process stale data and potentially show users said stale state.
-    myCaptureChangeId++;
-    final int closedCaptureChangeId = myCaptureChangeId; // Record the counter for our closure.
-    clear();
-    clearCaptureState();
+  public void activatePath(@NotNull final Path path) {
+    for (PathListener listener : myPathListeners) {
+      listener.notifyPath(path);
+    }
+  }
 
-    // We need to perform this on an independent thread as this is over the network and will block.
-    ListenableFuture<GfxController.CaptureChangeState> captureChange = myService.submit(new Callable<GfxController.CaptureChangeState>() {
-      @Override
-      public GfxController.CaptureChangeState call() throws Exception {
-        AtomStream atomStream = myClient.ResolveAtomStream(capture.getAtoms()).get();
-        Schema schema = myClient.ResolveSchema(atomStream.getSchema()).get();
-        return new GfxController.CaptureChangeState(atomStream, schema);
-      }
-    });
-    Futures.addCallback(captureChange, new FutureCallback<GfxController.CaptureChangeState>() {
-      @Override
-      public void onSuccess(@Nullable GfxController.CaptureChangeState state) {
-        if (state != null && myIsConnectedToServer && closedCaptureChangeId == myCaptureChangeId) {
-          myAtomStream = state.myAtomStream;
-          mySchema = state.mySchema;
-          myEnumInfoCache = new EnumInfoCache(mySchema);
-          myContextController.populateUi(capture.getContextIds());
-        }
-      }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        LOG.error(t);
-      }
-    }, EdtExecutor.INSTANCE);
+  public void addPathListener(@NotNull PathListener listener) {
+    myPathListeners.add(listener);
   }
 
   @Override
   public void notifyDimensionChanged(@NotNull Dimension newDimension) {
     myView.resize();
-  }
-
-  public void resolveGfxContextChange(@NotNull final AtomicBoolean shouldStop) {
-    // Since gfx context is dependent on capture, this needs to synchronize against it.
-    final int closedCaptureChangeId = myCaptureChangeId;
-    clear();
-
-    for (GfxController controller : myControllers) {
-      controller.startLoad();
-    }
-
-    final GfxController.GfxContextChangeState state = new GfxController.GfxContextChangeState();
-    state.myCaptureChangeState.myAtomStream = myAtomStream;
-    state.myCaptureChangeState.mySchema = mySchema; // Get a reference of this on the EDT so there is no need to synchronize on it.
-    state.myEnumInfoCache = myEnumInfoCache;
-
-    assert (myContextController.getCurrentCapture() != null);
-    final CaptureId captureId = myContextController.getCurrentCaptureId();
-    final Integer contextId = myContextController.getCurrentContext();
-    assert (contextId != null);
-
-    ListenableFuture<GfxController.GfxContextChangeState> contextChange =
-      myService.submit(new Callable<GfxController.GfxContextChangeState>() {
-        @Override
-        @Nullable
-        public GfxController.GfxContextChangeState call() throws Exception {
-          if (shouldStop.get()) {
-            return null;
-          }
-
-          Hierarchy hierarchy = myClient.ResolveHierarchy(myClient.GetHierarchy(captureId, contextId).get()).get();
-          state.myAtomReader = new AtomReader(state.myCaptureChangeState.myAtomStream, state.myCaptureChangeState.mySchema);
-          state.myTreeRoot = AtomController.prepareData(hierarchy);
-          state.myScrubberList = myScrubberController.prepareData(hierarchy, state.myAtomReader);
-
-          return state;
-        }
-      });
-    Futures.addCallback(contextChange, new FutureCallback<GfxController.GfxContextChangeState>() {
-      @Override
-      public void onSuccess(@Nullable GfxController.GfxContextChangeState result) {
-        if (result != null) {
-          myAtomReader = result.myAtomReader;
-          for (GfxController controller : myControllers) {
-            controller.commitData(result);
-          }
-          populateUi(shouldStop, closedCaptureChangeId);
-        }
-      }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        LOG.error(t);
-      }
-    }, EdtExecutor.INSTANCE);
-  }
-
-  private void populateUi(@NotNull AtomicBoolean shouldStop, int initialCaptureChangeId) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-
-    if (!shouldStop.get() && initialCaptureChangeId == myCaptureChangeId) {
-      // Initialize UI components.
-      assert (myContextController.getCurrentContext() != null);
-      myScrubberController.populateUi(myClient);
-      myAtomController.populateUi(myAtomReader);
-    }
   }
 
   /**
@@ -477,37 +396,29 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
           assert (userObject instanceof HierarchyNode);
           HierarchyNode node = (HierarchyNode)userObject;
 
-          myScrubberController.selectFrame(node.getRepresentativeAtomId());
+          // TODO: convert to atom path and then select it
+          return;
         }
 
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)myAtomController.getTree().getLastSelectedPathComponent();
 
         if (node == null) { // This could happen when user collapses a node.
-          myFrameBufferController.clearCache();
           return;
         }
 
         Object userObject = node.getUserObject();
         assert (userObject instanceof HierarchyNode || userObject instanceof AtomNode);
 
-        long atomId;
+        long atomIndex;
         if (userObject instanceof HierarchyNode) {
           HierarchyNode hierarchyNode = (HierarchyNode)userObject;
-          atomId = hierarchyNode.getRepresentativeAtomId();
+          atomIndex = hierarchyNode.getRepresentativeAtomIndex();
         }
         else {
           AtomNode atomNode = (AtomNode)userObject;
-          atomId = atomNode.getRepresentativeAtomId();
-          try {
-            myDocumentationController.setDocumentation(myAtomReader.read(atomId).info.getDocumentationUrl());
-          }
-          catch (IOException e) {
-            LOG.error(e);
-            return;
-          }
+          atomIndex = atomNode.getRepresentativeAtomIndex();
         }
-        myFrameBufferController.setImageForId(findPreviousDrawCall(atomId)); // Select draw call at or prior to atomId.
-        myStateController.updateTreeModelFromAtomId(atomId);
+        // TODO: convert to atom path and then activate it
       }
     });
 
@@ -518,41 +429,10 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
         if (!listSelectionEvent.getValueIsAdjusting()) {
           AtomGroup selection = myScrubberController.getFrameSelectionReference();
           if (selection != null) {
-            myAtomController.selectFrame(selection);
+            // TODO: convert to atom path and then activate it
           }
         }
       }
     });
-  }
-
-  /**
-   * Finds the latest atom ID at or prior to the given ID that is a valid draw call/end of frame.
-   */
-  private long findPreviousDrawCall(long selectedId) {
-    try {
-      Atom atom = myAtomReader.read(selectedId);
-      if (atom.info.getIsDrawCall()) {
-        return selectedId;
-      }
-
-      if (selectedId - 1 > Integer.MAX_VALUE) {
-        throw new RuntimeException("Selected Atom ID exceeds largest Atom ID supported.");
-      }
-
-      for (long i = selectedId - 1; i >= 0; --i) {
-        atom = myAtomReader.read(i);
-        if (atom.info.getIsDrawCall()) {
-          return i;
-        }
-        else if (atom.info.getIsEndOfFrame()) {
-          return i + 1;
-        }
-      }
-    }
-    catch (IOException e) {
-      LOG.error(e);
-    }
-
-    return 0;
   }
 }
