@@ -43,7 +43,7 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.ASSEMBLE_TRANSLATE
 import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.Projects.*;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**

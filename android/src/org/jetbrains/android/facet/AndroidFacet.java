@@ -96,7 +96,7 @@ import java.util.*;
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.FN_EMULATOR;
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;

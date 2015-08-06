@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 
 /**
  * Base class for actions that perform Gradle-specific tasks in Android Studio.

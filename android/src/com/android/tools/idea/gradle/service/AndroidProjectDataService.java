@@ -76,7 +76,7 @@ import static com.android.tools.idea.gradle.messages.Message.Type.WARNING;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;

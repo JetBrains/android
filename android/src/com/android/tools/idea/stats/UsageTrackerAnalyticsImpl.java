@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.stats;
 
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
@@ -74,7 +74,7 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
       return;
     }
 
-    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+    if (!AndroidStudioInitializer.isAndroidStudio()) {
       return;
     }
 

@@ -17,7 +17,7 @@ package com.android.tools.idea.editors;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
@@ -56,7 +56,7 @@ public class AutoImportNotificationProvider extends EditorNotifications.Provider
     String name = file.getName();
     if (SdkConstants.FN_BUILD_GRADLE.equals(name) || SdkConstants.FN_SETTINGS_GRADLE.equals(name)) {
       GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(myProject);
-      if (AndroidStudioSpecificInitializer.isAndroidStudio() && settings != null && settings.isUseAutoImport()) {
+      if (AndroidStudioInitializer.isAndroidStudio() && settings != null && settings.isUseAutoImport()) {
         return new DisableAutoImportNotificationPanel(settings);
       }
     }
