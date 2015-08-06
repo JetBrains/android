@@ -17,18 +17,16 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
-
-import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
-import com.android.tools.rpclib.binary.BinaryObject;
-import com.android.tools.rpclib.binary.Decoder;
-import com.android.tools.rpclib.binary.Encoder;
-import com.android.tools.rpclib.binary.Namespace;
 
 import java.io.IOException;
 
 public final class AtomList implements BinaryObject {
+  public Atom get(long index) {
+    return myAtoms[(int)index];
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   Atom[] myAtoms;
 
