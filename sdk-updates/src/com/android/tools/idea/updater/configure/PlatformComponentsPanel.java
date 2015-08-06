@@ -16,8 +16,11 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
+import com.android.tools.idea.sdk.remote.internal.packages.RemotePlatformPkgInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -93,8 +96,24 @@ public class PlatformComponentsPanel {
     List<AndroidVersion> versions = Lists.newArrayList(myCurrentPackages.keySet());
     versions = Lists.reverse(versions);
     for (AndroidVersion version : versions) {
+      String androidVersion = null;
+      for (UpdatablePkgInfo info : myCurrentPackages.get(version)) {
+        String maybeVersion = null;
+        if (info.hasLocal()) {
+          maybeVersion = info.getLocalInfo().getSourceProperties().getProperty(PkgProps.PLATFORM_VERSION);
+        }
+        else {
+          RemotePkgInfo remote = info.getRemote(true);
+          if (remote instanceof RemotePlatformPkgInfo) {
+            maybeVersion = ((RemotePlatformPkgInfo)remote).getVersionName();
+          }
+        }
+        if (maybeVersion != null) {
+          androidVersion = maybeVersion;
+        }
+      }
       Set<UpdaterTreeNode> versionNodes = Sets.newHashSet();
-      UpdaterTreeNode marker = new ParentTreeNode(version);
+      UpdaterTreeNode marker = new ParentTreeNode(version, androidVersion);
       myPlatformDetailsRootNode.add(marker);
       boolean obsolete = false;
       for (UpdatablePkgInfo info : myCurrentPackages.get(version)) {
@@ -108,7 +127,7 @@ public class PlatformComponentsPanel {
         }
       }
       if (!obsolete) {
-        myPlatformSummaryRootNode.add(new SummaryTreeNode(version, versionNodes));
+        myPlatformSummaryRootNode.add(new SummaryTreeNode(version, versionNodes, androidVersion));
       }
     }
     refreshModified();
