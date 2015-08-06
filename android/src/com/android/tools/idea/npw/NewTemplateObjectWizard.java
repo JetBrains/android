@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.templates.KeystoreUtils;
@@ -78,7 +79,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateW
   @VisibleForTesting RasterAssetSetStep myAssetSetStep;
   @VisibleForTesting ChooseTemplateStep myChooseTemplateStep;
   private List<SourceProvider> mySourceProviders;
-  private IdeaAndroidProject myAndroidModel;
+  private AndroidModel myAndroidModel;
   protected TemplateParameterStep myTemplateParameterStep;
   protected ChooseSourceSetStep myChooseSourceSetStep;
   private File myTemplateFile;
@@ -153,8 +154,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateW
     int minSdkVersion;
     String minSdkName;
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
-    IdeaAndroidProject androidModel = facet.getAndroidModel();
-
+    AndroidModel androidModel = facet.getAndroidModel();
 
     if (androidModel != null) {
       myAndroidModel = androidModel;
@@ -217,7 +217,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateW
     }
   }
 
-  private void selectSourceProvider(@NotNull SourceProvider sourceProvider, @NotNull IdeaAndroidProject androidModel) {
+  private void selectSourceProvider(@NotNull SourceProvider sourceProvider, @NotNull AndroidModel androidModel) {
     // Look up the resource directories inside this source set
     File moduleDirPath = androidModel.getRootDirPath();
     File javaDir = findSrcDirectory(sourceProvider);

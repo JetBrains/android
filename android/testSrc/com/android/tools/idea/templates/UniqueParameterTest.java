@@ -50,7 +50,8 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
 
     loadProject("projects/projectWithAppandLib");
     assertNotNull(myAndroidFacet);
-    IdeaAndroidProject androidModel = myAndroidFacet.getAndroidModel();
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myAndroidFacet);
     assertNotNull(androidModel);
 
     // Set up modules
@@ -72,7 +73,8 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
     assertNotNull(AndroidPlatform.getInstance(myAppModule));
 
     assertNotNull(myAppFacet.getAndroidModel());
-    ProductFlavorContainer paidFlavor = myAppFacet.getAndroidModel().findProductFlavor("paid");
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    ProductFlavorContainer paidFlavor = IdeaAndroidProject.getGradleModel(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     myPaidSourceProvider = paidFlavor.getSourceProvider();
     assertNotNull(myPaidSourceProvider);

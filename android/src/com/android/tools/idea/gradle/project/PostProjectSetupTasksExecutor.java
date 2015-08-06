@@ -550,7 +550,7 @@ public class PostProjectSetupTasksExecutor {
           }
         }
 
-        IdeaAndroidProject androidModel = androidFacet.getAndroidModel();
+        IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(androidFacet);
         if (checkJdkVersion && !hasCorrectJdkVersion(module, androidModel)) {
           // we already displayed the error, no need to check each module.
           checkJdkVersion = false;

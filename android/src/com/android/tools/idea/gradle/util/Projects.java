@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
@@ -268,7 +269,7 @@ public final class Projects {
   }
 
   @Nullable
-  public static IdeaAndroidProject getAndroidModel(@NotNull Module module) {
+  public static AndroidModel getAndroidModel(@NotNull Module module) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     return androidFacet != null ? androidFacet.getAndroidModel() : null;
   }
@@ -430,9 +431,9 @@ public final class Projects {
     if (module.isDisposed() || !requiresAndroidModel(module.getProject())) {
       return null;
     }
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet != null && androidFacet.getAndroidModel() != null) {
-      return androidFacet.getAndroidModel().getAndroidProject().getBuildFolder();
+    IdeaAndroidProject gradleModel = IdeaAndroidProject.getGradleModel(module);
+    if (gradleModel != null) {
+      return gradleModel.getAndroidProject().getBuildFolder();
     }
     JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
     if (javaFacet != null) {
@@ -483,7 +484,7 @@ public final class Projects {
     if (facet == null) {
       return null;
     }
-    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
     if (androidModel == null) {
       return null;
     }

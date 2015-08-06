@@ -28,8 +28,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -408,6 +410,7 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
    * @return the path of the root directory of the imported Android-Gradle project. The returned path belongs to the IDEA module containing
    * the build.gradle file.
    */
+  @Override
   @NotNull
   public File getRootDirPath() {
     return myRootDirPath;
@@ -799,5 +802,26 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
 
     setSelectedVariantName((String)in.readObject());
     setSelectedTestArtifactName((String)in.readObject());
+  }
+
+  @Nullable
+  public static IdeaAndroidProject getGradleModel(@NotNull Module module) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet == null) {
+      return null;
+    }
+    return getGradleModel(androidFacet);
+  }
+
+  @Nullable
+  public static IdeaAndroidProject getGradleModel(@NotNull AndroidFacet androidFacet) {
+    AndroidModel androidModel = androidFacet.getAndroidModel();
+    if (androidModel == null) {
+      return null;
+    }
+    if (!(androidModel instanceof IdeaAndroidProject)) {
+      return null;
+    }
+    return ((IdeaAndroidProject) androidModel);
   }
 }
