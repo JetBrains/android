@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EditBuildTypesAction extends AbstractProjectStructureAction {
   public EditBuildTypesAction() {
-    super("Edit Build Types...", null, null);
+    super("Edit Build Types...");
   }
 
   @Override
@@ -34,9 +34,7 @@ public class EditBuildTypesAction extends AbstractProjectStructureAction {
   }
 
   @Override
-  protected void actionPerformed(@NotNull Module module,
-                                 @NotNull AndroidProjectSettingsService projectStructureService,
-                                 @NotNull AnActionEvent e) {
+  protected void doPerform(@NotNull Module module, @NotNull AndroidProjectSettingsService projectStructureService, @NotNull AnActionEvent e) {
     projectStructureService.openAndSelectBuildTypesEditor(module);
   }
 }
