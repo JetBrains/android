@@ -90,7 +90,9 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     ImmutableMap.of("android.support.design.widget.FloatingActionButton",
                     new ComponentDefinition("Fab", ThemePreviewBuilder.ComponentGroup.FAB_BUTTON,
                                             "android.support.design.widget.FloatingActionButton")
-                      .set("src", "@drawable/abc_ic_ab_back_mtrl_am_alpha").set("clickable", "true"),
+                      .set("src", "@drawable/abc_ic_ab_back_mtrl_am_alpha")
+                      .set("layout_width", "56dp")
+                      .set("layout_height", "56dp"),
                     "android.support.v7.widget.Toolbar",
                     new ToolbarComponentDefinition(true/*isAppCompat*/));
   private static final Map<String, String> SUPPORT_LIBRARY_REPLACEMENTS =
@@ -367,6 +369,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     try {
       Configuration configuration = myContext.getConfiguration();
       int minApiLevel = configuration.getTarget() != null ? configuration.getTarget().getVersion().getApiLevel() : Integer.MAX_VALUE;
+
       ThemePreviewBuilder builder = new ThemePreviewBuilder()
         .setBackgroundColor(getBackground()).addAllComponents(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS)
         .addAllComponents(myCustomComponents)
