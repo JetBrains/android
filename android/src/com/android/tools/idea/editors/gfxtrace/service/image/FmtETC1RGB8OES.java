@@ -17,18 +17,12 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.image;
 
+import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
-
-import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
-import com.android.tools.rpclib.binary.BinaryObject;
-import com.android.tools.rpclib.binary.Decoder;
-import com.android.tools.rpclib.binary.Encoder;
-import com.android.tools.rpclib.binary.Namespace;
 
 import java.io.IOException;
 
-final class FmtETC1RGB8OES implements BinaryObject {
+final public class FmtETC1RGB8OES extends Format {
   //<<<Start:Java.ClassBody:1>>>
 
   // Constructs a default-initialized {@link FmtETC1RGB8OES}.
