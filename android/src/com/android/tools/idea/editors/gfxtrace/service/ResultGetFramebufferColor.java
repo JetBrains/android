@@ -17,15 +17,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
-import org.jetbrains.annotations.NotNull;
-
-import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
-import com.android.tools.rpclib.binary.BinaryObject;
-import com.android.tools.rpclib.binary.Decoder;
-import com.android.tools.rpclib.binary.Encoder;
-import com.android.tools.rpclib.binary.Namespace;
 import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
+import com.android.tools.rpclib.binary.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
