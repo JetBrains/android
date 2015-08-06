@@ -19,6 +19,11 @@ package com.android.tools.idea.editors.gfxtrace.service;
 
 public final class Factory {
   public static void register() {
+    com.android.tools.rpclib.rpccore.Factory.register();
+    com.android.tools.idea.editors.gfxtrace.service.atom.Factory.register();
+    com.android.tools.idea.editors.gfxtrace.service.image.Factory.register();
+    com.android.tools.idea.editors.gfxtrace.service.memory.Factory.register();
+    com.android.tools.idea.editors.gfxtrace.service.path.Factory.register();
     //<<<Start:Java.FactoryBody:2>>>
     AtomRangeTimer.register();
     AtomTimer.register();
