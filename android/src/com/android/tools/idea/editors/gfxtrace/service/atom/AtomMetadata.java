@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.rpclib.schema.SchemaClass;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
@@ -29,6 +30,15 @@ import com.android.tools.rpclib.binary.Namespace;
 import java.io.IOException;
 
 public final class AtomMetadata implements BinaryObject {
+  public static AtomMetadata find(SchemaClass c) {
+    for (BinaryObject o : c.getMetadata()) {
+      if (o instanceof AtomMetadata) {
+        return (AtomMetadata)o;
+      }
+    }
+    return null;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   BinaryID myAPI;
   String myDisplayName;
