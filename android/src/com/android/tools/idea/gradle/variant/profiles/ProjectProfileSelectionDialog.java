@@ -186,7 +186,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
       CheckedTreeNode moduleNode = new FilterAwareCheckedTreeNode(moduleElement);
       rootNode.add(moduleNode);
 
-      IdeaAndroidProject androidModel = getAndroidModel(module);
+      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(module);
       if (androidModel == null) {
         continue;
       }

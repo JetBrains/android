@@ -68,7 +68,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
   @Override
   public void _init() {
-    myAndroidModel = myWizard.getFacet().getAndroidModel();
+    myAndroidModel = IdeaAndroidProject.getGradleModel(myWizard.getFacet());
 
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
     String lastSelectedBuildType = properties.getValue(PROPERTY_BUILD_TYPE);

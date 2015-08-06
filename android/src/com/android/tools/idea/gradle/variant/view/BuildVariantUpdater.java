@@ -96,7 +96,7 @@ class BuildVariantUpdater {
         for (Module module : modules) {
           AndroidFacet androidFacet = AndroidFacet.getInstance(module);
           assert androidFacet != null;
-          IdeaAndroidProject androidModel = androidFacet.getAndroidModel();
+          IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(androidFacet);
           assert androidModel != null;
 
           if (!androidModel.getSelectedTestArtifactName().equals(testArtifactName)) {
@@ -257,7 +257,7 @@ class BuildVariantUpdater {
 
   @Nullable
   private static IdeaAndroidProject getAndroidModel(@NotNull AndroidFacet facet, @NotNull String variantToSelect) {
-    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
     if (androidModel == null) {
       logAndShowUpdateFailure(variantToSelect, String.format("Cannot find AndroidProject for module '%1$s'.", facet.getModule().getName()));
     }

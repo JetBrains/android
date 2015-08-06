@@ -705,7 +705,8 @@ class IntellijLintProject extends Project {
     public List<File> getProguardFiles() {
       if (mProguardFiles == null) {
         if (myFacet.requiresAndroidModel()) {
-          IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+          // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+          IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
           if (androidModel != null) {
             ProductFlavor flavor = androidModel.getAndroidProject().getDefaultConfig().getProductFlavor();
             mProguardFiles = Lists.newArrayList();
@@ -800,7 +801,8 @@ class IntellijLintProject extends Project {
         return manifestPackage;
       }
 
-      IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
       if (androidModel != null) {
         return androidModel.getApplicationId();
       }
@@ -830,7 +832,8 @@ class IntellijLintProject extends Project {
 
     @Override
     public int getBuildSdk() {
-      IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
       if (androidModel != null) {
         String compileTarget = androidModel.getAndroidProject().getCompileTarget();
         AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
@@ -850,7 +853,8 @@ class IntellijLintProject extends Project {
     @Nullable
     @Override
     public AndroidProject getGradleProjectModel() {
-      IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
       if (androidModel != null) {
         androidModel.getSelectedVariant();
         return androidModel.getAndroidProject();
@@ -862,7 +866,8 @@ class IntellijLintProject extends Project {
     @Nullable
     @Override
     public Variant getCurrentVariant() {
-      IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
       if (androidModel != null) {
         return androidModel.getSelectedVariant();
       }
@@ -879,10 +884,13 @@ class IntellijLintProject extends Project {
     @Nullable
     @Override
     public Boolean dependsOn(@NonNull String artifact) {
+      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
+
       if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {
         if (mSupportLib == null) {
           if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
-            mSupportLib = GradleUtil.dependsOn(myFacet.getAndroidModel(), artifact);
+            mSupportLib = GradleUtil.dependsOn(androidModel, artifact);
           } else {
             mSupportLib = depsDependsOn(this, artifact);
           }
@@ -891,7 +899,7 @@ class IntellijLintProject extends Project {
       } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
         if (mAppCompat == null) {
           if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
-            mAppCompat = GradleUtil.dependsOn(myFacet.getAndroidModel(), artifact);
+            mAppCompat = GradleUtil.dependsOn(androidModel, artifact);
           } else {
             mAppCompat = depsDependsOn(this, artifact);
           }
@@ -900,7 +908,7 @@ class IntellijLintProject extends Project {
       } else {
         // Some other (not yet directly cached result)
         if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null
-           && GradleUtil.dependsOn(myFacet.getAndroidModel(), artifact)) {
+           && GradleUtil.dependsOn(androidModel, artifact)) {
           return true;
         }
 

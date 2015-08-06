@@ -430,7 +430,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     if (facet == null) {
       return results;
     }
-    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
     if (androidModel == null) {
       return results;
     }

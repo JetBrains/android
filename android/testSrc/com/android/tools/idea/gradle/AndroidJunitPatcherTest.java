@@ -151,7 +151,8 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   public void testMultipleMockableJars_newModel() throws Exception {
     myJavaParameters.getClassPath().remove(myMockableAndroidJar);
 
-    JavaArtifactStub artifact = (JavaArtifactStub)myFacet.getAndroidModel().findSelectedTestArtifactInSelectedVariant();
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    JavaArtifactStub artifact = (JavaArtifactStub)IdeaAndroidProject.getGradleModel(myFacet).findSelectedTestArtifactInSelectedVariant();
     artifact.setMockablePlatformJar(new File(myMockableAndroidJar));
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
 

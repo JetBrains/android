@@ -164,7 +164,8 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
       return false;
     }
 
-    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
     if (androidModel != null && !androidModel.getSelectedTestArtifactName().equals(AndroidProject.ARTIFACT_ANDROID_TEST)) {
       // Only suggest the android test run configuration if it makes sense for the selected test artifact.
       return false;

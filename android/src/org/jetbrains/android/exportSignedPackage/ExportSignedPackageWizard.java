@@ -168,7 +168,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         }
         String gradleProjectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
 
-        IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+        // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+        IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
         if (androidModel == null) {
           LOG.error("Unable to obtain Android project model. Did the last Gradle sync complete successfully?");
           return;

@@ -189,7 +189,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Module module = getModule(name);
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null && facet.requiresAndroidModel()) {
-      IdeaAndroidProject androidModel = facet.getAndroidModel();
+      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
       if (androidModel != null) {
         return androidModel;
       }
@@ -289,7 +290,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertNotNull("Module " + moduleName + " is not an Android module", facet);
     assertTrue("Module " + moduleName + " is not a Gradle project", facet.requiresAndroidModel());
-    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
     assertNotNull("Module " + moduleName + " does not have a Gradle project (not synced yet or sync failed?)", androidModel);
 
     return androidModel;
