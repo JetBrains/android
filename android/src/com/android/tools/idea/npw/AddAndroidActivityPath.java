@@ -326,7 +326,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     SourceProvider[] sourceProviders = getSourceProviders(module, myTargetFolder);
     myParameterStep = new TemplateParameterStep2(getFormFactor(myTargetFolder), myPredefinedParameterValues,
                                                  myParentDisposable, KEY_PACKAGE_NAME, sourceProviders);
-    myAssetStudioStep = new IconStep(KEY_SELECTED_TEMPLATE, KEY_SOURCE_PROVIDER, null, myParentDisposable);
+    myAssetStudioStep = new IconStep(KEY_SELECTED_TEMPLATE, KEY_SOURCE_PROVIDER, myParentDisposable);
 
     addStep(myParameterStep);
     addStep(myAssetStudioStep);
