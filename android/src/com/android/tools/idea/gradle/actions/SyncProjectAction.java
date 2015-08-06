@@ -18,53 +18,35 @@ package com.android.tools.idea.gradle.actions;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
-
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Re-imports (syncs) an Android-Gradle project, without showing the "Import Project" wizard.
  */
-public class SyncProjectAction extends AnAction {
+public class SyncProjectAction extends AndroidStudioGradleAction {
   public SyncProjectAction() {
     super("Sync Project with Gradle Files");
   }
 
   @Override
-  public void actionPerformed(final AnActionEvent e) {
-    Project project = e.getProject();
-    if (project != null && isBuildWithGradle(project)) {
-      BuildVariantView.getInstance(project).projectImportStarted();
-      Presentation presentation = e.getPresentation();
-      presentation.setEnabled(false);
-      try {
-        GradleProjectImporter.getInstance().requestProjectSync(project, null);
-      }
-      finally {
-        presentation.setEnabled(true);
-      }
+  protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
+    BuildVariantView.getInstance(project).projectImportStarted();
+    Presentation presentation = e.getPresentation();
+    presentation.setEnabled(false);
+    try {
+      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    }
+    finally {
+      presentation.setEnabled(true);
     }
   }
 
   @Override
-  public void update(AnActionEvent e) {
-    if (!isAndroidStudio()) {
-      e.getPresentation().setEnabledAndVisible(false);
-      return;
-    }
-    Project project = e.getProject();
-    if (project != null && !isBuildWithGradle(project)) {
-      e.getPresentation().setEnabledAndVisible(false);
-      return;
-    }
-    boolean enabled = false;
-    if (project != null) {
-      enabled = !GradleSyncState.getInstance(project).isSyncInProgress();
-    }
+  protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
+    boolean enabled = !GradleSyncState.getInstance(project).isSyncInProgress();
     e.getPresentation().setEnabled(enabled);
   }
 }

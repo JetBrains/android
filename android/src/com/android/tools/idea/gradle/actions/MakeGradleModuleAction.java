@@ -16,32 +16,65 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.intellij.compiler.actions.MakeModuleAction;
+import com.android.tools.idea.gradle.invoker.GradleInvoker.TestCompileType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.util.Projects.getModulesToBuildFromSelection;
+import static com.intellij.openapi.actionSystem.ActionPlaces.PROJECT_VIEW_POPUP;
 
-public class MakeGradleModuleAction extends BuildGradleModuleAction {
+public class MakeGradleModuleAction extends AndroidStudioGradleAction {
   public MakeGradleModuleAction() {
-    super(new MakeModuleAction(), "Make Module(s)", "Make");
+    super("Make Module(s)");
   }
 
   @Override
-  public void update(AnActionEvent e) {
-    // We don't call the delegate's (MakeModuleAction) update method, even for non-Gradle projects. The reason is that
-    // MakeModuleAction#update throws an NPE when being wrapped by this action.
-    // The method 'updatePresentation' does exactly the same thing as MakeModuleAction#update, but without throwing NPE for non-Gradle
-    // projects.
-    updatePresentation(e);
+  protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
+    updatePresentation(e, project);
   }
 
-  @Override
-  protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
+  public static void updatePresentation(@NotNull AnActionEvent e, @NotNull Project project) {
+    DataContext dataContext = e.getDataContext();
+
     Module[] modules = getModulesToBuildFromSelection(project, dataContext);
-    GradleInvoker.getInstance(project).compileJava(modules, GradleInvoker.TestCompileType.NONE);
+    int moduleCount = modules.length;
+
+    Presentation presentation = e.getPresentation();
+    presentation.setEnabled(moduleCount > 0);
+
+    String presentationText;
+    if (moduleCount > 0) {
+      String text = "Make Module";
+      if (moduleCount > 1) {
+        text += "s";
+      }
+      for (int i = 0; i < moduleCount; i++) {
+        if (text.length() > 30) {
+          text = "Make Selected Modules";
+          break;
+        }
+        Module toMake = modules[i];
+        if (i != 0) {
+          text += ",";
+        }
+        text += " '" + toMake.getName() + "'";
+      }
+      presentationText = text;
+    }
+    else {
+      presentationText = "Make";
+    }
+    presentation.setText(presentationText);
+    presentation.setVisible(moduleCount > 0 || !PROJECT_VIEW_POPUP.equals(e.getPlace()));
+  }
+
+  @Override
+  protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
+    Module[] modules = getModulesToBuildFromSelection(project, e.getDataContext());
+    GradleInvoker.getInstance(project).compileJava(modules, TestCompileType.NONE);
   }
 }

@@ -67,6 +67,15 @@
       <action id="LibraryProperties" class="com.android.tools.idea.gradle.actions.LibraryPropertiesAction"/>
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="RevealIn"/>
     </group>
+    <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty" icon="AllIcons.Actions.Compile">
+      <add-to-group group-id="BuildMenu" anchor="first"/>
+    </action>
+    <action id="MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
+    </action>
+    <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
+    </action>
     <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>

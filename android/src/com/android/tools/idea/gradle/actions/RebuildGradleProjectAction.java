@@ -16,18 +16,21 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.intellij.compiler.actions.CompileProjectAction;
-import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class RebuildGradleProjectAction extends BuildGradleProjectAction {
+public class RebuildGradleProjectAction extends AndroidStudioGradleAction {
   public RebuildGradleProjectAction() {
-    super(new CompileProjectAction(), "Rebuild Project");
+    super("Rebuild Project");
   }
 
   @Override
-  protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
+  protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
+  }
+
+  @Override
+  protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
     GradleInvoker.getInstance(project).rebuild();
   }
 }
