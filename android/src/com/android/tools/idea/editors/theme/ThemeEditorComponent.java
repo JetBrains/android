@@ -173,6 +173,8 @@ public class ThemeEditorComponent extends Splitter {
   /** Next pending search. The {@link ScheduledFuture} allows us to cancel the next search before it runs. */
   private ScheduledFuture<?> myScheduledSearch;
 
+  private String myHoverPreviewTheme;
+
   public interface GoToListener {
     void goTo(@NotNull EditedStyleItem value);
     void goToParent();
@@ -336,17 +338,14 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    // We have our own custom renderer that it's not based on the default one.
-    //noinspection GtkPreferredJComboBoxRenderer
     myPanel.getThemeCombo()
       .setRenderer(new StyleListPaletteCellRenderer(myThemeEditorContext, new StyleListPaletteCellRenderer.ItemHoverListener() {
         @Override
         public void itemHovered(@NotNull String name) {
-          if (!name.equals(myThemeName)) {
-            myThemeName = name;
+          if (!name.equals(myHoverPreviewTheme)) {
+            myHoverPreviewTheme = name;
             mySubStyleName = null;
             mySubStyleSourceAttribute = null;
-
             loadStyleAttributes();
           }
         }
@@ -386,11 +385,9 @@ public class ThemeEditorComponent extends Splitter {
     });
 
     myPanel.getThemeCombo().addPopupMenuListener(new PopupMenuListener() {
-      private String myOriginalThemeName;
 
       @Override
       public void popupMenuWillBecomeVisible(PopupMenuEvent popupMenuEvent) {
-        myOriginalThemeName = myThemeName;
       }
 
       @Override
@@ -399,7 +396,7 @@ public class ThemeEditorComponent extends Splitter {
 
       @Override
       public void popupMenuCanceled(PopupMenuEvent popupMenuEvent) {
-        myThemeName = myOriginalThemeName;
+        myHoverPreviewTheme = null;
         mySubStyleName = null;
         mySubStyleSourceAttribute = null;
         loadStyleAttributes();
@@ -812,8 +809,14 @@ public class ThemeEditorComponent extends Splitter {
    * Loads the theme attributes table for the current selected theme or substyle.
    */
   private void loadStyleAttributes() {
+    final ThemeEditorStyle selectedTheme;
+    if (myHoverPreviewTheme != null) {
+      selectedTheme = myThemeEditorContext.getThemeResolver().getTheme(myHoverPreviewTheme);
+    }
+    else {
+      selectedTheme = getSelectedTheme();
+    }
 
-    final ThemeEditorStyle selectedTheme = getSelectedTheme();
     final ThemeEditorStyle selectedStyle = getUsedStyle();
 
     if (selectedTheme == null || selectedStyle == null) {
