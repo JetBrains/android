@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EditFlavorsAction extends AbstractProjectStructureAction {
   public EditFlavorsAction() {
-    super("Edit Flavors...", null, null);
+    super("Edit Flavors...");
   }
 
   @Override
@@ -34,9 +34,7 @@ public class EditFlavorsAction extends AbstractProjectStructureAction {
   }
 
   @Override
-  protected void actionPerformed(@NotNull Module module,
-                                 @NotNull AndroidProjectSettingsService projectStructureService,
-                                 @NotNull AnActionEvent e) {
+  protected void doPerform(@NotNull Module module, @NotNull AndroidProjectSettingsService projectStructureService, @NotNull AnActionEvent e) {
     projectStructureService.openAndSelectFlavorsEditor(module);
   }
 }
