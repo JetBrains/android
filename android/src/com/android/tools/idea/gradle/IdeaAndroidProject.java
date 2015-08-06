@@ -339,6 +339,17 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
     return null;
   }
 
+  /**
+   * @return the version code associated with the merged flavor of the selected variant, or {@code null} if none have been set.
+   */
+  @Nullable
+  @Override
+  public Integer getVersionCode() {
+    Variant variant = getSelectedVariant();
+    ProductFlavor flavor = variant.getMergedFlavor();
+    return flavor.getVersionCode();
+  }
+
   @NotNull
   public ProjectSystemId getProjectSystemId() {
     return myProjectSystemId;
