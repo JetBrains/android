@@ -24,14 +24,14 @@ import com.android.sdklib.devices.CameraLocation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ui.ASGallery;
-import com.android.tools.idea.wizard.*;
 import com.android.tools.idea.wizard.dynamic.*;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -42,7 +42,9 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.*;
+import com.intellij.ui.EnumComboBoxModel;
+import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.IconUtil;
@@ -54,7 +56,6 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -263,12 +264,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     getDescriptionLabel().setVisible(false);
     Device device = myState.get(DEVICE_DEFINITION_KEY);
     SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
-    if (myState.get(DISPLAY_NAME_KEY) == null || myState.get(DISPLAY_NAME_KEY).isEmpty()) {
-      assert device != null && systemImage != null;
-      String avdName = String.format(Locale.getDefault(), "%1$s API %2$d", device.getDisplayName(), systemImage.getVersion().getApiLevel());
-      avdName = AvdManagerConnection.getDefaultAvdManagerConnection().uniquifyDisplayName(avdName);
-      myState.put(DISPLAY_NAME_KEY, avdName);
-    }
     myAvdConfigurationOptionHelpPanel.setSystemImageDescription(systemImage);
 
     Boolean editMode = myState.get(AvdWizardConstants.IS_IN_EDIT_MODE_KEY);
@@ -571,7 +566,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
           SystemImageDescription systemImage = state.get(SYSTEM_IMAGE_KEY);
           if (device != null && systemImage != null) { // Should always be the case
             return connection.uniquifyDisplayName(
-              String.format(Locale.getDefault(), "%1$s API %2$d", device.getDisplayName(), systemImage.getVersion().getApiLevel()));
+              String.format(Locale.getDefault(), "%1$s API %2$s", device.getDisplayName(), systemImage.getVersion().getApiString()));
           }
           return null; // Should never occur
         }
