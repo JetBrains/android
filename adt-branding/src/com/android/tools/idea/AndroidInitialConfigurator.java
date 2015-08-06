@@ -49,7 +49,7 @@ public class AndroidInitialConfigurator {
   @SuppressWarnings("SpellCheckingInspection")
   @NonNls private static final String TODO_TOOLWINDOW_ACTION_ID = "ActivateTODOToolWindow";
   @SuppressWarnings("SpellCheckingInspection")
-  @NonNls private static final String ANDROID_TOOLWINDOW_ACTION_ID = "ActivateAndroidToolWindow";
+  @NonNls private static final String ANDROID_TOOLWINDOW_ACTION_ID = "ActivateAndroidMonitorToolWindow";
 
   @SuppressWarnings("UnusedParameters")
   public AndroidInitialConfigurator(MessageBus bus,
