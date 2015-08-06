@@ -26,7 +26,6 @@ import com.android.tools.idea.ddms.actions.ToggleAllocationTrackingAction;
 import com.android.tools.idea.ddms.hprof.DumpHprofAction;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.DeviceSampler;
-import com.android.tools.idea.monitor.TimelineEventListener;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.monitor.memory.actions.ToggleDebugRender;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -42,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.event.HierarchyListener;
 
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
+import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
 
 public class MemoryMonitorView extends BaseMonitorView implements HierarchyListener, DeviceContext.DeviceSelectionListener {
   /**

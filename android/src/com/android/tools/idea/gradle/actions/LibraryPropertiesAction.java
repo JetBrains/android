@@ -29,7 +29,7 @@ import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.NAVIGATABLE_ARRAY;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 

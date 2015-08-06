@@ -40,7 +40,7 @@ import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.sdk.IdeSdks.getAndroidSdkPath;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.io.Closeables.close;
 import static com.google.common.io.Files.toByteArray;
 import static com.intellij.openapi.util.io.FileUtil.*;

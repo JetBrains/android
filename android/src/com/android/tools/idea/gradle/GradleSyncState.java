@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle;
 
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
@@ -307,7 +307,7 @@ public class GradleSyncState {
   }
 
   private void cleanUpProjectPreferences() {
-    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+    if (!AndroidStudioInitializer.isAndroidStudio()) {
       return;
     }
     try {
