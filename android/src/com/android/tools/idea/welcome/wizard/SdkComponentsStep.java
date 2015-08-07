@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallableComponent;
-import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.WizardConstants;
-import com.android.tools.idea.npw.WizardUtils;
-import com.google.common.collect.*;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Pair;
@@ -53,8 +55,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Wizard page for selecting SDK components to download.
@@ -223,6 +226,16 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   }
 
   @Override
+  public void onEnterStep() {
+    super.onEnterStep();
+    if (myMode == FirstRunWizardMode.MISSING_SDK) {
+      Messages.showWarningDialog((Project)null,
+                                 "No Android SDK found.\n\nBefore continuing, you must download the necessary components\nor select an existing SDK.",
+                                 "No Android SDK Found");
+    }
+  }
+
+  @Override
   public void init() {
     register(mySdkDownloadPathKey, myPath);
     if (!myRootNode.getImmediateChildren().isEmpty()) {
@@ -358,7 +371,8 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       myComponents = components.build();
     }
 
-    private void traverse(Collection<ComponentTreeNode> children, int indent,
+    private void traverse(Collection<ComponentTreeNode> children,
+                          int indent,
                           ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components) {
       for (ComponentTreeNode child : children) {
         components.add(Pair.create(child, indent));
