@@ -179,10 +179,11 @@ public class GfxTraceViewPanel implements Disposable {
     final JBRunnerTabs bufferTabs = new JBRunnerTabs(project, ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
     bufferTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
       .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
-    JBPanel[] frameBuffers = new JBPanel[]{myColorBuffer, myWireframeBuffer, myDepthBuffer};
-    for (int i = 0; i < frameBuffers.length; ++i) {
-      bufferTabs.addTab(new TabInfo(frameBuffers[i]).setText(FrameBufferController.BufferType.values()[i].getName()));
-    }
+
+    bufferTabs.addTab(new TabInfo(myColorBuffer).setText("Color"));
+    bufferTabs.addTab(new TabInfo(myWireframeBuffer).setText("Wireframe"));
+    bufferTabs.addTab(new TabInfo(myDepthBuffer).setText("Depth"));
+
     bufferTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
     setBufferTabs(bufferTabs);
 
