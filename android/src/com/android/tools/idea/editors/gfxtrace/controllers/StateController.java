@@ -82,7 +82,7 @@ public class StateController implements PathListener {
       myLoadingPanel.startLoading();
     }
 
-    ListenableFuture<TreeNode> nodeFuture = myEditor.getService().submit(new Callable<TreeNode>() {
+    ListenableFuture<TreeNode> nodeFuture = myEditor.getExecutor().submit(new Callable<TreeNode>() {
       @Override
       @Nullable
       public TreeNode call() throws Exception {
