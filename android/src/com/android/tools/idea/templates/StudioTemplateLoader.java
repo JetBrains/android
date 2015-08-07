@@ -21,24 +21,33 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.net.URL;
 
 /**
- * A custom {@link TemplateLoader} which locates templates on disk relative to a specified prefix.
+ * A custom {@link TemplateLoader} which locates templates on disk relative to a specified template folder.
  */
-public final class PrefixTemplateLoader implements TemplateLoader {
-  private String myPrefix;
+public final class StudioTemplateLoader implements TemplateLoader {
+  private File myTemplateFolder;
 
-  public PrefixTemplateLoader(@Nullable String prefix) {
-    myPrefix = prefix;
+  public StudioTemplateLoader(@NotNull File folder) {
+    myTemplateFolder = folder;
   }
 
-  public void setTemplateFile(@NotNull File file) {
-    setTemplateParent(file.getParentFile());
+  public void setTemplateFolder(@NotNull File folder) {
+    myTemplateFolder = folder;
   }
 
-  public void setTemplateParent(@NotNull File parent) {
-    myPrefix = parent.getPath();
+  @NotNull
+  public File getTemplateFolder() {
+    return myTemplateFolder;
+  }
+
+  @NotNull
+  public File getSourceFile(@NotNull File file) throws IOException {
+    if (file.isAbsolute()) {
+      return file;
+    }
+    file = new File(myTemplateFolder, file.getPath());
+    return file.getCanonicalFile();
   }
 
   @Override
@@ -50,14 +59,13 @@ public final class PrefixTemplateLoader implements TemplateLoader {
 
   @Override
   public long getLastModified(Object templateSource) {
-    return 0;
+    return -1;
   }
 
   @Override
   @Nullable
   public Object findTemplateSource(@NotNull String name) throws IOException {
-    String path = myPrefix != null ? myPrefix + '/' + name : name;
-    File file = new File(path);
+    File file = new File(myTemplateFolder, name);
     if (file.exists()) {
       return SdkUtils.fileToUrl(file).openStream();
     }
