@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.builder.model.ApiVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -76,12 +74,11 @@ public class AndroidModuleInfo {
    */
   @NotNull
   public AndroidVersion getRuntimeMinSdkVersion() {
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
+    AndroidModel androidModel = myFacet.getAndroidModel();
     if (androidModel != null) {
-      ApiVersion minSdkVersion = androidModel.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+      AndroidVersion minSdkVersion = androidModel.getRuntimeMinSdkVersion();
       if (minSdkVersion != null) {
-        return new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename());
+        return minSdkVersion;
       }
       // Else: not specified in gradle files; fall back to manifest
     }
