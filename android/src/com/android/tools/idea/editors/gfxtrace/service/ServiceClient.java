@@ -58,6 +58,14 @@ public abstract class ServiceClient {
     return transform(get((Path)p), new BoxTransformer<AtomGroup>());
   }
 
+  public ListenableFuture<ImageInfo> get(ImageInfoPath p) {
+    return transform(get((Path)p), new BoxTransformer<ImageInfo>());
+  }
+
+  public ListenableFuture<byte[]> get(BlobPath p) {
+    return transform(get((Path)p), new BoxTransformer<byte[]>());
+  }
+
   static class BoxTransformer<T> implements Function<Box, T> {
     @Override
     public T apply(Box v) {
