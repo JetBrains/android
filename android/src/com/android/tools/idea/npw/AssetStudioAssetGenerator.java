@@ -31,6 +31,7 @@ import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.io.Files;
+import com.intellij.ide.fileTemplates.impl.UrlUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -46,6 +47,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -132,9 +134,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     void setClipartName(String clipartName);
 
     @Nullable
-    String getVectorLibIconPath();
-
-    void setVectorLibIconPath(String path);
+    URL getVectorLibIconPath();
 
     Color getForegroundColor();
 
@@ -414,15 +414,14 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
       case SVG:
       case VECTORDRAWABLE: {
         // So here we should only generate one dpi image.
-        String path = sourceType == SourceType.SVG ? myContext.getImagePath() :
-          myContext.getVectorLibIconPath();
-        if (path == null || path.isEmpty()) {
-          return;
-        }
         // Get the parsing errors while generating the images.
         // Save the error log into context to be later picked up by the step UI.
         StringBuilder errorLog = new StringBuilder();
-        sourceImage = getSvgImage(path, errorLog, sourceType);
+        sourceImage = getSvgImage(errorLog, sourceType);
+        // Null source image means there is no valid content to process, early return.
+        if (sourceImage == null) {
+          return;
+        }
         myContext.setErrorLog(errorLog.toString());
         break;
       }
@@ -628,18 +627,22 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
    *      |  (overriden by user input)
    *      V
    * Overriden VectorDrawable's XML
+   *
+   * @return null when we can't get the string content from the source file.
    */
-  @NotNull
-  private BufferedImage getSvgImage(@NotNull String path, @NotNull StringBuilder errorLog,
+  @Nullable
+  private BufferedImage getSvgImage(@NotNull StringBuilder errorLog,
                                     @NotNull SourceType sourceType) {
     String xmlFileContent;
     if (sourceType == SourceType.SVG) {
-      xmlFileContent = generateVectorXml(new File(path), errorLog);
+      xmlFileContent = generateVectorXml(new File(myContext.getImagePath()), errorLog);
     } else {
       assert sourceType == SourceType.VECTORDRAWABLE;
-      xmlFileContent = readXmlFile(path);
+      xmlFileContent = readXmlFile(myContext.getVectorLibIconPath());
     }
-
+    if (xmlFileContent == null) {
+      return null;
+    }
     BufferedImage image = null;
     Document vdDocument = parseVdStringIntoDocument(xmlFileContent, errorLog);
     if (vdDocument != null) {
@@ -709,12 +712,14 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
    * If there is any exception, just return null.
    */
   @Nullable
-  private static String readXmlFile(@NotNull String path) {
+  private static String readXmlFile(@Nullable URL url) {
     String xmlFileContent = null;
-    try {
-      xmlFileContent = new String(Files.toString(new File(path), Charsets.UTF_8));
-    } catch (IOException e) {
-      LOG.error(e);
+    if (url != null) {
+      try {
+        xmlFileContent = UrlUtil.loadText(url);
+      } catch (IOException e) {
+        LOG.error(e);
+      }
     }
     return xmlFileContent;
   }
@@ -729,9 +734,8 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
       // At output step, we can ignore the errors since they have been exposed in the previous step.
       xmlFileContent = generateVectorXml(new File(currentFilePath), null);
     } else {
-      String currentIconPath = myContext.getVectorLibIconPath();
       assert sourceType == SourceType.VECTORDRAWABLE;
-      xmlFileContent = readXmlFile(currentIconPath);
+      xmlFileContent = readXmlFile(myContext.getVectorLibIconPath());
     }
 
     Document vdDocument = parseVdStringIntoDocument(xmlFileContent, null);
