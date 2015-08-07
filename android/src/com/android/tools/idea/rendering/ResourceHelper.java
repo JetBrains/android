@@ -483,18 +483,17 @@ public class ResourceHelper {
         PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
         if (psiFile instanceof XmlFile) {
           // Parse
-          try {
-            XmlTag rootTag = ((XmlFile)psiFile).getRootTag();
-            if (rootTag != null && TAG_SELECTOR.equals(rootTag.getName())) {
-              StateList stateList = new StateList(psiFile.getName(), psiFile.getContainingDirectory().getName());
-              for (XmlTag subTag : rootTag.findSubTags(TAG_ITEM)) {
-                stateList.addState(createStateListState(subTag, value.isFramework()));
+          XmlTag rootTag = ((XmlFile)psiFile).getRootTag();
+          if (rootTag != null && TAG_SELECTOR.equals(rootTag.getName())) {
+            StateList stateList = new StateList(psiFile.getName(), psiFile.getContainingDirectory().getName());
+            for (XmlTag subTag : rootTag.findSubTags(TAG_ITEM)) {
+              final StateListState stateListState = createStateListState(subTag, value.isFramework());
+              if (stateListState == null) {
+                return null;
               }
-              return stateList;
+              stateList.addState(stateListState);
             }
-          }
-          catch (IllegalArgumentException e) {
-            LOG.error(String.format("%1$s is not a valid state list file", virtualFile.getName()));
+            return stateList;
           }
         }
       }
@@ -503,9 +502,12 @@ public class ResourceHelper {
   }
 
   /**
-   * Returns a {@link StateListState} representing the state in tag.
+   * Try to parse a state in the "item" tag. Only handles those items that have
+   * either "android:color" or "android:drawable" attributes in "item" tag.
+   *
+   * @return {@link StateListState} representing the state in tag, null if parse is unsuccessful
    */
-  @NotNull
+  @Nullable
   private static StateListState createStateListState(XmlTag tag, boolean isFramework) {
     String stateValue = null;
     String alphaValue = null;
@@ -514,11 +516,14 @@ public class ResourceHelper {
     for (XmlAttribute attr : attributes) {
       String name = attr.getLocalName();
       String value = attr.getValue();
-      if (value != null && (SdkConstants.ATTR_COLOR.equals(name) || SdkConstants.ATTR_DRAWABLE.equals(name))) {
+      if (value == null) {
+        continue;
+      }
+      if (SdkConstants.ATTR_COLOR.equals(name) || SdkConstants.ATTR_DRAWABLE.equals(name)) {
         ResourceUrl url = ResourceUrl.parse(value, isFramework);
         stateValue = url != null ? url.toString() : value;
       }
-      else if (value != null && "alpha".equals(name)) {
+      else if ("alpha".equals(name)) {
         ResourceUrl url = ResourceUrl.parse(value, isFramework);
         alphaValue = url != null ? url.toString() : value;
       }
@@ -527,7 +532,7 @@ public class ResourceHelper {
       }
     }
     if (stateValue == null) {
-      throw new IllegalArgumentException("Not a valid item");
+      return null;
     }
     return new StateListState(stateValue, stateAttributes, alphaValue);
   }
