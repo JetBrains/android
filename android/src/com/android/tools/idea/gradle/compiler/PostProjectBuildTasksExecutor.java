@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.android.ide.common.blame.output.GradleMessage;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.ide.common.blame.output.GradleMessage;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleBuildListener;
@@ -32,6 +32,7 @@ import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
@@ -53,7 +54,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.ui.AppUIUtil;
 import com.intellij.util.messages.Topic;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -161,7 +161,7 @@ public class PostProjectBuildTasksExecutor {
   @VisibleForTesting
   void onBuildCompletion(Iterator<String> errorMessages, int errorCount) {
     if (Projects.isGradleProject(myProject)) {
-      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+      ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
         public void run() {
           ApplicationManager.getApplication().runWriteAction(new Runnable() {
@@ -171,7 +171,7 @@ public class PostProjectBuildTasksExecutor {
             }
           });
         }
-      });
+      }, ModalityState.defaultModalityState());
 
       if (Projects.isOfflineBuildModeEnabled(myProject)) {
         while (errorMessages.hasNext()) {
