@@ -20,12 +20,9 @@ import com.android.SdkConstants;
 import com.intellij.codeInsight.TargetElementUtilBase;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
@@ -34,11 +31,11 @@ import com.intellij.refactoring.PackageWrapper;
 import com.intellij.refactoring.actions.RenameElementAction;
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor;
 import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination;
-import com.intellij.refactoring.rename.*;
+import com.intellij.refactoring.rename.RenameProcessor;
+import com.intellij.refactoring.rename.RenamePsiElementProcessor;
 import com.intellij.testFramework.TestActionEvent;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -95,6 +92,17 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile("res/values/styles.xml", BASE_PATH + "styles_after.xml", true);
     myFixture.checkResultByFile("src/p1/p2/RefR2.java", BASE_PATH + "RefR2_after.java", true);
     assertNotNull(myFixture.findFileInTempDir("res/drawable/pic1.9.png"));
+  }
+
+  // Regression test for http://b.android.com/174014
+  // Bug: when mipmap resource was renamed, new reference contained ".png" file extension.
+  public void testXmlReferenceToFileResource2() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "pic.png", "res/mipmap/pic.png");
+    myFixture.configureFromExistingVirtualFile(
+      myFixture.copyFileToProject(BASE_PATH + "AndroidManifest_mipmap_before.xml", "AndroidManifest.xml"));
+    renameElementWithTextOccurences("app_icon.png");
+    myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + "AndroidManifest_mipmap_after.xml", true);
+    assertNotNull(myFixture.findFileInTempDir("res/mipmap/app_icon.png"));
   }
 
   public void testMoveApplicationClass() throws Throwable {
