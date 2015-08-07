@@ -116,12 +116,62 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
       myModulePermissionsMap = Maps.newIdentityHashMap();
     }
     ModulePermissions modulePermissions = myModulePermissionsMap.get(module);
-    if (modulePermissions == null) {
-      modulePermissions = new ModulePermissions(module);
-      myModulePermissionsMap.put(module, modulePermissions);
+    if (modulePermissions != null) {
+      return modulePermissions;
     }
 
+    Map<Module, ModulePermissions> modulePermissionsToComplete = Maps.newHashMap();
+    getModulePermissionsToComplete(module, modulePermissionsToComplete);
+
+    // For all of our new ModulePermissions, add their dependent modules ModulePermission. Doing
+    // this in two steps prevents infinite recursion due to cycles.
+    for (Map.Entry<Module, ModulePermissions> entry : modulePermissionsToComplete.entrySet()) {
+      Module[] dependencies = ModuleRootManager.getInstance(entry.getKey()).getDependencies(false);
+      for (Module dep : dependencies) {
+        ModulePermissions depPermissions = myModulePermissionsMap.get(dep);
+        if (depPermissions == null) {
+          depPermissions = modulePermissionsToComplete.get(dep);
+        }
+        // We should have created or found this dependency's ModulePermission
+        assert depPermissions != null;
+        entry.getValue().addDependency(depPermissions);
+      }
+    }
+
+    // Now that we have valid ModulePermission instances, add them to our map
+    myModulePermissionsMap.putAll(modulePermissionsToComplete);
+
+    modulePermissions = myModulePermissionsMap.get(module);
+    // This was just added to this collection, so it cannot be null
+    assert modulePermissions != null;
     return modulePermissions;
+  }
+
+  /**
+   * Create the base for all ModulePermissions in the transitive closure of {@param module}. After
+   * these {@link DeclaredPermissionsLookup.ModulePermissions} have been created, their dependencies
+   * must be manually added.
+   * @param module module for which we need the {@link DeclaredPermissionsLookup.ModulePermissions}
+   * @param newModulePermissions collection to store newly created
+   * {@link DeclaredPermissionsLookup.ModulePermissions} in
+   */
+  private void getModulePermissionsToComplete(@NotNull Module module,
+                                              @NotNull Map<Module, ModulePermissions> newModulePermissions) {
+    ModulePermissions modulePermissions = myModulePermissionsMap.get(module);
+    if (modulePermissions != null) {
+      return;
+    }
+    modulePermissions = newModulePermissions.get(module);
+    if (modulePermissions != null) {
+      return;
+    }
+
+    modulePermissions = new ModulePermissions(module);
+    newModulePermissions.put(module, modulePermissions);
+    Module[] dependencies = ModuleRootManager.getInstance(module).getDependencies(false);
+    for (Module dep : dependencies) {
+      getModulePermissionsToComplete(dep, newModulePermissions);
+    }
   }
 
   private ManifestPermissions getManifestPermissions(VirtualFile manifest) {
@@ -311,7 +361,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
     private final AndroidFacet myFacet;
     private List<ManifestPermissions> myManifests;
     private List<LibraryPermissions> myLibraries;
-    private List<ModulePermissions> myDependencies;
+    private List<ModulePermissions> myDependencies = Lists.newArrayList();
     private Set<String> myFoundCache = Sets.newHashSet();
     private Map<String,Boolean> myRevocableCache = Maps.newHashMap();
 
@@ -332,15 +382,11 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
             myLibraries.add(getLibraryPermissions(library));
           }
         }
-
-        Module[] dependencies = ModuleRootManager.getInstance(module).getDependencies(false);
-        if (dependencies.length > 0) {
-          myDependencies = Lists.newArrayListWithExpectedSize(dependencies.length);
-          for (Module depModule : dependencies) {
-            myDependencies.add(getModulePermissions(depModule));
-          }
-        }
       }
+    }
+
+    private void addDependency(@NotNull ModulePermissions modulePermissions) {
+      myDependencies.add(modulePermissions);
     }
 
     @Override
