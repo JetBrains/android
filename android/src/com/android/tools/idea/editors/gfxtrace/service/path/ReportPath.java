@@ -23,6 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class ReportPath extends Path {
+  @Override
+  public StringBuilder stringPath(StringBuilder builder) {
+    return myCapture.stringPath(builder).append(".Report");
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   CapturePath myCapture;
 
