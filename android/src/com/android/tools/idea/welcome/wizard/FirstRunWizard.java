@@ -75,11 +75,11 @@ public class FirstRunWizard extends DynamicWizard {
     addPath(myJdkPath);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
       addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
+      addPath(new SingleStepPath(new SelectThemeStep(KEY_CUSTOM_INSTALL)));
     }
-    addPath(new SingleStepPath(new SelectThemeStep(KEY_CUSTOM_INSTALL)));
 
     addPath(myComponentsPath);
-    if (SystemInfo.isLinux && myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
+    if (SystemInfo.isLinux && myMode == FirstRunWizardMode.NEW_INSTALL) {
       addPath(new SingleStepPath(new LinuxHaxmInfoStep()));
     }
     if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
