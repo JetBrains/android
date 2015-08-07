@@ -28,6 +28,8 @@ public abstract class AtomTreeNode {
                                                 @NotNull TreeNode node,
                                                 @NotNull AtomList atoms);
 
+  public abstract long getRepresentativeAtomIndex();
+
   public static class TextPiece {
     @NotNull public String myString;
     @NotNull public SimpleTextAttributes myTextAttributes;
