@@ -35,9 +35,11 @@ import com.intellij.debugger.ui.impl.watch.DefaultNodeDescriptor;
 import com.intellij.debugger.ui.impl.watch.NodeDescriptorImpl;
 import com.intellij.debugger.ui.tree.NodeDescriptor;
 import com.intellij.ide.DataManager;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.SimpleTextAttributes;
@@ -54,7 +56,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class InstancesTreeView implements DataProvider {
+public class InstancesTreeView implements DataProvider, Disposable {
   public static final String TREE_NAME = "HprofInstancesTree";
 
   private static final int NODES_PER_EXPANSION = 100;
@@ -88,6 +90,9 @@ public class InstancesTreeView implements DataProvider {
       }
     };
     myDebuggerTree.getComponent().setName(TREE_NAME);
+
+    Disposer.register(myProject, this);
+    Disposer.register(this, myDebuggerTree);
 
     myHeap = selectionModel.getHeap();
     myDebugProcess = new DebugProcessEvents(project);
@@ -636,5 +641,10 @@ public class InstancesTreeView implements DataProvider {
     }
 
     return PsiFileAndLineNavigation.wrappersForClassName(myProject, className, 0);
+  }
+
+  @Override
+  public void dispose() {
+    myDebugProcess.dispose();
   }
 }
