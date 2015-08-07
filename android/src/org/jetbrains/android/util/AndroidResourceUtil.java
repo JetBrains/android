@@ -101,7 +101,7 @@ public class AndroidResourceUtil {
   public static final Set<ResourceType> XML_FILE_RESOURCE_TYPES = EnumSet.of(ResourceType.ANIM, ResourceType.ANIMATOR,
                                                                              ResourceType.INTERPOLATOR, ResourceType.LAYOUT,
                                                                              ResourceType.MENU, ResourceType.XML, ResourceType.COLOR,
-                                                                             ResourceType.DRAWABLE);
+                                                                             ResourceType.DRAWABLE, ResourceType.MIPMAP);
   static final String ROOT_TAG_PROPERTY = "ROOT_TAG";
   static final String LAYOUT_WIDTH_PROPERTY = "LAYOUT_WIDTH";
   static final String LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT";
