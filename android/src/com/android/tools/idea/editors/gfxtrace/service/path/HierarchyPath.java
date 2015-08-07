@@ -23,6 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class HierarchyPath extends Path {
+  @Override
+  public StringBuilder stringPath(StringBuilder builder) {
+    return myCapture.stringPath(builder).append(".Hierarchy");
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   CapturePath myCapture;
 

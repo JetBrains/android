@@ -23,6 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class SlicePath extends Path {
+  @Override
+  public StringBuilder stringPath(StringBuilder builder) {
+    return myArray.stringPath(builder).append("[").append(myStart).append(":").append(myEnd).append("]");
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   Path myArray;
   long myStart;

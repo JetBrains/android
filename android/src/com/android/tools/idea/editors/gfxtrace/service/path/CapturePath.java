@@ -23,6 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class CapturePath extends Path {
+  @Override
+  public StringBuilder stringPath(StringBuilder builder) {
+    return builder.append("Capture(").append(myID).append(")");
+  }
 
   public AtomsPath atoms() {
     return new AtomsPath().setCapture(this);

@@ -23,6 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class AtomsPath extends Path {
+  @Override
+  public StringBuilder stringPath(StringBuilder builder) {
+    return myCapture.stringPath(builder).append(".Atoms");
+  }
+
   public AtomPath index(long i) {
     return new AtomPath().setAtoms(this).setIndex(i);
   }

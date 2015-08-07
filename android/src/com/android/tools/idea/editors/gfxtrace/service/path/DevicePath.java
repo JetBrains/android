@@ -23,6 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class DevicePath extends Path {
+  @Override
+  public StringBuilder stringPath(StringBuilder builder) {
+    return builder.append("Device(").append(myID).append(")");
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   BinaryID myID;
 

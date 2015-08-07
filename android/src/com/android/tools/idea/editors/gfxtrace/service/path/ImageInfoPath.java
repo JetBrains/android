@@ -23,6 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class ImageInfoPath extends Path {
+  @Override
+  public StringBuilder stringPath(StringBuilder builder) {
+    return builder.append("ImageInfo(").append(myID).append(")");
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   BinaryID myID;
 
