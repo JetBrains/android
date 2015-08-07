@@ -18,6 +18,7 @@ package com.android.tools.idea.templates;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -50,8 +51,7 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
 
     loadProject("projects/projectWithAppandLib");
     assertNotNull(myAndroidFacet);
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myAndroidFacet);
+    AndroidModel androidModel = IdeaAndroidProject.getGradleModel(myAndroidFacet);
     assertNotNull(androidModel);
 
     // Set up modules
@@ -73,7 +73,7 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
     assertNotNull(AndroidPlatform.getInstance(myAppModule));
 
     assertNotNull(myAppFacet.getAndroidModel());
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    // TODO: b/23032990
     ProductFlavorContainer paidFlavor = IdeaAndroidProject.getGradleModel(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     myPaidSourceProvider = paidFlavor.getSourceProvider();

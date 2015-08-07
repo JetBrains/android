@@ -76,7 +76,7 @@ public class FmHasDependencyMethod implements TemplateMethodModelEx {
           if (module != null) {
             AndroidFacet facet = AndroidFacet.getInstance(module);
             if (facet != null) {
-              // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+              // TODO: b/23032990
               IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
               if (androidModel != null) {
                 return GradleUtil.dependsOn(androidModel, artifact) ? TemplateBooleanModel.TRUE : TemplateBooleanModel.FALSE;
