@@ -3,11 +3,11 @@
   <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="8" y="-7" width="743" height="605"/>
+      <xy x="8" y="-7" width="742" height="673"/>
     </constraints>
     <properties>
-      <minimumSize width="720" height="400"/>
-      <preferredSize width="720" height="400"/>
+      <minimumSize width="720" height="512"/>
+      <preferredSize width="720" height="512"/>
       <toolTipText value=""/>
     </properties>
     <border type="none"/>
@@ -59,8 +59,8 @@
       <grid id="fbebc" binding="myPreviewPanel" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="20" left="20" bottom="20" right="20"/>
         <constraints>
-          <grid row="1" column="0" row-span="1" col-span="3" vsize-policy="6" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
-            <minimum-size width="250" height="250"/>
+          <grid row="1" column="0" row-span="1" col-span="3" vsize-policy="6" hsize-policy="6" anchor="1" fill="0" indent="0" use-parent-layout="false">
+            <minimum-size width="350" height="350"/>
           </grid>
         </constraints>
         <properties/>
@@ -68,26 +68,26 @@
           <color color="-16777216"/>
         </border>
         <children>
+          <component id="960a1" class="com.android.tools.idea.ui.VectorImageComponent" binding="myImagePreview">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="3" anchor="1" fill="0" indent="1" use-parent-layout="false">
+                <minimum-size width="256" height="256"/>
+                <preferred-size width="256" height="256"/>
+              </grid>
+            </constraints>
+            <properties/>
+          </component>
           <component id="207db" class="javax.swing.JLabel">
             <constraints>
-              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="1" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <text value="Vector Drawable Preview"/>
             </properties>
           </component>
-          <component id="960a1" class="com.android.tools.idea.ui.VectorImageComponent" binding="myImagePreview">
-            <constraints>
-              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="3" anchor="0" fill="0" indent="1" use-parent-layout="false">
-                <minimum-size width="128" height="128"/>
-                <preferred-size width="128" height="128"/>
-              </grid>
-            </constraints>
-            <properties/>
-          </component>
         </children>
       </grid>
-      <grid id="3a12" binding="myFilePanel" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="3a12" binding="myFilePanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="0" fill="3" indent="0" use-parent-layout="false">
@@ -119,71 +119,10 @@
               <text value="Local SVG file"/>
             </properties>
           </component>
-          <grid id="ccedc" binding="myIconPickerPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="0" left="0" bottom="0" right="0"/>
-            <constraints>
-              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
-                <minimum-size width="150" height="20"/>
-                <preferred-size width="200" height="40"/>
-              </grid>
-            </constraints>
-            <properties/>
-            <border type="none"/>
-            <children>
-              <component id="c0d5e" class="javax.swing.JLabel" binding="myIconLabel">
-                <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                    <preferred-size width="111" height="18"/>
-                  </grid>
-                </constraints>
-                <properties>
-                  <text value="Icon:"/>
-                </properties>
-              </component>
-              <component id="8166d" class="javax.swing.JButton" binding="myIconPickerButton">
-                <constraints>
-                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties>
-                  <text value="Choose"/>
-                </properties>
-              </component>
-            </children>
-          </grid>
-          <grid id="c1857" binding="myImageFileBrowserPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+          <grid id="39588" binding="myResourceNamePanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
               <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
-                <minimum-size width="150" height="20"/>
-                <preferred-size width="200" height="40"/>
-              </grid>
-            </constraints>
-            <properties/>
-            <border type="none"/>
-            <children>
-              <component id="b0fb0" class="javax.swing.JLabel" binding="myImageFileLabel">
-                <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                    <minimum-size width="-1" height="40"/>
-                    <preferred-size width="109" height="40"/>
-                  </grid>
-                </constraints>
-                <properties>
-                  <text value="Image file:"/>
-                </properties>
-              </component>
-              <component id="d75dc" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myImageFile">
-                <constraints>
-                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties/>
-              </component>
-            </children>
-          </grid>
-          <grid id="39588" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="0" left="0" bottom="0" right="0"/>
-            <constraints>
-              <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
                 <minimum-size width="150" height="20"/>
                 <preferred-size width="200" height="40"/>
               </grid>
@@ -213,6 +152,73 @@
                   <text value=""/>
                 </properties>
               </component>
+            </children>
+          </grid>
+          <grid id="34fec" binding="myIconPickerAndFileBrowserPanel" layout-manager="CardLayout" hgap="0" vgap="0">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <minimum-size width="150" height="20"/>
+                <preferred-size width="200" height="40"/>
+              </grid>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <grid id="c1857" binding="myImageFileBrowserPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <card name="SvgFileBrowser"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="b0fb0" class="javax.swing.JLabel" binding="myImageFileLabel">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                        <minimum-size width="-1" height="40"/>
+                        <preferred-size width="109" height="40"/>
+                      </grid>
+                    </constraints>
+                    <properties>
+                      <text value="Image file:"/>
+                    </properties>
+                  </component>
+                  <component id="d75dc" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myImageFile">
+                    <constraints>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                </children>
+              </grid>
+              <grid id="ccedc" binding="myIconPickerPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <card name="IconPicker"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="c0d5e" class="javax.swing.JLabel" binding="myIconLabel">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                        <preferred-size width="111" height="18"/>
+                      </grid>
+                    </constraints>
+                    <properties>
+                      <text value="Icon:"/>
+                    </properties>
+                  </component>
+                  <component id="8166d" class="javax.swing.JButton" binding="myIconPickerButton">
+                    <constraints>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Choose"/>
+                    </properties>
+                  </component>
+                </children>
+              </grid>
             </children>
           </grid>
         </children>
