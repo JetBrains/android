@@ -18,6 +18,7 @@ package com.android.tools.idea.templates;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.tools.idea.templates.recipe.RecipeContext;
 import com.android.utils.XmlUtils;
@@ -35,6 +36,8 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import javax.xml.bind.JAXBException;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
@@ -107,11 +110,6 @@ public class Template {
   static final int CURRENT_FORMAT = 4;
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.Template");
   /**
-   * Directory within the template which contains the resources referenced
-   * from the template.xml file
-   */
-  private static final String DATA_ROOT = "root";
-  /**
    * Most recent thrown exception during template instantiation. This should
    * basically always be null. Used by unit tests to see if any template
    * instantiation recorded a failure.
@@ -131,14 +129,14 @@ public class Template {
   /**
    * The template loader which is responsible for finding (and sharing) template files
    */
-  private final PrefixTemplateLoader myLoader;
+  private final StudioTemplateLoader myLoader;
 
   private TemplateMetadata myMetadata;
   private Project myProject;
 
   private Template(@NotNull File rootPath) {
     myTemplateRoot = rootPath;
-    myLoader = new PrefixTemplateLoader(myTemplateRoot.getPath());
+    myLoader = new StudioTemplateLoader(myTemplateRoot);
   }
 
   /**
@@ -355,12 +353,31 @@ public class Template {
         if (xml == null) {
           return;
         }
+        processXml(xml, freemarker, paramMap, outputRoot, moduleRoot, gradleSyncIfNeeded);
       }
       else {
-        myLoader.setTemplateFile(getTemplateFile(file));
-        xml = processFreemarkerTemplate(freemarker, paramMap, file);
+        processFreemarkerTemplate(freemarker, paramMap, file, new FreemarkerUtils.TemplatePostProcessor() {
+          @Override
+          public void process(@NotNull String xml) throws TemplateProcessingException {
+            processXml(xml, freemarker, paramMap, outputRoot, moduleRoot, gradleSyncIfNeeded);
+          }
+        });
       }
+    }
+    catch (Exception e) {
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourMostRecentException = e;
+      LOG.warn(e);
+    }
+  }
 
+  private void processXml(@NotNull String xml,
+                          @NotNull final Configuration freemarker,
+                          @NotNull final Map<String, Object> paramMap,
+                          @NotNull final File outputRoot,
+                          @NotNull final File moduleRoot,
+                          final boolean gradleSyncIfNeeded) throws TemplateProcessingException {
+    try {
       xml = XmlUtils.stripBom(xml);
       InputSource inputSource = new InputSource(new StringReader(xml));
       SAXParserFactory.newInstance().newSAXParser().parse(inputSource, new DefaultHandler() {
@@ -399,17 +416,27 @@ public class Template {
               executeRecipeFile(freemarker, recipeFile, paramMap, outputRoot, moduleRoot, gradleSyncIfNeeded);
             }
           }
-          else if (!name.equals("template") && !name.equals("category") && !name.equals("option") && !name.equals(TAG_THUMBS) &&
-                   !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS) && !name.equals(TAG_DEPENDENCY) && !name.equals(TAG_FORMFACTOR)) {
+          else if (!name.equals("template") &&
+                   !name.equals("category") &&
+                   !name.equals("option") &&
+                   !name.equals(TAG_THUMBS) &&
+                   !name.equals(TAG_THUMB) &&
+                   !name.equals(TAG_ICONS) &&
+                   !name.equals(TAG_DEPENDENCY) &&
+                   !name.equals(TAG_FORMFACTOR)) {
             LOG.error("WARNING: Unknown template directive " + name);
           }
         }
       });
     }
-    catch (Exception e) {
-      //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourMostRecentException = e;
-      LOG.warn(e);
+    catch (SAXException ex) {
+      throw new TemplateProcessingException(ex);
+    }
+    catch (ParserConfigurationException ex) {
+      throw new TemplateProcessingException(ex);
+    }
+    catch (IOException ex) {
+      throw new TemplateProcessingException(ex);
     }
   }
 
@@ -419,21 +446,28 @@ public class Template {
   private void executeRecipeFile(@NotNull final Configuration freemarker,
                                  @NotNull File fileRecipe,
                                  @NotNull final Map<String, Object> paramMap,
-                                 @NotNull File outputRoot,
-                                 @NotNull File moduleRoot,
-                                 boolean gradleSyncIfNeeded) {
+                                 @NotNull final File outputRoot,
+                                 @NotNull final File moduleRoot,
+                                 final boolean gradleSyncIfNeeded) {
     try {
-      myLoader.setTemplateFile(getTemplateFile(fileRecipe));
-      String xml = processFreemarkerTemplate(freemarker, paramMap, fileRecipe);
+      processFreemarkerTemplate(freemarker, paramMap, fileRecipe, new FreemarkerUtils.TemplatePostProcessor() {
+        @Override
+        public void process(@NotNull String xml) throws TemplateProcessingException {
+          try {
+            xml = XmlUtils.stripBom(xml);
 
-      xml = XmlUtils.stripBom(xml);
+            Recipe recipe = Recipe.parse(new StringReader(xml));
+            myFilesToOpen.addAll(recipe.getFilesToOpen());
 
-      Recipe recipe = Recipe.parse(new StringReader(xml));
-      myFilesToOpen.addAll(recipe.getFilesToOpen());
-
-      RecipeContext recipeContext = new RecipeContext(myProject, myLoader, freemarker, paramMap, new File(myTemplateRoot, DATA_ROOT), outputRoot, moduleRoot,
-                                   gradleSyncIfNeeded);
-      recipe.execute(recipeContext);
+            RecipeContext recipeContext =
+              new RecipeContext(myProject, myLoader, freemarker, paramMap, outputRoot, moduleRoot, gradleSyncIfNeeded);
+            recipe.execute(recipeContext);
+          }
+          catch (JAXBException ex) {
+            throw new TemplateProcessingException(ex);
+          }
+        }
+      });
     }
     catch (Exception e) {
       //noinspection AssignmentToStaticFieldFromInstanceMethod
