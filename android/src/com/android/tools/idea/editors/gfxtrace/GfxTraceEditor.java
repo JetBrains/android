@@ -386,44 +386,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
    * This transitively establishes scrubber->framebuffer/memory/state/etc... controls.
    */
   private void establishInterViewControls() {
-    myAtomController.getTree().addTreeSelectionListener(new TreeSelectionListener() {
-      @Override
-      public void valueChanged(TreeSelectionEvent treeSelectionEvent) {
-        if (treeSelectionEvent.isAddedPath()) {
-          Object[] pathObjects = treeSelectionEvent.getPath().getPath();
-          assert (pathObjects.length >= 2); // The root is hidden, so the user should always select something at least 2 levels deep.
-          assert (pathObjects[1] instanceof DefaultMutableTreeNode);
-
-          Object userObject = ((DefaultMutableTreeNode)pathObjects[1]).getUserObject();
-          assert (userObject instanceof HierarchyNode);
-          HierarchyNode node = (HierarchyNode)userObject;
-
-          // TODO: convert to atom path and then select it
-          return;
-        }
-
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)myAtomController.getTree().getLastSelectedPathComponent();
-
-        if (node == null) { // This could happen when user collapses a node.
-          return;
-        }
-
-        Object userObject = node.getUserObject();
-        assert (userObject instanceof HierarchyNode || userObject instanceof AtomNode);
-
-        long atomIndex;
-        if (userObject instanceof HierarchyNode) {
-          HierarchyNode hierarchyNode = (HierarchyNode)userObject;
-          atomIndex = hierarchyNode.getRepresentativeAtomIndex();
-        }
-        else {
-          AtomNode atomNode = (AtomNode)userObject;
-          atomIndex = atomNode.getRepresentativeAtomIndex();
-        }
-        // TODO: convert to atom path and then activate it
-      }
-    });
-
     // Establish scrubber->atom tree controls.
     myView.getScrubberList().addListSelectionListener(new ListSelectionListener() {
       @Override

@@ -32,6 +32,7 @@ public class HierarchyNode extends AtomTreeNode {
     myAtomGroup = atomGroup;
   }
 
+  @Override
   public long getRepresentativeAtomIndex() {
     assert (myAtomGroup.isValid());
     return myAtomGroup.getRange().getEnd() - 1;
