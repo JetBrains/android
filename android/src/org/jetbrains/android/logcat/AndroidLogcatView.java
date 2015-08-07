@@ -124,16 +124,28 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  private class MyLoggingReader extends AndroidLoggingReader {
+  private final class MyLoggingReader extends Reader {
     @Override
-    @NotNull
-    protected Object getLock() {
-      return myLock;
+    public int read(char[] cbuf, int off, int len) throws IOException {
+      synchronized (myLock) {
+        return myCurrentReader != null ? myCurrentReader.read(cbuf, off, len) : -1;
+      }
     }
 
     @Override
-    protected Reader getReader() {
-      return myCurrentReader;
+    public boolean ready() throws IOException {
+      synchronized (myLock) {
+        return myCurrentReader != null && myCurrentReader.ready();
+      }
+    }
+
+    @Override
+    public void close() throws IOException {
+      synchronized (myLock) {
+        if (myCurrentReader != null) {
+          myCurrentReader.close();
+        }
+      }
     }
   }
 
@@ -469,7 +481,6 @@ public abstract class AndroidLogcatView implements Disposable {
   }
 
   public class AndroidLogConsole extends LogConsoleBase {
-    @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
     public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel) {
       super(project, new MyLoggingReader(), "", false, logFilterModel);
       ConsoleView console = getConsole();
