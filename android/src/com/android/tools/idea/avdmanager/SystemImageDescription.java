@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.ISystemImage;
-import com.android.sdklib.SystemImage;
+import com.android.sdklib.*;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IPkgDescAddon;
 import com.android.sdklib.repository.descriptors.IdDisplay;
@@ -134,11 +131,8 @@ public final class SystemImageDescription {
   }
 
   public String getName() {
-    if (myTarget != null) {
-      return myTarget.getFullName();
-    }
-    if (myRemotePackage != null) {
-      return String.format("%s not installed", myRemotePackage.getAndroidVersion());
+    if (getVersion() != null) {
+      return String.format("Android %s", SdkVersionInfo.getVersionString(getVersion().getFeatureLevel()));
     }
     return "Unknown platform";
   }

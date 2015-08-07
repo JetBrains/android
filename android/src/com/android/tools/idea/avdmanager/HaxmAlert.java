@@ -19,6 +19,7 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.*;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
@@ -67,6 +68,8 @@ public class HaxmAlert extends JPanel {
   private HyperlinkLabel myErrorInstructionsLink;
   private HyperlinkListener myErrorLinkListener;
   SystemImageDescription myImageDescription;
+
+  private static final IdDisplay GOOGLE_APIS_TAG = new IdDisplay("google_apis", "");
 
   public HaxmAlert() {
     myErrorInstructionsLink = new HyperlinkLabel();
@@ -143,6 +146,11 @@ public class HaxmAlert extends JPanel {
     if (myImageDescription.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
       warningTextBuilder.append("This API Level is Deprecated<br>");
     }
+
+    if (!GOOGLE_APIS_TAG.equals(myImageDescription.getTag())) {
+      warningTextBuilder.append("Consider using a system image with Google APIs to enable testing with Google Play Services.");
+    }
+
     String warningText = warningTextBuilder.toString();
     if (!warningText.isEmpty()) {
       warningTextBuilder.insert(0, "<html>");
