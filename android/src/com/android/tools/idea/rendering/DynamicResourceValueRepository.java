@@ -57,7 +57,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository impl
   @NonNull
   protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
     if (mItems.isEmpty()) {
-      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      // TODO: b/23032391
       IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
       if (androidModel == null) {
         return mItems;
