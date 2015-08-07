@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.quickfix;
+package com.android.tools.idea.gradle.quickfix;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
@@ -81,7 +81,6 @@ abstract class GradleDependencyFix implements IntentionAction, LocalQuickFix, Hi
     if (test) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null) {
-        // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
         IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(androidFacet);
         if (androidModel != null && AndroidProject.ARTIFACT_ANDROID_TEST.equals(androidModel.getSelectedTestArtifactName())) {
           testScope = Dependency.Scope.ANDROID_TEST_COMPILE;
