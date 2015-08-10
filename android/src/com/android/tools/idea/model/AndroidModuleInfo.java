@@ -76,7 +76,8 @@ public class AndroidModuleInfo {
    */
   @NotNull
   public AndroidVersion getRuntimeMinSdkVersion() {
-    IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
     if (androidModel != null) {
       ApiVersion minSdkVersion = androidModel.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
       if (minSdkVersion != null) {

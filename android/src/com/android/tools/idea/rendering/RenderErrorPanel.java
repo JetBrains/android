@@ -25,6 +25,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.utils.HtmlBuilder;
@@ -623,7 +624,8 @@ public class RenderErrorPanel extends JPanel {
       if (module != null) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
-          AndroidProject androidProject = facet.getAndroidModel().getAndroidProject();
+          // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+          AndroidProject androidProject = IdeaAndroidProject.getGradleModel(facet).getAndroidProject();
           String modelVersion = androidProject.getModelVersion();
           if (hasLayoutRenderingIssue(androidProject)) {
             builder.addBold("Using an obsolete version of the Gradle plugin (" + modelVersion +

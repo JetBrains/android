@@ -18,9 +18,11 @@ package com.android.tools.idea.model;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -87,7 +89,6 @@ public interface AndroidModel {
    * @return whether the manifest package is overriden.
    * TODO: Potentially dedupe with computePackageName.
    */
-  @Deprecated
   boolean overridesManifestPackage();
 
   /**
@@ -114,4 +115,20 @@ public interface AndroidModel {
    */
   @Nullable
   Integer getVersionCode();
+
+  /**
+   * @return the path of the root directory of the module.
+   */
+  @NotNull
+  File getRootDirPath();
+
+  /**
+   * @return the path of the root directory of the module.
+   *
+   * TODO: Do we really need two methods in our model interface for getting the root dir? It looks like it's not
+   * called very often, so we should be able to just re-locate it every time instead of caching.
+   */
+  @Deprecated
+  @NotNull
+  VirtualFile getRootDir();
 }

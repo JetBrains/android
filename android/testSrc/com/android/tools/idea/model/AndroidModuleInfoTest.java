@@ -73,7 +73,8 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     }
     loadProject("projects/moduleInfo/flavors");
     assertNotNull(myAndroidFacet);
-    IdeaAndroidProject androidModel = myAndroidFacet.getAndroidModel();
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myAndroidFacet);
     assertNotNull(androidModel);
     assertEquals("freeDebug", androidModel.getSelectedVariant().getName());
 
@@ -90,7 +91,8 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     }
     loadProject("projects/moduleInfo/merge");
     assertNotNull(myAndroidFacet);
-    IdeaAndroidProject androidModel = myAndroidFacet.getAndroidModel();
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myAndroidFacet);
     assertNotNull(androidModel);
     assertEquals("debug", androidModel.getSelectedVariant().getName());
 

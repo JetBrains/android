@@ -126,7 +126,7 @@ public class AddGradleLibraryDependencyFix extends GradleDependencyFix {
 
   @Nullable
   private String getLibraryGradleEntryByAndroidFacet(@NotNull AndroidFacet androidFacet) {
-    IdeaAndroidProject androidProject = androidFacet.getAndroidModel();
+    IdeaAndroidProject androidProject = IdeaAndroidProject.getGradleModel(androidFacet);
     if (androidProject == null) {
       return null;
     }

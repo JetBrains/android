@@ -58,7 +58,8 @@ final class ProjectJdkChecks {
   static boolean hasCorrectJdkVersion(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null && facet.getAndroidModel() != null) {
-      return hasCorrectJdkVersion(module, facet.getAndroidModel());
+      IdeaAndroidProject gradleModel = IdeaAndroidProject.getGradleModel(facet);
+      return hasCorrectJdkVersion(module, gradleModel);
     }
     return true;
   }

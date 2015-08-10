@@ -27,6 +27,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.util.Pair;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -182,7 +183,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   public static Collection<AndroidLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
     if (facet.requiresAndroidModel()) {
-      IdeaAndroidProject androidModel = facet.getAndroidModel();
+      AndroidModel androidModel = facet.getAndroidModel();
       if (androidModel != null) {
         List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
         addGradleLibraries(libraries, facet);
@@ -271,7 +272,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   private static void addGradleLibraries(List<AndroidLibrary> list, AndroidFacet facet) {
-    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
       Collection<AndroidLibrary> libraries = androidModel.getMainArtifact().getDependencies().getLibraries();
       Set<File> unique = Sets.newHashSet();
@@ -399,7 +400,8 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @NonNull
   public ResourceVisibilityLookup getResourceVisibility(@NonNull AndroidFacet facet) {
-    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
     if (androidModel != null) {
       ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
       if (provider != null) {
@@ -425,7 +427,8 @@ public class AppResourceRepository extends MultiResourceRepository {
       if (provider == null) {
         return false;
       }
-      IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
       if (androidModel == null) {
         // normally doesn't happen since we check in getResourceVisibility,
         // but can be triggered during a sync (b/22523040)

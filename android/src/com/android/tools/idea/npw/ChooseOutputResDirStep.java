@@ -17,6 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.android.tools.idea.ui.FileTreeCellRenderer;
 import com.android.tools.idea.ui.FileTreeModel;
@@ -182,7 +183,7 @@ public class ChooseOutputResDirStep extends TemplateWizardStep {
         return;
       }
 
-      IdeaAndroidProject androidModel = facet.getAndroidModel();
+      AndroidModel androidModel = facet.getAndroidModel();
       if (androidModel != null) {
         show(myVariantComboBox, myResDirLabel);
         DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel();

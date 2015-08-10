@@ -76,7 +76,7 @@ public final class ConflictResolution {
       // project structure may have changed and the conflict is not longer applicable.
       return true;
     }
-    IdeaAndroidProject source = facet.getAndroidModel();
+    IdeaAndroidProject source = IdeaAndroidProject.getGradleModel(facet);
     if (source == null) {
       return false;
     }

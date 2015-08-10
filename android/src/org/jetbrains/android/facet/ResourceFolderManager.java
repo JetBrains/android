@@ -18,6 +18,7 @@ package org.jetbrains.android.facet;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -102,7 +103,7 @@ public class ResourceFolderManager implements ModificationTracker {
   private List<VirtualFile> computeFolders() {
     if (myFacet.requiresAndroidModel()) {
       JpsAndroidModuleProperties state = myFacet.getConfiguration().getState();
-      IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+      AndroidModel androidModel = myFacet.getAndroidModel();
       List<VirtualFile> resDirectories = new ArrayList<VirtualFile>();
       if (androidModel == null) {
         // Read string property

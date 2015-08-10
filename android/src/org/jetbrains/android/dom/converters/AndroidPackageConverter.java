@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
@@ -77,7 +78,7 @@ public class AndroidPackageConverter extends Converter<String> implements Custom
       // package rename refactoring
       AndroidFacet facet = AndroidFacet.getInstance(getElement());
       if (facet != null) {
-        IdeaAndroidProject androidModel = facet.getAndroidModel();
+        AndroidModel androidModel = facet.getAndroidModel();
         if (androidModel != null && androidModel.overridesManifestPackage()) {
           return new PsiPackageReference(this, range, index);
         }

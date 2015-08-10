@@ -73,7 +73,7 @@ public class IdeaAndroidProjectTest extends AndroidGradleTestCase {
 
     loadProject("projects/projectWithAppandLib");
 
-    IdeaAndroidProject androidModel = myAndroidFacet.getAndroidModel();
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myAndroidFacet);
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     ObjectOutputStream oos;
