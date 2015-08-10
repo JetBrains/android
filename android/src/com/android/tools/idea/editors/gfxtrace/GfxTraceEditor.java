@@ -63,7 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
-public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, ScrubberCellRenderer.DimensionChangeListener {
+public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull public static final String SELECT_CAPTURE = "Select a capture";
   @NotNull public static final String SELECT_ATOM = "Select an atom";
 
@@ -150,8 +150,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
         myDocumentationController = new DocumentationController(this, myView.getDocsPane());
 
         myContextController.initialize();
-
-        establishInterViewControls();
       }
     }
     catch (IOException e) {
@@ -366,27 +364,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
     myPathListeners.add(listener);
   }
 
-  @Override
   public void notifyDimensionChanged(@NotNull Dimension newDimension) {
     myView.resize();
-  }
-
-  /**
-   * Establishes atom tree->scrubber and atom tree->framebuffer/memory/state/etc... controls.
-   * This transitively establishes scrubber->framebuffer/memory/state/etc... controls.
-   */
-  private void establishInterViewControls() {
-    // Establish scrubber->atom tree controls.
-    myView.getScrubberList().addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent listSelectionEvent) {
-        if (!listSelectionEvent.getValueIsAdjusting()) {
-          AtomGroup selection = myScrubberController.getFrameSelectionReference();
-          if (selection != null) {
-            // TODO: convert to atom path and then activate it
-          }
-        }
-      }
-    });
   }
 }

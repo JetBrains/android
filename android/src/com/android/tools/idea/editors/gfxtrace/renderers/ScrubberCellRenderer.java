@@ -15,17 +15,29 @@
  */
 package com.android.tools.idea.editors.gfxtrace.renderers;
 
+import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
+import com.android.tools.idea.editors.gfxtrace.controllers.FetchedImage;
+import com.android.tools.idea.editors.gfxtrace.controllers.ScrubberController;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.ScrubberLabelData;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.RoundedLineBorder;
+import com.android.tools.idea.editors.gfxtrace.service.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
+import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -46,31 +58,23 @@ public class ScrubberCellRenderer implements ListCellRenderer {
   private static final int MIN_HEIGHT = 64;
   private static final int MAX_WIDTH = 192;
   private static final int MAX_HEIGHT = 192;
+  private static final int TICK_MILLISECONDS = 66;
   @NotNull private static final Border DEFAULT_BORDER = new EmptyBorder(BORDER_SIZE, BORDER_SIZE, BORDER_SIZE, BORDER_SIZE);
   @NotNull private static final Border SELECTED_BORDER = new RoundedLineBorder(UIUtil.getFocusedBoundsColor(), 5, false);
   @NotNull private static final Dimension DEFAULT_IMAGE_SIZE = new Dimension(MAX_WIDTH, MAX_HEIGHT);
-  @NotNull private static final ScheduledExecutorService ourScheduler =
-    ConcurrencyUtil.newSingleScheduledThreadExecutor("ScrubberAnimation");
+  @NotNull private static final ScheduledExecutorService ourTickerScheduler = ConcurrencyUtil.newSingleScheduledThreadExecutor("ScrubberAnimation");
+  @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
 
   @NotNull private final ScrubberLabel myScrubberLabel;
   @NotNull private RenderSettings myRenderSettings;
-  @NotNull private Set<Integer> myOutstandingIconFetches;
-  @NotNull private HashMap<Integer, ImageIcon> myCachedImages;
   @NotNull private ImageIcon myBlankIcon;
-  @NotNull private AtomicBoolean shouldStop = new AtomicBoolean(false);
-  @NotNull private List<Integer> myPostRenderCleanupCacheHits = new ArrayList<Integer>(20);
-  private ScheduledFuture<?> myTicker;
-  private Dimension myLargestKnownIconDimension = new Dimension(MIN_WIDTH, MIN_HEIGHT);
-  private int myRepaintsNeeded;
+  @NotNull final Dimension myLargestKnownIconDimension = new Dimension(MIN_WIDTH, MIN_HEIGHT);
+  @Nullable private Runnable myTicker;
+  @NotNull private final ScrubberController myController;
 
-  @NotNull private List<DimensionChangeListener> myDimensionChangeListeners = new ArrayList<DimensionChangeListener>(1);
-  private ServiceClient myClient;
-
-  public ScrubberCellRenderer() {
+  public ScrubberCellRenderer(@NotNull ScrubberController controller) {
+    myController = controller;
     myScrubberLabel = new ScrubberLabel();
-
-    myOutstandingIconFetches = new HashSet<Integer>();
-    myCachedImages = new HashMap<Integer, ImageIcon>();
 
     myRenderSettings = new RenderSettings();
     myRenderSettings.setMaxWidth(MAX_WIDTH);
@@ -90,41 +94,8 @@ public class ScrubberCellRenderer implements ListCellRenderer {
     return blankImage;
   }
 
-  public void setup(@NotNull ServiceClient client) {
-    myClient = client;
-  }
-
-  public void addDimensionChangeListener(@NotNull DimensionChangeListener listener) {
-    myDimensionChangeListeners.add(listener);
-  }
-
   /**
    * This method returns a custom JBLabel to show the final frame render.
-   * <p/>
-   * The icons that are used in the scrubber view are generated on a remote server. This fact necessitates a few requirements for displaying
-   * icons in the scrubber view:
-   * 1) When the icon is being generated, the UI needs to remain responsive.
-   * 2) While the icon is being generated, there needs to exist UI indicators to notify the user that the the icon is being generated.
-   * 3) The icon should not be regenerated if it has already been generated, within the memory constraints of Studio. This therefore
-   * necessitates some sort of caching mechanism.
-   * 4) Caches need to get periodically evicted since each icon is upwards of ~150kB in size. A capture with 600 frames requires ~88MB of
-   * memory to hold all the thumbnails in memory, and is completely variable depending on the length of capture.
-   * <p/>
-   * Therefore, this method (directly or indirectly) satisfies the above requirements by:
-   * 1) Farming off the icon generation to a separate thread.
-   * 2) Draw the loading indicator via a custom Swing component (ScrubberLabel).
-   * 3) Implementing a simple caching mechanism based on a sliding window view of the film strip.
-   * 4) Periodic cache eviction based on last-rendered time, and the current position in the sliding window. As in, the user is always
-   * seeing a contiguous segment of frames in the UI (a "window"). For most use cases, the user will scroll left or right, which makes cache
-   * locality based on the current viewport position in the view.
-   * <p/>
-   * The general flow of this method is as follows:
-   * 1) Look into the cache to see if an icon exists for the given parameters.
-   * 2a) If so, populate the singleton ScrubberLabel component with the cached icon and return it. Done.
-   * 2b) If not, queue a request to the server to generate the desired icon on a separate thread. When the server returns, cache the state
-   * and the icon, and request a repaint (which will cause the new icon displayed).
-   * 3) (While generating the icon) Start a timer to periodically repaint the loading icon that will be a placeholder for the desired icon.
-   * 4) Populate the singleton ScrubberLabel component with the placeholder icon and return it. Done.
    */
   @Override
   public Component getListCellRendererComponent(@NotNull final JList jList,
@@ -134,81 +105,63 @@ public class ScrubberCellRenderer implements ListCellRenderer {
                                                 boolean cellHasFocus) {
     assert (data instanceof ScrubberLabelData);
     final ScrubberLabelData labelData = (ScrubberLabelData)data;
+    final ServiceClient client = myController.getClient();
+    final DevicePath devicePath = myController.getRenderDevice();
     myScrubberLabel.setUserData(labelData);
-
-    ImageIcon result = myCachedImages.get(index);
-    if (result == null) {
-      if (myOutstandingIconFetches.contains(index)) {
-        myRepaintsNeeded++;
-      }
-      else {
-        myOutstandingIconFetches.add(index);
-        labelData.setLoading(true);
-        final AtomicBoolean shouldStopReference = shouldStop;
-        final ServiceClient closedClient = myClient;
-        final DevicePath closedDevicePath = null; //TODO: get the device
-
-        // The renderer should run in parallel since it doesn't affect the state of the editor.
-        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+    if ((!labelData.isLoaded()) && (!labelData.isLoading()) && (devicePath != null)) {
+      labelData.startLoading();
+      if (myTicker == null) {
+        myTicker = new Runnable() {
           @Override
           public void run() {
-            ImageIcon imageIcon = null;
-            try {
-              closedClient.getFramebufferColor(closedDevicePath, labelData.getAtomPath(), myRenderSettings);
-              // TODO: something with the result of this call
-            }
-            finally {
-              final ImageIcon finalImageIcon = imageIcon;
-              ApplicationManager.getApplication().invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                  myOutstandingIconFetches.remove(index);
-                  if (shouldStopReference.get() || finalImageIcon == null) {
-                    return;
-                  }
-
-                  updateDefaultImageIcon(finalImageIcon);
-
-                  labelData.setLoading(false);
-                  labelData.setSelected(isSelected);
-                  labelData.setIcon(finalImageIcon);
-                  myCachedImages.put(index, finalImageIcon);
+            EdtExecutor.INSTANCE.execute(new Runnable() {
+              @Override
+              public void run() {
+                if (myController.isLoading()) {
                   jList.repaint();
+                  ourTickerScheduler.schedule(myTicker, TICK_MILLISECONDS, TimeUnit.MILLISECONDS);
+                }
+                else {
+                  myTicker = null;
+                }
+              }
+            });
+          }
+        };
+        myTicker.run();
+      }
+      ListenableFuture<ImageInfoPath> imagePathF = client.getFramebufferColor(devicePath, labelData.getAtomPath(), myRenderSettings);
+      Futures.addCallback(imagePathF, new LoadingCallback<ImageInfoPath>(LOG, labelData) {
+        @Override
+        public void onSuccess(@Nullable final ImageInfoPath imagePath) {
+          Futures.addCallback(client.get(imagePath), new LoadingCallback<ImageInfo>(LOG, labelData) {
+            @Override
+            public void onSuccess(@Nullable final ImageInfo imageInfo) {
+              Futures.addCallback(client.get(imageInfo.getData()), new LoadingCallback<byte[]>(LOG, labelData) {
+                @Override
+                public void onSuccess(@Nullable final byte[] data) {
+                  final FetchedImage fetchedImage = new FetchedImage(imageInfo, data);
+                  final ImageIcon image = fetchedImage.createImageIcon();
+                  EdtExecutor.INSTANCE.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                      // Back in the UI thread here
+                      updateDefaultImageIcon(image);
+                      labelData.stopLoading();
+                      labelData.setSelected(isSelected);
+                      labelData.setIcon(image);
+                      jList.repaint();
+                    }
+                  });
                 }
               });
             }
-          }
-        });
-      }
-    }
-
-    labelData.setSelected(isSelected);
-    myScrubberLabel.setBorder(isSelected ? SELECTED_BORDER : DEFAULT_BORDER);
-
-    queueInvalidateCache();
-    myPostRenderCleanupCacheHits.add(index);
-
-    // If necessary, schedule a repeating repaint so that the loading icon animates.
-    if (myRepaintsNeeded > 0 && myTicker == null) {
-      myTicker = ourScheduler.scheduleAtFixedRate(new Runnable() {
-        @Override
-        public void run() {
-          // Need to run this in the EDT, since the scheduled/timer doesn't run the Runnable in the EDT.
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              myRepaintsNeeded = 0;
-              jList.repaint();
-            }
           });
         }
-      }, 0, 66, TimeUnit.MILLISECONDS);
+      });
     }
-    else if (myRepaintsNeeded == 0 && myTicker != null) {
-      myTicker.cancel(false);
-      myTicker = null;
-    }
-
+    labelData.setSelected(isSelected);
+    myScrubberLabel.setBorder(isSelected ? SELECTED_BORDER : DEFAULT_BORDER);
     return myScrubberLabel;
   }
 
@@ -225,16 +178,6 @@ public class ScrubberCellRenderer implements ListCellRenderer {
     return myBlankIcon;
   }
 
-  public void clearState() {
-    clearCache();
-  }
-
-  public void clearCache() {
-    shouldStop.set(true);
-    shouldStop = new AtomicBoolean(false);
-    myCachedImages.clear();
-  }
-
   /**
    * This methods updates the default blank image icon's size.
    * <p/>
@@ -247,51 +190,7 @@ public class ScrubberCellRenderer implements ListCellRenderer {
       myLargestKnownIconDimension.setSize(Math.max(newIcon.getIconWidth(), myLargestKnownIconDimension.width),
                                           Math.max(newIcon.getIconHeight(), myLargestKnownIconDimension.height));
       myBlankIcon.setImage(createBlankImage(myLargestKnownIconDimension));
-      for (DimensionChangeListener listener : myDimensionChangeListeners) {
-        listener.notifyDimensionChanged(getCellDimensions());
-      }
+      myController.notifyDimensionChanged(getCellDimensions());
     }
-  }
-
-  /**
-   * This method queues a task to run on the EDT to invalid the caches.
-   * <p/>
-   * This object needs to invalidate the cache to prevent the cache from growing indefinitely. However, since Swing does not have a simple
-   * way to recognize "end of draw", this method inserts a callback to the end of the EDT invokeLater queue which gets processed after all
-   * UI update draw calls have completed. This ensures that cache cleanup happens after all rendering calls to this renderer object have
-   * completed for this frame before cleanup occurs.
-   */
-  private void queueInvalidateCache() {
-    if (myPostRenderCleanupCacheHits.size() == 0) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          if (myPostRenderCleanupCacheHits.size() > 2 && myCachedImages.size() > MAX_CACHE_SIZE) {
-            Integer[] hitIndices = myPostRenderCleanupCacheHits.toArray(new Integer[myPostRenderCleanupCacheHits.size()]);
-            Arrays.sort(hitIndices);
-            int midHitIndex = hitIndices[(hitIndices.length + 1) / 2 - 1]; // If length is even, use the lesser value.
-
-            Integer[] cachedKeys = myCachedImages.keySet().toArray(new Integer[myCachedImages.size()]);
-            Arrays.sort(cachedKeys);
-            int midHitIndexKeyPosition = Arrays.binarySearch(cachedKeys, midHitIndex);
-            if (midHitIndexKeyPosition < 0) {
-              midHitIndexKeyPosition = -(midHitIndexKeyPosition + 1);
-            }
-
-            for (int i = 0; i < midHitIndexKeyPosition - MAX_CACHE_SIZE / 2; ++i) {
-              myCachedImages.remove(cachedKeys[i]);
-            }
-            for (int i = midHitIndexKeyPosition - MAX_CACHE_SIZE / 2 + MAX_CACHE_SIZE; i < cachedKeys.length; ++i) {
-              myCachedImages.remove(cachedKeys[i]);
-            }
-          }
-          myPostRenderCleanupCacheHits.clear();
-        }
-      });
-    }
-  }
-
-  public interface DimensionChangeListener {
-    void notifyDimensionChanged(@NotNull Dimension newDimension);
   }
 }
