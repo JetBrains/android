@@ -104,6 +104,15 @@ public interface AndroidModel {
   AndroidVersion getMinSdkVersion();
 
   /**
+   * Returns the minSdkVersion that we pass to the runtime. This is normally the same as
+   * {@link #getMinSdkVersion()}, but with preview platforms the minSdkVersion, targetSdkVersion
+   * and compileSdkVersion are all coerced to the same preview platform value. This method
+   * should be used by launch code for example or packaging code.
+   */
+  @Nullable
+  AndroidVersion getRuntimeMinSdkVersion();
+
+  /**
    * @return the target SDK version.
    * {@link AndroidModuleInfo#getTargetSdkVersion()}
    */
