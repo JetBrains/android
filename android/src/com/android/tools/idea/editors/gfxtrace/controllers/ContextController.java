@@ -138,14 +138,14 @@ public class ContextController implements PathListener {
       }
     });
 
-    Futures.addCallback(myEditor.getClient().getCaptures(), new LoadingCallback<CapturePath[]>(LOG, null) {
+    Futures.addCallback(myEditor.getClient().getCaptures(), new LoadingCallback<CapturePath[]>(LOG) {
       @Override
       public void onSuccess(@Nullable final CapturePath[] paths) {
         final ListenableFuture<Capture>[] futures = new ListenableFuture[paths.length];
         for (int i = 0; i < paths.length; i++) {
           futures[i] = myEditor.getClient().get(paths[i]);
         }
-        Futures.addCallback(Futures.allAsList(futures), new LoadingCallback<List<Capture>>(LOG, null) {
+        Futures.addCallback(Futures.allAsList(futures), new LoadingCallback<List<Capture>>(LOG) {
           @Override
           public void onSuccess(@Nullable final List<Capture> captures) {
             EdtExecutor.INSTANCE.execute(new Runnable() {
@@ -165,14 +165,14 @@ public class ContextController implements PathListener {
       }
     });
 
-    Futures.addCallback(myEditor.getClient().getDevices(), new LoadingCallback<DevicePath[]>(LOG, null) {
+    Futures.addCallback(myEditor.getClient().getDevices(), new LoadingCallback<DevicePath[]>(LOG) {
       @Override
       public void onSuccess(@Nullable final DevicePath[] paths) {
         final ListenableFuture<Device>[] futures = new ListenableFuture[paths.length];
         for (int i = 0; i < paths.length; i++) {
           futures[i] = myEditor.getClient().get(paths[i]);
         }
-        Futures.addCallback(Futures.allAsList(futures), new LoadingCallback<List<Device>>(LOG, null) {
+        Futures.addCallback(Futures.allAsList(futures), new LoadingCallback<List<Device>>(LOG) {
           @Override
           public void onSuccess(@Nullable final List<Device> devices) {
             EdtExecutor.INSTANCE.execute(new Runnable() {
