@@ -137,7 +137,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           }
         });
 
-        myContextController = new ContextController(this, myView.getDeviceList(), myView.getCapturesList());
+        myContextController = new ContextController(this, myView.getDeviceList());
 
         myAtomController = new AtomController(this, project, myView.getAtomScrollPane());
         myScrubberController = new ScrubberController(this, myView.getScrubberScrollPane(), myView.getScrubberList());
