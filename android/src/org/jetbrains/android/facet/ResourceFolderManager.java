@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.facet;
 
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.AndroidModel;

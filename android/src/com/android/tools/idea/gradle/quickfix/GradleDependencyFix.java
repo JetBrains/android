@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.quickfix;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
@@ -81,7 +81,7 @@ abstract class GradleDependencyFix implements IntentionAction, LocalQuickFix, Hi
     if (test) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null) {
-        IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(androidFacet);
+        AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
         if (androidModel != null && AndroidProject.ARTIFACT_ANDROID_TEST.equals(androidModel.getSelectedTestArtifactName())) {
           testScope = Dependency.Scope.ANDROID_TEST_COMPILE;
         }

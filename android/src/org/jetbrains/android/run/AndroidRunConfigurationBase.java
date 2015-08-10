@@ -17,11 +17,9 @@
 package org.jetbrains.android.run;
 
 import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;

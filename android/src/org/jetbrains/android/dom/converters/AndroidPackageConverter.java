@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.dom.converters;
 
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;

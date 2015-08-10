@@ -25,8 +25,8 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.avdmanager.EmulatorRunner;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModel;
@@ -149,7 +149,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private LocalResourceRepository myModuleResources;
   private AppResourceRepository myAppResources;
   private ProjectResourceRepository myProjectResources;
-  private IdeaAndroidProject myAndroidModel;
+  private AndroidGradleModel myAndroidModel;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
   private SourceProvider myMainSourceSet;
@@ -189,7 +189,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    *
    * @param androidModel the new Android model.
    */
-  public void setAndroidModel(@Nullable IdeaAndroidProject androidModel) {
+  public void setAndroidModel(@Nullable AndroidGradleModel androidModel) {
     myAndroidModel = androidModel;
     DataBindingUtil.onIdeaProjectSet(this);
   }

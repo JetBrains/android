@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.builder.model.AndroidProject;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
@@ -58,13 +58,13 @@ final class ProjectJdkChecks {
   static boolean hasCorrectJdkVersion(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null && facet.getAndroidModel() != null) {
-      IdeaAndroidProject gradleModel = IdeaAndroidProject.getGradleModel(facet);
+      AndroidGradleModel gradleModel = AndroidGradleModel.get(facet);
       return hasCorrectJdkVersion(module, gradleModel);
     }
     return true;
   }
 
-  static boolean hasCorrectJdkVersion(@NotNull Module module, @NotNull IdeaAndroidProject androidModel) {
+  static boolean hasCorrectJdkVersion(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
     AndroidProject androidProject = androidModel.getAndroidProject();
     String compileTarget = androidProject.getCompileTarget();
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -76,7 +76,7 @@ public final class ConflictResolution {
       // project structure may have changed and the conflict is not longer applicable.
       return true;
     }
-    IdeaAndroidProject source = IdeaAndroidProject.getGradleModel(facet);
+    AndroidGradleModel source = AndroidGradleModel.get(facet);
     if (source == null) {
       return false;
     }

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.dependency.*;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -46,11 +46,11 @@ import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 /**
  * Sets the dependencies of a module imported from an {@link AndroidProject}.
  */
-public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<IdeaAndroidProject>
-  implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
+public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<AndroidGradleModel>
+  implements BuildVariantModuleCustomizer<AndroidGradleModel> {
 
   @Override
-  protected void setUpDependencies(@NotNull ModifiableRootModel moduleModel, @NotNull IdeaAndroidProject androidModel) {
+  protected void setUpDependencies(@NotNull ModifiableRootModel moduleModel, @NotNull AndroidGradleModel androidModel) {
     DependencySet dependencies = Dependency.extractFrom(androidModel);
     for (LibraryDependency dependency : dependencies.onLibraries()) {
       updateLibraryDependency(moduleModel, dependency, androidModel.getAndroidProject());
@@ -138,7 +138,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
   @Override
   @NotNull
-  public Class<IdeaAndroidProject> getSupportedModelType() {
-    return IdeaAndroidProject.class;
+  public Class<AndroidGradleModel> getSupportedModelType() {
+    return AndroidGradleModel.class;
   }
 }

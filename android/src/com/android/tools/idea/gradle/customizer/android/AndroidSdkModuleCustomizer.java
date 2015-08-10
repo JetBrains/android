@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.android;
 
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
@@ -38,7 +38,7 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToCreateAndroidSdk;
 /**
  * Sets an Android SDK to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidProject> {
+public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradleModel> {
   private static final Logger LOG = Logger.getInstance(AndroidSdkModuleCustomizer.class);
 
   /**
@@ -55,7 +55,7 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
   @Override
   public void customizeModule(@NotNull Project project,
                               @NotNull ModifiableRootModel moduleModel,
-                              @Nullable IdeaAndroidProject androidModel) {
+                              @Nullable AndroidGradleModel androidModel) {
     if (androidModel == null) {
       return;
     }
