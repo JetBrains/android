@@ -78,20 +78,16 @@ public class ContextController implements PathListener {
         }
       }
     });
-  }
-
-  public void initialize() {
     myDevicesView.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent itemEvent) {
-        if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
-          assert (itemEvent.getItem() instanceof DeviceEntry);
-          DeviceEntry entry = (DeviceEntry)itemEvent.getItem();
-          myEditor.activatePath(entry.myPath);
+        if (itemEvent.getStateChange() != ItemEvent.SELECTED) return;
+        assert (itemEvent.getItem() instanceof DeviceEntry);
+        if (mySelectedDevice.update(((DeviceEntry)itemEvent.getItem()).myPath)) {
+          myEditor.activatePath(mySelectedDevice.getPath());
         }
       }
     });
-
     Futures.addCallback(myEditor.getClient().getDevices(), new LoadingCallback<DevicePath[]>(LOG) {
       @Override
       public void onSuccess(@Nullable final DevicePath[] paths) {
@@ -111,7 +107,11 @@ public class ContextController implements PathListener {
                   myDevices[i] = new DeviceEntry(paths[i], devices.get(i));
                 }
                 myDevicesView.setModel(new DefaultComboBoxModel(myDevices));
-                myDevicesView.setSelectedIndex(-1);
+                if (paths.length > 0) {
+                  if (mySelectedDevice.update(paths[0])) {
+                    myEditor.activatePath(mySelectedDevice.getPath());
+                  }
+                }
               }
             });
           }
@@ -126,10 +126,8 @@ public class ContextController implements PathListener {
       if (mySelectedDevice.update((DevicePath)path)) {
         if (myDevices != null) {
           for (int i = 0; i < myDevices.length; i++) {
-            if (mySelectedDevice.is(myDevices[i].myPath)) {
-              myDevicesView.setSelectedIndex(i);
-              return;
-            }
+            myDevicesView.setSelectedIndex(i);
+            return;
           }
           // device not found
           myDevicesView.setSelectedIndex(-1);

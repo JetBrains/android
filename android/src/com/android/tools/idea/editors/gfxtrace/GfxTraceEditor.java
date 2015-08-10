@@ -148,8 +148,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
         // TODO: Rewrite to use IntelliJ documentation view.
         myDocumentationController = new DocumentationController(this, myView.getDocsPane());
-
-        myContextController.initialize();
       }
     }
     catch (IOException e) {
