@@ -103,7 +103,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
 
         // prefetch the schema
         final ListenableFuture<Schema> schemaF = myClient.getSchema();
-        Futures.addCallback(schemaF, new LoadingCallback<Schema>(LOG, null) {
+        Futures.addCallback(schemaF, new LoadingCallback<Schema>(LOG) {
           @Override
           public void onSuccess(@Nullable final Schema schema) {
             LOG.warn("Schema with " + schema.getClasses().length + " classes, " + schema.getConstants().length + " constant sets");
@@ -123,7 +123,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
         LOG.warn("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
         final ListenableFuture<CapturePath> captureF = myClient.importCapture(file.getPresentableName(), data);
         // When both steps are complete, activate the capture path
-        Futures.addCallback(Futures.allAsList(schemaF, captureF), new LoadingCallback<List<BinaryObject>>(LOG, null) {
+        Futures.addCallback(Futures.allAsList(schemaF, captureF), new LoadingCallback<List<BinaryObject>>(LOG) {
           @Override
           public void onSuccess(@Nullable final List<BinaryObject> all) {
             CapturePath path = (CapturePath)all.get(1);
