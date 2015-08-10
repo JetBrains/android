@@ -353,6 +353,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     EdtExecutor.INSTANCE.execute(new Runnable() {
       @Override
       public void run() {
+        LOG.warn("Activate path " + path);
         for (PathListener listener : myPathListeners) {
           listener.notifyPath(path);
         }

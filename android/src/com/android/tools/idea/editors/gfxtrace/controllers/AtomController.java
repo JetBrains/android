@@ -52,10 +52,12 @@ public class AtomController implements PathListener {
   @NotNull private final JBLoadingPanel myLoadingPanel;
   @NotNull private final SimpleTree myTree;
   @NotNull private final AtomTreeRenderer myAtomTreeRenderer;
-  private TreeNode myAtomTreeRoot;
+  private DefaultMutableTreeNode myAtomTreeRoot;
   private AtomGroup myAtomGroup;
   private AtomList myAtomList;
-  private AtomsPath myAtomsPath;
+  private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
+  private boolean mDisableActivation = false;
+
   public AtomController(@NotNull GfxTraceEditor editor, @NotNull Project project, @NotNull JBScrollPane scrollPane) {
     myEditor = editor;
     myEditor.addPathListener(this);
@@ -73,26 +75,25 @@ public class AtomController implements PathListener {
     myTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
       public void valueChanged(TreeSelectionEvent treeSelectionEvent) {
+        if (mDisableActivation || !myAtomsPath.isValid()) return;
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)myTree.getLastSelectedPathComponent();
-        if (node == null) { // This could happen when user collapses a node.
-          return;
-        }
-        Object userObject = node.getUserObject();
-        assert(userObject instanceof AtomTreeNode);
-        myEditor.activatePath(myAtomsPath.index(((AtomTreeNode)userObject).getRepresentativeAtomIndex()));
+        if (node == null || node.getUserObject() == null) return;
+        assert(node.getUserObject() instanceof AtomTreeNode);
+        AtomPath atomPath = myAtomsPath.getPath().index(((AtomTreeNode)node.getUserObject()).getRepresentativeAtomIndex());
+        myEditor.activatePath(atomPath);
       }
     });
 
   }
 
   @NotNull
-  public static TreeNode prepareData(@NotNull AtomGroup root) {
+  public static DefaultMutableTreeNode prepareData(@NotNull AtomGroup root) {
     assert (!ApplicationManager.getApplication().isDispatchThread());
     return generateAtomTree(root);
   }
 
   @NotNull
-  private static MutableTreeNode generateAtomTree(@NotNull AtomGroup atomGroup) {
+  private static DefaultMutableTreeNode generateAtomTree(@NotNull AtomGroup atomGroup) {
     assert (atomGroup.isValid());
 
     DefaultMutableTreeNode currentNode = new DefaultMutableTreeNode();
@@ -129,7 +130,7 @@ public class AtomController implements PathListener {
     return myTree;
   }
 
-  public void populateUi(@NotNull TreeNode root, @NotNull AtomList atoms) {
+  public void populateUi(@NotNull DefaultMutableTreeNode root, @NotNull AtomList atoms) {
     ApplicationManager.getApplication().assertIsDispatchThread();
     myAtomTreeRoot = root;
     myAtomTreeRenderer.init(atoms);
@@ -147,21 +148,31 @@ public class AtomController implements PathListener {
     myLoadingPanel.revalidate();
   }
 
-  public void selectFrame(@NotNull AtomGroup group) {
-    // Search through the list for now.
-    for (Enumeration it = myAtomTreeRoot.children(); it.hasMoreElements(); ) {
-      TreeNode node = (TreeNode)it.nextElement();
-      assert (node instanceof DefaultMutableTreeNode);
+  public void selectDeepestVisibleNode(long atomIndex) {
+    selectDeepestVisibleNode(myAtomTreeRoot, new TreePath(myAtomTreeRoot), atomIndex);
+  }
 
-      Object userObject = ((DefaultMutableTreeNode)node).getUserObject();
-      if (!(userObject instanceof HierarchyNode)) {
-        continue;
+  public void selectDeepestVisibleNode(DefaultMutableTreeNode node, TreePath path, long atomIndex) {
+    if (node.isLeaf() || !myTree.isExpanded(path)) {
+      try {
+        mDisableActivation = true;
+        myTree.setSelectionPath(path);
+        myTree.scrollPathToVisible(path);
+        return;
+      } finally {
+        mDisableActivation = false;
       }
-
-      if (((HierarchyNode)userObject).isProxyFor(group)) {
-        TreePath path = new TreePath(new Object[]{myAtomTreeRoot, node});
-        select(path);
-        break;
+    }
+    // Search through the list for now.
+    for (Enumeration it = node.children(); it.hasMoreElements(); ) {
+      Object obj = it.nextElement();
+      assert (obj instanceof DefaultMutableTreeNode);
+      DefaultMutableTreeNode child = (DefaultMutableTreeNode)obj;
+      Object userObject = child.getUserObject();
+      assert(userObject instanceof AtomTreeNode);
+      AtomTreeNode model = (AtomTreeNode)userObject;
+      if (model.contains(atomIndex)) {
+        selectDeepestVisibleNode(child, path.pathByAddingChild(child), atomIndex);
       }
     }
   }
@@ -172,34 +183,31 @@ public class AtomController implements PathListener {
     myAtomTreeRoot = null;
   }
 
-  private void select(@NotNull TreePath path) {
-    myTree.setSelectionPath(path);
-    myTree.scrollPathToVisible(path);
-  }
-
   @Override
   public void notifyPath(Path path) {
+    boolean updateAtoms = false;
     if (path instanceof CapturePath) {
-      final CapturePath capture = (CapturePath)path;
-      LOG.warn(String.format("Activate capture %s", path));
+      updateAtoms |= myAtomsPath.update(((CapturePath)path).atoms());
+    }
+    if (path instanceof AtomPath) {
+      selectDeepestVisibleNode(((AtomPath)path).getIndex());
+    }
+    if (updateAtoms && myAtomsPath.isValid()) {
       myTree.getEmptyText().setText("");
       myLoadingPanel.startLoading();
-      final ListenableFuture<AtomList> atomF = myEditor.getClient().get(capture.atoms());
-      final ListenableFuture<AtomGroup> hierarchyF = myEditor.getClient().get(capture.hierarchy());
+      final ListenableFuture<AtomList> atomF = myEditor.getClient().get(myAtomsPath.getPath());
+      final ListenableFuture<AtomGroup> hierarchyF = myEditor.getClient().get(myAtomsPath.getPath().getCapture().hierarchy());
       Futures.addCallback(Futures.allAsList(atomF, hierarchyF), new LoadingCallback<java.util.List<BinaryObject>>(LOG, myLoadingPanel) {
         @Override
         public void onSuccess(@Nullable final java.util.List<BinaryObject> all) {
           myLoadingPanel.stopLoading();
           final AtomList atoms = (AtomList)all.get(0);
           final AtomGroup group = (AtomGroup)all.get(1);
-          LOG.warn("Got " + atoms.getAtoms().length + " atoms");
-          LOG.warn("Got group " + group);
-          final TreeNode root = prepareData(group);
+          final DefaultMutableTreeNode root = prepareData(group);
           EdtExecutor.INSTANCE.execute(new Runnable() {
             @Override
             public void run() {
               // Back in the UI thread here
-              myAtomsPath = capture.atoms();
               populateUi(root, atoms);
             }
           });
