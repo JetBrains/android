@@ -25,20 +25,20 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.NumberFormatter;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
-import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -227,6 +227,33 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
     return isPathEmpty;
   }
 
+  /**
+   * @return the filename of the vector asset, without file extension.
+   */
+  @Nullable
+  private String getVectorFileNameWithoutExtension() {
+    String fileName = null;
+    SourceType sourceType = (SourceType) myTemplateState.get(ATTR_SOURCE_TYPE);
+    if (sourceType == SourceType.SVG) {
+      if (myTemplateState.hasAttr(ATTR_IMAGE_PATH)) {
+        String path = myTemplateState.getString(ATTR_IMAGE_PATH);
+        if (path != null && !path.isEmpty()) {
+          fileName = PathUtil.getFileName(path);
+          fileName = FileUtil.getNameWithoutExtension(fileName);
+        }
+      }
+    } else {
+      if (myTemplateState.hasAttr(ATTR_VECTOR_LIB_ICON_PATH)) {
+        URL url = (URL) myTemplateState.get(ATTR_VECTOR_LIB_ICON_PATH);
+        if (url != null) {
+          fileName = PathUtil.getFileName(url.getPath());
+          fileName = FileUtil.getNameWithoutExtension(fileName);
+        }
+      }
+    }
+    return fileName;
+  }
+
   @Override
   public void deriveValues() {
     super.deriveValues();
@@ -283,7 +310,10 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
 
   @Override
   protected void updatePreviewImages() {
-    if (!(mySelectedAssetType == null || myImageMap == null || myImageMap.size() == 0)) {
+    // When nothing selected, we try not to show error message. At the same time, nothing will
+    // be drawn as preview.
+    if (!(mySelectedAssetType == null || myImageMap == null || myImageMap.size() == 0
+          || isVectorPathEmpty())) {
       // The error message is generated during the preview generation.
       // Therefore, it is natural to update the error message here.
       final String errorMessage = (String)myTemplateState.get(ATTR_ERROR_LOG);
@@ -354,7 +384,7 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
   @NotNull
   @Override
   protected String computeResourceName() {
-    String resourceName = null;
+    String resourceName = getVectorFileNameWithoutExtension();
     if (resourceName == null) {
       resourceName = String.format("ic_vector_name", "name");
     }
