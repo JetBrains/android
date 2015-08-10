@@ -15,27 +15,29 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers.modeldata;
 
-import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
+import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class ScrubberLabelData {
+public class ScrubberLabelData implements LoadingCallback.Done {
   private AtomPath myAtomPath;
+  private Range myRange;
   @NotNull private String myLabel;
-  @NotNull private AtomGroup myHierarchyReference;
 
   @NotNull private ImageIcon myImageIcon;
   private long myLoadIconStartTime;
   private boolean myIsCurrentlyLoadingIcon;
   private boolean myIsSelected;
 
-  public ScrubberLabelData(AtomPath atomPath, @NotNull AtomGroup hierarchyReference, @NotNull String label, @NotNull ImageIcon icon) {
+  public ScrubberLabelData(AtomPath atomPath, @NotNull Range range, @NotNull String label, @NotNull ImageIcon icon) {
     myAtomPath = atomPath;
-    myHierarchyReference = hierarchyReference;
+    myRange = range;
     myLabel = label;
     myImageIcon = icon;
+    myLoadIconStartTime = 0;
   }
 
   @NotNull
@@ -47,9 +49,8 @@ public class ScrubberLabelData {
     return myAtomPath;
   }
 
-  @NotNull
-  public AtomGroup getHierarchyReference() {
-    return myHierarchyReference;
+  public Range getRange() {
+    return myRange;
   }
 
   @NotNull
@@ -65,11 +66,16 @@ public class ScrubberLabelData {
     return myIsCurrentlyLoadingIcon;
   }
 
-  public void setLoading(boolean isLoading) {
-    if (isLoading && !myIsCurrentlyLoadingIcon) {
+  public void startLoading() {
+    if (!myIsCurrentlyLoadingIcon) {
       myLoadIconStartTime = System.currentTimeMillis();
     }
-    myIsCurrentlyLoadingIcon = isLoading;
+    myIsCurrentlyLoadingIcon = true;
+  }
+
+  @Override
+  public void stopLoading() {
+    myIsCurrentlyLoadingIcon = false;
   }
 
   public long getLoadIconStartTime() {
@@ -83,4 +89,9 @@ public class ScrubberLabelData {
   public void setSelected(boolean isSelected) {
     myIsSelected = isSelected;
   }
+
+  public boolean isLoaded() {
+    return !myIsCurrentlyLoadingIcon && (myLoadIconStartTime != 0);
+  }
+
 }

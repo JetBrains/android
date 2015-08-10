@@ -21,10 +21,12 @@ import com.android.tools.rpclib.schema.Field;
 import org.jetbrains.annotations.NotNull;
 
 public class DynamicAtom extends Atom {
-  private final Dynamic myValue;
+  @NotNull private final Dynamic myValue;
+  @NotNull private final AtomMetadata myMetadata;
 
   public DynamicAtom(Dynamic value) {
     myValue = value;
+    myMetadata = AtomMetadata.find(value.type());
   }
 
   @NotNull
@@ -60,6 +62,6 @@ public class DynamicAtom extends Atom {
 
   @Override
   public boolean getIsEndOfFrame() {
-    return false;
+    return myMetadata.getEndOfFrame();
   }
 }
