@@ -228,7 +228,7 @@ public class PostProjectBuildTasksExecutor {
   }
 
   private static void excludeOutputFolders(@NotNull AndroidFacet facet) {
-    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
     if (androidModel == null) {
       return;
     }
@@ -364,7 +364,7 @@ public class PostProjectBuildTasksExecutor {
       if (facet == null) {
         continue;
       }
-      IdeaAndroidProject androidModel = facet.getAndroidModel();
+      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
       if (androidModel != null) {
         LanguageLevel langLevel = androidModel.getJavaLanguageLevel();
         if (langLevel != null && (maxLangLevel == null || maxLangLevel.compareTo(langLevel) < 0)) {

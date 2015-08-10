@@ -91,7 +91,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
     }
 
-    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
     if (androidModel == null) {
       return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
     }
@@ -300,7 +301,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public static String findInstrumentationRunner(@NotNull AndroidFacet facet) {
     String runner = getRunnerFromManifest(facet);
 
-    IdeaAndroidProject androidModel = facet.getAndroidModel();
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
     if (runner == null && androidModel != null) {
       Variant selectedVariant = androidModel.getSelectedVariant();
       String testRunner = selectedVariant.getMergedFlavor().getTestInstrumentationRunner();
