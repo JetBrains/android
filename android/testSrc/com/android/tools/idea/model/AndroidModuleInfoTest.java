@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.Sets;
 import org.jetbrains.android.dom.manifest.Activity;
@@ -73,10 +72,6 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     }
     loadProject("projects/moduleInfo/flavors");
     assertNotNull(myAndroidFacet);
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myAndroidFacet);
-    assertNotNull(androidModel);
-    assertEquals("freeDebug", androidModel.getSelectedVariant().getName());
 
     assertEquals(14, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
     assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
@@ -91,10 +86,6 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     }
     loadProject("projects/moduleInfo/merge");
     assertNotNull(myAndroidFacet);
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myAndroidFacet);
-    assertNotNull(androidModel);
-    assertEquals("debug", androidModel.getSelectedVariant().getName());
 
     List<Activity> mainActivities = ManifestInfo.get(myAndroidFacet.getModule(), false).getActivities();
     assertEquals(1, mainActivities.size());
