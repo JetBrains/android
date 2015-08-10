@@ -31,6 +31,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
@@ -55,15 +56,16 @@ import java.util.List;
 import static javax.swing.BoxLayout.X_AXIS;
 
 /**
- * @author Eugene.Kudelevsky
+ * A UI panel which wraps a console that prints output from Android's logging system.
  */
 public abstract class AndroidLogcatView implements Disposable {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.logcat.AndroidLogcatView");
+  private static final Logger LOG = Logger.getInstance(AndroidLogcatView.class);
 
   public static final Key<AndroidLogcatView> ANDROID_LOGCAT_VIEW_KEY = Key.create("ANDROID_LOGCAT_VIEW_KEY");
-  public static final String SELECTED_APP_FILTER = AndroidBundle.message("android.logcat.filters.selected");
-  public static final String NO_FILTERS = AndroidBundle.message("android.logcat.filters.none");
-  public static final String EDIT_FILTER_CONFIGURATION = AndroidBundle.message("android.logcat.filters.edit");
+
+  static final String SELECTED_APP_FILTER = AndroidBundle.message("android.logcat.filters.selected");
+  static final String NO_FILTERS = AndroidBundle.message("android.logcat.filters.none");
+  static final String EDIT_FILTER_CONFIGURATION = AndroidBundle.message("android.logcat.filters.edit");
 
   private final Project myProject;
   private final DeviceContext myDeviceContext;
@@ -150,13 +152,6 @@ public abstract class AndroidLogcatView implements Disposable {
         }
       }
     }
-  }
-
-  /**
-   * Logcat view for provided device
-   */
-  public AndroidLogcatView(@NotNull final Project project, @NotNull IDevice preselectedDevice) {
-    this(project, preselectedDevice, null);
   }
 
   /**
@@ -292,7 +287,7 @@ public abstract class AndroidLogcatView implements Disposable {
   @NotNull
   public JPanel createSearchComponent() {
     final JPanel panel = new JPanel();
-    final JComboBox editFiltersCombo = new JComboBox();
+    final ComboBox editFiltersCombo = new ComboBox();
     myFilterComboBoxModel = new DefaultComboBoxModel();
     editFiltersCombo.setModel(myFilterComboBoxModel);
     String def = AndroidLogcatFiltersPreferences.getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER;
