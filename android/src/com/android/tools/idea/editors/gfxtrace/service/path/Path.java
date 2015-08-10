@@ -25,6 +25,14 @@ public abstract class Path implements BinaryObject {
     return stringPath(new StringBuilder()).toString();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    // Default to string comparison if the implementations don't override
+    return toString() == ((Path)o).toString();
+  }
+
   public abstract StringBuilder stringPath(StringBuilder builder);
 
   @NotNull

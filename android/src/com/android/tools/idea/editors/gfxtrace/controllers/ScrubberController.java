@@ -50,8 +50,9 @@ public class ScrubberController implements PathListener {
   @NotNull private final JBList myList;
   @NotNull private ScrubberCellRenderer myScrubberCellRenderer;
   @Nullable private List<ScrubberLabelData> myFrameData;
-  @Nullable private DevicePath myRenderDevice;
-  @Nullable private CapturePath myCapture;
+  private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
+  private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
+  private boolean mDisableActivation = false;
 
   public ScrubberController(@NotNull GfxTraceEditor editor, @NotNull JBScrollPane scrubberScrollPane, @NotNull JBList scrubberComponent) {
     myEditor = editor;
@@ -72,14 +73,12 @@ public class ScrubberController implements PathListener {
     myList.addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent listSelectionEvent) {
-      if (!listSelectionEvent.getValueIsAdjusting()) {
+        if (mDisableActivation || !myAtomsPath.isValid() || listSelectionEvent.getValueIsAdjusting()) return;
         Object selectedValue = myList.getSelectedValue();
-        if ((myCapture != null) && (selectedValue != null)) {
-          ScrubberLabelData labelData = (ScrubberLabelData)selectedValue;
-          long last = labelData.getRange().getLast();
-          myEditor.activatePath(myCapture.atoms().index(last));
-        }
-      }
+        if (selectedValue == null) return;
+        ScrubberLabelData labelData = (ScrubberLabelData)selectedValue;
+        AtomPath atomPath = myAtomsPath.getPath().index(labelData.getRange().getLast());
+        myEditor.activatePath(atomPath);
       }
     });
   }
@@ -93,15 +92,14 @@ public class ScrubberController implements PathListener {
     for (int index = 0; index < atoms.getAtoms().length; ++index) {
       Atom atom = atoms.get(index);
       if (atom.getIsEndOfFrame()) {
-        range.setEnd(index);
+        range.setEnd(index+1);
         ScrubberLabelData frameData =
           new ScrubberLabelData(path.index(index), range, Integer.toString(frameCount++), myScrubberCellRenderer.getDefaultIcon());
         generatedList.add(frameData);
         range = new Range();
-        range.setStart(index);;
+        range.setStart(index+1);
       }
     }
-    LOG.warn("Found " + generatedList.size() + " frames for scrubber");
     return generatedList;
   }
 
@@ -128,13 +126,15 @@ public class ScrubberController implements PathListener {
   }
 
   public void selectFrame(long atomIndex) {
-    if (myFrameData != null) {
-      for (int i = 0; i < myFrameData.size(); ++i) {
-        Range range = myFrameData.get(i).getRange();
-        if (atomIndex >= range.getStart() && atomIndex < range.getEnd()) {
+    if (myFrameData == null) return;
+    for (int i = 0; i < myFrameData.size(); ++i) {
+      if (myFrameData.get(i).getRange().contains(atomIndex)) {
+        try {
+          mDisableActivation = true;
           myList.setSelectedIndex(i);
           myList.scrollRectToVisible(myList.getCellBounds(i, i));
-          break;
+        } finally {
+          mDisableActivation = false;
         }
       }
     }
@@ -157,22 +157,19 @@ public class ScrubberController implements PathListener {
   public void notifyPath(Path path) {
     boolean updateIcons = false;
     if (path instanceof DevicePath) {
-      myRenderDevice = (DevicePath)path;
-      updateIcons = true;
+      updateIcons |= myRenderDevice.update((DevicePath)path);
     }
     if (path instanceof CapturePath) {
-      myCapture = (CapturePath)path;
-      updateIcons = true;
+      updateIcons |= myAtomsPath.update(((CapturePath)path).atoms());
     }
     if (path instanceof AtomPath) {
-      AtomPath atomPath = (AtomPath)path;
-      selectFrame(atomPath.getIndex());
+      selectFrame(((AtomPath)path).getIndex());
     }
-    if (updateIcons) {
-      Futures.addCallback(myEditor.getClient().get(myCapture.atoms()), new LoadingCallback<AtomList>(LOG) {
+    if (updateIcons && myAtomsPath.isValid()) {
+      Futures.addCallback(myEditor.getClient().get(myAtomsPath.getPath()), new LoadingCallback<AtomList>(LOG) {
         @Override
         public void onSuccess(@Nullable final AtomList atoms) {
-          final List<ScrubberLabelData> cells = prepareData(myCapture.atoms(), atoms);
+          final List<ScrubberLabelData> cells = prepareData(myAtomsPath.getPath(), atoms);
           EdtExecutor.INSTANCE.execute(new Runnable() {
             @Override
             public void run() {
@@ -190,7 +187,7 @@ public class ScrubberController implements PathListener {
   }
 
   public DevicePath getRenderDevice() {
-    return myRenderDevice;
+    return myRenderDevice.getPath();
   }
 
   public boolean isLoading() {

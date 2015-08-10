@@ -21,10 +21,7 @@ import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.Capture;
 import com.android.tools.idea.editors.gfxtrace.service.Device;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
-import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
-import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
-import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
+import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.google.common.util.concurrent.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -47,7 +44,7 @@ public class ContextController implements PathListener {
   private static final String NO_CAPTURE_AVAILABLE = "No Capture Available";
   private static final String NO_CAPTURE_SELECTED = "No Capture Selected";
 
-  class DeviceEntry {
+  private static class DeviceEntry {
     public DevicePath myPath;
     public Device myDevice;
 
@@ -57,7 +54,7 @@ public class ContextController implements PathListener {
     }
   }
 
-  class CaptureEntry {
+  private static class CaptureEntry {
     public CapturePath myPath;
     public Capture myCapture;
 
@@ -71,10 +68,10 @@ public class ContextController implements PathListener {
   @NotNull private final GfxTraceEditor myEditor;
   @NotNull private final ComboBox myDevicesView;
   @NotNull private final ComboBox myCapturesView;
-  @NotNull private DeviceEntry[] myDevices;
-  @NotNull private CaptureEntry[] myCaptures;
-  @Nullable private CapturePath mySelectedCapture;
-  @Nullable private DevicePath mySelectedDevice;
+  @Nullable private DeviceEntry[] myDevices;
+  @Nullable private CaptureEntry[] myCaptures;
+  private final PathStore<CapturePath> mySelectedCapture = new PathStore<CapturePath>();
+  private final PathStore<DevicePath> mySelectedDevice = new PathStore<DevicePath>();
 
   public ContextController(@NotNull GfxTraceEditor editor,
                            @NotNull ComboBox devicesView,
@@ -196,12 +193,10 @@ public class ContextController implements PathListener {
   @Override
   public void notifyPath(Path path) {
     if (path instanceof CapturePath) {
-      CapturePath capture = (CapturePath)path;
-      if (mySelectedCapture != capture) {
-        mySelectedCapture = capture;
+      if (mySelectedCapture.update((CapturePath)path)) {
         if (myCaptures != null) {
           for (int i = 0; i < myCaptures.length; i++) {
-            if (myCaptures[i].myPath.equals(mySelectedCapture)) {
+            if (mySelectedCapture.is(myCaptures[i].myPath)) {
               myCapturesView.setSelectedIndex(i);
               return;
             }
@@ -213,12 +208,10 @@ public class ContextController implements PathListener {
     }
 
     if (path instanceof DevicePath) {
-      DevicePath device = (DevicePath)path;
-      if (mySelectedDevice != device) {
-        mySelectedDevice = device;
+      if (mySelectedDevice.update((DevicePath)path)) {
         if (myDevices != null) {
           for (int i = 0; i < myDevices.length; i++) {
-            if (myDevices[i].myPath.equals(mySelectedDevice)) {
+            if (mySelectedDevice.is(myDevices[i].myPath)) {
               myDevicesView.setSelectedIndex(i);
               return;
             }

@@ -29,6 +29,7 @@ public abstract class AtomTreeNode {
                                                 @NotNull AtomList atoms);
 
   public abstract long getRepresentativeAtomIndex();
+  public abstract boolean contains(long atomImdex);
 
   public static class TextPiece {
     @NotNull public String myString;

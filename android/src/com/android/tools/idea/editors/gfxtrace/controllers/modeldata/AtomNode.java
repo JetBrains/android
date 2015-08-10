@@ -41,6 +41,11 @@ public class AtomNode extends AtomTreeNode {
   }
 
   @Override
+  public boolean contains(long atomImdex) {
+    return atomImdex == myIndex;
+  }
+
+  @Override
   public List<TextPiece> getTextPieces(@NotNull JTree tree,
                                        @NotNull TreeNode node,
                                        @NotNull AtomList atoms) {
