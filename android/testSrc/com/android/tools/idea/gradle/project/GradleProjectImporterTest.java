@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -118,7 +118,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     }
 
     myCachedModule.createChild(IDE_GRADLE_PROJECT, createMock(IdeaGradleProject.class));
-    myCachedModule.createChild(IDE_ANDROID_PROJECT, createMock(IdeaAndroidProject.class));
+    myCachedModule.createChild(IDE_ANDROID_MODEL, createMock(AndroidGradleModel.class));
     assertFalse(GradleProjectImporter.isCacheMissingModels(myCachedProject, myProject));
   }
 

@@ -33,7 +33,7 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.rendering.*;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -327,7 +327,7 @@ public class AndroidJavaDocRenderer {
 
       AppResourceRepository resources = getAppResources();
       // TODO: b/22927607
-      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
       if (androidModel != null) {
         assert facet.requiresAndroidModel();
         AndroidProject androidProject = androidModel.getAndroidProject();

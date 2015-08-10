@@ -24,7 +24,7 @@ import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.model.AndroidModel;
@@ -402,7 +402,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @NonNull
   public ResourceVisibilityLookup getResourceVisibility(@NonNull AndroidFacet facet) {
     // TODO: b/23032391
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
     if (androidModel != null) {
       ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
       if (provider != null) {
@@ -429,7 +429,7 @@ public class AppResourceRepository extends MultiResourceRepository {
         return false;
       }
       // TODO: b/23032391
-      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
+      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
       if (androidModel == null) {
         // normally doesn't happen since we check in getResourceVisibility,
         // but can be triggered during a sync (b/22523040)

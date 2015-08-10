@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.layout;
 
 import com.android.sdklib.repository.FullRevision;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
@@ -405,7 +405,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     @SuppressWarnings("ConstantConditions")
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
-    IdeaAndroidProject androidModel = projectFrame.getAndroidModel("app");
+    AndroidGradleModel androidModel = projectFrame.getAndroidModel("app");
     String modelVersion = androidModel.getAndroidProject().getModelVersion();
     assertNotNull(modelVersion);
     FullRevision version = FullRevision.parseRevision(modelVersion);

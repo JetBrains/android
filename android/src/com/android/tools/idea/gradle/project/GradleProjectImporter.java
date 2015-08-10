@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -598,7 +598,7 @@ public class GradleProjectImporter {
 
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null) {
-        DataNode<IdeaAndroidProject> androidDataNode = find(cache, IDE_ANDROID_PROJECT);
+        DataNode<AndroidGradleModel> androidDataNode = find(cache, IDE_ANDROID_MODEL);
         if (androidDataNode == null) {
           return true;
         }

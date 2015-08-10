@@ -8,7 +8,7 @@ import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.AarResourceClassRegistry;
@@ -183,7 +183,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
         // Try a bit harder; we don't have a compiler module extension or mechanism
         // to query this yet, so just hardcode it (ugh!)
         // TODO: b/22597804
-        IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+        AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
         if (androidModel != null) {
           Variant variant = androidModel.getSelectedVariant();
           String variantName = variant.getName();

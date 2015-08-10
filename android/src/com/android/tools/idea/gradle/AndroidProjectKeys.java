@@ -35,11 +35,11 @@ public class AndroidProjectKeys {
   @NotNull public static final Key<IdeaGradleProject> IDE_GRADLE_PROJECT =
     Key.create(IdeaGradleProject.class, ProjectKeys.PROJECT.getProcessingWeight() + 5);
 
-  @NotNull public static final Key<IdeaAndroidProject> IDE_ANDROID_PROJECT =
-    Key.create(IdeaAndroidProject.class, IDE_GRADLE_PROJECT.getProcessingWeight() + 10);
+  @NotNull public static final Key<AndroidGradleModel> IDE_ANDROID_MODEL =
+    Key.create(AndroidGradleModel.class, IDE_GRADLE_PROJECT.getProcessingWeight() + 10);
 
   @NotNull public static final Key<IdeaJavaProject> IDE_JAVA_PROJECT =
-    Key.create(IdeaJavaProject.class, IDE_ANDROID_PROJECT.getProcessingWeight() + 10);
+    Key.create(IdeaJavaProject.class, IDE_ANDROID_MODEL.getProcessingWeight() + 10);
 
   @NotNull public static final Key<ImportedModule> IMPORTED_MODULE =
     Key.create(ImportedModule.class, IDE_JAVA_PROJECT.getProcessingWeight() + 10);

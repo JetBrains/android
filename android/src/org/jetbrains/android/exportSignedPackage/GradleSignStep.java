@@ -16,7 +16,7 @@
 package org.jetbrains.android.exportSignedPackage;
 
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
@@ -54,7 +54,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   private final DefaultListModel myFlavorsListModel = new DefaultListModel();
   private final DefaultComboBoxModel myBuildTypeComboModel = new DefaultComboBoxModel();
 
-  private IdeaAndroidProject myAndroidModel;
+  private AndroidGradleModel myAndroidModel;
 
   public GradleSignStep(@NotNull ExportSignedPackageWizard exportSignedPackageWizard) {
     myWizard = exportSignedPackageWizard;
@@ -68,7 +68,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
   @Override
   public void _init() {
-    myAndroidModel = IdeaAndroidProject.getGradleModel(myWizard.getFacet());
+    myAndroidModel = AndroidGradleModel.get(myWizard.getFacet());
 
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
     String lastSelectedBuildType = properties.getValue(PROPERTY_BUILD_TYPE);

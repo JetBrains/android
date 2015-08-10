@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.subset;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -63,7 +63,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_ANDROID_PROJECT;
+import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_ANDROID_MODEL;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_GRADLE_PROJECT;
 import static com.intellij.icons.AllIcons.Nodes.PpJdk;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
@@ -661,11 +661,11 @@ public class ModulesToImportDialog extends DialogWrapper {
 
     @NotNull
     private static Icon getModuleIcon(@NotNull DataNode<ModuleData> module) {
-      Collection<DataNode<IdeaAndroidProject>> children = getChildren(module, IDE_ANDROID_PROJECT);
+      Collection<DataNode<AndroidGradleModel>> children = getChildren(module, IDE_ANDROID_MODEL);
       if (!children.isEmpty()) {
-        DataNode<IdeaAndroidProject> child = getFirstItem(children);
+        DataNode<AndroidGradleModel> child = getFirstItem(children);
         if (child != null) {
-          IdeaAndroidProject androidModel = child.getData();
+          AndroidGradleModel androidModel = child.getData();
           return androidModel.getAndroidProject().isLibrary() ? LibraryModule : AppModule;
         }
       }
