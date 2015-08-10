@@ -23,6 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class AtomPath extends Path {
+  @Override
+  public StringBuilder stringPath(StringBuilder builder) {
+    return myAtoms.stringPath(builder).append("[").append(myIndex).append("]");
+  }
+
   public StatePath stateAfter() {
     return new StatePath ().setAfter(this);
   }

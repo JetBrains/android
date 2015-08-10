@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
+import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.controllers.*;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomNode;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.HierarchyNode;
 import com.android.tools.idea.editors.gfxtrace.renderers.ScrubberCellRenderer;
+import com.android.tools.idea.editors.gfxtrace.service.Factory;
 import com.android.tools.idea.editors.gfxtrace.service.Schema;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClientCache;
@@ -28,12 +30,9 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.AtomMetadata;
 import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
-import com.android.tools.rpclib.binary.Namespace;
+import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.*;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.*;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.diagnostic.Logger;
@@ -62,7 +61,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
 public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, ScrubberCellRenderer.DimensionChangeListener {
@@ -79,7 +77,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
 
   @NotNull private final Project myProject;
   @NotNull private final GfxTraceViewPanel myView;
-  @NotNull private final ListeningExecutorService myService = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+  @NotNull private final ListeningExecutorService myExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
   private Process myServerProcess;
   private Socket myServerSocket;
   @NotNull private ServiceClient myClient;
@@ -100,13 +98,14 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
 
     try {
       if (connectToServer()) {
-        ServiceClient rpcClient = new ServiceClientRPC(myService , myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
+        ServiceClient rpcClient = new ServiceClientRPC(myExecutor , myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
         myClient = new ServiceClientCache(rpcClient);
 
         // prefetch the schema
-        Futures.addCallback(myClient.getSchema(), new FutureCallback<Schema>() {
+        final ListenableFuture<Schema> schemaF = myClient.getSchema();
+        Futures.addCallback(schemaF, new LoadingCallback<Schema>(LOG, null) {
           @Override
-          public void onSuccess(Schema schema) {
+          public void onSuccess(@Nullable final Schema schema) {
             LOG.warn("Schema with " + schema.getClasses().length + " classes, " + schema.getConstants().length + " constant sets");
             int atoms = 0;
             for (SchemaClass type : schema.getClasses()) {
@@ -118,36 +117,23 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
             }
             LOG.warn("Schema with " + atoms + " atoms");
           }
-
-          @Override
-          public void onFailure(Throwable t) {
-            LOG.error(t);
-          }
         });
-
         // Upload the trace file
         byte[] data = file.contentsToByteArray();
         LOG.warn("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
-        Futures.addCallback(myClient.importCapture(file.getPresentableName(), data), new FutureCallback<CapturePath>() {
+        final ListenableFuture<CapturePath> captureF = myClient.importCapture(file.getPresentableName(), data);
+        // When both steps are complete, activate the capture path
+        Futures.addCallback(Futures.allAsList(schemaF, captureF), new LoadingCallback<List<BinaryObject>>(LOG, null) {
           @Override
-          public void onSuccess(CapturePath path) {
+          public void onSuccess(@Nullable final List<BinaryObject> all) {
+            CapturePath path = (CapturePath)all.get(1);
             LOG.warn("Capture uploaded");
-            // block on the schema before we activate the new capture
-            try {
-              myClient.getSchema().get();
-              if (path != null) {
-                activatePath(path);
-              } else {
-                LOG.error("Invalid capture file "+ file.getPresentableName());
-              }
+            if (path != null) {
+              activatePath(path);
             }
-            catch (InterruptedException e) {}
-            catch (ExecutionException e) {}
-          }
-
-          @Override
-          public void onFailure(Throwable t) {
-            LOG.error(t);
+            else {
+              LOG.error("Invalid capture file " + file.getPresentableName());
+            }
           }
         });
 
@@ -261,8 +247,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
   }
 
   @NotNull
-  public ListeningExecutorService getService() {
-    return myService;
+  public ListeningExecutorService getExecutor() {
+    return myExecutor;
   }
 
   @Override
@@ -281,7 +267,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
       myServerProcess.destroy();
     }
 
-    myService.shutdown();
+    myExecutor.shutdown();
   }
 
   private void sleepThread(int milliseconds) {
@@ -304,7 +290,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
    * @return true if a connection to the server was established.
    */
   private boolean connectToServer() {
-    com.android.tools.idea.editors.gfxtrace.service.Factory.register();
+    Factory.register();
     myServerSocket = null;
     try {
       // Try to connect to an existing server.
@@ -365,9 +351,15 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
   }
 
   public void activatePath(@NotNull final Path path) {
-    for (PathListener listener : myPathListeners) {
-      listener.notifyPath(path);
-    }
+    // All path notifications are executed in the editor thread
+    EdtExecutor.INSTANCE.execute(new Runnable() {
+      @Override
+      public void run() {
+        for (PathListener listener : myPathListeners) {
+          listener.notifyPath(path);
+        }
+      }
+    });
   }
 
   public void addPathListener(@NotNull PathListener listener) {
@@ -384,44 +376,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
    * This transitively establishes scrubber->framebuffer/memory/state/etc... controls.
    */
   private void establishInterViewControls() {
-    myAtomController.getTree().addTreeSelectionListener(new TreeSelectionListener() {
-      @Override
-      public void valueChanged(TreeSelectionEvent treeSelectionEvent) {
-        if (treeSelectionEvent.isAddedPath()) {
-          Object[] pathObjects = treeSelectionEvent.getPath().getPath();
-          assert (pathObjects.length >= 2); // The root is hidden, so the user should always select something at least 2 levels deep.
-          assert (pathObjects[1] instanceof DefaultMutableTreeNode);
-
-          Object userObject = ((DefaultMutableTreeNode)pathObjects[1]).getUserObject();
-          assert (userObject instanceof HierarchyNode);
-          HierarchyNode node = (HierarchyNode)userObject;
-
-          // TODO: convert to atom path and then select it
-          return;
-        }
-
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)myAtomController.getTree().getLastSelectedPathComponent();
-
-        if (node == null) { // This could happen when user collapses a node.
-          return;
-        }
-
-        Object userObject = node.getUserObject();
-        assert (userObject instanceof HierarchyNode || userObject instanceof AtomNode);
-
-        long atomIndex;
-        if (userObject instanceof HierarchyNode) {
-          HierarchyNode hierarchyNode = (HierarchyNode)userObject;
-          atomIndex = hierarchyNode.getRepresentativeAtomIndex();
-        }
-        else {
-          AtomNode atomNode = (AtomNode)userObject;
-          atomIndex = atomNode.getRepresentativeAtomIndex();
-        }
-        // TODO: convert to atom path and then activate it
-      }
-    });
-
     // Establish scrubber->atom tree controls.
     myView.getScrubberList().addListSelectionListener(new ListSelectionListener() {
       @Override

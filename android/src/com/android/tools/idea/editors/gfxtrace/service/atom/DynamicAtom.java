@@ -20,26 +20,46 @@ import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class Atom {
-  public static Atom wrap(BinaryObject object) {
-    if (object instanceof Dynamic) {
-      return new DynamicAtom((Dynamic)object);
-    }
-    return (Atom)object;
+public class DynamicAtom extends Atom {
+  private final Dynamic myValue;
+
+  public DynamicAtom(Dynamic value) {
+    myValue = value;
   }
 
   @NotNull
-  public abstract BinaryObject unwrap();
+  @Override
+  public BinaryObject unwrap() {
+    return myValue;
+  }
 
-  public abstract String getName();
+  @Override
+  public String getName() {
+    return myValue.type().getName();
+  }
 
-  public abstract int getFieldCount();
+  @Override
+  public int getFieldCount() {
+    return 0;
+  }
 
-  public abstract Field getFieldInfo(int index);
+  @Override
+  public Field getFieldInfo(int index) {
+    return null;
+  }
 
-  public abstract Object getFieldValue(int index);
+  @Override
+  public Object getFieldValue(int index) {
+    return null;
+  }
 
-  public abstract Observations getObservations();
+  @Override
+  public Observations getObservations() {
+    return null;
+  }
 
-  public abstract boolean getIsEndOfFrame();
+  @Override
+  public boolean getIsEndOfFrame() {
+    return false;
+  }
 }
