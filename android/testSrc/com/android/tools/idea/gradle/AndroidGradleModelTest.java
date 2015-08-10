@@ -18,24 +18,26 @@ import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.*;
 
+import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
+
 /**
- * Tests for {@link IdeaAndroidProject}.
+ * Tests for {@link AndroidGradleModel}.
  */
-public class IdeaAndroidProjectTest extends AndroidGradleTestCase {
+public class AndroidGradleModelTest extends AndroidGradleTestCase {
   private AndroidProjectStub myAndroidProject;
-  private IdeaAndroidProject myAndroidModel;
+  private AndroidGradleModel myAndroidModel;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     File rootDirPath = new File(getProject().getBasePath());
     myAndroidProject = TestProjects.createFlavorsProject();
-    myAndroidModel = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDirPath, myAndroidProject, "f1fa-debug",
-                                            AndroidProject.ARTIFACT_ANDROID_TEST);
+    myAndroidModel = new AndroidGradleModel(SYSTEM_ID, myAndroidProject.getName(), rootDirPath, myAndroidProject, "f1fa-debug",
+                                            ARTIFACT_ANDROID_TEST);
   }
 
   public void testFindBuildType() throws Exception {
@@ -73,7 +75,7 @@ public class IdeaAndroidProjectTest extends AndroidGradleTestCase {
 
     loadProject("projects/projectWithAppandLib");
 
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myAndroidFacet);
+    AndroidGradleModel androidModel = AndroidGradleModel.get(myAndroidFacet);
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     ObjectOutputStream oos;
@@ -83,7 +85,7 @@ public class IdeaAndroidProjectTest extends AndroidGradleTestCase {
 
     ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
     ObjectInputStream ois = new ObjectInputStream(inputStream);
-    IdeaAndroidProject newAndroidModel = (IdeaAndroidProject)ois.readObject();
+    AndroidGradleModel newAndroidModel = (AndroidGradleModel)ois.readObject();
     ois.close();
 
     assertEquals(androidModel.getProjectSystemId(), newAndroidModel.getProjectSystemId());

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dependency;
 
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -34,10 +34,10 @@ import java.util.List;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 
 /**
- * Tests for {@link Dependency#extractFrom(com.android.tools.idea.gradle.IdeaAndroidProject)}.
+ * Tests for {@link Dependency#extractFrom(AndroidGradleModel)}.
  */
 public class ExtractAndroidDependenciesTest extends IdeaTestCase {
-  private IdeaAndroidProject myAndroidModel;
+  private AndroidGradleModel myAndroidModel;
   private AndroidProjectStub myAndroidProject;
   private VariantStub myVariant;
 
@@ -49,7 +49,7 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     assertNotNull(myVariant);
 
     File rootDir = myAndroidProject.getRootDir();
-    myAndroidModel = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
+    myAndroidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
                                             myVariant.getName(), ARTIFACT_ANDROID_TEST);
   }
 

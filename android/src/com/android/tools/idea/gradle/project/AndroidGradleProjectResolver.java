@@ -144,9 +144,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         androidProjectWithoutVariants = true;
       }
       else {
-        IdeaAndroidProject androidModel = new IdeaAndroidProject(GRADLE_SYSTEM_ID, gradleModule.getName(), moduleRootDirPath,
+        AndroidGradleModel androidModel = new AndroidGradleModel(GRADLE_SYSTEM_ID, gradleModule.getName(), moduleRootDirPath,
                                                                  androidProject, selectedVariant.getName(), DEFAULT_TEST_ARTIFACT);
-        ideModule.createChild(IDE_ANDROID_PROJECT, androidModel);
+        ideModule.createChild(IDE_ANDROID_MODEL, androidModel);
       }
     }
 

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.variant.profiles;
 
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.google.common.base.Joiner;
@@ -186,7 +186,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
       CheckedTreeNode moduleNode = new FilterAwareCheckedTreeNode(moduleElement);
       rootNode.add(moduleNode);
 
-      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(module);
+      AndroidGradleModel androidModel = AndroidGradleModel.get(module);
       if (androidModel == null) {
         continue;
       }

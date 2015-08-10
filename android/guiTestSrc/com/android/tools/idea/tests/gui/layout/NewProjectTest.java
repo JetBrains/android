@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.layout;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ApiVersion;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -56,7 +56,7 @@ public class NewProjectTest extends GuiTestCase {
 
     // Verify state of project
     projectFrame.requireModuleCount(2);
-    IdeaAndroidProject appAndroidModel = projectFrame.getAndroidProjectForModule("app");
+    AndroidGradleModel appAndroidModel = projectFrame.getAndroidProjectForModule("app");
     assertThat(appAndroidModel.getVariantNames()).as("variants").containsOnly("debug", "release");
     assertThat(appAndroidModel.getSelectedVariant().getName()).as("selected variant").isEqualTo("debug");
 
@@ -143,7 +143,7 @@ public class NewProjectTest extends GuiTestCase {
     // "20+" here should change to 21 as soon as L goes out of preview state
     IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("21").create();
 
-    IdeaAndroidProject appAndroidModel = projectFrame.getAndroidProjectForModule("app");
+    AndroidGradleModel appAndroidModel = projectFrame.getAndroidProjectForModule("app");
     AndroidProject model = appAndroidModel.getAndroidProject();
     ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
     assertNotNull("minSdkVersion", minSdkVersion);

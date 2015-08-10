@@ -15,11 +15,9 @@
  */
 package org.jetbrains.android.spellchecker;
 
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -49,6 +47,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
 /**
  * @author Eugene.Kudelevsky
@@ -174,10 +174,10 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
         VirtualFile virtualFile = file.getVirtualFile();
         if (facet != null && facet.requiresAndroidModel() && virtualFile != null) {
           // TODO: b/23033481
-          IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+          AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
           if (androidModel != null) {
-            VirtualFile buildFolder = VfsUtil.findFileByIoFile(androidModel.getAndroidProject().getBuildFolder(), false);
-            if (buildFolder != null && VfsUtilCore.isAncestor(buildFolder, virtualFile, false)) {
+            VirtualFile buildFolder = findFileByIoFile(androidModel.getAndroidProject().getBuildFolder(), false);
+            if (buildFolder != null && isAncestor(buildFolder, virtualFile, false)) {
               return false;
             }
           }

@@ -40,7 +40,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_ANDROID_PROJECT;
+import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_ANDROID_MODEL;
 import static com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer.EXCLUDED_OUTPUT_FOLDER_NAMES;
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
@@ -50,10 +50,10 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
-public class IdeaAndroidProject implements AndroidModel, Serializable {
+public class AndroidGradleModel implements AndroidModel, Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private static final Logger LOG = Logger.getInstance(IdeaAndroidProject.class);
+  private static final Logger LOG = Logger.getInstance(AndroidGradleModel.class);
 
   @NotNull private ProjectSystemId myProjectSystemId;
   @NotNull private String myModuleName;
@@ -81,7 +81,7 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
   @NotNull private Set<File> myExtraGeneratedSourceFolders = Sets.newHashSet();
 
   /**
-   * Creates a new {@link IdeaAndroidProject}.
+   * Creates a new {@link AndroidGradleModel}.
    *
    * @param projectSystemId     the external system used to build the project (e.g. Gradle).
    * @param moduleName          the name of the IDEA module, created from {@code delegate}.
@@ -89,7 +89,7 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
    * @param androidProject      imported Android-Gradle project.
    * @param selectedVariantName name of the selected build variant.
    */
-  public IdeaAndroidProject(@NotNull ProjectSystemId projectSystemId,
+  public AndroidGradleModel(@NotNull ProjectSystemId projectSystemId,
                             @NotNull String moduleName,
                             @NotNull File rootDirPath,
                             @NotNull AndroidProject androidProject,
@@ -650,7 +650,7 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
     try {
       modelVersion = FullRevision.parseRevision(original);
     } catch (NumberFormatException e) {
-      Logger.getInstance(IdeaAndroidProject.class).warn("Failed to parse '" + original + "'", e);
+      Logger.getInstance(AndroidGradleModel.class).warn("Failed to parse '" + original + "'", e);
       return false;
     }
     return modelVersion.compareTo(FullRevision.parseRevision("1.1.0")) >= 0;
@@ -763,7 +763,7 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
 
     public void updateSelectedVariantIn(@NotNull DataNode<ModuleData> moduleNode) {
       if (variant != null) {
-        DataNode<IdeaAndroidProject> androidProjectNode = find(moduleNode, IDE_ANDROID_PROJECT);
+        DataNode<AndroidGradleModel> androidProjectNode = find(moduleNode, IDE_ANDROID_MODEL);
         if (androidProjectNode != null) {
           androidProjectNode.getData().setSelectedVariantName(variant.getName());
         }
@@ -816,23 +816,20 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
   }
 
   @Nullable
-  public static IdeaAndroidProject getGradleModel(@NotNull Module module) {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet == null) {
-      return null;
-    }
-    return getGradleModel(androidFacet);
+  public static AndroidGradleModel get(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return facet != null ? get(facet) : null;
   }
 
   @Nullable
-  public static IdeaAndroidProject getGradleModel(@NotNull AndroidFacet androidFacet) {
+  public static AndroidGradleModel get(@NotNull AndroidFacet androidFacet) {
     AndroidModel androidModel = androidFacet.getAndroidModel();
     if (androidModel == null) {
       return null;
     }
-    if (!(androidModel instanceof IdeaAndroidProject)) {
+    if (!(androidModel instanceof AndroidGradleModel)) {
       return null;
     }
-    return ((IdeaAndroidProject) androidModel);
+    return ((AndroidGradleModel) androidModel);
   }
 }

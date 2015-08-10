@@ -25,8 +25,8 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
@@ -550,7 +550,7 @@ public class PostProjectSetupTasksExecutor {
           }
         }
 
-        IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(androidFacet);
+        AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
         if (checkJdkVersion && !hasCorrectJdkVersion(module, androidModel)) {
           // we already displayed the error, no need to check each module.
           checkJdkVersion = false;

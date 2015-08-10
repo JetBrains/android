@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.subset;
 
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.IdeaAndroidProject.SourceFileContainerInfo;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.AndroidGradleModel.SourceFileContainerInfo;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
@@ -186,9 +186,9 @@ public final class ProjectSubset {
    */
   @Nullable
   private static ModuleSearchResult containsSourceFile(@NotNull DataNode<ModuleData> moduleNode, @NotNull File file, boolean selected) {
-    DataNode<IdeaAndroidProject> androidProjectNode = find(moduleNode, IDE_ANDROID_PROJECT);
+    DataNode<AndroidGradleModel> androidProjectNode = find(moduleNode, IDE_ANDROID_MODEL);
     if (androidProjectNode != null) {
-      IdeaAndroidProject androidModel = androidProjectNode.getData();
+      AndroidGradleModel androidModel = androidProjectNode.getData();
       SourceFileContainerInfo result = androidModel.containsSourceFile(file);
       if (result != null) {
         return new ModuleSearchResult(moduleNode, result, selected);

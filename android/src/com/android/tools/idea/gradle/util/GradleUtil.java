@@ -21,7 +21,7 @@ import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.PreciseRevision;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
@@ -67,7 +67,6 @@ import org.gradle.StartParameter;
 import org.gradle.wrapper.PathAssembler;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -227,7 +226,7 @@ public final class GradleUtil {
 
   @Nullable
   public static AndroidProject getAndroidProject(@NotNull Module module) {
-    IdeaAndroidProject gradleModel = IdeaAndroidProject.getGradleModel(module);
+    AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
     return gradleModel != null ? gradleModel.getAndroidProject() : null;
   }
 
@@ -265,7 +264,7 @@ public final class GradleUtil {
    */
   @NotNull
   public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant,
-                                                                  @NotNull IdeaAndroidProject androidModel) {
+                                                                  @NotNull AndroidGradleModel androidModel) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
     libraries.addAll(variant.getMainArtifact().getDependencies().getLibraries());
     BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(variant);
@@ -1272,7 +1271,7 @@ public final class GradleUtil {
    * @param artifact     the artifact
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
-  public static boolean dependsOn(@NonNull IdeaAndroidProject androidModel, @NonNull String artifact) {
+  public static boolean dependsOn(@NonNull AndroidGradleModel androidModel, @NonNull String artifact) {
     Dependencies dependencies = androidModel.getMainArtifact().getDependencies();
     return dependsOn(dependencies, artifact);
   }

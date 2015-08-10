@@ -17,7 +17,6 @@ package com.android.tools.idea.npw;
 
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
@@ -455,7 +454,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     }
     // Read minSdkVersion and package from manifest and/or build.gradle files
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
-    AndroidModel androidModel = IdeaAndroidProject.getGradleModel(facet);
+    AndroidModel androidModel = facet.getAndroidModel();
 
     SourceProvider sourceProvider1 = myState.get(KEY_SOURCE_PROVIDER);
     if (sourceProvider1 != null && androidModel != null) {
