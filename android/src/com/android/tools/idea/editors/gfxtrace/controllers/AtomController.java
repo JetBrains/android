@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomNode;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomTreeNode;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.HierarchyNode;
@@ -26,7 +27,6 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.binary.BinaryObject;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
@@ -186,7 +186,7 @@ public class AtomController implements PathListener {
       myLoadingPanel.startLoading();
       final ListenableFuture<AtomList> atomF = myEditor.getClient().get(capture.atoms());
       final ListenableFuture<AtomGroup> hierarchyF = myEditor.getClient().get(capture.hierarchy());
-      Futures.addCallback(Futures.allAsList(atomF, hierarchyF), new FutureCallback<java.util.List<BinaryObject>>() {
+      Futures.addCallback(Futures.allAsList(atomF, hierarchyF), new LoadingCallback<java.util.List<BinaryObject>>(LOG, myLoadingPanel) {
         @Override
         public void onSuccess(@Nullable final java.util.List<BinaryObject> all) {
           myLoadingPanel.stopLoading();
@@ -203,12 +203,6 @@ public class AtomController implements PathListener {
               populateUi(root, atoms);
             }
           });
-        }
-
-        @Override
-        public void onFailure(Throwable t) {
-          myLoadingPanel.stopLoading();
-          LOG.error(t);
         }
       });
     }

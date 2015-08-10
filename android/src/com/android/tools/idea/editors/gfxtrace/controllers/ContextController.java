@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.Capture;
 import com.android.tools.idea.editors.gfxtrace.service.Device;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
@@ -137,14 +138,14 @@ public class ContextController implements PathListener {
       }
     });
 
-    Futures.addCallback(myEditor.getClient().getCaptures(), new FutureCallback<CapturePath[]>() {
+    Futures.addCallback(myEditor.getClient().getCaptures(), new LoadingCallback<CapturePath[]>(LOG, null) {
       @Override
       public void onSuccess(@Nullable final CapturePath[] paths) {
         final ListenableFuture<Capture>[] futures = new ListenableFuture[paths.length];
         for (int i = 0; i < paths.length; i++) {
           futures[i] = myEditor.getClient().get(paths[i]);
         }
-        Futures.addCallback(Futures.allAsList(futures), new FutureCallback<List<Capture>>() {
+        Futures.addCallback(Futures.allAsList(futures), new LoadingCallback<List<Capture>>(LOG, null) {
           @Override
           public void onSuccess(@Nullable final List<Capture> captures) {
             EdtExecutor.INSTANCE.execute(new Runnable() {
@@ -160,28 +161,18 @@ public class ContextController implements PathListener {
               }
             });
           }
-
-          @Override
-          public void onFailure(Throwable t) {
-            LOG.error(t);
-          }
         });
-      }
-
-      @Override
-      public void onFailure(Throwable t) {
-        LOG.error(t);
       }
     });
 
-    Futures.addCallback(myEditor.getClient().getDevices(), new FutureCallback<DevicePath[]>() {
+    Futures.addCallback(myEditor.getClient().getDevices(), new LoadingCallback<DevicePath[]>(LOG, null) {
       @Override
       public void onSuccess(@Nullable final DevicePath[] paths) {
         final ListenableFuture<Device>[] futures = new ListenableFuture[paths.length];
         for (int i = 0; i < paths.length; i++) {
           futures[i] = myEditor.getClient().get(paths[i]);
         }
-        Futures.addCallback(Futures.allAsList(futures), new FutureCallback<List<Device>>() {
+        Futures.addCallback(Futures.allAsList(futures), new LoadingCallback<List<Device>>(LOG, null) {
           @Override
           public void onSuccess(@Nullable final List<Device> devices) {
             EdtExecutor.INSTANCE.execute(new Runnable() {
@@ -197,17 +188,7 @@ public class ContextController implements PathListener {
               }
             });
           }
-
-          @Override
-          public void onFailure(Throwable t) {
-            LOG.error(t);
-          }
         });
-      }
-
-      @Override
-      public void onFailure(Throwable t) {
-        LOG.error(t);
       }
     });
   }
