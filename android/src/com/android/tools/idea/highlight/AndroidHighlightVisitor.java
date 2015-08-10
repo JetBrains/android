@@ -16,7 +16,7 @@
 package com.android.tools.idea.highlight;
 
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.quickfix.GradleIncreaseLanguageLevelFix;
+import com.android.tools.idea.gradle.quickfix.GradleIncreaseLanguageLevelFix;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.HighlightVisitor;
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder;
