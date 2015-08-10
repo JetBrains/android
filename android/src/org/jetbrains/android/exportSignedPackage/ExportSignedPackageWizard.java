@@ -20,7 +20,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.sdklib.BuildToolInfo;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -168,8 +168,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         }
         String gradleProjectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
 
-        // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
-        IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
+        // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+        AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
         if (androidModel == null) {
           LOG.error("Unable to obtain Android project model. Did the last Gradle sync complete successfully?");
           return;

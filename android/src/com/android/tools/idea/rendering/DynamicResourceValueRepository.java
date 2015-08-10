@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.collect.ArrayListMultimap;
@@ -58,7 +58,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository impl
   protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
     if (mItems.isEmpty()) {
       // TODO: b/23032391
-      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
+      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
       if (androidModel == null) {
         return mItems;
       }

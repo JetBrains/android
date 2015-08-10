@@ -22,7 +22,7 @@ import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.SplitOutputMatcher;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -57,9 +57,9 @@ public class GradleApkProvider implements ApkProvider {
   @Override
   @NotNull
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
-    assert androidModel != null; // This is a Gradle project, there must be an IdeaAndroidProject.
+    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+    AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+    assert androidModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
     Variant selectedVariant = androidModel.getSelectedVariant();
 
     List<ApkInfo> apkList = new ArrayList<ApkInfo>();
@@ -95,9 +95,9 @@ public class GradleApkProvider implements ApkProvider {
 
   @Override
   public String getTestPackageName() throws ApkProvisionException {
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
-    assert androidModel != null; // This is a Gradle project, there must be an IdeaAndroidProject.
+    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+    AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+    assert androidModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
     // In the case of Gradle projects, either the merged flavor provides a test package name,
     // or we just append ".test" to the source package name
     Variant selectedVariant = androidModel.getSelectedVariant();

@@ -23,7 +23,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.google.common.base.Predicate;
 
 import com.android.tools.idea.gradle.util.Projects;
@@ -91,8 +91,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
     }
 
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
     if (androidModel == null) {
       return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
     }
@@ -301,8 +301,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public static String findInstrumentationRunner(@NotNull AndroidFacet facet) {
     String runner = getRunnerFromManifest(facet);
 
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
     if (runner == null && androidModel != null) {
       Variant selectedVariant = androidModel.getSelectedVariant();
       String testRunner = selectedVariant.getMergedFlavor().getTestInstrumentationRunner();

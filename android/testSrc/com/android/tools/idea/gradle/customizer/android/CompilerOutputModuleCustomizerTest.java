@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -54,7 +54,7 @@ public class CompilerOutputModuleCustomizerTest extends IdeaTestCase {
 
   public void testCustomizeModule() {
     File rootDir = androidProject.getRootDir();
-    IdeaAndroidProject androidModel = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myModule.getName(), rootDir, androidProject,
+    AndroidGradleModel androidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myModule.getName(), rootDir, androidProject,
                                                              "debug", AndroidProject.ARTIFACT_ANDROID_TEST);
     String compilerOutputPath = "";
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);

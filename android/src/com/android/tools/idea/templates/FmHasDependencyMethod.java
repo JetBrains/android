@@ -16,7 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -77,7 +77,7 @@ public class FmHasDependencyMethod implements TemplateMethodModelEx {
             AndroidFacet facet = AndroidFacet.getInstance(module);
             if (facet != null) {
               // TODO: b/23032990
-              IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+              AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
               if (androidModel != null) {
                 return GradleUtil.dependsOn(androidModel, artifact) ? TemplateBooleanModel.TRUE : TemplateBooleanModel.FALSE;
               }

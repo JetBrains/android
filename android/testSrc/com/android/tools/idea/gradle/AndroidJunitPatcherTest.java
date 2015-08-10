@@ -96,7 +96,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     myAndroidProject = TestProjects.createBasicProject();
     VariantStub variant = myAndroidProject.getFirstVariant();
     assertNotNull(variant);
-    IdeaAndroidProject androidModel = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(),
+    AndroidGradleModel androidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myAndroidProject.getName(),
                                                              myAndroidProject.getRootDir(), myAndroidProject, variant.getName(),
                                                              AndroidProject.ARTIFACT_UNIT_TEST);
     myFacet.setAndroidModel(androidModel);
@@ -151,7 +151,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   public void testMultipleMockableJars_newModel() throws Exception {
     myJavaParameters.getClassPath().remove(myMockableAndroidJar);
 
-    JavaArtifactStub artifact = (JavaArtifactStub)IdeaAndroidProject.getGradleModel(myFacet).findSelectedTestArtifactInSelectedVariant();
+    JavaArtifactStub artifact = (JavaArtifactStub)AndroidGradleModel.get(myFacet).findSelectedTestArtifactInSelectedVariant();
     artifact.setMockablePlatformJar(new File(myMockableAndroidJar));
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
 
