@@ -333,6 +333,16 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
 
   @Nullable
   @Override
+  public AndroidVersion getRuntimeMinSdkVersion() {
+    ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+    if (minSdkVersion != null) {
+      return new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename());
+    }
+    return null;
+  }
+
+  @Nullable
+  @Override
   public AndroidVersion getTargetSdkVersion() {
     ApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
       if (targetSdkVersion != null) {
@@ -420,6 +430,7 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
    * @return the root directory of the imported Android-Gradle project. The returned path belongs to the IDEA module containing the
    * build.gradle file.
    */
+  @Override
   @NotNull
   public VirtualFile getRootDir() {
     if (myRootDir == null) {
