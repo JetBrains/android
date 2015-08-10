@@ -23,6 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class TimingInfoPath extends Path {
+  @Override
+  public StringBuilder stringPath(StringBuilder builder) {
+    return builder.append("TimingInfo(").append(myID).append(")");
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   BinaryID myID;
 

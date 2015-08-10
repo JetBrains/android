@@ -15,37 +15,48 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomNode;
+import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomTreeNode;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.HierarchyNode;
 import com.android.tools.idea.editors.gfxtrace.renderers.AtomTreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
-import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
+import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.rpclib.binary.BinaryObject;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.ui.StatusText;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 import java.awt.*;
-import java.util.Enumeration;
+import java.awt.List;
+import java.util.*;
 
 public class AtomController implements PathListener {
+  @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   @NotNull private final GfxTraceEditor myEditor;
   @NotNull private final JBLoadingPanel myLoadingPanel;
   @NotNull private final SimpleTree myTree;
   @NotNull private final AtomTreeRenderer myAtomTreeRenderer;
   private TreeNode myAtomTreeRoot;
-
-  public AtomController(@NotNull GfxTraceEditor editor,
-                        @NotNull Project project,
-                        @NotNull JBScrollPane scrollPane) {
+  private AtomGroup myAtomGroup;
+  private AtomList myAtomList;
+  private AtomsPath myAtomsPath;
+  public AtomController(@NotNull GfxTraceEditor editor, @NotNull Project project, @NotNull JBScrollPane scrollPane) {
     myEditor = editor;
     myEditor.addPathListener(this);
     scrollPane.getHorizontalScrollBar().setUnitIncrement(20);
@@ -59,6 +70,19 @@ public class AtomController implements PathListener {
     myLoadingPanel.add(myTree);
     scrollPane.setViewportView(myLoadingPanel);
     myAtomTreeRenderer = new AtomTreeRenderer();
+    myTree.addTreeSelectionListener(new TreeSelectionListener() {
+      @Override
+      public void valueChanged(TreeSelectionEvent treeSelectionEvent) {
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)myTree.getLastSelectedPathComponent();
+        if (node == null) { // This could happen when user collapses a node.
+          return;
+        }
+        Object userObject = node.getUserObject();
+        assert(userObject instanceof AtomTreeNode);
+        myEditor.activatePath(myAtomsPath.index(((AtomTreeNode)userObject).getRepresentativeAtomIndex()));
+      }
+    });
+
   }
 
   @NotNull
@@ -105,10 +129,9 @@ public class AtomController implements PathListener {
     return myTree;
   }
 
-  public void populateUi(@NotNull AtomList atoms) {
+  public void populateUi(@NotNull TreeNode root, @NotNull AtomList atoms) {
     ApplicationManager.getApplication().assertIsDispatchThread();
-    assert (myAtomTreeRoot != null);
-
+    myAtomTreeRoot = root;
     myAtomTreeRenderer.init(atoms);
 
     myTree.setModel(new DefaultTreeModel(myAtomTreeRoot));
@@ -156,7 +179,32 @@ public class AtomController implements PathListener {
 
   @Override
   public void notifyPath(Path path) {
-    myTree.getEmptyText().setText("");
-    myLoadingPanel.startLoading();
+    if (path instanceof CapturePath) {
+      final CapturePath capture = (CapturePath)path;
+      LOG.warn(String.format("Activate capture %s", path));
+      myTree.getEmptyText().setText("");
+      myLoadingPanel.startLoading();
+      final ListenableFuture<AtomList> atomF = myEditor.getClient().get(capture.atoms());
+      final ListenableFuture<AtomGroup> hierarchyF = myEditor.getClient().get(capture.hierarchy());
+      Futures.addCallback(Futures.allAsList(atomF, hierarchyF), new LoadingCallback<java.util.List<BinaryObject>>(LOG, myLoadingPanel) {
+        @Override
+        public void onSuccess(@Nullable final java.util.List<BinaryObject> all) {
+          myLoadingPanel.stopLoading();
+          final AtomList atoms = (AtomList)all.get(0);
+          final AtomGroup group = (AtomGroup)all.get(1);
+          LOG.warn("Got " + atoms.getAtoms().length + " atoms");
+          LOG.warn("Got group " + group);
+          final TreeNode root = prepareData(group);
+          EdtExecutor.INSTANCE.execute(new Runnable() {
+            @Override
+            public void run() {
+              // Back in the UI thread here
+              myAtomsPath = capture.atoms();
+              populateUi(root, atoms);
+            }
+          });
+        }
+      });
+    }
   }
 }

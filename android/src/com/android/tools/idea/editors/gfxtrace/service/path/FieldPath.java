@@ -23,6 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class FieldPath extends Path {
+  @Override
+  public StringBuilder stringPath(StringBuilder builder) {
+    return myStruct.stringPath(builder).append(".").append(myName);
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   Path myStruct;
   String myName;
