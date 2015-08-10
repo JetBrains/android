@@ -782,6 +782,9 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   public void reload(@Nullable final String defaultThemeName, @Nullable final String defaultSubStyleName, @Nullable final String defaultModuleName) {
+    // Need to clean myHoverPreviewTheme, because we no longer "hovering".
+    myHoverPreviewTheme = null;
+
     // Unsubscribing from ResourceNotificationManager, because Module might be changed
     unsubscribeResourceNotification();
 
