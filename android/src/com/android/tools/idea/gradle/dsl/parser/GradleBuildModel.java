@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import com.android.tools.idea.gradle.dsl.parser.java.JavaProjectElementParser;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
@@ -40,16 +42,23 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
-public class GradleBuildModel {
+public class GradleBuildModel implements GradleDslElement {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
   @NotNull private final List<DependenciesElement> myDependenciesBlocks = Lists.newArrayList();
   @NotNull private final Map<String, ExtPropertyElement> myExtraProperties = Maps.newLinkedHashMap();
 
   // TODO Get the parsers from an extension point.
-  private final GradleDslElementParser[] myParsers = {new ExtPropertyElementParser(), new DependenciesElementParser()};
+  private final GradleDslElementParser[] myParsers = {
+    new ExtPropertyElementParser(), new DependenciesElementParser(), new JavaProjectElementParser()
+  };
 
-  @Nullable private PsiFile myPsiFile;
+  /**
+   * Extra DSL elements in addition to dependencies provided by extension, e.g. Java extension and Android extension.
+   */
+  private final List<GradleDslElement> myExtendedDslElements = Lists.newArrayList();
+
+  @Nullable private GroovyFile myPsiFile;
 
   @Nullable
   public static GradleBuildModel get(@NotNull Module module) {
@@ -76,34 +85,39 @@ public class GradleBuildModel {
   public void reparse() {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     reset();
-    myPsiFile = PsiManager.getInstance(myProject).findFile(myFile);
-    if (myPsiFile != null) {
-      myPsiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
-        @Override
-        public void visitMethodCallExpression(GrMethodCallExpression e) {
-          for (GradleDslElementParser parser : myParsers) {
-            // If a parser was able to parse the given PSI element, stop. Otherwise give another parser the chance to parse the PSI element.
-            if (parser.parse(e, GradleBuildModel.this)) {
-              break;
-            }
-          }
-        }
-
-        @Override
-        public void visitAssignmentExpression(GrAssignmentExpression e) {
-          for (GradleDslElementParser parser : myParsers) {
-            // If a parser was able to parse the given PSI element, stop. Otherwise give another parser the chance to parse the PSI element.
-            if (parser.parse(e, GradleBuildModel.this)) {
-              break;
-            }
-          }
-        }
-      }));
+    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(myFile);
+    if (psiFile instanceof GroovyFile) {
+      myPsiFile = (GroovyFile)psiFile;
+    } else {
+      myPsiFile = null;
+      return;
     }
+
+    myPsiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
+      @Override
+      public void visitMethodCallExpression(GrMethodCallExpression e) {
+        process(e);
+      }
+
+      @Override
+      public void visitAssignmentExpression(GrAssignmentExpression e) {
+        process(e);
+      }
+
+      void process(GroovyPsiElement e) {
+        for (GradleDslElementParser parser : myParsers) {
+          // If a parser was able to parse the given PSI element, stop. Otherwise give another parser the chance to parse the PSI element.
+          if (parser.parse(e, GradleBuildModel.this)) {
+            break;
+          }
+        }
+      }
+    }));
   }
 
   private void reset() {
     myDependenciesBlocks.clear();
+    myExtendedDslElements.clear();
   }
 
   void add(@NotNull DependenciesElement dependencies) {
@@ -129,7 +143,7 @@ public class GradleBuildModel {
    *
    * @param configurationName the name of the configuration (e.g. "compile", "compileTest", "runtime", etc.)
    * @param compactNotation the dependency in "compact" notation: "group:name:version:classifier@extension".
-   * @throws AssertionError if this method is invoked and this {@code GradleBuildFile} does not have a {@link PsiFile}.
+   * @throws AssertionError if this method is invoked and this {@code GradleBuildModel} does not have a {@link PsiFile}.
    */
   public void addExternalDependency(@NotNull String configurationName, @NotNull String compactNotation) {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
@@ -162,11 +176,38 @@ public class GradleBuildModel {
   }
 
   /**
-   * Indicates whether this {@code GradleBuildFile} has an underlying {@link PsiFile}. A {@code PsiFile} is necessary to update the contents
+   * Indicates whether this {@code GradleBuildModel} has an underlying {@link PsiFile}. A {@code PsiFile} is necessary to update the contents
    * of the build.gradle file.
-   * @return {@code true} if this {@code GradleBuildFile} has a {@code PsiFile}; {@code false} otherwise.
+   * @return {@code true} if this {@code GradleBuildModel} has a {@code PsiFile}; {@code false} otherwise.
    */
   public boolean hasPsiFile() {
     return myPsiFile != null;
+  }
+
+  @Nullable
+  public GroovyFile getPsiFile() {
+    return myPsiFile;
+  }
+
+  /**
+   * Get the DSL element provided by extension parsers (e.g. Java parser, android parser)
+   *
+   * @param clazz the type of the DSL element
+   * @return the extension data
+   */
+  @Nullable
+  public <T extends GradleDslElement> T getExtendedDslElement(@NotNull Class<T> clazz) {
+    for (GradleDslElement element : myExtendedDslElements) {
+      if (element.getClass().equals(clazz)) {
+        @SuppressWarnings("unchecked")
+        T result = (T)element;
+        return result;
+      }
+    }
+    return null;
+  }
+
+  public void addExtendedDslElement(@NotNull GradleDslElement element) {
+    myExtendedDslElements.add(element);
   }
 }

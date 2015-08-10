@@ -21,7 +21,7 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 /**
  * Parses a specific element of a build.gradle file.
  */
-interface GradleDslElementParser {
+public interface GradleDslElementParser {
   /**
    * Attempts to parse the given PSI element.
    *
