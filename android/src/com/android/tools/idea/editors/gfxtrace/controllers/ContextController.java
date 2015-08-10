@@ -218,14 +218,16 @@ public class ContextController implements PathListener {
       CapturePath capture = (CapturePath)path;
       if (mySelectedCapture != capture) {
         mySelectedCapture = capture;
-        for (int i = 0; i < myCaptures.length; i++) {
-          if (myCaptures[i].myPath.equals(mySelectedCapture)) {
-            myCapturesView.setSelectedIndex(i);
-            return;
+        if (myCaptures != null) {
+          for (int i = 0; i < myCaptures.length; i++) {
+            if (myCaptures[i].myPath.equals(mySelectedCapture)) {
+              myCapturesView.setSelectedIndex(i);
+              return;
+            }
           }
+          // capture not found
+          myCapturesView.setSelectedIndex(-1);
         }
-        // capture not found
-        myCapturesView.setSelectedIndex(-1);
       }
     }
 
@@ -233,14 +235,16 @@ public class ContextController implements PathListener {
       DevicePath device = (DevicePath)path;
       if (mySelectedDevice != device) {
         mySelectedDevice = device;
-        for (int i = 0; i < myDevices.length; i++) {
-          if (myDevices[i].myPath.equals(mySelectedDevice)) {
-            myDevicesView.setSelectedIndex(i);
-            return;
+        if (myDevices != null) {
+          for (int i = 0; i < myDevices.length; i++) {
+            if (myDevices[i].myPath.equals(mySelectedDevice)) {
+              myDevicesView.setSelectedIndex(i);
+              return;
+            }
           }
+          // device not found
+          myDevicesView.setSelectedIndex(-1);
         }
-        // device not found
-        myDevicesView.setSelectedIndex(-1);
       }
     }
   }
