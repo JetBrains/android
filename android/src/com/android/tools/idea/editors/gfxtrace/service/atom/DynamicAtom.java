@@ -21,10 +21,12 @@ import com.android.tools.rpclib.schema.Field;
 import org.jetbrains.annotations.NotNull;
 
 public class DynamicAtom extends Atom {
-  private final Dynamic myValue;
+  @NotNull private final Dynamic myValue;
+  @NotNull private final AtomMetadata myMetadata;
 
   public DynamicAtom(Dynamic value) {
     myValue = value;
+    myMetadata = AtomMetadata.find(value.type());
   }
 
   @NotNull
@@ -40,26 +42,41 @@ public class DynamicAtom extends Atom {
 
   @Override
   public int getFieldCount() {
-    return 0;
+    return myValue.getFieldCount();
   }
 
   @Override
   public Field getFieldInfo(int index) {
-    return null;
+    return myValue.getFieldInfo(index);
   }
 
   @Override
   public Object getFieldValue(int index) {
-    return null;
+    return myValue.getFieldValue(index);
+  }
+
+  @Override
+  public int getObservationsIndex() {
+    return myMetadata.myObservationsIndex;
   }
 
   @Override
   public Observations getObservations() {
+    if (myMetadata.myObservationsIndex >= 0) {
+      Object value = getFieldValue(myMetadata.myObservationsIndex);
+      assert(value instanceof Observations);
+      return (Observations)value;
+    }
     return null;
   }
 
   @Override
+  public int getResultIndex() {
+    return myMetadata.myResultIndex;
+  }
+
+  @Override
   public boolean getIsEndOfFrame() {
-    return false;
+    return myMetadata.getEndOfFrame();
   }
 }
