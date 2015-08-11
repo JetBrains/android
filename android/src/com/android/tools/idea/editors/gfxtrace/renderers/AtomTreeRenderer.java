@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-import java.util.List;
 
 /**
  * This object is the renderer for AtomTreeNodes.
@@ -53,12 +52,7 @@ public class AtomTreeRenderer extends ColoredTreeCellRenderer {
                                     boolean hasFocus) {
     assert (value != null && value instanceof DefaultMutableTreeNode);
     DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)value;
-    Object userObject = treeNode.getUserObject();
-
-    assert (userObject instanceof AtomTreeNode);
-    List<AtomTreeNode.TextPiece> textPieceList = ((AtomTreeNode)userObject).getTextPieces(tree, treeNode, myAtoms);
-    for (AtomTreeNode.TextPiece textPiece : textPieceList) {
-      append(textPiece.myString, textPiece.myTextAttributes);
-    }
+    assert (treeNode.getUserObject() instanceof AtomTreeNode);
+    ((AtomTreeNode)treeNode.getUserObject()).render(myAtoms, this);
   }
 }

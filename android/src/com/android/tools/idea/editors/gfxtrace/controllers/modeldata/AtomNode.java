@@ -19,15 +19,14 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.rpclib.schema.Field;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import javax.swing.tree.TreeNode;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AtomNode extends AtomTreeNode {
+public class AtomNode implements AtomTreeNode {
   @NotNull private static final Logger LOG = Logger.getInstance(AtomNode.class);
   private long myIndex;
 
@@ -46,35 +45,30 @@ public class AtomNode extends AtomTreeNode {
   }
 
   @Override
-  public List<TextPiece> getTextPieces(@NotNull JTree tree,
-                                       @NotNull TreeNode node,
-                                       @NotNull AtomList atoms) {
+  public void render(@NotNull AtomList atoms, @NotNull SimpleColoredComponent component) {
     Atom atom = atoms.getAtoms()[(int)myIndex];
-
-    List<TextPiece> textPieces = new ArrayList<TextPiece>();
-    textPieces.add(new TextPiece(Long.toString(myIndex) + "   ", SimpleTextAttributes.REGULAR_ATTRIBUTES));
-    textPieces.add(new TextPiece(atom.getName() + "(", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
+    component.append(Long.toString(myIndex) + "   ", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    component.append(atom.getName() + "(", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
     int resultIndex = atom.getResultIndex();
     int observationsIndex = atom.getObservationsIndex();
     boolean needComma = false;
     for (int i = 0; i < atom.getFieldCount(); ++i) {
       if (i == resultIndex || i == observationsIndex) continue;
       if (needComma) {
-        textPieces.add(new TextPiece(", ", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
+        component.append(", ", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       }
       needComma = true;
       Field field = atom.getFieldInfo(i);
       Object parameterValue = atom.getFieldValue(i);
-      textPieces.add(new TextPiece(field.getType().render(parameterValue), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES));
+      field.getType().render(parameterValue, component);
     }
 
-    textPieces.add(new TextPiece(")", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
+    component.append(")", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
     if (resultIndex >= 0) {
-      textPieces.add(new TextPiece("->", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
+      component.append("->", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       Field field = atom.getFieldInfo(resultIndex);
       Object parameterValue = atom.getFieldValue(resultIndex);
-      textPieces.add(new TextPiece(field.getType().render(parameterValue), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES));
+      field.getType().render(parameterValue, component);
     }
-    return textPieces;
   }
 }

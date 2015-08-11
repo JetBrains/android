@@ -16,28 +16,11 @@
 package com.android.tools.idea.editors.gfxtrace.controllers.modeldata;
 
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
-import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.SimpleColoredComponent;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import javax.swing.tree.TreeNode;
-import java.util.List;
-
-public abstract class AtomTreeNode {
-  public abstract List<TextPiece> getTextPieces(@NotNull JTree tree,
-                                                @NotNull TreeNode node,
-                                                @NotNull AtomList atoms);
-
-  public abstract long getRepresentativeAtomIndex();
-  public abstract boolean contains(long atomImdex);
-
-  public static class TextPiece {
-    @NotNull public String myString;
-    @NotNull public SimpleTextAttributes myTextAttributes;
-
-    public TextPiece(@NotNull String string, @NotNull SimpleTextAttributes attributes) {
-      myString = string;
-      myTextAttributes = attributes;
-    }
-  }
+public interface AtomTreeNode {
+  void render(@NotNull AtomList atoms, @NotNull SimpleColoredComponent component);
+  long getRepresentativeAtomIndex();
+  boolean contains(long atomImdex);
 }
