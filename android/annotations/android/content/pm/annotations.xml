@@ -218,6 +218,15 @@
   <item name="android.content.pm.PackageManager android.graphics.drawable.Drawable getDrawable(java.lang.String, int, android.content.pm.ApplicationInfo) 1">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>
+  <item name="android.content.pm.PackageManager boolean isPermissionRevokedByPolicy(java.lang.String, java.lang.String)">
+    <annotation name="android.support.annotation.CheckResult" />
+  </item>
+  <item name="android.content.pm.PackageManager boolean isPermissionRevokedByPolicy(java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageManager boolean isPermissionRevokedByPolicy(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.pm.PackageManager int checkPermission(java.lang.String, java.lang.String)">
     <annotation name="android.support.annotation.CheckResult" />
   </item>
