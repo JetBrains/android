@@ -32,8 +32,13 @@ import org.jetbrains.annotations.NotNull;
  * "Gradle path" of each project module. This path is necessary when setting up inter-module dependencies.
  */
 public class AndroidProjectKeys {
+  // some of android ModuleCustomizer's should be run after core external system services
+  // e.g. DependenciesModuleCustomizer - after core LibraryDependencyDataService,
+  // since android dependencies can be removed because there is no respective LibraryDependencyData in the imported data from gradle
+  private static final int PROCESSING_AFTER_BUILTIN_SERVICES = ProjectKeys.LIBRARY_DEPENDENCY.getProcessingWeight() + 1;
+
   @NotNull public static final Key<IdeaGradleProject> IDE_GRADLE_PROJECT =
-    Key.create(IdeaGradleProject.class, ProjectKeys.PROJECT.getProcessingWeight() + 5);
+    Key.create(IdeaGradleProject.class, PROCESSING_AFTER_BUILTIN_SERVICES);
 
   @NotNull public static final Key<IdeaAndroidProject> IDE_ANDROID_PROJECT =
     Key.create(IdeaAndroidProject.class, IDE_GRADLE_PROJECT.getProcessingWeight() + 10);
