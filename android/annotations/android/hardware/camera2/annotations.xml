@@ -145,6 +145,12 @@
   <item name="android.hardware.camera2.CameraCharacteristics.Key java.lang.String getName()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.hardware.camera2.CameraConstrainedHighSpeedCaptureSession java.util.List&lt;android.hardware.camera2.CaptureRequest&gt; createHighSpeedRequestList(android.hardware.camera2.CaptureRequest)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraConstrainedHighSpeedCaptureSession java.util.List&lt;android.hardware.camera2.CaptureRequest&gt; createHighSpeedRequestList(android.hardware.camera2.CaptureRequest) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.hardware.camera2.CameraDevice android.hardware.camera2.CaptureRequest.Builder createCaptureRequest(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -160,12 +166,6 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.hardware.camera2.CameraDevice java.lang.String getId()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.hardware.camera2.CameraDevice java.util.List&lt;android.hardware.camera2.CaptureRequest&gt; createConstrainedHighSpeedRequestList(android.hardware.camera2.CaptureRequest)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.hardware.camera2.CameraDevice java.util.List&lt;android.hardware.camera2.CaptureRequest&gt; createConstrainedHighSpeedRequestList(android.hardware.camera2.CaptureRequest) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.hardware.camera2.CameraDevice void createCaptureSession(java.util.List&lt;android.view.Surface&gt;, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler) 0">
