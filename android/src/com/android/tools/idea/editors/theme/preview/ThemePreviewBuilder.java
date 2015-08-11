@@ -225,7 +225,9 @@ public class ThemePreviewBuilder {
           !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_END)) {
         // Default box around every component.
         setAttribute(component, ATTR_LAYOUT_MARGIN_START, toDp(12));
+        setAttribute(component, ATTR_LAYOUT_MARGIN_LEFT, toDp(12));
         setAttribute(component, ATTR_LAYOUT_MARGIN_END, toDp(12));
+        setAttribute(component, ATTR_LAYOUT_MARGIN_RIGHT, toDp(12));
       }
 
       component.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
@@ -419,6 +421,7 @@ public class ThemePreviewBuilder {
     setAttribute(elementGroup, ATTR_ORIENTATION, group.orientation);
     setAttribute(elementGroup, ATTR_LAYOUT_CENTER_IN_PARENT, VALUE_TRUE);
     setAttribute(elementGroup, ATTR_LAYOUT_MARGIN_START, toDp(10));
+    setAttribute(elementGroup, ATTR_LAYOUT_MARGIN_LEFT, toDp(10));
     setAttribute(elementGroup, ATTR_LAYOUT_MARGIN_BOTTOM, toDp(50));
     setAttribute(elementGroup, ATTR_GRAVITY, GRAVITY_VALUE_CENTER);
     elementGroup.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
