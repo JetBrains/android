@@ -119,7 +119,7 @@ public abstract class AndroidLogcatView implements Disposable {
       return;
     }
 
-    AndroidLogcatUtil.clearLogcat(myProject, device);
+    AndroidLogcatUtils.clearLogcat(myProject, device);
 
     // In theory, we only need to clear the console. However, due to issues in the platform, clearing logcat via "logcat -c" could
     // end up blocking the current logcat readers. As a result, we need to issue a restart of the logging to work around the platform bug.
@@ -242,12 +242,12 @@ public abstract class AndroidLogcatView implements Disposable {
           @Override
           public void clientSelected(@Nullable final Client c) {
             boolean reselect = myFilterComboBoxModel.getSelectedItem() == mySelectedAppFilter;
-            AndroidConfiguredLogFilters.MyFilterEntry f;
+            AndroidConfiguredLogFilters.FilterEntry f;
             if (c != null) {
               f = AndroidConfiguredLogFilters.getInstance(myProject).createFilterForProcess(c.getClientData().getPid());
             }
             else {
-              f = new AndroidConfiguredLogFilters.MyFilterEntry();
+              f = new AndroidConfiguredLogFilters.FilterEntry();
             }
             // Replace mySelectedAppFilter
             int index = myFilterComboBoxModel.getIndexOf(mySelectedAppFilter);
@@ -264,8 +264,8 @@ public abstract class AndroidLogcatView implements Disposable {
       deviceContext.addListener(deviceSelectionListener, this);
     }
 
-    mySelectedAppFilter = ConfiguredFilter.compile(new AndroidConfiguredLogFilters.MyFilterEntry(), SELECTED_APP_FILTER);
-    myNoFilter = ConfiguredFilter.compile(new AndroidConfiguredLogFilters.MyFilterEntry(), NO_FILTERS);
+    mySelectedAppFilter = ConfiguredFilter.compile(new AndroidConfiguredLogFilters.FilterEntry(), SELECTED_APP_FILTER);
+    myNoFilter = ConfiguredFilter.compile(new AndroidConfiguredLogFilters.FilterEntry(), NO_FILTERS);
 
     JComponent consoleComponent = myLogConsole.getComponent();
 
@@ -320,7 +320,7 @@ public abstract class AndroidLogcatView implements Disposable {
               new EditLogFilterDialog(AndroidLogcatView.this, myLastSelected == null ? null : myLastSelected.getName());
             dialog.setTitle(AndroidBundle.message("android.logcat.new.filter.dialog.title"));
             if (dialog.showAndGet()) {
-              final AndroidConfiguredLogFilters.MyFilterEntry newEntry = dialog.getCustomLogFiltersEntry();
+              final AndroidConfiguredLogFilters.FilterEntry newEntry = dialog.getCustomLogFiltersEntry();
               updateFilterCombobox(newEntry != null ? newEntry.getName() : null);
             }
             else {
@@ -393,7 +393,7 @@ public abstract class AndroidLogcatView implements Disposable {
           if (console != null) {
             console.clear();
           }
-          final Pair<Reader, Writer> pair = AndroidLogcatUtil.startLoggingThread(myProject, device, false, myLogConsole);
+          final Pair<Reader, Writer> pair = AndroidLogcatUtils.startLoggingThread(myProject, device, false, myLogConsole);
           if (pair != null) {
             myCurrentReader = pair.first;
             myCurrentWriter = pair.second;
@@ -435,7 +435,7 @@ public abstract class AndroidLogcatView implements Disposable {
 
   private void updateFilterCombobox(String select) {
     final AndroidConfiguredLogFilters filters = AndroidConfiguredLogFilters.getInstance(myProject);
-    final List<AndroidConfiguredLogFilters.MyFilterEntry> entries = filters.getFilterEntries();
+    final List<AndroidConfiguredLogFilters.FilterEntry> entries = filters.getFilterEntries();
 
     myFilterComboBoxModel.removeAllElements();
     if (myDeviceContext != null) {
@@ -444,7 +444,7 @@ public abstract class AndroidLogcatView implements Disposable {
     myFilterComboBoxModel.addElement(myNoFilter);
     myFilterComboBoxModel.addElement(EDIT_FILTER_CONFIGURATION);
 
-    for (AndroidConfiguredLogFilters.MyFilterEntry entry : entries) {
+    for (AndroidConfiguredLogFilters.FilterEntry entry : entries) {
       final String name = entry.getName();
 
       ConfiguredFilter filter = ConfiguredFilter.compile(entry, entry.getName());
@@ -463,7 +463,7 @@ public abstract class AndroidLogcatView implements Disposable {
   public void dispose() {
   }
 
-  private class MyRestartAction extends AnAction {
+  private final class MyRestartAction extends AnAction {
     public MyRestartAction() {
       super(AndroidBundle.message("android.restart.logcat.action.text"), AndroidBundle.message("android.restart.logcat.action.description"),
             AllIcons.Actions.Restart);
@@ -480,7 +480,7 @@ public abstract class AndroidLogcatView implements Disposable {
     updateLogConsole();
   }
 
-  public class AndroidLogConsole extends LogConsoleBase {
+  public final class AndroidLogConsole extends LogConsoleBase {
     public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel) {
       super(project, new MyLoggingReader(), "", false, logFilterModel);
       ConsoleView console = getConsole();

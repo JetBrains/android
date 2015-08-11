@@ -17,21 +17,18 @@
 package org.jetbrains.android.logcat;
 
 import com.intellij.openapi.components.*;
-import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 
 /**
- * @author Eugene.Kudelevsky
+ * Persistent storage for the state of the logcat view UI.
  */
 @State(
   name = "AndroidLogFilters",
   storages = {@Storage(
     file = StoragePathMacros.WORKSPACE_FILE)})
-public class AndroidLogcatFiltersPreferences implements PersistentStateComponent<AndroidLogcatFiltersPreferences> {
-  public String TAB_CUSTOM_FILTER = "";
+public final class AndroidLogcatFiltersPreferences implements PersistentStateComponent<AndroidLogcatFiltersPreferences> {
   public String TOOL_WINDOW_CUSTOM_FILTER = "";
-  public String TAB_LOG_LEVEL = "VERBOSE";
   public String TOOL_WINDOW_LOG_LEVEL = "VERBOSE";
   public String TOOL_WINDOW_CONFIGURED_FILTER = "";
 

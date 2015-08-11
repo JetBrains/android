@@ -16,7 +16,10 @@
 
 package org.jetbrains.android.logcat;
 
-import com.android.ddmlib.*;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.TimeoutException;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.application.ApplicationManager;
@@ -33,33 +36,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Sep 12, 2009
- * Time: 7:06:44 PM
- * To change this template use File | Settings | File Templates.
- */
-public class AndroidLogcatUtil {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidDebugRunner");
-  private static Map<String, Log.LogLevel> ourLogLevels;
+public class AndroidLogcatUtils {
+  private static final Logger LOG = Logger.getInstance(AndroidLogcatUtils.class);
 
-  private AndroidLogcatUtil() {
-  }
-
-  @Nullable
-  public synchronized static Log.LogLevel getLogLevel(String s) {
-    if (ourLogLevels == null) {
-      ourLogLevels = new HashMap<String, Log.LogLevel>();
-
-      for (Log.LogLevel level : Log.LogLevel.values()) {
-        ourLogLevels.put(level.name(), level);
-      }
-    }
-    return ourLogLevels.get(s);
+  private AndroidLogcatUtils() {
   }
 
   private static void startLogging(IDevice device, AndroidOutputReceiver receiver)
@@ -82,11 +63,18 @@ public class AndroidLogcatUtil {
     }
   }
 
+  /**
+   * Starts a thread which reads data from Android logging output and writes a processed view of
+   * the data out to a console.
+   *
+   * @return A wrapper around the logcat reader and console writer, or {@code null} if logcat fails
+   * to open. TODO: Should we return null or throw an exception instead?
+   */
   @Nullable
   public static Pair<Reader, Writer> startLoggingThread(final Project project,
-                                          final IDevice device,
-                                          final boolean clearLogcat,
-                                          @NotNull final LogConsoleBase console) {
+                                                        final IDevice device,
+                                                        final boolean clearLogcat,
+                                                        @NotNull final LogConsoleBase console) {
     UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
