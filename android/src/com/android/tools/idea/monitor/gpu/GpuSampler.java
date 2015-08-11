@@ -32,8 +32,12 @@ public class GpuSampler extends DeviceSampler {
   private GfxinfoHandler myCurrentGfxinfoHandler;
   private int myApiLevel = JHandler.MIN_API_LEVEL;
 
-  public GpuSampler(int sampleFrequencyMs) {
+  @NotNull private ProfileStateListener myProfileStateListener;
+  private boolean myGpuProfileState = true;
+
+  public GpuSampler(int sampleFrequencyMs, @NotNull ProfileStateListener profileStateListener) {
     super(new TimelineData(3, JHandler.SAMPLE_BUFFER_SIZE), sampleFrequencyMs); // Use a dummy TimelineData.
+    myProfileStateListener = profileStateListener;
   }
 
   @NotNull
@@ -104,6 +108,12 @@ public class GpuSampler extends DeviceSampler {
       try {
         ClientData data = client.getClientData();
         myCurrentGfxinfoHandler.sample(device, data, myTimelineData);
+
+        boolean newGpuProfilingState = myCurrentGfxinfoHandler.getIsEnabledOnDevice();
+        if (myGpuProfileState != newGpuProfilingState) {
+          myProfileStateListener.onGpuProfileStateChanged(client, newGpuProfilingState);
+          myGpuProfileState = newGpuProfilingState;
+        }
       }
       catch (RuntimeException e) {
         throw new InterruptedException("Sample error, interrupting.");
