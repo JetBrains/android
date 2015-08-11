@@ -27,6 +27,10 @@ public final class Range implements BinaryObject {
     return (myStart >= 0) && (myStart < myEnd);
   }
 
+  public long getLast() {
+    return myEnd - 1;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   long myStart;
   long myEnd;
@@ -63,6 +67,11 @@ public final class Range implements BinaryObject {
     Namespace.register(ID, Klass.INSTANCE);
   }
   public static void register() {}
+
+  public boolean contains(long atomImdex) {
+    return atomImdex >= myStart && atomImdex < myEnd;
+  }
+
   //<<<End:Java.ClassBody:1>>>
   public enum Klass implements BinaryClass {
     //<<<Start:Java.KlassBody:2>>>

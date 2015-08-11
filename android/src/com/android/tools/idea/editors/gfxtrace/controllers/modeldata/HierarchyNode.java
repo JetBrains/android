@@ -38,6 +38,11 @@ public class HierarchyNode extends AtomTreeNode {
     return myAtomGroup.getRange().getEnd() - 1;
   }
 
+  @Override
+  public boolean contains(long atomImdex) {
+    return myAtomGroup.getRange().contains(atomImdex);
+  }
+
   public boolean isProxyFor(@NotNull AtomGroup atomGroup) {
     return myAtomGroup == atomGroup;
   }

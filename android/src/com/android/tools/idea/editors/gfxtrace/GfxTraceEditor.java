@@ -63,7 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
-public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, ScrubberCellRenderer.DimensionChangeListener {
+public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull public static final String SELECT_CAPTURE = "Select a capture";
   @NotNull public static final String SELECT_ATOM = "Select an atom";
 
@@ -103,7 +103,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
 
         // prefetch the schema
         final ListenableFuture<Schema> schemaF = myClient.getSchema();
-        Futures.addCallback(schemaF, new LoadingCallback<Schema>(LOG, null) {
+        Futures.addCallback(schemaF, new LoadingCallback<Schema>(LOG) {
           @Override
           public void onSuccess(@Nullable final Schema schema) {
             LOG.warn("Schema with " + schema.getClasses().length + " classes, " + schema.getConstants().length + " constant sets");
@@ -123,7 +123,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
         LOG.warn("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
         final ListenableFuture<CapturePath> captureF = myClient.importCapture(file.getPresentableName(), data);
         // When both steps are complete, activate the capture path
-        Futures.addCallback(Futures.allAsList(schemaF, captureF), new LoadingCallback<List<BinaryObject>>(LOG, null) {
+        Futures.addCallback(Futures.allAsList(schemaF, captureF), new LoadingCallback<List<BinaryObject>>(LOG) {
           @Override
           public void onSuccess(@Nullable final List<BinaryObject> all) {
             CapturePath path = (CapturePath)all.get(1);
@@ -137,7 +137,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
           }
         });
 
-        myContextController = new ContextController(this, myView.getDeviceList(), myView.getCapturesList());
+        myContextController = new ContextController(this, myView.getDeviceList());
 
         myAtomController = new AtomController(this, project, myView.getAtomScrollPane());
         myScrubberController = new ScrubberController(this, myView.getScrubberScrollPane(), myView.getScrubberList());
@@ -148,10 +148,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
 
         // TODO: Rewrite to use IntelliJ documentation view.
         myDocumentationController = new DocumentationController(this, myView.getDocsPane());
-
-        myContextController.initialize();
-
-        establishInterViewControls();
       }
     }
     catch (IOException e) {
@@ -355,6 +351,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
     EdtExecutor.INSTANCE.execute(new Runnable() {
       @Override
       public void run() {
+        LOG.warn("Activate path " + path);
         for (PathListener listener : myPathListeners) {
           listener.notifyPath(path);
         }
@@ -366,27 +363,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor, Sc
     myPathListeners.add(listener);
   }
 
-  @Override
   public void notifyDimensionChanged(@NotNull Dimension newDimension) {
     myView.resize();
-  }
-
-  /**
-   * Establishes atom tree->scrubber and atom tree->framebuffer/memory/state/etc... controls.
-   * This transitively establishes scrubber->framebuffer/memory/state/etc... controls.
-   */
-  private void establishInterViewControls() {
-    // Establish scrubber->atom tree controls.
-    myView.getScrubberList().addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent listSelectionEvent) {
-        if (!listSelectionEvent.getValueIsAdjusting()) {
-          AtomGroup selection = myScrubberController.getFrameSelectionReference();
-          if (selection != null) {
-            // TODO: convert to atom path and then activate it
-          }
-        }
-      }
-    });
   }
 }
