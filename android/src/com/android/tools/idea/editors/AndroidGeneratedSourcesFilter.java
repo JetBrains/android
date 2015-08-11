@@ -16,9 +16,11 @@
 package com.android.tools.idea.editors;
 
 import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.GeneratedSourcesFilter;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,6 +42,14 @@ public class AndroidGeneratedSourcesFilter extends GeneratedSourcesFilter {
     AndroidProject androidProject = Projects.getAndroidModel(file, project);
     if (androidProject != null) {
       return isAncestor(androidProject.getBuildFolder(), virtualToIoFile(file), false);
+    } else {
+      // Gradle projects also sometimes create a "build" folder at the top level (where there
+      // is no AndroidFacet module). Unfortunately, this folder is not available in the
+      // Gradle project model so we have to look for it by hardcoded name.
+      VirtualFile build = project.getBaseDir().findChild(GradleUtil.BUILD_DIR_DEFAULT_NAME);
+      if (build != null && Projects.isBuildWithGradle(project)) {
+        return VfsUtilCore.isAncestor(build, file, false);
+      }
     }
     return false;
   }
