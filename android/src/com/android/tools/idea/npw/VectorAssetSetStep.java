@@ -344,7 +344,7 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
    * @return whether or not the preview image is valid.
    */
   private boolean setupErrorMessages(String errorMessage) {
-    boolean isPreviewValid = !errorMessage.startsWith(ERROR_MESSAGE_EMPTY_PREVIEW_IMAGE);
+    boolean isPreviewValid = errorMessage.isEmpty();
     int firstLineBreak = errorMessage.indexOf("\n");
     boolean moreErrors = firstLineBreak > 0 && firstLineBreak < errorMessage.length() - 1;
     String firstLineError = moreErrors ? errorMessage.substring(0, firstLineBreak) : errorMessage;
