@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dependency;
+package com.android.tools.idea.gradle.customizer.dependency;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.dependency.LibraryDependency.PathType.BINARY;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
@@ -165,11 +164,11 @@ public abstract class Dependency {
   @NotNull
   private static LibraryDependency createLibraryDependency(@NotNull AndroidLibrary library, @NotNull DependencyScope scope) {
     LibraryDependency dependency = new LibraryDependency(getLibraryName(library), scope);
-    dependency.addPath(BINARY, library.getJarFile());
-    dependency.addPath(BINARY, library.getResFolder());
+    dependency.addPath(LibraryDependency.PathType.BINARY, library.getJarFile());
+    dependency.addPath(LibraryDependency.PathType.BINARY, library.getResFolder());
 
     for (File localJar : library.getLocalJars()) {
-      dependency.addPath(BINARY, localJar);
+      dependency.addPath(LibraryDependency.PathType.BINARY, localJar);
     }
     return dependency;
   }

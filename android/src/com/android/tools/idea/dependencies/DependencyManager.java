@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.dependencies;
 
-import com.android.tools.idea.dependencies.impl.GradleDependencyManager;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
