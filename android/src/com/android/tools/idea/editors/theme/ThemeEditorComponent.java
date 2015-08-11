@@ -645,10 +645,13 @@ public class ThemeEditorComponent extends Splitter {
 
   @Nullable
   ThemeEditorStyle getSelectedTheme() {
-    if (myThemeName == null) {
-      return null;
+    if (myHoverPreviewTheme != null) {
+      return myThemeEditorContext.getThemeResolver().getTheme(myHoverPreviewTheme);
     }
-    return myThemeEditorContext.getThemeResolver().getTheme(myThemeName);
+    else if (myThemeName != null) {
+      return myThemeEditorContext.getThemeResolver().getTheme(myThemeName);
+    }
+    return null;
   }
 
   @Nullable
@@ -809,14 +812,7 @@ public class ThemeEditorComponent extends Splitter {
    * Loads the theme attributes table for the current selected theme or substyle.
    */
   private void loadStyleAttributes() {
-    final ThemeEditorStyle selectedTheme;
-    if (myHoverPreviewTheme != null) {
-      selectedTheme = myThemeEditorContext.getThemeResolver().getTheme(myHoverPreviewTheme);
-    }
-    else {
-      selectedTheme = getSelectedTheme();
-    }
-
+    final ThemeEditorStyle selectedTheme = getSelectedTheme();
     final ThemeEditorStyle selectedStyle = getUsedStyle();
 
     if (selectedTheme == null || selectedStyle == null) {
