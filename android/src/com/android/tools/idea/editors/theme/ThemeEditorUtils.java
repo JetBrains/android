@@ -558,7 +558,7 @@ public class ThemeEditorUtils {
    */
   public static boolean isSelectedAppCompatTheme(@NotNull ThemeEditorContext context) {
     ThemeEditorStyle currentTheme = context.getCurrentTheme();
-    return currentTheme == null ? false : isAppCompatTheme(currentTheme);
+    return currentTheme != null && isAppCompatTheme(currentTheme);
   }
 
   /**
@@ -813,5 +813,33 @@ public class ThemeEditorUtils {
     // Made 50 iterations and still no luck finding a vacant name
     // Just set a default name to empty string so user have to insert the name manually
     return "";
+  }
+
+  /**
+   * Returns a more user-friendly name of a given theme.
+   * Aimed at framework themes with names of the form Theme.*.Light.*
+   * or Theme.*.*
+   */
+  @NotNull
+  public static String simplifyThemeName(@NotNull ThemeEditorStyle theme) {
+    String result;
+    String name = theme.getQualifiedName();
+    String[] pieces = name.split("\\.");
+    if (pieces.length > 1 && !"Light".equals(pieces[1])) {
+      result = pieces[1];
+    }
+    else {
+      result = "Theme";
+    }
+    ThemeEditorStyle parent = theme;
+    while (parent != null) {
+      if ("Theme.Light".equals(parent.getName())) {
+        return result + " Light";
+      }
+      else {
+        parent = parent.getParent();
+      }
+    }
+    return result + " Dark";
   }
 }

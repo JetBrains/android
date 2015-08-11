@@ -313,4 +313,15 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     inheritanceSet.add(new ConfiguredItemResourceValue(defaultFolder, value, theme));
     assertEquals(3, Iterables.size(inheritanceSet));
   }
+
+  public void testSimplifyName() {
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_2.xml", "res/values/styles.xml");
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    ThemeResolver res = new ThemeResolver(configuration);
+    assertEquals("X Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("@style/Theme.X.Light.Y")));
+    assertEquals("X Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme("@style/Theme.X.Dark.Y")));
+    assertEquals("Material Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("@style/Theme.Material.Light")));
+    assertEquals("Theme Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme("@android:style/Theme")));
+    assertEquals("Theme Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("@style/Theme.Light")));
+  }
 }
