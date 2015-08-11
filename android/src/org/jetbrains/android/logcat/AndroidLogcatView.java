@@ -105,16 +105,17 @@ public abstract class AndroidLogcatView implements Disposable {
     });
   }
 
-  public Project getProject() {
+  @NotNull
+  public final Project getProject() {
     return myProject;
   }
 
   @NotNull
-  public LogConsoleBase getLogConsole() {
+  public final LogConsoleBase getLogConsole() {
     return myLogConsole;
   }
 
-  public void clearLogcat(@Nullable IDevice device) {
+  public final void clearLogcat(@Nullable IDevice device) {
     if (device == null) {
       return;
     }
@@ -161,7 +162,6 @@ public abstract class AndroidLogcatView implements Disposable {
     this(project, null, deviceContext);
   }
 
-  @SuppressWarnings({"IOResourceOpenedButNotSafelyClosed"})
   private AndroidLogcatView(final Project project, @Nullable IDevice preselectedDevice,
                             @Nullable DeviceContext deviceContext) {
     myDeviceContext = deviceContext;
@@ -285,7 +285,7 @@ public abstract class AndroidLogcatView implements Disposable {
   }
 
   @NotNull
-  public JPanel createSearchComponent() {
+  public final JPanel createSearchComponent() {
     final JPanel panel = new JPanel();
     final ComboBox editFiltersCombo = new ComboBox();
     myFilterComboBoxModel = new DefaultComboBoxModel();
@@ -355,7 +355,7 @@ public abstract class AndroidLogcatView implements Disposable {
 
   protected abstract boolean isActive();
 
-  public void activate() {
+  public final void activate() {
     if (isActive()) {
       updateLogConsole();
       // TODO this is here so if some changes happened in the other logcat view, things get refreshed.
@@ -408,7 +408,7 @@ public abstract class AndroidLogcatView implements Disposable {
   }
 
   @Nullable
-  public IDevice getSelectedDevice() {
+  public final IDevice getSelectedDevice() {
     if (myPreselectedDevice != null) {
       return myPreselectedDevice;
     }
@@ -455,12 +455,13 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  public JPanel getContentPanel() {
+  @NotNull
+  public final JPanel getContentPanel() {
     return myPanel;
   }
 
   @Override
-  public void dispose() {
+  public final void dispose() {
   }
 
   private final class MyRestartAction extends AnAction {
