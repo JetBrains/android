@@ -1,6 +1,7 @@
 package org.jetbrains.android.logcat;
 
 import com.intellij.util.ArrayUtil;
+import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -8,9 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Eugene.Kudelevsky
+ * A thread-safe collection of error strings reported by Android logcat.
  */
-public class AdbErrors {
+@ThreadSafe
+public final class AdbErrors {
   private AdbErrors() {
   }
 
