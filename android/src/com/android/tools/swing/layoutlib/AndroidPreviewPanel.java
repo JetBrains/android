@@ -104,7 +104,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
   }
 
   private static final Notification UNSUPPORTED_LAYOUTLIB_NOTIFICATION =
-    new Notification("Android", "Layoutlib", "The preview requires the latest version of layoutlib", NotificationType.ERROR);
+    new Notification("Android", "Layoutlib", "The Theme Editor preview requires at least Android M Preview SDK", NotificationType.ERROR);
 
   private static final AtomicBoolean ourLayoutlibNotification = new AtomicBoolean(false);
 
