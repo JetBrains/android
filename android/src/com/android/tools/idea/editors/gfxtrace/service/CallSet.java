@@ -27,7 +27,7 @@ import java.io.IOException;
 final class CallSet implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
   Path myP;
-  Box myV;
+  Object myV;
 
   // Constructs a default-initialized {@link CallSet}.
   public CallSet() {}
@@ -42,11 +42,11 @@ final class CallSet implements BinaryObject {
     return this;
   }
 
-  public Box getV() {
+  public Object getV() {
     return myV;
   }
 
-  public CallSet setV(Box v) {
+  public CallSet setV(Object v) {
     myV = v;
     return this;
   }
@@ -76,14 +76,14 @@ final class CallSet implements BinaryObject {
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       CallSet o = (CallSet)obj;
       e.object(o.myP.unwrap());
-      e.variant(o.myV);
+      e.variant(Box.wrap(o.myV));
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       CallSet o = (CallSet)obj;
       o.myP = Path.wrap(d.object());
-      o.myV = (Box)d.variant();
+      o.myV = ((Box)d.variant()).unwrap();
     }
     //<<<End:Java.KlassBody:2>>>
   }

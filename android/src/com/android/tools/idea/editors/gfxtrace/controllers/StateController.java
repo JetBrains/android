@@ -86,7 +86,7 @@ public class StateController implements PathListener {
       @Override
       @Nullable
       public TreeNode call() throws Exception {
-        BinaryObject value = client.get(statePath).get();
+        Object value = client.get(statePath).get();
         return constructStateNode("state", value);
       }
     });
