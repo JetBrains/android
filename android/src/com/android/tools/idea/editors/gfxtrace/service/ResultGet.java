@@ -25,17 +25,17 @@ import java.io.IOException;
 
 final class ResultGet implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Box myValue;
+  Object myValue;
 
   // Constructs a default-initialized {@link ResultGet}.
   public ResultGet() {}
 
 
-  public Box getValue() {
+  public Object getValue() {
     return myValue;
   }
 
-  public ResultGet setValue(Box v) {
+  public ResultGet setValue(Object v) {
     myValue = v;
     return this;
   }
@@ -64,13 +64,13 @@ final class ResultGet implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ResultGet o = (ResultGet)obj;
-      e.variant(o.myValue);
+      e.variant(Box.wrap(o.myValue));
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ResultGet o = (ResultGet)obj;
-      o.myValue = (Box)d.variant();
+      o.myValue = ((Box)d.variant()).unwrap();
     }
     //<<<End:Java.KlassBody:2>>>
   }

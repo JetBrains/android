@@ -37,7 +37,7 @@ public class ServiceClientWrapper extends ServiceClient {
     return myClient.follow(p);
   }
   @Override
-  public ListenableFuture<Box> get(Path p) {
+  public ListenableFuture<Object> get(Path p) {
     return myClient.get(p);
   }
   @Override
@@ -73,7 +73,7 @@ public class ServiceClientWrapper extends ServiceClient {
     return myClient.prerenderFramebuffers(device, capture, api, width, height, atomIndicies);
   }
   @Override
-  public ListenableFuture<Path> set(Path p, Box v) {
+  public ListenableFuture<Path> set(Path p, Object v) {
     return myClient.set(p, v);
   }
 }
