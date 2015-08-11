@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.tools.lint.client.api.DefaultConfiguration;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -36,6 +37,8 @@ import org.jetbrains.annotations.Nullable;
  * @author Eugene.Kudelevsky
  */
 public class AndroidXmlExtension extends DefaultXmlExtension {
+  private static final SchemaPrefix EMPTY_SCHEMA = new SchemaPrefix(null, new TextRange(0, 0), SdkConstants.ANDROID_NS_NAME);
+
   @Nullable
   @Override
   public TagNameReference createTagNameReference(ASTNode nameElement, boolean startTagFlag) {
@@ -47,7 +50,6 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
   @Override
   public boolean isAvailable(final PsiFile file) {
     if (file instanceof XmlFile) {
-      Project project = file.getProject();
       if (AndroidFacet.getInstance(file) == null) {
         return false;
       }
@@ -55,7 +57,8 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
         @Override
         public Boolean compute() {
           return AndroidResourceUtil.isInResourceSubdirectory(file, null) ||
-                 ManifestDomFileDescription.isManifestFile((XmlFile)file);
+                 ManifestDomFileDescription.isManifestFile((XmlFile)file) ||
+                 DefaultConfiguration.CONFIG_FILE_NAME.equals(file.getName());
         }
       });
     }
@@ -78,7 +81,7 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
       // // that we don't end up with a
       //      Namespace ''{0}'' is not bound
       // error from {@link XmlUnboundNsPrefixInspection#checkUnboundNamespacePrefix}
-      return new SchemaPrefix(null, new TextRange(0, 0), SdkConstants.ANDROID_NS_NAME);
+      return EMPTY_SCHEMA;
     }
 
     return null;

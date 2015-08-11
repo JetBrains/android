@@ -16,6 +16,7 @@
 package org.jetbrains.android.spellchecker;
 
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.lint.client.api.DefaultConfiguration;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -47,8 +48,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
 /**
  * @author Eugene.Kudelevsky
@@ -176,6 +175,10 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
             return false;
           }
         }
+      }
+      else if (name.equals(DefaultConfiguration.CONFIG_FILE_NAME)) {
+        // lint config file: should not be spell checked
+        return false;
       }
       PsiDirectory dir = file.getParent();
       if (dir != null) {
