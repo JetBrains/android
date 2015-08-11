@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers.modeldata;
 
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
+import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +26,7 @@ import javax.swing.tree.TreeNode;
 import java.util.Collections;
 import java.util.List;
 
-public class HierarchyNode extends AtomTreeNode {
+public class HierarchyNode implements AtomTreeNode {
   @NotNull private AtomGroup myAtomGroup;
 
   public HierarchyNode(@NotNull AtomGroup atomGroup) {
@@ -43,20 +44,8 @@ public class HierarchyNode extends AtomTreeNode {
     return myAtomGroup.getRange().contains(atomImdex);
   }
 
-  public boolean isProxyFor(@NotNull AtomGroup atomGroup) {
-    return myAtomGroup == atomGroup;
-  }
-
   @Override
-  @NotNull
-  public String toString() {
-    return myAtomGroup.getName();
-  }
-
-  @Override
-  public List<TextPiece> getTextPieces(@NotNull JTree tree,
-                                       @NotNull TreeNode node,
-                                       @NotNull AtomList atoms) {
-    return Collections.singletonList(new TextPiece(myAtomGroup.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
+  public void render(@NotNull AtomList atoms, @NotNull SimpleColoredComponent component) {
+    component.append(myAtomGroup.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
 }
