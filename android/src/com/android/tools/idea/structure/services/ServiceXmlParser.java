@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.templates.*;
+import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.parse.SaxUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.tools.idea.templates.recipe.RecipeContext;
@@ -40,7 +41,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.containers.Stack;
 import freemarker.template.Configuration;
-import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
@@ -191,16 +191,16 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   @NotNull
   public Recipe createRecipe(boolean executeRecipe) {
     Configuration freemarker = new FreemarkerConfiguration();
-    PrefixTemplateLoader loader = new PrefixTemplateLoader(myRootPath.getPath());
+    StudioTemplateLoader loader = new StudioTemplateLoader(myRootPath);
     Map<String, Object> paramMap = FreemarkerUtils.createParameterMap(myContext.toValueMap());
 
     try {
       freemarker.setTemplateLoader(loader);
-      String xml = FreemarkerUtils.processFreemarkerTemplate(freemarker, paramMap, myRecipeFile);
+      String xml = FreemarkerUtils.processFreemarkerTemplate(freemarker, paramMap, myRecipeFile, null);
       Recipe recipe = Recipe.parse(new StringReader(xml));
 
       if (executeRecipe) {
-        RecipeContext recipeContext = new RecipeContext(myModule, loader, freemarker, paramMap, myRootPath, false);
+        RecipeContext recipeContext = new RecipeContext(myModule, loader, freemarker, paramMap, false);
         recipe.execute(recipeContext);
 
         // Convert relative paths to absolute paths, so TemplateUtils.openEditors can find them
@@ -214,7 +214,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
       return recipe;
     }
-    catch (TemplateException e) {
+    catch (TemplateProcessingException e) {
       throw new RuntimeException(e);
     }
     catch (JAXBException e) {
