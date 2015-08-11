@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.customizer.java;
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
+import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacetConfiguration;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
