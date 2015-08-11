@@ -28,7 +28,7 @@ import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.dependency.LibraryDependency;
+import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;

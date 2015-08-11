@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dependency;
+package com.android.tools.idea.gradle.customizer.dependency;
 
 import com.intellij.openapi.roots.DependencyScope;
 import junit.framework.TestCase;
