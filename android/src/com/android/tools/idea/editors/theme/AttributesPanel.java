@@ -63,6 +63,9 @@ public class AttributesPanel {
   private JBLabel myModuleLabel;
 
   public AttributesPanel() {
+    myThemeCombo.setMinimumSize(ThemeEditorConstants.ATTRIBUTES_PANEL_COMBO_MIN_SIZE);
+    myModuleCombo.setMinimumSize(ThemeEditorConstants.ATTRIBUTES_PANEL_COMBO_MIN_SIZE);
+
     myBackButton.setIcon(AllIcons.Actions.Back);
     myBackButton.setBorder(BORDER);
 
