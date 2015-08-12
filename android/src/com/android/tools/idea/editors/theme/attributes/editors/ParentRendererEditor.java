@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
@@ -72,14 +73,14 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
 
   public ParentRendererEditor(@NotNull ThemeEditorContext context) {
     myContext = context;
+    myParentComboBox = new ComboBox();
     // Override isShowing because of the use of a {@link CellRendererPane}
-    myParentComboBox = new JComboBox() {
+    myPanel = new JPanel(new BorderLayout(0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP)) {
       @Override
       public boolean isShowing() {
         return true;
       }
     };
-    myPanel = new JPanel(new BorderLayout(0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP));
     myPanel.setBorder(
       BorderFactory.createEmptyBorder(ThemeEditorConstants.ATTRIBUTE_MARGIN / 2, 0, ThemeEditorConstants.ATTRIBUTE_MARGIN / 2, 0));
 

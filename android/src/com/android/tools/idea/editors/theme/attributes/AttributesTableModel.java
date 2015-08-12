@@ -58,7 +58,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   private final ThemeEditorContext myContext;
 
   private final List<ThemePropertyChangedListener> myThemePropertyChangedListeners = new ArrayList<ThemePropertyChangedListener>();
-  public final ParentAttribute parentAttribute = new ParentAttribute();
+  private final ParentAttribute myParentAttribute = new ParentAttribute();
 
   public interface ThemePropertyChangedListener {
     void attributeChangedOnReadOnlyTheme(final EditedStyleItem attribute, final String newValue);
@@ -101,7 +101,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   @NotNull
   public RowContents getRowContents(final int rowIndex) {
     if (rowIndex == 0) {
-      return parentAttribute;
+      return myParentAttribute;
     }
 
     int offset = 1;
