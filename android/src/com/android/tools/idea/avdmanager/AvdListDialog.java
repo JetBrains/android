@@ -43,14 +43,6 @@ public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoPr
     myAvdDisplayList = new AvdDisplayList(this, project);
     myAvdDisplayList.setBorder(new EmptyBorder(UIUtil.PANEL_REGULAR_INSETS));
     setTitle("Android Virtual Device Manager");
-
-    Window window = getFrame();
-    if (window == null) {
-      assert ApplicationManager.getApplication().isUnitTestMode();
-    }
-    else {
-      window.setPreferredSize(WizardConstants.DEFAULT_WIZARD_WINDOW_SIZE);
-    }
   }
 
   public void init() {
