@@ -1010,7 +1010,7 @@ public class ThemeEditorComponent extends Splitter {
       Color.class, bigCellSize,
       DrawableDomElement.class, bigCellSize,
       TableLabel.class, headerFontSize + LARGE_CELL_PADDING,
-      AttributesTableModel.ParentAttribute.class, 3 * (regularFontSize + REGULAR_CELL_PADDING)
+      AttributesTableModel.ParentAttribute.class, bigCellSize
     ));
   }
 }

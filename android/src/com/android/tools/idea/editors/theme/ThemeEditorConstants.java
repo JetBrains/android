@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.theme;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 
-import java.awt.Color;
+import java.awt.*;
 
 public class ThemeEditorConstants {
   public static final int ROUNDED_BORDER_ARC_SIZE = 10;
@@ -37,8 +37,12 @@ public class ThemeEditorConstants {
   @SuppressWarnings("UseJBColor")
   public static final Color NOT_SELECTED_VARIANT_COLOR = new Color(0x70ABE3);
 
+  public static final Dimension ATTRIBUTES_PANEL_COMBO_MIN_SIZE = JBUI.size(0, 34);
+
   /** Attribute cell label template */
   public static final String ATTRIBUTE_LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s";
   /** Attribute cell gap between the label and the swatch */
   public static final int ATTRIBUTE_ROW_GAP = JBUI.scale(4);
+  /** Attribute cell top + bottom margins */
+  public static final int ATTRIBUTE_MARGIN = JBUI.scale(20);
 }
