@@ -308,15 +308,17 @@ public class ThemeEditorUtils {
 
   /**
    * Finds an ItemResourceValue for a given name in a theme inheritance tree
-   * Returns null if there is not an item with that name
+   * @return null if there is not an item with that name
    */
   @Nullable
-  public static ItemResourceValue resolveItemFromParents(@NotNull final ThemeEditorStyle theme, @NotNull String name, boolean isFrameworkAttr){
+  public static ItemResourceValue resolveItemFromParents(@NotNull final ThemeEditorStyle theme,
+                                                         @NotNull String name,
+                                                         boolean isFrameworkAttr) {
     ThemeEditorStyle currentTheme = theme;
 
     for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
       ItemResourceValue item = currentTheme.getItem(name, isFrameworkAttr);
-      if(item != null){
+      if (item != null) {
         return item;
       }
       currentTheme = currentTheme.getParent();
