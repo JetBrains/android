@@ -148,6 +148,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
 
     myItem = (EditedStyleItem)obj;
 
+    myComponent.setSize(table.getCellRect(row, column, false).getSize());
     updateComponentInternal(myContext, myComponent, (EditedStyleItem)obj);
     updateComponent(myContext, myComponent, (EditedStyleItem)obj);
 
@@ -155,9 +156,10 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
   }
 
   @Override
-  public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
+  public Component getEditorComponent(final JTable table, EditedStyleItem value, boolean isSelected, final int row, final int column) {
     myItem = value;
 
+    myComponent.setSize(table.getCellRect(row, column, false).getSize());
     updateComponentInternal(myContext, myComponent, value);
     updateComponent(myContext, myComponent, value);
     myEditorValue = null; // invalidate stored editor value
