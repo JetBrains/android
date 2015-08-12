@@ -126,9 +126,9 @@ public class ThemeEditorComponent extends Splitter {
     @Override
     public int compare(Object o1, Object o2) {
       // The parent attribute goes always first
-      if (o1 instanceof String) {
+      if (o1 instanceof ThemeEditorStyle) {
         return -1;
-      } else if (o2 instanceof String) {
+      } else if (o2 instanceof ThemeEditorStyle) {
         return 1;
       }
 
