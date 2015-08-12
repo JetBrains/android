@@ -40,6 +40,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import java.awt.Component;
 import java.awt.Dialog;
 import java.io.IOException;
 import java.util.List;
@@ -51,6 +54,7 @@ import static org.fest.swing.data.TableCell.row;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * UI tests for the theme selector in the Theme Editor
@@ -231,8 +235,9 @@ public class ThemeSelectorTest extends GuiTestCase {
     newStyleDialog.clickOk();
     themeEditor.waitForThemeSelection("[NewTheme]");
     JTableFixture propertiesTable = themeEditor.getPropertiesTable();
-    JTableCellFixture parentValue = propertiesTable.cell(row(0).column(1));
-    assertEquals("Theme.Holo", parentValue.value());
+    JComponent parentEditor = (JComponent)propertiesTable.cell(row(0).column(0)).editor();
+    JComboBoxFixture parentAttributeCombo = new JComboBoxFixture(myRobot, myRobot.finder().findByType(parentEditor, JComboBox.class));
+    parentAttributeCombo.requireSelection("Theme.Holo");
 
     projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     EditorFixture editor = projectFrame.getEditor();

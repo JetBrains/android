@@ -45,17 +45,17 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
   private final static String DEPRECATED = "deprecated";
 
   private final ThemeEditorStyle mySourceTheme;
-  private final ConfiguredItemResourceValue mySelectedValue;
+  private final ConfiguredElement<ItemResourceValue> mySelectedValue;
   /** List of possible values (excluding the currently selected one) indexed by the configuration */
-  private final Collection<ConfiguredItemResourceValue> myNonSelectedValues;
+  private final Collection<ConfiguredElement<ItemResourceValue>> myNonSelectedValues;
   private final String myAttrGroup;
 
   /**
    * Constructs a new {@code EditedStyleItem} with the selected value by the current configuration plus all the values
    * that exist in the project but are not selected.
    */
-  public EditedStyleItem(@NotNull ConfiguredItemResourceValue selectedValue,
-                         @NotNull Iterable<ConfiguredItemResourceValue> nonSelectedValues,
+  public EditedStyleItem(@NotNull ConfiguredElement<ItemResourceValue> selectedValue,
+                         @NotNull Iterable<ConfiguredElement<ItemResourceValue>> nonSelectedValues,
                          @NotNull ThemeEditorStyle sourceTheme) {
     mySourceTheme = sourceTheme;
     myNonSelectedValues = ImmutableList.copyOf(nonSelectedValues);
@@ -69,9 +69,9 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
   /**
    * Constructs a new {@code EditedStyleItem} that only contains a default value.
    */
-  public EditedStyleItem(@NotNull ConfiguredItemResourceValue selectedValue,
+  public EditedStyleItem(@NotNull ConfiguredElement<ItemResourceValue> selectedValue,
                          @NotNull ThemeEditorStyle sourceTheme) {
-    this(selectedValue, Collections.<ConfiguredItemResourceValue>emptyList(), sourceTheme);
+    this(selectedValue, Collections.<ConfiguredElement<ItemResourceValue>>emptyList(), sourceTheme);
   }
 
   public ItemResourceValue getSelectedValue() {
@@ -113,15 +113,15 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
   }
 
   @NotNull
-  public Collection<ConfiguredItemResourceValue> getAllConfiguredItems() {
-    return ImmutableList.<ConfiguredItemResourceValue>builder()
+  public Collection<ConfiguredElement<ItemResourceValue>> getAllConfiguredItems() {
+    return ImmutableList.<ConfiguredElement<ItemResourceValue>>builder()
       .add(mySelectedValue)
       .addAll(getNonSelectedItemResourceValues())
       .build();
   }
 
   @NotNull
-  public Collection<ConfiguredItemResourceValue> getNonSelectedItemResourceValues() {
+  public Collection<ConfiguredElement<ItemResourceValue>> getNonSelectedItemResourceValues() {
     return myNonSelectedValues;
   }
 
@@ -138,7 +138,7 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
     StringBuilder output = new StringBuilder(
       String.format("[%1$s] %2$s = %3$s (%4$s)", mySourceTheme, getName(), getValue(), mySelectedValue.myFolderConfiguration));
 
-    for (ConfiguredItemResourceValue item : myNonSelectedValues) {
+    for (ConfiguredElement<ItemResourceValue> item : myNonSelectedValues) {
       output.append('\n')
         .append(String.format("   %1$s = %2$s (%3$s)", item.myValue.getName(), item.myValue.getValue(), item.getConfiguration()));
     }
