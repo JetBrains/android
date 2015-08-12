@@ -52,6 +52,9 @@ public class AndroidHighlightVisitor extends JavaElementVisitor implements Highl
     }
 
     GradleBuildFile gradleBuildFile = GradleBuildFile.get(contextModule);
+    if (gradleBuildFile == null) {
+      return;
+    }
 
     for (int i = 0; i < myHolder.size(); i++) {
       HighlightInfo info = myHolder.get(i);
@@ -79,11 +82,6 @@ public class AndroidHighlightVisitor extends JavaElementVisitor implements Highl
       }
       if (targetLanguageLevel[0].isAtLeast(LanguageLevel.JDK_1_8)) {
         // We don't support Java 8 yet.
-        continue;
-      }
-
-      if (gradleBuildFile == null) {
-        // Currently our API doesn't address the case that gradle.build file does not exist at the module folder, so just skip for now.
         continue;
       }
 
