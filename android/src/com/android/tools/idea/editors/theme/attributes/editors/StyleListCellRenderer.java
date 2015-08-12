@@ -60,43 +60,46 @@ public class StyleListCellRenderer extends ColoredListCellRenderer {
       return;
     }
 
-    if (value instanceof ThemeEditorStyle) {
-      ThemeEditorStyle style = (ThemeEditorStyle)value;
-      ThemeEditorStyle parent = style.getParent();
-      String styleName = style.getName();
-      String parentName = parent != null ? parent.getName() : null;
+    if (!(value instanceof  ThemeEditorStyle)) {
+      return;
+    }
 
-      String defaultAppTheme = null;
-      final AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentContextModule());
-      if (facet != null) {
-        Manifest manifest = facet.getManifest();
-        if (manifest != null && manifest.getApplication() != null && manifest.getApplication().getXmlTag() != null) {
-          defaultAppTheme = manifest.getApplication().getXmlTag().getAttributeValue(SdkConstants.ATTR_THEME, SdkConstants.ANDROID_URI);
-        }
-      }
+    ThemeEditorStyle style = (ThemeEditorStyle)value;
+    ThemeEditorStyle parent = style.getParent();
+    String styleName = style.getName();
+    String parentName = parent != null ? parent.getName() : null;
 
-      if (!style.isProjectStyle()) {
-        String simplifiedName = ThemeEditorUtils.simplifyThemeName(style);
-        if (StringUtil.isEmpty(simplifiedName)) {
-          append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
-        }
-        else {
-          append(simplifiedName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
-          append(" [" + styleName + "]", SimpleTextAttributes.GRAY_ATTRIBUTES, false);
-        }
-      }
-      else if (!selected && parentName != null && styleName.startsWith(parentName + ".")) {
-        append(parentName + ".", SimpleTextAttributes.GRAY_ATTRIBUTES, false);
-        append(styleName.substring(parentName.length() + 1), SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
-      }
-      else {
-        append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
-      }
-
-      if (style.getQualifiedName().equals(defaultAppTheme)) {
-        append("  -  Default", new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, new JBColor(0xFF4CAF50, 0xFFA5D6A7)), true);
+    String defaultAppTheme = null;
+    final AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentContextModule());
+    if (facet != null) {
+      Manifest manifest = facet.getManifest();
+      if (manifest != null && manifest.getApplication() != null && manifest.getApplication().getXmlTag() != null) {
+        defaultAppTheme = manifest.getApplication().getXmlTag().getAttributeValue(SdkConstants.ATTR_THEME, SdkConstants.ANDROID_URI);
       }
     }
-  }
 
+    if (!style.isProjectStyle()) {
+      String simplifiedName = ThemeEditorUtils.simplifyThemeName(style);
+      String qualifiedStyleName = (style.isFramework() ? SdkConstants.PREFIX_ANDROID : "") + styleName;
+
+      if (StringUtil.isEmpty(simplifiedName)) {
+        append(qualifiedStyleName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+      }
+      else {
+        append(simplifiedName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+        append(" [" + qualifiedStyleName + "]", SimpleTextAttributes.GRAY_ATTRIBUTES, false);
+      }
+    }
+    else if (!selected && parentName != null && styleName.startsWith(parentName + ".")) {
+      append(parentName + ".", SimpleTextAttributes.GRAY_ATTRIBUTES, false);
+      append(styleName.substring(parentName.length() + 1), SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+    }
+    else {
+      append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+    }
+
+    if (style.getQualifiedName().equals(defaultAppTheme)) {
+      append("  -  Default", new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, new JBColor(0xFF4CAF50, 0xFFA5D6A7)), true);
+    }
+  }
 }
