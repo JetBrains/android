@@ -24,6 +24,7 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import java.awt.Dimension;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.Action;
@@ -32,7 +33,6 @@ import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
@@ -61,17 +61,11 @@ import java.util.List;
  * <p/>
  * {@link javax.swing.JComboBox} only allows the popup to be the same size as the control.
  */
-public class VariantsComboBox extends JPanel implements ItemSelectable {
+public class VariantsComboBox extends JButton implements ItemSelectable {
   private static final Border VARIANT_MENU_BORDER = JBUI.Borders.empty(5, 0);
   private static final Border VARIANT_ITEM_BORDER = new JBEmptyBorder(5);
   private static final JBColor VARIANT_MENU_BACKGROUND_COLOR = JBColor.WHITE;
-
-  private final JButton myButton = new JButton() {
-    @Override
-    public void updateUI() {
-      setUI((ButtonUI)BasicButtonUI.createUI(this));
-    }
-  };
+  
   private ComboBoxModel myModel = new DefaultComboBoxModel();
   private ListDataListener myListDataListener = new ListDataListener() {
     @Override
@@ -92,13 +86,12 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
   private List<Action> myActions = Lists.newArrayList();
 
   public VariantsComboBox() {
-    add(myButton);
 
-    myButton.setBorder(BorderFactory.createEmptyBorder());
-    myButton.setIcon(PlatformIcons.COMBOBOX_ARROW_ICON);
-    myButton.setHorizontalTextPosition(SwingConstants.LEFT);
-    myButton.setHorizontalAlignment(SwingConstants.RIGHT);
-    myButton.addActionListener(new ActionListener() {
+    setBorder(BorderFactory.createEmptyBorder());
+    setIcon(PlatformIcons.COMBOBOX_ARROW_ICON);
+    setHorizontalTextPosition(SwingConstants.LEFT);
+    setHorizontalAlignment(SwingConstants.RIGHT);
+    addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         if (!isVisible()) {
@@ -117,7 +110,7 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
           public void eventDispatched(AWTEvent event) {
             MouseEvent mouseEvent = (MouseEvent)event;
 
-            if (mouseEvent.getID() == MouseEvent.MOUSE_PRESSED && myButton.contains(mouseEvent.getPoint())) {
+            if (mouseEvent.getID() == MouseEvent.MOUSE_PRESSED && contains(mouseEvent.getPoint())) {
               mouseEvent.consume();
             }
           }
@@ -135,9 +128,15 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
             Toolkit.getDefaultToolkit().removeAWTEventListener(clickListener);
           }
         });
-        variantsMenu.show(myButton, 0, getSize().height);
+        variantsMenu.show(VariantsComboBox.this, 0, getSize().height);
       }
     });
+  }
+
+  @Override
+  public Dimension getMaximumSize(){
+    // We don't want this button to take all the space available. We want it to always preserve its size
+    return getPreferredSize();
   }
 
   public void setModel(@NotNull ComboBoxModel model) {
@@ -147,9 +146,10 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
     fireModelUpdated();
   }
 
-  @NotNull
-  public ComboBoxModel getModel() {
-    return myModel;
+  @Override
+  public void updateUI() {
+    // We don't want the button to use the system UI. We want to fully control how it looks ourselves
+    setUI((ButtonUI)BasicButtonUI.createUI(this));
   }
 
   @NotNull
@@ -227,13 +227,14 @@ public class VariantsComboBox extends JPanel implements ItemSelectable {
   }
 
   @NotNull
+  @Override
   public ItemListener[] getItemListeners() {
     return listenerList.getListeners(ItemListener.class);
   }
 
   protected void fireModelUpdated() {
-    myButton.setText(myModel.getSelectedItem().toString());
-    myButton.setIcon(isPopupEnabled() ? PlatformIcons.COMBOBOX_ARROW_ICON : null);
+    setText(myModel.getSelectedItem().toString());
+    setIcon(isPopupEnabled() ? PlatformIcons.COMBOBOX_ARROW_ICON : null);
   }
 
   protected void fireItemSelectionChanged(@NotNull ItemEvent e) {
