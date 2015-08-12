@@ -495,7 +495,6 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
     return columnCount;
   }
 
-  @VisibleForTesting
   protected Dimension computeCellSize() {
     Dimension imageSize = myThumbnailSize;
     int width = imageSize.width + myCellMargin.left + myCellMargin.right;
