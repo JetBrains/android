@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme.ui;
 
+import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.swing.ui.ClickableLabel;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -55,17 +56,13 @@ public class ResourceComponent extends JPanel {
    * ResourceComponent top + bottom margins
    */
   private static final int MARGIN = JBUI.scale(20);
-  /**
-   * Gap between the two rows of the component
-   */
-  private static final int ROW_GAP = JBUI.scale(8);
 
   private final SwatchComponent mySwatchComponent = new SwatchComponent(MAX_SWATCH_ICONS);
   private final ClickableLabel myNameLabel = new ClickableLabel();
   private final VariantsComboBox myVariantCombo = new VariantsComboBox();
 
   public ResourceComponent() {
-    super(new BorderLayout(0, ROW_GAP));
+    super(new BorderLayout(0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP));
     setBorder(BorderFactory.createEmptyBorder(MARGIN / 2, 0, MARGIN / 2, 0));
 
     Box topRowPanel = new Box(BoxLayout.LINE_AXIS);
@@ -85,7 +82,7 @@ public class ResourceComponent extends JPanel {
       int firstRowHeight = Math.max(getFontMetrics(getFont()).getHeight(), myVariantCombo.getPreferredSize().height);
       int secondRowHeight = mySwatchComponent.getPreferredSize().height;
 
-      return new Dimension(0, MARGIN + ROW_GAP + firstRowHeight + secondRowHeight);
+      return new Dimension(0, MARGIN + ThemeEditorConstants.ATTRIBUTE_ROW_GAP + firstRowHeight + secondRowHeight);
     }
 
     return super.getPreferredSize();

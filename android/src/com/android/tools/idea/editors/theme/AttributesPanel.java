@@ -17,26 +17,34 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.icons.AllIcons;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ComboboxSpeedSearch;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import java.awt.Dimension;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.Border;
+import java.awt.Dimension;
 
 public class AttributesPanel {
   private static final boolean ENABLE_ADVANCED_MODE = false;
   private static final int MAX_SIZE_THEME_SELECTOR = 25;
 
-  public static final Border BORDER = BorderFactory.createEmptyBorder(10, 10, 10, 10);
+  public static final Border BORDER = JBUI.Borders.empty(10, 10);
+  /* ThemeEditorConstants.ATTRIBUTE_ROW_GAP is already scaled so we use a regular BorderFactory empty border */
+  public static final Border LABEL_BORDER =
+    BorderFactory.createEmptyBorder(ThemeEditorConstants.ATTRIBUTE_ROW_GAP, 0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP, 0);
   public static final String THEME_SELECTOR_NAME = "Theme Selector";
   public static final String MODULE_SELECTOR_NAME = "Module Selector";
 
@@ -46,16 +54,24 @@ public class AttributesPanel {
   private JBLabel mySubStyleLabel;
   private ThemeEditorTable myAttributesTable;
   private JBScrollPane myAttributesScrollPane;
-  private JPanel myConfigToolbar;
   private JPanel myRightPanel;
   private JComboBox myAttrGroupCombo;
   private ColorPalette myPalette;
   private JBScrollPane myPaletteScrollPane;
   private JComboBox myModuleCombo;
+  private JBLabel myThemeLabel;
+  private JBLabel myModuleLabel;
 
   public AttributesPanel() {
     myBackButton.setIcon(AllIcons.Actions.Back);
     myBackButton.setBorder(BORDER);
+
+    myThemeLabel.setBorder(LABEL_BORDER);
+    myModuleLabel.setBorder(LABEL_BORDER);
+    myThemeLabel.setText(
+      String.format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), "Theme"));
+    myModuleLabel.setText(
+      String.format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), "Module"));
 
     myPaletteScrollPane.setVisible(ENABLE_ADVANCED_MODE);
     myAdvancedFilterCheckBox.setVisible(ENABLE_ADVANCED_MODE);
@@ -91,6 +107,13 @@ public class AttributesPanel {
     // Set combo boxes names to be able to distinguish them in UI tests
     myThemeCombo.setName(THEME_SELECTOR_NAME);
     myModuleCombo.setName(MODULE_SELECTOR_NAME);
+
+    myAttributesScrollPane = new JBScrollPane(myRightPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                              ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+    myAttributesTable.setBackground(null); // Get rid of default white background of the table.
+    myAttributesScrollPane.setBackground(null); // needed for OS X, as by default is set to white
+    myAttributesScrollPane.getViewport().setBackground(null); // needed for OS X, as by default is set to white
   }
 
   /**
@@ -173,20 +196,8 @@ public class AttributesPanel {
     return myAdvancedFilterCheckBox;
   }
 
-  public JBScrollPane getAttributesScrollPane() {
+  public JComponent getRightPanel() {
     return myAttributesScrollPane;
-  }
-
-  public JPanel getRightPanel() {
-    return myRightPanel;
-  }
-
-  public JPanel getConfigToolbar() {
-    return myConfigToolbar;
-  }
-
-  public JBScrollPane getPaletteScrollPane() {
-    return myPaletteScrollPane;
   }
 
   public ColorPalette getPalette() {

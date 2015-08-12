@@ -40,6 +40,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -65,33 +66,17 @@ public class ThemeEditorTableTest extends GuiTestCase {
   }
 
   @Test @IdeGuiTest
-  public void testParentLabelCell() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
-    JTableFixture themeEditorTable = themeEditor.getPropertiesTable();
-
-    // Cell (0,0) should be Theme parent
-    JTableCellFixture parentLabelCell = themeEditorTable.cell(row(0).column(0));
-    final String parentName = themeEditorTable.valueAt(row(0).column(1));
-    assertNotNull(parentName);
-    parentLabelCell.requireNotEditable();
-    parentLabelCell.requireValue("Theme Parent");
-
-    testParentPopup(parentLabelCell, parentName, themeEditor);
-  }
-
-  @Test @IdeGuiTest
   public void testParentValueCell() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
     JTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
-    // Cell (0,1) should be the parent combobox
-    JTableCellFixture parentValueCell = themeEditorTable.cell(row(0).column(1));
+    // Cell (0,0) should be the parent editor
+    JTableCellFixture parentValueCell = themeEditorTable.cell(row(0).column(0));
     parentValueCell.requireEditable();
     Component parentEditor = parentValueCell.editor();
-    assertTrue(parentEditor instanceof JComboBox);
-    JComboBoxFixture parentComboBox = new JComboBoxFixture(myRobot, (JComboBox)parentEditor);
+    assertTrue(parentEditor instanceof JComponent);
+    JComboBoxFixture parentComboBox = new JComboBoxFixture(myRobot, myRobot.finder().findByType((JComponent)parentEditor, JComboBox.class));
 
     List<String> parentsList = ImmutableList.copyOf(parentComboBox.contents());
     // The expected elements are:
@@ -116,20 +101,24 @@ public class ThemeEditorTableTest extends GuiTestCase {
 
     parentComboBox.selectItem(4);
     parentComboBox.requireSelection("Theme.Holo.Light.DarkActionBar");
-    parentValueCell.requireValue("Theme.Holo.Light.DarkActionBar");
 
     // Selects a new parent
     final String newParent = "Theme.AppCompat.NoActionBar";
     parentValueCell.click();
 
     parentComboBox.selectItem(newParent);
-    parentValueCell.requireValue(newParent);
+    parentComboBox.requireSelection(newParent);
 
     projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
-    parentValueCell.requireValue("Theme.Holo.Light.DarkActionBar");
+    // Since the editor lost the focus, make sure we get the right editor
+    parentEditor = parentValueCell.editor();
+    parentComboBox = new JComboBoxFixture(myRobot, myRobot.finder().findByType((JComponent)parentEditor, JComboBox.class));
+    parentComboBox.requireSelection("Theme.Holo.Light.DarkActionBar");
 
     projectFrame.invokeMenuPathRegex("Edit", "Redo.*");
-    parentValueCell.requireValue(newParent);
+    parentEditor = parentValueCell.editor();
+    parentComboBox = new JComboBoxFixture(myRobot, myRobot.finder().findByType((JComponent)parentEditor, JComboBox.class));
+    parentComboBox.requireSelection(newParent);
 
     pause(new Condition("Wait for potential tooltips to disappear") {
       @Override
