@@ -34,21 +34,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.AbstractAction;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
-import java.awt.BorderLayout;
-import java.awt.Component;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -68,7 +63,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
   private static final String NO_PARENT = "[no parent]";
   private static final CollectionComboBoxModel NO_PARENT_MODEL = new CollectionComboBoxModel(ImmutableList.of(NO_PARENT), NO_PARENT);
 
-  private final ComboBox myParentComboBox;
+  private final JComboBox myParentComboBox;
   private final VariantsComboBox myVariantsComboBox;
   private @Nullable String myResultValue;
   private final ThemeEditorContext myContext;
@@ -78,13 +73,15 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
   public ParentRendererEditor(@NotNull ThemeEditorContext context) {
     myContext = context;
     // Override isShowing because of the use of a {@link CellRendererPane}
-    myParentComboBox = new ComboBox() {
+    myParentComboBox = new JComboBox() {
       @Override
       public boolean isShowing() {
         return true;
       }
     };
-    myPanel = new JPanel(new BorderLayout(0, 0));
+    myPanel = new JPanel(new BorderLayout(0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP));
+    myPanel.setBorder(
+      BorderFactory.createEmptyBorder(ThemeEditorConstants.ATTRIBUTE_MARGIN / 2, 0, ThemeEditorConstants.ATTRIBUTE_MARGIN / 2, 0));
 
     myVariantsComboBox = new VariantsComboBox();
     myVariantsComboBox.addItemListener(new VariantItemListener(context));
@@ -97,6 +94,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
 
     myParentComboBox.setRenderer(new StyleListCellRenderer(context, myParentComboBox));
     myParentComboBox.addActionListener(new ParentChoiceListener());
+    myParentComboBox.setMinimumSize(ThemeEditorConstants.ATTRIBUTES_PANEL_COMBO_MIN_SIZE);
 
     JPanel topLine = new JPanel(new BorderLayout());
     JLabel label = new JLabel(String.format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE,
@@ -104,8 +102,8 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
     topLine.add(label, BorderLayout.WEST);
     topLine.add(myVariantsComboBox, BorderLayout.EAST);
 
-    myPanel.add(topLine, BorderLayout.CENTER);
-    myPanel.add(myParentComboBox, BorderLayout.PAGE_END);
+    myPanel.add(topLine, BorderLayout.PAGE_START);
+    myPanel.add(myParentComboBox, BorderLayout.CENTER);
 
     myVariantsComboBox.addAction(new AbstractAction("Add variation") {
       @Override
