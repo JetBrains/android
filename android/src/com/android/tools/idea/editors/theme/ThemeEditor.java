@@ -26,6 +26,7 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +48,10 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     project.getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
+
+        // If the SDK is changing we will not be able to reload anything as AndroidTargetData.getTargetData will be returning null;
+        if (ModuleRootManager.getInstance(myComponent.getSelectedModule()).getSdk() == null) return;
+
         ThemeEditorStyle theme = myComponent.getSelectedTheme();
         ThemeEditorStyle subStyle = myComponent.getCurrentSubStyle();
         myComponent.reload((theme == null) ? null : theme.getQualifiedName(), (subStyle == null) ? null : subStyle.getQualifiedName());

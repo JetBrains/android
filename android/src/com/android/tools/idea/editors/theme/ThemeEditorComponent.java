@@ -536,6 +536,7 @@ public class ThemeEditorComponent extends Splitter {
    */
   public void selectNotify() {
     reload(myThemeName, mySubStyleName);
+    // TODO calling reload will call subscribeResourceNotification, so why call it here?
     subscribeResourceNotification();
   }
 
