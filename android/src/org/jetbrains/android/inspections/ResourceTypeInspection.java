@@ -45,6 +45,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
+import com.intellij.psi.controlFlow.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.LocalSearchScope;
@@ -626,7 +627,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       } else if (requirement.isRevocable(lookup) && AndroidModuleInfo.get(facet).getTargetSdkVersion().getFeatureLevel() >= 23) {
         JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
         PsiClass securityException = psiFacade.findClass("java.lang.SecurityException", GlobalSearchScope.allScope(project));
-        if (securityException != null && ExceptionUtil.isHandled(PsiTypesUtil.getClassType(securityException), methodCall)) {
+        if (securityException != null &&
+            // Can't just call ExceptionUtil#isHandled like this:
+            //   ExceptionUtil.isHandled(PsiTypesUtil.getClassType(securityException), methodCall)) {
+            // because we *don't* want to quietly accept catching some SecurityException superclass (like Throwable);
+            // we want to warn about newly uncaught SecurityExceptions since users should be aware of this change
+            // and a better fix than just catching it is to insert manual checks and calling APIs to request
+            // permissions from the user.
+            isHandled(methodCall, PsiTypesUtil.getClassType(securityException), methodCall.getContainingFile())) {
           return;
         }
 
@@ -2168,5 +2176,89 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     return !children.isEmpty();
+  }
+
+  // Based on ExceptionUtil#isHandled and various methods it calls, but unlike that method, it checks to
+  // see whether you are catching or throwing the *specific* exceptionType, not some type assignable from it.
+  // (The code was also simplified quite a bit from the ExceptionUtil method, since we don't have to handle
+  // many of the same cases (this method only supports exceptions thrown from methods in a normal Java method.)
+  private static boolean isHandled(@Nullable PsiElement element, @NotNull PsiClassType exceptionType, PsiElement topElement) {
+    if (element == null || element.getParent() == topElement || element.getParent() == null) return false;
+
+    final PsiElement parent = element.getParent();
+
+    if (parent instanceof PsiMethod) {
+      PsiMethod method = (PsiMethod)parent;
+      return isHandledByMethodThrowsClause(method, exceptionType, PsiSubstitutor.EMPTY);
+    }
+    else if (parent instanceof PsiClass) {
+      return parent instanceof PsiAnonymousClass && isHandled(parent, exceptionType, topElement);
+    }
+    else if (parent instanceof PsiTryStatement) {
+      PsiTryStatement tryStatement = (PsiTryStatement)parent;
+      if (tryStatement.getTryBlock() == element && isCaught(tryStatement, exceptionType)) {
+        return true;
+      }
+      if (tryStatement.getResourceList() == element && isCaught(tryStatement, exceptionType)) {
+        return true;
+      }
+      PsiCodeBlock finallyBlock = tryStatement.getFinallyBlock();
+      if (element instanceof PsiCatchSection && finallyBlock != null && blockCompletesAbruptly(finallyBlock)) {
+        // exception swallowed
+        return true;
+      }
+    }
+    else if (parent instanceof PsiFile) {
+      return false;
+    }
+    return isHandled(parent, exceptionType, topElement);
+  }
+
+  private static boolean isHandledByMethodThrowsClause(@NotNull PsiMethod method,
+                                                       @NotNull PsiClassType exceptionType,
+                                                       PsiSubstitutor substitutor) {
+    final PsiClassType[] referencedTypes = method.getThrowsList().getReferencedTypes();
+    return isHandledBy(exceptionType, referencedTypes, substitutor);
+  }
+
+  public static boolean isHandledBy(@NotNull PsiClassType exceptionType,
+                                    @NotNull PsiClassType[] referencedTypes,
+                                    PsiSubstitutor substitutor) {
+    for (PsiClassType classType : referencedTypes) {
+      PsiType psiType = substitutor.substitute(classType);
+      // This is where we diverge from ExceptionUtil:
+      //if (psiType != null && psiType.isAssignableFrom(exceptionType)) return true;
+      if (psiType != null && psiType.equals(exceptionType)) return true;
+    }
+    return false;
+  }
+
+  private static boolean isCaught(@NotNull PsiTryStatement tryStatement, @NotNull PsiClassType exceptionType) {
+    // if finally block completes abruptly, exception gets lost
+    PsiCodeBlock finallyBlock = tryStatement.getFinallyBlock();
+    if (finallyBlock != null && blockCompletesAbruptly(finallyBlock)) return true;
+
+    final PsiParameter[] catchBlockParameters = tryStatement.getCatchBlockParameters();
+    for (PsiParameter parameter : catchBlockParameters) {
+      PsiType paramType = parameter.getType();
+      // This is where we diverge from ExceptionUtil:
+      //if (paramType.isAssignableFrom(exceptionType)) return true;
+      if (paramType.equals(exceptionType)) return true;
+    }
+
+    return false;
+  }
+
+  private static boolean blockCompletesAbruptly(@NotNull final PsiCodeBlock finallyBlock) {
+    try {
+      ControlFlow flow = ControlFlowFactory
+        .getInstance(finallyBlock.getProject()).getControlFlow(finallyBlock, LocalsOrMyInstanceFieldsControlFlowPolicy.getInstance(), false);
+      int completionReasons = ControlFlowUtil.getCompletionReasons(flow, 0, flow.getSize());
+      if ((completionReasons & ControlFlowUtil.NORMAL_COMPLETION_REASON) == 0) return true;
+    }
+    catch (AnalysisCanceledException e) {
+      return true;
+    }
+    return false;
   }
 }
