@@ -38,6 +38,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
+import net.jcip.annotations.GuardedBy;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,12 +73,14 @@ public abstract class AndroidLogcatView implements Disposable {
   private DefaultComboBoxModel myFilterComboBoxModel;
 
   private volatile IDevice myDevice;
-  private final Object myLock = new Object();
   private final LogConsoleBase myLogConsole;
   private final AndroidLogFilterModel myLogFilterModel;
 
-  private volatile Reader myCurrentReader;
-  private volatile Writer myCurrentWriter;
+  private final Object myReaderWriterLock = new Object();
+  @GuardedBy("myReaderWriterLock")
+  private Reader myCurrentReader;
+  @GuardedBy("myReaderWriterLock")
+  private Writer myCurrentWriter;
 
   private final IDevice myPreselectedDevice;
 
@@ -127,21 +130,21 @@ public abstract class AndroidLogcatView implements Disposable {
   private final class MyLoggingReader extends Reader {
     @Override
     public int read(char[] cbuf, int off, int len) throws IOException {
-      synchronized (myLock) {
+      synchronized (myReaderWriterLock) {
         return myCurrentReader != null ? myCurrentReader.read(cbuf, off, len) : -1;
       }
     }
 
     @Override
     public boolean ready() throws IOException {
-      synchronized (myLock) {
+      synchronized (myReaderWriterLock) {
         return myCurrentReader != null && myCurrentReader.ready();
       }
     }
 
     @Override
     public void close() throws IOException {
-      synchronized (myLock) {
+      synchronized (myReaderWriterLock) {
         if (myCurrentReader != null) {
           myCurrentReader.close();
         }
@@ -212,12 +215,14 @@ public abstract class AndroidLogcatView implements Disposable {
     myLogConsole.addListener(new LogConsoleListener() {
       @Override
       public void loggingWillBeStopped() {
-        if (myCurrentWriter != null) {
-          try {
-            myCurrentWriter.close();
-          }
-          catch (IOException e) {
-            LOG.error(e);
+        synchronized (myReaderWriterLock) {
+          if (myCurrentWriter != null) {
+            try {
+              myCurrentWriter.close();
+            }
+            catch (IOException e) {
+              LOG.error(e);
+            }
           }
         }
       }
@@ -370,7 +375,7 @@ public abstract class AndroidLogcatView implements Disposable {
   private void updateLogConsole() {
     IDevice device = getSelectedDevice();
     if (myDevice != device) {
-      synchronized (myLock) {
+      synchronized (myReaderWriterLock) {
         myDevice = device;
         if (myCurrentWriter != null) {
           try {
