@@ -84,7 +84,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   // The scaling factor is based on how we want the preview to look for different devices. 160 means that a device with 160 DPI would look
   // exactly as GraphicsLayoutRenderer would render it. A device with 300 DPI would usually look smaller but because we apply this scaling
   // factor, it would be scaled 2x to look exactly as the 100 DPI version would look.
-  private static final double DEFAULT_SCALING_FACTOR = 160.0;
+  private static final double DEFAULT_SCALING_FACTOR = JBUI.scale(160);
 
   private static final Map<String, ComponentDefinition> SUPPORT_LIBRARY_COMPONENTS =
     ImmutableMap.of("android.support.design.widget.FloatingActionButton",
