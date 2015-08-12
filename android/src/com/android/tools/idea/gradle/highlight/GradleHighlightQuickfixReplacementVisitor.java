@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.highlight;
+package com.android.tools.idea.gradle.highlight;
 
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.quickfix.GradleIncreaseLanguageLevelFix;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -29,13 +30,12 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.JavaElementVisitor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForPsiElement;
 import static com.intellij.util.ReflectionUtil.getField;
 
-public class AndroidHighlightVisitor extends JavaElementVisitor implements HighlightVisitor {
+public class GradleHighlightQuickfixReplacementVisitor extends JavaElementVisitor implements HighlightVisitor {
   private HighlightInfoHolder myHolder = null;
 
   @Override
@@ -46,15 +46,14 @@ public class AndroidHighlightVisitor extends JavaElementVisitor implements Highl
       return;
     }
 
-    final AndroidFacet facet = AndroidFacet.getInstance(contextModule);
-    if (facet == null) {
+    AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(contextModule);
+    if (gradleFacet == null) {
       return;
     }
 
     GradleBuildFile gradleBuildFile = GradleBuildFile.get(contextModule);
-    if (gradleBuildFile == null) {
-      return;
-    }
+    // gradleBuildFile could be null here (e.g. subproject is defined in root project's build.gradle file), but we still need to unload
+    // the original quickfixes since it is a gradle project
 
     for (int i = 0; i < myHolder.size(); i++) {
       HighlightInfo info = myHolder.get(i);
@@ -82,6 +81,11 @@ public class AndroidHighlightVisitor extends JavaElementVisitor implements Highl
       }
       if (targetLanguageLevel[0].isAtLeast(LanguageLevel.JDK_1_8)) {
         // We don't support Java 8 yet.
+        continue;
+      }
+
+      if (gradleBuildFile == null) {
+        // Currently our API doesn't address the case that gradle.build file does not exist at the module folder, so just skip for now.
         continue;
       }
 
@@ -115,8 +119,8 @@ public class AndroidHighlightVisitor extends JavaElementVisitor implements Highl
 
   @NotNull
   @Override
-  public AndroidHighlightVisitor clone() {
-    return new AndroidHighlightVisitor();
+  public GradleHighlightQuickfixReplacementVisitor clone() {
+    return new GradleHighlightQuickfixReplacementVisitor();
   }
 
   @Override
