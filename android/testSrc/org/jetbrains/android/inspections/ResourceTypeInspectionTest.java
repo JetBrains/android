@@ -688,7 +688,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "\n" +
             "public class X {\n" +
             "    public void something() {\n" +
-            "        /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or handle a potential `SecurityException`*/methodRequiresDangerous()/**/;\n" +
+            "        /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/;\n" +
             "        methodRequiresNormal();\n" +
             "    }\n" +
             "\n" +
@@ -699,6 +699,96 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    @RequiresPermission(\"my.dangerous.P2\")\n" +
             "    public void methodRequiresDangerous() {\n" +
             "    }\n" +
+            "}\n");
+  }
+
+  public void testHandledPermission() {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.content.Context;\n" +
+            "import android.content.pm.PackageManager;\n" +
+            "import android.location.LocationManager;\n" +
+            "import android.support.annotation.RequiresPermission;\n" +
+            "\n" +
+            "import java.security.AccessControlException;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    public static void test1() {\n" +
+            "        try {\n" +
+            "            // Ok: Security exception caught in one of the branches\n" +
+            "            methodRequiresDangerous(); // OK\n" +
+            "        } catch (IllegalArgumentException ignored) {\n" +
+            "        } catch (SecurityException ignored) {\n" +
+            "        }\n" +
+            "\n" +
+            "        try {\n" +
+            "            // You have to catch SecurityException explicitly, not parent\n" +
+            "            /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR\n" +
+            "        } catch (RuntimeException e) { // includes Security Exception\n" +
+            "        }\n" +
+            "\n" +
+            "        try {\n" +
+            "            // Ok: Caught in outer statement\n" +
+            "            try {\n" +
+            "                methodRequiresDangerous(); // OK\n" +
+            "            } catch (IllegalArgumentException e) {\n" +
+            "                // inner\n" +
+            "            }\n" +
+            "        } catch (SecurityException ignored) {\n" +
+            "        }\n" +
+            "\n" +
+            "        try {\n" +
+            "            // You have to catch SecurityException explicitly, not parent\n" +
+            "            /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR\n" +
+            "        } catch (Exception e) { // includes Security Exception\n" +
+            "        }\n" +
+            "\n" +
+            "        // NOT OK: Catching security exception subclass (except for dedicated ones?)\n" +
+            "\n" +
+            "        try {\n" +
+            "            // Error: catching security exception, but not all of them\n" +
+            "            /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR\n" +
+            "        } catch (AccessControlException e) { // security exception but specific one\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void test2() {\n" +
+            "        /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR: not caught\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void test3()\n" +
+            "            throws IllegalArgumentException {\n" +
+            "        /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR: not caught by right type\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void test4()\n" +
+            "            throws AccessControlException {  // Security exception but specific one\n" +
+            "        /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void test5()\n" +
+            "            throws SecurityException {\n" +
+            "        methodRequiresDangerous(); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void test6()\n" +
+            "            throws Exception { // includes Security Exception\n" +
+            "        // You have to throw SecurityException explicitly, not parent\n" +
+            "        /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void test7(Context context)\n" +
+            "            throws IllegalArgumentException {\n" +
+            "        if (context.getPackageManager().checkPermission(android.Manifest.permission.ACCESS_FINE_LOCATION, context.getPackageName()) != PackageManager.PERMISSION_GRANTED) {\n" +
+            "            return;\n" +
+            "        }\n" +
+            "        methodRequiresDangerous(); // OK: permission checked\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresPermission(\"my.dangerous.P2\")\n" +
+            "    public static void methodRequiresDangerous() {\n" +
+            "    }\n" +
+            "\n" +
             "}\n");
   }
 
