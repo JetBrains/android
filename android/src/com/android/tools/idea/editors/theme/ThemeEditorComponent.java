@@ -30,16 +30,6 @@ import com.android.tools.idea.editors.theme.attributes.AttributesGrouper;
 import com.android.tools.idea.editors.theme.attributes.AttributesModelColorPaletteModel;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
-import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.BooleanRendererEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.ColorRendererEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.DelegatingCellEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.DelegatingCellRenderer;
-import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.EnumRendererEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.FlagRendererEditor;
-import com.android.tools.idea.editors.theme.attributes.editors.IntegerRenderer;
-import com.android.tools.idea.editors.theme.attributes.editors.ParentRendererEditor;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.editors.theme.attributes.editors.StyleListPaletteCellRenderer;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
@@ -70,7 +60,6 @@ import com.intellij.ui.MutableCollectionComboBoxModel;
 import com.intellij.ui.SearchTextField;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
-import org.jetbrains.android.dom.resources.Flag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,8 +71,6 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.RowFilter;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
@@ -91,8 +78,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.PanelUI;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -141,12 +126,9 @@ public class ThemeEditorComponent extends Splitter {
     }
   };
 
-  public static final float HEADER_FONT_SCALE = 1.3f;
   public static final int REGULAR_CELL_PADDING = 4;
   public static final int LARGE_CELL_PADDING = 10;
   private final Project myProject;
-
-  private Font myHeaderFont;
 
   private EditedStyleItem mySubStyleSourceAttribute;
 
@@ -185,7 +167,6 @@ public class ThemeEditorComponent extends Splitter {
   public ThemeEditorComponent(@NotNull final Project project) {
     myProject = project;
     myPanel = new AttributesPanel();
-    myAttributesTable = myPanel.getAttributesTable();
 
     initializeModulesCombo(null);
 
@@ -221,12 +202,10 @@ public class ThemeEditorComponent extends Splitter {
         return true;
       }
     });
-    myAttributesTable.setContext(myThemeEditorContext);
 
     myPreviewPanel = new AndroidThemePreviewPanel(myThemeEditorContext, PREVIEW_BACKGROUND);
     myPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
-    ResourcesCompletionProvider completionProvider = new ResourcesCompletionProvider(myThemeEditorContext);
     GoToListener goToListener = new GoToListener() {
       @Override
       public void goTo(@NotNull EditedStyleItem value) {
@@ -254,52 +233,10 @@ public class ThemeEditorComponent extends Splitter {
         ThemeEditorComponent.this.goToParent();
       }
     };
+
+    myAttributesTable = myPanel.getAttributesTable();
+    myAttributesTable.customizeTable(myThemeEditorContext, myPreviewPanel);
     myAttributesTable.setGoToListener(goToListener);
-    final AttributeReferenceRendererEditor styleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
-
-    myAttributesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(new ColorRendererEditor(myThemeEditorContext, myPreviewPanel, false)));
-    myAttributesTable.setDefaultRenderer(EditedStyleItem.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
-    myAttributesTable.setDefaultRenderer(ThemeEditorStyle.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
-    myAttributesTable.setDefaultRenderer(String.class, new DelegatingCellRenderer(myAttributesTable.getDefaultRenderer(String.class)));
-    myAttributesTable.setDefaultRenderer(Integer.class, new DelegatingCellRenderer(new IntegerRenderer()));
-    myAttributesTable.setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(new BooleanRendererEditor(myThemeEditorContext)));
-    myAttributesTable.setDefaultRenderer(Enum.class, new DelegatingCellRenderer(new EnumRendererEditor()));
-    myAttributesTable.setDefaultRenderer(Flag.class, new DelegatingCellRenderer(new FlagRendererEditor()));
-    myAttributesTable.setDefaultRenderer(AttributesTableModel.ParentAttribute.class, new DelegatingCellRenderer(new ParentRendererEditor(myThemeEditorContext)));
-    myAttributesTable.setDefaultRenderer(DrawableDomElement.class, new DelegatingCellRenderer(new DrawableRendererEditor(myThemeEditorContext, myPreviewPanel, false)));
-    myAttributesTable.setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
-      @Override
-      public Component getTableCellRendererComponent(JTable table,
-                                                     Object value,
-                                                     boolean isSelected,
-                                                     boolean hasFocus,
-                                                     int row,
-                                                     int column) {
-        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        this.setFont(myHeaderFont);
-        return this;
-      }
-    });
-
-    myAttributesTable.setDefaultEditor(Color.class, new DelegatingCellEditor(false, new ColorRendererEditor(myThemeEditorContext, myPreviewPanel, true)));
-    myAttributesTable.setDefaultEditor(EditedStyleItem.class, new DelegatingCellEditor(false, new AttributeReferenceRendererEditor(project, completionProvider)));
-    myAttributesTable.setDefaultEditor(String.class, new DelegatingCellEditor(false, myAttributesTable.getDefaultEditor(String.class)));
-    myAttributesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(Integer.class)));
-    myAttributesTable.setDefaultEditor(Boolean.class, new DelegatingCellEditor(false, new BooleanRendererEditor(myThemeEditorContext)));
-    myAttributesTable.setDefaultEditor(Enum.class, new DelegatingCellEditor(false, new EnumRendererEditor()));
-    myAttributesTable.setDefaultEditor(Flag.class, new DelegatingCellEditor(false, new FlagRendererEditor()));
-    myAttributesTable.setDefaultEditor(AttributesTableModel.ParentAttribute.class, new DelegatingCellEditor(false, new ParentRendererEditor(myThemeEditorContext)));
-
-    // We allow to edit style pointers as Strings.
-    myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, styleEditor));
-    myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableRendererEditor(myThemeEditorContext, myPreviewPanel, true)));
-
-    // We shouldn't allow autoCreateColumnsFromModel, because when setModel() will be invoked, it removes
-    // existing listeners to cell editors.
-    myAttributesTable.setAutoCreateColumnsFromModel(false);
-    for (int c = 0; c < AttributesTableModel.COL_COUNT; ++c) {
-      myAttributesTable.addColumn(new TableColumn(c));
-    }
 
     updateUiParameters();
 
@@ -989,7 +926,7 @@ public class ThemeEditorComponent extends Splitter {
     Font regularFont = UIUtil.getLabelFont();
 
     int regularFontSize = getFontMetrics(regularFont).getHeight();
-    myHeaderFont = regularFont.deriveFont(regularFontSize * HEADER_FONT_SCALE);
+    Font headerFont = regularFont.deriveFont(regularFontSize * ThemeEditorConstants.ATTRIBUTES_HEADER_FONT_SCALE);
 
     // The condition below isn't constant, because updateUiParameters() is triggered during
     // construction: constructor of ThemeEditorComponent calls constructor of Splitter, which
@@ -1000,7 +937,7 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
 
-    int headerFontSize = getFontMetrics(myHeaderFont).getHeight();
+    int headerFontSize = getFontMetrics(headerFont).getHeight();
 
     // We calculate the size of the resource cell (drawable and color cells) by creating a ResourceComponent that
     // we use to measure the preferred size.
