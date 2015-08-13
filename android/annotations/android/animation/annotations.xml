@@ -1,109 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.animation.AnimatorInflater android.animation.Animator loadAnimator(android.content.Context, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.animation.AnimatorInflater android.animation.Animator loadAnimator(android.content.Context, int) 1">
     <annotation name="android.support.annotation.AnimatorRes" />
-  </item>
-  <item name="android.animation.AnimatorSet android.animation.AnimatorSet clone()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.AnimatorSet android.animation.AnimatorSet setDuration(long)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.AnimatorSet java.util.ArrayList&lt;android.animation.Animator&gt; getChildAnimations()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.AnimatorSet.Builder android.animation.AnimatorSet.Builder after(android.animation.Animator)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.AnimatorSet.Builder android.animation.AnimatorSet.Builder after(long)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.AnimatorSet.Builder android.animation.AnimatorSet.Builder before(android.animation.Animator)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.AnimatorSet.Builder android.animation.AnimatorSet.Builder with(android.animation.Animator)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.ArgbEvaluator java.lang.Object evaluate(float, java.lang.Object, java.lang.Object)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.FloatEvaluator java.lang.Float evaluate(float, java.lang.Number, java.lang.Number)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.FloatEvaluator java.lang.Float evaluate(float, java.lang.Number, java.lang.Number) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.FloatEvaluator java.lang.Float evaluate(float, java.lang.Number, java.lang.Number) 2">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.IntEvaluator java.lang.Integer evaluate(float, java.lang.Integer, java.lang.Integer)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.Keyframe android.animation.Keyframe ofFloat(float)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.Keyframe android.animation.Keyframe ofFloat(float, float)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.Keyframe android.animation.Keyframe ofInt(float)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.Keyframe android.animation.Keyframe ofInt(float, int)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.Keyframe android.animation.Keyframe ofObject(float, java.lang.Object)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.LayoutTransition void addChild(android.view.ViewGroup, android.view.View) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.LayoutTransition void hideChild(android.view.ViewGroup, android.view.View) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.LayoutTransition void hideChild(android.view.ViewGroup, android.view.View) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.LayoutTransition void hideChild(android.view.ViewGroup, android.view.View, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.LayoutTransition void hideChild(android.view.ViewGroup, android.view.View, int) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.LayoutTransition void removeChild(android.view.ViewGroup, android.view.View) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.LayoutTransition void removeChild(android.view.ViewGroup, android.view.View) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.LayoutTransition void showChild(android.view.ViewGroup, android.view.View) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.LayoutTransition void showChild(android.view.ViewGroup, android.view.View, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator clone()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofFloat(T, android.util.Property&lt;T,java.lang.Float&gt;, float...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofFloat(T, android.util.Property&lt;T,java.lang.Float&gt;, float...) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofFloat(java.lang.Object, java.lang.String, float...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofInt(T, android.util.Property&lt;T,java.lang.Integer&gt;, int...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofInt(T, android.util.Property&lt;T,java.lang.Integer&gt;, int...) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofInt(java.lang.Object, java.lang.String, int...)">
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(T, android.util.Property&lt;T,P&gt;, android.animation.TypeConverter&lt;V,P&gt;, android.animation.TypeEvaluator&lt;V&gt;, V...)">
     <annotation name="android.support.annotation.NonNull" />
@@ -120,17 +18,11 @@
   <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(T, android.util.Property&lt;T,V&gt;, android.animation.TypeEvaluator&lt;V&gt;, V...)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(T, android.util.Property&lt;T,V&gt;, android.animation.TypeEvaluator&lt;V&gt;, V...) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(java.lang.Object, java.lang.String, android.animation.TypeConverter&lt;android.graphics.PointF,?&gt;, android.graphics.Path)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(java.lang.Object, java.lang.String, android.animation.TypeConverter&lt;android.graphics.PointF,?&gt;, android.graphics.Path) 2">
     <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofObject(java.lang.Object, java.lang.String, android.animation.TypeEvaluator, java.lang.Object...)">
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator ofPropertyValuesHolder(java.lang.Object, android.animation.PropertyValuesHolder...)">
     <annotation name="android.support.annotation.NonNull" />
@@ -152,48 +44,6 @@
   </item>
   <item name="android.animation.ObjectAnimator void setTarget(java.lang.Object) 0">
     <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.animation.PropertyValuesHolder android.animation.PropertyValuesHolder ofFloat(android.util.Property&lt;?,java.lang.Float&gt;, float...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.PropertyValuesHolder android.animation.PropertyValuesHolder ofFloat(java.lang.String, float...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.PropertyValuesHolder android.animation.PropertyValuesHolder ofInt(android.util.Property&lt;?,java.lang.Integer&gt;, int...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.PropertyValuesHolder android.animation.PropertyValuesHolder ofInt(java.lang.String, int...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.PropertyValuesHolder android.animation.PropertyValuesHolder ofKeyframe(android.util.Property, android.animation.Keyframe...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.PropertyValuesHolder android.animation.PropertyValuesHolder ofKeyframe(java.lang.String, android.animation.Keyframe...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.PropertyValuesHolder android.animation.PropertyValuesHolder ofObject(android.util.Property, android.animation.TypeEvaluator&lt;V&gt;, V...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.PropertyValuesHolder android.animation.PropertyValuesHolder ofObject(java.lang.String, android.animation.TypeEvaluator, java.lang.Object...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.PropertyValuesHolder void setKeyframes(android.animation.Keyframe...) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.ValueAnimator android.animation.ValueAnimator ofFloat(float...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.ValueAnimator android.animation.ValueAnimator ofInt(int...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.ValueAnimator android.animation.ValueAnimator ofObject(android.animation.TypeEvaluator, java.lang.Object...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.ValueAnimator android.animation.ValueAnimator ofPropertyValuesHolder(android.animation.PropertyValuesHolder...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.animation.ValueAnimator void setValues(android.animation.PropertyValuesHolder...) 0">
-    <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>
 
