@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
+import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
@@ -42,8 +43,10 @@ import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 
@@ -76,12 +79,12 @@ public final class RecipeContext {
   private boolean myNeedsGradleSync;
 
   public RecipeContext(@NotNull Project project,
-                                @NotNull StudioTemplateLoader loader,
-                                @NotNull Configuration freemarker,
-                                @NotNull Map<String, Object> paramMap,
-                                @NotNull File outputRoot,
-                                @NotNull File moduleRoot,
-                                boolean syncGradleIfNeeded) {
+                       @NotNull StudioTemplateLoader loader,
+                       @NotNull Configuration freemarker,
+                       @NotNull Map<String, Object> paramMap,
+                       @NotNull File outputRoot,
+                       @NotNull File moduleRoot,
+                       boolean syncGradleIfNeeded) {
     myProject = project;
     myLoader = loader;
     myFreemarker = freemarker;
@@ -258,6 +261,31 @@ public final class RecipeContext {
   }
 
   /**
+   * Execute another recipe file.
+   */
+  public void execute(@NotNull File file) {
+    try {
+      processFreemarkerTemplate(myFreemarker, myParamMap, file, new FreemarkerUtils.TemplatePostProcessor() {
+        @Override
+        public void process(@NotNull String xml) throws TemplateProcessingException {
+          try {
+            xml = XmlUtils.stripBom(xml);
+
+            Recipe recipe = Recipe.parse(new StringReader(xml));
+            recipe.execute(RecipeContext.this);
+          }
+          catch (JAXBException ex) {
+            throw new TemplateProcessingException(ex);
+          }
+        }
+      });
+    }
+    catch (TemplateProcessingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Update the project's gradle build file and sync, if necessary. This should only be called
    * once and after all dependencies are already added.
    */
@@ -388,4 +416,3 @@ public final class RecipeContext {
     return true;
   }
 }
-
