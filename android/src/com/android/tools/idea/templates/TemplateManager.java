@@ -311,11 +311,14 @@ public class TemplateManager {
     List<File> templateDirectories = Lists.newArrayList();
     if (project != null && project.getBaseDir() != null) {
       if (myAarCache == null) {
+        String prefix = project.getName();
+        String suffix = "aar_cache";
         try {
-          myAarCache = FileUtil.createTempDirectory(project.getName(), "aar_cache");
+          myAarCache = FileUtil.createTempDirectory(prefix, suffix);
         }
         catch (IOException e) {
-          LOG.error(e);
+          LOG.error(String.format("Problem trying to create temp directory with prefix: '%1$s' suffix: '%2$s' path: '%3$s'",
+                                  prefix, suffix, FileUtil.getTempDirectory()), e);
           return templateDirectories;
         }
       }
