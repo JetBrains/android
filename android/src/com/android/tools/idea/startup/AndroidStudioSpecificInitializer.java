@@ -18,10 +18,6 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
-import com.android.tools.idea.gradle.actions.EditBuildTypesAction;
-import com.android.tools.idea.gradle.actions.EditFlavorsAction;
-import com.android.tools.idea.gradle.actions.EditLibraryAndDependenciesAction;
-import com.android.tools.idea.gradle.actions.SelectBuildVariantAction;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
@@ -539,8 +535,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       LOG.error("Unexpected error while setting up SDKs: ", e);
     }
 
-    addExtraBuildActions();
-
     hideMiscActions();
 
     hideUnwantedIntentions();
@@ -573,19 +567,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     AnAction pluginAction = am.getAction("StartupWizard");
     // Never applicable in the context of android studio, so just set to invisible.
     pluginAction.getTemplatePresentation().setVisible(false);
-  }
-
-  private static void addExtraBuildActions() {
-    ActionManager actionManager = ActionManager.getInstance();
-    AnAction buildMenu = actionManager.getAction("BuildMenu");
-    if (buildMenu instanceof DefaultActionGroup) {
-      DefaultActionGroup buildMenuGroup = (DefaultActionGroup)buildMenu;
-      buildMenuGroup.addSeparator();
-      buildMenuGroup.add(new EditBuildTypesAction());
-      buildMenuGroup.add(new EditFlavorsAction());
-      buildMenuGroup.add(new EditLibraryAndDependenciesAction());
-      buildMenuGroup.add(new SelectBuildVariantAction());
-    }
   }
 
   private static Set<String> unwantedIntetionFamilyNames = Sets.newHashSet("Add testng.jar to classpath", /* TestNGOrderEntryFix */

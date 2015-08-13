@@ -79,6 +79,15 @@
     <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
+    <group id="GradleProjectStructureActions">
+      <separator/>
+      <action id="EditBuildTypes" class="com.android.tools.idea.gradle.actions.EditBuildTypesAction"/>
+      <action id="EditFlavors" class="com.android.tools.idea.gradle.actions.EditFlavorsAction"/>
+      <action id="EditLibraryAndDependencies" class="com.android.tools.idea.gradle.actions.EditLibraryAndDependenciesAction"/>
+      <action id="SelectBuildVariant" class="com.android.tools.idea.gradle.actions.SelectBuildVariantAction"/>
+      <add-to-group group-id="BuildMenu" anchor="last"/>
+    </group>
+
     <action id="LegacyNewAndroidComponent" class="com.android.tools.idea.actions.LegacyNewAndroidComponentAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>
