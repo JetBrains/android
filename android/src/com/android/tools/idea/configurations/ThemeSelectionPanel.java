@@ -396,7 +396,8 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   private List<String> getLibraryThemes() {
     if (myLibraryThemes == null) {
-      myLibraryThemes = getFilteredSortedNames(getPublicThemes(myThemeResolver.getExternalLibraryThemes()), myExcludedThemes);
+      myLibraryThemes = getFilteredPrefixesSortedNames(getPublicThemes(myThemeResolver.getExternalLibraryThemes()), myExcludedThemes,
+                                                       Collections.singleton("Base."));
     }
 
     return myLibraryThemes;
@@ -552,12 +553,43 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     }
   }
 
+  /**
+   * Sorts the themes in themesRaw excluding those in excludedThemes
+   *
+   * @param themesRaw      themes to process
+   * @param excludedThemes themes to filter out
+   * @return the sorted themes excluding those in excludedThemes
+   */
   private static List<String> getFilteredSortedNames(Collection<ThemeEditorStyle> themesRaw, Set<String> excludedThemes) {
+    return getFilteredPrefixesSortedNames(themesRaw, excludedThemes, Collections.<String>emptySet());
+  }
+
+  /**
+   * Sorts the themes in themesRaw excluding those in excludedThemes and those starting with prefixes in excludedPrefixes
+   *
+   * @param themesRaw themes to process
+   * @param excludedThemes themes to filter out
+   * @param excludedPrefixes set of prefixes of the themes to filter
+   * @return the sorted themes excluding those in excludedThemes or starting with a prefix in excludedPrefixes
+   */
+  private static List<String> getFilteredPrefixesSortedNames(Collection<ThemeEditorStyle> themesRaw,
+                                                             Set<String> excludedThemes,
+                                                             Set<String> excludedPrefixes) {
     List<String> themes = new ArrayList<String>(themesRaw.size());
     for (ThemeEditorStyle theme : themesRaw) {
       String qualifiedName = theme.getQualifiedName();
       if (!excludedThemes.contains(qualifiedName)) {
-        themes.add(qualifiedName);
+        boolean startWithPrefix = false;
+        String themeName = theme.getName();
+        for (String prefix : excludedPrefixes) {
+          if (themeName.startsWith(prefix)) {
+            startWithPrefix = true;
+            break;
+          }
+        }
+        if (!startWithPrefix) {
+          themes.add(qualifiedName);
+        }
       }
     }
     Collections.sort(themes);
