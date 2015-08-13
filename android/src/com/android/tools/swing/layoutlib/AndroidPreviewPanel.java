@@ -45,6 +45,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class AndroidPreviewPanel extends JComponent implements Scrollable {
   private static final Logger LOG = Logger.getInstance(AndroidPreviewPanel.class);
 
+  public static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 5;
+  public static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 10;
+
   // The two booleans are used to control the flow of pending invalidates and to avoid creating
   // any unnecessary tasks.
   // If myRunningInvalidates is true, a task is currently running so no other task will be started.
@@ -225,12 +228,12 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
 
   @Override
   public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
-    return 5;
+    return VERTICAL_SCROLLING_UNIT_INCREMENT;
   }
 
   @Override
   public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
-    return 10;
+    return VERTICAL_SCROLLING_BLOCK_INCREMENT;
   }
 
   @Override
