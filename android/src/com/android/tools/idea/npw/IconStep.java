@@ -65,7 +65,6 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
  * {@linkplain IconStep} is a wizard page that lets the user create a variety of density-scaled assets.
- * TODO: It seems like the "Launcher" and "Action Bar and Tabs" modes might not be used anymore.
  */
 public class IconStep extends DynamicWizardStepWithDescription implements Disposable {
   public static final Key<String> ATTR_ASSET_NAME = createKey(AssetStudioAssetGenerator.ATTR_ASSET_NAME, PATH, String.class);
@@ -109,17 +108,11 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   private final Map<String, Map<String, BufferedImage>> myImageMap = new ConcurrentHashMap<String, Map<String, BufferedImage>>();
   private final Key<TemplateEntry> myTemplateKey;
   private final Key<SourceProvider> mySourceProviderKey;
-  private final SourceProvider[] mySourceProviders;
   private AssetStudioAssetGenerator myAssetGenerator;
   private JPanel myPanel;
   private JRadioButton myImageRadioButton;
   private JRadioButton myClipartRadioButton;
   private JRadioButton myTextRadioButton;
-  private JRadioButton myCropRadioButton;
-  private JRadioButton myCenterRadioButton;
-  private JRadioButton myCircleRadioButton;
-  private JRadioButton mySquareRadioButton;
-  private JRadioButton myNoneRadioButton;
   private JButton myChooseClipart;
   private JCheckBox myTrimBlankSpace;
   private JTextField myText;
@@ -133,8 +126,6 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   private JSlider myPaddingSlider;
   private ImageComponent myXXHdpiPreview;
   private JLabel myForegroundColorLabel;
-  private JLabel myAssetTypeLabel;
-  private JComboBox myChooseThemeComboBox;
   private JTextField myResourceNameField;
   private ImageComponent myV9XHdpiPreview;
   private ImageComponent myV9XXHdpiPreview;
@@ -145,24 +136,17 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   private ImageComponent myV11XHdpiPreview;
   private ImageComponent myV11XXHdpiPreview;
   private JTextField myPaddingTextField;
-  private JRadioButton myLauncherRadioButton;
-  private JRadioButton myActionBarAndTabsRadioButton;
-  private JRadioButton myNotificationRadioButton;
   private JPanel myPageBook;
   private JLabel mySourceSetLabel;
   private JComboBox mySourceSetComboBox;
-  private JPanel myTypePanel;
   private JPanel myAssetSourceCardPanel;
-  private JPanel myTypeCardPanel;
   private String myDefaultName;
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
-  public IconStep(Key<TemplateEntry> templateKey, Key<SourceProvider> sourceProviderKey,
-                  @Nullable SourceProvider[] sourceProviders, Disposable disposable) {
+  public IconStep(Key<TemplateEntry> templateKey, Key<SourceProvider> sourceProviderKey, Disposable disposable) {
     super(disposable);
     myTemplateKey = templateKey;
     mySourceProviderKey = sourceProviderKey;
-    mySourceProviders = sourceProviders;
 
     myUpdateQueue = new MergingUpdateQueue("asset.studio", 200, true, null, this, null, false);
 
@@ -199,13 +183,6 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
       Logger.getInstance(IconStep.class).error(e);
     }
     return new ImageIcon(icon, clipartName);
-  }
-
-  private static void populateThemeComboBox(JComboBox comboBox) {
-    for (Theme theme : Theme.values()) {
-      String themeName = theme.name();
-      comboBox.addItem(new ComboBoxItemWithApiTag(themeName, themeName, 0, 0));
-    }
   }
 
   private static void show(JComponent... components) {
@@ -286,11 +263,6 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     register(ATTR_IMAGE_PATH, myImageFile);
     register(ATTR_TEXT, myText);
 
-    register(ATTR_SCALING, ImmutableMap.of(myCropRadioButton, Scaling.CROP, myCenterRadioButton, Scaling.CENTER));
-
-    register(ATTR_SHAPE, ImmutableMap
-      .of(myCircleRadioButton, GraphicGenerator.Shape.CIRCLE, mySquareRadioButton, GraphicGenerator.Shape.SQUARE, myNoneRadioButton,
-          GraphicGenerator.Shape.NONE));
     register(ATTR_PADDING, myPaddingSlider);
     register(ATTR_PADDING, myPaddingTextField, new ComponentBinding<Integer, JTextField>() {
       @Override
@@ -328,10 +300,6 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
       .of(myImageRadioButton, SourceType.IMAGE, myClipartRadioButton, SourceType.CLIPART, myTextRadioButton, SourceType.TEXT));
     register(ATTR_FOREGROUND_COLOR, myForegroundColor);
     register(ATTR_BACKGROUND_COLOR, myBackgroundColor);
-    register(ATTR_ASSET_TYPE, ImmutableMap
-      .of(myLauncherRadioButton, AssetType.LAUNCHER, myActionBarAndTabsRadioButton, AssetType.ACTIONBAR, myNotificationRadioButton,
-          AssetType.NOTIFICATION));
-    register(ATTR_ASSET_THEME, myChooseThemeComboBox);
     register(ATTR_ASSET_NAME, myResourceNameField);
     register(ATTR_CLIPART_NAME, myChooseClipart, new ComponentBinding<String, JButton>() {
       @Override
@@ -341,17 +309,6 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
       }
     });
 
-    populateThemeComboBox(myChooseThemeComboBox);
-    String theme = myState.get(ATTR_ASSET_NAME);
-    // Theme chooser
-    if (myChooseThemeComboBox.isVisible() && !StringUtil.isEmpty(theme)) {
-      if (Theme.valueOf(theme).equals(Theme.CUSTOM)) {
-        show(myForegroundColor, myForegroundColorLabel);
-      }
-      else {
-        hide(myForegroundColor, myForegroundColorLabel);
-      }
-    }
   }
 
   private void updateDirectoryCombo() {
@@ -386,18 +343,12 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   }
 
   private List<File> getResourceFolders() {
-    SourceProvider[] providers = mySourceProviders;
-    if (providers == null) {
-      SourceProvider provider = myState.get(mySourceProviderKey);
-      if (provider == null) {
-        return Collections.emptyList();
-      }
-      providers = new SourceProvider[]{provider};
+    SourceProvider provider = myState.get(mySourceProviderKey);
+    if (provider == null) {
+      return Collections.emptyList();
     }
     List<File> dirs = Lists.newLinkedList();
-    for (final SourceProvider provider : providers) {
-      dirs.addAll(provider.getResDirectories());
-    }
+    dirs.addAll(provider.getResDirectories());
     return dirs;
   }
 
@@ -459,18 +410,6 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     // Asset Type Combo Box
     AssetType assetType = myState.get(ATTR_ASSET_TYPE);
     if (assetType != null) {
-      switch (assetType) {
-        case LAUNCHER:
-          ((CardLayout)myTypeCardPanel.getLayout()).show(myTypeCardPanel, "LauncherCard");
-          break;
-        case ACTIONBAR:
-          ((CardLayout)myTypeCardPanel.getLayout()).show(myTypeCardPanel, "ActionbarCard");
-          break;
-        case NOTIFICATION:
-          ((CardLayout)myTypeCardPanel.getLayout()).show(myTypeCardPanel, "NotificationCard");
-          break;
-      }
-
       String name = myState.get(ATTR_ASSET_NAME);
       if (name == null || Objects.equal(myDefaultName, name)) {
         myDefaultName = computeResourceName(assetType);
@@ -480,14 +419,6 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
 
     // Theme chooser
     String assetTheme = myState.get(ATTR_ASSET_THEME);
-    if (myChooseThemeComboBox.isVisible() && !StringUtil.isEmpty(assetTheme)) {
-      if (Theme.valueOf(assetTheme).equals(Theme.CUSTOM)) {
-        show(myForegroundColor, myForegroundColorLabel);
-      }
-      else {
-        hide(myForegroundColor, myForegroundColorLabel);
-      }
-    }
     requestPreviewUpdate();
   }
 
@@ -626,8 +557,6 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
 
   public void finalizeAssetType(@Nullable AssetType type) {
     myState.put(ATTR_ASSET_TYPE, type);
-    myTypePanel.setVisible(type == null);
-    myAssetTypeLabel.setVisible(type == null);
   }
 
   @NotNull
