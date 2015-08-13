@@ -18,7 +18,10 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
-import com.android.tools.idea.gradle.actions.*;
+import com.android.tools.idea.gradle.actions.EditBuildTypesAction;
+import com.android.tools.idea.gradle.actions.EditFlavorsAction;
+import com.android.tools.idea.gradle.actions.EditLibraryAndDependenciesAction;
+import com.android.tools.idea.gradle.actions.SelectBuildVariantAction;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
@@ -77,6 +80,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.cleanUpPreferences;
 import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemons;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
+import static com.intellij.openapi.actionSystem.IdeActions.*;
 import static com.intellij.openapi.options.Configurable.APPLICATION_CONFIGURABLE;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.getExtension;
@@ -99,7 +103,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     "org.intellij.lang.xpath.xslt.impl.XsltConfigImpl$UIImpl"
   );
   @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARDS = "use.idea.newProjectWizard";
-  @NonNls private static final String USE_JPS_MAKE_ACTIONS = "use.idea.jpsMakeActions";
   @NonNls private static final String USE_IDEA_NEW_FILE_POPUPS = "use.idea.newFilePopupActions";
   @NonNls private static final String USE_IDEA_PROJECT_STRUCTURE = "use.idea.projectStructure";
   @NonNls public static final String ENABLE_EXPERIMENTAL_ACTIONS = "enable.experimental.actions";
@@ -235,18 +238,20 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     }
   }
 
-  private static void replaceIdeaMakeActions() {
+  // The original actions will be visible only on plain IDEA projects.
+  private static void hideIdeaMakeActions() {
     // 'Build' > 'Make Project' action
-    replaceAction("CompileDirty", new MakeGradleProjectAction());
+    hideAction("CompileDirty", "Make Project");
 
     // 'Build' > 'Make Modules' action
-    replaceAction(IdeActions.ACTION_MAKE_MODULE, new MakeGradleModuleAction());
+    // We cannot simply hide this action, because of a NPE.
+    replaceAction(ACTION_MAKE_MODULE, new MakeIdeaModuleAction());
 
     // 'Build' > 'Rebuild' action
-    replaceAction(IdeActions.ACTION_COMPILE_PROJECT, new RebuildGradleProjectAction());
+    hideAction(ACTION_COMPILE_PROJECT, "Rebuild Project");
 
     // 'Build' > 'Compile Modules' action
-    hideAction(IdeActions.ACTION_COMPILE, "Compile Module(s)");
+    hideAction(ACTION_COMPILE, "Compile Module(s)");
   }
 
   private static void replaceAction(String actionId, AnAction newAction) {
@@ -521,9 +526,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       replaceProjectStructureActions();
     }
 
-    if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
-      replaceIdeaMakeActions();
-    }
+    hideIdeaMakeActions();
 
     if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
       hideIdeaNewFilePopupActions();
@@ -591,7 +594,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   /**
    * Disable the intentions that we don't want in android studio.
    */
-  private void hideUnwantedIntentions() {
+  private static void hideUnwantedIntentions() {
     IntentionManager intentionManager = IntentionManager.getInstance();
     if (!(intentionManager instanceof IntentionManagerImpl)) {
       return;

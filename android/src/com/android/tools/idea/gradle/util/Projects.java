@@ -334,12 +334,10 @@ public final class Projects {
       }
       return modules;
     }
-
     Module module = MODULE.getData(dataContext);
     if (module != null) {
       return isProjectModule(module) ? ModuleManager.getInstance(project).getModules() : new Module[]{module};
     }
-
     return Module.EMPTY_ARRAY;
   }
 
