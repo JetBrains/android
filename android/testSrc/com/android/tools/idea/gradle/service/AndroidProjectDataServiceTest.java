@@ -28,12 +28,12 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.easymock.IArgumentMatcher;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
@@ -78,9 +78,11 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     super.tearDown();
   }
 
+  @NotNull
   @Override
-  protected CompositeException checkForSettingsDamage() throws Exception {
-    return new CompositeException();
+  protected List<Throwable> checkForSettingsDamage() throws Exception {
+    // For this test we don't care for this check. This method does nothing.
+    return Collections.emptyList();
   }
 
   public void testImportData() {

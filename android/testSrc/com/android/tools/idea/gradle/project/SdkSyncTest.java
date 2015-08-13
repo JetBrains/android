@@ -19,12 +19,13 @@ import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Tests for {@link SdkSync}.
@@ -43,10 +44,11 @@ public class SdkSyncTest extends IdeaTestCase {
     assertNull(IdeSdks.getAndroidSdkPath());
   }
 
+  @NotNull
   @Override
-  protected CompositeException checkForSettingsDamage() throws Exception {
-    // For this test we don't care about checking for settings damage.
-    return new CompositeException();
+  protected List<Throwable> checkForSettingsDamage() throws Exception {
+    // For this test we don't care for this check. This method does nothing.
+    return Collections.emptyList();
   }
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndNoProjectSdk() throws Exception {

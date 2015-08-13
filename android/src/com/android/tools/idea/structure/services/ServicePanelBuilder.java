@@ -143,7 +143,7 @@ public final class ServicePanelBuilder {
     final AbstractCollectionComboBoxModel<String> model = new AbstractCollectionComboBoxModel<String>(null) {
       @NotNull
       @Override
-      protected List<String> getItems() {
+      public List<String> getItems() {
         return backingList;
       }
     };

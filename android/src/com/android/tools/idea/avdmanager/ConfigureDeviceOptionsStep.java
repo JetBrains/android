@@ -88,7 +88,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   private Device.Builder myBuilder = new Device.Builder();
 
   public ConfigureDeviceOptionsStep(@Nullable Device templateDevice, boolean forceCreation, @Nullable Disposable parentDisposable) {
-    super("Configure Hardware Profile", null, null, parentDisposable);
+    super("Configure Hardware Profile", null, parentDisposable);
     myTemplateDevice = templateDevice;
     myForceCreation = forceCreation;
     setBodyComponent(myRootPanel);

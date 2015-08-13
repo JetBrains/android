@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.driver;
 
 import com.intellij.ui.SearchTextField;
-import org.fest.assertions.Condition;
 import org.fest.swing.annotation.RunsInEDT;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.JComponentDriver;

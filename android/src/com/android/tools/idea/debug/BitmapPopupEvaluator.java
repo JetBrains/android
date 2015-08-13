@@ -17,7 +17,7 @@ package com.android.tools.idea.debug;
 
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
-import com.intellij.debugger.settings.CustomPopupFullValueEvaluator;
+import com.intellij.debugger.ui.tree.render.CustomPopupFullValueEvaluator;
 import com.intellij.openapi.ui.Messages;
 import com.sun.jdi.Value;
 import org.intellij.images.editor.impl.ImageEditorManagerImpl;

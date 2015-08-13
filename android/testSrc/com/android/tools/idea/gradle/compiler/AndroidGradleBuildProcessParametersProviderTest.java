@@ -27,12 +27,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.KeyValue;
-import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,10 +56,11 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
   }
 
+  @NotNull
   @Override
-  protected CompositeException checkForSettingsDamage() throws Exception {
-    // For this test we don't care about checking for settings damage.
-    return new CompositeException();
+  protected List<Throwable> checkForSettingsDamage() throws Exception {
+    // For this test we don't care for this check. This method does nothing.
+    return Collections.emptyList();
   }
 
   public void testPopulateJvmArgsWithGradleExecutionSettings() {
