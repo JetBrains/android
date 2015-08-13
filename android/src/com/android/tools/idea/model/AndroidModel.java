@@ -108,4 +108,10 @@ public interface AndroidModel {
    */
   @Nullable
   AndroidVersion getTargetSdkVersion();
+
+  /**
+   * @return the internal version number of the Android application.
+   */
+  @Nullable
+  Integer getVersionCode();
 }
