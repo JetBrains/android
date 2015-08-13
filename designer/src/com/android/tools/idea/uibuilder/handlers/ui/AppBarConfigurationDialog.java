@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.ui;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -22,6 +24,8 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
@@ -32,8 +36,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -184,7 +186,7 @@ public class AppBarConfigurationDialog extends JDialog {
   private String myBackgroundImage;
   private String myFloatingActionButtonImage;
 
-  public AppBarConfigurationDialog(@NotNull ViewEditor editor) {
+  public AppBarConfigurationDialog(@NonNull ViewEditor editor) {
     myEditor = editor;
     setTitle(DIALOG_TITLE);
     setContentPane(myContentPane);
@@ -255,7 +257,7 @@ public class AppBarConfigurationDialog extends JDialog {
     });
   }
 
-  public boolean open(@NotNull XmlFile file) {
+  public boolean open(@NonNull final XmlFile file) {
     myCollapsedPreview.setMinimumSize(new Dimension(START_WIDTH, START_HEIGHT));
     myExpandedPreview.setMinimumSize(new Dimension(START_WIDTH, START_HEIGHT));
     pack();
@@ -268,7 +270,14 @@ public class AppBarConfigurationDialog extends JDialog {
     generatePreviews();
     setVisible(true);
     if (myWasAccepted) {
-      applyChanges(file);
+      Project project = file.getProject();
+      WriteCommandAction action = new WriteCommandAction(project, "Configure App Bar", file) {
+        @Override
+        protected void run(@NonNull Result result) throws Throwable {
+          applyChanges(file);
+        }
+      };
+      action.execute();
     }
     return myWasAccepted;
   }
@@ -340,7 +349,7 @@ public class AppBarConfigurationDialog extends JDialog {
     view.setIcon(new ImageIcon(image));
   }
 
-  private void applyChanges(@NotNull XmlFile file) {
+  private void applyChanges(@NonNull XmlFile file) {
     Map<String, String> namespaces = getNameSpaces(file.getRootTag(), false);
     String xml = getXml(getDesignContent(file), false, namespaces);
     XmlElementFactory elementFactory = XmlElementFactory.getInstance(file.getProject());
@@ -352,13 +361,13 @@ public class AppBarConfigurationDialog extends JDialog {
     }
   }
 
-  @NotNull
-  private String getXml(@NotNull String content, boolean collapsed, @NotNull Map<String, String> namespaces) {
+  @NonNull
+  private String getXml(@NonNull String content, boolean collapsed, @NonNull Map<String, String> namespaces) {
     return myWithTabs.isSelected() ? getXmlWithTabs(content, collapsed, namespaces) : getXmlWithoutTabs(content, collapsed, namespaces);
   }
 
-  @NotNull
-  private String getXmlWithoutTabs(@NotNull String content, boolean collapsed, @NotNull Map<String, String> namespaces) {
+  @NonNull
+  private String getXmlWithoutTabs(@NonNull String content, boolean collapsed, @NonNull Map<String, String> namespaces) {
     return String.format(
       TAG_COORDINATOR_LAYOUT,
       namespaces.get(ANDROID_URI),
@@ -374,8 +383,8 @@ public class AppBarConfigurationDialog extends JDialog {
       getFloatingActionButton(namespaces));
   }
 
-  @NotNull
-  private String getXmlWithTabs(@NotNull String content, boolean collapsed, @NotNull Map<String, String> namespaces) {
+  @NonNull
+  private String getXmlWithTabs(@NonNull String content, boolean collapsed, @NonNull Map<String, String> namespaces) {
     return String.format(
       TAG_COORDINATOR_WITH_TABS_LAYOUT,
       namespaces.get(ANDROID_URI),
@@ -387,8 +396,8 @@ public class AppBarConfigurationDialog extends JDialog {
       getFloatingActionButton(namespaces));
   }
 
-  @NotNull
-  private String getFitsSystemWindows(@NotNull Map<String, String> namespaces) {
+  @NonNull
+  private String getFitsSystemWindows(@NonNull Map<String, String> namespaces) {
     if (!myShowBackgroundImage.isSelected() || !myFitStatusBar.isSelected()) {
       return "";
     }
@@ -396,13 +405,13 @@ public class AppBarConfigurationDialog extends JDialog {
                          namespaces.get(ANDROID_URI));
   }
 
-  @NotNull
+  @NonNull
   private String getToolbarScrollBehavior() {
     return myCollapsing.isSelected() ? "scroll|enterAlways|enterAlwaysCollapsed" : "scroll|exitUntilCollapsed";
   }
 
-  @NotNull
-  private String getTabLayoutScroll(@NotNull Map<String, String> namespaces) {
+  @NonNull
+  private String getTabLayoutScroll(@NonNull Map<String, String> namespaces) {
     if (!myCollapsing.isSelected()) {
       return "";
     }
@@ -410,8 +419,8 @@ public class AppBarConfigurationDialog extends JDialog {
                          namespaces.get(AUTO_URI));
   }
 
-  @NotNull
-  private String getInterpolator(@NotNull Map<String, String> namespaces) {
+  @NonNull
+  private String getInterpolator(@NonNull Map<String, String> namespaces) {
     if (!myShowBackgroundImage.isSelected()) {
       return "";
     }
@@ -420,8 +429,8 @@ public class AppBarConfigurationDialog extends JDialog {
                          namespaces.get(AUTO_URI));
   }
 
-  @NotNull
-  private String getBackgroundImage(@NotNull Map<String, String> namespaces) {
+  @NonNull
+  private String getBackgroundImage(@NonNull Map<String, String> namespaces) {
     if (!myShowBackgroundImage.isSelected()) {
       return "";
     }
@@ -431,8 +440,8 @@ public class AppBarConfigurationDialog extends JDialog {
                          myBackgroundImage);
   }
 
-  @NotNull
-  private String getBehaviorOverlapTop(@NotNull Map<String, String> namespaces) {
+  @NonNull
+  private String getBehaviorOverlapTop(@NonNull Map<String, String> namespaces) {
     if (!myContentOverlap.isSelected()) {
       return "";
     }
@@ -441,8 +450,8 @@ public class AppBarConfigurationDialog extends JDialog {
                          myContentOverlapAmount.getText());
   }
 
-  @NotNull
-  private static String getScrollPos(boolean collapsed, @NotNull Map<String, String> namespaces) {
+  @NonNull
+  private static String getScrollPos(boolean collapsed, @NonNull Map<String, String> namespaces) {
     if (!collapsed) {
       return "";
     }
@@ -450,8 +459,8 @@ public class AppBarConfigurationDialog extends JDialog {
                          namespaces.get(TOOLS_URI));
   }
 
-  @NotNull
-  private String getBackgroundImageCollapseMode(@NotNull Map<String, String> namespaces) {
+  @NonNull
+  private String getBackgroundImageCollapseMode(@NonNull Map<String, String> namespaces) {
     if (myParallax.isSelected()) {
       return "";
     }
@@ -459,8 +468,8 @@ public class AppBarConfigurationDialog extends JDialog {
                          namespaces.get(AUTO_URI));
   }
 
-  @NotNull
-  private String getFloatingActionButton(@NotNull Map<String, String> namespaces) {
+  @NonNull
+  private String getFloatingActionButton(@NonNull Map<String, String> namespaces) {
     if (!myFloatingActionButton.isSelected()) {
       return "";
     }
@@ -469,7 +478,7 @@ public class AppBarConfigurationDialog extends JDialog {
                          myFloatingActionButtonImage);
   }
 
-  @NotNull
+  @NonNull
   private static Map<String, String> getNameSpaces(@Nullable XmlTag root, boolean includeToolsNamespace) {
     Map<String, String> reverse = new HashMap<String, String>();
     if (root != null) {
@@ -490,8 +499,8 @@ public class AppBarConfigurationDialog extends JDialog {
     return reverse;
   }
 
-  @NotNull
-  private static String formatNamespaces(@NotNull Map<String, String> namespaces) {
+  @NonNull
+  private static String formatNamespaces(@NonNull Map<String, String> namespaces) {
     StringBuilder result = new StringBuilder();
     for (String ns : namespaces.keySet()) {
       String prefix = namespaces.get(ns);
@@ -501,15 +510,14 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   // If AppBarLayout is applied a second time it should replace the current AppBarLayout:
-  @NotNull
-  private static String getDesignContent(@NotNull XmlFile file) {
+  @NonNull
+  private static String getDesignContent(@NonNull XmlFile file) {
     XmlTag content = file.getRootTag();
-    if (content != null && content.getName() != null && content.getName().equals(COORDINATOR_LAYOUT)) {
+    if (content != null && content.getName().equals(COORDINATOR_LAYOUT)) {
       XmlTag root = content;
       content = null;
       for (XmlTag tag : root.getSubTags()) {
-        if (tag.getName() != null &&
-            !tag.getName().equals(APP_BAR_LAYOUT) &&
+        if (!tag.getName().equals(APP_BAR_LAYOUT) &&
             !tag.getName().equals(FLOATING_ACTION_BUTTON)) {
           if (tag.getName().equals(CLASS_NESTED_SCROLL_VIEW)) {
             content = tag.getSubTags().length > 0 ? tag.getSubTags()[0] : null;
@@ -525,14 +533,14 @@ public class AppBarConfigurationDialog extends JDialog {
     }
     // Remove any xmlns: attributes since this element will be added into the document
     for (XmlAttribute attribute : content.getAttributes()) {
-      if (attribute != null && attribute.getName() != null && attribute.getName().startsWith(XMLNS_PREFIX)) {
+      if (attribute != null && attribute.getName().startsWith(XMLNS_PREFIX)) {
         attribute.delete();
       }
     }
     return content.getText();
   }
 
-  private static BufferedImage renderImage(@NotNull String xml, @NotNull Configuration configuration) {
+  private static BufferedImage renderImage(@NonNull String xml, @NonNull Configuration configuration) {
     AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
     if (facet == null) {
       return null;
