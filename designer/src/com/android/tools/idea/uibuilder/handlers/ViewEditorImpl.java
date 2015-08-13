@@ -121,6 +121,7 @@ public class ViewEditorImpl extends ViewEditor {
       if (map != null) {
         for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
           ViewInfo viewInfo = entry.getValue();
+          viewInfo = RenderService.getSafeBounds(viewInfo);
           Dimension size = new Dimension(viewInfo.getRight() - viewInfo.getLeft(), viewInfo.getBottom() - viewInfo.getTop());
           NlComponent child = tagToComponent.get(entry.getKey());
           if (child != null) {

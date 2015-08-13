@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.designer.AndroidMetaModel;
 import com.android.tools.idea.designer.Insets;
 import com.android.tools.idea.rendering.IncludeReference;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
@@ -295,6 +296,7 @@ public class RadViewComponent extends RadVisualComponent {
         }
       });
       if (viewInfo != null) {
+        viewInfo = RenderService.getSafeBounds(viewInfo);
         return new Dimension(viewInfo.getRight() - viewInfo.getLeft(), viewInfo.getBottom() - viewInfo.getTop());
       }
     }
