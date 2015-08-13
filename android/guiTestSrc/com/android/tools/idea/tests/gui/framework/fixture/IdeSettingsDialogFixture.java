@@ -19,34 +19,35 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableGroup;
 import com.intellij.openapi.options.ex.ProjectConfigurablesGroup;
-import com.intellij.openapi.options.newEditor.OptionsEditor;
-import com.intellij.openapi.options.newEditor.OptionsEditorDialog;
-import com.intellij.openapi.options.newEditor.OptionsTree;
+import com.intellij.openapi.options.newEditor.SettingsDialog;
 import com.intellij.openapi.util.SystemInfo;
-import org.fest.reflect.reference.TypeRef;
+import com.intellij.ui.treeStructure.CachingSimpleNode;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.List;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.junit.Assert.assertNotNull;
 
-public class IdeSettingsDialogFixture extends IdeaDialogFixture<OptionsEditorDialog> {
+public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> {
   @NotNull
   public static IdeSettingsDialogFixture find(@NotNull Robot robot) {
-    return new IdeSettingsDialogFixture(robot, find(robot, OptionsEditorDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    return new IdeSettingsDialogFixture(robot, find(robot, SettingsDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         String expectedTitle = SystemInfo.isMac ? "Preferences" : "Settings";
         return expectedTitle.equals(dialog.getTitle()) && dialog.isShowing();
       }
     }));
   }
 
-  private IdeSettingsDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<OptionsEditorDialog> dialogAndWrapper) {
+  private IdeSettingsDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<SettingsDialog> dialogAndWrapper) {
     super(robot, dialogAndWrapper);
   }
 
@@ -57,15 +58,18 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<OptionsEditorDia
 
   private List<String> getSettingsNames(@NotNull Class<? extends ConfigurableGroup> groupType) {
     List<String> names = Lists.newArrayList();
-    OptionsEditor optionsEditor = field("myEditor").ofType(OptionsEditor.class)
-                                                   .in(getDialogWrapper())
-                                                   .get();
-    OptionsTree optionsTree = field("myTree").ofType(OptionsTree.class)
-                                             .in(optionsEditor)
-                                             .get();
-    List<ConfigurableGroup> groups = field("myGroups").ofType(new TypeRef<List<ConfigurableGroup>>() {})
-                                                      .in(optionsTree)
-                                                      .get();
+    JPanel optionsEditor = field("myEditor").ofType(JPanel.class).in(getDialogWrapper()).get();
+    assertNotNull(optionsEditor);
+
+    List<JComponent> trees = findComponentsOfType(optionsEditor, "com.intellij.openapi.options.newEditor.SettingsTreeView");
+    assertThat(trees).hasSize(1);
+    JComponent tree = trees.get(0);
+
+    CachingSimpleNode root = field("myRoot").ofType(CachingSimpleNode.class).in(tree).get();
+    assertNotNull(root);
+
+    ConfigurableGroup[] groups = field("myGroups").ofType(ConfigurableGroup[].class).in(root).get();
+    assertNotNull(groups);
     ConfigurableGroup group = null;
     for (ConfigurableGroup current : groups) {
       if (groupType.isInstance(current)) {
@@ -78,5 +82,26 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<OptionsEditorDia
       names.add(configurable.getDisplayName());
     }
     return names;
+  }
+
+  @NotNull
+  private static List<JComponent> findComponentsOfType(@NotNull JComponent parent, @NotNull String typeName) {
+    List<JComponent> result = Lists.newArrayList();
+    findComponentsOfType(typeName, result, parent);
+    return result;
+  }
+
+  private static void findComponentsOfType(@NotNull String typeName, @NotNull List<JComponent> result, @Nullable JComponent parent) {
+    if (parent == null) {
+      return;
+    }
+    if (parent.getClass().getName().equals(typeName)) {
+      result.add(parent);
+    }
+    for (Component c : parent.getComponents()) {
+      if (c instanceof JComponent) {
+        findComponentsOfType(typeName, result, (JComponent)c);
+      }
+    }
   }
 }

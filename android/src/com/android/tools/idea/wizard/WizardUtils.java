@@ -16,7 +16,6 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.CharMatcher;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -72,6 +71,27 @@ public class WizardUtils {
       }
     }
     return true;
+  }
+
+  /**
+   * Lists the files of the given directory and returns them as an array which
+   * is never null. This simplifies processing file listings from for each
+   * loops since {@link File#listFiles} can return null. This method simply
+   * wraps it and makes sure it returns an empty array instead if necessary.
+   *
+   * @param dir the directory to list
+   * @return the children, or empty if it has no children, is not a directory,
+   *         etc.
+   */
+  @NotNull
+  public static File[] listFiles(@Nullable File dir) {
+    if (dir != null) {
+      File[] files = dir.listFiles();
+      if (files != null) {
+        return files;
+      }
+    }
+    return ArrayUtil.EMPTY_FILE_ARRAY;
   }
 
   /**
@@ -218,6 +238,9 @@ public class WizardUtils {
     if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
       return ValidationResult.error(ValidationResult.Message.PARENT_NOT_DIR, fieldName);
     }
+    if (file.exists() && !file.canWrite()) {
+      return ValidationResult.error(ValidationResult.Message.PATH_NOT_WRITEABLE, fieldName, file.getPath());
+    }
 
     String installLocation = PathManager.getHomePathFor(Application.class);
     if (installLocation != null && FileUtil.isAncestor(new File(installLocation), file, false)) {
@@ -225,7 +248,7 @@ public class WizardUtils {
       return ValidationResult.error(ValidationResult.Message.INSIDE_ANDROID_STUDIO, fieldName, applicationName);
     }
 
-    if (checkEmpty && file.exists() && TemplateUtils.listFiles(file).length > 0) {
+    if (checkEmpty && file.exists() && listFiles(file).length > 0) {
       return ValidationResult.warn(ValidationResult.Message.NON_EMPTY_DIR, fieldName);
     }
 

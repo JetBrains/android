@@ -16,7 +16,6 @@
 package com.android.tools.idea.navigator.nodes;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.AndroidGradleProjectData;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.lang.proguard.ProguardFileType;
 import com.google.common.collect.Lists;
@@ -94,7 +93,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     buildScripts.put(baseDir.findChild(SdkConstants.FN_LOCAL_PROPERTIES), "SDK Location");
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      File userSettingsFile = AndroidGradleProjectData.getGradleUserSettingsFile();
+      File userSettingsFile = GradleUtil.getGradleUserSettingsFile();
       if (userSettingsFile != null) {
         buildScripts.put(VfsUtil.findFileByIoFile(userSettingsFile, false), "Global Properties");
       }

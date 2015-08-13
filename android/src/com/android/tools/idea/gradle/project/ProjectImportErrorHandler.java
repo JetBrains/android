@@ -90,7 +90,8 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     }
 
     if (rootCause instanceof UnknownHostException) {
-      return createUserFriendlyError(String.format("Unknown host '%1$s'.", rootCause.getMessage()), null);
+      String msg = String.format("Unknown host '%1$s'. You may need to adjust the proxy settings in Gradle.", rootCause.getMessage());
+      return createUserFriendlyError(msg, null);
     }
 
     if (rootCause instanceof IllegalStateException || rootCause instanceof ExternalSystemException) {

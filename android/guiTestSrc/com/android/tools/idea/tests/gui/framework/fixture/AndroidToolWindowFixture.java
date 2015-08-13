@@ -16,26 +16,28 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.ddmlib.Client;
+import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Condition;
-import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
+import static org.junit.Assert.assertNotNull;
 
 public class AndroidToolWindowFixture extends ToolWindowFixture {
   @NotNull private final ProcessListFixture myProcessListFixture;
@@ -83,7 +85,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     JBRunnerTabs tabs = myRobot.finder().findByType(getContentPanel(), JBRunnerTabs.class);
     TabLabel tabLabel = myRobot.finder().find(tabs, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
       @Override
-      protected boolean isMatching(TabLabel component) {
+      protected boolean isMatching(@NotNull TabLabel component) {
         return tabName.equals(component.toString());
       }
     });
@@ -115,10 +117,11 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
       pause(new Condition("Wait for the process list to show the package name.") {
         @Override
         public boolean test() {
-          return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+          //noinspection ConstantConditions
+          return execute(new GuiQuery<Boolean>() {
             @Override
             protected Boolean executeInEDT() throws Throwable {
-              ListModel model = target.getModel();
+              ListModel model = target().getModel();
               int size = model.getSize();
               for (int i = 0; i < size; ++i) {
                 Client client = (Client)model.getElementAt(i);
@@ -137,13 +140,14 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
 
     @Override
     @NotNull
-    public ProcessListFixture selectItem(@NotNull final String packageName) {
+    public ProcessListFixture selectItem(@Nullable final String packageName) {
       clearSelection();
-      Integer index = GuiActionRunner.execute(new GuiQuery<Integer>() {
+      assertNotNull(packageName);
+      Integer index = execute(new GuiQuery<Integer>() {
         @Override
         protected Integer executeInEDT() throws Throwable {
-          for (int i = 0; i < target.getModel().getSize(); ++i) {
-            Client client = (Client)target.getModel().getElementAt(i);
+          for (int i = 0; i < target().getModel().getSize(); ++i) {
+            Client client = (Client)target().getModel().getElementAt(i);
             if (packageName.equals(client.getClientData().getClientDescription())) {
               return i;
             }
@@ -151,6 +155,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
           return -1;
         }
       });
+      assertNotNull(index);
       assertThat(index).isGreaterThanOrEqualTo(0);
       selectItem(index);
       return this;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation.model;
 
-import com.android.annotations.Transient;
+import com.android.tools.idea.editors.navigation.annotations.Transient;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;

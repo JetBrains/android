@@ -20,51 +20,57 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.ExtensionPoint;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.*;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.Processor;
-import com.intellij.util.SystemProperties;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.net.HttpConfigurable;
 import icons.AndroidIcons;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.gradle.StartParameter;
+import org.gradle.wrapper.PathAssembler;
+import org.gradle.wrapper.WrapperConfiguration;
+import org.gradle.wrapper.WrapperExecutor;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -75,47 +81,118 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
+import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
+import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
+import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.google.common.base.Splitter.on;
+import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.notification.NotificationType.WARNING;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getSettings;
+import static com.intellij.openapi.util.SystemInfo.isWindows;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.util.text.StringUtil.*;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtil.processFileRecursivelyWithoutIgnored;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.util.ArrayUtil.toStringArray;
+import static com.intellij.util.SystemProperties.getUserHome;
+import static com.intellij.util.containers.ContainerUtil.addAll;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+import static java.util.Collections.sort;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
+import static org.gradle.wrapper.WrapperExecutor.forWrapperPropertiesFile;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
+import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 
 /**
  * Utilities related to Gradle.
  */
 public final class GradleUtil {
+  public static final ProjectSystemId GRADLE_SYSTEM_ID = GradleConstants.SYSTEM_ID;
+
   @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
-
-  /**
-   * The name of the gradle wrapper executable associated with the current OS.
-   */
-  @NonNls public static final String GRADLE_WRAPPER_EXECUTABLE_NAME =
-    SystemInfo.isWindows ? SdkConstants.FN_GRADLE_WRAPPER_WIN : SdkConstants.FN_GRADLE_WRAPPER_UNIX;
-
-  @NonNls public static final String GRADLEW_PROPERTIES_PATH =
-    FileUtil.join(SdkConstants.FD_GRADLE_WRAPPER, SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
+  @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
   private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-(.*)-(.*)\\.jar");
-  private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
   /**
    * Finds characters that shouldn't be used in the Gradle path.
    * <p/>
-   * I was unable to find any specification for Gradle paths. In my
-   * experiments, Gradle only failed with slashes. This list may grow if
+   * I was unable to find any specification for Gradle paths. In my experiments, Gradle only failed with slashes. This list may grow if
    * we find any other unsupported characters.
    */
   private static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
   private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
 
   private GradleUtil() {
+  }
+
+  public static void clearStoredGradleJvmArgs(@NotNull final Project project) {
+    GradleSettings settings = GradleSettings.getInstance(project);
+    final String existingJvmArgs = settings.getGradleVmOptions();
+    settings.setGradleVmOptions("");
+    if (!isEmptyOrSpaces(existingJvmArgs)) {
+      invokeAndWaitIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          String jvmArgs = existingJvmArgs.trim();
+          final String msg =
+            String.format("Starting with version 1.3, Android Studio no longer supports IDE-specific Gradle JVM arguments.\n\n" +
+                          "Android Studio will now remove any stored Gradle JVM arguments.\n\n" +
+                          "Would you like to copy these JVM arguments:\n%1$s\n" +
+                          "to the project's gradle.properties file?\n\n" +
+                          "(Any existing JVM arguments in the gradle.properties file will be overwritten.)", jvmArgs);
+
+          int result = Messages.showYesNoDialog(project, msg, "Gradle Settings", Messages.getQuestionIcon());
+          if (result == Messages.YES) {
+            try {
+              GradleProperties gradleProperties = new GradleProperties(project);
+              gradleProperties.setJvmArgs(jvmArgs);
+              gradleProperties.save();
+            }
+            catch (IOException e) {
+              String err = String.format("Failed to copy JVM arguments '%1$s' to the project's gradle.properties file.", existingJvmArgs);
+              LOG.info(err, e);
+
+              String cause = e.getMessage();
+              if (isNotEmpty(cause)) {
+                err += String.format("<br>\nCause: %1$s", cause);
+              }
+
+              AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
+            }
+          }
+          else {
+            String text =
+              String.format("JVM arguments<br>\n'%1$s'<br>\nwere not copied to the project's gradle.properties file.", existingJvmArgs);
+            AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
+          }
+        }
+      });
+    }
   }
 
   public static boolean isSupportedGradleVersion(@NotNull FullRevision gradleVersion) {
@@ -132,7 +209,7 @@ public final class GradleUtil {
   public static AndroidArtifactOutput getOutput(@NotNull AndroidArtifact artifact) {
     Collection<AndroidArtifactOutput> outputs = artifact.getOutputs();
     assert !outputs.isEmpty();
-    AndroidArtifactOutput output = ContainerUtil.getFirstItem(outputs);
+    AndroidArtifactOutput output = getFirstItem(outputs);
     assert output != null;
     return output;
   }
@@ -143,7 +220,7 @@ public final class GradleUtil {
     if (androidProject != null) {
       return androidProject.isLibrary() ? AndroidIcons.LibraryModule : AndroidIcons.AppModule;
     }
-    return Projects.isGradleProject(module.getProject()) ? AllIcons.Nodes.PpJdk : AllIcons.Nodes.Module;
+    return isGradleProject(module.getProject()) ? AllIcons.Nodes.PpJdk : AllIcons.Nodes.Module;
   }
 
   @Nullable
@@ -183,7 +260,6 @@ public final class GradleUtil {
         return true;
       }
     }
-
     return false;
   }
 
@@ -223,7 +299,7 @@ public final class GradleUtil {
 
   @NotNull
   public static List<String> getPathSegments(@NotNull String gradlePath) {
-    return Lists.newArrayList(Splitter.on(SdkConstants.GRADLE_PATH_SEPARATOR).omitEmptyStrings().split(gradlePath));
+    return Lists.newArrayList(on(GRADLE_PATH_SEPARATOR).omitEmptyStrings().split(gradlePath));
   }
 
   @Nullable
@@ -240,23 +316,23 @@ public final class GradleUtil {
   @Nullable
   public static VirtualFile getGradleBuildFile(@NotNull File rootDir) {
     File gradleBuildFilePath = getGradleBuildFilePath(rootDir);
-    return VfsUtil.findFileByIoFile(gradleBuildFilePath, true);
+    return findFileByIoFile(gradleBuildFilePath, true);
   }
 
   @NotNull
   public static File getGradleBuildFilePath(@NotNull File rootDir) {
-    return new File(rootDir, SdkConstants.FN_BUILD_GRADLE);
+    return new File(rootDir, FN_BUILD_GRADLE);
   }
 
   @Nullable
   public static VirtualFile getGradleSettingsFile(@NotNull File rootDir) {
     File gradleSettingsFilePath = getGradleSettingsFilePath(rootDir);
-    return VfsUtil.findFileByIoFile(gradleSettingsFilePath, true);
+    return findFileByIoFile(gradleSettingsFilePath, true);
   }
 
   @NotNull
   public static File getGradleSettingsFilePath(@NotNull File rootDir) {
-    return new File(rootDir, SdkConstants.FN_SETTINGS_GRADLE);
+    return new File(rootDir, FN_SETTINGS_GRADLE);
   }
 
   @NotNull
@@ -274,20 +350,20 @@ public final class GradleUtil {
    * @throws IOException if something goes wrong when saving the file.
    */
   public static boolean updateGradleDistributionUrl(@NotNull String gradleVersion, @NotNull File propertiesFile) throws IOException {
-    Properties properties = PropertiesUtil.getProperties(propertiesFile);
+    Properties properties = getProperties(propertiesFile);
     String gradleDistributionUrl = getGradleDistributionUrl(gradleVersion, false);
     String property = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
     if (property != null && (property.equals(gradleDistributionUrl) || property.equals(getGradleDistributionUrl(gradleVersion, true)))) {
       return false;
     }
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, gradleDistributionUrl);
-    PropertiesUtil.savePropertiesToFile(properties, propertiesFile, null);
+    savePropertiesToFile(properties, propertiesFile, null);
     return true;
   }
 
   @Nullable
   public static String getGradleWrapperVersion(@NotNull File propertiesFile) throws IOException {
-    Properties properties = PropertiesUtil.getProperties(propertiesFile);
+    Properties properties = getProperties(propertiesFile);
     String url = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
     if (url != null) {
       Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
@@ -308,14 +384,22 @@ public final class GradleUtil {
   public static GradleExecutionSettings getGradleExecutionSettings(@NotNull Project project) {
     GradleProjectSettings projectSettings = getGradleProjectSettings(project);
     if (projectSettings == null) {
-      String format = "Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'";
-      String msg = String.format(format, project.getName(), FileUtil.toSystemDependentName(project.getBasePath()));
+      File baseDirPath = getBaseDirPath(project);
+      String msg = String.format("Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'", project.getName(),
+                                 baseDirPath.getPath());
       LOG.info(msg);
       return null;
     }
+
+    // Set the JDK again, just in case it changed name after creating a project.
+    // See https://code.google.com/p/android/issues/detail?id=156747
+    Sdk jdk = IdeSdks.getJdk();
+    if (jdk != null) {
+      projectSettings.setGradleJvm(jdk.getName());
+    }
+
     try {
-      GradleExecutionSettings settings =
-        ExternalSystemApiUtil.getExecutionSettings(project, projectSettings.getExternalProjectPath(), SYSTEM_ID);
+      GradleExecutionSettings settings = getExecutionSettings(project, projectSettings.getExternalProjectPath(), GRADLE_SYSTEM_ID);
       if (settings != null) {
         // By setting the Gradle daemon timeout to -1, we don't allow IDEA to set it to 1 minute. Gradle daemons need to be reused as
         // much as possible. The default timeout is 3 hours.
@@ -331,14 +415,18 @@ public final class GradleUtil {
 
   @Nullable
   public static File findWrapperPropertiesFile(@NotNull Project project) {
-    File baseDir = new File(project.getBasePath());
+    String basePath = project.getBasePath();
+    if (basePath == null) {
+      return null;
+    }
+    File baseDir = new File(basePath);
     File wrapperPropertiesFile = getGradleWrapperPropertiesFilePath(baseDir);
     return wrapperPropertiesFile.isFile() ? wrapperPropertiesFile : null;
   }
 
   @Nullable
   public static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
-    GradleSettings settings = (GradleSettings)ExternalSystemApiUtil.getSettings(project, SYSTEM_ID);
+    GradleSettings settings = (GradleSettings)getSettings(project, GRADLE_SYSTEM_ID);
 
     GradleSettings.MyState state = settings.getState();
     assert state != null;
@@ -359,42 +447,116 @@ public final class GradleUtil {
     return null;
   }
 
-  @NotNull
-  public static List<String> getGradleInvocationJvmArgs(@NotNull File projectDir, @Nullable BuildMode buildMode) {
-    if (ExternalSystemApiUtil.isInProcessMode(SYSTEM_ID)) {
-      List<String> args = Lists.newArrayList();
-      if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(projectDir)) {
-        AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-        if (sdkData != null) {
-          String arg = AndroidGradleSettings.createAndroidHomeJvmArg(sdkData.getLocation().getPath());
-          args.add(arg);
-        }
-      }
-      List<KeyValue<String, String>> proxyProperties = HttpConfigurable.getJvmPropertiesList(false, null);
-      for (KeyValue<String, String> proxyProperty : proxyProperties) {
-        String arg = AndroidGradleSettings.createJvmArg(proxyProperty.getKey(), proxyProperty.getValue());
-        args.add(arg);
-      }
-      String arg = getGradleInvocationJvmArg(buildMode);
-      if (arg != null) {
-        args.add(arg);
-      }
-      return args;
-    }
-    return Collections.emptyList();
-  }
-
   @VisibleForTesting
   @Nullable
   static String getGradleInvocationJvmArg(@Nullable BuildMode buildMode) {
-    if (BuildMode.ASSEMBLE_TRANSLATE == buildMode) {
-      return AndroidGradleSettings.createJvmArg(GradleBuilds.ENABLE_TRANSLATION_JVM_ARG, true);
+    if (ASSEMBLE_TRANSLATE == buildMode) {
+      return AndroidGradleSettings.createJvmArg(ENABLE_TRANSLATION_JVM_ARG, true);
     }
     return null;
   }
 
-  public static void stopAllGradleDaemons() {
-    DefaultGradleConnector.close();
+  public static void stopAllGradleDaemons(boolean interactive) throws IOException {
+    File gradleHome = findAnyGradleHome(interactive);
+    if (gradleHome == null) {
+      throw new FileNotFoundException("Unable to find path to Gradle home directory");
+    }
+    File gradleExecutable = new File(gradleHome, join("bin", isWindows ? FN_GRADLE_WIN : FN_GRADLE_UNIX));
+    if (!gradleExecutable.isFile()) {
+      throw new FileNotFoundException("Unable to find Gradle executable: " + gradleExecutable.getPath());
+    }
+    new ProcessBuilder(gradleExecutable.getPath(), "--stop").start();
+  }
+
+  @Nullable
+  public static File findAnyGradleHome(boolean interactive) {
+    // Try cheapest option first:
+    String lastUsedGradleHome = getLastUsedGradleHome();
+    if (!lastUsedGradleHome.isEmpty()) {
+      File path = new File(lastUsedGradleHome);
+      if (isValidGradleHome(path)) {
+        return path;
+      }
+    }
+
+    ProjectManager projectManager = ProjectManager.getInstance();
+    for (Project project : projectManager.getOpenProjects()) {
+      File gradleHome = findGradleHome(project);
+      if (gradleHome != null) {
+        return gradleHome;
+      }
+    }
+
+    if (interactive) {
+      ChooseGradleHomeDialog chooseGradleHomeDialog = new ChooseGradleHomeDialog();
+      chooseGradleHomeDialog.setTitle("Choose Gradle Installation");
+      String description = "A Gradle installation is necessary to stop all daemons.\n" +
+                           "Please select the home directory of a Gradle installation, otherwise the project won't be closed.";
+      chooseGradleHomeDialog.setDescription(description);
+      if (!chooseGradleHomeDialog.showAndGet()) {
+        return null;
+      }
+      String enteredPath = chooseGradleHomeDialog.getEnteredGradleHomePath();
+      File gradleHomePath = new File(enteredPath);
+      if (isValidGradleHome(gradleHomePath)) {
+        chooseGradleHomeDialog.storeLastUsedGradleHomePath();
+        return gradleHomePath;
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static File findGradleHome(@NotNull Project project) {
+    GradleExecutionSettings settings = getGradleExecutionSettings(project);
+    if (settings != null) {
+      String gradleHome = settings.getGradleHome();
+      if (isNotEmpty(gradleHome)) {
+        File path = new File(gradleHome);
+        if (isValidGradleHome(path)) {
+          return path;
+        }
+      }
+    }
+
+    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
+    if (wrapperPropertiesFile != null) {
+      WrapperExecutor wrapperExecutor = forWrapperPropertiesFile(wrapperPropertiesFile, new StringBuilder());
+      WrapperConfiguration configuration = wrapperExecutor.getConfiguration();
+      File gradleHome = getGradleHome(project, configuration);
+      if (gradleHome != null) {
+        return gradleHome;
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static File getGradleHome(@NotNull Project project, @NotNull WrapperConfiguration configuration) {
+    File systemHomePath = StartParameter.DEFAULT_GRADLE_USER_HOME;
+    if ("PROJECT".equals(configuration.getDistributionBase())) {
+      systemHomePath = new File(getBaseDirPath(project), DOT_GRADLE);
+    }
+    if (!systemHomePath.isDirectory()) {
+      return null;
+    }
+    PathAssembler.LocalDistribution localDistribution = new PathAssembler(systemHomePath).getDistribution(configuration);
+    File distributionPath = localDistribution.getDistributionDir();
+    if (distributionPath != null) {
+      File[] children = notNullize(distributionPath.listFiles());
+      for (File child : children) {
+        if (child.isDirectory() && child.getName().startsWith("gradle-") && isValidGradleHome(child)) {
+          return child;
+        }
+      }
+    }
+    return null;
+  }
+
+  private static boolean isValidGradleHome(@NotNull File path) {
+    return path.isDirectory() && ServiceManager.getService(GradleInstallationManager.class).isGradleSdkHome(path);
   }
 
   /**
@@ -407,7 +569,7 @@ public final class GradleUtil {
   @NotNull
   public static String getDefaultPhysicalPathFromGradlePath(@NotNull String gradlePath) {
     List<String> segments = getPathSegments(gradlePath);
-    return FileUtil.join(ArrayUtil.toStringArray(segments));
+    return join(toStringArray(segments));
   }
 
   /**
@@ -417,7 +579,7 @@ public final class GradleUtil {
   public static File getModuleDefaultPath(@NotNull VirtualFile parentDir, @NotNull String gradlePath) {
     assert gradlePath.length() > 0;
     String relativePath = getDefaultPhysicalPathFromGradlePath(gradlePath);
-    return new File(VfsUtilCore.virtualToIoFile(parentDir), relativePath);
+    return new File(virtualToIoFile(parentDir), relativePath);
   }
 
   /**
@@ -473,6 +635,47 @@ public final class GradleUtil {
     }
   }
 
+  @Nullable
+  public static FullRevision getGradleVersion(@NotNull Project project) {
+    String gradleVersion = getGradleVersionUsed(project);
+    if (isNotEmpty(gradleVersion)) {
+      // The version of Gradle used is retrieved one of the Gradle models. If that fails, we try to deduce it from the project's Gradle
+      // settings.
+      FullRevision revision = parseRevision(removeTimestampFromGradleVersion(gradleVersion));
+      if (revision != null) {
+        return revision;
+      }
+
+    }
+
+    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
+    if (gradleSettings != null) {
+      DistributionType distributionType = gradleSettings.getDistributionType();
+      if (distributionType == DEFAULT_WRAPPED) {
+        File wrapperPropertiesFile = findWrapperPropertiesFile(project);
+        if (wrapperPropertiesFile != null) {
+          try {
+            String wrapperVersion = getGradleWrapperVersion(wrapperPropertiesFile);
+            if (wrapperVersion != null) {
+              return parseRevision(removeTimestampFromGradleVersion(wrapperVersion));
+            }
+          }
+          catch (IOException e) {
+            LOG.info("Failed to read Gradle version in wrapper", e);
+          }
+        }
+      }
+      else if (distributionType == LOCAL) {
+        String gradleHome = gradleSettings.getGradleHome();
+        if (isNotEmpty(gradleHome)) {
+          File gradleHomePath = new File(gradleHome);
+          return getGradleVersion(gradleHomePath);
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * Attempts to figure out the Gradle version of the given distribution.
    *
@@ -483,7 +686,7 @@ public final class GradleUtil {
   public static FullRevision getGradleVersion(@NotNull File gradleHomePath) {
     File libDirPath = new File(gradleHomePath, "lib");
 
-    for (File child : FileUtil.notNullize(libDirPath.listFiles())) {
+    for (File child : notNullize(libDirPath.listFiles())) {
       FullRevision version = getGradleVersionFromJar(child);
       if (version != null) {
         return version;
@@ -502,13 +705,23 @@ public final class GradleUtil {
       // Obtain the version of Gradle from a library name (e.g. "gradle-core-2.0.jar")
       String version = matcher.group(2);
       try {
-        return FullRevision.parseRevision(version);
+        return PreciseRevision.parseRevision(removeTimestampFromGradleVersion(version));
       }
       catch (NumberFormatException e) {
         LOG.warn(String.format("Unable to parse version '%1$s' (obtained from file '%2$s')", version, fileName));
       }
     }
     return null;
+  }
+
+  @NotNull
+  private static String removeTimestampFromGradleVersion(@NotNull String gradleVersion) {
+    int dashIndex = gradleVersion.indexOf('-');
+    if (dashIndex != -1) {
+      // in case this is a nightly (e.g. "2.4-20150409092851+0000").
+      return gradleVersion.substring(0, dashIndex);
+    }
+    return gradleVersion;
   }
 
   /**
@@ -518,7 +731,7 @@ public final class GradleUtil {
    * @return {@code true} if the project already has the wrapper or the wrapper was successfully created; {@code false} if the wrapper was
    * not created (e.g. the template files for the wrapper were not found.)
    * @throws IOException any unexpected I/O error.
-   * @see com.android.SdkConstants#GRADLE_LATEST_VERSION
+   * @see SdkConstants#GRADLE_LATEST_VERSION
    */
   public static boolean createGradleWrapper(@NotNull File projectDirPath) throws IOException {
     return createGradleWrapper(projectDirPath, GRADLE_LATEST_VERSION);
@@ -532,7 +745,7 @@ public final class GradleUtil {
    * @return {@code true} if the project already has the wrapper or the wrapper was successfully created; {@code false} if the wrapper was
    * not created (e.g. the template files for the wrapper were not found.)
    * @throws IOException any unexpected I/O error.
-   * @see com.android.SdkConstants#GRADLE_LATEST_VERSION
+   * @see SdkConstants#GRADLE_LATEST_VERSION
    */
   @VisibleForTesting
   public static boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
@@ -553,7 +766,7 @@ public final class GradleUtil {
       if (wrapperSrcDirPath == null) {
         return false;
       }
-      FileUtil.copyDirContent(wrapperSrcDirPath, projectDirPath);
+      copyDirContent(wrapperSrcDirPath, projectDirPath);
     }
     File wrapperPropertiesFile = getGradleWrapperPropertiesFilePath(projectDirPath);
     updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFile);
@@ -585,13 +798,13 @@ public final class GradleUtil {
       return null;
     }
     final Ref<FullRevision> modelVersionRef = new Ref<FullRevision>();
-    VfsUtil.processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
+    processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
       @Override
       public boolean process(VirtualFile virtualFile) {
-        if (SdkConstants.FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-          File fileToCheck = VfsUtilCore.virtualToIoFile(virtualFile);
+        if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
+          File fileToCheck = virtualToIoFile(virtualFile);
           try {
-            String contents = FileUtil.loadFile(fileToCheck);
+            String contents = loadFile(fileToCheck);
             FullRevision version = getResolvedAndroidGradleModelVersion(contents, project);
             if (version != null) {
               modelVersionRef.set(version);
@@ -612,16 +825,23 @@ public final class GradleUtil {
   @VisibleForTesting
   @Nullable
   static FullRevision getResolvedAndroidGradleModelVersion(@NotNull String fileContents, @Nullable Project project) {
-    GradleCoordinate found = getPluginDefinition(fileContents, SdkConstants.GRADLE_PLUGIN_NAME);
+    GradleCoordinate found = getPluginDefinition(fileContents, GRADLE_PLUGIN_NAME);
     if (found != null) {
       String revision = getAndroidGradleModelVersion(found, project);
-      if (StringUtil.isNotEmpty(revision)) {
-        try {
-          return FullRevision.parseRevision(revision);
-        }
-        catch (NumberFormatException ignored) {
-        }
+      if (isNotEmpty(revision)) {
+        return parseRevision(revision);
       }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static FullRevision parseRevision(@NotNull String revision) {
+    try {
+      return PreciseRevision.parseRevision(revision);
+    }
+    catch (NumberFormatException e) {
+      LOG.info("Failed to parse revision '" + revision + "'", e);
     }
     return null;
   }
@@ -641,7 +861,7 @@ public final class GradleUtil {
         return pair.getFirst();
       }
     });
-    return StringUtil.isNotEmpty(definition) ? GradleCoordinate.parseCoordinateString(definition) : null;
+    return isNotEmpty(definition) ? parseCoordinateString(definition) : null;
   }
 
   /**
@@ -697,8 +917,74 @@ public final class GradleUtil {
     while (lexer.getTokenType() != null) {
       IElementType type = lexer.getTokenType();
       if (type == GroovyTokenTypes.mSTRING_LITERAL) {
-        String text = StringUtil.unquoteString(lexer.getTokenText());
+        String text = unquoteString(lexer.getTokenText());
         if (text.startsWith(textToSearchPrefix)) {
+          return consumer.fun(Pair.create(text, lexer));
+        }
+      }
+      lexer.advance();
+    }
+    return null;
+  }
+
+  /**
+   * Delegates to the {@link #forPluginDefinition(String, String, Function)} and just returns target plugin's definition string (unquoted).
+   *
+   * @param fileContents  target gradle config text
+   * @param pluginName    target plugin's name in a form <code>'group-id:artifact-id:'</code>
+   * @return              target plugin's definition string if found (unquoted); <code>null</code> otherwise
+   * @see #forPluginDefinition(String, String, Function)
+   */
+  @Nullable
+  public static String getPluginDefinitionString(@NotNull String fileContents, @NotNull String pluginName) {
+    return forPluginDefinition(fileContents, pluginName, new Function<Pair<String, GroovyLexer>, String>() {
+      @Override
+      public String fun(Pair<String, GroovyLexer> pair) {
+        return pair.getFirst();
+      }
+    });
+  }
+
+  /**
+   * Checks given file contents (assuming that it's build.gradle config) and finds target plugin's definition (given the plugin
+   * name in a form <code>'group-id:artifact-id:'</code>. Supplies given callback with the plugin definition string (unquoted) and
+   * a {@link GroovyLexer} which state points to the plugin definition string (quoted).
+   * <p/>
+   * Example:
+   * <pre>
+   *     buildscript {
+   *       repositories {
+   *         mavenCentral()
+   *       }
+   *       dependencies {
+   *         classpath 'com.google.appengine:gradle-appengine-plugin:1.9.4'
+   *       }
+   *     }
+   * </pre>
+   * Suppose that this method is called for the given build script content and
+   * <code>'com.google.appengine:gradle-appengine-plugin:'</code> as a plugin name argument. Given callback is supplied by a
+   * string <code>'com.google.appengine:gradle-appengine-plugin:1.9.4'</code> (without quotes) and a {@link GroovyLexer} which
+   * {@link GroovyLexer#getTokenStart() points} to the string <code>'com.google.appengine:gradle-appengine-plugin:1.9.4'</code>
+   * (with quotes), i.e. we can get exact text range for the target string in case we need to do something like replacing plugin's
+   * version.
+   *
+   * @param fileContents  target gradle config text
+   * @param pluginName    target plugin's name in a form <code>'group-id:artifact-id:'</code>
+   * @param consumer      a callback to be notified for the target plugin's definition string
+   * @param <T>           given callback's return type
+   * @return              given callback's call result if target plugin definition is found; <code>null</code> otherwise
+   */
+  @Nullable
+  public static <T> T forPluginDefinition(@NotNull String fileContents,
+                                          @NotNull String pluginName,
+                                          @NotNull Function<Pair<String, GroovyLexer>, T> consumer) {
+    GroovyLexer lexer = new GroovyLexer();
+    lexer.start(fileContents);
+    while (lexer.getTokenType() != null) {
+      IElementType type = lexer.getTokenType();
+      if (type == GroovyTokenTypes.mSTRING_LITERAL) {
+        String text = unquoteString(lexer.getTokenText());
+        if (text.startsWith(pluginName)) {
           return consumer.fun(Pair.create(text, lexer));
         }
       }
@@ -710,7 +996,7 @@ public final class GradleUtil {
   @Nullable
   private static String getAndroidGradleModelVersion(@NotNull GradleCoordinate coordinate, @Nullable Project project) {
     String revision = coordinate.getFullRevision();
-    if (StringUtil.isNotEmpty(revision)) {
+    if (isNotEmpty(revision)) {
       if (!coordinate.acceptsGreaterRevisions()) {
         return revision;
       }
@@ -751,22 +1037,22 @@ public final class GradleUtil {
 
       String groupId = original.getGroupId();
       String artifactId = original.getArtifactId();
-      for (File moduleDir : FileUtil.notNullize(gradleCache.listFiles())) {
+      for (File moduleDir : notNullize(gradleCache.listFiles())) {
         if (!moduleDir.getName().startsWith("modules-") || !moduleDir.isDirectory()) {
           continue;
         }
-        for (File metadataDir : FileUtil.notNullize(moduleDir.listFiles())) {
+        for (File metadataDir : notNullize(moduleDir.listFiles())) {
           if (!metadataDir.getName().startsWith("metadata-") || !metadataDir.isDirectory()) {
             continue;
           }
-          File versionDir = new File(metadataDir, FileUtil.join("descriptors", groupId, artifactId));
+          File versionDir = new File(metadataDir, join("descriptors", groupId, artifactId));
           if (!versionDir.isDirectory()) {
             continue;
           }
-          for (File version : FileUtil.notNullize(versionDir.listFiles())) {
+          for (File version : notNullize(versionDir.listFiles())) {
             String name = version.getName();
             if ((filter == null || name.startsWith(filter)) && !name.isEmpty() && Character.isDigit(name.charAt(0))) {
-              GradleCoordinate found = GradleCoordinate.parseCoordinateString(groupId + ":" + artifactId + ":" + name);
+              GradleCoordinate found = parseCoordinateString(groupId + ":" + artifactId + ":" + name);
               if (found != null) {
                 coordinates.add(found);
               }
@@ -775,7 +1061,7 @@ public final class GradleUtil {
         }
       }
       if (!coordinates.isEmpty()) {
-        Collections.sort(coordinates, GradleCoordinate.COMPARE_PLUS_LOWER);
+        sort(coordinates, GradleCoordinate.COMPARE_PLUS_LOWER);
         return coordinates.get(coordinates.size() - 1);
       }
     }
@@ -783,7 +1069,7 @@ public final class GradleUtil {
   }
 
   public static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args) {
-    if (AndroidStudioSpecificInitializer.isAndroidStudio() || ApplicationManager.getApplication().isUnitTestMode()) {
+    if (isAndroidStudio() || ApplicationManager.getApplication().isUnitTestMode()) {
       File repoPath = findAndroidStudioLocalMavenRepoPath();
       if (repoPath != null && repoPath.isDirectory()) {
         addLocalMavenRepoInitScriptCommandLineOption(args, repoPath);
@@ -795,7 +1081,7 @@ public final class GradleUtil {
   @Nullable
   static File addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull File repoPath) {
     try {
-      File file = FileUtil.createTempFile("asLocalRepo", SdkConstants.DOT_GRADLE);
+      File file = createTempFile("asLocalRepo", DOT_GRADLE);
       file.deleteOnExit();
 
       String contents = "allprojects {\n" +
@@ -805,8 +1091,8 @@ public final class GradleUtil {
                         "    }\n" +
                         "  }\n" +
                         "}\n";
-      FileUtil.writeToFile(file, contents);
-      ContainerUtil.addAll(args, GradleConstants.INIT_SCRIPT_CMD_OPTION, file.getAbsolutePath());
+      writeToFile(file, contents);
+      addAll(args, GradleConstants.INIT_SCRIPT_CMD_OPTION, file.getAbsolutePath());
 
       return file;
     }
@@ -817,12 +1103,12 @@ public final class GradleUtil {
   }
 
   public static void attemptToUseEmbeddedGradle(@NotNull Project project) {
-    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+    if (isAndroidStudio()) {
       File wrapperPropertiesFile = findWrapperPropertiesFile(project);
       if (wrapperPropertiesFile != null) {
         String gradleVersion = null;
         try {
-          Properties properties = PropertiesUtil.getProperties(wrapperPropertiesFile);
+          Properties properties = getProperties(wrapperPropertiesFile);
           String url = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
           gradleVersion = getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
         }
@@ -836,7 +1122,7 @@ public final class GradleUtil {
           if (embeddedGradlePath != null) {
             GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
             if (gradleSettings != null) {
-              gradleSettings.setDistributionType(DistributionType.LOCAL);
+              gradleSettings.setDistributionType(LOCAL);
               gradleSettings.setGradleHome(embeddedGradlePath.getPath());
             }
           }
@@ -859,7 +1145,7 @@ public final class GradleUtil {
             foundIndex = url.indexOf('-', expectedPrefix.length());
             if (foundIndex != -1) {
               String version = url.substring(expectedPrefix.length(), foundIndex);
-              if (StringUtil.isNotEmpty(version)) {
+              if (isNotEmpty(version)) {
                 return version;
               }
             }
@@ -872,20 +1158,31 @@ public final class GradleUtil {
 
   // Currently, the latest Gradle version is 2.2.1, and we consider 2.2 and 2.2.1 as compatible.
   private static boolean isCompatibleWithEmbeddedGradleVersion(@NotNull String gradleVersion) {
-    return gradleVersion.equals(SdkConstants.GRADLE_MINIMUM_VERSION) || gradleVersion.equals(GRADLE_LATEST_VERSION);
+    return gradleVersion.equals(GRADLE_MINIMUM_VERSION) || gradleVersion.equals(GRADLE_LATEST_VERSION);
   }
 
   private static boolean isWrapperInGradleCache(@NotNull Project project, @NotNull String gradleVersion) {
-    String wrapperDirNamePrefix = "gradle-" + gradleVersion + "-";
+    String distFolderDirName = "gradle-" + gradleVersion;
+    String wrapperDirNamePrefix = distFolderDirName + "-";
 
     // Try both distributions "all" and "bin".
     String[] wrapperDirNames = {wrapperDirNamePrefix + "all", wrapperDirNamePrefix + "bin"};
 
     for (File gradleServicePath : getGradleServicePaths(project)) {
       for (String wrapperDirName : wrapperDirNames) {
-        File wrapperDirPath = new File(gradleServicePath, FileUtil.join("wrapper", "dists", wrapperDirName));
+        File wrapperDirPath = new File(gradleServicePath, join("wrapper", "dists", wrapperDirName));
         if (wrapperDirPath.isDirectory()) {
-          return true;
+          // There is a folder that contains the actual distribution
+          // Example: // ~/.gradle/wrapper/dists/gradle-2.1-all/27drb4udbjf4k88eh2ffdc0n55/gradle-2.1
+          for (File mayBeDistParent : notNullize(wrapperDirPath.listFiles())) {
+            if (mayBeDistParent.isDirectory()) {
+              for (File mayBeDistFolder : notNullize(mayBeDistParent.listFiles())) {
+                if (mayBeDistFolder.isDirectory() && distFolderDirName.equals(mayBeDistFolder.getName())) {
+                  return true;
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -900,7 +1197,7 @@ public final class GradleUtil {
       // Use the one set in the IDE
       GradleSettings settings = GradleSettings.getInstance(project);
       String path = settings.getServiceDirectoryPath();
-      if (StringUtil.isNotEmpty(path)) {
+      if (isNotEmpty(path)) {
         File file = new File(path);
         if (file.isDirectory()) {
           paths.add(file);
@@ -908,7 +1205,7 @@ public final class GradleUtil {
       }
     }
     // The default location: ~/.gradle
-    File path = new File(SystemProperties.getUserHome(), DOT_GRADLE);
+    File path = new File(getUserHome(), DOT_GRADLE);
     if (path.isDirectory()) {
       paths.add(path);
     }
@@ -916,12 +1213,12 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns true if the given project depends on the given artifact, which consists of
-   * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
+   * Returns {@code true} if the given project depends on the given artifact, which consists of a group id and an artifact id, such as
+   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
    * @param project  the Gradle project to check
    * @param artifact the artifact
-   * @return true if the project depends on the given artifact (including transitively)
+   * @return {@code true} if the project depends on the given artifact (including transitively)
    */
   public static boolean dependsOn(@NonNull IdeaAndroidProject project, @NonNull String artifact) {
     Dependencies dependencies = project.getSelectedVariant().getMainArtifact().getDependencies();
@@ -929,12 +1226,12 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns true if the given dependencies include the given artifact, which consists of
-   * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
+   * Returns {@code true} if the given dependencies include the given artifact, which consists of a group id and an artifact id, such as
+   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
    * @param dependencies the Gradle dependencies object to check
    * @param artifact     the artifact
-   * @return true if the dependencies include the given artifact (including transitively)
+   * @return {@code true} if the dependencies include the given artifact (including transitively)
    */
   private static boolean dependsOn(@NonNull Dependencies dependencies, @NonNull String artifact) {
     for (AndroidLibrary library : dependencies.getLibraries()) {
@@ -946,13 +1243,13 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns true if the given library depends on the given artifact, which consists of
-   * a group id and an artifact id, such as {@link com.android.SdkConstants#APPCOMPAT_LIB_ARTIFACT}
+   * Returns {@code true} if the given library depends on the given artifact, which consists a group id and an artifact id, such as
+   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
    * @param library      the Gradle library to check
    * @param artifact     the artifact
-   * @param transitively if false, checks only direct dependencies, otherwise checks transitively
-   * @return true if the project depends on the given artifact
+   * @param transitively if {@code false}, checks only direct dependencies, otherwise checks transitively
+   * @return {@code true} if the project depends on the given artifact
    */
   public static boolean dependsOn(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {
     MavenCoordinates resolvedCoordinates = library.getResolvedCoordinates();
@@ -983,5 +1280,33 @@ public final class GradleUtil {
       }
     }
     return false;
+  }
+
+  @Nullable
+  public static File getGradleUserSettingsFile() {
+    String homePath = getUserHome();
+    if (homePath == null) {
+      return null;
+    }
+    return new File(homePath, join(DOT_GRADLE, FN_GRADLE_PROPERTIES));
+  }
+
+  @Nullable
+  public static DataNode<ProjectData> getCachedProjectData(@NotNull Project project) {
+    ProjectDataManager dataManager = ProjectDataManager.getInstance();
+    ExternalProjectInfo projectInfo = dataManager.getExternalProjectData(project, GRADLE_SYSTEM_ID, getBaseDirPath(project).getPath());
+    return projectInfo != null ? projectInfo.getExternalProjectStructure() : null;
+  }
+
+  /**
+   * Indicates whether <a href="https://code.google.com/p/android/issues/detail?id=170841">a known layout rendering issue</a> is present in
+   * the given model.
+   *
+   * @param model the given model.
+   * @return {@true} if the model has the layout rendering issue; {@code false} otherwise.
+   */
+  public static boolean hasLayoutRenderingIssue(@NotNull AndroidProject model) {
+    String modelVersion = model.getModelVersion();
+    return modelVersion.startsWith("1.2.0") || modelVersion.equals("1.2.1") || modelVersion.equals("1.2.2");
   }
 }

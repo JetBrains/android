@@ -95,6 +95,10 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
             !TABLE_ROW.equals(tagName) &&
             !VIEW_INCLUDE.equals(tagName) &&
             !REQUEST_FOCUS.equals(tagName) &&
+            !TAG_LAYOUT.equals(tagName) &&
+            !TAG_DATA.equals(tagName) &&
+            !TAG_VARIABLE.equals(tagName) &&
+            !TAG_IMPORT.equals(tagName) &&
             !TAG.equals(tagName) &&
             (tag == null || tag.getAttribute(ATTR_STYLE) == null)) {
           XmlTag parentTag = tag != null ? tag.getParentTag() : null;
@@ -166,7 +170,15 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                         MyCallback callback,
                                         @Nullable MyAttributeProcessor processor,
                                         @NotNull DomElement element) {
-    XmlName xmlName = new XmlName(attrDef.getName(), namespaceKey);
+    String name = attrDef.getName();
+    if (!SdkConstants.NS_RESOURCES.equals(namespaceKey) && name.startsWith(SdkConstants.PREFIX_ANDROID)) {
+      // A styleable-definition in the app namespace (user specified or from a library) can include
+      // a reference to a platform attribute. In such a case, register it under the android namespace
+      // as opposed to the app namespace. See https://code.google.com/p/android/issues/detail?id=171162
+      name = name.substring(SdkConstants.PREFIX_ANDROID.length());
+      namespaceKey = SdkConstants.NS_RESOURCES;
+    }
+    XmlName xmlName = new XmlName(name, namespaceKey);
     final DomExtension extension = callback.processAttribute(xmlName, attrDef, parentStyleableName);
 
     if (extension == null) {

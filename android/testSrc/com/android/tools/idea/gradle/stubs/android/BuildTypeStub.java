@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.SigningConfig;
@@ -25,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class BuildTypeStub implements BuildType {
@@ -109,8 +109,8 @@ public class BuildTypeStub implements BuildType {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public Map<String, ClassField> getResValues() {
     return Collections.emptyMap();
   }
@@ -124,6 +124,12 @@ public class BuildTypeStub implements BuildType {
   @Override
   @NotNull
   public Collection<File> getConsumerProguardFiles() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public Collection<File> getTestProguardFiles() {
     throw new UnsupportedOperationException();
   }
 
@@ -149,5 +155,11 @@ public class BuildTypeStub implements BuildType {
   @Nullable
   public File getMultiDexKeepProguard() {
     return null;
+  }
+
+  @Override
+  @NotNull
+  public List<File> getJarJarRuleFiles() {
+    return Collections.emptyList();
   }
 }

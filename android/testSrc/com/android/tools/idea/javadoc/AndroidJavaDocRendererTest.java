@@ -238,10 +238,10 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     // platform, the below should be changed to a real framework color.
     checkJavadoc("/javadoc/colors/layout2.xml", "res/layout/layout.xml",
                  "<html><body>" +
-                 "<table style=\"background-color:rgb(255,255,255);color:black;width:200px;text-align:center;vertical-align:middle;\" " +
+                 "<table style=\"background-color:rgb(255,255,255);width:200px;text-align:center;vertical-align:middle;\" " +
                  "border=\"0\">" +
                  "<tr height=\"100\">" +
-                 "<td align=\"center\" valign=\"middle\" height=\"100\">" +
+                 "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:black\">" +
                  "#ffffff" +
                  "</td>" +
                  "</tr>" +
@@ -254,10 +254,10 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/values2.xml", "res/values/values2.xml");
     checkJavadoc("/javadoc/colors/layout3.xml", "res/layout/layout.xml",
                  "<html><body>" +
-                 "<table style=\"background-color:rgb(0,0,0);color:white;width:200px;text-align:center;vertical-align:middle;\" " +
+                 "<table style=\"background-color:rgb(0,0,0);width:200px;text-align:center;vertical-align:middle;\" " +
                  "border=\"0\">" +
                  "<tr height=\"100\">" +
-                 "<td align=\"center\" valign=\"middle\" height=\"100\">#80000000" +
+                 "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:white\">#80000000" +
                  "</td>" +
                  "</tr>" +
                  "</table><BR/>\n" +
@@ -273,10 +273,10 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/third.xml", "res/color/third.xml");
     checkJavadoc("/javadoc/colors/values.xml", "res/values/values.xml",
                  "<html><body>" +
-                 "<table style=\"background-color:rgb(170,68,170);color:white;width:200px;text-align:center;" +
+                 "<table style=\"background-color:rgb(170,68,170);width:200px;text-align:center;" +
                  "vertical-align:middle;\" border=\"0\">" +
                  "<tr height=\"100\">" +
-                 "<td align=\"center\" valign=\"middle\" height=\"100\">" +
+                 "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:white\">" +
                  "#aa44aa" +
                  "</td>" +
                  "</tr>" +
@@ -294,7 +294,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "<BR/>\n" +
                  "<hr><B>TextAppearance.Medium</B>:<BR/>\n" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColor</B> = ?textColorPrimary<BR/>\n" +
-                 "<table style=\"background-color:rgb(0,0,0);color:white;width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\">#000000</td></tr></table>&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textSize</B> = 18sp<BR/>\n" +
+                 "<table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table>&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textSize</B> = 18sp<BR/>\n" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textStyle</B> = normal<BR/>\n" +
                  "<BR/>\n" +
                  "Inherits from: @android:style/TextAppearance:<BR/>\n" +

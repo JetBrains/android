@@ -23,11 +23,12 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
-import org.fest.swing.util.Platform;
 
 import java.io.*;
 import java.util.Properties;
 
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.easymock.EasyMock.*;
 
 /**
@@ -55,24 +56,46 @@ public class LocalPropertiesTest extends IdeaTestCase {
     }
   }
 
+  public void testGetAndroidNdkPathWithSeparatorDifferentThanPlatformOne() throws IOException {
+    if (!SystemInfo.isWindows) {
+      String path = Joiner.on('\\').join("C:", "dir", "file");
+      myLocalProperties.doSetAndroidNdkPath(path);
+      myLocalProperties.save();
+
+      File actual = myLocalProperties.getAndroidNdkPath();
+      assertNotNull(actual);
+      assertEquals(path, actual.getPath());
+    }
+  }
+
   public void testCreateFileOnSave() throws Exception {
     myLocalProperties.save();
     File localPropertiesFile = new File(myProject.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
     assertTrue(localPropertiesFile.isFile());
   }
 
-  public void testSetAndroidSdkPathWithString() throws Exception {
-    String androidSdkPath = FileUtil.toSystemDependentName("/home/sdk2");
+  public void testSetAndroidSdkPathWithFile() throws Exception {
+    File androidSdkPath = new File(toSystemDependentName("/home/sdk2"));
     myLocalProperties.setAndroidSdkPath(androidSdkPath);
     myLocalProperties.save();
 
     File actual = myLocalProperties.getAndroidSdkPath();
     assertNotNull(actual);
-    assertEquals(FileUtil.toCanonicalPath(androidSdkPath), FileUtil.toCanonicalPath(actual.getPath()));
+    assertEquals(toCanonicalPath(androidSdkPath.getPath()), toCanonicalPath(actual.getPath()));
+  }
+
+  public void testSetAndroidSdkPathWithString() throws Exception {
+    String androidSdkPath = toSystemDependentName("/home/sdk2");
+    myLocalProperties.setAndroidSdkPath(androidSdkPath);
+    myLocalProperties.save();
+
+    File actual = myLocalProperties.getAndroidSdkPath();
+    assertNotNull(actual);
+    assertEquals(toCanonicalPath(androidSdkPath), toCanonicalPath(actual.getPath()));
   }
 
   public void testSetAndroidSdkPathWithSdk() throws Exception {
-    String androidSdkPath = FileUtil.toSystemDependentName("/home/sdk2");
+    String androidSdkPath = toSystemDependentName("/home/sdk2");
 
     Sdk sdk = createMock(Sdk.class);
     expect(sdk.getHomePath()).andReturn(androidSdkPath);
@@ -87,7 +110,27 @@ public class LocalPropertiesTest extends IdeaTestCase {
 
     File actual = myLocalProperties.getAndroidSdkPath();
     assertNotNull(actual);
-    assertEquals(FileUtil.toCanonicalPath(androidSdkPath), FileUtil.toCanonicalPath(actual.getPath()));
+    assertEquals(toCanonicalPath(androidSdkPath), toCanonicalPath(actual.getPath()));
+  }
+
+  public void testSetAndroidNdkPathWithString() throws Exception {
+    String androidNdkPath = toSystemDependentName("/home/ndk2");
+    myLocalProperties.setAndroidNdkPath(androidNdkPath);
+    myLocalProperties.save();
+
+    File actual = myLocalProperties.getAndroidNdkPath();
+    assertNotNull(actual);
+    assertEquals(toCanonicalPath(androidNdkPath), toCanonicalPath(actual.getPath()));
+  }
+
+  public void testSetAndroidNdkPathWithFile() throws Exception {
+    String androidNdkPath = toSystemDependentName("/home/ndk2");
+    myLocalProperties.setAndroidNdkPath(androidNdkPath);
+    myLocalProperties.save();
+
+    File actual = myLocalProperties.getAndroidNdkPath();
+    assertNotNull(actual);
+    assertEquals(toCanonicalPath(androidNdkPath), toCanonicalPath(actual.getPath()));
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")

@@ -16,13 +16,11 @@
 
 package com.android.tools.idea.sdk;
 
+import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.ui.*;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkLabel;
@@ -32,6 +30,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.File;
+
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 public class SelectSdkDialog extends DialogWrapper {
   private JPanel myPanel;
@@ -62,14 +66,14 @@ public class SelectSdkDialog extends DialogWrapper {
     setTitle("Select SDKs");
 
     if (jdkPath != null) {
-      String err = validateJdk(jdkPath);
+      String err = validateJdkPath(jdkPath);
       if (err != null) {
         jdkPath = null;
       }
     }
 
     if (sdkPath != null) {
-      String err = validateAndroidSdk(sdkPath);
+      String err = validateAndroidSdkPath(sdkPath);
       if (err != null) {
         sdkPath = null;
       }
@@ -114,13 +118,12 @@ public class SelectSdkDialog extends DialogWrapper {
       mySdkTextFieldWithButton.setText(sdkPath);
     }
 
-    BrowseFolderListener listener =
-      new BrowseFolderListener("Select JDK Home", myJdkTextFieldWithButton, JavaSdk.getInstance().getHomeChooserDescriptor(), jdkPath);
+    FileChooserDescriptor descriptor = JavaSdk.getInstance().getHomeChooserDescriptor();
+    BrowseFolderListener listener = new BrowseFolderListener("Select JDK Home", myJdkTextFieldWithButton, descriptor, jdkPath);
     myJdkTextFieldWithButton.addBrowseFolderListener(null, listener);
 
-    listener =
-      new BrowseFolderListener("Select Android SDK Home", mySdkTextFieldWithButton, AndroidSdkType.getInstance().getHomeChooserDescriptor(),
-                               sdkPath);
+    descriptor = AndroidSdkType.getInstance().getHomeChooserDescriptor();
+    listener = new BrowseFolderListener("Select Android SDK Home", mySdkTextFieldWithButton, descriptor, sdkPath);
     mySdkTextFieldWithButton.addBrowseFolderListener(null, listener);
   }
 
@@ -139,13 +142,13 @@ public class SelectSdkDialog extends DialogWrapper {
   @Override
   protected ValidationInfo doValidate() {
     String jdkHome = myJdkTextFieldWithButton.getText().trim();
-    String jdkError = validateJdk(jdkHome);
+    String jdkError = validateJdkPath(jdkHome);
     if (jdkError != null) {
       return new ValidationInfo(jdkError, myJdkTextFieldWithButton.getTextField());
     }
 
     String androidHome = mySdkTextFieldWithButton.getText().trim();
-    String sdkError = validateAndroidSdk(androidHome);
+    String sdkError = validateAndroidSdkPath(androidHome);
     if (sdkError != null) {
       return new ValidationInfo(sdkError, mySdkTextFieldWithButton.getTextField());
     }
@@ -153,26 +156,24 @@ public class SelectSdkDialog extends DialogWrapper {
   }
 
   @Nullable
-  private static String validateJdk(String path) {
-    if (StringUtil.isEmpty(path) || !JavaSdk.getInstance().isValidSdkHome(path)) {
+  private static String validateJdkPath(@Nullable String path) {
+    if (isEmpty(path) || !JavaSdk.getInstance().isValidSdkHome(path)) {
       return "Invalid JDK path.";
     }
-
     return null;
   }
 
   @Nullable
-  private static String validateAndroidSdk(String path) {
-    if (StringUtil.isEmpty(path)) {
+  private static String validateAndroidSdkPath(@Nullable String path) {
+    if (isEmpty(path)) {
       return "Android SDK path not specified.";
     }
 
-    Pair<Boolean, String> validationResult = AndroidSdkType.validateAndroidSdk(path);
-    String error = validationResult.getSecond();
-    if (!validationResult.getFirst()) {
+    ValidationResult validationResult = validateAndroidSdk(new File(toSystemDependentName(path)), false);
+    if (!validationResult.success) {
       // Show error message in new line. Long lines trigger incorrect layout rendering.
       // See https://code.google.com/p/android/issues/detail?id=78291
-      return String.format("Invalid Android SDK path:<br>%1$s", error);
+      return String.format("Invalid Android SDK path:<br>%1$s", validationResult.message);
     } else {
       return null;
     }
@@ -214,9 +215,10 @@ public class SelectSdkDialog extends DialogWrapper {
         return super.getInitialFile();
       }
 
+      LocalFileSystem fileSystem = LocalFileSystem.getInstance();
       return myDefaultPath == null
-             ? LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(PathManager.getHomePath()))
-             : LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(myDefaultPath));
+             ? fileSystem.findFileByPath(toSystemIndependentName(PathManager.getHomePath()))
+             : fileSystem.findFileByPath(toSystemIndependentName(myDefaultPath));
     }
   }
 }

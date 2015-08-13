@@ -17,22 +17,16 @@ package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.JButtonMatcher;
-import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.fixture.ComponentFixture;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.Collection;
 
-public class NewProjectWizardFixture extends AbstractWizardFixture {
+public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWizardFixture> {
   @NotNull
   public static NewProjectWizardFixture find(@NotNull Robot robot) {
     JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         return "Create New Project".equals(dialog.getTitle()) && dialog.isShowing();
       }
     });
@@ -40,38 +34,24 @@ public class NewProjectWizardFixture extends AbstractWizardFixture {
   }
 
   private NewProjectWizardFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(robot, target);
+    super(NewProjectWizardFixture.class, robot, target);
   }
 
   @NotNull
   public ConfigureAndroidProjectStepFixture getConfigureAndroidProjectStep() {
     JRootPane rootPane = findStepWithTitle("Configure your new project");
-    return new ConfigureAndroidProjectStepFixture(robot, rootPane);
+    return new ConfigureAndroidProjectStepFixture(robot(), rootPane);
   }
 
   @NotNull
   public ConfigureFormFactorStepFixture getConfigureFormFactorStep() {
     JRootPane rootPane = findStepWithTitle("Select the form factors your app will run on");
-    return new ConfigureFormFactorStepFixture(robot, rootPane);
+    return new ConfigureFormFactorStepFixture(robot(), rootPane);
   }
 
   @NotNull
   public ChooseOptionsForNewFileStepFixture getChooseOptionsForNewFileStep() {
     JRootPane rootPane = findStepWithTitle("Choose options for your new file");
-    return new ChooseOptionsForNewFileStepFixture(robot, rootPane);
-  }
-
-  @NotNull
-  public NewProjectWizardFixture clickNext() {
-    JButton button = findButtonByText("Next");
-    robot.click(button);
-    return this;
-  }
-
-  @NotNull
-  public NewProjectWizardFixture clickFinish() {
-    JButton button = findButtonByText("Finish");
-    robot.click(button);
-    return this;
+    return new ChooseOptionsForNewFileStepFixture(robot(), rootPane);
   }
 }

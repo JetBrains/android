@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -30,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.dependency.LibraryDependency.PathType.BINARY;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
  * An IDEA module's dependency on an artifact (e.g. a jar file or another IDEA module.)
@@ -41,6 +41,10 @@ public abstract class Dependency {
    */
   static final List<DependencyScope> SUPPORTED_SCOPES = Lists.newArrayList(DependencyScope.COMPILE, DependencyScope.TEST);
 
+  // Without this '@SuppressWarnings' IDEA shows a warning because the field 'myScope' is not set directly in the constructor, and therefore
+  // IDEA thinks it can be null, contradicting '@NotNull'. In reality, the field is set in the constructor by calling 'setScope'. To avoid
+  // this warning we can either use '@SuppressWarnings' or duplicate, in the constructor, what 'setScope' is doing.
+  @SuppressWarnings("NullableProblems")
   @NotNull private DependencyScope myScope;
 
   /**
@@ -103,7 +107,7 @@ public abstract class Dependency {
     for (AndroidLibrary lib : artifact.getDependencies().getLibraries()) {
       ModuleDependency mainDependency = null;
       String gradleProjectPath = lib.getProject();
-      if (StringUtil.isNotEmpty(gradleProjectPath)) {
+      if (isNotEmpty(gradleProjectPath)) {
         mainDependency = new ModuleDependency(gradleProjectPath, scope);
         dependencies.add(mainDependency);
       }

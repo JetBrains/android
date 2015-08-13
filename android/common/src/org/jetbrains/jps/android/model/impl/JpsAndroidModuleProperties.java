@@ -16,6 +16,7 @@
 package org.jetbrains.jps.android.model.impl;
 
 import com.android.SdkConstants;
+import com.google.common.collect.Sets;
 import com.intellij.util.xmlb.annotations.AbstractCollection;
 import com.intellij.util.xmlb.annotations.Attribute;
 import com.intellij.util.xmlb.annotations.Tag;
@@ -29,11 +30,16 @@ import java.util.*;
 public class JpsAndroidModuleProperties {
   public String SELECTED_BUILD_VARIANT = "";
   public String SELECTED_TEST_ARTIFACT = "";
+
   public String ASSEMBLE_TASK_NAME = "";
   public String COMPILE_JAVA_TASK_NAME = "";
+
   public String ASSEMBLE_TEST_TASK_NAME = "";
-  public String SOURCE_GEN_TASK_NAME = "";
-  public String TEST_SOURCE_GEN_TASK_NAME = "";
+  public String COMPILE_JAVA_TEST_TASK_NAME = "";
+
+  @Tag("afterSyncTasks")
+  @AbstractCollection(surroundWithTag = false, elementTag = "task", elementValueAttribute = "")
+  public Set<String> AFTER_SYNC_TASK_NAMES = Sets.newHashSet();
 
   // This value is false when the Android project is Gradle-based.
   public boolean ALLOW_USER_CONFIGURATION = true;

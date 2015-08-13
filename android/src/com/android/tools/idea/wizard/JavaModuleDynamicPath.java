@@ -25,12 +25,13 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -55,7 +56,7 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
     File templateFile = instance.getTemplateFile(Template.CATEGORY_APPLICATION, JAVA_LIBRARY);
     assert templateFile != null;
     myTemplate = Template.createFromPath(templateFile);
-    myModuleTemplate = new CreateModuleTemplate(myMetadata, null, myMetadata.getTitle(), true, false);
+    myModuleTemplate = new CreateModuleTemplate(myMetadata, null, myMetadata.getTitle(), AndroidIcons.ModuleTemplates.Android);
   }
 
   @Override
@@ -119,8 +120,8 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
     parameterValueMap.put(TemplateMetadata.ATTR_IS_NEW_PROJECT, true);
     parameterValueMap.put(ATTR_IS_LIBRARY_MODULE, true);
 
-    myTemplate.render(VfsUtilCore.virtualToIoFile(project.getBaseDir()),
-                      new File(FileUtil.toSystemDependentName(modulePath)), parameterValueMap, project);
+    myTemplate.render(getBaseDirPath(project),
+                      new File(FileUtil.toSystemDependentName(modulePath)), parameterValueMap, project, false);
     return true;
   }
 

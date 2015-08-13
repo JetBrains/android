@@ -348,7 +348,7 @@ public class RenderedPanel extends JPanel implements Disposable {
         Configuration configuration = myContext.getConfiguration();
         if (configuration != null) {
           Device device = configuration.getDevice();
-          if (device != null && HardwareConfigHelper.isRound(device)) {
+          if (device != null && device.isScreenRound()) {
             Screen screen = device.getDefaultHardware().getScreen();
             int width = screen.getXDimension();
             int height = screen.getYDimension();
@@ -443,9 +443,9 @@ public class RenderedPanel extends JPanel implements Disposable {
     myRenderResult = renderResult;
     RenderedImage image = myRenderResult.getImage();
     if (image != null) {
-      image.setDeviceFrameEnabled(myShowDeviceFrames && myRenderResult.getRenderService() != null &&
-                                  myRenderResult.getRenderService().getRenderingMode() == SessionParams.RenderingMode.NORMAL &&
-                                  myRenderResult.getRenderService().getShowDecorations());
+      image.setDeviceFrameEnabled(myShowDeviceFrames && myRenderResult.getRenderTask() != null &&
+                                  myRenderResult.getRenderTask().getRenderingMode() == SessionParams.RenderingMode.NORMAL &&
+                                  myRenderResult.getRenderTask().getShowDecorations());
       if (myPreviewManager != null && RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
         Dimension fixedRenderSize = myPreviewManager.getFixedRenderSize();
         if (fixedRenderSize != null) {
@@ -601,7 +601,7 @@ public class RenderedPanel extends JPanel implements Disposable {
 
   public void zoomActual() {
     myZoomToFit = false;
-    if (myRenderResult.getImage() != null) {
+    if (myRenderResult != null && myRenderResult.getImage() != null) {
       myRenderResult.getImage().zoomActual();
     }
     doRevalidate();

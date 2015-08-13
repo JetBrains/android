@@ -21,7 +21,6 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
@@ -135,10 +134,15 @@ public class AndroidUtils {
   @NonNls public static final String ACTIVITY_BASE_CLASS_NAME = SdkConstants.CLASS_ACTIVITY;
   @NonNls public static final String R_CLASS_NAME = SdkConstants.R_CLASS;
   @NonNls public static final String MANIFEST_CLASS_NAME = SdkConstants.FN_MANIFEST_BASE;
+
   @NonNls public static final String LAUNCH_ACTION_NAME = "android.intent.action.MAIN";
+  @NonNls public static final String WALLPAPER_SERVICE_ACTION_NAME = "android.service.wallpaper.WallpaperService";
+
   @NonNls public static final String LAUNCH_CATEGORY_NAME = "android.intent.category.LAUNCHER";
   @NonNls public static final String LEANBACK_LAUNCH_CATEGORY_NAME = "android.intent.category.LEANBACK_LAUNCHER";
   @NonNls public static final String DEFAULT_CATEGORY_NAME = "android.intent.category.DEFAULT";
+  @NonNls public static final String WATCHFACE_CATEGORY_NAME = "com.google.android.wearable.watchface.category.WATCH_FACE";
+
   @NonNls public static final String INSTRUMENTATION_RUNNER_BASE_CLASS = SdkConstants.CLASS_INSTRUMENTATION;
   @NonNls public static final String SERVICE_CLASS_NAME = SdkConstants.CLASS_SERVICE;
   @NonNls public static final String RECEIVER_CLASS_NAME = SdkConstants.CLASS_BROADCASTRECEIVER;
@@ -259,6 +263,12 @@ public class AndroidUtils {
         if (activityClass != null) {
           configuration.MODE = AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY;
           configuration.ACTIVITY_CLASS = activityClass;
+        }
+        else if (AndroidRunConfiguration.isWatchFaceApp(facet)) {
+          // In case of a watch face app, there is only a service and no default activity that can be launched
+          // Eventually, we'd need to support launching a service, but currently you cannot launch a watch face service as well.
+          // See https://code.google.com/p/android/issues/detail?id=151353
+          configuration.MODE = AndroidRunConfiguration.DO_NOTHING;
         }
         else {
           configuration.MODE = AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
@@ -967,23 +977,6 @@ public class AndroidUtils {
                                               AndroidBundle.message("android.facet.importing.title", modName),
                                               message, NotificationType.ERROR, listener), project);
     LOG.debug(message);
-  }
-
-  /**
-   * Returns true if the given file path points to an image file recognized by
-   * Android. See http://developer.android.com/guide/appendix/media-formats.html
-   * for details.
-   *
-   * @param path the filename to be tested
-   * @return true if the file represents an image file
-   */
-  public static boolean hasImageExtension(String path) {
-    return endsWithIgnoreCase(path, DOT_PNG) ||
-           endsWithIgnoreCase(path, DOT_9PNG) ||
-           endsWithIgnoreCase(path, DOT_GIF) ||
-           endsWithIgnoreCase(path, DOT_JPG) ||
-           endsWithIgnoreCase(path, DOT_JPEG) ||
-           endsWithIgnoreCase(path, DOT_BMP);
   }
 
   public static boolean isPackagePrefix(@NotNull String prefix, @NotNull String name) {

@@ -18,146 +18,137 @@ package com.android.tools.idea.ddms;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
-import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.ddms.actions.*;
-import com.android.tools.idea.ddms.hprof.DumpHprofAction;
-import com.android.tools.idea.ddms.hprof.SaveHprofHandler;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.ListSpeedSearch;
-import com.intellij.ui.SortedListModel;
-import com.intellij.ui.components.JBList;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.Map;
 
-public class DevicePanel implements Disposable,
-                                    AndroidDebugBridge.IDeviceChangeListener,
-                                    AndroidDebugBridge.IDebugBridgeChangeListener {
-  private static final String NO_DEVICES = "No Connected Devices";
+public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, AndroidDebugBridge.IDebugBridgeChangeListener,
+                                    AndroidDebugBridge.IClientChangeListener, Disposable {
   private JPanel myPanel;
-  private JComboBox myDevicesComboBox;
-  private JBList myClientsList;
-
-  private final DefaultComboBoxModel myComboBoxModel = new DefaultComboBoxModel();
-  private final SortedListModel<Client> myClientsListModel = new SortedListModel<Client>(new ClientCellRenderer.ClientComparator());
-  private boolean myIgnoreListeners;
 
   private final DeviceContext myDeviceContext;
-  private final Project myProject;
   @Nullable private AndroidDebugBridge myBridge;
+
+  @NotNull private final Project myProject;
+  @NotNull private final Map<String, String> myPreferredClients;
+  public boolean myIgnoreActionEvents;
+  @NotNull private JComboBox myDeviceCombo;
+  @NotNull private JComboBox myClientCombo;
+  @Nullable private String myCandidateClientName;
 
   public DevicePanel(@NotNull Project project, @NotNull DeviceContext context) {
     myProject = project;
     myDeviceContext = context;
+    myPreferredClients = Maps.newHashMap();
+    myCandidateClientName = getApplicationName();
     Disposer.register(myProject, this);
 
+    initializeDeviceCombo();
+    initializeClientCombo();
+
     AndroidDebugBridge.addDeviceChangeListener(this);
+    AndroidDebugBridge.addClientChangeListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
 
-    ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
-    ClientData.setHprofDumpHandler(new SaveHprofHandler(project));
-    ClientData.setAllocationTrackingHandler(new ShowAllocationsHandler(project));
-
-    initializeDeviceCombo();
-    initializeClientsList();
   }
 
   private void initializeDeviceCombo() {
-    myDevicesComboBox.setModel(myComboBoxModel);
-    myDevicesComboBox.addActionListener(new ActionListener() {
+    myDeviceCombo.addActionListener(new ActionListener() {
       @Override
-      public void actionPerformed(ActionEvent e) {
-        Object sel = myDevicesComboBox.getSelectedItem();
+      public void actionPerformed(ActionEvent actionEvent) {
+        if (myIgnoreActionEvents) return;
+
+        updateClientCombo();
+        Object sel = myDeviceCombo.getSelectedItem();
         IDevice device = (sel instanceof IDevice) ? (IDevice)sel : null;
-        updateClientsForDevice(device);
         myDeviceContext.fireDeviceSelected(device);
-        myDeviceContext.fireClientSelected(null);
       }
     });
-    myDevicesComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer());
+
+    myDeviceCombo.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices"));
+    Dimension size = myDeviceCombo.getMinimumSize();
+    myDeviceCombo.setMinimumSize(new Dimension(200, size.height));
   }
 
-  private void setBridge(@Nullable AndroidDebugBridge bridge) {
-    myBridge = bridge;
-    myComboBoxModel.removeAllElements();
+  private void initializeClientCombo() {
+    myClientCombo.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent actionEvent) {
+        if (myIgnoreActionEvents) return;
 
-    IDevice[] devices = myBridge == null ? null : myBridge.getDevices();
-    if (devices == null || devices.length == 0) {
-      myComboBoxModel.addElement(NO_DEVICES);
-    } else {
-      for (IDevice device : devices) {
-        myComboBoxModel.addElement(device);
+        Client client = (Client)myClientCombo.getSelectedItem();
+        if (client != null) {
+          myPreferredClients.put(client.getDevice().getName(), client.getClientData().getClientDescription());
+        }
+        myDeviceContext.fireClientSelected(client);
+      }
+    });
+
+    myClientCombo.setRenderer(new ClientCellRenderer("No Debuggable Applications"));
+    Dimension size = myClientCombo.getMinimumSize();
+    myClientCombo.setMinimumSize(new Dimension(250, size.height));
+  }
+
+  public void selectDevice(IDevice device) {
+    myDeviceCombo.setSelectedItem(device);
+  }
+
+  public void selectClient(Client client) {
+    myClientCombo.setSelectedItem(client);
+  }
+
+  @Nullable
+  private String getApplicationName() {
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+      if (moduleInfo != null) {
+        String pkg = moduleInfo.getPackage();
+        if (pkg != null) {
+          return pkg;
+        }
       }
     }
-    myDevicesComboBox.setSelectedIndex(0);
-  }
-
-  public void selectDevice(@NotNull final IDevice device) {
-    myDevicesComboBox.setSelectedItem(device);
-  }
-
-  private void initializeClientsList() {
-    myClientsList.setModel(myClientsListModel);
-    myClientsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    myClientsList.setEmptyText("No debuggable applications");
-    myClientsList.setCellRenderer(new ClientCellRenderer());
-    new ListSpeedSearch(myClientsList) {
-      @Override
-      protected boolean isMatchingElement(Object element, String pattern) {
-        if (element instanceof Client) {
-          String pkg = ((Client)element).getClientData().getClientDescription();
-          return pkg != null && pkg.contains(pattern);
-        }
-        return false;
-      }
-    };
-    myClientsList.addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting() || myIgnoreListeners) {
-          return;
-        }
-        Object sel = myClientsList.getSelectedValue();
-        Client c = (sel instanceof Client) ? (Client)sel : null;
-        myDeviceContext.fireClientSelected(c);
-      }
-    });
+    return null;
   }
 
   @Override
   public void dispose() {
     if (myBridge != null) {
       AndroidDebugBridge.removeDeviceChangeListener(this);
+      AndroidDebugBridge.removeClientChangeListener(this);
       AndroidDebugBridge.removeDebugBridgeChangeListener(this);
 
       myBridge = null;
     }
   }
 
-  public JPanel getContentPanel() {
+  public JPanel getComponent() {
     return myPanel;
   }
 
   @Override
   public void bridgeChanged(final AndroidDebugBridge bridge) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
-        setBridge(bridge);
+        myBridge = bridge;
+        updateDeviceCombo();
       }
     });
   }
@@ -167,8 +158,7 @@ public class DevicePanel implements Disposable,
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
-        myComboBoxModel.removeElement(NO_DEVICES);
-        myComboBoxModel.addElement(device);
+        updateDeviceCombo();
       }
     });
   }
@@ -178,10 +168,7 @@ public class DevicePanel implements Disposable,
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
-        myComboBoxModel.removeElement(device);
-        if (myComboBoxModel.getSize() == 0) {
-          myComboBoxModel.addElement(NO_DEVICES);
-        }
+        updateDeviceCombo();
       }
     });
   }
@@ -191,15 +178,12 @@ public class DevicePanel implements Disposable,
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
-        myDevicesComboBox.repaint();
-        if (device != myDevicesComboBox.getSelectedItem()) {
-          return;
+        if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
+          updateClientCombo();
         }
-
-        if ((changeMask & IDevice.CHANGE_CLIENT_LIST) == IDevice.CHANGE_CLIENT_LIST) {
-          updateClientsForDevice(device);
+        else if ((changeMask & IDevice.CHANGE_STATE) != 0) {
+          updateDeviceCombo();
         }
-
         if (device != null) {
           myDeviceContext.fireDeviceChanged(device, changeMask);
         }
@@ -207,51 +191,91 @@ public class DevicePanel implements Disposable,
     });
   }
 
-  private void updateClientsForDevice(@Nullable IDevice device) {
-    if (device == null) {
-      // Note: we do want listeners triggered when the device itself disappears.
-      // so we don't set myIgnoreListeners
-      myClientsListModel.clear();
-      return;
-    }
-
-    Object selectedObject = myClientsList.getSelectedValue();
-    Client[] clients = device.getClients();
-
-    try {
-      // we want to refresh the list of clients, however we don't want the listeners to
-      // think that this is a user driven change to the list selection.
-      // the only time this update should trigger the selection listener is if the currently selected client isn't there anymore
-      myIgnoreListeners = ArrayUtil.contains(selectedObject, clients);
-      myClientsListModel.clear();
-      myClientsListModel.addAll(clients);
-      myClientsList.setSelectedValue(selectedObject, true);
-    } finally {
-      myIgnoreListeners = false;
+  @Override
+  public void clientChanged(Client client, int changeMask) {
+    if ((changeMask & Client.CHANGE_NAME) != 0) {
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          updateClientCombo();
+        }
+      });
     }
   }
 
-  @NotNull
-  public ActionGroup getToolbarActions() {
-    DefaultActionGroup group = new DefaultActionGroup();
+  private void updateDeviceCombo() {
+    myIgnoreActionEvents = true;
 
-    group.add(new ScreenshotAction(myProject, myDeviceContext));
-    group.add(new ScreenRecorderAction(myProject, myDeviceContext));
-    group.add(DumpSysActions.create(myProject, myDeviceContext));
-    //group.add(new MyFileExplorerAction());
-    group.add(new Separator());
+    boolean update = true;
+    IDevice selected = (IDevice)myDeviceCombo.getSelectedItem();
+    myDeviceCombo.removeAllItems();
+    if (myBridge != null) {
+      for (IDevice device : myBridge.getDevices()) {
+        myDeviceCombo.addItem(device);
+        if (selected == device) {
+          myDeviceCombo.setSelectedItem(device);
+          update = false;
+        }
+      }
+    }
 
-    group.add(new TerminateVMAction(myDeviceContext));
-    group.add(new GcAction(myDeviceContext));
-    group.add(new DumpHprofAction(myDeviceContext));
-    //group.add(new MyAllocationTrackerAction());
-    //group.add(new Separator());
+    if (update) {
+      myDeviceContext.fireDeviceSelected((IDevice)myDeviceCombo.getSelectedItem());
+      updateClientCombo();
+    }
 
-    group.add(new ToggleMethodProfilingAction(myProject, myDeviceContext));
-    //group.add(new MyThreadDumpAction()); // thread dump -> systrace
+    myIgnoreActionEvents = false;
+  }
 
-    group.add(new ToggleAllocationTrackingAction(myDeviceContext));
+  private void updateClientCombo() {
+    myIgnoreActionEvents = true;
 
-    return group;
+    IDevice device = (IDevice)myDeviceCombo.getSelectedItem();
+    Client selected = (Client)myClientCombo.getSelectedItem();
+    Client toSelect = selected;
+    boolean update = true;
+    myClientCombo.removeAllItems();
+    if (device != null) {
+      // Change the currently selected client if the user has a preference.
+      String preferred = getPreferredClientForDevice(device.getName());
+      if (preferred != null) {
+        Client preferredClient = device.getClient(preferred);
+        if (preferredClient != null) {
+          toSelect = preferredClient;
+        }
+      }
+
+      Client[] clients = device.getClients();
+      // There's a chance we got this update because a client we were debugging
+      // just crashed or was closed. We still want to keep it in the list
+      // though so the user can look over any final error messages / profiling
+      // states.
+      boolean selectedClientDied = true;
+      Arrays.sort(clients, new ClientCellRenderer.ClientComparator());
+      for (Client client : clients) {
+        myClientCombo.addItem(client);
+        if (selected == client) {
+          selectedClientDied = false;
+        }
+      }
+      if (selectedClientDied) {
+        myClientCombo.addItem(selected);
+      }
+
+      myClientCombo.setSelectedItem(toSelect);
+      update = toSelect != selected;
+    }
+
+    myIgnoreActionEvents = false;
+
+    if (update) {
+      myDeviceContext.fireClientSelected((Client)myClientCombo.getSelectedItem());
+    }
+  }
+
+  @Nullable
+  private String getPreferredClientForDevice(String deviceName) {
+    String client = myPreferredClients.get(deviceName);
+    return client == null ? myCandidateClientName : client;
   }
 }

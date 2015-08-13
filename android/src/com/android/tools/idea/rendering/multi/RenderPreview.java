@@ -555,18 +555,19 @@ public class RenderPreview implements Disposable {
     if (psiFile == null) {
       return false;
     }
-    RenderLogger logger = new RenderLogger(psiFile.getName(), module);
     PreviewRenderContext renderContext = new PreviewRenderContext(myRenderContext, configuration, (XmlFile)psiFile);
-    final RenderService renderService = RenderService.create(facet, module, psiFile, configuration, logger, renderContext);
-    if (renderService == null) {
+    RenderService renderService = RenderService.get(facet);
+    RenderLogger logger = renderService.createLogger();
+    final RenderTask renderTask = renderService.createTask(psiFile, configuration, logger, renderContext);
+    if (renderTask == null) {
       return false;
     }
 
     if (myIncludedWithin != null) {
-      renderService.setIncludedWithin(myIncludedWithin);
+      renderTask.setIncludedWithin(myIncludedWithin);
     }
 
-    RenderResult result = renderService.render();
+    RenderResult result = renderTask.render();
     RenderSession session = result != null ? result.getSession() : null;
     if (session != null) {
       Result render = session.getResult();
@@ -938,7 +939,8 @@ public class RenderPreview implements Disposable {
 
         //noinspection UseJBColor
         gc.setColor(new Color(181, 213, 255));
-        if (HardwareConfigHelper.isRound(myConfiguration.getDevice())) {
+        Device device = myConfiguration.getDevice();
+        if (device != null && device.isScreenRound()) {
           Stroke prevStroke = gc.getStroke();
           gc.setStroke(new BasicStroke(3.0f));
           Object prevAntiAlias = gc.getRenderingHint(KEY_ANTIALIASING);

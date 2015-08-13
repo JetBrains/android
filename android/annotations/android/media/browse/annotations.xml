@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.media.browse.MediaBrowser android.content.ComponentName getServiceComponent()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser android.media.session.MediaSession.Token getSessionToken()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser android.os.Bundle getExtras()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.browse.MediaBrowser java.lang.String getRoot()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser void getMediaItem(java.lang.String, android.media.browse.MediaBrowser.MediaItemCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser void getMediaItem(java.lang.String, android.media.browse.MediaBrowser.MediaItemCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser void subscribe(java.lang.String, android.media.browse.MediaBrowser.SubscriptionCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser void subscribe(java.lang.String, android.media.browse.MediaBrowser.SubscriptionCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser void unsubscribe(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser.MediaItem MediaItem(android.media.MediaDescription, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser.MediaItem MediaItem(android.media.MediaDescription, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.browse.MediaBrowser.MediaItem.FLAG_BROWSABLE, android.media.browse.MediaBrowser.MediaItem.FLAG_PLAYABLE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.media.browse.MediaBrowser.MediaItem android.media.MediaDescription getDescription()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser.MediaItem int getFlags()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.browse.MediaBrowser.MediaItem.FLAG_BROWSABLE, android.media.browse.MediaBrowser.MediaItem.FLAG_PLAYABLE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.media.browse.MediaBrowser.MediaItem java.lang.String getMediaId()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser.SubscriptionCallback void onChildrenLoaded(java.lang.String, java.util.List&lt;android.media.browse.MediaBrowser.MediaItem&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser.SubscriptionCallback void onChildrenLoaded(java.lang.String, java.util.List&lt;android.media.browse.MediaBrowser.MediaItem&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser.SubscriptionCallback void onError(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

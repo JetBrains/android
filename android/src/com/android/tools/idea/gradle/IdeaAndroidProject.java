@@ -19,42 +19,57 @@ import com.android.builder.model.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.google.common.collect.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
-import static com.android.builder.model.AndroidProject.FD_GENERATED;
-import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
+import static com.android.builder.model.AndroidProject.*;
+import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_ANDROID_PROJECT;
 import static com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer.EXCLUDED_OUTPUT_FOLDER_NAMES;
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class IdeaAndroidProject implements Serializable {
-  @NotNull private final ProjectSystemId myProjectSystemId;
-  @NotNull private final String myModuleName;
-  @NotNull private final VirtualFile myRootDir;
-  @NotNull private final AndroidProject myDelegate;
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+  private static final Logger LOG = Logger.getInstance(IdeaAndroidProject.class);
+
+  @NotNull private ProjectSystemId myProjectSystemId;
+  @NotNull private String myModuleName;
+  @NotNull private File myRootDirPath;
+  @NotNull private AndroidProject myDelegate;
+
+  @Nullable private transient CountDownLatch myProxyDelegateLatch;
+  @Nullable private AndroidProject myProxyDelegate;
 
   @SuppressWarnings("NullableProblems") // Set in the constructor.
   @NotNull private String mySelectedVariantName;
+
+  private transient VirtualFile myRootDir;
 
   @SuppressWarnings("NullableProblems") // Set in the constructor.
   @NotNull private String mySelectedTestArtifactName;
 
   @Nullable private Boolean myOverridesManifestPackage;
-  @Nullable private AndroidVersion myMinSdkVersion;
+  @Nullable private transient AndroidVersion myMinSdkVersion;
 
   @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = Maps.newHashMap();
   @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = Maps.newHashMap();
@@ -66,23 +81,31 @@ public class IdeaAndroidProject implements Serializable {
    * Creates a new {@link IdeaAndroidProject}.
    * @param projectSystemId     the external system used to build the project (e.g. Gradle).
    * @param moduleName          the name of the IDEA module, created from {@code delegate}.
-   * @param rootDir             the root directory of the imported Android-Gradle project.
+   * @param rootDirPath         the root directory of the imported Android-Gradle project.
    * @param delegate            imported Android-Gradle project.
    * @param selectedVariantName name of the selected build variant.
    */
   public IdeaAndroidProject(@NotNull ProjectSystemId projectSystemId,
                             @NotNull String moduleName,
-                            @NotNull File rootDir,
+                            @NotNull File rootDirPath,
                             @NotNull AndroidProject delegate,
                             @NotNull String selectedVariantName,
                             @NotNull String selectedTestArtifactName) {
     myProjectSystemId = projectSystemId;
     myModuleName = moduleName;
-    VirtualFile found = VfsUtil.findFileByIoFile(rootDir, true);
-    // the module's root directory can never be null.
-    assert found != null;
-    myRootDir = found;
+    myRootDirPath = rootDirPath;
     myDelegate = delegate;
+
+    // Compute the proxy object to avoid re-proxying the model during every serialization operation and also schedule it to run
+    // asynchronously to avoid blocking the project sync operation for reproxying to complete.
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+      @Override
+      public void run() {
+        myProxyDelegateLatch = new CountDownLatch(1);
+        myProxyDelegate = reproxy(AndroidProject.class, myDelegate);
+        myProxyDelegateLatch.countDown();
+      }
+    });
 
     populateBuildTypesByName();
     populateProductFlavorsByName();
@@ -139,8 +162,16 @@ public class IdeaAndroidProject implements Serializable {
 
   @Nullable
   public BaseArtifact findSelectedTestArtifact(@NotNull Variant variant) {
-    Iterable<BaseArtifact> allExtraArtifacts = Iterables.concat(variant.getExtraAndroidArtifacts(), variant.getExtraJavaArtifacts());
-    for (BaseArtifact artifact : allExtraArtifacts) {
+    BaseArtifact artifact = getBaseArtifact(variant.getExtraAndroidArtifacts());
+    if (artifact != null) {
+      return artifact;
+    }
+    return getBaseArtifact(variant.getExtraJavaArtifacts());
+  }
+
+  @Nullable
+  private BaseArtifact getBaseArtifact(@NotNull Iterable<? extends BaseArtifact> artifacts) {
+    for (BaseArtifact artifact : artifacts) {
       if (getSelectedTestArtifactName().equals(artifact.getName())) {
         return artifact;
       }
@@ -159,11 +190,26 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   /**
+   * @return the path of the root directory of the imported Android-Gradle project. The returned path belongs to the IDEA module containing
+   * the build.gradle file.
+   */
+  @NotNull
+  public File getRootDirPath() {
+    return myRootDirPath;
+  }
+
+  /**
    * @return the root directory of the imported Android-Gradle project. The returned path belongs to the IDEA module containing the
    * build.gradle file.
    */
   @NotNull
   public VirtualFile getRootDir() {
+    if (myRootDir == null) {
+      VirtualFile found = findFileByIoFile(myRootDirPath, true);
+      // the module's root directory can never be null.
+      assert found != null;
+      myRootDir = found;
+    }
     return myRootDir;
   }
 
@@ -211,8 +257,7 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   public void setSelectedTestArtifactName(@NotNull String selectedTestArtifactName) {
-    checkArgument(selectedTestArtifactName.equals(AndroidProject.ARTIFACT_ANDROID_TEST)
-                  || selectedTestArtifactName.equals(AndroidProject.ARTIFACT_UNIT_TEST));
+    assert selectedTestArtifactName.equals(ARTIFACT_ANDROID_TEST) || selectedTestArtifactName.equals(ARTIFACT_UNIT_TEST);
     mySelectedTestArtifactName = selectedTestArtifactName;
   }
 
@@ -222,21 +267,16 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   @NotNull
-  public Collection<SourceProvider> getSourceProvidersForSelectedTestArtifact(@NotNull Iterable<SourceProviderContainer> extraSourceProviders) {
-    ImmutableSet.Builder<SourceProvider> sourceProviders = ImmutableSet.builder();
+  public Collection<SourceProvider> getSourceProvidersForSelectedTestArtifact(@NotNull Iterable<SourceProviderContainer> containers) {
+    Set<SourceProvider> providers = Sets.newHashSet();
 
-    for (SourceProviderContainer extraSourceProvider : extraSourceProviders) {
-      if (mySelectedTestArtifactName.equals(extraSourceProvider.getArtifactName())) {
-        sourceProviders.add(extraSourceProvider.getSourceProvider());
+    for (SourceProviderContainer container : containers) {
+      if (mySelectedTestArtifactName.equals(container.getArtifactName())) {
+        providers.add(container.getSourceProvider());
       }
     }
 
-    return sourceProviders.build();
-  }
-
-  @NotNull
-  public Collection<String> getVariantNames() {
-    return myVariantsByName.keySet();
+    return providers;
   }
 
   @NotNull
@@ -247,6 +287,11 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull
   public Collection<String> getProductFlavorNames() {
     return myProductFlavorsByName.keySet();
+  }
+
+  @NotNull
+  public Collection<String> getVariantNames() {
+    return myVariantsByName.keySet();
   }
 
   @Nullable
@@ -382,7 +427,7 @@ public class IdeaAndroidProject implements Serializable {
       return false;
     }
     for (File generatedSourceFolder : myExtraGeneratedSourceFolders) {
-      if (FileUtil.isAncestor(folderPath, generatedSourceFolder, false)) {
+      if (isAncestor(folderPath, generatedSourceFolder, false)) {
         return true;
       }
     }
@@ -415,5 +460,160 @@ public class IdeaAndroidProject implements Serializable {
       return false;
     }
     return modelVersion.compareTo(FullRevision.parseRevision("1.1.0")) >= 0;
+  }
+
+  @Nullable
+  public SourceFileContainerInfo containsSourceFile(@NotNull File file) {
+    ProductFlavorContainer defaultConfig = myDelegate.getDefaultConfig();
+    if (containsSourceFile(defaultConfig, file)) {
+      return new SourceFileContainerInfo();
+    }
+    for (Variant variant : myDelegate.getVariants()) {
+      AndroidArtifact artifact = variant.getMainArtifact();
+      if (containsSourceFile(artifact, file)) {
+        return new SourceFileContainerInfo(variant, artifact);
+      }
+      for (AndroidArtifact extraArtifact : variant.getExtraAndroidArtifacts()) {
+        if (containsSourceFile(extraArtifact, file)) {
+          return new SourceFileContainerInfo(variant, extraArtifact);
+        }
+      }
+      String buildTypeName = variant.getBuildType();
+      BuildTypeContainer buildTypeContainer = findBuildType(buildTypeName);
+      if (buildTypeContainer != null) {
+        if (containsFile(buildTypeContainer.getSourceProvider(), file)) {
+          return new SourceFileContainerInfo(variant);
+        }
+        for (SourceProviderContainer extraSourceProvider : buildTypeContainer.getExtraSourceProviders()) {
+          if (containsFile(extraSourceProvider.getSourceProvider(), file)) {
+            return new SourceFileContainerInfo(variant);
+          }
+        }
+      }
+      for (String flavorName : variant.getProductFlavors()) {
+        ProductFlavorContainer flavor = findProductFlavor(flavorName);
+        if (flavor != null && containsSourceFile(flavor, file)) {
+          return new SourceFileContainerInfo(variant);
+        }
+      }
+
+    }
+
+    return null; // not found.
+  }
+
+  private static boolean containsSourceFile(@NotNull ProductFlavorContainer flavorContainer, @NotNull File file) {
+    if (containsFile(flavorContainer.getSourceProvider(), file)) {
+      return true;
+    }
+    // Test source roots
+    for (SourceProviderContainer extraSourceProvider : flavorContainer.getExtraSourceProviders()) {
+      if (containsFile(extraSourceProvider.getSourceProvider(), file)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static boolean containsSourceFile(@NotNull BaseArtifact artifact, @NotNull File file) {
+    if (artifact instanceof AndroidArtifact) {
+      AndroidArtifact android = (AndroidArtifact)artifact;
+      if (containsFile(android.getGeneratedSourceFolders(), file) || containsFile(android.getGeneratedResourceFolders(), file)) {
+        return true;
+      }
+    }
+    SourceProvider sourceProvider = artifact.getVariantSourceProvider();
+    if (sourceProvider != null && containsFile(sourceProvider, file)) {
+      return true;
+    }
+    sourceProvider = artifact.getMultiFlavorSourceProvider();
+    return sourceProvider != null && containsFile(sourceProvider, file);
+  }
+
+  private static boolean containsFile(@NotNull SourceProvider sourceProvider, @NotNull File file) {
+    return containsFile(sourceProvider.getAidlDirectories(), file) ||
+           containsFile(sourceProvider.getAssetsDirectories(), file) ||
+           containsFile(sourceProvider.getCDirectories(), file) ||
+           containsFile(sourceProvider.getCppDirectories(), file) ||
+           containsFile(sourceProvider.getJavaDirectories(), file) ||
+           containsFile(sourceProvider.getRenderscriptDirectories(), file) ||
+           containsFile(sourceProvider.getResDirectories(), file) ||
+           containsFile(sourceProvider.getResourcesDirectories(), file);
+  }
+
+  private static boolean containsFile(@NotNull Collection<File> directories, @NotNull File file) {
+    for (File directory : directories) {
+      if (isAncestor(directory, file, false)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static class SourceFileContainerInfo {
+    @Nullable public final Variant variant;
+    @Nullable public final BaseArtifact artifact;
+
+    SourceFileContainerInfo() {
+      this(null);
+    }
+
+    SourceFileContainerInfo(@Nullable Variant variant) {
+      this(variant, null);
+    }
+
+    SourceFileContainerInfo(@Nullable Variant variant, @Nullable BaseArtifact artifact) {
+      this.variant = variant;
+      this.artifact = artifact;
+    }
+
+    public void updateSelectedVariantIn(@NotNull DataNode<ModuleData> moduleNode) {
+      if (variant != null) {
+        DataNode<IdeaAndroidProject> androidProjectNode = find(moduleNode, IDE_ANDROID_PROJECT);
+        if (androidProjectNode != null) {
+          androidProjectNode.getData().setSelectedVariantName(variant.getName());
+        }
+      }
+    }
+  }
+
+  private void writeObject(ObjectOutputStream out) throws IOException {
+    if (myProxyDelegateLatch != null) {
+      try {
+        // If required, wait for the proxy operation to complete.
+        myProxyDelegateLatch.await();
+      }
+      catch (InterruptedException e) {
+        LOG.error(e);
+        Thread.currentThread().interrupt();
+      }
+    }
+
+    out.writeObject(myProjectSystemId);
+    out.writeObject(myModuleName);
+    out.writeObject(myRootDirPath);
+    out.writeObject(myProxyDelegate);
+    out.writeObject(mySelectedVariantName);
+    out.writeObject(mySelectedTestArtifactName);
+  }
+
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    myProjectSystemId = (ProjectSystemId)in.readObject();
+    myModuleName = (String)in.readObject();
+    myRootDirPath = (File)in.readObject();
+    myDelegate = (AndroidProject)in.readObject();
+    myProxyDelegate = myDelegate;
+
+    myBuildTypesByName = Maps.newHashMap();
+    myProductFlavorsByName = Maps.newHashMap();
+    myVariantsByName = Maps.newHashMap();
+    myExtraGeneratedSourceFolders = Sets.newHashSet();
+
+    populateBuildTypesByName();
+    populateProductFlavorsByName();
+    populateVariantsByName();
+
+    setSelectedVariantName((String)in.readObject());
+    setSelectedTestArtifactName((String)in.readObject());
   }
 }

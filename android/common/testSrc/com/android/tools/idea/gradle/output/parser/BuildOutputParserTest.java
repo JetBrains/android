@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.output.parser;
 
 import com.android.annotations.Nullable;
-import com.android.ide.common.blame.SourceFragmentPositionRange;
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
+import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser;
-import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.google.common.base.Charsets;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
@@ -52,6 +52,7 @@ import static com.android.utils.SdkUtils.createPathComment;
 @SuppressWarnings({"ResultOfMethodCallIgnored", "StringBufferReplaceableByString"})
 public class BuildOutputParserTest extends TestCase {
   private static final String NEWLINE = SystemProperties.getLineSeparator();
+  private static final String CWD_PATH = new File("").getAbsolutePath();
 
   private File sourceFile;
   private String sourceFilePath;
@@ -73,11 +74,11 @@ public class BuildOutputParserTest extends TestCase {
 
   public void testParseDisplayingUnhandledMessages() {
     String output = " **--- HELLO WORLD ---**";
-    List<GradleMessage> gradleMessages = parser.parseGradleOutput(output);
-    assertEquals(1, gradleMessages.size());
-    GradleMessage message = gradleMessages.get(0);
+    List<Message> Messages = parser.parseGradleOutput(output);
+    assertEquals(1, Messages.size());
+    Message message = Messages.get(0);
     assertEquals(output, message.getText());
-    assertEquals(GradleMessage.Kind.SIMPLE, message.getKind());
+    assertEquals(Message.Kind.SIMPLE, message.getKind());
   }
 
   public void testParseParsedBuildIssue() throws IOException {
@@ -86,13 +87,13 @@ public class BuildOutputParserTest extends TestCase {
                     " \\u0027android\\u0027\",\"sourcePath\":\"/usr/local/google/home/cmw/" +
                     "udacity/Sunshine/app/src/main/res/menu/detail.xml\",\"position\":" +
                     "{\"startLine\":5},\"original\":\"\"}";
-    List<GradleMessage> gradleMessages = parser.parseGradleOutput(output);
-    assertEquals("Expect one message.", 1, gradleMessages.size());
-    GradleMessage message = gradleMessages.iterator().next();
+    List<Message> Messages = parser.parseGradleOutput(output);
+    assertEquals("Expect one message.", 1, Messages.size());
+    Message message = Messages.iterator().next();
     assertEquals("No resource identifier found for attribute 'a' in package 'android'", message.getText());
-    assertEquals(GradleMessage.Kind.ERROR, message.getKind());
+    assertEquals(Message.Kind.ERROR, message.getKind());
     assertEquals("/usr/local/google/home/cmw/udacity/Sunshine/app/src/main/res/menu/detail.xml", message.getSourcePath());
-    assertEquals(new SourceFragmentPositionRange(5, -1, -1), message.getPosition());
+    assertEquals(new SourcePosition(5, -1, -1), message.getSourceFilePositions().get(0).getPosition());
   }
 
   public void testParseAaptOutputWithRange1() throws IOException {
@@ -103,7 +104,7 @@ public class BuildOutputParserTest extends TestCase {
                 "  <application android:icon='@drawable/icon' android:label='@string/app_name2'>");
     String messageText = "No resource found that matches the given name (at 'label' with value " + "'@string/app_name2').";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 4, 61);
   }
 
@@ -118,7 +119,7 @@ public class BuildOutputParserTest extends TestCase {
                 "  <application android:icon='@drawable/icon' android:label=", "      '@string/app_name2'>");
     String messageText = "No resource found that matches the given name (at 'label' with value " + "'@string/app_name2').";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 5, 8);
   }
 
@@ -135,7 +136,7 @@ public class BuildOutputParserTest extends TestCase {
                 "    <item name='android:gravity'>left</item>");
     String messageText = "Resource entry repeatedStyle1 already has bag item android:gravity.";
     String err = sourceFilePath + ":6: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 6, 17);
   }
 
@@ -150,7 +151,7 @@ public class BuildOutputParserTest extends TestCase {
                 "    <item name='android:gravity'>left</item>");
     String messageText = "Originally defined here.";
     String err = sourceFilePath + ":3: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 3, 5);
   }
 
@@ -163,7 +164,7 @@ public class BuildOutputParserTest extends TestCase {
                 "    <item name='nonexistent'>left</item>");
     String messageText = "No resource found that matches the given name: attr 'nonexistent'.";
     String err = sourceFilePath + ":3: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 3, 17);
   }
 
@@ -174,7 +175,7 @@ public class BuildOutputParserTest extends TestCase {
                 "  <style>");
     String messageText = "A 'name' attribute is required for <style>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
@@ -184,7 +185,7 @@ public class BuildOutputParserTest extends TestCase {
                 "  <item>");
     String messageText = "A 'type' attribute is required for <item>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
@@ -194,7 +195,7 @@ public class BuildOutputParserTest extends TestCase {
                 "  <item>");
     String messageText = "A 'name' attribute is required for <item>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
@@ -205,7 +206,7 @@ public class BuildOutputParserTest extends TestCase {
                 "        <item name='android:layout_width'></item>");
     String messageText = "String types not allowed (at 'android:layout_width' with value '').";
     String err = sourceFilePath + ":3: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 3, 21);
   }
 
@@ -221,7 +222,7 @@ public class BuildOutputParserTest extends TestCase {
                 "        android:layout_marginLeft=''");
     String messageText = "String types not allowed (at 'layout_marginTop' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 8, 34);
   }
 
@@ -238,7 +239,7 @@ public class BuildOutputParserTest extends TestCase {
                 "        android:layout_marginLeft=''");
     String messageText = "String types not allowed (at 'layout_marginLeft' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 9, 35);
   }
 
@@ -252,7 +253,7 @@ public class BuildOutputParserTest extends TestCase {
                 "        android:id=''");
     String messageText = "String types not allowed (at 'id' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 6, 20);
   }
 
@@ -271,7 +272,7 @@ public class BuildOutputParserTest extends TestCase {
        .append("location: Test").append(NEWLINE)
        .append("    int v2 = v4").append(NEWLINE)
        .append("             ^");
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err.toString());
+    Collection<Message> messages = parser.parseGradleOutput(err.toString());
     assertHasCorrectErrorMessage(messages, "error: cannot find symbol variable v4", 3, 14);
   }
 
@@ -284,7 +285,7 @@ public class BuildOutputParserTest extends TestCase {
     err.append(sourceFilePath).append(":3: error: ").append("not a statement").append(NEWLINE)
        .append("    System.out.println();asd").append(NEWLINE)
        .append("                         ^").append(NEWLINE);
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err.toString());
+    Collection<Message> messages = parser.parseGradleOutput(err.toString());
     assertHasCorrectErrorMessage(messages, "error: not a statement", 3, 26);
   }
 
@@ -311,11 +312,11 @@ public class BuildOutputParserTest extends TestCase {
       NEWLINE).append(NEWLINE);
     err.append("BUILD FAILED").append(NEWLINE).append(NEWLINE);
     err.append("Total time: 18.303 secs\n");
-    List<GradleMessage> messages = parser.parseGradleOutput(err.toString());
+    List<Message> messages = parser.parseGradleOutput(err.toString());
 
     assertEquals("0: Error:A problem occurred evaluating project ':project'.\n" +
                  "> Could not find method ERROR() for arguments [{plugin=android}] on project ':project'.\n" +
-                 "\t" + sourceFilePath + ":9:0\n" +
+                 "\t" + sourceFilePath + ":9:1\n" +
                  "1: Info:BUILD FAILED\n" +
                  "2: Info:Total time: 18.303 secs\n",
                  toString(messages));
@@ -325,7 +326,7 @@ public class BuildOutputParserTest extends TestCase {
     StringBuilder err = new StringBuilder();
     err.append("[Fatal Error] :5:7: The element type \"error\" must be terminated by the matching end-tag \"</error>\".").append(NEWLINE);
     err.append("FAILURE: Build failed with an exception.").append(NEWLINE);
-    List<GradleMessage> messages = parser.parseGradleOutput(err.toString());
+    List<Message> messages = parser.parseGradleOutput(err.toString());
 
     assertEquals("0: Error:The element type \"error\" must be terminated by the matching end-tag \"</error>\".\n" +
                  "1: Simple:FAILURE: Build failed with an exception.\n",
@@ -334,7 +335,7 @@ public class BuildOutputParserTest extends TestCase {
 
   public void testParseIncubatingFeatureMessage() {
     String out = "Parallel execution with configuration on demand is an incubating feature.";
-    List<GradleMessage> messages = parser.parseGradleOutput(out);
+    List<Message> messages = parser.parseGradleOutput(out);
     assertEquals("", toString(messages));
   }
 
@@ -359,15 +360,15 @@ public class BuildOutputParserTest extends TestCase {
     }
   }
 
-  private void assertHasCorrectErrorMessage(@NotNull Collection<GradleMessage> messages,
+  private void assertHasCorrectErrorMessage(@NotNull Collection<Message> messages,
                                             @NotNull String expectedText,
                                             long expectedLine,
                                             long expectedColumn) {
     assertEquals("[message count]", 1, messages.size());
-    GradleMessage message = ContainerUtil.getFirstItem(messages);
+    Message message = ContainerUtil.getFirstItem(messages);
     assertNotNull(message);
     assertEquals("[file path]", sourceFilePath, message.getSourcePath());
-    assertEquals("[message severity]", GradleMessage.Kind.ERROR, message.getKind());
+    assertEquals("[message severity]", Message.Kind.ERROR, message.getKind());
     assertEquals("[message text]", expectedText, message.getText());
     assertEquals("[position line]", expectedLine, message.getLineNumber());
     assertEquals("[position column]", expectedColumn, message.getColumn());
@@ -463,26 +464,34 @@ public class BuildOutputParserTest extends TestCase {
 
     String messageText = "String types not allowed (at 'drawable_ref' with value '@drawable/stat_notify_sync_anim0').";
     String err = sourceFilePath + ":46: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertEquals(1, messages.size());
 
     assertEquals("[message count]", 1, messages.size());
-    GradleMessage message = ContainerUtil.getFirstItem(messages);
+    Message message = ContainerUtil.getFirstItem(messages);
     assertNotNull(message);
 
     // NOT sourceFilePath; should be translated back from source comment
     assertEquals("[file path]", "src/test/resources/testData/resources/baseSet/values/values.xml", getSystemIndependentSourcePath(message));
 
-    assertEquals("[message severity]", GradleMessage.Kind.ERROR, message.getKind());
+    assertEquals("[message severity]", Message.Kind.ERROR, message.getKind());
     assertEquals("[message text]", messageText, message.getText());
     assertEquals("[position line]", 9, message.getLineNumber());
     assertEquals("[position column]", 35, message.getColumn());
   }
 
   @Nullable
-  private static String getSystemIndependentSourcePath(@NotNull GradleMessage message) {
+  private static String getSystemIndependentSourcePath(@NotNull Message message) {
     String sourcePath = message.getSourcePath();
-    return sourcePath == null ? null : FileUtil.toSystemIndependentName(sourcePath);
+    if (sourcePath == null) {
+      return null;
+    }
+    String name = FileUtil.toSystemIndependentName(sourcePath);
+    if (name.startsWith(CWD_PATH)) {
+      name = name.substring(CWD_PATH.length() + 1);
+    };
+    return name;
+
   }
 
   private static boolean setupSdkHome() {
@@ -534,18 +543,18 @@ public class BuildOutputParserTest extends TestCase {
 
     String messageText = "Random error message here";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
+    Collection<Message> messages = parser.parseGradleOutput(err);
     assertEquals(1, messages.size());
 
     assertEquals("[message count]", 1, messages.size());
-    GradleMessage message = ContainerUtil.getFirstItem(messages);
+    Message message = ContainerUtil.getFirstItem(messages);
     assertNotNull(message);
 
     // NOT sourceFilePath; should be translated back from source comment
     String expected = "src/test/resources/testData/resources/incMergeData/filesVsValues/main/layout/main.xml";
     assertEquals("[file path]", expected, getSystemIndependentSourcePath(message));
 
-    assertEquals("[message severity]", GradleMessage.Kind.ERROR, message.getKind());
+    assertEquals("[message severity]", Message.Kind.ERROR, message.getKind());
     assertEquals("[message text]", messageText, message.getText());
     assertEquals("[position line]", 4, message.getLineNumber());
     //assertEquals("[position column]", 35, message.getColumn());
@@ -644,8 +653,7 @@ public class BuildOutputParserTest extends TestCase {
     assertEquals("0: Error:Found item String/drawer_open more than one time: Failed to parse " + sourceFilePath + "\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
                  "1: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
-                 "> Found item String/drawer_open more than one time\n" +
-                 "\t" + sourceFilePath + ":-1:-1\n",
+                 "> Found item String/drawer_open more than one time\n",
                  toString(parser.parseGradleOutput(output)));
 
     // Also test CRLF handling:
@@ -653,8 +661,7 @@ public class BuildOutputParserTest extends TestCase {
     assertEquals("0: Error:Found item String/drawer_open more than one time: Failed to parse " + sourceFilePath + "\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
                  "1: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
-                 "> Found item String/drawer_open more than one time\n" +
-                 "\t" + sourceFilePath + ":-1:-1\n",
+                 "> Found item String/drawer_open more than one time\n",
                  toString(parser.parseGradleOutput(output)));
   }
 
@@ -705,13 +712,12 @@ public class BuildOutputParserTest extends TestCase {
                  "3: Simple::compileF2FaDebugRenderscript UP-TO-DATE\n" +
                  "4: Simple::mergeF2FaDebugResources FAILED\n" +
                  "5: Error:> Duplicate resources: " + path1 + ":string/group2_string, " + path2 + ":string/group2_string\n" +
-                 "\t" + path1 + ":4:-1\n" +
-                 "6: Error:Other duplicate occurrence here\n" +
-                 "\t" + path2 + ":3:-1\n" +
-                 "7: Error:Execution failed for task ':mergeF2FaDebugResources'.\n" +
-                 "\t" + path1 + ":4:-1\n" +
-                 "8: Info:BUILD FAILED\n" +
-                 "9: Info:Total time: 6.462 secs\n",
+                 "\t" + path1 + ":4:13\n" +
+                 "\t" + path2 + ":3:31\n" +
+                 "6: Error:Execution failed for task ':mergeF2FaDebugResources'.\n" +
+                 "\t" + path1 + ":4:13\n" +
+                 "7: Info:BUILD FAILED\n" +
+                 "8: Info:Total time: 6.462 secs\n",
                  toString(parser.parseGradleOutput(output)));
 
     file1.delete();
@@ -803,7 +809,6 @@ public class BuildOutputParserTest extends TestCase {
                  "13: Simple::MyApp:mergeDebugResources FAILED\n" +
                  "14: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
                  "> org.xml.sax.SAXParseException: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
-                 "\t" + sourceFilePath + ":7:18\n" +
                  "15: Info:BUILD FAILED\n" +
                  "16: Info:Total time: 7.245 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1339,7 +1344,6 @@ public class BuildOutputParserTest extends TestCase {
                  "11: Simple::MyApplication589:mergeDebugResources FAILED\n" +
                  "12: Error:Execution failed for task ':MyApplication589:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ": Error: Duplicate resources: " + sourceFilePath + ", /some/other/path/src/main/res/values/strings.xml:string/action_settings\n" +
-                 "\t" + sourceFilePath + ":-1:-1\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 4.861 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1393,7 +1397,6 @@ public class BuildOutputParserTest extends TestCase {
                  "12: Simple::MyApplication:mergeDebugResources FAILED\n" +
                  "13: Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ":4:1: Error: The content of elements must consist of well-formed character data or markup.\n" +
-                 "\t" + sourceFilePath + ":4:1\n" +
                  "14: Info:BUILD FAILED\n" +
                  "15: Info:Total time: 5.187 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1466,7 +1469,6 @@ public class BuildOutputParserTest extends TestCase {
                  "12: Simple::MyApplication:mergeDebugResources FAILED\n" +
                  "13: Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
                  "> "+ sourceFilePath + ":2:16: Error: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
-                 "\t" + sourceFilePath + ":2:16\n" +
                  "14: Info:BUILD FAILED\n" +
                  "15: Info:Total time: 4.951 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1655,7 +1657,6 @@ public class BuildOutputParserTest extends TestCase {
                  "11: Simple::MyApplication585:mergeDebugResources FAILED\n" +
                  "12: Error:Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ": Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
-                 "\t" + sourceFilePath + ":-1:-1\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 8.91 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1706,7 +1707,6 @@ public class BuildOutputParserTest extends TestCase {
                  "11: Simple::MyApplication585:mergeDebugResources FAILED\n" +
                  "12: Error:Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ":4: Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
-                 "\t" + sourceFilePath + ":4:-1\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 8.91 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1758,7 +1758,6 @@ public class BuildOutputParserTest extends TestCase {
                  "11: Simple::MyApplication:mergeDebugResources FAILED\n" +
                  "12: Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ": Error: Found item Dimension/activity_horizontal_margin more than one time\n" +
-                 "\t" + sourceFilePath + ":-1:-1\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 5.623 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -1805,13 +1804,13 @@ public class BuildOutputParserTest extends TestCase {
                  "3: Simple::foolib:buildNative\n" +
                  "4: Simple:Unexpected close tag: MANIFEST, expecting APPLICATION\n" +
                  "5: Warning:warning: overriding commands for target `dump'\n" +
-                 "\tjni/Android.mk:24:-1\n" +
+                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
                  "6: Warning:warning: ignoring old commands for target `dump'\n" +
-                 "\tjni/Android.mk:24:-1\n" +
+                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
                  "7: Warning:warning: overriding commands for target `dump'\n" +
-                 "\tjni/Android.mk:24:-1\n" +
+                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
                  "8: Warning:warning: ignoring old commands for target `dump'\n" +
-                 "\tjni/Android.mk:24:-1\n" +
+                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
                  "9: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_a_16.o'\n" +
                  "\t" + sourceFilePath + ":393:-1\n" +
                  "10: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_a_16.o'\n" +
@@ -1829,9 +1828,9 @@ public class BuildOutputParserTest extends TestCase {
                  "16: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_c.o'\n" +
                  "\t" + sourceFilePath + ":393:-1\n" +
                  "17: Warning:warning: overriding commands for target `dump'\n" +
-                 "\tjni/Android.mk:24:-1\n" +
+                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
                  "18: Warning:warning: ignoring old commands for target `dump'\n" +
-                 "\tjni/Android.mk:24:-1\n" +
+                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
                  "19: Simple:[armeabi-v7a] Install        : libaacdecoder.so => libs/armeabi-v7a/libaacdecoder.so\n" +
                  "20: Simple:[armeabi] Install        : libaacdecoder.so => libs/armeabi/libaacdecoder.so\n" +
                  "21: Simple:[x86] Install        : libaacdecoder.so => libs/x86/libaacdecoder.so\n" +
@@ -1910,7 +1909,7 @@ public class BuildOutputParserTest extends TestCase {
                  // TODO: Link to the gradle.properties file directly!
                  // However, we have an import hyperlink helper to do it automatically, so may not be necessary
                  "> Gradle version 1.8 is required. Current version is 1.7. If using the gradle wrapper, try editing the distributionUrl in /some/path/gradle.properties to gradle-1.8-all.zip\n" +
-                 "\t" + sourceFilePath + ":24:0\n" +
+                 "\t" + sourceFilePath + ":24:1\n" +
                  "1: Info:BUILD FAILED\n" +
                  "2: Info:Total time: 4.467 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -2207,7 +2206,6 @@ public class BuildOutputParserTest extends TestCase {
                  "  \t1\n" +
                  "  Output:\n" +
                  "  \t" + sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
-                 "\t" + source.getPath() + ":13:23\n" +
                  "16: Info:BUILD FAILED\n" +
                  "17: Info:Total time: 7.024 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -2356,7 +2354,6 @@ public class BuildOutputParserTest extends TestCase {
                  "  \t1\n" +
                  "  Output:\n" +
                  "  \t" + sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
-                 "\t" + source.getPath() + ":13:23\n" +
                  "16: Info:BUILD FAILED\n" +
                  "17: Info:Total time: 7.024 secs\n",
                  toString(parser.parseGradleOutput(output)));
@@ -2366,24 +2363,40 @@ public class BuildOutputParserTest extends TestCase {
     tempDir.delete();
   }
 
+  private static final String WINDOWS_PATH_DRIVE_LETTER = "C:";
+  private static final String WINDOWS_PATH_UNDER_UNIX = new File(WINDOWS_PATH_DRIVE_LETTER).getAbsolutePath();
+  private static final int WINDOWS_PATH_UNIX_PREFIX_LENGTH = WINDOWS_PATH_UNDER_UNIX.length() - WINDOWS_PATH_DRIVE_LETTER.length();
+
   @NotNull
-  private static String toString(@NotNull List<GradleMessage> messages) {
+  private static String toString(@NotNull List<Message> messages) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0, n = messages.size(); i < n; i++) {
-      GradleMessage message = messages.get(i);
+      Message message = messages.get(i);
       sb.append(Integer.toString(i)).append(':').append(' ');
       sb.append(StringUtil.capitalize(message.getKind().toString().toLowerCase(Locale.US))).append(':'); // INFO => Info
       sb.append(message.getText());
       if (message.getSourcePath() != null) {
-        sb.append('\n');
-        sb.append('\t');
-        sb.append(message.getSourcePath());
-        sb.append(':').append(Long.toString(message.getLineNumber()));
-        sb.append(':').append(Long.toString(message.getColumn()));
-      }
-      if (message instanceof GradleProjectAwareMessage) {
-        sb.append('\n');
-        sb.append(((GradleProjectAwareMessage)message).getGradlePath());
+        for (SourceFilePosition position: message.getSourceFilePositions()) {
+          sb.append('\n');
+          sb.append('\t');
+          // Fudge for windows tests. As messages use a file object, which is filesystem aware, Windows paths come out prefaced with the
+          // unix CWD.
+          String path = position.getFile().toString();
+          if (path.startsWith(WINDOWS_PATH_UNDER_UNIX)) {
+            path = path.substring(WINDOWS_PATH_UNIX_PREFIX_LENGTH);
+          }
+          sb.append(path);
+          int line = position.getPosition().getStartLine();
+          sb.append(':').append(Integer.toString(line == -1 ? -1 : line + 1));
+          int col = position.getPosition().getStartColumn();
+          sb.append(':').append(Integer.toString(col == -1 ? -1 : col + 1));
+        }
+      } else {
+        String gradlePath = message.getSourceFilePositions().get(0).getFile().getDescription();
+        if (gradlePath != null) {
+          sb.append('\n');
+          sb.append(gradlePath);
+        }
       }
       sb.append('\n');
     }

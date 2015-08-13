@@ -20,18 +20,15 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowForm;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+
+import static com.intellij.openapi.module.ModuleUtilCore.findModuleForPsiElement;
 
 /**
  * A widget for configuring a configuration
@@ -110,20 +107,8 @@ public class ConfigurationToolBar extends JPanel {
     if (file == null) {
       return null;
     }
-
-    final Module module = ModuleUtilCore.findModuleForPsiElement(file);
-    if (module == null) {
-      return null;
-    }
-
-    final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
-      final AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-      if (additionalData != null) {
-        return additionalData.getAndroidPlatform();
-      }
-    }
-    return null;
+    Module module = findModuleForPsiElement(file);
+    return module != null ? AndroidPlatform.getInstance(module) : null;
   }
 
   @Nullable

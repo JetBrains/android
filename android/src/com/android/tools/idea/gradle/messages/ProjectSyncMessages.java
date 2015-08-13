@@ -20,17 +20,20 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
+import com.android.tools.idea.gradle.dependency.DependencySetupErrors.MissingModule;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
+import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService;
+import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService.VersionIncompatibilityMessage;
+import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
-import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
@@ -42,24 +45,33 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
+import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.updateNotification;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleUtil.findDependency;
+import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.util.text.StringUtil.join;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.util.ArrayUtil.toStringArray;
 
 /**
  * Service that collects and displays, in the "Messages" tool window, post-sync project setup messages (errors, warnings, etc.)
  */
 public class ProjectSyncMessages {
+  private static final NotificationSource NOTIFICATION_SOURCE = PROJECT_SYNC;
+
   @NotNull private final Project myProject;
   @NotNull private final ExternalSystemNotificationManager myNotificationManager;
 
@@ -69,8 +81,7 @@ public class ProjectSyncMessages {
   }
 
   public int getErrorCount() {
-    return myNotificationManager
-      .getMessageCount(null, NotificationSource.PROJECT_SYNC, NotificationCategory.ERROR, GradleConstants.SYSTEM_ID);
+    return myNotificationManager.getMessageCount(null, NOTIFICATION_SOURCE, NotificationCategory.ERROR, GRADLE_SYSTEM_ID);
   }
 
   public ProjectSyncMessages(@NotNull Project project, @NotNull ExternalSystemNotificationManager manager) {
@@ -78,36 +89,23 @@ public class ProjectSyncMessages {
     myNotificationManager = manager;
   }
 
-  public void removeMessages(@NotNull String groupName) {
-    myNotificationManager.clearNotifications(groupName, NotificationSource.PROJECT_SYNC, GradleConstants.SYSTEM_ID);
-  }
-
   public int getMessageCount(@NotNull String groupName) {
-    return myNotificationManager.getMessageCount(groupName, NotificationSource.PROJECT_SYNC, null, GradleConstants.SYSTEM_ID);
-  }
-
-  public void add(@NotNull final Message message, @NotNull NotificationHyperlink... hyperlinks) {
-    Navigatable navigatable = message.getNavigatable();
-    String title = message.getGroupName();
-    String errorMsg = StringUtil.join(message.getText(), "\n");
-
-    VirtualFile file = message.getFile();
-    String filePath = file != null ? FileUtil.toSystemDependentName(file.getPath()) : null;
-
-    NotificationData notification =
-      new NotificationData(title, errorMsg, NotificationCategory.convert(message.getType().getValue()), NotificationSource.PROJECT_SYNC,
-                           filePath, message.getLine(), message.getColumn(), false);
-    notification.setNavigatable(navigatable);
-
-    if (hyperlinks.length > 0) {
-      AbstractSyncErrorHandler.updateNotification(notification, myProject, title, errorMsg, hyperlinks);
-    }
-
-    myNotificationManager.showNotification(GradleConstants.SYSTEM_ID, notification);
+    return myNotificationManager.getMessageCount(groupName, NOTIFICATION_SOURCE, null, GRADLE_SYSTEM_ID);
   }
 
   public boolean isEmpty() {
-    return myNotificationManager.getMessageCount(NotificationSource.PROJECT_SYNC, null, GradleConstants.SYSTEM_ID) == 0;
+    return myNotificationManager.getMessageCount(NOTIFICATION_SOURCE, null, GRADLE_SYSTEM_ID) == 0;
+  }
+
+  public void reportComponentIncompatibilities() {
+    VersionCompatibilityService compatibilityService = VersionCompatibilityService.getInstance();
+    List<VersionIncompatibilityMessage> messages = compatibilityService.checkComponentCompatibility(myProject);
+    for (VersionIncompatibilityMessage message : messages) {
+      add(message.getMessage(), message.getQuickFixes());
+    }
+    if (!messages.isEmpty()) {
+      setHasSyncErrors(myProject, true);
+    }
   }
 
   public void reportSyncIssues(@NotNull Collection<SyncIssue> syncIssues, @NotNull Module module) {
@@ -136,14 +134,14 @@ public class ProjectSyncMessages {
             msg = new Message(module.getProject(), group, severity, buildFile, -1, -1, text);
           }
           else {
-            msg = new Message(group, severity, AbstractNavigatable.NOT_NAVIGATABLE, text);
+            msg = new Message(group, severity, NonNavigatable.INSTANCE, text);
           }
           add(msg);
       }
     }
 
     if (hasSyncErrors) {
-      myProject.putUserData(Projects.HAS_SYNC_ERRORS, true);
+      setHasSyncErrors(myProject, true);
     }
   }
 
@@ -151,14 +149,11 @@ public class ProjectSyncMessages {
     if (unresolvedDependencies.isEmpty()) {
       return;
     }
-
     VirtualFile buildFile = getBuildFile(module);
-
     for (String dep : unresolvedDependencies) {
       reportUnresolvedDependency(dep, module, buildFile);
     }
-
-    myProject.putUserData(Projects.HAS_SYNC_ERRORS, true);
+    setHasSyncErrors(myProject, true);
   }
 
   @Nullable
@@ -178,7 +173,7 @@ public class ProjectSyncMessages {
       group = UNRESOLVED_ANDROID_DEPENDENCIES;
       hyperlinks.add(new InstallRepositoryHyperlink(SdkMavenRepository.ANDROID));
     }
-    else if (dependency.startsWith("com.google.android.gms")) {
+    else if (dependency.startsWith("com.google.android")) {
       group = UNRESOLVED_ANDROID_DEPENDENCIES;
       hyperlinks.add(new InstallRepositoryHyperlink(SdkMavenRepository.GOOGLE));
     }
@@ -194,7 +189,7 @@ public class ProjectSyncMessages {
 
       Document document = FileDocumentManager.getInstance().getDocument(buildFile);
       if (document != null) {
-        TextRange textRange = GradleUtil.findDependency(dependency, document.getText());
+        TextRange textRange = findDependency(dependency, document.getText());
         if (textRange != null) {
           lineNumber = document.getLineNumber(textRange.getStartOffset());
           if (lineNumber > -1) {
@@ -209,7 +204,7 @@ public class ProjectSyncMessages {
       hyperlinks.add(new OpenFileHyperlink(buildFile.getPath(), hyperlinkText, lineNumber, column));
     }
     else {
-      msg = new Message(group, Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, text);
+      msg = new Message(group, Message.Type.ERROR, NonNavigatable.INSTANCE, text);
     }
     if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
       GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
@@ -218,6 +213,108 @@ public class ProjectSyncMessages {
       }
     }
     add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
+  }
+
+  public void reportDependencySetupErrors() {
+    DependencySetupErrors setupErrors = getDependencySetupErrors(myProject);
+    if (setupErrors != null) {
+      reportModulesNotFoundErrors(setupErrors);
+      setDependencySetupErrors(myProject, null);
+    }
+  }
+
+  private void reportModulesNotFoundErrors(@NotNull DependencySetupErrors setupErrors) {
+    reportModulesNotFoundIssues(MISSING_DEPENDENCIES_BETWEEN_MODULES, setupErrors.getMissingModules());
+
+    for (String dependent : setupErrors.getMissingNames()) {
+      String msg = String.format("Module '%1$s' depends on modules that do not have a name.", dependent);
+      add(new Message(FAILED_TO_SET_UP_DEPENDENCIES, Message.Type.ERROR, msg));
+    }
+
+    for (String dependent : setupErrors.getDependentsOnLibrariesWithoutBinaryPath()) {
+      String msg = String.format("Module '%1$s' depends on libraries that do not have a 'binary' path.", dependent);
+      add(new Message(FAILED_TO_SET_UP_DEPENDENCIES, Message.Type.ERROR, msg));
+    }
+
+    reportModulesNotFoundIssues(FAILED_TO_SET_UP_DEPENDENCIES, setupErrors.getMissingModulesWithBackupLibraries());
+  }
+
+  private void reportModulesNotFoundIssues(@NotNull String groupName, @NotNull List<MissingModule> missingModules) {
+    if (!missingModules.isEmpty()) {
+      Message.Type severity = Message.Type.ERROR;
+
+      for (MissingModule missingModule : missingModules) {
+        List<String> messageLines = Lists.newArrayList();
+
+        StringBuilder text = new StringBuilder();
+        text.append(String.format("Unable to find module with Gradle path '%1$s' (needed by module", missingModule.dependencyPath));
+
+        addDependentsToText(text, missingModule.dependentNames);
+        text.append(".)");
+        messageLines.add(text.toString());
+
+        String backupLibraryName = missingModule.backupLibraryName;
+        if (isNotEmpty(backupLibraryName)) {
+          severity = Message.Type.WARNING;
+          String msg = String.format("Linking to library '%1$s' instead.", backupLibraryName);
+          messageLines.add(msg);
+        }
+        add(new Message(groupName, severity, toStringArray(messageLines)));
+      }
+
+      // If the project is really a subset of the project, attempt to find and include missing modules.
+      ProjectSubset projectSubset = ProjectSubset.getInstance(myProject);
+      String[] selection = projectSubset.getSelection();
+      boolean hasSelection = selection != null && selection.length > 0;
+      if (severity == Message.Type.ERROR && hasSelection && projectSubset.hasCachedModules()) {
+        String msg = "The missing modules may have been excluded from the project subset.";
+        add(new Message(groupName, Message.Type.INFO, msg), new IncludeMissingModulesHyperlink(missingModules));
+      }
+    }
+  }
+
+  private static void addDependentsToText(@NotNull StringBuilder text, @NotNull List<String> dependents) {
+    assert !dependents.isEmpty();
+
+    if (dependents.size() == 1) {
+      text.append(String.format(" '%1$s'", dependents.get(0)));
+      return;
+    }
+
+    text.append("s: ");
+    int i = 0;
+    for (String dependent : dependents) {
+      if (i++ > 0) {
+        text.append(", ");
+      }
+      text.append(String.format("'%1$s'", dependent));
+    }
+  }
+
+  public void add(@NotNull final Message message, @NotNull NotificationHyperlink... hyperlinks) {
+    Navigatable navigatable = message.getNavigatable();
+    String title = message.getGroupName();
+    String errorMsg = join(message.getText(), "\n");
+
+    VirtualFile file = message.getFile();
+    String filePath = file != null ? virtualToIoFile(file).getPath() : null;
+
+    NotificationCategory category = NotificationCategory.convert(message.getType().getValue());
+    NotificationData notification =
+      new NotificationData(title, errorMsg, category, NOTIFICATION_SOURCE, filePath, message.getLine(), message.getColumn(), false);
+    notification.setNavigatable(navigatable);
+
+    if (hyperlinks.length > 0) {
+      updateNotification(notification, myProject, title, errorMsg, hyperlinks);
+    }
+
+    myNotificationManager.showNotification(GRADLE_SYSTEM_ID, notification);
+  }
+
+  public void removeMessages(@NotNull String... groupNames) {
+    for (String groupName : groupNames) {
+      myNotificationManager.clearNotifications(groupName, NOTIFICATION_SOURCE, GRADLE_SYSTEM_ID);
+    }
   }
 
   private static class ShowDependencyInProjectStructureHyperlink extends NotificationHyperlink {
@@ -257,6 +354,26 @@ public class ProjectSyncMessages {
       if (wizard.showAndGet()) {
         GradleProjectImporter.getInstance().requestProjectSync(project, null);
       }
+    }
+  }
+
+  /**
+   * "Quick Fix" link that attempts to find and include any modules that were not previously included in the project subset.
+   */
+  private static class IncludeMissingModulesHyperlink extends NotificationHyperlink {
+    @NotNull private final Set<String> myModuleGradlePaths;
+
+    IncludeMissingModulesHyperlink(@NotNull List<MissingModule> missingModules) {
+      super("include.missing.modules", "Find and include missing modules");
+      myModuleGradlePaths = Sets.newHashSetWithExpectedSize(missingModules.size());
+      for (MissingModule module : missingModules) {
+        myModuleGradlePaths.add(module.dependencyPath);
+      }
+    }
+
+    @Override
+    protected void execute(@NotNull Project project) {
+      ProjectSubset.getInstance(project).findAndIncludeModules(myModuleGradlePaths);
     }
   }
 }

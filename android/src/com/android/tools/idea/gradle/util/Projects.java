@@ -18,29 +18,32 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
+import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
+import com.android.tools.idea.gradle.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
-import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,28 +51,123 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.Collection;
 
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+import static java.lang.Boolean.TRUE;
 
 /**
  * Utility methods for {@link Project}s.
  */
 public final class Projects {
-  public static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("has.unresolved.dependencies");
-  public static final Key<Boolean> HAS_WRONG_JDK = Key.create("has.wrong.jdk");
-
-  private static final Logger LOG = Logger.getInstance(Projects.class);
-  private static final Module[] NO_MODULES = new Module[0];
+  private static final Key<String> GRADLE_VERSION = Key.create("project.gradle.version");
+  private static final Key<LibraryDependency> MODULE_COMPILED_ARTIFACT = Key.create("module.compiled.artifact");
+  private static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("project.has.sync.errors");
+  private static final Key<Boolean> HAS_WRONG_JDK = Key.create("project.has.wrong.jdk");
+  private static final Key<DependencySetupErrors> DEPENDENCY_SETUP_ERRORS = Key.create("project.dependency.setup.errors");
 
   private Projects() {
+  }
+
+  @NotNull
+  public static File getBaseDirPath(@NotNull Project project) {
+    String basePath = project.getBasePath();
+    assert basePath != null;
+    return new File(toCanonicalPath(basePath));
+  }
+
+  public static void setGradleVersionUsed(@NotNull Project project, @Nullable String gradleVersion) {
+    project.putUserData(GRADLE_VERSION, gradleVersion);
+  }
+
+  @Nullable
+  public static String getGradleVersionUsed(@NotNull Project project) {
+    return project.getUserData(GRADLE_VERSION);
+  }
+
+  public static void removeAllModuleCompiledArtifacts(@NotNull Project project) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      setModuleCompiledArtifact(module, null);
+    }
+  }
+
+  public static void setModuleCompiledArtifact(@NotNull Module module, @Nullable LibraryDependency compiledArtifact) {
+    module.putUserData(MODULE_COMPILED_ARTIFACT, compiledArtifact);
+  }
+
+  @Nullable
+  public static LibraryDependency getModuleCompiledArtifact(@NotNull Module module) {
+    return module.getUserData(MODULE_COMPILED_ARTIFACT);
+  }
+
+  public static void populate(@NotNull final Project project, @NotNull final Collection<DataNode<ModuleData>> modules) {
+    invokeAndWaitIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
+        messages.removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES_BETWEEN_MODULES, FAILED_TO_SET_UP_DEPENDENCIES,
+                                VARIANT_SELECTION_CONFLICTS, EXTRA_GENERATED_SOURCES);
+
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            if (!project.isDisposed()) {
+              ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(new Runnable() {
+                @Override
+                public void run() {
+                  ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
+                  dataManager.importData(ProjectKeys.MODULE, modules, project, true /* synchronous */);
+                }
+              });
+            }
+          }
+        });
+        // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
+        // sources for it. This happens on new projects.
+        PostProjectSetupTasksExecutor.getInstance(project).onProjectSyncCompletion();
+      }
+    });
+  }
+
+  public static void executeProjectChanges(@NotNull final Project project, @NotNull final Runnable changes) {
+    Runnable task = new Runnable() {
+      @Override
+      public void run() {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            if (!project.isDisposed()) {
+              ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(changes);
+            }
+          }
+        });
+      }
+    };
+    invokeAndWaitIfNeeded(task);
+  }
+
+  public static void setHasSyncErrors(@NotNull Project project, boolean hasSyncErrors) {
+    project.putUserData(HAS_SYNC_ERRORS, hasSyncErrors);
+  }
+
+  public static void setHasWrongJdk(@NotNull Project project, boolean hasWrongJdk) {
+    project.putUserData(HAS_WRONG_JDK, hasWrongJdk);
   }
 
   /**
    * Indicates whether the last sync with Gradle failed.
    */
   public static boolean lastGradleSyncFailed(@NotNull Project project) {
-    return (!GradleSyncState.getInstance(project).isSyncInProgress() && isGradleProjectWithoutModel(project)) ||
-           hasErrors(project);
+    return !GradleSyncState.getInstance(project).isSyncInProgress() && isGradleProjectWithoutModel(project);
   }
 
   public static boolean hasErrors(@NotNull Project project) {
@@ -126,19 +224,18 @@ public final class Projects {
    * @param project the project to open.
    */
   public static void open(@NotNull Project project) {
-    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-    ProjectUtil.updateLastProjectLocation(project.getBasePath());
+    updateLastProjectLocation(project.getBasePath());
     if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {
       IdeFocusManager instance = IdeFocusManager.findInstance();
       IdeFrame lastFocusedFrame = instance.getLastFocusedFrame();
       if (lastFocusedFrame instanceof IdeFrameEx) {
         boolean fullScreen = ((IdeFrameEx)lastFocusedFrame).isInFullScreen();
         if (fullScreen) {
-          project.putUserData(IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN, Boolean.TRUE);
+          project.putUserData(SHOULD_OPEN_IN_FULL_SCREEN, TRUE);
         }
       }
     }
-    projectManager.openProject(project);
+    ProjectManagerEx.getInstanceEx().openProject(project);
   }
 
   public static boolean isDirectGradleInvocationEnabled(@NotNull Project project) {
@@ -186,7 +283,7 @@ public final class Projects {
   public static void enforceExternalBuild(@NotNull Project project) {
     if (isGradleProject(project)) {
       // We only enforce JPS usage when the 'android' plug-in is not being used in Android Studio.
-      if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      if (!isAndroidStudio()) {
         AndroidGradleBuildConfiguration.getInstance(project).USE_EXPERIMENTAL_FASTER_BUILD = false;
       }
     }
@@ -205,54 +302,48 @@ public final class Projects {
   public static Module[] getModulesToBuildFromSelection(@NotNull Project project, @Nullable DataContext dataContext) {
     if (dataContext == null) {
       ProjectView projectView = ProjectView.getInstance(project);
-      final AbstractProjectViewPane pane = projectView.getCurrentProjectViewPane();
+      AbstractProjectViewPane pane = projectView.getCurrentProjectViewPane();
 
       if (pane != null) {
         JComponent treeComponent = pane.getComponentToFocus();
         dataContext = DataManager.getInstance().getDataContext(treeComponent);
       }
       else {
-        return NO_MODULES;
+        return Module.EMPTY_ARRAY;
       }
     }
-    Module[] modules = LangDataKeys.MODULE_CONTEXT_ARRAY.getData(dataContext);
+    Module[] modules = MODULE_CONTEXT_ARRAY.getData(dataContext);
     if (modules != null) {
-      if (modules.length == 1 && isProjectModule(project, modules[0])) {
+      if (modules.length == 1 && isProjectModule(modules[0])) {
         return ModuleManager.getInstance(project).getModules();
       }
       return modules;
     }
 
-    Module module = LangDataKeys.MODULE.getData(dataContext);
+    Module module = MODULE.getData(dataContext);
     if (module != null) {
-      return isProjectModule(project, module) ? ModuleManager.getInstance(project).getModules() : new Module[]{module};
+      return isProjectModule(module) ? ModuleManager.getInstance(project).getModules() : new Module[]{module};
     }
 
-    return NO_MODULES;
+    return Module.EMPTY_ARRAY;
   }
 
-  private static boolean isProjectModule(@NotNull Project project, @NotNull Module module) {
+  public static boolean isProjectModule(@NotNull Module module) {
     // if we got here is because we are dealing with a Gradle project, but if there is only one module selected and this module is the
     // module that corresponds to the project itself, it won't have an android-gradle facet. In this case we treat it as if we were going
     // to build the whole project.
-    File moduleFilePath = new File(FileUtil.toSystemDependentName(module.getModuleFilePath()));
+    File moduleFilePath = new File(toSystemDependentName(module.getModuleFilePath()));
     File moduleRootDirPath = moduleFilePath.getParentFile();
     if (moduleRootDirPath == null) {
       return false;
     }
-    return FileUtil.filesEqual(moduleRootDirPath, new File(project.getBasePath())) && !isBuildWithGradle(module);
-  }
-
-  /**
-   * Indicates whether Gradle is used to build the module.
-   */
-  public static boolean isBuildWithGradle(@NotNull Module module) {
-    return AndroidGradleFacet.getInstance(module) != null;
+    String basePath = module.getProject().getBasePath();
+    return basePath != null && filesEqual(moduleRootDirPath, new File(basePath)) && !isBuildWithGradle(module);
   }
 
   /**
    * Indicates whether Gradle is used to build this project.
-   * Note: {@link #isGradleProject(com.intellij.openapi.project.Project)} indicates whether a project has a IdeaAndroidProject model.
+   * Note: {@link #isGradleProject(Project)} indicates whether a project has a IdeaAndroidProject model.
    * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model was
    * generated by Gradle (this will exclude models generated by other build systems.)
    */
@@ -267,7 +358,14 @@ public final class Projects {
   }
 
   /**
-   * @see #isGradleProjectModule(com.intellij.openapi.module.Module)
+   * Indicates whether Gradle is used to build the module.
+   */
+  public static boolean isBuildWithGradle(@NotNull Module module) {
+    return AndroidGradleFacet.getInstance(module) != null;
+  }
+
+  /**
+   * @see #isGradleProjectModule(Module)
    */
   @Nullable
   public static Module findGradleProjectModule(@NotNull Project project) {
@@ -306,8 +404,8 @@ public final class Projects {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null && androidFacet.isGradleProject()) {
       // If the module is an Android project, check that the module's path is the same as the project's.
-      File moduleRootDirPath = new File(FileUtil.toSystemDependentName(module.getModuleFilePath())).getParentFile();
-      return FileUtil.pathsEqual(moduleRootDirPath.getPath(), module.getProject().getBasePath());
+      File moduleRootDirPath = new File(toSystemDependentName(module.getModuleFilePath())).getParentFile();
+      return pathsEqual(moduleRootDirPath.getPath(), module.getProject().getBasePath());
     }
     // For non-Android project modules, the top-level one is the one without an "Android-Gradle" facet.
     return !isBuildWithGradle(module);
@@ -329,10 +427,19 @@ public final class Projects {
         return javaFacet.getJavaModel().getBuildFolderPath();
       }
       String path = javaFacet.getConfiguration().BUILD_FOLDER_PATH;
-      if (StringUtil.isNotEmpty(path)) {
-        return new File(FileUtil.toSystemDependentName(path));
+      if (isNotEmpty(path)) {
+        return new File(toSystemDependentName(path));
       }
     }
     return null;
+  }
+
+  @Nullable
+  public static DependencySetupErrors getDependencySetupErrors(@NotNull Project project) {
+    return project.getUserData(DEPENDENCY_SETUP_ERRORS);
+  }
+
+  public static void setDependencySetupErrors(@NotNull Project project, @Nullable DependencySetupErrors errors) {
+    project.putUserData(DEPENDENCY_SETUP_ERRORS, errors);
   }
 }

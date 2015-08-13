@@ -17,30 +17,30 @@ package com.android.tools.idea.configurations;
 
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
-import com.android.ide.common.resources.configuration.RegionQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
-import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.awt.RelativePoint;
 import icons.AndroidIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+
+import static com.android.ide.common.resources.configuration.LocaleQualifier.BCP_47_PREFIX;
 
 public class LocaleMenuAction extends FlatComboAction {
   private final RenderContext myRenderContext;
@@ -85,10 +85,7 @@ public class LocaleMenuAction extends FlatComboAction {
       group.addSeparator();
     }
 
-    if (locales.size() > 0) {
-      group.add(new EditTranslationAction());
-    }
-    group.add(new AddTranslationAction());
+    group.add(new EditTranslationAction());
 
     group.addSeparator();
     RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
@@ -119,45 +116,30 @@ public class LocaleMenuAction extends FlatComboAction {
       return Collections.emptyList();
     }
     Module module = configuration.getConfigurationManager().getModule();
-    LanguageQualifier specificLanguage = configuration.getEditedConfig().getEffectiveLanguage();
-    RegionQualifier specificRegion = configuration.getEditedConfig().getEffectiveRegion();
+    LocaleQualifier specificLocale = configuration.getEditedConfig().getLocaleQualifier();
 
     // If the layout exists in a non-locale specific folder, then offer all locales, since
     // the user should be able to switch from this layout to some other version. We
     // only lock down this layout to the current locale if the layout only exists for this
     // locale.
-    if (specificLanguage != null || specificRegion != null) {
+    if (specificLocale != null) {
       List<VirtualFile> variations = ResourceHelper.getResourceVariations(configuration.getFile(), false);
       for (VirtualFile variation : variations) {
         FolderConfiguration config = FolderConfiguration.getConfigForFolder(variation.getParent().getName());
-        if (config != null && config.getEffectiveLanguage() == null) {
-          specificLanguage = null;
-          specificRegion = null;
+        if (config != null && config.getLocaleQualifier() == null) {
+          specificLocale = null;
           break;
         }
       }
     }
 
     LocalResourceRepository projectResources = ProjectResourceRepository.getProjectResources(module, true);
-    Set<String> languages = projectResources != null ? projectResources.getLanguages() : Collections.<String>emptySet();
-    for (String language : languages) {
-      if (specificLanguage != null && !language.equals(specificLanguage.getValue())) {
+    Set<LocaleQualifier> languages = projectResources != null ? projectResources.getLocales() : Collections.<LocaleQualifier>emptySet();
+    for (LocaleQualifier l : languages) {
+      if (specificLocale != null && !specificLocale.isMatchFor(l)) {
         continue;
       }
-
-      LanguageQualifier languageQualifier = new LanguageQualifier(language);
-      locales.add(Locale.create(languageQualifier));
-
-      if (projectResources != null) {
-        SortedSet<String> regions = projectResources.getRegions(language);
-        for (String region : regions) {
-          if (specificRegion != null && !region.equals(specificRegion.getValue())) {
-            continue;
-          }
-
-          locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
-        }
-      }
+      locales.add(Locale.create(l));
     }
 
     return locales;
@@ -168,7 +150,9 @@ public class LocaleMenuAction extends FlatComboAction {
     List<String> sorted = LocaleManager.getLanguageCodes(true);
     List<Locale> locales = new ArrayList<Locale>(sorted.size());
     for (String language : sorted) {
-      Locale locale = Locale.create(new LanguageQualifier(language));
+      LocaleQualifier qualifier = new LocaleQualifier(language.length() == 2 ? language : BCP_47_PREFIX + language,
+                                                      language, null, null);
+      Locale locale = Locale.create(qualifier);
       locales.add(locale);
     }
     return locales;
@@ -234,7 +218,7 @@ public class LocaleMenuAction extends FlatComboAction {
       return "Default";
     }
 
-    String languageCode = locale.language.getValue();
+    String languageCode = locale.qualifier.getLanguage();
     String languageName = LocaleManager.getLanguageName(languageCode);
 
     if (!locale.hasRegion()) {
@@ -253,7 +237,8 @@ public class LocaleMenuAction extends FlatComboAction {
       }
     }
     else {
-      String regionCode = locale.region.getValue();
+      String regionCode = locale.qualifier.getRegion();
+      assert regionCode != null : locale.qualifier; // because hasRegion() is true
       if (!brief && languageName != null) {
         String regionName = LocaleManager.getRegionName(regionCode);
         if (regionName != null) {
@@ -308,109 +293,18 @@ public class LocaleMenuAction extends FlatComboAction {
     }
   }
 
-  private class AddTranslationAction extends AnAction {
+  private class EditTranslationAction extends AnAction {
 
-    public AddTranslationAction() {
-      super("Add Translation...", null, AndroidIcons.Globe);
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      DataContext context = e.getDataContext();
-
-      // List known locales, except those already present
-      List<Locale> locales = getAllLocales();
-      locales.removeAll(getRelevantLocales());
-
-      Collections.sort(locales, Locale.LANGUAGE_NAME_COMPARATOR);
-      DefaultActionGroup group = new DefaultActionGroup(null, true);
-      for (Locale locale : locales) {
-        String title = getLocaleLabel(locale, false);
-        group.add(new CreateLocaleAction(title, locale));
-      }
-
-      JBPopupFactory factory = JBPopupFactory.getInstance();
-      ListPopup popup = factory.createActionGroupPopup("Select language to create (type to filter)", group, context,
-                                                       JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, true, null/*onDispose*/, 10);
-      popup.setMinimumSize(new Dimension(getMinWidth(), getMinHeight()));
-      JComponent content = popup.getContent();
-      Dimension preferredSize = content.getPreferredSize();
-      if (preferredSize.height > 300) {
-        preferredSize.height = 300;
-        content.setPreferredSize(preferredSize);
-      }
-      RelativePoint relativePoint = JBPopupFactory.getInstance().guessBestPopupLocation(context);
-      popup.show(relativePoint);
-
-      // To use a popup menu instead:
-      //ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.EDITOR_POPUP, group);
-    }
-  }
-
-  private class EditTranslationAction extends ActionGroup {
     public EditTranslationAction() {
-      super("Edit Translation", true);
-    }
-
-    @NotNull
-    @Override
-    public AnAction[] getChildren(@Nullable AnActionEvent e) {
-      List<AnAction> children = Lists.newArrayList();
-      List<Locale> locales = getRelevantLocales();
-      for (final Locale locale : locales) {
-        children.add(new AnAction(getLocaleLabel(locale, true), null, locale.getFlagImage()) {
-          @Override
-          public void actionPerformed(AnActionEvent e) {
-            Module module = myRenderContext.getModule();
-            if (module == null) {
-              return;
-            }
-            AndroidFacet facet = AndroidFacet.getInstance(module);
-            if (facet == null) {
-              return;
-            }
-
-            TranslationDialog dialog = new TranslationDialog(facet, locale, false);
-            if (dialog.showAndGet()) {
-              if (dialog.createTranslation()) {
-                new SetLocaleAction(myRenderContext, "", locale).actionPerformed(e);
-              }
-              RenderPreviewManager.bumpRevision();
-            }
-          }
-        });
-      }
-      return children.toArray(new AnAction[children.size()]);
-    }
-  }
-
-  private class CreateLocaleAction extends AnAction {
-    private final Locale myLocale;
-
-    public CreateLocaleAction(String title, @NotNull Locale locale) {
-      super(title, null, locale.getFlagImage());
-      myLocale = locale;
+      super("Edit Translations", null, AndroidIcons.Globe);
     }
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      Module module = myRenderContext.getModule();
-      if (module == null) {
-        return;
-      }
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet == null) {
-        return;
-      }
-      TranslationDialog dialog = new TranslationDialog(facet, myLocale, true);
-      if (dialog.showAndGet()) {
-        if (dialog.createTranslation()) {
-          // Switch to the newly created translation. Reuse the SetLocaleAction
-          // such that we don't just set the locale on the configuration, but project-wide
-          // as well .
-          new SetLocaleAction(myRenderContext, "", myLocale).actionPerformed(e);
-        }
-        RenderPreviewManager.bumpRevision();
+      Configuration configuration = myRenderContext.getConfiguration();
+      if (configuration != null) {
+        Module module = configuration.getConfigurationManager().getModule();
+        StringResourceEditorProvider.openEditor(module);
       }
     }
   }

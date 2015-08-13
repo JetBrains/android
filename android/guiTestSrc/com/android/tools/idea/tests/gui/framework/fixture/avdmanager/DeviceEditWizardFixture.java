@@ -15,22 +15,22 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
-import com.android.tools.idea.avdmanager.ConfigureDeviceOptionsStep;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
-import com.intellij.openapi.diagnostic.Logger;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class DeviceEditWizardFixture extends AbstractWizardFixture {
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+
+public class DeviceEditWizardFixture extends AbstractWizardFixture<DeviceEditWizardFixture> {
 
   public static DeviceEditWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         return "Hardware Profile Configuration".equals(dialog.getTitle()) && dialog.isShowing();
       }
     });
@@ -38,18 +38,18 @@ public class DeviceEditWizardFixture extends AbstractWizardFixture {
   }
 
   public DeviceEditWizardFixture(Robot robot, JDialog target) {
-    super(robot, target);
-  }
-
-  public ConfigureDeviceOptionsStepFixture getConfigureDeviceOptionsStep() {
-    JRootPane rootPane = findStepWithTitle("Configure Hardware Profile");
-    return new ConfigureDeviceOptionsStepFixture(robot, rootPane);
+    super(DeviceEditWizardFixture.class, robot, target);
   }
 
   @NotNull
-  public DeviceEditWizardFixture clickFinish() {
-    JButton button = findButtonByText("Finish");
-    robot.click(button);
+  public ConfigureDeviceOptionsStepFixture getConfigureDeviceOptionsStep() {
+    JRootPane rootPane = findStepWithTitle("Configure Hardware Profile");
+    return new ConfigureDeviceOptionsStepFixture(robot(), rootPane);
+  }
+
+  @NotNull
+  public DeviceEditWizardFixture clickOk() {
+    findAndClickOkButton(this);
     return this;
   }
 }

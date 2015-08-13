@@ -16,40 +16,61 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.google.common.collect.Lists;
-import com.intellij.openapi.externalSystem.service.task.ui.ExternalSystemNode;
-import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
+import com.intellij.openapi.externalSystem.view.TaskNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.content.Content;
-import com.intellij.util.ui.UIUtil;
-import org.fest.swing.core.MouseButton;
+import com.intellij.ui.treeStructure.Tree;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.util.List;
 
+import static com.intellij.util.ui.UIUtil.findComponentOfType;
+import static com.intellij.util.ui.tree.TreeUtil.expandAll;
+import static org.fest.reflect.core.Reflection.field;
+import static org.fest.swing.core.MouseButton.LEFT_BUTTON;
+import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.fest.swing.timing.Pause.pause;
+import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class GradleToolWindowFixture extends ToolWindowFixture {
-
   public GradleToolWindowFixture(@NotNull Project project, @NotNull Robot robot) {
     super("Gradle", project, robot);
   }
 
-  public void runTask(final String taskName) {
-    final Content content = getContent(ExternalSystemBundle.message("tool.window.title.tasks"));
+  public void runTask(@NotNull final String taskName) {
+    Content content = getContent("projects");
     assertNotNull(content);
-    final JTree tasksTree = UIUtil.findComponentOfType(content.getComponent(), JTree.class);
+    final Tree tasksTree = findComponentOfType(content.getComponent(), Tree.class);
     assertNotNull(tasksTree);
-    final TreePath treePath = findTaskPath((ExternalSystemNode)tasksTree.getModel().getRoot(), taskName);
+
+    pause(new Condition("tree gets populated") {
+      @Override
+      public boolean test() {
+        //noinspection ConstantConditions
+        return !tasksTree.isEmpty() && !field("myBusy").ofType(boolean.class).in(tasksTree).get();
+      }
+    });
+
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        expandAll(tasksTree);
+      }
+    });
+
+    Object root = tasksTree.getModel().getRoot();
+    final TreePath treePath = findTaskPath((DefaultMutableTreeNode)root, taskName);
     final Point locationOnScreen = new Point();
 
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         // We store screen location here because it shows weird (negative) values after 'scrollPathToVisible()' is called.
@@ -64,29 +85,38 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
     Rectangle visibleRect = tasksTree.getVisibleRect();
     Point clickLocation = new Point(locationOnScreen.x + bounds.x + bounds.width / 2 - visibleRect.x,
                                     locationOnScreen.y + bounds.y + bounds.height / 2 - visibleRect.y);
-    myRobot.click(clickLocation, MouseButton.LEFT_BUTTON, 2);
+    myRobot.click(clickLocation, LEFT_BUTTON, 2);
   }
 
   @NotNull
-  private static TreePath findTaskPath(@NotNull ExternalSystemNode root, @NotNull String taskName) {
-    List<ExternalSystemNode> path = Lists.newArrayList();
+  private static TreePath findTaskPath(@NotNull DefaultMutableTreeNode root, @NotNull String taskName) {
+    List<DefaultMutableTreeNode> path = Lists.newArrayList();
     boolean found = fillTaskPath(root, taskName, path);
-    assertTrue(found);
+    assertTrue("Failed to find task " + quote(taskName), found);
     return new TreePath(path.toArray());
   }
 
-  private static boolean fillTaskPath(@NotNull ExternalSystemNode node, @NotNull String taskName, @NotNull List<ExternalSystemNode> path) {
+  private static boolean fillTaskPath(@NotNull DefaultMutableTreeNode node,
+                                      @NotNull String taskName,
+                                      @NotNull List<DefaultMutableTreeNode> path) {
     path.add(node);
-    if (taskName.equals(node.getDescriptor().getName())) {
-      return true;
+
+    Object userObject = node.getUserObject();
+    if (userObject instanceof TaskNode) {
+      TaskNode taskNode = (TaskNode)userObject;
+      if (taskName.equals(taskNode.getName())) {
+        return true;
+      }
     }
     for (int i = 0; i < node.getChildCount(); i++) {
-      boolean found = fillTaskPath(node.getChildAt(i), taskName, path);
+      boolean found = fillTaskPath((DefaultMutableTreeNode)node.getChildAt(i), taskName, path);
       if (found) {
         return true;
       }
     }
-    path.remove(path.size() - 1);
+    if (!path.isEmpty()) {
+      path.remove(path.size() - 1);
+    }
     return false;
   }
 }

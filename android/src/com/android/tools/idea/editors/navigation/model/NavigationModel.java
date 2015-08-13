@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.annotations.Transient;
+import com.android.tools.idea.editors.navigation.annotations.Transient;
 import com.android.tools.idea.editors.navigation.Event;
 import com.android.tools.idea.editors.navigation.EventDispatcher;
 import com.intellij.openapi.util.Condition;
@@ -74,17 +74,6 @@ public class NavigationModel {
     listeners.notify(Event.insert(State.class));
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  public void removeState(State state) {
-    states.remove(state);
-    for (Transition t : new ArrayList<Transition>(transitions)) {
-      if (t.getSource().getState() == state || t.getDestination().getState() == state) {
-        remove(t);
-      }
-    }
-    listeners.notify(Event.delete(State.class));
-  }
-
   private void updateStates(State state) {
     if (!states.contains(state)) {
       states.add(state);
@@ -110,30 +99,6 @@ public class NavigationModel {
     for (State state : states) {
       state.accept(visitor);
     }
-  }
-
-  @Transient
-  public Map<String, ActivityState> getActivities() {
-    final Map<String, ActivityState> activities = new HashMap<String, ActivityState>();
-    accept(new State.BaseVisitor() {
-      @Override
-      public void visit(ActivityState activityState) {
-        activities.put(activityState.getClassName(), activityState);
-      }
-    });
-    return activities;
-  }
-
-  @Transient
-  public Map<String, MenuState> getMenus() {
-    final Map<String, MenuState> menus = new HashMap<String, MenuState>();
-    accept(new State.BaseVisitor() {
-      @Override
-      public void visit(MenuState menuState) {
-        menus.put(menuState.getXmlResourceName(), menuState);
-      }
-    });
-    return menus;
   }
 
   @Nullable

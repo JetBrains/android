@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.res2.DataBindingResourceType;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -34,13 +37,13 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.rendering.ResourceFolderRepository.ourFullRescans;
@@ -55,6 +58,7 @@ import static com.android.tools.idea.rendering.ResourceFolderRepository.ourFullR
 public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT1 = "resourceRepository/layout.xml";
   private static final String LAYOUT2 = "resourceRepository/layout2.xml";
+  private static final String LAYOUT_WITH_DATA_BINDING = "resourceRepository/layout_with_data_binding.xml";
   private static final String VALUES1 = "resourceRepository/values.xml";
   private static final String VALUES_EMPTY = "resourceRepository/empty.xml";
   private static final String XLIFF = "resourceRepository/xliff.xml";
@@ -231,8 +235,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testDeleteResourceDirectory() throws Exception {
-    final VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
-    final VirtualFile file2 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
+    myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
+    myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
     final VirtualFile file3 = myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/layout3.xml");
     PsiFile psiFile3 = PsiManager.getInstance(getProject()).findFile(file3);
     assertNotNull(psiFile3);
@@ -332,7 +336,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Renaming a value file should have no visible effect
 
-    long generation = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
@@ -439,7 +442,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resources);
     ResourceItem item = getOnlyItem(resources, ResourceType.STRING, "app_name");
     assertEquals("en", item.getSource().getQualifiers());
-    assertEquals("en", item.getConfiguration().getLanguageQualifier().getValue());
+    assertEquals("en", item.getConfiguration().getLocaleQualifier().getLanguage());
     //noinspection ConstantConditions
     assertEquals("Animations Demo", item.getResourceValue(false).getValue());
 
@@ -459,7 +462,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     item = getOnlyItem(resources, ResourceType.STRING, "app_name");
     assertEquals("no", item.getSource().getQualifiers());
-    assertEquals("no", item.getConfiguration().getLanguageQualifier().getValue());
+    assertEquals("no", item.getConfiguration().getLocaleQualifier().getLanguage());
     //noinspection ConstantConditions
     assertEquals("Animations Demo", item.getResourceValue(false).getValue());
   }
@@ -596,7 +599,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   public void testReplaceResourceFile() throws Exception {
     final VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
-    final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
 
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
@@ -604,7 +606,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
     assertFalse(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh2"));
 
-    long generation = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
@@ -629,7 +630,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     long generation = resources.getModificationCount();
-    final VirtualFile file2 = myFixture.copyFileToProject(VALUES_EMPTY, "res/values/empty.xml");
     assertEquals(generation, resources.getModificationCount());
   }
 
@@ -812,8 +812,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(8, strings.size());
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
     assertTrue(resources.hasResourceItem(ResourceType.INTEGER, "card_flip_time_full"));
-
-    long generation = resources.getModificationCount();
 
     long initial = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -1345,7 +1343,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         assertTrue(resourceValue instanceof StyleResourceValue);
         StyleResourceValue srv = (StyleResourceValue)resourceValue;
         assertEquals("android:Theme.Light", srv.getParentStyle());
-        ResourceValue actionBarStyle = srv.findValue("actionBarStyle", true);
+        ResourceValue actionBarStyle = srv.getItem("actionBarStyle", true);
         assertNotNull(actionBarStyle);
         assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
 
@@ -1367,7 +1365,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
     StyleResourceValue srv = (StyleResourceValue)style.getResourceValue(false);
     assertNotNull(srv);
-    ResourceValue actionBarStyle = srv.findValue("actionBarStyle", true);
+    ResourceValue actionBarStyle = srv.getItem("actionBarStyle", true);
     assertNotNull(actionBarStyle);
     assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
 
@@ -1390,7 +1388,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
     srv = (StyleResourceValue)style.getResourceValue(false);
     assertNotNull(srv);
-    actionBarStyle = srv.findValue("actionBarStyle", true);
+    actionBarStyle = srv.getItem("actionBarStyle", true);
     assertNotNull(actionBarStyle);
     assertEquals("@style/LightActionBar", actionBarStyle.getValue());
 
@@ -1411,7 +1409,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
     StyleResourceValue srv = (StyleResourceValue)style.getResourceValue(false);
     assertNotNull(srv);
-    ResourceValue actionBarStyle = srv.findValue("actionBarStyle", true);
+    ResourceValue actionBarStyle = srv.getItem("actionBarStyle", true);
     assertNotNull(actionBarStyle);
     assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
 
@@ -1434,7 +1432,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
     srv = (StyleResourceValue)style.getResourceValue(false);
     assertNotNull(srv);
-    actionBarStyle = srv.findValue("inactionBarStyle", true);
+    actionBarStyle = srv.getItem("inactionBarStyle", true);
     assertNotNull(actionBarStyle);
     assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
 
@@ -1442,7 +1440,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  @SuppressWarnings("deprecation")
   public void testEditDeclareStyleableAttr() throws Exception {
     // Check edits of the name in a <declare-styleable> element.
     resetScanCounter();
@@ -1459,16 +1456,16 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
-    AttrResourceValue watchType = srv.getAllAttributes().get("watchType");
+    AttrResourceValue watchType = findAttr(srv.getAllAttributes(), "watchType");
     assertNotNull(watchType);
     assertEquals(2, watchType.getAttributeValues().size());
     assertEquals(Integer.valueOf(1), watchType.getAttributeValues().get("type_stopwatch"));
     assertEquals(Integer.valueOf(0), watchType.getAttributeValues().get("type_countdown"));
-    AttrResourceValue crash = srv.getAllAttributes().get("crash");
+    AttrResourceValue crash = findAttr(srv.getAllAttributes(), "crash");
     assertNotNull(crash);
     assertNull(crash.getAttributeValues());
 
-    AttrResourceValue minWidth = srv.getAllAttributes().get("minWidth");
+    AttrResourceValue minWidth = findAttr(srv.getAllAttributes(), "minWidth");
     assertNotNull(minWidth);
     assertFalse(resources.hasResourceItem(ResourceType.ATTR, "minWidth"));
 
@@ -1493,7 +1490,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
-    watchType = srv.getAllAttributes().get("watchType");
+    watchType = findAttr(srv.getAllAttributes(), "watchType");
     assertNotNull(watchType);
     assertEquals(2, watchType.getAttributeValues().size());
     assertEquals(Integer.valueOf(1), watchType.getAttributeValues().get("type_stopwatch"));
@@ -1502,7 +1499,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  @SuppressWarnings("deprecation")
   public void testEditAttr() throws Exception {
     // Insert, remove and change <attr> attributes inside a <declare-styleable> and ensure that
     resetScanCounter();
@@ -1520,12 +1516,12 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
-    AttrResourceValue watchType = srv.getAllAttributes().get("watchType");
+    AttrResourceValue watchType = findAttr(srv.getAllAttributes(), "watchType");
     assertNotNull(watchType);
     assertEquals(2, watchType.getAttributeValues().size());
     assertEquals(Integer.valueOf(1), watchType.getAttributeValues().get("type_stopwatch"));
     assertEquals(Integer.valueOf(0), watchType.getAttributeValues().get("type_countdown"));
-    AttrResourceValue crash = srv.getAllAttributes().get("crash");
+    AttrResourceValue crash = findAttr(srv.getAllAttributes(), "crash");
     assertNotNull(crash);
     assertNull(crash.getAttributeValues());
 
@@ -1551,7 +1547,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
-    watchType = srv.getAllAttributes().get("wwatchType");
+    watchType = findAttr(srv.getAllAttributes(), "wwatchType");
     assertNotNull(watchType);
     assertEquals(2, watchType.getAttributeValues().size());
     assertEquals(Integer.valueOf(1), watchType.getAttributeValues().get("type_stopwatch"));
@@ -1585,21 +1581,20 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
         assertNotNull(srv);
         assertEquals(5, srv.getAllAttributes().size());
-        AttrResourceValue watchType = srv.getAllAttributes().get("wwatchType");
+        AttrResourceValue watchType = findAttr(srv.getAllAttributes(), "wwatchType");
         assertNotNull(watchType);
         assertEquals(2, watchType.getAttributeValues().size());
         assertEquals(Integer.valueOf(1), watchType.getAttributeValues().get("type_stopwatch"));
         assertEquals(Integer.valueOf(0), watchType.getAttributeValues().get("type_countdown"));
-        AttrResourceValue crash = srv.getAllAttributes().get("crash");
+        AttrResourceValue crash = findAttr(srv.getAllAttributes(), "crash");
         assertNull(crash);
-        AttrResourceValue newcrash = srv.getAllAttributes().get("newcrash");
+        AttrResourceValue newcrash = findAttr(srv.getAllAttributes(), "newcrash");
         assertNotNull(newcrash);
         assertNull(newcrash.getAttributeValues());
       }
     });
   }
 
-  @SuppressWarnings("deprecation")
   public void testEditDeclareStyleableFlag() throws Exception {
     // Rename, add and remove <flag> and <enum> nodes under a declare styleable and assert
     // that the declare styleable parent is updated
@@ -1619,7 +1614,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
-    final AttrResourceValue flagType = srv.getAllAttributes().get("flagType");
+    final AttrResourceValue flagType = findAttr(srv.getAllAttributes(), "flagType");
     assertNotNull(flagType);
     assertEquals(2, flagType.getAttributeValues().size());
     assertEquals(Integer.valueOf(16), flagType.getAttributeValues().get("flag1"));
@@ -1651,7 +1646,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
         assertNotNull(srv);
         assertEquals(5, srv.getAllAttributes().size());
-        AttrResourceValue flagType = srv.getAllAttributes().get("flagType");
+        AttrResourceValue flagType = findAttr(srv.getAllAttributes(), "flagType");
         assertNotNull(flagType);
         assertEquals(2, flagType.getAttributeValues().size());
         assertNull(flagType.getAttributeValues().get("flag1"));
@@ -1680,14 +1675,14 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
         assertNotNull(srv);
         assertEquals(5, srv.getAllAttributes().size());
-        flagType = srv.getAllAttributes().get("flagType");
+        flagType = findAttr(srv.getAllAttributes(), "flagType");
         assertNotNull(flagType);
         assertEquals(3, flagType.getAttributeValues().size());
         assertEquals(Integer.valueOf(16), flagType.getAttributeValues().get("fllag1"));
         assertEquals(Integer.valueOf(32), flagType.getAttributeValues().get("flag2"));
         assertEquals(Integer.valueOf(64), flagType.getAttributeValues().get("flag3"));
 
-        AttrResourceValue watchType = srv.getAllAttributes().get("watchType");
+        AttrResourceValue watchType = findAttr(srv.getAllAttributes(), "watchType");
         assertNotNull(watchType);
         assertEquals(1, watchType.getAttributeValues().size());
         assertEquals(Integer.valueOf(0), watchType.getAttributeValues().get("type_countdown"));
@@ -1759,7 +1754,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resourceValue);
     assertEquals("10", resourceValue.getValue());
 
-    long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
@@ -1931,7 +1925,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
         StyleResourceValue srv = (StyleResourceValue)style.getResourceValue(false);
         assertNotNull(srv);
-        ResourceValue actionBarStyle = srv.findValue("background", true);
+        ResourceValue actionBarStyle = srv.getItem("background", true);
         assertNotNull(actionBarStyle);
         assertEquals("@android:color/transparent", actionBarStyle.getValue());
         //noinspection ConstantConditions
@@ -2069,7 +2063,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
-        String string = "<string name=\"app_name\">New Value</string>";
         int startOffset = offset + "<string name=\"".length();
         document.replaceString(startOffset, startOffset + "app_name".length(), "new_name");
         documentManager.commitDocument(document);
@@ -2117,22 +2110,97 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
             String string = "    <string name=\"hello_world\">Hello world!</string>";
             final int offset = document.getText().indexOf(string);
             assertTrue(offset != -1);
+
+            // Simulate an edit event that triggers the incremental updater to
+            // give up and schedule a subsequent update instead. (This used to be
+            // the case here, but as of IntelliJ 14.1 it's now delivering more
+            // accurate events for the below edits, which made the sync-test
+            // fail because it would already have correct results *before* the
+            // sync. Therefore, we simply trigger a pending scan (which stops
+            // subequent incremental events from being processed).
+            resources.rescan(psiFile1, ResourceFolderType.VALUES);
+
             document.deleteString(offset, offset + string.length());
             documentManager.commitDocument(document);
           }
         });
 
-        assertTrue(generation < resources.getModificationCount());
-
+        // The strings file contains definitions for app_name, action_settings and hello_world.
+        // We've manually deleted the hello_world string. We now check that app_name remains
+        // in the resource set, and that hello_world is removed. (We check that hello_world
+        // is there before the sync, and gone after.)
         assertTrue(resources.isScanPending(psiFile1));
-        assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+        assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+        assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
 
         assertTrue(ApplicationManager.getApplication().isDispatchThread());
         resources.sync();
+        assertTrue(generation < resources.getModificationCount());
         assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+        assertFalse(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
         assertFalse(resources.isScanPending(psiFile1));
       }
     });
+  }
+
+  public void testDataBindingVariables() {
+    VirtualFile file1 = myFixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml");
+    final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    AndroidFacet facet = resources.getFacet();
+    assertEquals(1, resources.getDataBindingResourceFiles().size());
+    final String appPackage = DataBindingUtil.getGeneratedPackageName(facet);
+    final DataBindingInfo info = resources.getDataBindingResourceFiles().get(appPackage + ".databinding.LayoutWithDataBindingBinding");
+    assertNotNull(info);
+    List<PsiDataBindingResourceItem> variables = info.getItems(DataBindingResourceType.VARIABLE);
+    assertEquals(1, variables.size());
+    final PsiDataBindingResourceItem variable1 = variables.get(0);
+    assertEquals("variable1", variable1.getName());
+    assertEquals("String", variable1.getExtra(SdkConstants.ATTR_TYPE));
+    assertNotNull(variable1.getXmlTag());
+
+    List<PsiDataBindingResourceItem> imports = new ArrayList<PsiDataBindingResourceItem>();// clone to be able to sort
+    imports.addAll(info.getItems(DataBindingResourceType.IMPORT));
+    assertEquals(2, imports.size());
+
+    Collections.sort(imports, new Comparator<PsiDataBindingResourceItem>() {
+      @Override
+      public int compare(PsiDataBindingResourceItem item1, PsiDataBindingResourceItem item2) {
+        return item1.getExtra(SdkConstants.ATTR_TYPE).compareTo(item2.getExtra(SdkConstants.ATTR_TYPE));
+      }
+    });
+
+    PsiDataBindingResourceItem import1 = imports.get(0);
+    assertEquals("p1.p2.import1", import1.getExtra(SdkConstants.ATTR_TYPE));
+    assertNull(import1.getExtra(SdkConstants.ATTR_ALIAS));
+    assertNotNull(import1.getXmlTag());
+
+    PsiDataBindingResourceItem import2 = imports.get(1);
+    assertEquals("p1.p2.import2", import2.getExtra(SdkConstants.ATTR_TYPE));
+    assertEquals("i2", import2.getExtra(SdkConstants.ATTR_ALIAS));
+    assertNotNull(import2.getXmlTag());
+
+    List<DataBindingInfo.ViewWithId> viewsWithIds = info.getViewsWithIds();
+    assertEquals(6, viewsWithIds.size());
+    Collections.sort(viewsWithIds, new Comparator<DataBindingInfo.ViewWithId>() {
+      @Override
+      public int compare(DataBindingInfo.ViewWithId v1, DataBindingInfo.ViewWithId v2) {
+        return v1.name.compareTo(v2.name);
+      }
+    });
+    validateViewWithId(facet, viewsWithIds.get(0), "foo.bar.Magic", "magicView");
+    validateViewWithId(facet, viewsWithIds.get(1), "android.view.View", "normalViewTag");
+    validateViewWithId(facet, viewsWithIds.get(2), "android.view.SurfaceView", "surfaceView1");
+    validateViewWithId(facet, viewsWithIds.get(3), "android.widget.TextView", "textView1");
+    validateViewWithId(facet, viewsWithIds.get(4), "android.view.ViewGroup", "viewTag");
+    validateViewWithId(facet, viewsWithIds.get(5), "android.webkit.WebView", "webView1");
+  }
+
+  private void validateViewWithId(AndroidFacet facet, DataBindingInfo.ViewWithId viewWithId, String qualified, String variableName) {
+    assertTrue(DataBindingUtil.resolveViewPsiType(viewWithId, facet).equalsToText(qualified));
+    assertEquals(variableName, viewWithId.name);
   }
 
   @Nullable
@@ -2155,6 +2223,16 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       String tagName = tag.getAttributeValue(ATTR_NAME);
       if (name.equals(tagName)) {
         return tag;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static AttrResourceValue findAttr(@NotNull List<AttrResourceValue> attrs, @NotNull String name) {
+    for (AttrResourceValue attr : attrs) {
+      if (attr.getName().equals(name)) {
+        return attr;
       }
     }
     return null;

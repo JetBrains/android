@@ -33,6 +33,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
@@ -68,7 +69,7 @@ import java.util.List;
 import static com.android.tools.idea.editors.navigation.NavigationView.GAP;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-public class NavigationEditor implements FileEditor {
+public class NavigationEditor extends UserDataHolderBase implements FileEditor {
   public static final String NAVIGATION_DIRECTORY = ".navigation";
   public static final String DEFAULT_RESOURCE_FOLDER = SdkConstants.FD_RES_RAW;
   public static final String LAYOUT_DIR_NAME = SdkConstants.FD_RES_LAYOUT;
@@ -84,7 +85,6 @@ public class NavigationEditor implements FileEditor {
   private static final ModelDimension UNATTACHED_STRIDE = new ModelDimension(50, 50);
   private static final boolean RUN_ANALYSIS_ON_BACKGROUND_THREAD = false;
 
-  private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   private RenderingParameters myRenderingParams;
   private NavigationModel myNavigationModel;
   private final VirtualFile myFile;
@@ -99,32 +99,13 @@ public class NavigationEditor implements FileEditor {
   private static final String[] EXCLUDED_PATH_SEGMENTS = new String[]{"/.idea/", "/idea/config/options/"};
 
   @Nullable
-  private static VirtualFile findLayoutFile(List<VirtualFile> resourceDirectories, String navigationDirectoryName) {
-    String qualifier = removePrefixIfPresent(DEFAULT_RESOURCE_FOLDER, navigationDirectoryName);
-    String layoutDirName = LAYOUT_DIR_NAME + qualifier;
-    for (VirtualFile root : resourceDirectories) {
-      for (VirtualFile dir : root.getChildren()) {
-        if (dir.isDirectory() && dir.getName().equals(layoutDirName)) {
-          for (VirtualFile file : dir.getChildren()) {
-            String fileName = file.getName();
-            if (!fileName.startsWith(".") && fileName.endsWith(".xml")) { // Ignore files like .DS_store on mac
-              return file;
-            }
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  public static RenderingParameters getRenderingParams(@NotNull VirtualFile file, @NotNull Module module) {
+  public static RenderingParameters getRenderingParams(@NotNull Module module, String navigationDirectoryName) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return null;
     }
     List<VirtualFile> resourceDirectories = facet.getAllResourceDirectories();
-    VirtualFile layoutFile = findLayoutFile(resourceDirectories, file.getParent().getName());
+    VirtualFile layoutFile = NavigationEditorUtils.findLayoutFile(resourceDirectories, navigationDirectoryName);
     if (layoutFile == null) {
       return null;
     }
@@ -134,17 +115,17 @@ public class NavigationEditor implements FileEditor {
 
   public NavigationEditor(Project project, VirtualFile file) {
     myFile = file;
-    Module[] androidModules = Utilities.getAndroidModules(project);
+    Module[] androidModules = NavigationEditorUtils.getAndroidModules(project);
     String moduleName = file.getParent().getParent().getName();
-    Module module = Utilities.findModule(androidModules, moduleName);
+    Module module = NavigationEditorUtils.findModule(androidModules, moduleName);
     if (module == null) {
-      String errorMessage = NAVIGATION_DIRECTORY.equals(moduleName)
-                            ? "Legacy navigation editor file: please remove the file and/or close this editor"
-                            : "Android module \"" + moduleName + "\" not found";
+      String errorMessage = (NAVIGATION_DIRECTORY.equals(moduleName)
+                            ? "Legacy navigation editor file" : "Android module \"" + moduleName + "\" not found") +
+                                                                ": please close this editor and/or remove the file";
       myComponent = createErrorComponent("", errorMessage);
       return;
     }
-    RenderingParameters renderingParams = getRenderingParams(file, module);
+    RenderingParameters renderingParams = getRenderingParams(module, file.getParent().getName());
     if (renderingParams == null) {
       myComponent = createErrorComponent("", "Invalid file name: please remove the file and/or close this editor");
       return;
@@ -152,7 +133,7 @@ public class NavigationEditor implements FileEditor {
     myRenderingParams = renderingParams;
     myAnalyser = new Analyser(module);
     myNavigationModel = read(file);
-    CodeGenerator codeGenerator = new CodeGenerator(myNavigationModel, module, new Listener<String>() {
+    CodeGenerator codeGenerator = new CodeGenerator(module, new Listener<String>() {
       @Override
       public void notify(@NotNull String event) {
         postDelayedRefresh();
@@ -171,26 +152,23 @@ public class NavigationEditor implements FileEditor {
     SelectionModel selectionModel = new SelectionModel();
     NavigationView editor = new NavigationView(renderingParams, navigationModel, selectionModel, codeGenerator);
     JPanel panel = new JPanel(new BorderLayout());
-    {
-      JComponent toolBar = createToolbar(getActions(editor), renderingParams, dirName);
-      panel.add(toolBar, BorderLayout.NORTH);
-    }
-    {
-      Splitter splitPane = new Splitter();
-      splitPane.setDividerWidth(1);
-      splitPane.setShowDividerIcon(false);
-      splitPane.setProportion(.8f);
-      {
-        JBScrollPane scrollPane = new JBScrollPane(editor);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
-        splitPane.setFirstComponent(scrollPane);
-      }
-      {
-        Inspector inspector = new Inspector(selectionModel);
-        splitPane.setSecondComponent(new JBScrollPane(inspector.container));
-      }
-      panel.add(splitPane);
-    }
+
+    JComponent toolBar = createToolbar(getActions(editor), renderingParams, dirName);
+    panel.add(toolBar, BorderLayout.NORTH);
+
+    Splitter splitPane = new Splitter();
+    splitPane.setDividerWidth(1);
+    splitPane.setShowDividerIcon(false);
+    splitPane.setProportion(.8f);
+
+    JBScrollPane scrollPane = new JBScrollPane(editor);
+    scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
+    splitPane.setFirstComponent(scrollPane);
+
+    Inspector inspector = new Inspector(selectionModel);
+    splitPane.setSecondComponent(new JBScrollPane(inspector.container));
+    panel.add(splitPane);
+
     return panel;
   }
 
@@ -209,12 +187,7 @@ public class NavigationEditor implements FileEditor {
     mySaveListener = new FileDocumentManagerAdapter() {
       @Override
       public void beforeAllDocumentsSaving() {
-        try {
-          saveFile();
-        }
-        catch (IOException e) {
-          LOG.error("Unexpected exception while saving navigation file", e);
-        }
+        saveNavigationFile();
       }
     };
 
@@ -275,18 +248,17 @@ public class NavigationEditor implements FileEditor {
 
   private static JComponent createErrorComponent(String title, String errorMessage) {
     JPanel panel = new JPanel(new BorderLayout());
-    {
-      JLabel label = new JLabel(title);
-      label.setFont(label.getFont().deriveFont(30f));
-      label.setHorizontalAlignment(SwingConstants.CENTER);
-      panel.add(label, BorderLayout.NORTH);
-    }
-    {
-      JLabel label = new JLabel(errorMessage);
-      label.setFont(label.getFont().deriveFont(20f));
-      label.setHorizontalAlignment(SwingConstants.CENTER);
-      panel.add(label, BorderLayout.CENTER);
-    }
+
+    JLabel titleLabel = new JLabel(title);
+    titleLabel.setFont(titleLabel.getFont().deriveFont(30f));
+    titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    panel.add(titleLabel, BorderLayout.NORTH);
+
+    JLabel errorLabel = new JLabel(errorMessage);
+    errorLabel.setFont(errorLabel.getFont().deriveFont(20f));
+    errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    panel.add(errorLabel, BorderLayout.CENTER);
+
     return new JBScrollPane(panel);
   }
 
@@ -304,10 +276,10 @@ public class NavigationEditor implements FileEditor {
 
   private void postDelayedRefresh() {
     if (DEBUG) System.out.println("NavigationEditor: postDelayedRefresh");
-    // Post to the event queue to coalesce events and effect re-parse when they're all in
+    // Post to the event queue to coalesce events and effect re-parse when they're all in and we have finished indexing
     if (!myPendingFileSystemChanges) {
       myPendingFileSystemChanges = true;
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
+      DumbService.getInstance(myRenderingParams.project).smartInvokeLater(new Runnable() {
         @Override
         public void run() {
           myPendingFileSystemChanges = false;
@@ -329,10 +301,6 @@ public class NavigationEditor implements FileEditor {
     return result;
   }
 
-  private static String removePrefixIfPresent(String prefix, String s) {
-    return s.startsWith(prefix) ? s.substring(prefix.length()) : s;
-  }
-
   private static String[] resourceDirectoryNames(AndroidFacet facet, String type) {
     List<VirtualFile> resourceDirectories = facet.getAllResourceDirectories();
     List<String> qualifiers = new ArrayList<String>();
@@ -348,12 +316,11 @@ public class NavigationEditor implements FileEditor {
   }
 
   private static String[] getDisplayNames(String[] dirNames) {
-    return Utilities.map(dirNames, new Function<String, String>() {
-      @Override
-      public String fun(String s) {
-        return DEFAULT_RESOURCE_FOLDER + s.substring(LAYOUT_DIR_NAME.length());
-      }
-    });
+    final String[] result = new String[dirNames.length];
+    for (int i = 0; i < dirNames.length; i++) {
+      result[i] = DEFAULT_RESOURCE_FOLDER + dirNames[i].substring(LAYOUT_DIR_NAME.length());
+    }
+    return result;
   }
 
   private static JComponent createToolbar(ActionGroup actions, final RenderingParameters renderingParams, String dirName) {
@@ -361,75 +328,72 @@ public class NavigationEditor implements FileEditor {
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
     // UI for module and configuration selection
-    {
-      final Module module = renderingParams.facet.getModule();
+    final Module module = renderingParams.facet.getModule();
 
-      JPanel combos = new JPanel(new FlowLayout());
-      final Module[] androidModules = Utilities.getAndroidModules(renderingParams.project);
-      // Module selector
-      if (androidModules.length > 1) {
-        final ComboBox moduleSelector = new ComboBox(getModuleNames(androidModules));
-        final String originalSelection = module.getName();
-        moduleSelector.setSelectedItem(originalSelection);
-        moduleSelector.addActionListener(new ActionListener() {
-          boolean disabled = false;
+    JPanel combos = new JPanel();
+    final Module[] androidModules = NavigationEditorUtils.getAndroidModules(renderingParams.project);
 
-          @Override
-          public void actionPerformed(ActionEvent event) {
-            if (disabled) {
-              return;
-            }
-            int selectedIndex = moduleSelector.getSelectedIndex();
-            Module newModule = androidModules[selectedIndex];
-            AndroidShowNavigationEditor newEditor = new AndroidShowNavigationEditor();
-            newEditor.showNavigationEditor(renderingParams.project, newModule, DEFAULT_RESOURCE_FOLDER, NAVIGATION_FILE_NAME);
-            disabled = true;
-            moduleSelector.setSelectedItem(originalSelection); // put the selection back so it will be correct if this editor is revisited
-            disabled = false;
+    // Module selector
+    if (androidModules.length > 1) {
+      final ComboBox moduleSelector = new ComboBox(getModuleNames(androidModules));
+      final String originalSelection = module.getName();
+      moduleSelector.setSelectedItem(originalSelection);
+      moduleSelector.addActionListener(new ActionListener() {
+        boolean disabled = false;
+
+        @Override
+        public void actionPerformed(ActionEvent event) {
+          if (disabled) {
+            return;
           }
-        });
-        combos.add(moduleSelector);
-      }
-      // Configuration selector
-      String[] dirNames = resourceDirectoryNames(renderingParams.facet, LAYOUT_DIR_NAME);
-      String[] navDirNames = getDisplayNames(dirNames);
-      if (dirNames.length > 1) {
-        final ComboBox deviceSelector = new ComboBox(navDirNames);
-        final String originalSelection = dirName;
-        deviceSelector.setSelectedItem(originalSelection);
-        deviceSelector.addActionListener(new ActionListener() {
-          boolean disabled = false;
-
-          @Override
-          public void actionPerformed(ActionEvent event) {
-            if (disabled) {
-              return;
-            }
-            String dirName = (String)deviceSelector.getSelectedItem();
-            AndroidShowNavigationEditor newEditor = new AndroidShowNavigationEditor();
-            newEditor.showNavigationEditor(renderingParams.project, module, dirName, NAVIGATION_FILE_NAME);
-            disabled = true;
-            deviceSelector.setSelectedItem(originalSelection); // put the selection back so it will be correct if this editor is revisited
-            disabled = false;
-          }
-        });
-        combos.add(deviceSelector);
-      }
-      panel.add(combos, BorderLayout.CENTER);
+          int selectedIndex = moduleSelector.getSelectedIndex();
+          Module newModule = androidModules[selectedIndex];
+          AndroidShowNavigationEditor newEditor = new AndroidShowNavigationEditor();
+          newEditor.showNavigationEditor(renderingParams.project, newModule, DEFAULT_RESOURCE_FOLDER, NAVIGATION_FILE_NAME);
+          disabled = true;
+          moduleSelector.setSelectedItem(originalSelection); // put the selection back so it will be correct if this editor is revisited
+          disabled = false;
+        }
+      });
+      combos.add(moduleSelector);
     }
+    // Configuration selector
+    String[] dirNames = resourceDirectoryNames(renderingParams.facet, LAYOUT_DIR_NAME);
+    String[] navDirNames = getDisplayNames(dirNames);
+    if (dirNames.length > 1) {
+      final ComboBox deviceSelector = new ComboBox(navDirNames);
+      final String originalSelection = dirName;
+      deviceSelector.setSelectedItem(originalSelection);
+      deviceSelector.addActionListener(new ActionListener() {
+        boolean disabled = false;
+
+        @Override
+        public void actionPerformed(ActionEvent event) {
+          if (disabled) {
+            return;
+          }
+          String dirName = (String)deviceSelector.getSelectedItem();
+          AndroidShowNavigationEditor newEditor = new AndroidShowNavigationEditor();
+          newEditor.showNavigationEditor(renderingParams.project, module, dirName, NAVIGATION_FILE_NAME);
+          disabled = true;
+          deviceSelector.setSelectedItem(originalSelection); // put the selection back so it will be correct if this editor is revisited
+          disabled = false;
+        }
+      });
+      combos.add(deviceSelector);
+    }
+    panel.add(combos, BorderLayout.CENTER);
+
     // Zoom controls
-    {
-      ActionManager actionManager = ActionManager.getInstance();
-      ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, actions, true);
-      panel.add(zoomToolBar.getComponent(), BorderLayout.EAST);
-    }
+    ActionManager actionManager = ActionManager.getInstance();
+    ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, actions, true);
+    panel.add(zoomToolBar.getComponent(), BorderLayout.EAST);
+
     // Link to on-line help
-    {
-      HyperlinkLabel label = new HyperlinkLabel();
-      label.setHyperlinkTarget("http://tools.android.com/navigation-editor");
-      label.setHyperlinkText("   ", "What's this?", "");
-      panel.add(label, BorderLayout.WEST);
-    }
+    HyperlinkLabel label = new HyperlinkLabel();
+    label.setHyperlinkTarget("http://tools.android.com/navigation-editor");
+    label.setHyperlinkText("   ", "What's this?", "");
+    panel.add(label, BorderLayout.WEST);
 
     return panel;
   }
@@ -602,17 +566,17 @@ public class NavigationEditor implements FileEditor {
     return unattached;
   }
 
-  private static void conditionallyExecuteOnBackgroundThread(Runnable action) {
+  private static void conditionallyExecuteOnBackgroundThread(Project project, Runnable action) {
     if (RUN_ANALYSIS_ON_BACKGROUND_THREAD) {
       ApplicationManager.getApplication().executeOnPooledThread(action);
     } else {
-      action.run();
+      DumbService.getInstance(project).smartInvokeLater(action);
     }
   }
 
   private void updateNavigationModelFromProject() {
     final Application app = ApplicationManager.getApplication();
-    conditionallyExecuteOnBackgroundThread(new Runnable() {
+    conditionallyExecuteOnBackgroundThread(myRenderingParams.project, new Runnable() {
       @Override
       public void run() {
         app.runReadAction(new Runnable() {
@@ -688,12 +652,22 @@ public class NavigationEditor implements FileEditor {
     return null;
   }
 
-  private void saveFile() throws IOException {
+  private void saveNavigationFile() {
     if (myModified && myFile.isWritable()) {
-      ByteArrayOutputStream stream = new ByteArrayOutputStream(INITIAL_FILE_BUFFER_SIZE);
-      new XMLWriter(stream).write(myNavigationModel);
-      myFile.setBinaryContent(stream.toByteArray());
-      myModified = false;
+      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            final ByteArrayOutputStream stream = new ByteArrayOutputStream(INITIAL_FILE_BUFFER_SIZE);
+            new XMLWriter(stream).write(myNavigationModel);
+            myFile.setBinaryContent(stream.toByteArray());
+            myModified = false;
+          }
+          catch (IOException e) {
+            LOG.error("Unexpected exception while saving navigation file", e);
+          }
+        }
+      });
     }
   }
 
@@ -702,27 +676,6 @@ public class NavigationEditor implements FileEditor {
    */
   @Override
   public void dispose() {
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          saveFile();
-        }
-        catch (IOException e) {
-          LOG.error("Unexpected exception while saving navigation file", e);
-        }
-      }
-    });
-  }
-
-  @Nullable
-  @Override
-  public <T> T getUserData(@NotNull Key<T> key) {
-    return myUserDataHolder.getUserData(key);
-  }
-
-  @Override
-  public <T> void putUserData(@NotNull Key<T> key, @Nullable T value) {
-    myUserDataHolder.putUserData(key, value);
+    saveNavigationFile();
   }
 }

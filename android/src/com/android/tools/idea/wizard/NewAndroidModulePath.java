@@ -51,7 +51,7 @@ public final class NewAndroidModulePath implements WizardPath {
   @NotNull private final NewModuleWizardState myWizardState;
   @Nullable private final Project myProject;
   private ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
-  private AssetSetStep myAssetSetStep;
+  private RasterAssetSetStep myAssetSetStep;
   private ChooseTemplateStep myChooseActivityStep;
   private TemplateParameterStep myActivityTemplateParameterStep;
   private TemplateParameterStep myJavaModuleTemplateParameterStep;
@@ -64,7 +64,7 @@ public final class NewAndroidModulePath implements WizardPath {
     myWizardState = wizardState;
     myProject = project;
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(wizardState, project, sidePanelIcon, builder);
-    myAssetSetStep = new AssetSetStep(myWizardState, project, null, sidePanelIcon, builder, null);
+    myAssetSetStep = new RasterAssetSetStep(myWizardState, project, null, sidePanelIcon, builder, null);
     Disposer.register(disposable, myAssetSetStep);
     myChooseActivityStep =
       new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, project, null, sidePanelIcon, builder, null,

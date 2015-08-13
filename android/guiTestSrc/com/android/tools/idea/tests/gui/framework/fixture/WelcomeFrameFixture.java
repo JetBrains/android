@@ -18,12 +18,11 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.fixture.ComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrame> {
+public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, WelcomeFrame> {
   @NotNull
   public static WelcomeFrameFixture find(@NotNull Robot robot) {
     for (Frame frame : Frame.getFrames()) {
@@ -35,7 +34,7 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrame> {
   }
 
   private WelcomeFrameFixture(@NotNull Robot robot, @NotNull WelcomeFrame target) {
-    super(robot, target);
+    super(WelcomeFrameFixture.class, robot, target);
   }
 
   @NotNull
@@ -58,6 +57,11 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrame> {
 
   @NotNull
   private ActionButtonFixture findActionButtonByActionId(String actionId) {
-    return ActionButtonFixture.findByActionId(actionId, robot, target);
+    return ActionButtonFixture.findByActionId(actionId, robot(), target());
+  }
+
+  @NotNull
+  public MessagesFixture findMessageDialog(@NotNull String title) {
+    return MessagesFixture.findByTitle(robot(), target(), title);
   }
 }

@@ -24,22 +24,31 @@ import com.android.tools.lint.detector.api.JavaContext;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.collect.Lists;
+import com.intellij.codeInsight.AnnotationUtil;
+import com.intellij.codeInsight.ExternalAnnotationsManager;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.util.TypeConversionUtil;
+import com.intellij.util.ArrayUtil;
 import lombok.ast.Node;
 import lombok.ast.Position;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.SdkConstants.ATTR_VALUE;
 
 public class LombokPsiParser extends JavaParser {
   private final LintClient myClient;
@@ -265,7 +274,7 @@ public class LombokPsiParser extends JavaParser {
   }
 
   private static class PsiTypeDescriptor extends DefaultTypeDescriptor {
-    private final PsiType myType;
+    @NonNull private final PsiType myType;
 
     public PsiTypeDescriptor(@NonNull PsiType type) {
       super(type.getCanonicalText());
@@ -287,6 +296,23 @@ public class LombokPsiParser extends JavaParser {
       }
 
       return null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      PsiTypeDescriptor that = (PsiTypeDescriptor)o;
+
+      if (!myType.equals(that.myType)) return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return myType.hashCode();
     }
   }
 
@@ -331,6 +357,16 @@ public class LombokPsiParser extends JavaParser {
           }
           return result;
         }
+      }
+
+      ExternalAnnotationsManager annotationsManager = ExternalAnnotationsManager.getInstance(owner.getProject());
+      PsiAnnotation[] annotations = annotationsManager.findExternalAnnotations(owner);
+      if (annotations != null) {
+        List<ResolvedAnnotation> result = Lists.newArrayListWithExpectedSize(annotations.length);
+        for (PsiAnnotation method : annotations) {
+          result.add(new ResolvedPsiAnnotation(method));
+        }
+        return result;
       }
     }
 
@@ -431,6 +467,44 @@ public class LombokPsiParser extends JavaParser {
       return LombokPsiParser.getAnnotations(myMethod);
     }
 
+    @NonNull
+    @Override
+    public Iterable<ResolvedAnnotation> getParameterAnnotations(int index) {
+      PsiParameter[] parameters = myMethod.getParameterList().getParameters();
+      if (index >= 0 && index < parameters.length) {
+        return LombokPsiParser.getAnnotations(parameters[index]);
+      }
+
+      return Collections.emptyList();
+    }
+
+
+    @Nullable
+    @Override
+    public ResolvedAnnotation getParameterAnnotation(@NonNull String type, int parameterIndex) {
+      PsiParameter[] parameters = myMethod.getParameterList().getParameters();
+      if (parameterIndex >= 0 && parameterIndex < parameters.length) {
+        PsiParameter parameter = parameters[parameterIndex];
+        PsiAnnotation annotation = AnnotationUtil.findAnnotation(parameter, type);
+        if (annotation != null) {
+          return new ResolvedPsiAnnotation(annotation);
+        }
+      }
+
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public ResolvedAnnotation getAnnotation(@NonNull String type) {
+      PsiAnnotation annotation = AnnotationUtil.findAnnotation(myMethod, type);
+      if (annotation != null) {
+        return new ResolvedPsiAnnotation(annotation);
+      }
+
+      return null;
+    }
+
     @Override
     public int getModifiers() {
       // TODO: Find out if there is a PSI utility method somewhere to handle this
@@ -456,6 +530,16 @@ public class LombokPsiParser extends JavaParser {
       // Other constants are not used by lint.
 
       return modifiers;
+    }
+
+    @Override
+    @Nullable
+    public ResolvedMethod getSuperMethod() {
+      final PsiMethod[] superMethods = myMethod.findSuperMethods();
+      if (superMethods.length > 0) {
+        return new ResolvedPsiMethod(superMethods[0]);
+      }
+      return null;
     }
 
     @Override
@@ -503,6 +587,12 @@ public class LombokPsiParser extends JavaParser {
     @Override
     public int getModifiers() {
       return computeModifiers(myVariable);
+    }
+
+    @NonNull
+    @Override
+    public Iterable<ResolvedAnnotation> getAnnotations() {
+      return LombokPsiParser.getAnnotations(myVariable);
     }
 
     @Override
@@ -761,6 +851,18 @@ public class LombokPsiParser extends JavaParser {
     public ResolvedClass getSuperClass() {
       if (myClass != null) {
         PsiClass superClass = myClass.getSuperClass();
+        // When you make an anonymous inner class from an interface like this,
+        // we want to treat the interface itself as the "super class"
+        //   public View.OnClickListener onSave = new View.OnClickListener() {
+        //     @Override
+        //     public void onClick(View v) {
+        //       ..
+        if (PsiUtil.isLocalOrAnonymousClass(myClass)) {
+          PsiClass[] interfaces = myClass.getInterfaces();
+          if (interfaces.length > 0) {
+            return new ResolvedPsiClass(interfaces[0]);
+          }
+        }
         if (superClass != null) {
           return new ResolvedPsiClass(superClass);
         }
@@ -896,6 +998,11 @@ public class LombokPsiParser extends JavaParser {
     }
   }
 
+  @NotNull
+  public static ResolvedAnnotation createResolvedAnnotation(@NonNull PsiAnnotation annotation) {
+    return new ResolvedPsiAnnotation(annotation);
+  }
+
   private static class ResolvedPsiAnnotation extends ResolvedAnnotation {
     private PsiAnnotation myAnnotation;
 
@@ -926,6 +1033,20 @@ public class LombokPsiParser extends JavaParser {
       return typeDescriptor;
     }
 
+    @Nullable
+    @Override
+    public ResolvedClass getClassType() {
+      PsiJavaCodeReferenceElement reference = myAnnotation.getNameReferenceElement();
+      if (reference != null) {
+        PsiElement element = reference.resolve();
+        if (element instanceof PsiClass) {
+          return new ResolvedPsiClass((PsiClass)element);
+        }
+      }
+
+      return null;
+    }
+
     @NonNull
     @Override
     public List<Value> getValues() {
@@ -950,7 +1071,8 @@ public class LombokPsiParser extends JavaParser {
       PsiNameValuePair[] attributes = myAnnotation.getParameterList().getAttributes();
       if (attributes.length > 0) {
         for (PsiNameValuePair pair : attributes) {
-          if (name.equals(pair.getName())) {
+          String pairName = pair.getName();
+          if (name.equals(pairName) || pairName == null && name.equals(ATTR_VALUE)) {
             return getAnnotationPairValue(pair);
           }
         }
@@ -967,16 +1089,65 @@ public class LombokPsiParser extends JavaParser {
       } else if (v instanceof PsiArrayInitializerMemberValue) {
         PsiArrayInitializerMemberValue mv = (PsiArrayInitializerMemberValue)v;
         PsiAnnotationMemberValue[] values = mv.getInitializers();
-        Object[] result = new Object[values.length];
-        int index = 0;
+        List<Object> list = Lists.newArrayListWithExpectedSize(values.length);
         for (PsiAnnotationMemberValue mmv : values) {
           if (mmv instanceof PsiLiteral) {
-            PsiLiteral literal = (PsiLiteral) mmv;
-            result[index] = literal.getValue();
+            PsiLiteral literal = (PsiLiteral)mmv;
+            list.add(literal.getValue());
+          } else if (mmv instanceof PsiExpression) {
+            list.add(JavaConstantExpressionEvaluator.computeConstantExpression((PsiExpression)mmv, false));
           }
-          index++;
         }
-        return result;
+
+        PsiReference reference = pair.getReference();
+        if (reference != null) {
+          PsiElement resolved = reference.resolve();
+          if (resolved instanceof PsiAnnotationMethod) {
+            PsiType returnType = ((PsiAnnotationMethod)resolved).getReturnType();
+            if (returnType != null && returnType.getDeepComponentType().getCanonicalText().equals(CommonClassNames.JAVA_LANG_STRING)) {
+              //noinspection SSBasedInspection,SuspiciousToArrayCall
+              return list.toArray(new String[list.size()]);
+            } else if (returnType != null && returnType.getDeepComponentType().getCanonicalText().equals(
+              CommonClassNames.JAVA_LANG_ANNOTATION_ANNOTATION)) {
+              //noinspection SSBasedInspection,SuspiciousToArrayCall
+              return list.toArray(new Annotation[list.size()]);
+            } else if (returnType == PsiType.INT) {
+              //noinspection SSBasedInspection,SuspiciousToArrayCall
+              return list.toArray(new Integer[list.size()]);
+            } else if (returnType == PsiType.LONG) {
+              //noinspection SSBasedInspection,SuspiciousToArrayCall
+              return list.toArray(new Long[list.size()]);
+            } else if (returnType == PsiType.DOUBLE) {
+              //noinspection SSBasedInspection,SuspiciousToArrayCall
+              return list.toArray(new Double[list.size()]);
+            } else if (returnType == PsiType.FLOAT) {
+              //noinspection SSBasedInspection,SuspiciousToArrayCall
+              return list.toArray(new Float[list.size()]);
+            }
+          }
+        }
+
+        // Pick type of array. Annotations are limited to Strings, Classes
+        // and Annotations
+        if (!list.isEmpty()) {
+          Object first = list.get(0);
+          if (first instanceof String) {
+            //noinspection SuspiciousToArrayCall,SSBasedInspection
+            return list.toArray(new String[list.size()]);
+          } else if (first instanceof Annotation) {
+              //noinspection SuspiciousToArrayCall
+            return list.toArray(new Annotation[list.size()]);
+          } else if (first instanceof Class) {
+            //noinspection SuspiciousToArrayCall
+            return list.toArray(new Class[list.size()]);
+          }
+        } else {
+          return ArrayUtil.EMPTY_STRING_ARRAY;
+        }
+
+        return list.toArray();
+      } else if (v instanceof PsiExpression) {
+        return JavaConstantExpressionEvaluator.computeConstantExpression((PsiExpression)v, false);
       }
 
       return null;
@@ -989,7 +1160,7 @@ public class LombokPsiParser extends JavaParser {
 
     @Override
     public String getSignature() {
-      return myAnnotation.toString();
+      return myAnnotation.getQualifiedName();
     }
 
     @Override

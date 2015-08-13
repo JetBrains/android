@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.ClassField;
-import com.android.builder.model.SourceProvider;
+import com.android.builder.model.NativeLibrary;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,24 +30,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class AndroidArtifactStub implements AndroidArtifact {
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
+
+public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArtifact {
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
-  @NotNull private final List<File> myGeneratedSourceFolders = Lists.newArrayList();
 
-  @NotNull private final String myName;
-  @NotNull private final DependenciesStub myDependencies;
-  @NotNull private final String myBuildType;
-  @NotNull private final FileStructure myFileStructure;
-
-  AndroidArtifactStub(@NotNull String name, @NotNull String buildType, @NotNull FileStructure fileStructure) {
-    myName = name;
-    myDependencies = new DependenciesStub();
-    myBuildType = buildType;
-    myFileStructure = fileStructure;
+  AndroidArtifactStub(@NotNull String name, String dirName, @NotNull String buildType, @NotNull FileStructure fileStructure) {
+    super(name, dirName, new DependenciesStub(), buildType, fileStructure);
   }
 
-  @NonNull
   @Override
+  @NotNull
   public Collection<AndroidArtifactOutput> getOutputs() {
     throw new UnsupportedOperationException();
   }
@@ -74,31 +65,7 @@ public class AndroidArtifactStub implements AndroidArtifact {
   @Override
   @NotNull
   public String getSourceGenTaskName() {
-    return "generate" + StringUtil.capitalize(myBuildType) + "Sources";
-  }
-
-  @Override
-  @NotNull
-  public String getName() {
-    return myName;
-  }
-
-  @Override
-  @NotNull
-  public String getCompileTaskName() {
-    return "compile" + StringUtil.capitalize(myBuildType);
-  }
-
-  @Override
-  @NotNull
-  public String getAssembleTaskName() {
-    return "assemble" + StringUtil.capitalize(myBuildType);
-  }
-
-  @Override
-  @NotNull
-  public List<File> getGeneratedSourceFolders() {
-    return myGeneratedSourceFolders;
+    return "generate" + capitalize(myBuildType) + "Sources";
   }
 
   @Override
@@ -114,6 +81,12 @@ public class AndroidArtifactStub implements AndroidArtifact {
   }
 
   @Override
+  @Nullable
+  public Collection<NativeLibrary> getNativeLibraries() {
+    return null;
+  }
+
+  @Override
   @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
     throw new UnsupportedOperationException();
@@ -123,46 +96,6 @@ public class AndroidArtifactStub implements AndroidArtifact {
   @NotNull
   public Map<String, ClassField> getResValues() {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  @NotNull
-  public File getClassesFolder() {
-    String path = "build/classes/" + myBuildType;
-    return new File(myFileStructure.getRootDir(), path);
-  }
-
-  @Override
-  @NotNull
-  public DependenciesStub getDependencies() {
-    return myDependencies;
-  }
-
-  @Override
-  @Nullable
-  public SourceProvider getVariantSourceProvider() {
-    return null;
-  }
-
-  @Override
-  @Nullable
-  public SourceProvider getMultiFlavorSourceProvider() {
-    return null;
-  }
-
-  @Override@NotNull
-  public Set<String> getIdeSetupTaskNames() {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Adds the given path to the list of generated source directories. It also creates the directory in the file system.
-   *
-   * @param path path of the generated source directory to add, relative to the root directory of the Android project.
-   */
-  public void addGeneratedSourceFolder(@NotNull String path) {
-    File directory = myFileStructure.createProjectDir(path);
-    myGeneratedSourceFolders.add(directory);
   }
 
   /**

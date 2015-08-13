@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 public class GenericErrorHandler extends AbstractSyncErrorHandler {
   @Override
   public boolean handleError(@NotNull List<String> message,
@@ -37,8 +39,16 @@ public class GenericErrorHandler extends AbstractSyncErrorHandler {
         String filePath = errorLocation.getFirst();
         int line = errorLocation.getSecond();
         updateNotification(notification, project, error.getMessage(), new OpenFileHyperlink(filePath, line - 1));
+        return false;
       }
     }
-    return false;
+    // Error messages may contain a file path and line number, but we need to add a hyperlink to open the file at those coordinates.
+    String filePath = notification.getFilePath();
+    if (isNotEmpty(filePath)) {
+      int lineIndex = notification.getLine() - 1; // lines are zero based.
+      int column = notification.getColumn();
+      updateNotification(notification, project, error.getMessage(), new OpenFileHyperlink(filePath, "Open File", lineIndex, column));
+    }
+    return false; // This error handler should be the last in the list of handlers. It does not matter if returns 'true' or 'false'.
   }
 }

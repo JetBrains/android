@@ -3,13 +3,16 @@ package org.jetbrains.android.inspections.lint;
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.LintOptions;
+import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
 import com.intellij.analysis.AnalysisScope;
@@ -58,13 +61,12 @@ import java.util.Map;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 /**
- * @author Eugene.Kudelevsky
+ * Implementation of the {@linkplain LintClient} API for executing lint within the IDE:
+ * reading files, reporting issues, logging errors, etc.
  */
-public abstract class IntellijLintClient extends LintClient implements Disposable {
+public class IntellijLintClient extends LintClient implements Disposable {
   protected static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.IntellijLintClient");
 
-  @NonNull protected abstract List<Issue> getIssues();
-  @Nullable protected abstract Module getModule();
   @NonNull protected Project myProject;
   @Nullable protected Map<com.android.tools.lint.detector.api.Project, Module> myModuleMap;
 
@@ -78,6 +80,17 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
                                             @NotNull AnalysisScope scope,
                                             @NotNull List<Issue> issues) {
     return new BatchLintClient(project, problemMap, scope, issues);
+  }
+
+  /**
+   * Returns an {@link ApiLookup} service.
+   *
+   * @param project the project to use for locating the Android SDK
+   * @return an API lookup if one can be found
+   */
+  @Nullable
+  public static ApiLookup getApiLookup(@NotNull Project project) {
+    return ApiLookup.get(new IntellijLintClient(project));
   }
 
   /**
@@ -158,12 +171,23 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
   }
 
   @Override
-  public abstract void report(@NonNull Context context,
-                              @NonNull Issue issue,
-                              @NonNull Severity severity,
-                              @Nullable Location location,
-                              @NonNull String message,
-                              @NonNull TextFormat format);
+  public void report(@NonNull Context context,
+                     @NonNull Issue issue,
+                     @NonNull Severity severity,
+                     @Nullable Location location,
+                     @NonNull String message,
+                     @NonNull TextFormat format) {
+    assert false : message;
+  }
+
+  @NonNull protected List<Issue> getIssues() {
+    return Collections.emptyList();
+  }
+
+  @Nullable
+  protected Module getModule() {
+    return null;
+  }
 
   /**
    * Recursively calls {@link #report} on the secondary location of this error, if any, which in turn may call it on a third
@@ -295,7 +319,7 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
       }
     }
 
-    return DefaultSdks.getDefaultAndroidHome();
+    return IdeSdks.getAndroidSdkPath();
   }
 
   @Nullable
@@ -696,6 +720,22 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
       return new LocationHandle(source.getFile(), tag);
     }
     return super.createResourceItemHandle(item);
+  }
+
+  @NonNull
+  @Override
+  public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
+    Module module = getModule();
+    if (module != null) {
+      AppResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
+      if (appResources != null) {
+        ResourceVisibilityLookup.Provider provider = appResources.getResourceVisibilityProvider();
+        if (provider != null) {
+          return provider;
+        }
+      }
+    }
+    return super.getResourceVisibilityProvider();
   }
 
   private static class LocationHandle implements Location.Handle, Computable<Location> {

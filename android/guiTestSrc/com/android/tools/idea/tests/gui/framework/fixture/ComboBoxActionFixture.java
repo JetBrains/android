@@ -21,7 +21,6 @@ import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JButtonFixture;
@@ -33,8 +32,10 @@ import java.awt.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class ComboBoxActionFixture {
@@ -54,16 +55,18 @@ public class ComboBoxActionFixture {
   private void click() throws ClassNotFoundException {
     final Class<?> comboBoxButtonClass = getClass().getClassLoader().loadClass(ComboBoxAction.class.getCanonicalName() + "$ComboBoxButton");
     final ActionButtonFixture runButton = projectFrame.findRunApplicationButton();
-    Container actionToolbarContainer = GuiActionRunner.execute(new GuiQuery<Container>() {
+
+    Container actionToolbarContainer = execute(new GuiQuery<Container>() {
       @Override
       protected Container executeInEDT() throws Throwable {
-        return runButton.target.getParent();
+        return runButton.target().getParent();
       }
     });
+    assertNotNull(actionToolbarContainer);
 
     JButton comboBoxButton = robot.finder().find(actionToolbarContainer, new GenericTypeMatcher<JButton>(JButton.class) {
       @Override
-      protected boolean isMatching(JButton component) {
+      protected boolean isMatching(@NotNull JButton component) {
         return comboBoxButtonClass.isInstance(component);
       }
     });
@@ -72,10 +75,11 @@ public class ComboBoxActionFixture {
     pause(new Condition("Wait until comboBoxButton is enabled") {
       @Override
       public boolean test() {
-        return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+        //noinspection ConstantConditions
+        return execute(new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
-            return comboBoxButtonFixture.target.isEnabled();
+            return comboBoxButtonFixture.target().isEnabled();
           }
         });
       }
@@ -90,7 +94,8 @@ public class ComboBoxActionFixture {
     pause(new Condition("Wait until the list is populated.") {
       @Override
       public boolean test() {
-        return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+        //noinspection ConstantConditions
+        return execute(new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
             return runConfigList.getComponentCount() >= 2; // At least 2, since there is always one option present (the option to edit).
@@ -99,7 +104,7 @@ public class ComboBoxActionFixture {
       }
     }, SHORT_TIMEOUT);
 
-    Object selectedValue = GuiActionRunner.execute(new GuiQuery<Object>() {
+    Object selectedValue = execute(new GuiQuery<Object>() {
       @Override
       protected Object executeInEDT() throws Throwable {
         return runConfigList.getSelectedValue();
@@ -111,12 +116,13 @@ public class ComboBoxActionFixture {
   }
 
   private static void selectItemByText(@NotNull final JList list, @NotNull final String text) {
-    final Integer appIndex = GuiActionRunner.execute(new GuiQuery<Integer>() {
+    final Integer appIndex = execute(new GuiQuery<Integer>() {
       @Override
       protected Integer executeInEDT() throws Throwable {
         ListPopupModel popupModel = (ListPopupModel)list.getModel();
         for (int i = 0; i < popupModel.getSize(); ++i) {
           PopupFactoryImpl.ActionItem actionItem = (PopupFactoryImpl.ActionItem)popupModel.get(i);
+          assertNotNull(actionItem);
           if (text.equals(actionItem.getText())) {
             return i;
           }
@@ -124,8 +130,10 @@ public class ComboBoxActionFixture {
         return -1;
       }
     });
+    //noinspection ConstantConditions
     assertTrue(appIndex >= 0);
-    GuiActionRunner.execute(new GuiTask() {
+
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         list.setSelectedIndex(appIndex);

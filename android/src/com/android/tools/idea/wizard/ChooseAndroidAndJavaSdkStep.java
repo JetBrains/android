@@ -1,6 +1,6 @@
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.CommonBundle;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
@@ -59,7 +59,7 @@ public class ChooseAndroidAndJavaSdkStep extends ModuleWizardStep {
       ApplicationManager.getApplication().runWriteAction(new Runnable() {
         @Override
         public void run() {
-          DefaultSdks.setDefaultAndroidHome(new File(location), javaSdk, null);
+          IdeSdks.setAndroidSdkPath(new File(location), javaSdk, null);
         }
       });
     }
@@ -104,7 +104,7 @@ public class ChooseAndroidAndJavaSdkStep extends ModuleWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return DefaultSdks.getDefaultJdk() == null || DefaultSdks.getDefaultAndroidHome() == null;
+    return IdeSdks.getJdk() == null || IdeSdks.getAndroidSdkPath() == null;
   }
 
   private void createUIComponents() {

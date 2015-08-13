@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.run.ExternalToolRunner;
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -25,10 +27,29 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EmulatorRunner extends ExternalToolRunner {
-  public EmulatorRunner(@NotNull Project project, @NotNull String consoleTitle, @NotNull GeneralCommandLine commandLine) {
+  public EmulatorRunner(@NotNull Project project,
+                        @NotNull String consoleTitle,
+                        @NotNull GeneralCommandLine commandLine,
+                        @Nullable AvdInfo avdInfo) {
     super(project, consoleTitle, commandLine);
+
+    IAndroidTarget target = avdInfo == null ? null : avdInfo.getTarget();
+
+    String description = target == null ? null : target.toString();
+    UsageTracker.getInstance().trackEvent(
+      UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_EMULATOR_LAUNCHED, description, null);
+
+    if (avdInfo != null) {
+      UsageTracker.getInstance().trackEvent(
+        UsageTracker.CATEGORY_AVDINFO, UsageTracker.INFO_AVD_ABI, AvdInfo.getPrettyAbiType(avdInfo), null);
+
+      String version = target == null ? "unknown" : target.getVersion().toString();
+      UsageTracker.getInstance().trackEvent(
+        UsageTracker.CATEGORY_AVDINFO, UsageTracker.INFO_AVD_TARGET_VERSION, version, null);
+    }
   }
 
   @NotNull

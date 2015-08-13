@@ -19,6 +19,7 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.idea.wizard.SingleStepDialogWrapperHost;
 import com.android.tools.idea.wizard.SingleStepWizard;
 import com.intellij.openapi.ui.DialogWrapper;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -41,6 +42,12 @@ public class DeviceEditWizard extends SingleStepWizard {
     if (device != null) {
       DeviceManagerConnection.getDefaultDeviceManagerConnection().createOrEditDevice(device);
     }
+  }
+
+  @NotNull
+  @Override
+  protected String getProgressTitle() {
+    return "Creating/Updating device...";
   }
 
   @Nullable

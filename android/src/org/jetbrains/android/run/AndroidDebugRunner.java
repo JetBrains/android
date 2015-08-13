@@ -53,7 +53,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.logcat.AndroidToolWindowFactory;
+import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -123,7 +123,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   }
 
   private RunContentDescriptor doExec(AndroidRunningState state, ExecutionEnvironment environment) throws ExecutionException {
-    if (DefaultRunExecutor.EXECUTOR_ID.equals(environment.getExecutor().getId())) {
+    if (!(environment.getExecutor() instanceof DefaultDebugExecutor)) {
       final RunContentDescriptor descriptor = super.doExecute(state, environment);
 
       if (descriptor != null) {
@@ -307,7 +307,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
         }
 
         if (ourNotificationGroup == null) {
-          ourNotificationGroup = NotificationGroup.toolWindowGroup("Android Session Restarted", executor.getToolWindowId(), true);
+          ourNotificationGroup = NotificationGroup.toolWindowGroup("Android Session Restarted", executor.getToolWindowId());
         }
 
         ourNotificationGroup
@@ -408,8 +408,15 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
   @Override
   public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
-    return (DefaultDebugExecutor.EXECUTOR_ID.equals(executorId) || DefaultRunExecutor.EXECUTOR_ID.equals(executorId)) &&
-           profile instanceof AndroidRunConfigurationBase;
+    if (!DefaultDebugExecutor.EXECUTOR_ID.equals(executorId) && !DefaultRunExecutor.EXECUTOR_ID.equals(executorId)) {
+      return false;
+    }
+
+    if (!(profile instanceof AndroidRunConfigurationBase)) {
+      return false;
+    }
+
+    return ((AndroidRunConfigurationBase)profile).usesSimpleLauncher();
   }
 
   private class MyDebugLauncher implements DebugLauncher {

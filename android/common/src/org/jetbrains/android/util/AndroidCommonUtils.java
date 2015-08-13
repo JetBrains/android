@@ -388,12 +388,10 @@ public class AndroidCommonUtils {
 
     builder = new StringBuilder(quotePath(target.getPath(IAndroidTarget.ANDROID_JAR)));
 
-    IAndroidTarget.IOptionalLibrary[] libraries = target.getOptionalLibraries();
-    if (libraries != null) {
-      for (IAndroidTarget.IOptionalLibrary lib : libraries) {
-        builder.append(File.pathSeparatorChar);
-        builder.append(quotePath(lib.getJarPath()));
-      }
+    List<IAndroidTarget.OptionalLibrary> libraries = target.getAdditionalLibraries();
+    for (IAndroidTarget.OptionalLibrary lib : libraries) {
+      builder.append(File.pathSeparatorChar);
+      builder.append(quotePath(lib.getJar().getAbsolutePath()));
     }
     for (String path : providedJarOsPaths) {
       builder.append(File.pathSeparatorChar);

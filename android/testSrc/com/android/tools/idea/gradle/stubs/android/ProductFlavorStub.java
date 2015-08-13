@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.ApiVersion;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.ProductFlavor;
@@ -44,6 +45,12 @@ public class ProductFlavorStub implements ProductFlavor {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  @Override
+  @Nullable
+  public String getDimension() {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -106,6 +113,12 @@ public class ProductFlavorStub implements ProductFlavor {
     throw new UnsupportedOperationException();
   }
 
+  @NonNull
+  @Override
+  public Map<String, String> getTestInstrumentationRunnerArguments() {
+    throw new UnsupportedOperationException();
+  }
+
   @Override
   @Nullable
   public Boolean getTestHandleProfiling() {
@@ -156,6 +169,12 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @Override
   @NotNull
+  public List<File> getJarJarRuleFiles() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
     throw new UnsupportedOperationException();
   }
@@ -175,6 +194,12 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @NotNull
   public List<File> getConsumerProguardFiles() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public Collection<File> getTestProguardFiles() {
     throw new UnsupportedOperationException();
   }
 }

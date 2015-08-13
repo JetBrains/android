@@ -15,29 +15,28 @@
  */
 package com.android.tools.idea.editors.navigation;
 
-import com.android.ide.common.rendering.api.RenderSession;
-import com.android.ide.common.rendering.api.Result;
-import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.rendering.api.ViewType;
+import com.android.ide.common.rendering.api.*;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.navigation.model.ModelDimension;
-import com.android.tools.idea.editors.navigation.model.ModelPoint;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.swing.layoutlib.FakeImageFactory;
 import com.intellij.android.designer.AndroidDesignerEditorProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.GraphicsUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.List;
@@ -45,22 +44,54 @@ import java.util.List;
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class AndroidRootComponent extends JComponent {
   public static final boolean DEBUG = false;
+  public static final int PADDING = 3;
+  private static final int ARC_SIZE = 10;
+  private static final Font FONT = UIUtil.getLabelFont();
+  private static final FontMetrics FONT_METRICS = new Canvas().getFontMetrics(FONT);
+
+  public static int getTopShift() {
+    return PADDING + FONT_METRICS.getHeight();
+  }
+
+  public static Point relativePoint(final Point p) {
+    return new Point(p.x - PADDING, p.y - getTopShift());
+  }
 
   private final RenderingParameters myRenderingParameters;
   private final PsiFile myLayoutFile;
-  public final boolean isMenu;
+  private final @Nullable String myMenuName;
+  private final String myActivityName;
 
-  @NotNull Transform transform = createTransform(1);
-  private Image myScaledImage;
+  @NotNull Transform transform = new Transform(1f);
+  private BufferedImage myScaledImage;
   private RenderResult myRenderResult = null;
   private boolean myRenderPending = false;
-  private boolean myCachedMenuValid = false;
-  private RenderedView myCachedMenu;
+  private boolean mySelected = false;
 
-  public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile, boolean isMenu) {
+  public AndroidRootComponent(@NotNull final String className,
+                              @NotNull final RenderingParameters renderingParameters,
+                              @Nullable final PsiFile psiFile,
+                              @Nullable String menuName) {
+    final String activityName;
+
+    // Extracting the last component from fully qualified class name.
+    int dotIndex = className.lastIndexOf('.');
+    if (dotIndex == -1) {
+      activityName = className;
+    } else {
+      activityName = className.substring(dotIndex + 1);
+    }
+
+    // Indicate in the title whether current state is a menu state.
+    myActivityName = menuName == null ? activityName : activityName + " [menu]";
+
     myRenderingParameters = renderingParameters;
     myLayoutFile = psiFile;
-    this.isMenu = isMenu;
+    myMenuName = menuName;
+  }
+
+  public boolean isMenu() {
+    return myMenuName != null;
   }
 
   public static void launchEditor(RenderingParameters renderingParameters, @Nullable PsiFile file, boolean layoutFile) {
@@ -91,17 +122,9 @@ public class AndroidRootComponent extends JComponent {
       return;
     }
     myRenderResult = renderResult;
-    if (isMenu) {
-      myCachedMenuValid = false;
-      revalidate();
-    }
     // once we have finished rendering we know where our internal views are and our parent needs to repaint (arrows etc.)
     revalidate(); // invalidate parent (NavigationView)
     parent.repaint();
-  }
-
-  public float getScale() {
-    return transform.myScale;
   }
 
   private void invalidate2() {
@@ -109,103 +132,18 @@ public class AndroidRootComponent extends JComponent {
   }
 
   public void setScale(float scale) {
-    transform = createTransform(scale);
+    transform = new Transform(scale);
     invalidate2();
-  }
-
-  @Nullable
-  private RenderedView getCachedMenu() {
-    if (!myCachedMenuValid) {
-      myCachedMenu = getMenu(myRenderResult);
-      myCachedMenuValid = true;
-    }
-    return myCachedMenu;
-  }
-
-  private Transform createTransform(float scale) {
-    if (isMenu) {
-      return new Transform(scale) {
-        private int getDx() {
-          RenderedView menu = getCachedMenu();
-          return (menu == null) ? 0 : menu.x;
-        }
-
-        private int getDy() {
-          RenderedView menu = getCachedMenu();
-          return (menu == null) ? 0 : menu.y;
-        }
-
-        @Override
-        public int modelToViewX(int x) {
-          return super.modelToViewX(x - getDx());
-        }
-
-        @Override
-        public int modelToViewY(int y) {
-          return super.modelToViewY(y - getDy());
-        }
-
-        @Override
-        public int viewToModelX(int x) {
-          return super.viewToModelX(x) + getDx();
-        }
-
-        @Override
-        public int viewToModelY(int y) {
-          return super.viewToModelY(y) + getDy();
-        }
-      };
-    }
-    return new Transform(scale);
-  }
-
-  @Nullable
-  private static RenderedView findMenu(List<RenderedView> children) {
-    for (RenderedView child : children) {
-      ViewInfo view = child.view;
-      if (view != null && view.getViewType() == ViewType.ACTION_BAR_OVERFLOW_MENU) {
-        return child.getParent();
-      }
-      RenderedView menu = findMenu(child.getChildren());
-      if (menu != null) {
-        return menu;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  private static RenderedView getMenu(RenderResult renderResult) {
-    if (renderResult == null) {
-      return null;
-    }
-    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
-    if (hierarchy == null) {
-      return null;
-    }
-    return findMenu(hierarchy.getRoots());
-  }
-
-  private static ModelDimension size(@Nullable RenderedView view) {
-    if (view == null) {
-      //return com.android.navigation.Dimension.ZERO;
-      return new ModelDimension(100, 100); // width/height 0 and 1 is too small to cause an invalidate, for some reason
-    }
-    return new ModelDimension(view.w, view.h);
   }
 
   @Override
   public Dimension getPreferredSize() {
-    return transform.modelToView(isMenu ? size(getMenu(myRenderResult)) : myRenderingParameters.getDeviceScreenSize());
+    Dimension d = transform.modelToView(myRenderingParameters.getDeviceScreenSize());
+    return new Dimension(d.width + 2 * PADDING, d.height + 2 * PADDING + FONT_METRICS.getHeight());
   }
 
   @Nullable
-  private Image getScaledImage() {
-    if (myScaledImage == null || myScaledImage.getWidth(null) != getWidth() || myScaledImage.getHeight(null) != getHeight()) {
-      RenderedImage renderedImage = (myRenderResult == null) ? null : myRenderResult.getImage();
-      BufferedImage image = (renderedImage == null) ? null : renderedImage.getOriginalImage();
-      myScaledImage = (image == null) ? null : ImageUtils.scale(image, transform.myScale, transform.myScale, 0, 0);
-    }
+  private BufferedImage getScaledImage() {
     return myScaledImage;
   }
 
@@ -214,33 +152,44 @@ public class AndroidRootComponent extends JComponent {
     g.drawString(message, (getWidth() - messageWidth) / 2, height);
   }
 
-  @Override
-  public void paintComponent(Graphics g) {
-    Image scaledImage = getScaledImage();
-    if (scaledImage != null) {
-      if (isMenu) {
-        Point point = transform.modelToView(ModelPoint.ORIGIN);
-        g.drawImage(scaledImage, point.x, point.y, null);
-      }
-      else {
-        g.drawImage(scaledImage, 0, 0, null);
-      }
-    }
-    else {
-      g.setColor(JBColor.WHITE);
-      g.fillRect(0, 0, getWidth(), getHeight());
-      g.setColor(JBColor.GRAY);
-      Font font = g.getFont();
-      int vCenter = getHeight() / 2;
-      //center(g, "Initialising...", font, vCenter);
-      String message = "[" + (myLayoutFile == null ? "no xml resource" : myLayoutFile.getName()) + "]";
-      center(g, message, font, vCenter);
-      //center(g, message, font, vCenter + font.getSize() * 2);
-      render();
+  private Color getBackgroundColor() {
+    if (mySelected) {
+      return JBColor.BLUE;
+    } else {
+      return Gray._30;
     }
   }
 
-  private void render() {
+  public void setSelected(boolean selected) {
+    mySelected = selected;
+  }
+
+  @Override
+  public void paintComponent(Graphics g) {
+    GraphicsUtil.setupAAPainting(g);
+
+    g.setColor(getBackgroundColor());
+    Dimension size = getSize();
+    g.fillRoundRect(0, 0, size.width, size.height, ARC_SIZE, ARC_SIZE);
+
+    g.setColor(JBColor.WHITE);
+
+    Image scaledImage = getScaledImage();
+    if (scaledImage != null) {
+      g.setFont(FONT);
+      g.drawString(myActivityName, PADDING, PADDING + FONT_METRICS.getAscent());
+      g.drawImage(scaledImage, PADDING, getTopShift(), null);
+    }
+    else {
+      Font font = g.getFont();
+      int vCenter = getHeight() / 2;
+      String message = "[" + (myLayoutFile == null ? "no xml resource" : myLayoutFile.getName()) + "]";
+      center(g, message, font, vCenter);
+      render(transform.myScale);
+    }
+  }
+
+  private void render(final float scale) {
     if (myLayoutFile == null) {
       return;
     }
@@ -256,27 +205,43 @@ public class AndroidRootComponent extends JComponent {
     }
     myRenderPending = true;
 
+    // We're showing overflow menus in menu states. This isn't affecting drawing of activity states,
+    // because we're setting their menu list to be empty later in the code.
+    ActionBarHandler.showMenu(true, null, false);
+
     // The rendering service takes long enough to initialise that we don't want to do this from the EDT.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        Module module = facet.getModule();
-        RenderLogger logger = new RenderLogger(myLayoutFile.getName(), module);
-        final RenderService service = RenderService.create(facet, module, myLayoutFile, configuration, logger, null);
-        if (service != null) {
-          service.setProvideCookiesForIncludedViews(true);
-          if (!isMenu) {
-            // Don't show menus in the layout view
-            service.getLayoutlibCallback().getActionBarHandler().setMenuIdNames(Collections.<String>emptyList());
+        RenderService renderService = RenderService.get(facet);
+        final RenderTask task = renderService.createTask(myLayoutFile, configuration, renderService.createLogger(), null);
+        if (task != null) {
+          task.setProvideCookiesForIncludedViews(true);
+          final ActionBarHandler actionBarHandler = task.getLayoutlibCallback().getActionBarHandler();
+          if (actionBarHandler != null) {
+            final List<String> menuList = isMenu() ? Collections.singletonList(myMenuName) : Collections.<String>emptyList();
+            actionBarHandler.setMenuIdNames(menuList);
           }
-          RenderResult renderedResult = service.render();
+
+          // Setting up FakeImageFactory to draw directly to scaled-down image.
+          // This allows us to drastically reduce memory used by Navigation Editor.
+          final FakeImageFactory factory = new FakeImageFactory();
+          final Dimension size = AndroidRootComponent.this.getSize();
+          final BufferedImage image = UIUtil.createImage(size.width - 2 * PADDING, size.height - 2 * PADDING, BufferedImage.TYPE_INT_ARGB);
+          final Graphics2D graphics = (Graphics2D) image.getGraphics();
+          graphics.setTransform(AffineTransform.getScaleInstance(scale, scale));
+          factory.setGraphics(graphics);
+
+          RenderResult renderedResult = task.render(factory);
           if (renderedResult != null) {
             RenderSession session = renderedResult.getSession();
             if (session != null) {
               Result result = session.getResult();
               if (result.isSuccess()) {
                 setRenderResult(renderedResult);
-                service.dispose();
+                myScaledImage = image;
+                task.dispose();
+                myRenderPending = false;
                 return;
               }
             }

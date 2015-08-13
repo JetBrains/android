@@ -18,31 +18,20 @@ package com.android.tools.idea.stats;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.internal.statistic.CollectUsagesException;
-import com.intellij.internal.statistic.UsagesCollector;
-import com.intellij.internal.statistic.beans.GroupDescriptor;
-import com.intellij.internal.statistic.beans.UsageDescriptor;
 import com.intellij.internal.statistic.connect.StatisticsConnectionService;
 import com.intellij.internal.statistic.connect.StatisticsResult;
 import com.intellij.internal.statistic.connect.StatisticsService;
-import com.intellij.internal.statistic.persistence.ApplicationStatisticsPersistenceComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.updateSettings.impl.UpdateChecker;
-import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.util.*;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Android Statistics Service.
@@ -51,13 +40,6 @@ import java.util.*;
  */
 @SuppressWarnings("MethodMayBeStatic")
 public class AndroidStatisticsService implements StatisticsService {
-
-  private static final Logger LOG = Logger.getInstance("#" + AndroidStatisticsService.class.getName());
-
-  private static final String CONTENT_TYPE = "Content-Type";
-  private static final String HTTP_POST = "POST";
-  private static final int HTTP_STATUS_OK = 200;
-  private static final String PROTOBUF_CONTENT = "application/x-protobuf";
 
   @NonNull
   @Override
@@ -107,19 +89,32 @@ public class AndroidStatisticsService implements StatisticsService {
   @SuppressWarnings("ConstantConditions")
   @Override
   public StatisticsResult send() {
-    synchronized (ApplicationStatisticsPersistenceComponent.class) {
     if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      // If this is running as part of another product (not studio), then we return immediately
+      // without sending anything via this service
       return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
     }
 
-      LegacySdkStatsService sdkstats = sendLegacyPing();
-
-      StatisticsResult result = sendUsageStats(sdkstats);
-
-      result = sendBuildStats(sdkstats);
-
-      return result;
+    StatisticsResult code = areStatisticsAuthorized();
+    if (code.getCode() != StatisticsResult.ResultCode.SEND) {
+      return code;
     }
+
+    // Legacy ADT-compatible stats service.
+    LegacySdkStatsService sdkstats = new LegacySdkStatsService();
+    try {
+      Method getStrictVersion = ApplicationInfo.class.getMethod("getStrictVersion");
+      Object version = getStrictVersion.invoke(ApplicationInfo.getInstance());
+      sdkstats.ping("studio", (String)version);
+    }
+    catch (Exception e) {
+      // This code should only be run on AndroidStudio, if the method getStrictVersion
+      // doesn't exist it means that we are incorrectly running this in Ij + android plugin.
+      // Once the getStrictVersion function has been upstreamed, we can remove reflection here.
+      throw new AssertionError(e);
+    }
+
+    return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
   }
 
   /**
@@ -143,249 +138,5 @@ public class AndroidStatisticsService implements StatisticsService {
       return new StatisticsResult(StatisticsResult.ResultCode.NOT_PERMITTED_SERVER, "NOT_PERMITTED");
     }
     return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
-  }
-
-  /**
-   * Sends one LogRequests with multiple build records.
-   * Does nothing if there are no records pending.
-   */
-  private StatisticsResult sendBuildStats(LegacySdkStatsService sdkstats) {
-    StatisticsResult code = areStatisticsAuthorized();
-    if (code.getCode() != StatisticsResult.ResultCode.SEND) {
-      return code;
-    }
-
-    StudioBuildStatsPersistenceComponent records = StudioBuildStatsPersistenceComponent.getInstance();
-    if (records == null || !records.hasRecords()) {
-      return new StatisticsResult(StatisticsResult.ResultCode.NOTHING_TO_SEND, "NOTHING_TO_SEND");
-    }
-
-    StatsProto.LogRequest data = getRecordData(sdkstats, records);
-
-    String error = null;
-    try {
-      error = sendData(data);
-    } catch (Exception e) {
-      error = e.getClass().getSimpleName() + " " + (e.getMessage() != null ? e.getMessage() : e.toString());
-    }
-
-    if (error != null) {
-      LOG.debug("[SendStats/AS-2] Error " + (error == null ? "None" : error));
-    }
-    if (error == null) {
-      return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
-    } else {
-      return new StatisticsResult(StatisticsResult.ResultCode.SENT_WITH_ERRORS, error);
-    }
-  }
-
-  /**
-   * Send IJ-style "usage" stats using our format. The idea is to deactivate this eventually.
-   */
-  @Deprecated
-  private StatisticsResult sendUsageStats(LegacySdkStatsService sdkstats) {
-    StatisticsResult code = areStatisticsAuthorized();
-    if (code.getCode() != StatisticsResult.ResultCode.SEND) {
-      return code;
-    }
-
-    StatisticsConnectionService service = new StatisticsConnectionService();
-    StatsProto.LogRequest data = getUsageData(sdkstats, service.getDisabledGroups());
-
-    String error = null;
-    try {
-      error = sendData(data);
-    } catch (Exception e) {
-      error = e.getClass().getSimpleName() + " " + (e.getMessage() != null ? e.getMessage() : e.toString());
-    }
-
-    if (error != null) {
-      LOG.debug("[SendStats/AS-1] Error " + (error == null ? "None" : error));
-    }
-    if (error == null) {
-      return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
-    } else {
-      return new StatisticsResult(StatisticsResult.ResultCode.SENT_WITH_ERRORS, error);
-    }
-  }
-
-  private LegacySdkStatsService sendLegacyPing() {
-    // Legacy ADT-compatible stats service.
-    LegacySdkStatsService sdkstats = new LegacySdkStatsService();
-    sdkstats.ping("studio", ApplicationInfo.getInstance().getFullVersion());
-    return sdkstats;
-  }
-
-  /**
-   * Transforms one or more BuildRecords into as many LogRequest.LogEvents as needed, each with their
-   * own timestamp. The wrapper LogRequest has a "now" timestamp.
-   */
-  private StatsProto.LogRequest getRecordData(@NotNull LegacySdkStatsService sdkstats,
-                                              @NotNull StudioBuildStatsPersistenceComponent records) {
-    StatsProto.LogRequest.Builder request = StatsProto.LogRequest.newBuilder();
-
-    request.setLogSource(StatsProto.LogRequest.LogSource.ANDROID_STUDIO);
-    request.setRequestTimeMs(System.currentTimeMillis());
-
-    String uuid = UpdateChecker.getInstallationUID(PropertiesComponent.getInstance());
-    String appVersion = ApplicationInfo.getInstance().getFullVersion();
-    request.setClientInfo(createClientInfo(sdkstats, uuid, appVersion));
-
-    while (records.hasRecords()) {
-      BuildRecord record = records.getFirstRecord();
-      if (record == null) {
-        break;
-      }
-      StatsProto.LogEvent.Builder evtBuilder = StatsProto.LogEvent.newBuilder();
-      evtBuilder.setEventTimeMs(record.getUtcTimestampMs());
-      evtBuilder.setTag("build");
-
-      for (KeyString value : record.getData()) {
-        StatsProto.LogEventKeyValues.Builder kvBuilder = StatsProto.LogEventKeyValues.newBuilder();
-        kvBuilder.setKey(value.getKey());
-        kvBuilder.setValue(value.getValue());
-        evtBuilder.addValue(kvBuilder);
-      }
-
-      request.addLogEvent(evtBuilder.build());
-    }
-
-    return request.build();
-  }
-
-  private StatsProto.LogRequest getUsageData(@NotNull LegacySdkStatsService sdkstats,
-                                             @NotNull Set<String> disabledGroups) {
-    Map<String, KeyString[]> usages = new LinkedHashMap<String, KeyString[]>();
-    final Map<String, KeyString[]> allUsages = getAllUsages(disabledGroups);
-    usages.putAll(allUsages);
-
-    String uuid = UpdateChecker.getInstallationUID(PropertiesComponent.getInstance());
-    String appVersion = ApplicationInfo.getInstance().getFullVersion();
-    return createRequest(sdkstats, uuid, appVersion, usages);
-  }
-
-  @NotNull
-  public Map<String, KeyString[]> getAllUsages(@NotNull Set<String> disabledGroups) {
-    Map<String, KeyString[]> allUsages = new LinkedHashMap<String, KeyString[]>();
-
-    for (UsagesCollector usagesCollector : Extensions.getExtensions(UsagesCollector.EP_NAME)) {
-      final GroupDescriptor groupDescriptor = usagesCollector.getGroupId();
-      final String groupId = groupDescriptor.getId();
-
-      if (!disabledGroups.contains(groupId)) {
-        try {
-          final Set<UsageDescriptor> usages = usagesCollector.getUsages();
-          final Set<Counter> counters = new TreeSet<Counter>();
-          for (UsageDescriptor usage : usages) {
-            Counter counter = new Counter(usage.getKey(), usage.getValue());
-            counters.add(counter);
-          }
-          allUsages.put(groupId, counters.toArray(new Counter[counters.size()]));
-
-        } catch (CollectUsagesException e) {
-          LOG.info(e);
-        }
-      }
-    }
-
-    return allUsages;
-  }
-
-  /**
-   * Sends data. Returns an error if something occurred.
-   *
-   * TODO: the server send a reply that tells us how long to wait before sending the next one.
-   * Capture that and report it to the caller.
-   */
-  @Nullable
-  public String sendData(@NotNull StatsProto.LogRequest request) throws IOException {
-    if (request == null) {
-      return "[SendStats] Invalid arguments";
-    }
-
-    String url = "https://play.google.com/log";
-    byte[] data = request.toByteArray();
-
-    HttpURLConnection connection = HttpConfigurable.getInstance().openHttpConnection(url);
-    connection.setConnectTimeout(2000);
-    connection.setReadTimeout(2000);
-    connection.setDoOutput(true);
-    connection.setRequestMethod(HTTP_POST);
-    connection.setRequestProperty(CONTENT_TYPE, PROTOBUF_CONTENT);
-
-    OutputStream os = connection.getOutputStream();
-    try {
-      os.write(data);
-    } finally {
-      os.close();
-    }
-
-    int code = connection.getResponseCode();
-
-    if (code == HTTP_STATUS_OK) {
-      return null; // no error
-    }
-
-    return "[SendStats] Error " + code;
-  }
-
-  public StatsProto.LogRequest createRequest(@NotNull LegacySdkStatsService sdkstats,
-                                             @NotNull String uuid,
-                                             @NotNull String appVersion,
-                                             @NotNull Map<String, KeyString[]> usages) {
-    StatsProto.LogRequest.Builder request = StatsProto.LogRequest.newBuilder();
-
-    request.setLogSource(StatsProto.LogRequest.LogSource.ANDROID_STUDIO);
-    request.setRequestTimeMs(System.currentTimeMillis());
-    request.setClientInfo(createClientInfo(sdkstats, uuid, appVersion));
-
-    for (Map.Entry<String, KeyString[]> entry : usages.entrySet()) {
-      request.addLogEvent(createEvent(entry.getKey(), entry.getValue()));
-    }
-
-    request.addLogEvent(createEvent("jvm", new KeyString[] {
-      new KeyString("jvm-info", sdkstats.getJvmInfo()),
-      new KeyString("jvm-vers", sdkstats.getJvmVersion()),
-      new KeyString("jvm-arch", sdkstats.getJvmArch())
-    } ));
-
-    return request.build();
-  }
-
-  private StatsProto.LogEvent createEvent(@NotNull String groupId,
-                                          @NotNull KeyString[] values) {
-    StatsProto.LogEvent.Builder evtBuilder = StatsProto.LogEvent.newBuilder();
-    evtBuilder.setEventTimeMs(System.currentTimeMillis());
-    evtBuilder.setTag(groupId);
-
-    for (KeyString value : values) {
-      StatsProto.LogEventKeyValues.Builder kvBuilder = StatsProto.LogEventKeyValues.newBuilder();
-      kvBuilder.setKey(value.getKey());
-      kvBuilder.setValue(value.getValue());
-      evtBuilder.addValue(kvBuilder);
-    }
-
-    return evtBuilder.build();
-  }
-
-  private  StatsProto.ClientInfo createClientInfo(@NotNull LegacySdkStatsService sdkstats,
-                                                  @NotNull String uuid,
-                                                  @NotNull String appVersion) {
-    StatsProto.DesktopClientInfo.Builder desktop = StatsProto.DesktopClientInfo.newBuilder();
-
-    desktop.setClientId(uuid);
-    OsInfo info = sdkstats.getOsName();
-    desktop.setOs(info.getOsName());
-    String os_vers = info.getOsVersion();
-    if (os_vers != null) {
-      desktop.setOsMajorVersion(os_vers);
-    }
-    desktop.setOsFullVersion(info.getOsFull());
-    desktop.setApplicationBuild(appVersion);
-
-    StatsProto.ClientInfo.Builder cinfo = StatsProto.ClientInfo.newBuilder();
-    cinfo.setClientType(StatsProto.ClientInfo.ClientType.DESKTOP);
-    cinfo.setDesktopClientInfo(desktop);
-    return cinfo.build();
   }
 }

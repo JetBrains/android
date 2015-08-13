@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileTask;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -25,8 +27,10 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.util.BuildMode.*;
 import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
 import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
 
@@ -51,7 +55,7 @@ public class ProjectBuilder {
         GradleInvoker.getInstance(myProject).assembleTranslate();
         return;
       }
-      buildProjectWithJps(BuildMode.ASSEMBLE_TRANSLATE);
+      buildProjectWithJps(ASSEMBLE_TRANSLATE);
     }
   }
 
@@ -62,7 +66,7 @@ public class ProjectBuilder {
         GradleInvoker.getInstance(myProject).compileJava(modules);
         return;
       }
-      buildProjectWithJps(BuildMode.COMPILE_JAVA);
+      buildProjectWithJps(COMPILE_JAVA);
     }
   }
 
@@ -72,7 +76,7 @@ public class ProjectBuilder {
         GradleInvoker.getInstance(myProject).cleanProject();
         return;
       }
-      buildProjectWithJps(BuildMode.CLEAN);
+      buildProjectWithJps(CLEAN);
     }
   }
 
@@ -81,14 +85,32 @@ public class ProjectBuilder {
    * Gradle task to invoke.
    */
   public void generateSourcesOnly() {
+    if (!isSourceGenerationEnabled()) {
+      return;
+    }
     if (isGradleProject(myProject)) {
       if (isDirectGradleInvocationEnabled(myProject)) {
         GradleInvoker.getInstance(myProject).generateSources();
       }
       else {
-        buildProjectWithJps(BuildMode.SOURCE_GEN);
+        buildProjectWithJps(SOURCE_GEN);
       }
     }
+  }
+
+  public boolean isSourceGenerationEnabled() {
+    if (isGradleProject(myProject)) {
+      int moduleCount = ModuleManager.getInstance(myProject).getModules().length;
+      GradleExperimentalSettings settings = GradleExperimentalSettings.getInstance();
+      return isSourceGenerationEnabled(settings, moduleCount);
+    }
+    return false;
+  }
+
+  @VisibleForTesting
+  @Contract(pure = true)
+  static boolean isSourceGenerationEnabled(@NotNull GradleExperimentalSettings settings, int moduleCount) {
+    return !settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC && moduleCount <= settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN;
   }
 
   private void buildProjectWithJps(@NotNull BuildMode buildMode) {
@@ -99,6 +121,14 @@ public class ProjectBuilder {
   public void addAfterProjectBuildTask(@NotNull AfterProjectBuildTask task) {
     CompilerManager.getInstance(myProject).addAfterTask(task);
     GradleInvoker.getInstance(myProject).addAfterGradleInvocationTask(task);
+  }
+
+  public void removeAfterProjectBuildTask(@NotNull AfterProjectBuildTask task) {
+    // CompilerManager does not yet allow for listeners to be removed:
+    //    https://youtrack.jetbrains.com/issue/IDEA-139893
+    //CompilerManager.getInstance(myProject).removeAfterTask(task);
+
+    GradleInvoker.getInstance(myProject).removeAfterGradleInvocationTask(task);
   }
 
   /**

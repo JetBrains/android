@@ -35,10 +35,10 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
-import org.jetbrains.android.dom.layout.FragmentLayoutDomFileDescription;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -67,7 +67,7 @@ public class ViewLoader {
   @Nullable private final Object myCredential;
   @NotNull private RenderLogger myLogger;
   @NotNull private final LayoutLibrary myLayoutLibrary;
-  @Nullable private ProjectClassLoader myProjectClassLoader;
+  @Nullable private ModuleClassLoader myModuleClassLoader;
 
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull RenderLogger logger,
                     @Nullable Object credential) {
@@ -86,23 +86,72 @@ public class ViewLoader {
     myLogger = logger;
   }
 
-  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   @Nullable
   public Object loadView(String className, Class[] constructorSignature, Object[] constructorArgs)
     throws ClassNotFoundException {
 
+    Object aClass = loadClass(className, constructorSignature, constructorArgs, true);
+    if (aClass != null) {
+      return aClass;
+    }
+
+    try {
+      final Object o = createViewFromSuperclass(className, constructorSignature, constructorArgs);
+
+      if (o != null) {
+        return o;
+      }
+      return createMockView(className, constructorSignature, constructorArgs);
+    }
+    catch (ClassNotFoundException e) {
+      throw new ClassNotFoundException(className, e);
+    }
+    catch (InvocationTargetException e) {
+      throw new ClassNotFoundException(className, e);
+    }
+    catch (NoSuchMethodException e) {
+      throw new ClassNotFoundException(className, e);
+    }
+    catch (IllegalAccessException e) {
+      throw new ClassNotFoundException(className, e);
+    }
+    catch (InstantiationException e) {
+      throw new ClassNotFoundException(className, e);
+    }
+    catch (NoSuchFieldException e) {
+      throw new ClassNotFoundException(className, e);
+    }
+  }
+
+  /**
+   * Like loadView, but doesn't log  exceptions if failed and doesn't try to create a mock view.
+   */
+  @Nullable
+  public Object loadClass(String className, Class[] constructorSignature, Object[] constructorArgs) throws ClassNotFoundException {
+    // RecyclerView.Adapter is an abstract class, but its instance is needed for RecyclerView to work correctly. So, when LayoutLib asks for
+    // its instance, we define a new class which extends the Adapter class.
+    if (RecyclerViewHelper.CN_RV_ADAPTER.equals(className)) {
+      className = RecyclerViewHelper.CN_CUSTOM_ADAPTER;
+      constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
+      constructorArgs = ArrayUtil.EMPTY_OBJECT_ARRAY;
+    }
+    return loadClass(className, constructorSignature, constructorArgs, false);
+  }
+
+  @Nullable
+  private Object loadClass(String className, Class[] constructorSignature, Object[] constructorArgs, boolean isView) {
     Class<?> aClass = myLoadedClasses.get(className);
 
     try {
       if (aClass != null) {
         checkModified(className);
-        return createNewInstance(aClass, constructorSignature, constructorArgs);
+        return createNewInstance(aClass, constructorSignature, constructorArgs, isView);
       }
       aClass = loadClass(className);
 
       if (aClass != null) {
         checkModified(className);
-        final Object viewObject = createNewInstance(aClass, constructorSignature, constructorArgs);
+        final Object viewObject = createNewInstance(aClass, constructorSignature, constructorArgs, isView);
         myLoadedClasses.put(className, aClass);
         return viewObject;
       }
@@ -135,38 +184,12 @@ public class ViewLoader {
     catch (NoSuchMethodException e) {
       myLogger.addBrokenClass(className, e);
     }
-
-    try {
-      final Object o = createViewFromSuperclass(className, constructorSignature, constructorArgs);
-
-      if (o != null) {
-        return o;
-      }
-      return createMockView(className, constructorSignature, constructorArgs);
-    }
-    catch (ClassNotFoundException e) {
-      throw new ClassNotFoundException(className, e);
-    }
-    catch (InvocationTargetException e) {
-      throw new ClassNotFoundException(className, e);
-    }
-    catch (NoSuchMethodException e) {
-      throw new ClassNotFoundException(className, e);
-    }
-    catch (IllegalAccessException e) {
-      throw new ClassNotFoundException(className, e);
-    }
-    catch (InstantiationException e) {
-      throw new ClassNotFoundException(className, e);
-    }
-    catch (NoSuchFieldException e) {
-      throw new ClassNotFoundException(className, e);
-    }
+    return null;
   }
 
   /** Checks that the given class has not been edited since the last compilation (and if it has, logs a warning to the user) */
   private void checkModified(@NotNull String fqcn) {
-    if (myProjectClassLoader != null && myProjectClassLoader.isSourceModified(fqcn, myCredential)) {
+    if (myModuleClassLoader != null && myModuleClassLoader.isSourceModified(fqcn, myCredential)) {
       RenderProblem.Html problem = RenderProblem.create(WARNING);
       HtmlBuilder builder = problem.getHtmlBuilder();
       String className = fqcn.substring(fqcn.lastIndexOf('.') + 1);
@@ -177,12 +200,12 @@ public class ViewLoader {
   }
 
   @Nullable
-  private Class<?> loadClass(String className) throws InconvertibleClassError {
+  public Class<?> loadClass(@NotNull String className) throws InconvertibleClassError {
     try {
-      return getProjectClassLoader().loadClass(className);
+      return getModuleClassLoader().loadClass(className);
     }
     catch (ClassNotFoundException e) {
-      if (!className.equals(FragmentLayoutDomFileDescription.FRAGMENT_TAG_NAME)) {
+      if (!className.equals(VIEW_FRAGMENT)) {
         myLogger.addMissingClass(className);
       }
       return null;
@@ -190,18 +213,18 @@ public class ViewLoader {
   }
 
   @NotNull
-  private ProjectClassLoader getProjectClassLoader() {
-    if (myProjectClassLoader == null) {
+  private ModuleClassLoader getModuleClassLoader() {
+    if (myModuleClassLoader == null) {
       // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {
-        myProjectClassLoader = ProjectClassLoader.get(myLayoutLibrary, myModule);
+        myModuleClassLoader = ModuleClassLoader.get(myLayoutLibrary, myModule);
       } finally {
         RenderSecurityManager.exitSafeRegion(token);
       }
     }
 
-    return myProjectClassLoader;
+    return myModuleClassLoader;
   }
 
   @Nullable
@@ -249,10 +272,7 @@ public class ViewLoader {
                 if (aClass != null) {
                   try {
                     RenderSecurityManager.exitSafeRegion(token.get());
-                    final Object instance = createNewInstance(aClass, constructorSignature, constructorArgs);
-                    if (instance != null) {
-                      return instance;
-                    }
+                    return createNewInstance(aClass, constructorSignature, constructorArgs, true);
                   } finally {
                     token.set(RenderSecurityManager.enterSafeRegion(myCredential));
                   }
@@ -281,8 +301,8 @@ public class ViewLoader {
     IllegalAccessException,
     NoSuchFieldException {
 
-    final Class<?> mockViewClass = getProjectClassLoader().loadClass(SdkConstants.CLASS_MOCK_VIEW);
-    final Object viewObject = createNewInstance(mockViewClass, constructorSignature, constructorArgs);
+    final Class<?> mockViewClass = getModuleClassLoader().loadClass(SdkConstants.CLASS_MOCK_VIEW);
+    final Object viewObject = createNewInstance(mockViewClass, constructorSignature, constructorArgs, true);
 
     final Method setTextMethod = viewObject.getClass().getMethod("setText", CharSequence.class);
     String label = getShortClassName(className);
@@ -340,7 +360,7 @@ public class ViewLoader {
   }
 
   @SuppressWarnings("ConstantConditions")
-  private Object createNewInstance(Class<?> clazz, Class[] constructorSignature, Object[] constructorParameters)
+  private Object createNewInstance(Class<?> clazz, Class[] constructorSignature, Object[] constructorParameters, boolean isView)
     throws NoSuchMethodException, ClassNotFoundException, InvocationTargetException, IllegalAccessException, InstantiationException {
     Constructor<?> constructor = null;
 
@@ -348,6 +368,10 @@ public class ViewLoader {
       constructor = clazz.getConstructor(constructorSignature);
     }
     catch (NoSuchMethodException e) {
+      if (!isView) {
+        throw e;
+      }
+
       // View class has 1-parameter, 2-parameter and 3-parameter constructors
 
       final int paramsCount = constructorSignature.length;
@@ -452,6 +476,12 @@ public class ViewLoader {
     catch (ClassNotFoundException e) {
       myLogger.setMissingResourceClass(true);
     }
+    catch (NoClassDefFoundError e) {
+      // ClassNotFoundException is thrown when no R class was found. But if the R class was found, but not the inner classes (like R$id or
+      // R$styleable), NoClassDefFoundError is thrown. This is likely because R class was generated by AarResourceClassGenerator but the
+      // inner classes weren't needed and hence not generated.
+      myLogger.setMissingResourceClass(true);
+    }
     catch (InconvertibleClassError e) {
       assert rClassName != null;
       myLogger.addIncorrectFormatClass(rClassName, e);
@@ -461,7 +491,7 @@ public class ViewLoader {
   public void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
     Class<?> aClass = myLoadedClasses.get(className);
     if (aClass == null) {
-      aClass = getProjectClassLoader().loadClass(className);
+      aClass = getModuleClassLoader().loadClass(className);
 
       if (aClass != null) {
         myLoadedClasses.put(className, aClass);

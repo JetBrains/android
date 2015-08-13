@@ -194,7 +194,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
                 ApplicationManager.getApplication().invokeLater(new Runnable() {
                   @Override
                   public void run() {
-                    if (Messages.showOkCancelDialog(myProject, "Signed APK's generated successfully.", NOTIFICATION_TITLE,
+                    if (Messages.showOkCancelDialog(myProject, "Signed APKs generated successfully.", NOTIFICATION_TITLE,
                                                     RevealFileAction.getActionName(), IdeBundle.message("action.close"),
                                                     Messages.getInformationIcon()) == Messages.OK) {
                       ShowFilePathAction.openDirectory(new File(myApkPath));
@@ -203,7 +203,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
                 });
               }
               else {
-                Notifications.Bus.notify(new Notification(NOTIFICATION_GROUPID, NOTIFICATION_TITLE, "Signed APK's are in: " + myApkPath,
+                Notifications.Bus.notify(new Notification(NOTIFICATION_GROUPID, NOTIFICATION_TITLE, "Signed APKs are in: " + myApkPath,
                                                           NotificationType.INFORMATION));
               }
             }

@@ -46,7 +46,7 @@ public class ExportSignedPackageTest extends TestCase {
     File projectDir = new File(androidPlugin, BASE_PATH + projectPath);
     GradleConnector connector = GradleConnector.newConnector();
     connector.forProjectDirectory(projectDir);
-    connector.useDistribution(new DistributionLocator().getDistributionFor(GradleVersion.version("1.10")));
+    connector.useDistribution(new DistributionLocator().getDistributionFor(GradleVersion.version("2.2.1")));
 
     AndroidProject model = null;
     ProjectConnection connection = connector.connect();

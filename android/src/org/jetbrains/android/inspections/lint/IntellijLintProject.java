@@ -38,6 +38,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.graph.Graph;
 import org.jetbrains.android.compiler.AndroidDexCompiler;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -56,7 +57,7 @@ import static com.android.SdkConstants.SUPPORT_LIB_ARTIFACT;
 
 /**
  * An {@linkplain IntellijLintProject} represents a lint project, which typically corresponds to a {@link Module},
- * but can also correspond to a library "project" such as an {@link com.android.builder.model.AndroidLibrary}.
+ * but can also correspond to a library "project" such as an {@link AndroidLibrary}.
  */
 class IntellijLintProject extends Project {
   /**
@@ -421,6 +422,24 @@ class IntellijLintProject extends Project {
       }
 
       return mJavaSourceFolders;
+    }
+
+    @NonNull
+    @Override
+    public List<File> getTestSourceFolders() {
+      if (mTestSourceFolders == null) {
+        ModuleRootManager manager = ModuleRootManager.getInstance(myModule);
+        VirtualFile[] sourceRoots = manager.getSourceRoots(false);
+        VirtualFile[] sourceAndTestRoots = manager.getSourceRoots(true);
+        List<File> dirs = new ArrayList<File>(sourceAndTestRoots.length);
+        for (VirtualFile root : sourceAndTestRoots) {
+          if (!ArrayUtil.contains(root, sourceRoots)) {
+            dirs.add(new File(root.getPath()));
+          }
+        }
+        mTestSourceFolders = dirs;
+      }
+      return mTestSourceFolders;
     }
 
     @NonNull
@@ -818,7 +837,7 @@ class IntellijLintProject extends Project {
         }
       }
 
-      AndroidPlatform platform = AndroidPlatform.getPlatform(myFacet.getModule());
+      AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
       if (platform != null) {
         return platform.getApiLevel();
       }

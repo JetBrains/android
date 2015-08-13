@@ -92,11 +92,6 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     myTemplateDevice = templateDevice;
     myForceCreation = forceCreation;
     setBodyComponent(myRootPanel);
-    if (templateDevice == null) {
-      setDescriptionText("Create a new hardware profile by selecting hardware features below.");
-    } else {
-      setDescriptionText(templateDevice.getDisplayName() + " (Edited)");
-    }
 
     mySoftware = new Software();
     mySoftware.setLiveWallpaperSupport(true);
@@ -146,19 +141,24 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   public void init() {
     super.init();
     registerComponents();
+    String desc;
     if (myTemplateDevice == null) {
       initDefaultParams();
+      desc = "Create a new hardware profile by selecting hardware features below.";
     } else {
       initFromDevice();
+      desc = myTemplateDevice.getDisplayName() + " (Edited)";
     }
+    myState.put(KEY_DESCRIPTION, desc);
 
     myBuilder.setManufacturer("User");
     myBuilder.addSoftware(mySoftware);
+
     invokeUpdate(null);
   }
 
   @Override
-  protected JLabel getDescriptionText() {
+  protected JLabel getDescriptionLabel() {
     return myHelpAndErrorLabel;
   }
 
@@ -193,7 +193,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     myState.put(DIAGONAL_SCREENSIZE_KEY, screen.getDiagonalLength());
     myState.put(RESOLUTION_WIDTH_KEY, screen.getXDimension());
     myState.put(RESOLUTION_HEIGHT_KEY, screen.getYDimension());
-    myState.put(RAM_STORAGE_KEY, AvdBuilder.getDefaultRam(defaultHardware));
+    myState.put(RAM_STORAGE_KEY, AvdWizardConstants.getDefaultRam(defaultHardware));
 
     myState.put(HAS_HARDWARE_BUTTONS_KEY, defaultHardware.getButtonType() == ButtonType.HARD);
     myState.put(HAS_HARDWARE_KEYBOARD_KEY, defaultHardware.getKeyboard() != Keyboard.NOKEY);
@@ -287,10 +287,10 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
     }
 
     File skinPath = myState.get(CUSTOM_SKIN_FILE_KEY);
-    if (skinPath != null && skinPath != NO_SKIN && !skinPath.isAbsolute()) {
+    if (skinPath != null && !skinPath.equals(NO_SKIN) && !skinPath.isAbsolute()) {
       skinPath = new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), skinPath.getPath());
     }
-    if (skinPath != null && skinPath != NO_SKIN) {
+    if (skinPath != null && !skinPath.equals(NO_SKIN)) {
       File layoutFile = new File(skinPath, SdkConstants.FN_SKIN_LAYOUT);
       if (!layoutFile.isFile()) {
         setErrorHtml("The skin directory does not point to a valid skin.");

@@ -20,14 +20,21 @@ import junit.framework.TestCase;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static com.android.tools.idea.gradle.service.notification.errors.UnknownHostErrorHandler.GRADLE_PROXY_ACCESS_DOCS_URL;
+
 /**
  * Tests for {@link UnknownHostErrorHandler}.
  */
 public class UnknownHostErrorHandlerTest extends TestCase {
   public void testGradleProxyDocsUrlIsValid() throws Exception {
-    URL docsUrl = new URL(UnknownHostErrorHandler.GRADLE_PROXY_ACCESS_DOCS_URL);
+    URL docsUrl = new URL(GRADLE_PROXY_ACCESS_DOCS_URL);
     HttpURLConnection connection = (HttpURLConnection)docsUrl.openConnection();
     // http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
-    assertEquals(200 /* OK */, connection.getResponseCode());
+    int responseCode = connection.getResponseCode();
+    if (responseCode == 400) {
+      System.out.println(String.format("Failed to conect to '%1$s'. Please check the URL manually.", GRADLE_PROXY_ACCESS_DOCS_URL));
+      return;
+    }
+    assertEquals(200 /* OK */, responseCode);
   }
 }

@@ -19,7 +19,6 @@ import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
@@ -279,9 +278,7 @@ public class AndroidLintTest extends AndroidTestCase {
         return;
       }
       Sdk androidSdk = createAndroidSdk(recentSdkPath, platformDir);
-      AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
-      assertNotNull(data);
-      AndroidPlatform androidPlatform = data.getAndroidPlatform();
+      AndroidPlatform androidPlatform = AndroidPlatform.getInstance(androidSdk);
       assertNotNull(androidPlatform);
       // Put default platforms in the list before non-default ones so they'll be looked at first.
       AndroidSdkUtils.setSdkData(androidPlatform.getSdkData());
@@ -307,11 +304,6 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testGradleDeprecation() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintGradleDeprecatedInspection(),
                   "Replace with com.android.library", "build.gradle", "gradle");
-  }
-
-  public void testCheckPermission() throws Exception {
-    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintUseCheckPermissionInspection(),
-                  "Change check to enforce", "/src/test/pkg/CheckPermissionTest.java", "java");
   }
 
   public void testMissingAppIcon() throws Exception {
@@ -499,6 +491,11 @@ public class AndroidLintTest extends AndroidTestCase {
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintIconDuplicatesInspection());
   }
 
+  public void testCallSuper() throws Exception {
+    myFixture.copyFileToProject(getGlobalTestDir() + "/CallSuperTest.java", "src/p1/p2/CallSuperTest.java");
+    doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintMissingSuperCallInspection());
+  }
+
   public void testSuppressingInXml1() throws Exception {
     doTestNoFix(new AndroidLintInspectionToolProvider.AndroidLintHardcodedTextInspection(),
                 "/res/layout/layout.xml", "xml");
@@ -531,6 +528,38 @@ public class AndroidLintTest extends AndroidTestCase {
     createManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection());
+  }
+
+  public void testApiCheck1b() throws Exception {
+    // Check adding a @TargetApi annotation in a Java file to suppress
+    createManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection(),
+                  "Add @TargetApi(HONEYCOMB) Annotation",
+                  "/src/p1/p2/MyActivity.java", "java");
+  }
+
+  public void testApiCheck1c() throws Exception {
+    // Check adding a @SuppressLint annotation in a Java file to suppress
+    createManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection(),
+                  "Suppress: Add @SuppressLint(\"NewApi\") annotation",
+                  "/src/p1/p2/MyActivity.java", "java");
+  }
+
+  public void testApiCheck1d() throws Exception {
+    // Check adding a tools:targetApi attribute in an XML file to suppress
+    createManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection(),
+                  "Suppress With tools:targetApi Attribute",
+                  "/res/layout/layout.xml", "xml");
+  }
+
+  public void testApiCheck1e() throws Exception {
+    // Check adding a tools:suppress attribute in an XML file to suppress
+    createManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection(),
+                  "Suppress: Add tools:ignore=\"NewApi\" attribute",
+                  "/res/layout/layout.xml", "xml");
   }
 
   public void testImlFileOutsideContentRoot() throws Exception {

@@ -35,9 +35,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Map;
 
-import static com.android.tools.idea.editors.navigation.Utilities.Line;
-import static com.android.tools.idea.editors.navigation.Utilities.diff;
-import static com.android.tools.idea.editors.navigation.Utilities.sum;
+import static com.android.tools.idea.editors.navigation.NavigationEditorUtils.Line;
+import static com.android.tools.idea.editors.navigation.NavigationEditorUtils.diff;
+import static com.android.tools.idea.editors.navigation.NavigationEditorUtils.sum;
 
 class Selections {
   private static final Color SELECTION_COLOR = JBColor.BLUE;
@@ -49,7 +49,6 @@ class Selections {
   public static Selection NULL = new EmptySelection();
 
   abstract static class Selection {
-
     protected abstract void moveTo(Point location);
 
     protected abstract Selection finaliseSelectionLocation(Point location);
@@ -58,10 +57,11 @@ class Selections {
 
     protected abstract void paintOver(Graphics g);
 
-    protected abstract void remove();
+    protected void configureInspector(Inspector inspector) { }
 
-    protected void configureInspector(Inspector inspector) {
-    }
+    protected void onSetup() { }
+
+    protected void onRemove() { }
   }
 
   private static class EmptySelection extends Selection {
@@ -81,10 +81,6 @@ class Selections {
     protected Selection finaliseSelectionLocation(Point location) {
       return this;
     }
-
-    @Override
-    protected void remove() {
-    }
   }
 
   private static void configureHyperLinkLabelForClassName(final RenderingParameters renderingParameters,
@@ -98,7 +94,7 @@ class Selections {
     link.addHyperlinkListener(new HyperlinkListener() {
       @Override
       public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
-        PsiClass psiClass = Utilities.getPsiClass(renderingParameters.configuration.getModule(), className);
+        PsiClass psiClass = NavigationEditorUtils.getPsiClass(renderingParameters.configuration.getModule(), className);
         if (psiClass != null) {
           AndroidRootComponent.launchEditor(renderingParameters, psiClass.getContainingFile(), false);
         }
@@ -170,10 +166,6 @@ class Selections {
     }
 
     @Override
-    protected void remove() {
-    }
-
-    @Override
     protected void configureInspector(Inspector inspector) {
       final Module module = myRenderingParameters.configuration.getModule();
       final TransitionInspector transitionInspector = new TransitionInspector();
@@ -195,18 +187,18 @@ class Selections {
           configureHyperlinkForXMLFile(myRenderingParameters, transitionInspector.sourceViewId, source.getViewId(), xmlFileName, true);
         }
       });
-      {
-        JComboBox comboBox = transitionInspector.gesture;
-        comboBox.addItem(Transition.PRESS);
-        comboBox.setSelectedItem(myTransition.getType());
-        comboBox.addItemListener(new ItemListener() {
-          @Override
-          public void itemStateChanged(ItemEvent itemEvent) {
-            myTransition.setType((String)itemEvent.getItem());
-            myNavigationModel.getListeners().notify(Event.update(Transition.class));
-          }
-        });
-      }
+
+      JComboBox comboBox = transitionInspector.gesture;
+      comboBox.addItem(Transition.PRESS);
+      comboBox.setSelectedItem(myTransition.getType());
+      comboBox.addItemListener(new ItemListener() {
+        @Override
+        public void itemStateChanged(ItemEvent itemEvent) {
+          myTransition.setType((String)itemEvent.getItem());
+          myNavigationModel.getListeners().notify(Event.update(Transition.class));
+        }
+      });
+
       configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.destination,
                                           myTransition.getDestination().getState().getClassName());
       inspector.setInspectorComponent(transitionInspector.container);
@@ -228,7 +220,7 @@ class Selections {
                                   Transform transform) {
       super(renderingParameters, navigationModel, component, transition);
       myMouseDownLocation = mouseDownLocation;
-      myOrigComponentLocation = myComponent.getLocation();
+      myOrigComponentLocation = AndroidRootComponent.relativePoint(myComponent.getLocation());
       myState = state;
       myTransform = transform;
     }
@@ -236,7 +228,8 @@ class Selections {
     private void moveTo(Point location, boolean snap) {
       Point newLocation = sum(diff(location, myMouseDownLocation), myOrigComponentLocation);
       if (snap) {
-        newLocation = Utilities.snap(newLocation, myTransform.modelToView(ModelDimension.create(NavigationView.MIDDLE_SNAP_GRID)));
+        newLocation = NavigationEditorUtils
+          .snap(newLocation, myTransform.modelToView(ModelDimension.create(NavigationView.MIDDLE_SNAP_GRID)));
       }
       Map<State, ModelPoint> stateToLocation = myNavigationModel.getStateToLocation();
       Point oldLocation = myTransform.modelToView(stateToLocation.get(myState));
@@ -264,32 +257,44 @@ class Selections {
     }
 
     @Override
+    protected void paint(Graphics g, boolean hasFocus) {
+    }
+
+    @Override
+    protected void onSetup() {
+      myComponent.setSelected(true);
+    }
+
+    @Override
+    protected void onRemove() {
+      myComponent.setSelected(false);
+    }
+
+    @Override
     protected void configureInspector(final Inspector inspector) {
       myState.accept(new State.Visitor() {
         @Override
         public void visit(ActivityState activity) {
           final Module module = myRenderingParameters.configuration.getModule();
           ActivityInspector activityInspector = new ActivityInspector();
-          {
-            HyperlinkLabel link = activityInspector.classNameLabel;
-            final String className = activity.getClassName();
-            configureHyperLinkLabelForClassName(myRenderingParameters, link, className);
+
+          HyperlinkLabel classNameLink = activityInspector.classNameLabel;
+          final String className = activity.getClassName();
+          configureHyperLinkLabelForClassName(myRenderingParameters, classNameLink, className);
+
+          HyperlinkLabel xmlFileLink = activityInspector.xmlFileNameLabel;
+          String xmlFileName = Analyser.getXMLFileName(module, activity.getClassName(), true);
+          configureHyperlinkForXMLFile(myRenderingParameters, xmlFileLink, xmlFileName, false);
+
+          JPanel fragmentList = activityInspector.fragmentList;
+          fragmentList.removeAll();
+          fragmentList.setLayout(new BoxLayout(fragmentList, BoxLayout.Y_AXIS));
+          for (FragmentEntry entry : activity.getFragments()) {
+            HyperlinkLabel hyperlinkLabel = new HyperlinkLabel();
+            configureHyperLinkLabelForClassName(myRenderingParameters, hyperlinkLabel, entry.className);
+            fragmentList.add(hyperlinkLabel);
           }
-          {
-            HyperlinkLabel link = activityInspector.xmlFileNameLabel;
-            String xmlFileName = Analyser.getXMLFileName(module, activity.getClassName(), true);
-            configureHyperlinkForXMLFile(myRenderingParameters, link, xmlFileName, false);
-          }
-          {
-            JPanel fragmentList = activityInspector.fragmentList;
-            fragmentList.removeAll();
-            fragmentList.setLayout(new BoxLayout(fragmentList, BoxLayout.Y_AXIS));
-            for (FragmentEntry entry : activity.getFragments()) {
-              HyperlinkLabel hyperlinkLabel = new HyperlinkLabel();
-              configureHyperLinkLabelForClassName(myRenderingParameters, hyperlinkLabel, entry.className);
-              fragmentList.add(hyperlinkLabel);
-            }
-          }
+
           inspector.setInspectorComponent(activityInspector.container);
         }
 
@@ -332,10 +337,10 @@ class Selections {
     @Override
     protected void paintOver(Graphics g) {
       int lineWidth = mySourceComponent.transform.modelToViewW(NavigationView.LINE_WIDTH);
-      Graphics2D lineGraphics = Utilities.createLineGraphics(g, lineWidth);
+      Graphics2D lineGraphics = NavigationEditorUtils.createLineGraphics(g, lineWidth);
       Rectangle sourceBounds = NavigationView.getBounds(mySourceComponent, myNamedLeaf);
       Rectangle destBounds = myNavigationView.getNamedLeafBoundsAt(mySourceComponent, myMouseLocation, false);
-      Line midLine = Utilities.getMidLine(sourceBounds, new Rectangle(myMouseLocation));
+      Line midLine = NavigationEditorUtils.getMidLine(sourceBounds, new Rectangle(myMouseLocation));
       Point[] controlPoints = NavigationView.getControlPoints(sourceBounds, destBounds, midLine);
       myNavigationView.drawTransition(lineGraphics, sourceBounds, destBounds, controlPoints);
     }
@@ -344,10 +349,6 @@ class Selections {
     protected Selection finaliseSelectionLocation(Point mouseUpLocation) {
       myNavigationView.createTransition(mySourceComponent, myNamedLeaf, mouseUpLocation);
       return NULL;
-    }
-
-    @Override
-    protected void remove() {
     }
   }
 }

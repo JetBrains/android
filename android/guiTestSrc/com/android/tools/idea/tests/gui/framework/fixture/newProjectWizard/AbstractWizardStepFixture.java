@@ -15,43 +15,45 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
+import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.JTextComponentDriver;
-import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class AbstractWizardStepFixture extends ComponentFixture<JRootPane> {
-  protected AbstractWizardStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(robot, target);
+public abstract class AbstractWizardStepFixture<S> extends JComponentFixture<S, JRootPane> {
+  protected AbstractWizardStepFixture(@NotNull Class<S> selfType, @NotNull Robot robot, @NotNull JRootPane target) {
+    super(selfType, robot, target);
   }
 
-  protected static JCheckBoxFixture getCheckBoxFixtureByLabel(Robot robot, JComponent target, @NotNull final String label) {
-    JCheckBox checkBox = robot.finder().find(target, new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
+  @NotNull
+  protected JCheckBoxFixture findCheckBoxWithLabel(@NotNull final String label) {
+    JCheckBox checkBox = robot().finder().find(target(), new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
       @Override
-      protected boolean isMatching(JCheckBox component) {
+      protected boolean isMatching(@NotNull JCheckBox component) {
         return label.equals(component.getText());
       }
     });
-    return new JCheckBoxFixture(robot, checkBox);
+    return new JCheckBoxFixture(robot(), checkBox);
   }
 
-  protected static JComboBoxFixture getComboBoxFixtureByLabel(Robot robot, JComponent target, @NotNull String label) {
-    JComboBox combo = robot.finder().findByLabel(target, label, JComboBox.class, true);
-    return new JComboBoxFixture(robot, combo);
+  @NotNull
+  protected JComboBoxFixture findComboBoxWithLabel(@NotNull String label) {
+    JComboBox comboBox = robot().finder().findByLabel(target(), label, JComboBox.class, true);
+    return new JComboBoxFixture(robot(), comboBox);
   }
 
   @NotNull
   protected JTextField findTextFieldWithLabel(@NotNull String label) {
-    return robot.finder().findByLabel(target, label, JTextField.class, true);
+    return robot().finder().findByLabel(target(), label, JTextField.class, true);
   }
 
   protected void replaceText(@NotNull JTextField textField, @NotNull String text) {
-    JTextComponentDriver driver = new JTextComponentDriver(robot);
+    JTextComponentDriver driver = new JTextComponentDriver(robot());
     driver.selectAll(textField);
     driver.enterText(textField, text);
   }

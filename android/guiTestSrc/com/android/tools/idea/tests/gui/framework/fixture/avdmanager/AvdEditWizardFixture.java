@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -23,13 +22,14 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 
-public class AvdEditWizardFixture extends AbstractWizardFixture {
 
+public class AvdEditWizardFixture extends AbstractWizardFixture<AvdEditWizardFixture> {
   public static AvdEditWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         return "Virtual Device Configuration".equals(dialog.getTitle()) && dialog.isShowing();
       }
     });
@@ -37,42 +37,26 @@ public class AvdEditWizardFixture extends AbstractWizardFixture {
   }
 
   public AvdEditWizardFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(robot, target);
+    super(AvdEditWizardFixture.class, robot, target);
   }
 
+  @NotNull
   public ChooseDeviceDefinitionStepFixture getChooseDeviceDefinitionStep() {
     JRootPane rootPane = findStepWithTitle("Select Hardware");
-    return new ChooseDeviceDefinitionStepFixture(robot, rootPane);
+    return new ChooseDeviceDefinitionStepFixture(robot(), rootPane);
   }
 
+  @NotNull
   public ChooseSystemImageStepFixture getChooseSystemImageStep() {
-    JRootPane rootPane = findStepWithTitle("System Image");
-    return new ChooseSystemImageStepFixture(robot, rootPane);
+    // Can't search for "System Image" because that appears as a label in the system image
+    // description panel on the right
+    JRootPane rootPane = findStepWithTitle("Select a system image");
+    return new ChooseSystemImageStepFixture(robot(), rootPane);
   }
 
+  @NotNull
   public ConfigureAvdOptionsStepFixture getConfigureAvdOptionsStep() {
-    JRootPane rootPane = findStepWithTitle("Configure AVD");
-    return new ConfigureAvdOptionsStepFixture(robot, rootPane);
-  }
-
-  @NotNull
-  public AvdEditWizardFixture clickNext() {
-    JButton button = findButtonByText("Next");
-    robot.click(button);
-    return this;
-  }
-
-  @NotNull
-  public AvdEditWizardFixture clickFinish() {
-    JButton button = findButtonByText("Finish");
-    robot.click(button);
-    return this;
-  }
-
-  @NotNull
-  public AvdEditWizardFixture clickCancel() {
-    JButton button = findButtonByText("Cancel");
-    robot.click(button);
-    return this;
+    JRootPane rootPane = findStepWithTitle("Verify Configuration");
+    return new ConfigureAvdOptionsStepFixture(robot(), rootPane);
   }
 }

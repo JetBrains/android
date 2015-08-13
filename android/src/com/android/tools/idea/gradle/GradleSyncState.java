@@ -15,16 +15,13 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.stats.StatsKeys;
-import com.android.tools.idea.stats.StatsTimeCollector;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPoint;
@@ -36,12 +33,9 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
@@ -52,8 +46,22 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.List;
 
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.tools.idea.gradle.util.GradleUtil.cleanUpPreferences;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
+import static com.intellij.openapi.ui.MessageType.ERROR;
+import static com.intellij.openapi.ui.MessageType.INFO;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
+
 public class GradleSyncState {
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
+  private static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("Gradle sync");
 
   private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Lists.newArrayList(
     "org.intellij.lang.xpath.xslt.associations.impl.FileAssociationsConfigurable", "com.intellij.uiDesigner.GuiDesignerConfigurable",
@@ -73,10 +81,10 @@ public class GradleSyncState {
   private final Object myLock = new Object();
 
   @GuardedBy("myLock")
-  private boolean mySyncInProgress;
+  private boolean mySyncNotificationsEnabled;
 
   @GuardedBy("myLock")
-  private boolean mySyncTransparentChangeInProgress;
+  private boolean mySyncInProgress;
 
   @NotNull
   public static GradleSyncState getInstance(@NotNull Project project) {
@@ -88,7 +96,15 @@ public class GradleSyncState {
     myMessageBus = messageBus;
   }
 
+  public boolean areSyncNotificationsEnabled() {
+    synchronized (myLock) {
+      return mySyncNotificationsEnabled;
+    }
+  }
+
   public void syncSkipped(long lastSyncTimestamp) {
+    LOG.info(String.format("Skipped sync with Gradle for project '%1$s'. Data model(s) loaded from cache.", myProject.getName()));
+
     cleanUpProjectPreferences();
     setLastGradleSyncTimestamp(lastSyncTimestamp);
     syncPublisher(new Runnable() {
@@ -97,14 +113,19 @@ public class GradleSyncState {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject);
       }
     });
+
+    enableNotifications();
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_SKIPPED, null, null);
   }
 
   public void syncStarted(boolean notifyUser) {
+    LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
+
+    addInfoToEventLog("Gradle sync started");
+
     cleanUpProjectPreferences();
-    StatsTimeCollector.start(StatsKeys.GRADLE_SYNC_PROJECT_TIME_MS);
     synchronized (myLock) {
       mySyncInProgress = true;
-      mySyncTransparentChangeInProgress = false;
     }
     if (notifyUser) {
       notifyUser();
@@ -115,9 +136,19 @@ public class GradleSyncState {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject);
       }
     });
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_STARTED, null, null);
   }
 
   public void syncFailed(@NotNull final String message) {
+    LOG.info(String.format("Sync with Gradle for project '%1$s' failed: %2$s", myProject.getName(), message));
+
+    String logMsg = "Gradle sync failed";
+    if (isNotEmpty(message)) {
+      logMsg += String.format(": %1$s", message);
+    }
+    addToEventLog(logMsg, ERROR);
+
     syncFinished();
     syncPublisher(new Runnable() {
       @Override
@@ -125,9 +156,15 @@ public class GradleSyncState {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message);
       }
     });
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_FAILED, null, null);
   }
 
   public void syncEnded() {
+    LOG.info(String.format("Sync with Gradle successful for project '%1$s'.", myProject.getName()));
+
+    addInfoToEventLog("Gradle sync completed");
+
     // Temporary: Clear resourcePrefix flag in case it was set to false when working with
     // an older model. TODO: Remove this when we no longer support models older than 0.10.
     //noinspection AssignmentToStaticFieldFromInstanceMethod
@@ -140,24 +177,40 @@ public class GradleSyncState {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject);
       }
     });
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_ENDED, null, null);
+  }
+
+
+  private void addInfoToEventLog(@NotNull String message) {
+    addToEventLog(message, INFO);
+  }
+
+  private void addToEventLog(@NotNull String message, @NotNull MessageType type) {
+    LOGGING_NOTIFICATION.createNotification(message, type).notify(myProject);
   }
 
   private void syncFinished() {
     synchronized (myLock) {
       mySyncInProgress = false;
-      mySyncTransparentChangeInProgress = false;
     }
     setLastGradleSyncTimestamp(System.currentTimeMillis());
-    StatsTimeCollector.stop(StatsKeys.GRADLE_SYNC_PROJECT_TIME_MS);
+    enableNotifications();
     notifyUser();
   }
 
   private void syncPublisher(@NotNull Runnable publishingTask) {
-    AppUIUtil.invokeLaterIfProjectAlive(myProject, publishingTask);
+    invokeLaterIfProjectAlive(myProject, publishingTask);
+  }
+
+  private void enableNotifications() {
+    synchronized (myLock) {
+      mySyncNotificationsEnabled = true;
+    }
   }
 
   public void notifyUser() {
-    AppUIUtil.invokeLaterIfProjectAlive(myProject, new Runnable() {
+    invokeLaterIfProjectAlive(myProject, new Runnable() {
       @Override
       public void run() {
         EditorNotifications notifications = EditorNotifications.getInstance(myProject);
@@ -167,7 +220,7 @@ public class GradleSyncState {
             notifications.updateNotifications(file);
           }
           catch (Throwable e) {
-            String filePath = FileUtil.toSystemDependentName(file.getPath());
+            String filePath = toSystemDependentName(file.getPath());
             String msg = String.format("Failed to update editor notifications for file '%1$s'", filePath);
             LOG.info(msg, e);
           }
@@ -202,11 +255,6 @@ public class GradleSyncState {
    */
   @NotNull
   public ThreeState isSyncNeeded() {
-    synchronized (myLock) {
-      if (mySyncTransparentChangeInProgress) {
-        return ThreeState.NO;
-      }
-    }
     long lastSync = getLastGradleSyncTimestamp();
     if (lastSync < 0) {
       // Previous sync may have failed. We don't know if a sync is needed or not. Let client code decide.
@@ -230,9 +278,9 @@ public class GradleSyncState {
     }
 
     FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
-    File settingsFilePath = new File(myProject.getBasePath(), SdkConstants.FN_SETTINGS_GRADLE);
+    File settingsFilePath = new File(getBaseDirPath(myProject), FN_SETTINGS_GRADLE);
     if (settingsFilePath.exists()) {
-      VirtualFile settingsFile = VfsUtil.findFileByIoFile(settingsFilePath, true);
+      VirtualFile settingsFile = findFileByIoFile(settingsFilePath, true);
       if (settingsFile != null && fileDocumentManager.isFileModified(settingsFile)) {
         return true;
       }
@@ -243,13 +291,13 @@ public class GradleSyncState {
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
-      VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
+      VirtualFile buildFile = getGradleBuildFile(module);
       if (buildFile != null) {
         if (fileDocumentManager.isFileModified(buildFile)) {
           return true;
         }
 
-        File buildFilePath = VfsUtilCore.virtualToIoFile(buildFile);
+        File buildFilePath = virtualToIoFile(buildFile);
         if (buildFilePath.lastModified() > referenceTimeInMillis) {
           return true;
         }
@@ -263,55 +311,14 @@ public class GradleSyncState {
       return;
     }
     try {
-      ExtensionPoint<ConfigurableEP<Configurable>>
-        projectConfigurable = Extensions.getArea(myProject).getExtensionPoint(Configurable.PROJECT_CONFIGURABLE);
+      ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable =
+        Extensions.getArea(myProject).getExtensionPoint(PROJECT_CONFIGURABLE);
 
-      GradleUtil.cleanUpPreferences(projectConfigurable, PROJECT_PREFERENCES_TO_REMOVE);
+      cleanUpPreferences(projectConfigurable, PROJECT_PREFERENCES_TO_REMOVE);
     }
     catch (Throwable e) {
       String msg = String.format("Failed to clean up preferences for project '%1$s'", myProject.getName());
       LOG.info(msg, e);
     }
-  }
-
-  /**
-   * There is an API method {@link #isSyncNeeded()} which simply compares <code>'*.gradle'</code> files modification stamp vs
-   * last gradle project refresh time and returns the result. I.e. it's assumed to say 'sync is needed' for a situation when
-   * one of the <code>'*.gradle'</code> files related to the current project is modified after the last project sync.
-   * <p/>
-   * However, there is a possible case that we change <code>'*.gradle'</code> config programmatically and want to consider that
-   * IDE and gradle projects are synced after that (e.g. when flushing IDE project structure changes into <code>'*.gradle'</code>
-   * config).
-   * <p/>
-   * This method helps with that - it executes given action (assuming that it changes <code>'*.gradle'</code> file(s) internally
-   * and updates current state in a way to consider that IDE and gradle projects are synced when the action completes.
-   * <p/>
-   * <b>Note:</b> it uses that behavior only when IDE and gradle projects are synced <code>before</code> given action execution.
-   * It just executes it and doesn't update internal state otherwise.
-   *
-   * @param action  an action to execute
-   */
-  public void runSyncTransparentAction(@NotNull Runnable action) {
-    synchronized (myLock) {
-      if (isSyncNeeded() == ThreeState.NO) {
-        mySyncTransparentChangeInProgress = true;
-      }
-    }
-    try {
-      action.run();
-    }
-    finally {
-      synchronized (myLock) {
-        if (isSyncNeeded() == ThreeState.NO) {
-          mySyncTransparentChangeInProgress = false;
-          myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
-        }
-      }
-    }
-  }
-
-  @VisibleForTesting
-  public void resetTimestamp() {
-    setLastGradleSyncTimestamp(-1L);
   }
 }

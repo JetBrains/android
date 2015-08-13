@@ -24,7 +24,7 @@ buildscript {
     dependencies {
         // This test only works on 1.1.0 and above. He we try to prevent
         // AndroidGradleTestCase from replacing this version a lower one.
-        classpath /* don't change */ 'com.android.tools.build:gradle:1.1.0-rc1'
+        classpath 'com.android.tools.build:gradle:1.2.3'
     }
 }
 

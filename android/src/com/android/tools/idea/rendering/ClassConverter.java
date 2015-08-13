@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.LayoutLog;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
 import com.intellij.openapi.util.SystemInfo;
@@ -22,20 +23,43 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.ClassReader;
 import org.jetbrains.org.objectweb.asm.ClassVisitor;
 import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.Label;
+import org.jetbrains.org.objectweb.asm.MethodVisitor;
 import org.jetbrains.org.objectweb.asm.Opcodes;
+import org.jetbrains.org.objectweb.asm.Type;
 
 import java.util.Collection;
 
 /**
- * Rewrites classes from one class file version to another.
- *
+ * Rewrites classes from one class file version to another and replaces onDraw, onMeasure and onLayout for custom views.
+ * <p/>
  * Note that it does not attempt to handle cases where class file constructs cannot
  * be represented in the target version. This is intended for uses such as for example
  * the Android R class, which is simple and can be converted to pretty much any class file
  * version, which makes it possible to load it in an IDE layout render execution context
  * even if it has been compiled for a later version.
+ * <p/>
+ * For custom views (classes that inherit from android.view.View or any widget in android.widget.*)
+ * the onDraw, onMeasure and onLayout methods are replaced with methods that capture any exceptions thrown.
+ * This way we avoid custom views breaking the rendering.
  */
 public class ClassConverter {
+  private static final String ORIGINAL_SUFFIX = "_Original";
+  private static final String ERROR_METHOD_DESCRIPTION;
+
+  static {
+    String desc;
+    try {
+       desc = Type.getMethodDescriptor(LayoutLog.class.getMethod("error", String.class, String.class, Throwable.class, Object.class));
+    }
+    catch (NoSuchMethodException e) {
+      desc = "";
+      // We control the API, so the method should always exist.
+      assert false;
+    }
+    ERROR_METHOD_DESCRIPTION = desc;
+  }
+
   /**
    * Rewrites the given class to a version runnable on the current JDK
    */
@@ -52,10 +76,13 @@ public class ClassConverter {
   public static byte[] rewriteClass(@NotNull byte[] classData, final int maxVersion, final int minVersion) {
     assert maxVersion >= minVersion;
 
-    ClassWriter classWriter = new ClassWriter(0);
+    final ClassWriter classWriter = new ClassWriter(0);
     ClassVisitor classVisitor = new ClassVisitor(Opcodes.ASM5, classWriter) {
+      private String myClassName;
+
       @Override
       public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        myClassName = name;
         if (version > maxVersion) {
           version = maxVersion;
         }
@@ -63,6 +90,80 @@ public class ClassConverter {
           version = minVersion;
         }
         super.visit(version, access, name, signature, superName, interfaces);
+      }
+
+      /**
+       * Creates a new method that calls an existing "name"_Original method and catches any exception the method might throw.
+       * The exception is logged via the Bridge logger.
+       * <p/>
+       * Only void return type methods are currently supported.
+       */
+      private void wrapMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        assert Type.getReturnType(desc) == Type.VOID_TYPE : "Non void return methods are not supported";
+
+        MethodVisitor mw = super.visitMethod(access, name, desc, signature, exceptions);
+
+        Label tryStart = new Label();
+        Label tryEnd = new Label();
+        Label tryHandler = new Label();
+        mw.visitTryCatchBlock(tryStart, tryEnd, tryHandler, "java/lang/Throwable");
+        //try{
+        mw.visitLabel(tryStart);
+        mw.visitVarInsn(Opcodes.ALOAD, 0); // this
+        // push all the parameters
+        Type[] argumentTypes = Type.getMethodType(desc).getArgumentTypes();
+        int nLocals = 1;
+        for (Type argType : argumentTypes) {
+          mw.visitVarInsn(argType.getOpcode(Opcodes.ILOAD), nLocals++);
+        }
+        mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, myClassName, name + ORIGINAL_SUFFIX, desc, false);
+        mw.visitLabel(tryEnd);
+        Label exit = new Label();
+        mw.visitJumpInsn(Opcodes.GOTO, exit);
+        //} catch(Throwable t) {
+        mw.visitLabel(tryHandler);
+        mw.visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[]{"java/lang/Throwable"});
+        int throwableIndex = nLocals++;
+        mw.visitVarInsn(Opcodes.ASTORE, throwableIndex);
+
+        //  Bridge.getLog().warning()
+        mw.visitMethodInsn(Opcodes.INVOKESTATIC, "com/android/layoutlib/bridge/Bridge", "getLog",
+                           "()Lcom/android/ide/common/rendering/api/LayoutLog;", false);
+        mw.visitLdcInsn(LayoutLog.TAG_BROKEN);
+        mw.visitLdcInsn(name + " error");
+        mw.visitVarInsn(Opcodes.ALOAD, throwableIndex);
+        mw.visitInsn(Opcodes.ACONST_NULL);
+        mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/android/ide/common/rendering/api/LayoutLog", "error", ERROR_METHOD_DESCRIPTION,
+                           false);
+
+        if ("onMeasure".equals(name)) {
+          // For onMeasure we need to generate a call to setMeasureDimension to avoid an exception when no size is set
+          mw.visitVarInsn(Opcodes.ALOAD, 0); // this
+          mw.visitInsn(Opcodes.ICONST_0); // measuredWidth
+          mw.visitInsn(Opcodes.ICONST_0); // measuredHeight
+          mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, myClassName, "setMeasuredDimension", desc, false);
+        }
+
+        mw.visitLabel(exit);
+        mw.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+        mw.visitInsn(Opcodes.RETURN);
+        mw.visitMaxs(Math.max(argumentTypes.length + 1/*args + this*/, 5/*getLog + getLog parameters*/), nLocals);
+      }
+
+      @Override
+      public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        // We catch the exceptions from any onLayout, onMeasure or onDraw that match the signature from the View methods
+        if (("onLayout".equals(name) && "(ZIIII)V".equals(desc) ||
+             "onMeasure".equals(name) && "(II)V".equals(desc) ||
+             "onDraw".equals(name) && "(Landroid/graphics/Canvas;)V".equals(desc)) &&
+            ((access & (Opcodes.ACC_PUBLIC | Opcodes.ACC_PROTECTED)) != 0)) {
+          wrapMethod(access, name, desc, signature, exceptions);
+          // Make the Original method private so that it does not end up calling the inherited method.
+          int modifiedAccess = (access & ~Opcodes.ACC_PUBLIC & ~Opcodes.ACC_PROTECTED) | Opcodes.ACC_PRIVATE;
+          return super.visitMethod(modifiedAccess, name + ORIGINAL_SUFFIX, desc, signature, exceptions);
+        }
+
+        return super.visitMethod(access, name, desc, signature, exceptions);
       }
     };
     ClassReader reader = new ClassReader(classData);

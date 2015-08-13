@@ -80,6 +80,12 @@ public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoPr
     return myProject;
   }
 
+  @NotNull
+  @Override
+  public JComponent getComponent() {
+    return myAvdDisplayList;
+  }
+
   @Override
   public void notifyRun() {
   }

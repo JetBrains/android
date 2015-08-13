@@ -40,7 +40,7 @@ public class RepositoryUrlManagerTest extends TestCase {
   public void setUp() throws Exception {
     super.setUp();
     mockSdkData = mock(AndroidSdkData.class);
-    when(mockSdkData.getPath()).thenReturn("<SDK_DIR>");
+    when(mockSdkData.getLocation()).thenReturn(new File("<SDK_DIR>"));
 
     myRepositoryUrlManager = new RepositoryUrlManager() {
       @Nullable

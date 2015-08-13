@@ -104,11 +104,7 @@ public class ConfigurationProjectState {
     if (locale == null || locale == Locale.ANY) {
       return null;
     } else {
-      if (locale.hasRegion()) {
-        return locale.language.getValue() + "-r" + locale.region.getValue();
-      } else {
-        return locale.language.getValue();
-      }
+      return locale.qualifier.getFolderSegment();
     }
   }
 

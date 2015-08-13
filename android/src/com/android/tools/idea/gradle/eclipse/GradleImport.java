@@ -182,7 +182,8 @@ public class GradleImport {
 
   public static boolean isAdtProjectDir(@Nullable File file) {
     return new File(file, ANDROID_MANIFEST_XML).exists() &&
-           (isEclipseProjectDir(file) || (new File(file, FD_RES).exists() && new File(file, FD_SOURCES).exists()));
+           (isEclipseProjectDir(file) ||
+            (new File(file, FD_RES).exists() && ((new File(file, FD_SOURCES).exists() || new File(file, "jni").exists()))));
   }
 
   @Nullable
@@ -1509,6 +1510,14 @@ public class GradleImport {
         for (File child : files) {
           copyDir(child, new File(dest, child.getName()), handler, updateEncoding, sourceModule);
         }
+      }
+
+      // Delete empty directories. This happens for example when a whole source subdirectory
+      // turns out to only contain special files that are moved elsewhere (such as .aidl or resource files)
+      File[] copied = dest.listFiles();
+      if (copied != null && copied.length == 0) {
+        //noinspection ResultOfMethodCallIgnored
+        dest.delete();
       }
     }
     else if (updateEncoding && isTextFile(source)

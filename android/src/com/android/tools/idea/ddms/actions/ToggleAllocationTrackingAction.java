@@ -17,7 +17,9 @@ package com.android.tools.idea.ddms.actions;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
+import com.android.tools.chartlib.EventData;
 import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.monitor.memory.MemoryMonitorView;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
@@ -25,56 +27,51 @@ import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-public class ToggleAllocationTrackingAction extends ToggleAction {
-  private final DeviceContext myDeviceContext;
+public class ToggleAllocationTrackingAction extends AbstractClientToggleAction {
+  private final EventData myEvents;
+  private EventData.Event myEvent;
 
-  public ToggleAllocationTrackingAction(@NotNull DeviceContext context) {
-    super(AndroidBundle.message("android.ddms.actions.allocationtracker.start"),
+  public ToggleAllocationTrackingAction(@NotNull DeviceContext context, @NotNull EventData events) {
+    super(context,
+          AndroidBundle.message("android.ddms.actions.allocationtracker.start"),
           null,
           AndroidIcons.Ddms.AllocationTracker);
-    myDeviceContext = context;
+    myEvents = events;
   }
 
   @Override
-  public boolean isSelected(AnActionEvent e) {
-    Client c = myDeviceContext.getSelectedClient();
-    if (c == null) {
-      return false;
-    }
+  protected boolean isSelected(@NotNull Client c) {
     return c.getClientData().getAllocationStatus() == ClientData.AllocationTrackingStatus.ON;
   }
 
   @Override
-  public void setSelected(AnActionEvent e, boolean state) {
-    Client c = myDeviceContext.getSelectedClient();
-    if (c == null) {
-      return;
-    }
+  protected void setSelected(@NotNull Client c) {
+    long now = System.currentTimeMillis();
     if (c.getClientData().getAllocationStatus() == ClientData.AllocationTrackingStatus.ON) {
       c.requestAllocationDetails();
       c.enableAllocationTracker(false);
+      if (myEvent == null) {
+        // Unexpected end of tracking, start now:
+        myEvent = myEvents.start(now, MemoryMonitorView.EVENT_ALLOC);
+      }
+      myEvent.stop(now);
+      myEvent = null;
     } else {
       c.enableAllocationTracker(true);
+      if (myEvent != null) {
+        // TODO add support for different end types (error, etc)
+        myEvent.stop(now);
+      }
+      myEvent = myEvents.start(now, MemoryMonitorView.EVENT_ALLOC);
     }
     c.requestAllocationStatus();
   }
 
   @Override
-  public void update(AnActionEvent e) {
-    super.update(e);
-
-    Presentation presentation = e.getPresentation();
-
-    Client c = myDeviceContext.getSelectedClient();
-    if (c == null) {
-      presentation.setEnabled(false);
-      return;
-    }
-
-    String text = c.getClientData().getAllocationStatus() == ClientData.AllocationTrackingStatus.ON ?
+  @NotNull
+  protected String getActiveText(@NotNull Client c) {
+    return c.getClientData().getAllocationStatus() == ClientData.AllocationTrackingStatus.ON ?
                   AndroidBundle.message("android.ddms.actions.allocationtracker.stop") :
                   AndroidBundle.message("android.ddms.actions.allocationtracker.start");
-    presentation.setText(text);
-    presentation.setEnabled(true);
   }
 }

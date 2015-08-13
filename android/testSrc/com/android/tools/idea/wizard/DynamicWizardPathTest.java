@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.wizard;
 
-import junit.framework.TestCase;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -25,18 +29,31 @@ import static com.android.tools.idea.wizard.DynamicWizardStepTest.DummyDynamicWi
 /**
  * Tests for {@link DynamicWizardPath}
  */
-public class DynamicWizardPathTest extends TestCase {
+public class DynamicWizardPathTest extends AndroidTestBase {
 
   DummyDynamicWizardPath myPath;
   DummyDynamicWizardStep myStep1;
   DummyDynamicWizardStep myStep2;
+  private DynamicWizard myWizard;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
+      IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
+    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
+    myFixture.setUp();
+    myWizard = new DummyDynamicWizard();
     myPath = new DummyDynamicWizardPath("TestPath");
     myStep1 = new DummyDynamicWizardStep("TestStep1");
     myStep2 = new DummyDynamicWizardStep("TestStep2");
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    super.tearDown();
+    myFixture.tearDown();
+    myWizard.doCancelAction();
   }
 
   public void testAddStep() throws Exception {
@@ -55,6 +72,8 @@ public class DynamicWizardPathTest extends TestCase {
   public void testGetStepCount() throws Exception {
     myPath.addStep(myStep1);
     myPath.addStep(myStep2);
+    myWizard.addPath(myPath);
+    myPath.attachToWizard(myWizard);
     myPath.onPathStarted(true);
 
     assertEquals(2, myPath.getVisibleStepCount());
@@ -85,7 +104,7 @@ public class DynamicWizardPathTest extends TestCase {
   public void testNavigation() throws Exception {
     myPath.addStep(myStep1);
     myPath.addStep(myStep2);
-
+    myPath.attachToWizard(myWizard);
     myPath.onPathStarted(true);
 
     assertTrue(myPath.canGoNext());
@@ -181,6 +200,28 @@ public class DynamicWizardPathTest extends TestCase {
     @Override
     public boolean performFinishingActions() {
       return true;
+    }
+  }
+
+  private static class DummyDynamicWizard extends DynamicWizard {
+    public DummyDynamicWizard() {
+      super(null, null, "DummyWizard");
+    }
+
+    @Override
+    public void performFinishingActions() {
+      // Do nothing
+    }
+
+    @NotNull
+    @Override
+    protected String getProgressTitle() {
+      return "dummy";
+    }
+
+    @Override
+    protected String getWizardActionDescription() {
+      return "Dummy action";
     }
   }
 }

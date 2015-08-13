@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.stats.Distribution;
 import com.android.tools.idea.stats.DistributionService;
 import com.intellij.openapi.diagnostic.Logger;
@@ -92,11 +91,7 @@ public class DistributionChartComponent extends JPanel {
           ++i;
         }
         if (i < myCurrentBottoms.length) {
-          mySelectedDistribution = ourDistributions.get(i);
-          if (myListener != null) {
-            myListener.onDistributionSelected(mySelectedDistribution);
-          }
-          repaint();
+          selectDistribution(ourDistributions.get(i));
         }
       }
     });
@@ -104,6 +99,14 @@ public class DistributionChartComponent extends JPanel {
       ourDistributions = DistributionService.getInstance().getDistributions();
     }
     loadFonts();
+  }
+
+  public void selectDistribution(Distribution d) {
+    mySelectedDistribution = d;
+    if (myListener != null) {
+      myListener.onDistributionSelected(mySelectedDistribution);
+    }
+    repaint();
   }
 
   private static void loadFonts() {

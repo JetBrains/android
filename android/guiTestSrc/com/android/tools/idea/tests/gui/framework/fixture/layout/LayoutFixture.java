@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
  * interact with both types of rendering containers.
  */
 public interface LayoutFixture {
-
   @NotNull
   ConfigurationToolbarFixture getToolbar();
 

@@ -52,7 +52,12 @@ public class EmbeddedDistributionPaths {
       // Release build
       File embeddedPath = new File(defaultRootDirPath, "gradle-" + GRADLE_LATEST_VERSION);
       LOG.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
-      return embeddedPath.isDirectory() ? embeddedPath : null;
+      if (embeddedPath.isDirectory()) {
+        LOG.info("Found embedded Gradle " + GRADLE_LATEST_VERSION);
+        return embeddedPath;
+      }
+      LOG.info("Unable to find embedded Gradle " + GRADLE_LATEST_VERSION);
+      return null;
     }
     // For development build, we should have Gradle installed.
     return null;

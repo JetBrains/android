@@ -18,7 +18,6 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -78,10 +77,11 @@ import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
  * <p>
  * TODO: Use {@link com.android.ide.common.resources.ResourceItemResolver} when possible!
  *
+ * TODO: Add test. Unfortunately, it looks like none of the existing Annotator classes
+ * in IntelliJ have unit tests, so there doesn't appear to be fixture support for this.
  */
 public class AndroidColorAnnotator implements Annotator {
   private static final int ICON_SIZE = 8;
-  private static final String ANDROID_COLOR_RESOURCE_PREFIX = "@android:color/";
   private static final int MAX_ICON_SIZE = 5000;
 
   @Override
@@ -364,12 +364,6 @@ public class AndroidColorAnnotator implements Annotator {
     }
   }
 
-  @VisibleForTesting
-  static String colorToString(Color color) {
-    long longColor = ((long)color.getAlpha() << 24) | (color.getRed() << 16) | (color.getGreen() << 8) | color.getBlue();
-    return '#' + Long.toHexString(longColor);
-  }
-
   private static class MyRenderer extends GutterIconRenderer {
     private final PsiElement myElement;
     private final Color myColor;
@@ -419,11 +413,11 @@ public class AndroidColorAnnotator implements Annotator {
                 @Override
                 public void run() {
                   if (myElement instanceof XmlTag) {
-                    ((XmlTag)myElement).getValue().setText(colorToString(color));
+                    ((XmlTag)myElement).getValue().setText(ResourceHelper.colorToString(color));
                   } else if (myElement instanceof XmlAttributeValue) {
                     XmlAttribute attribute = PsiTreeUtil.getParentOfType(myElement, XmlAttribute.class);
                     if (attribute != null) {
-                      attribute.setValue(colorToString(color));
+                      attribute.setValue(ResourceHelper.colorToString(color));
                     }
                   }
                 }

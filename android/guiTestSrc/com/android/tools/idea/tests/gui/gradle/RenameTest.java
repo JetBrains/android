@@ -16,8 +16,8 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameDialogFixture;
 import com.intellij.openapi.extensions.Extensions;
@@ -31,35 +31,35 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import com.intellij.refactoring.rename.DirectoryAsPackageRenameHandler;
 import com.intellij.refactoring.rename.RenameHandler;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.android.util.AndroidBundle;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.fest.swing.timing.Pause.pause;
+import static org.junit.Assert.*;
 
+@BelongsToTestGroups({PROJECT_SUPPORT})
 public class RenameTest extends GuiTestCase {
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void sourceRoot() throws Exception {
-    final IdeFrameFixture projectFrame = openSimpleApplication();
+    final IdeFrameFixture projectFrame = importSimpleApplication();
     final Project project = projectFrame.getProject();
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
       final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();
       for (final VirtualFile sourceRoot : sourceRoots) {
-        PsiDirectory directory = GuiActionRunner.execute(new GuiQuery<PsiDirectory>() {
+        PsiDirectory directory = execute(new GuiQuery<PsiDirectory>() {
           @Override
           protected PsiDirectory executeInEDT() throws Throwable {
-            PsiDirectory result = PsiManager.getInstance(project).findDirectory(sourceRoot);
-            assert result != null;
-            return result;
+            return PsiManager.getInstance(project).findDirectory(sourceRoot);
           }
         });
+        assertNotNull(directory);
         for (final RenameHandler handler : Extensions.getExtensions(RenameHandler.EP_NAME)) {
           if (handler instanceof DirectoryAsPackageRenameHandler) {
             final RenameDialogFixture renameDialog = RenameDialogFixture.startFor(directory, handler, myRobot);
@@ -68,13 +68,13 @@ public class RenameTest extends GuiTestCase {
             // 'Rename dialog' show a warning asynchronously to the text change, that's why we wait here for the
             // warning to appear
             final Ref<Boolean> ok = new Ref<Boolean>();
-            Pause.pause(new Condition("Wait until error text appears") {
+            pause(new Condition("Wait until error text appears") {
               @Override
               public boolean test() {
                 ok.set(renameDialog.warningExists(AndroidBundle.message("android.refactoring.gradle.warning.rename.source.root")));
                 return ok.get();
               }
-            }, GuiTests.SHORT_TIMEOUT);
+            }, SHORT_TIMEOUT);
             assertTrue(ok.get());
             return;
           }

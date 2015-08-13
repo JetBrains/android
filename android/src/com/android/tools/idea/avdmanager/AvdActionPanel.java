@@ -61,6 +61,8 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     void refreshAvds();
     @Nullable Project getProject();
     void notifyRun();
+
+    @NotNull JComponent getComponent();
   }
 
   public AvdActionPanel(@NotNull AvdInfo avdInfo, int numVisibleActions, AvdRefreshProvider refreshProvider) {
@@ -152,6 +154,12 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   @Override
   public Project getProject() {
     return myRefreshProvider.getProject();
+  }
+
+  @NotNull
+  @Override
+  public JComponent getComponent() {
+    return myRefreshProvider.getComponent();
   }
 
   @Override

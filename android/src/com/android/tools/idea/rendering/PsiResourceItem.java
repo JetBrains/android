@@ -114,7 +114,7 @@ public class PsiResourceItem extends ResourceItem {
       if (myTag == null) {
         // Density based resource value?
         ResourceType type = getType();
-        Density density = type == ResourceType.DRAWABLE ? getFolderDensity() : null;
+        Density density = type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP ? getFolderDensity() : null;
         if (density != null) {
           mResourceValue = new DensityBasedResourceValue(type, getName(), getSource().getFile().getAbsolutePath(), density, isFrameworks);
         } else {
@@ -158,7 +158,6 @@ public class PsiResourceItem extends ResourceItem {
         value = parseStyleValue(new StyleResourceValue(type, name, parent, isFrameworks));
         break;
       case DECLARE_STYLEABLE:
-        //noinspection deprecation
         value = parseDeclareStyleable(new DeclareStyleableResourceValue(type, name, isFrameworks));
         break;
       case ATTR:
@@ -209,7 +208,6 @@ public class PsiResourceItem extends ResourceItem {
     return tag.getAttributeValue(attributeName);
   }
 
-  @SuppressWarnings("deprecation") // support for deprecated (but supported) API
   @NonNull
   private ResourceValue parseDeclareStyleable(@NonNull DeclareStyleableResourceValue declareStyleable) {
     assert myTag != null;

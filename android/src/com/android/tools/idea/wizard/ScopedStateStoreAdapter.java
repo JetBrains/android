@@ -73,6 +73,18 @@ public class ScopedStateStoreAdapter implements AssetStudioAssetGenerator.AssetS
     myState.put(ATTR_TRIM, trim);
   }
 
+  @Override
+  public boolean isDogear() {
+    Boolean dogEar = myState.get(ATTR_DOGEAR);
+    assert dogEar != null;
+    return dogEar;
+  }
+
+  @Override
+  public void setDogear(boolean dogEar) {
+    myState.put(ATTR_DOGEAR, dogEar);
+  }
+
   @Nullable
   @Override
   public String getImagePath() {
@@ -182,5 +194,16 @@ public class ScopedStateStoreAdapter implements AssetStudioAssetGenerator.AssetS
   @Override
   public String getAssetTheme() {
     return myState.get(ATTR_ASSET_THEME);
+  }
+
+  @Nullable
+  @Override
+  public String getErrorLog()  {
+    return (String)myState.get(ATTR_ERROR_LOG);
+  }
+
+  @Override
+  public void setErrorLog(String log) {
+    myState.put(ATTR_ERROR_LOG, log);
   }
 }

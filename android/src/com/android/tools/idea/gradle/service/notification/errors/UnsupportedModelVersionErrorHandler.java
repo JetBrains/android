@@ -41,15 +41,8 @@ public class UnsupportedModelVersionErrorHandler extends AbstractSyncErrorHandle
                              @NotNull Project project) {
     String msg = error.getMessage();
     if (msg.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
-      NotificationHyperlink fixGradleModelHyperlink;
-      if (msg.contains(READ_MIGRATION_GUIDE_MSG)) {
-        fixGradleModelHyperlink = new FixGradleModelVersionHyperlink();
-      }
-      else {
-        fixGradleModelHyperlink = new FixGradleModelVersionHyperlink("Fix plugin version and re-import project", false);
-      }
-
-      updateNotification(notification, project, msg, fixGradleModelHyperlink);
+      boolean openMigrationGuide = msg.contains(READ_MIGRATION_GUIDE_MSG);
+      updateNotification(notification, project, msg, new FixGradleModelVersionHyperlink(openMigrationGuide));
       return true;
     }
     return false;

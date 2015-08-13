@@ -1,0 +1,116 @@
+/*
+ * Copyright (C) 2015 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.editors.theme.attributes.editors;
+
+
+import com.android.resources.ResourceType;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.intellij.openapi.ui.ComboBox;
+import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import javax.swing.table.TableCellRenderer;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+/**
+ * Custom Renderer and Editor for values of boolean attributes
+ * Uses a dropdown to offer the choice between true or false or having a reference
+ * Deals with references through a separate dialog window
+ */
+public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements TableCellRenderer {
+  private static final String USE_REFERENCE = "Use reference ...";
+  private static final ResourceType[] BOOLEAN_TYPE = new ResourceType[] { ResourceType.BOOL };
+  private static final String[] COMBOBOX_OPTIONS = {"true", "false", USE_REFERENCE};
+
+  private final ComboBox myComboBox;
+  private final @NotNull ThemeEditorContext myContext;
+  private @Nullable AttributeEditorValue myResultValue;
+  private String myEditedItemValue;
+
+  public BooleanRendererEditor(@NotNull ThemeEditorContext context) {
+    myContext = context;
+    myComboBox = new ComboBox();
+    myComboBox.addActionListener(new BooleanChoiceListener());
+  }
+
+  @Override
+  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    if (!(value instanceof EditedStyleItem)) {
+      return null;
+    }
+
+    EditedStyleItem item = (EditedStyleItem) value;
+
+    final Component component;
+    if (column == 0) {
+      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, ThemeEditorUtils.getDisplayHtml(item), isSelected, hasFocus, row, column);
+    } else {
+      myComboBox.removeAllItems();
+      myComboBox.addItem(item.getValue());
+      component = myComboBox;
+    }
+    return component;
+  }
+
+  @Override
+  public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
+    myEditedItemValue = value.getValue();
+    DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel(COMBOBOX_OPTIONS);
+    if (!(myEditedItemValue.equals("true") || myEditedItemValue.equals("false"))) {
+      comboBoxModel.insertElementAt(myEditedItemValue, 0);
+    }
+    myComboBox.setModel(comboBoxModel);
+    myComboBox.setSelectedItem(myEditedItemValue);
+    return myComboBox;
+  }
+
+  @Override
+  public AttributeEditorValue getEditorValue() {
+    return myResultValue;
+  }
+
+  private class BooleanChoiceListener implements ActionListener {
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      String selectedValue = (String) myComboBox.getSelectedItem();
+      if (USE_REFERENCE.equals(selectedValue)) {
+        myComboBox.hidePopup();
+        final ChooseResourceDialog dialog = new ChooseResourceDialog(myContext.getCurrentThemeModule(), BOOLEAN_TYPE, myEditedItemValue, null);
+
+        dialog.show();
+
+        if (dialog.isOK()) {
+          myResultValue = new AttributeEditorValue(dialog.getResourceName(), false);
+          stopCellEditing();
+        }
+        else {
+          myResultValue = null;
+          cancelCellEditing();
+        }
+      } else {
+        myResultValue = new AttributeEditorValue(selectedValue, false);
+        stopCellEditing();
+      }
+    }
+  }
+}

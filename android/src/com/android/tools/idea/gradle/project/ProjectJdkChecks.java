@@ -19,17 +19,14 @@ import com.android.builder.model.AndroidProject;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
-import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.Document;
@@ -39,6 +36,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.NonNavigatable;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
@@ -48,6 +46,10 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.util.List;
+
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.Projects.setHasWrongJdk;
+import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
 
 final class ProjectJdkChecks {
   private ProjectJdkChecks() {
@@ -67,8 +69,8 @@ final class ProjectJdkChecks {
 
     AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
     if (version != null && version.getFeatureLevel() >= 21) {
-      Sdk jdk = DefaultSdks.getDefaultJdk();
-      if (jdk != null && !Jdks.isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
+      Sdk jdk = IdeSdks.getJdk();
+      if (jdk != null && !isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
         Project project = module.getProject();
 
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
@@ -80,7 +82,7 @@ final class ProjectJdkChecks {
         }
         Message msg;
         String text = "compileSdkVersion " + compileTarget + " requires compiling with JDK 7";
-        VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
+        VirtualFile buildFile = getGradleBuildFile(module);
         String groupName = "Project Configuration";
 
         if (buildFile != null) {
@@ -102,13 +104,13 @@ final class ProjectJdkChecks {
           msg = new Message(project, groupName, Message.Type.ERROR, buildFile, lineNumber, column, text);
         }
         else {
-          msg = new Message(groupName, Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, text);
+          msg = new Message(groupName, Message.Type.ERROR, NonNavigatable.INSTANCE, text);
         }
 
         ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
         messages.add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
 
-        project.putUserData(Projects.HAS_WRONG_JDK, true);
+        setHasWrongJdk(project, true);
         return false;
       }
     }

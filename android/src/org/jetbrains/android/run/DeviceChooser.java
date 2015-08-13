@@ -23,6 +23,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.run.CloudConfigurationProvider;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -98,6 +99,7 @@ public class DeviceChooser implements Disposable {
   private final AndroidVersion myMinSdkVersion;
   private final IAndroidTarget myProjectTarget;
   private final EnumSet<IDevice.HardwareFeature> myRequiredHardwareFeatures;
+  private final CloudConfigurationProvider myCloudConfigurationProvider;
 
   private int[] mySelectedRows;
 
@@ -106,6 +108,8 @@ public class DeviceChooser implements Disposable {
                        @NotNull AndroidFacet facet,
                        @NotNull IAndroidTarget projectTarget,
                        @Nullable Condition<IDevice> filter) {
+
+    myCloudConfigurationProvider = CloudConfigurationProvider.getCloudConfigurationProvider();
     myFacet = facet;
     myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
@@ -332,16 +336,16 @@ public class DeviceChooser implements Disposable {
 
   @NotNull
   private IDevice[] getFilteredDevices(AndroidDebugBridge bridge) {
-    final IDevice[] devices = bridge.getDevices();
-    if (devices.length == 0 || myFilter == null) {
-      return devices;
-    }
-
     final List<IDevice> filteredDevices = new ArrayList<IDevice>();
-    for (IDevice device : devices) {
-      if (myFilter.value(device)) {
+    for (IDevice device : bridge.getDevices()) {
+      if (myFilter == null || myFilter.value(device)) {
         filteredDevices.add(device);
       }
+    }
+    // Do not filter launching cloud devices as they are just unselectable progress markers
+    // that are replaced with the actual cloud devices as soon as they are up and the actual cloud devices will be filtered above.
+    if (myCloudConfigurationProvider != null) {
+      filteredDevices.addAll(myCloudConfigurationProvider.getLaunchingCloudDevices());
     }
     return filteredDevices.toArray(new IDevice[filteredDevices.size()]);
   }

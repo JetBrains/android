@@ -16,24 +16,28 @@
 package com.android.tools.idea.sdk;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.util.ArrayUtil;
-import com.intellij.util.ObjectUtils;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static java.util.Collections.emptyList;
 
 /**
  * Utility methods related to IDEA JDKs.
@@ -117,7 +121,7 @@ public class Jdks {
     // Search for JDKs in both the suggest folder and all its sub folders.
     List<String> roots = Lists.newArrayList();
     for (String jdkHomePath : jdkHomePaths) {
-      if (!Strings.isNullOrEmpty(jdkHomePath)) {
+      if (isNotEmpty(jdkHomePath)) {
         roots.add(jdkHomePath);
         roots.addAll(getChildrenPaths(jdkHomePath));
       }
@@ -129,11 +133,10 @@ public class Jdks {
   private static List<String> getChildrenPaths(@NotNull String dirPath) {
     File dir = new File(dirPath);
     if (!dir.isDirectory()) {
-      return Collections.emptyList();
+      return emptyList();
     }
     List<String> childrenPaths = Lists.newArrayList();
-    File[] children = ObjectUtils.notNull(dir.listFiles(), ArrayUtil.EMPTY_FILE_ARRAY);
-    for (File child : children) {
+    for (File child : notNullize(dir.listFiles())) {
       boolean directory = child.isDirectory();
       if (directory) {
         childrenPaths.add(child.getAbsolutePath());
@@ -171,12 +174,11 @@ public class Jdks {
 
   private static boolean hasMatchingLangLevel(@NotNull String jdkRoot, @NotNull LanguageLevel langLevel) {
     JavaSdkVersion version = getVersion(jdkRoot);
-    //noinspection TestOnlyProblems
     return hasMatchingLangLevel(version, langLevel);
   }
 
   @VisibleForTesting
-  static boolean hasMatchingLangLevel(JavaSdkVersion jdkVersion, LanguageLevel langLevel) {
+  static boolean hasMatchingLangLevel(@NotNull JavaSdkVersion jdkVersion, @NotNull LanguageLevel langLevel) {
     LanguageLevel max = jdkVersion.getMaxLanguageLevel();
     return max.isAtLeast(langLevel);
   }
@@ -193,7 +195,7 @@ public class Jdks {
 
   @Nullable
   public static Sdk createJdk(@NotNull String jdkHomePath) {
-    Sdk jdk = SdkConfigurationUtil.createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
+    Sdk jdk = createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
     if (jdk == null) {
       String msg = String.format("Unable to create JDK from path '%1$s'", jdkHomePath);
       Logger.getInstance(Jdks.class).error(msg);

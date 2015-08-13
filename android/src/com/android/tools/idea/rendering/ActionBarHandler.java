@@ -28,6 +28,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -58,12 +59,12 @@ public class ActionBarHandler extends ActionBarCallback {
 
   private final Object myCredential;
   @NotNull
-  private RenderService myRenderService;
+  private RenderTask myRenderTask;
   @Nullable
   private List<String> myMenus;
 
-  ActionBarHandler(@NotNull RenderService renderService, @Nullable Object credential) {
-    myRenderService = renderService;
+  ActionBarHandler(@NotNull RenderTask renderTask, @Nullable Object credential) {
+    myRenderTask = renderTask;
     myCredential = credential;
   }
 
@@ -98,7 +99,7 @@ public class ActionBarHandler extends ActionBarCallback {
 
   @Override
   public boolean isOverflowPopupNeeded() {
-    return ourShowMenu || ResourceHelper.getFolderType(myRenderService.getPsiFile()) == ResourceFolderType.MENU;
+    return ourShowMenu || ResourceHelper.getFolderType(myRenderTask.getPsiFile()) == ResourceFolderType.MENU;
   }
 
   @Override
@@ -109,20 +110,20 @@ public class ActionBarHandler extends ActionBarCallback {
 
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      final XmlFile xmlFile = myRenderService.getPsiFile();
-      String commaSeparatedMenus = AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
+      final XmlFile xmlFile = myRenderTask.getPsiFile();
+      String commaSeparatedMenus = xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
       if (commaSeparatedMenus != null) {
         myMenus = new ArrayList<String>();
         Iterables.addAll(myMenus, Splitter.on(',').trimResults().omitEmptyStrings().split(commaSeparatedMenus));
       } else {
-        final String fqn = AndroidPsiUtils.getDeclaredContextFqcn(myRenderService.getModule(), xmlFile);
+        final String fqn = xmlFile == null ? null : AndroidPsiUtils.getDeclaredContextFqcn(myRenderTask.getModule(), xmlFile);
         if (fqn != null) {
-          ApplicationManager.getApplication().runReadAction(new Runnable() {
+          final Project project = xmlFile.getProject();
+          DumbService.getInstance(project).smartInvokeLater(new Runnable() {
             @Override
             public void run() {
               // Glance at the onCreateOptionsMenu of the associated context and use any menus found there.
               // This is just a simple textual search; we need to replace this with a proper model lookup.
-              Project project = xmlFile.getProject();
               PsiClass clz = JavaPsiFacade.getInstance(project).findClass(fqn, GlobalSearchScope.allScope(project));
               if (clz != null) {
                 for (PsiMethod method : clz.findMethodsByName(ON_CREATE_OPTIONS_MENU, true)) {
@@ -176,8 +177,8 @@ public class ActionBarHandler extends ActionBarCallback {
 
   @Override
   public int getNavigationMode() {
-    XmlFile xmlFile = myRenderService.getPsiFile();
-    String navMode = StringUtil.notNullize(AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_NAV_MODE, TOOLS_URI)).trim();
+    XmlFile xmlFile = myRenderTask.getPsiFile();
+    String navMode = StringUtil.notNullize(xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_NAV_MODE, TOOLS_URI)).trim();
     if (navMode.equalsIgnoreCase(VALUE_NAV_MODE_TABS)) {
       return NAVIGATION_MODE_TABS;
     }
@@ -199,8 +200,8 @@ public class ActionBarHandler extends ActionBarCallback {
   private ActivityAttributes getActivityAttributes() {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      ManifestInfo manifest = ManifestInfo.get(myRenderService.getModule(), false);
-      String activity = StringUtil.notNullize(myRenderService.getConfiguration().getActivity());
+      ManifestInfo manifest = ManifestInfo.get(myRenderTask.getModule(), false);
+      String activity = StringUtil.notNullize(myRenderTask.getConfiguration().getActivity());
       return manifest.getActivityAttributes(activity);
     } finally {
       RenderSecurityManager.exitSafeRegion(token);

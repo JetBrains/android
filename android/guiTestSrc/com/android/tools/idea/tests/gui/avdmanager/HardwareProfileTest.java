@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.avdmanager;
 
-import com.android.resources.Navigation;
-import com.android.tools.idea.avdmanager.DeviceEditWizard;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
 
 /**
  * Tests exercising the UI for hardware profile management
@@ -29,21 +29,29 @@ public class HardwareProfileTest extends GuiTestCase {
 
   @Test
   public void testCreateHardwareProfile() throws Exception {
-    IdeFrameFixture ideFrame = openSimpleApplication();
+    IdeFrameFixture ideFrame = importSimpleApplication();
     AvdManagerDialogFixture avdManagerDialog = ideFrame.invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
     ChooseDeviceDefinitionStepFixture chooseDeviceDefinitionStep = avdEditWizard.getChooseDeviceDefinitionStep();
+
+    // UI tests are not as isolated as we would like, make sure there's no name clash.
+    final String deviceName = "device-" + System.currentTimeMillis();
+    assertFalse(
+      "Device with this name already exists, no point in testing.",
+      chooseDeviceDefinitionStep.deviceExists(deviceName));
+
     DeviceEditWizardFixture deviceEditWizard = chooseDeviceDefinitionStep.createNewDevice();
     ConfigureDeviceOptionsStepFixture deviceOptionsStep = deviceEditWizard.getConfigureDeviceOptionsStep();
     deviceOptionsStep
-      .setDeviceName("Test Device")
-      .setHasFrontCamera(false)
+      .setDeviceName(deviceName)
+      .selectHasFrontCamera(false)
       .setScreenResolutionX(1280)
       .setScreenResolutionY(920)
       .setScreenSize(5.2);
-    deviceEditWizard.clickFinish();
-    chooseDeviceDefinitionStep.selectDeviceByName("Test Device");
-    chooseDeviceDefinitionStep.removeDeviceByName("Test Device");
+    myRobot.waitForIdle();
+    deviceEditWizard.clickOk();
+    chooseDeviceDefinitionStep.selectDeviceByName(deviceName);
+    chooseDeviceDefinitionStep.removeDeviceByName(deviceName);
     avdEditWizard.clickCancel();
     avdManagerDialog.close();
   }
