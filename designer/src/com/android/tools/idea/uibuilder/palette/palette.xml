@@ -169,6 +169,7 @@
              version="14"
              tooltip="A Switch is a two-state toggle switch widget that can select between two options."/>
 
+    <!-- dynamic choose SwitchCompat from appcompat if minVersion < 11 -->
     <creation>
       <![CDATA[
           <Switch
@@ -670,6 +671,7 @@
              version="14"
              tooltip="Space is a lightweight View subclass that may be used to create gaps between components in general purpose layouts."/>
 
+    <!-- dynamic choose Space from support.v4 if minVersion < 14 -->
     <creation>
       <![CDATA[
           <Space
@@ -856,6 +858,7 @@
     <properties inplace="queryHint"
                 important="iconifiedByDefault queryHint imeOptions inputType"/>
 
+    <!-- dynamic choose appcompat if minVersion < 11 -->
     <creation>
       <![CDATA[
           <SearchView
@@ -975,6 +978,28 @@
           <ScrollView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+          />
+      ]]>
+    </creation>
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
+        layout="com.intellij.android.designer.model.RadScrollViewLayout"
+        class="android.support.v4.widget.NestedScrollView"
+        tag="android.support.v4.widget.NestedScrollView"
+        fill="both">
+
+    <palette title="NestedScrollView"
+             icon="AndroidIcons.Views.ScrollView"
+             tooltip="Vertical scroll container that supports nested scrolling in connection with CoordinatorLayout."/>
+
+    <morphing to="ScrollView"/>
+
+    <creation>
+      <![CDATA[
+          <android.support.v4.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
           />
       ]]>
     </creation>
@@ -1405,7 +1430,179 @@
     </creation>
   </meta>
 
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
+        class="com.google.android.gms.ads.AdView"
+        library="play-services-ads"
+        tag="com.google.android.gms.ads.AdView">
 
+    <palette title="Ad View" icon="AndroidIcons.Views.ToggleButton"/>
+
+    <creation>
+      <![CDATA[
+        <com.google.android.gms.ads.AdView
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          app:adSize="BANNER"
+          app:adUnitId="@string/banner_ad_unit_id">
+        </com.google.android.gms.ads.AdView>
+      ]]>
+    </creation>
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
+        class="com.google.android.gms.maps.MapFragment"
+        library="play-services"
+        tag="com.google.android.gms.maps.MapFragment">
+
+    <palette title="MapFragment" icon="AndroidIcons.Views.ToggleButton"/>
+
+    <creation>
+      <![CDATA[
+        <fragment
+          android:name="com.google.android.gms.maps.MapFragment"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"/>
+      ]]>
+    </creation>
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
+        class="com.google.android.gms.maps.MapView"
+        library="play-services"
+        tag="com.google.android.gms.maps.MapView">
+
+    <palette title="MapView" icon="AndroidIcons.Views.ToggleButton"/>
+
+    <creation>
+      <![CDATA[
+        <com.google.android.gms.maps.MapView
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"/>
+      ]]>
+    </creation>
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
+        class="android.support.v7.widget.ToolBar"
+        library="appcompat-v7"
+        tag="android.support.v7.widget.ToolBar">
+
+    <palette title="ToolBar" icon="AndroidIcons.Views.ToggleButton"/>
+
+    <creation>
+      <![CDATA[
+          <android.support.v7.widget.ToolBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+      ]]>
+    </creation>
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
+        class="android.support.v7.widget.RecyclerView"
+        library="recyclerview-v7"
+        tag="android.support.v7.widget.RecyclerView">
+
+    <palette title="RecycleView" icon="AndroidIcons.Views.ToggleButton"/>
+
+    <creation>
+      <![CDATA[
+          <android.support.v7.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+      ]]>
+    </creation>
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
+        class="android.support.v7.widget.CardView"
+        library="cardview-v7"
+        tag="android.support.v7.widget.CardView">
+
+    <palette title="CardView" icon="AndroidIcons.Views.ToggleButton"/>
+
+    <creation>
+      <![CDATA[
+          <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+          />
+      ]]>
+    </creation>
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
+        library="leanback-v17"
+        tag="BrowseFragment">
+
+    <palette title="BrowseFragment" icon="AndroidIcons.Views.ToggleButton"/>
+
+    <creation>
+      <![CDATA[
+        <fragment
+          android:name="android.support.v17.leanback.app.BrowseFragment"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          tools:layout="@layout/lb_browse_fragment"
+        />
+      ]]>
+    </creation>
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
+        library="leanback-v17"
+        tag="DetailsFragment">
+
+    <palette title="DetailsFragment" icon="AndroidIcons.Views.ToggleButton"/>
+
+    <creation>
+      <![CDATA[
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            android:name="android.support.v17.leanback.app.DetailsFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout="@layout/lb_details_fragment"
+        />
+      ]]>
+    </creation>
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
+        library="leanback-v17"
+        tag="PlaybackOverlayFragment">
+
+    <palette title="PlaybackOverlayFragment" icon="AndroidIcons.Views.ToggleButton"/>
+
+    <creation>
+      <![CDATA[
+        <fragment
+            android:name="android.support.v17.leanback.app.PlaybackOverlayFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout="@layout/lb_details_fragment"
+        />
+      ]]>
+    </creation>
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewComponent"
+        library="leanback-v17"
+        tag="SearchFragment">
+
+    <palette title="SearchFragment" icon="AndroidIcons.Views.ToggleButton"/>
+
+    <creation>
+      <![CDATA[
+        <fragment
+            android:name="android.support.v17.leanback.app.SearchFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout="@layout/lb_search_fragment"
+        />
+      ]]>
+    </creation>
+  </meta>
 
   <!-- ================= Layouts ================= -->
 
@@ -1481,6 +1678,27 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
           </android.support.design.widget.CoordinatorLayout>
+      ]]>
+    </creation>
+
+  </meta>
+
+  <meta model="com.intellij.android.designer.model.RadViewContainer"
+        class="android.support.design.widget.TextInputLayout"
+        library="design"
+        tag="android.support.design.widget.TextInputLayout">
+
+    <palette title="TextInputLayout" icon="AndroidIcons.Views.LinearLayout"
+             tooltip="TextInputLayout shows a hint of what the user is typing."/>
+
+    <morphing to="LinearLayout"/>
+
+    <creation>
+      <![CDATA[
+          <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+          </android.support.design.widget.TextInputLayout>
       ]]>
     </creation>
 
@@ -1643,7 +1861,6 @@
     <creation>
       <![CDATA[
           <android.support.v7.widget.GridLayout
-            xmlns:grid="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
           </android.support.v7.widget.GridLayout>
@@ -1684,92 +1901,14 @@
   <!-- ================= Palette ================= -->
 
   <palette>
-    <group name="Layouts">
-      <item tag="FrameLayout"/>
-      <item tag="android.support.design.widget.CoordinatorLayout"/>
-      <item tag="android.support.design.widget.AppBarLayout"/>
-      <item tag="LinearLayout"
-            title="LinearLayout (Horizontal)"
-            icon="AndroidIcons.Views.LinearLayout"
-            tooltip="A Layout that arranges its children in a single row.">
-        <item title="LinearLayout (Vertical)"
-              icon="AndroidIcons.Views.VerticalLinearLayout"
-              tooltip="A Layout that arranges its children in a single column.">
-          <creation>
-            <![CDATA[
-            <LinearLayout
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
-            </LinearLayout>
-        ]]>
-          </creation>
-        </item>
-      </item>
-      <item tag="TableLayout"/>
-      <item tag="TableRow"/>
-      <item tag="GridLayout"/>
-      <!-- <item tag="android.support.v7.widget.GridLayout"/> -->
-      <item tag="RelativeLayout"/>
-    </group>
     <group name="Widgets">
-      <item tag="TextView" title="Plain TextView" id="TextView">
-        <item title="Large Text" id="LargeText">
-          <creation>
-            <![CDATA[
-              <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Large Text"
-              />
-            ]]>
-          </creation>
-        </item>
-        <item title="Medium Text" id="MediumText">
-          <creation>
-            <![CDATA[
-              <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Medium Text"
-              />
-            ]]>
-          </creation>
-        </item>
-        <item title="Small Text" id="SmallText">
-          <creation>
-            <![CDATA[
-              <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="Small Text"
-              />
-            ]]>
-          </creation>
-        </item>
-      </item>
-      <item tag="Button">
-        <item title="Small Button" id="SmallButton">
-          <creation>
-            <![CDATA[
-              <Button
-                style="?android:attr/buttonStyleSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="New Button"
-              />
-            ]]>
-          </creation>
-        </item>
-      </item>
-      <item tag="RadioButton"/>
-      <item tag="CheckBox"/>
-      <item tag="Switch"/>
+      <item tag="TextView"/>
+      <item tag="Button"/>
       <item tag="ToggleButton"/>
-      <item tag="android.support.design.widget.FloatingActionButton"/>
+      <item tag="CheckBox"/>
+      <item tag="RadioButton"/>
+      <item tag="CheckedTextView"/>
+      <item tag="Spinner"/>
       <item tag="ProgressBar"
             title="ProgressBar (Large)"
             id="ProgressBarLarge">
@@ -1819,11 +1958,10 @@
         </item>
       </item>
       <item tag="SeekBar"/>
+      <item tag="QuickContactBadge"/>
       <item tag="RatingBar"/>
-      <item tag="Spinner"/>
-      <item tag="ImageButton"/>
-      <item tag="ImageView"/>
-      <item tag="WebView"/>
+      <item tag="Switch"/>
+      <item tag="Space"/>
     </group>
 
     <group name="Text Fields">
@@ -1977,6 +2115,36 @@
           </creation>
         </item>
       </item>
+      <item tag="ExtractEditText"/>
+      <item tag="AutoCompleteTextView"/>
+      <item tag="MultiAutoCompleteTextView"/>
+    </group>
+
+    <group name="Layouts">
+      <item tag="GridLayout"/>
+      <item tag="FrameLayout"/>
+      <item tag="LinearLayout"
+            title="LinearLayout (Horizontal)"
+            icon="AndroidIcons.Views.LinearLayout"
+            tooltip="A Layout that arranges its children in a single row.">
+        <item title="LinearLayout (Vertical)"
+              icon="AndroidIcons.Views.VerticalLinearLayout"
+              tooltip="A Layout that arranges its children in a single column.">
+          <creation>
+            <![CDATA[
+              <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+              </LinearLayout>
+            ]]>
+          </creation>
+        </item>
+      </item>
+      <item tag="RelativeLayout"/>
+      <item tag="TableLayout"/>
+      <item tag="TableRow"/>
+      <item tag="fragment"/>
     </group>
 
     <group name="Containers">
@@ -1986,52 +2154,72 @@
       <item tag="ExpandableListView"/>
       <item tag="ScrollView"/>
       <item tag="HorizontalScrollView"/>
-      <item tag="SearchView"/>
       <item tag="TabHost"/>
-      <item tag="SlidingDrawer"/>
+      <item tag="WebView"/>
+      <item tag="SearchView"/>
+    </group>
+    <group name="Images &amp; Media">
+      <item tag="ImageButton"/>
+      <item tag="ImageView"/>
       <item tag="Gallery"/>
+      <item tag="MediaController"/>
       <item tag="VideoView"/>
-      <item tag="TwoLineListItem"/>
-      <item tag="DialerFilter"/>
     </group>
     <group name="Date &amp; Time">
-      <item tag="TextClock"/>
-      <item tag="AnalogClock"/>
-      <item tag="DigitalClock"/>
-      <item tag="Chronometer"/>
-      <item tag="DatePicker"/>
       <item tag="TimePicker"/>
+      <item tag="DatePicker"/>
       <item tag="CalendarView"/>
+      <item tag="Chronometer"/>
+      <item tag="AnalogClock"/>
+      <item tag="TextClock"/>
     </group>
-    <group name="Expert">
-      <item tag="Space"/>
-      <item tag="CheckedTextView"/>
-      <item tag="QuickContactBadge"/>
-      <item tag="ExtractEditText"/>
-      <item tag="AutoCompleteTextView"/>
-      <item tag="MultiAutoCompleteTextView"/>
-      <item tag="NumberPicker"/>
-      <item tag="ZoomButton"/>
-      <item tag="ZoomControls"/>
-      <item tag="MediaController"/>
-      <item tag="GestureOverlayView"/>
-      <item tag="SurfaceView"/>
-      <item tag="TextureView"/>
+    <group name="Transitions">
+      <item tag="ImageSwitcher"/>
+      <item tag="AdapterViewFlipper"/>
       <item tag="StackView"/>
-      <item tag="ViewStub"/>
+      <item tag="TextSwitcher"/>
       <item tag="ViewAnimator"/>
       <item tag="ViewFlipper"/>
       <item tag="ViewSwitcher"/>
-      <item tag="ImageSwitcher"/>
-      <item tag="TextSwitcher"/>
-      <item tag="AdapterViewFlipper"/>
     </group>
-    <group name="Custom">
+    <group name="Advanced">
       <item tag="include"/>
-      <item tag="fragment"/>
       <item tag="requestFocus"/>
       <item tag="view"/>
+      <item tag="ViewStub"/>
+      <item tag="GestureOverlayView"/>
+      <item tag="TextureView"/>
+      <item tag="SurfaceView"/>
+      <item tag="NumberPicker"/>
+      <item tag="ZoomButton"/>
+      <item tag="ZoomControls"/>
+      <item tag="DialerFilter"/>
+      <item tag="TwoLineListItem"/>
+    </group>
+    <group name="Custom - Google">
+      <item tag="com.google.android.gms.ads.AdView"/>
+      <item tag="com.google.android.gms.maps.MapFragment"/>
+      <item tag="com.google.android.gms.maps.MapView"/>
+    </group>
+    <group name="Custom - Design">
+      <item tag="android.support.design.widget.CoordinatorLayout"/>
+      <item tag="android.support.design.widget.AppBarLayout"/>
+      <item tag="android.support.v4.widget.NestedScrollView"/>
+      <item tag="android.support.design.widget.FloatingActionButton"/>
+      <item tag="android.support.design.widget.TextInputLayout"/>
+      <!-- Tabs -->
+    </group>
+    <group name="Custom - AppCompat">
+      <item tag="android.support.v7.widget.CardView"/>
+      <item tag="android.support.v7.widget.GridLayout"/>
+      <item tag="android.support.v7.widget.RecyclerView"/>
+      <item tag="android.support.v7.widget.ToolBar"/>
+    </group>
+    <group name="Custom - Leanback">
+      <item tag="BrowseFragment"/>
+      <item tag="DetailsFragment"/>
+      <item tag="PlaybackOverlayFragment"/>
+      <item tag="SearchFragment"/>
     </group>
   </palette>
-
 </meta-model>
