@@ -18,6 +18,8 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -37,14 +39,13 @@ public class WipeAvdDataAction extends AvdUiAction {
       return;
     }
     if (connection.isAvdRunning(avdInfo)) {
-      JOptionPane.showMessageDialog(null, "The selected AVD is currently running in the Emulator. " +
-                                          "Please exit the emulator instance and try wiping again.", "Cannot Wipe A Running AVD",
-                                    JOptionPane.ERROR_MESSAGE);
+      Messages.showErrorDialog((Project)null, "The selected AVD is currently running in the Emulator. " +
+                                              "Please exit the emulator instance and try wiping again.", "Cannot Wipe A Running AVD");
       return;
     }
-    int result = JOptionPane.showConfirmDialog(null, "Do you really want to wipe user files from AVD " + avdInfo.getName() + "?",
-                                               "Confirm Data Wipe", JOptionPane.YES_NO_OPTION);
-    if (result == JOptionPane.YES_OPTION) {
+    int result = Messages.showYesNoDialog((Project)null, "Do you really want to wipe user files from AVD " + avdInfo.getName() + "?",
+                                          "Confirm Data Wipe", AllIcons.General.QuestionDialog);
+    if (result == Messages.YES) {
       connection.wipeUserData(avdInfo);
       refreshAvds();
     }

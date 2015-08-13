@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
-import com.android.tools.idea.gradle.service.notification.hyperlink.*;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.ToggleOfflineModeHyperlink;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -34,7 +34,7 @@ public class UnknownHostErrorHandler extends AbstractSyncErrorHandler {
 
   @VisibleForTesting
   static final String GRADLE_PROXY_ACCESS_DOCS_URL =
-    "http://www.gradle.org/docs/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy";
+    "http://gradle.org/docs/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy";
 
   @Override
   public boolean handleError(@NotNull List<String> message,
@@ -46,17 +46,6 @@ public class UnknownHostErrorHandler extends AbstractSyncErrorHandler {
     Matcher matcher = UNKNOWN_HOST_PATTERN.matcher(firstLine);
     if (matcher.matches()) {
       List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-
-      HttpConfigurable httpSettings = HttpConfigurable.getInstance();
-      String host = matcher.group(1);
-      // We offer to disable or edit proxy settings if
-      // 1. proxy settings are "on"
-      // 2. the proxy host in stored in settings is the same as the one from the error message
-      if (httpSettings.USE_HTTP_PROXY && Objects.equal(host, httpSettings.PROXY_HOST)) {
-        hyperlinks.add(new DisableIdeProxySettingsHyperlink());
-        hyperlinks.add(new OpenHttpSettingsHyperlink());
-      }
-
       NotificationHyperlink enableOfflineMode = ToggleOfflineModeHyperlink.enableOfflineMode(project);
       if (enableOfflineMode != null) {
         hyperlinks.add(enableOfflineMode);
@@ -65,7 +54,6 @@ public class UnknownHostErrorHandler extends AbstractSyncErrorHandler {
       updateNotification(notification, project, error.getMessage(), hyperlinks);
       return true;
     }
-
     return false;
   }
 }

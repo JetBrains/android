@@ -15,36 +15,34 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 
-public abstract class NewProjectImportGradleSyncListener implements GradleSyncListener {
-  @Override
-  public void syncStarted(@NotNull Project project) {
-  }
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.Projects.open;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
+import static com.intellij.openapi.module.StdModuleTypes.JAVA;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.wm.ToolWindowId.PROJECT_VIEW;
 
+public abstract class NewProjectImportGradleSyncListener extends GradleSyncListener.Adapter {
   @Override
   public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -64,7 +62,7 @@ public abstract class NewProjectImportGradleSyncListener implements GradleSyncLi
     });
 
     // Just by opening the project, Studio will show the error message in a balloon notification, automatically.
-    Projects.open(project);
+    open(project);
 
     // Activate "Project View" so users don't get an empty window.
     activateProjectView(project);
@@ -74,15 +72,15 @@ public abstract class NewProjectImportGradleSyncListener implements GradleSyncLi
   public static void createTopLevelModule(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
 
-    File projectRootDir = new File(project.getBasePath());
-    VirtualFile contentRoot = VfsUtil.findFileByIoFile(projectRootDir, true);
+    File projectRootDir = getBaseDirPath(project);
+    VirtualFile contentRoot = findFileByIoFile(projectRootDir, true);
 
     if (contentRoot != null) {
       File moduleFile = new File(projectRootDir, projectRootDir.getName() + ".iml");
-      Module module = moduleManager.newModule(moduleFile.getPath(), StdModuleTypes.JAVA.getId());
+      Module module = moduleManager.newModule(moduleFile.getPath(), JAVA.getId());
 
       // This prevents the balloon "Unsupported Modules detected".
-      module.setOption(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY, GradleConstants.SYSTEM_ID.getId());
+      module.setOption(EXTERNAL_SYSTEM_ID_KEY, GRADLE_SYSTEM_ID.getId());
 
       ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
       model.addContentEntry(contentRoot);
@@ -97,7 +95,7 @@ public abstract class NewProjectImportGradleSyncListener implements GradleSyncLi
           gradleFacet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
           facetModel.addFacet(gradleFacet);
         }
-        gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = SdkConstants.GRADLE_PATH_SEPARATOR;
+        gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR;
 
         // Add "android" facet to avoid the balloon "Android Framework detected".
         AndroidFacet androidFacet = AndroidFacet.getInstance(module);
@@ -116,7 +114,7 @@ public abstract class NewProjectImportGradleSyncListener implements GradleSyncLi
   }
 
   public static void activateProjectView(@NotNull Project project) {
-    ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.PROJECT_VIEW);
+    ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(PROJECT_VIEW);
     if (window != null) {
       window.activate(null, false);
     }

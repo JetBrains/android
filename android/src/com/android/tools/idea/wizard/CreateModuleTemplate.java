@@ -17,41 +17,28 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.Maps;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Map;
 
 /**
- * A entry used by {@link com.android.tools.idea.wizard.ChooseModuleTypeStep} to represent an option for a module
+ * A entry used by {@link ChooseModuleTypeStep} to represent an option for a module
  * type to create
  */
-public class CreateModuleTemplate implements ModuleTemplate {
-  public final TemplateMetadata templateMetadata;
-  public final FormFactorUtils.FormFactor formFactor;
-  private final boolean myGallery;
-  private String myName;
-  private boolean myDoesCreate;
+public class CreateModuleTemplate extends AbstractModuleTemplate {
   private final Map<ScopedStateStore.Key<?>, Object> myCustomValues = Maps.newHashMap();
+  @Nullable private final TemplateMetadata templateMetadata;
+  private final String myName;
 
   public CreateModuleTemplate(@Nullable TemplateMetadata metadata,
                               @Nullable FormFactorUtils.FormFactor formFactor,
-                              @Nullable String name,
-                              boolean creates,
-                              boolean gallery) {
-    myDoesCreate = creates;
+                              @NotNull String name,
+                              @NotNull Icon icon) {
+    super(name, metadata != null ? metadata.getDescription() : null, formFactor, icon);
     templateMetadata = metadata;
     myName = name;
-    this.formFactor = formFactor;
-    myGallery = gallery;
-  }
-
-  public boolean createsModule() {
-    return myDoesCreate;
-  }
-
-  public boolean importsModule() {
-    return !myDoesCreate;
   }
 
   @Override
@@ -59,42 +46,20 @@ public class CreateModuleTemplate implements ModuleTemplate {
     return myName;
   }
 
-  @Override
-  public boolean isGalleryModuleType() {
-    return myGallery;
-  }
-
   @Nullable
-  @Override
-  public Icon getIcon() {
-    return formFactor != null ? formFactor.getLargeIcon() : null;
+  public TemplateMetadata getMetadata() {
+    return templateMetadata;
   }
 
   @Override
-  public String getName() {
-    return myName;
-  }
-
-  @Nullable
-  @Override
-  public String getDescription() {
-    return templateMetadata != null ? templateMetadata.getDescription() : null;
-  }
-
-  @Override
-  public void updateWizardStateOnSelection(ScopedStateStore state) {
+  public void updateWizardState(@NotNull ScopedStateStore state) {
     for (ScopedStateStore.Key<?> k : myCustomValues.keySet()) {
       state.unsafePut(k, myCustomValues.get(k));
     }
   }
 
-  @Nullable
-  @Override
-  public FormFactorUtils.FormFactor getFormFactor() {
-    return formFactor;
-  }
-
   public <T> void setCustomValue(ScopedStateStore.Key<? super T> key, T value) {
     myCustomValues.put(key, value);
   }
+
 }

@@ -15,45 +15,50 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.google.common.collect.Multimap;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-import org.jetbrains.jps.model.java.JavaSourceRootType;
-import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Collection;
 
+import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
+import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+@BelongsToTestGroups({PROJECT_SUPPORT})
+@IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class BuildVariantsTest extends GuiTestCase {
-
   private static final String MODULE_NAME = "app";
 
   @Test @IdeGuiTest
   public void testSwitchVariantWithFlavor() throws IOException {
-    IdeFrameFixture projectFrame = openProject("Flavoredlib");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("Flavoredlib");
 
     BuildVariantsToolWindowFixture buildVariants = projectFrame.getBuildVariantsWindow();
     buildVariants.selectVariantForModule(MODULE_NAME, "flavor1Release");
 
     String generatedSourceDirPath = MODULE_NAME + "/build/generated/source/";
 
-    assertThat(getSourceFolders(projectFrame, JavaSourceRootType.SOURCE))
-      .contains(generatedSourceDirPath + "r/flavor1/release", generatedSourceDirPath + "aidl/flavor1/release",
-                generatedSourceDirPath + "buildConfig/flavor1/release", generatedSourceDirPath + "rs/flavor1/release",
-                MODULE_NAME + "/src/flavor1Release/aidl", MODULE_NAME + "/src/flavor1Release/java", MODULE_NAME + "/src/flavor1Release/jni",
-                MODULE_NAME + "/src/flavor1Release/rs");
+    Collection<String> sourceFolders = projectFrame.getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
+    assertThat(sourceFolders).contains(generatedSourceDirPath + "r/flavor1/release",
+                                       generatedSourceDirPath + "aidl/flavor1/release",
+                                       generatedSourceDirPath + "buildConfig/flavor1/release",
+                                       generatedSourceDirPath + "rs/flavor1/release",
+                                       MODULE_NAME + "/src/flavor1Release/aidl",
+                                       MODULE_NAME + "/src/flavor1Release/java",
+                                       MODULE_NAME + "/src/flavor1Release/jni",
+                                       MODULE_NAME + "/src/flavor1Release/rs");
 
     Module appModule = projectFrame.getModule(MODULE_NAME);
     AndroidFacet androidFacet = AndroidFacet.getInstance(appModule);
@@ -66,47 +71,32 @@ public class BuildVariantsTest extends GuiTestCase {
 
     buildVariants.selectVariantForModule(MODULE_NAME, "flavor1Debug");
 
-    assertThat(getSourceFolders(projectFrame, JavaSourceRootType.SOURCE))
-      .contains(generatedSourceDirPath + "r/flavor1/debug", generatedSourceDirPath + "aidl/flavor1/debug",
-                generatedSourceDirPath + "buildConfig/flavor1/debug", generatedSourceDirPath + "rs/flavor1/debug",
-                MODULE_NAME + "/src/flavor1Debug/aidl", MODULE_NAME + "/src/flavor1Debug/java", MODULE_NAME + "/src/flavor1Debug/jni",
-                MODULE_NAME + "/src/flavor1Debug/rs");
+    sourceFolders = projectFrame.getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
+    assertThat(sourceFolders).contains(generatedSourceDirPath + "r/flavor1/debug", generatedSourceDirPath + "aidl/flavor1/debug",
+                                       generatedSourceDirPath + "buildConfig/flavor1/debug", generatedSourceDirPath + "rs/flavor1/debug",
+                                       MODULE_NAME + "/src/flavor1Debug/aidl", MODULE_NAME + "/src/flavor1Debug/java",
+                                       MODULE_NAME + "/src/flavor1Debug/jni", MODULE_NAME + "/src/flavor1Debug/rs");
 
     assertEquals("assembleFlavor1Debug", androidFacetProperties.ASSEMBLE_TASK_NAME);
     // Verifies that https://code.google.com/p/android/issues/detail?id=83077 is not a bug.
-    assertEquals("assembleFlavor1DebugTest", androidFacetProperties.ASSEMBLE_TEST_TASK_NAME);
+    assertEquals("assembleFlavor1DebugAndroidTest", androidFacetProperties.ASSEMBLE_TEST_TASK_NAME);
   }
 
-  /**
-   * Attention: this test needs MAVEN_REPO pointing to a local repo with the version 1.1.0 (or newer) of the Gradle plugin.
-   */
   @Test @IdeGuiTest
   public void switchingTestArtifacts() throws IOException {
-    GradleExperimentalSettings.getInstance().ENABLE_UNIT_TESTING_SUPPORT = true;
-
-    final String androidTestSrc = MODULE_NAME + "/src/androidTest/java";
-    final String unitTestSrc = MODULE_NAME + "/src/test/java";
-
-    IdeFrameFixture projectFrame = openProject("SimpleApplicationWithUnitTests");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplicationWithUnitTests");
     BuildVariantsToolWindowFixture buildVariants = projectFrame.getBuildVariantsWindow();
     buildVariants.activate();
 
-    assertThat(getSourceFolders(projectFrame, JavaSourceRootType.TEST_SOURCE))
-      .contains(androidTestSrc)
-      .excludes(unitTestSrc);
+    String androidTestSrc = MODULE_NAME + "/src/androidTest/java";
+    String unitTestSrc = MODULE_NAME + "/src/test/java";
 
-    buildVariants.selectTestArtifact("Unit tests");
+    Collection<String> testSourceFolders = projectFrame.getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
+    assertThat(testSourceFolders).contains(androidTestSrc).excludes(unitTestSrc);
 
-    assertThat(getSourceFolders(projectFrame, JavaSourceRootType.TEST_SOURCE))
-      .contains(unitTestSrc)
-      .excludes(androidTestSrc);
+    buildVariants.selectTestArtifact("Unit Tests");
 
-    myRobot.waitForIdle();
-  }
-
-  @NotNull
-  private static Collection<String> getSourceFolders(@NotNull IdeFrameFixture projectFrame, @NotNull JavaSourceRootType source) {
-    Multimap<JpsModuleSourceRootType, String> appSourceFolders = projectFrame.getSourceFolderRelativePaths(MODULE_NAME);
-    return appSourceFolders.get(source);
+    testSourceFolders = projectFrame.getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
+    assertThat(testSourceFolders).contains(unitTestSrc).excludes(androidTestSrc);
   }
 }

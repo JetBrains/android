@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.Message;
+import com.android.ide.common.blame.SourceFile;
+import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.ParsingFailedException;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
@@ -45,7 +48,7 @@ public class XmlValidationErrorParser implements PatternAwareOutputParser {
   private static final Pattern FILE_REFERENCE = Pattern.compile("Failed to parse (.+)");
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<Message> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     Matcher m1 = FATAL_ERROR.matcher(line);
     if (!m1.matches()) {
@@ -53,15 +56,15 @@ public class XmlValidationErrorParser implements PatternAwareOutputParser {
       // in this case also recognize the line by itself even though it's separated from the next message
       Matcher m2 = FILE_REFERENCE.matcher(line);
       if (m2.matches()) {
-        String sourcePath = m2.group(1);
-        if (new File(sourcePath).exists()) {
+        File sourceFile = new File(m2.group(1));
+        if (sourceFile.exists()) {
           String message = line;
           // Eat the entire stacktrace
           String exceptionMessage = ParserUtil.digestStackTrace(reader);
           if (exceptionMessage != null) {
             message = exceptionMessage + ": " + message;
           }
-          messages.add(new GradleMessage(GradleMessage.Kind.ERROR, message, sourcePath, -1, -1));
+          messages.add(new Message(Message.Kind.ERROR, message, new SourceFilePosition(sourceFile, SourcePosition.UNKNOWN)));
           return true;
         }
       }
@@ -70,7 +73,7 @@ public class XmlValidationErrorParser implements PatternAwareOutputParser {
     String message = m1.group(3);
     int lineNumber = Integer.parseInt(m1.group(1));
     int column = Integer.parseInt(m1.group(2));
-    String sourcePath = null;
+    SourceFile sourceFile = SourceFile.UNKNOWN;
     String nextLine = reader.peek(0);
     if (nextLine == null) {
       return false;
@@ -78,12 +81,12 @@ public class XmlValidationErrorParser implements PatternAwareOutputParser {
     Matcher m2 = FILE_REFERENCE.matcher(nextLine);
     if (m2.matches()) {
       reader.readLine(); // digest peeked line
-      sourcePath = m2.group(1);
-      if (!new File(sourcePath).exists()) {
-        sourcePath = null;
+      File possibleSourceFile = new File(m2.group(1));
+      if (possibleSourceFile.exists()) {
+        sourceFile = new SourceFile(possibleSourceFile);
       }
     }
-    messages.add(new GradleMessage(GradleMessage.Kind.ERROR, message, sourcePath, lineNumber, column));
+    messages.add(new Message(Message.Kind.ERROR, message, new SourceFilePosition(sourceFile, new SourcePosition(lineNumber - 1, column - 1, -1))));
     return true;
   }
 

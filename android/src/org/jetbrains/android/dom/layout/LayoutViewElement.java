@@ -16,14 +16,11 @@
 
 package org.jetbrains.android.dom.layout;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
-import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.DefinesXml;
+import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
-import org.jetbrains.android.dom.converters.ViewClassConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 
 import java.util.List;

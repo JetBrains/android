@@ -29,6 +29,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -114,6 +115,24 @@ class DomPsiParser extends XmlParser {
     TextRange textRange = DomPsiConverter.getTextRange(node);
     Position start = new DefaultPosition(-1, -1, textRange.getStartOffset() + startDelta);
     Position end = new DefaultPosition(-1, -1, textRange.getStartOffset() + endDelta);
+    return Location.create(context.file, start, end);
+  }
+
+  @NonNull
+  @Override
+  public Location getNameLocation(@NonNull XmlContext context, @NonNull Node node) {
+    TextRange textRange = DomPsiConverter.getTextNameRange(node);
+    Position start = new DefaultPosition(-1, -1, textRange.getStartOffset());
+    Position end = new DefaultPosition(-1, -1, textRange.getEndOffset());
+    return Location.create(context.file, start, end);
+  }
+
+  @NonNull
+  @Override
+  public Location getValueLocation(@NonNull XmlContext context, @NonNull Attr node) {
+    TextRange textRange = DomPsiConverter.getTextValueRange(node);
+    Position start = new DefaultPosition(-1, -1, textRange.getStartOffset());
+    Position end = new DefaultPosition(-1, -1, textRange.getEndOffset());
     return Location.create(context.file, start, end);
   }
 

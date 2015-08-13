@@ -2,6 +2,6 @@
     android:orientation="horizontal"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
-  <fragment android:layout_marginStart="5dp" android:ta<caret>/>
+  <fragment android:layout_marginStart="5dp" android:fragmentEx<caret>/>
 
 </LinearLayout>

@@ -1,7 +1,7 @@
 package com.android.tools.idea.editors.navigation.model;
 
 import junit.framework.TestCase;
-import com.android.tools.idea.editors.navigation.Utilities;
+import com.android.tools.idea.editors.navigation.NavigationEditorUtils;
 
 public class UtilitiesTest extends TestCase {
 
@@ -16,11 +16,11 @@ public class UtilitiesTest extends TestCase {
     String correctXmlFileNameBTranslation = "IBinder";
 
 
-    String xmlFileNameA = Utilities.getXmlFileNameFromJavaFileName(correctJavaFileNameA);
-    String xmlFileNameB = Utilities.getXmlFileNameFromJavaFileName(correctJavaFileNameB);
+    String xmlFileNameA = NavigationEditorUtils.getXmlFileNameFromJavaFileName(correctJavaFileNameA);
+    String xmlFileNameB = NavigationEditorUtils.getXmlFileNameFromJavaFileName(correctJavaFileNameB);
 
-    String javaFileNameA = Utilities.getJavaFileNameFromXmlFileName(correctXmlFileNameA);
-    String javaFileNameB = Utilities.getJavaFileNameFromXmlFileName(correctXmlFileNameB);
+    String javaFileNameA = NavigationEditorUtils.getJavaFileNameFromXmlFileName(correctXmlFileNameA);
+    String javaFileNameB = NavigationEditorUtils.getJavaFileNameFromXmlFileName(correctXmlFileNameB);
 
     assertEquals(correctJavaFileNameATranslation, xmlFileNameA);
     assertEquals(correctJavaFileNameBTranslation, xmlFileNameB);

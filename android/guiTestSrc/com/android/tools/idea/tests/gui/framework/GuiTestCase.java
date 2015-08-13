@@ -16,9 +16,12 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
@@ -34,9 +37,9 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.impl.WindowManagerImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
@@ -44,7 +47,7 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
-import org.jetbrains.android.AndroidPlugin;
+import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -57,8 +60,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.createGradleWrapper;
-import static com.android.tools.idea.templates.AndroidGradleTestCase.updateGradleVersions;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
@@ -69,8 +71,10 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
+import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(GuiTestRunner.class)
@@ -101,6 +105,22 @@ public abstract class GuiTestCase {
 
     myRobot = BasicRobot.robotWithCurrentAwtHierarchy();
     myRobot.settings().delayBetweenEvents(30);
+
+    setIdeSettings();
+  }
+
+  private static void setIdeSettings() {
+    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
+
+    // Clear HTTP proxy settings, in case a test changed them.
+    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
+    ideSettings.USE_HTTP_PROXY = false;
+    ideSettings.PROXY_HOST = "";
+    ideSettings.PROXY_PORT = 80;
+
+    GuiTestSuiteState state = getGuiTestSuiteState();
+    state.setSkipSdkMerge(false);
+    state.setUseCachedGradleModelOnly(false);
   }
 
   @After
@@ -140,7 +160,7 @@ public abstract class GuiTestCase {
       @Override
       public boolean test() {
         final Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-        GuiActionRunner.execute(new GuiTask() {
+        execute(new GuiTask() {
           @Override
           protected void executeInEDT() throws Throwable {
             for (Project project : openProjects) {
@@ -152,7 +172,8 @@ public abstract class GuiTestCase {
       }
     }, SHORT_TIMEOUT);
 
-    boolean welcomeFrameShown = GuiActionRunner.execute(new GuiQuery<Boolean>() {
+    //noinspection ConstantConditions
+    boolean welcomeFrameShown = execute(new GuiQuery<Boolean>() {
       @Override
       protected Boolean executeInEDT() throws Throwable {
         Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
@@ -183,13 +204,17 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  protected IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
-    File projectPath = setUpProject(projectDirName, false, true, null);
+  protected IdeFrameFixture importSimpleApplication() throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+  }
 
-    final VirtualFile toSelect = findFileByIoFile(projectPath, true);
+  @NotNull
+  protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
+    File projectPath = setUpProject(projectDirName, false, true, null);
+    VirtualFile toSelect = findFileByIoFile(projectPath, true);
     assertNotNull(toSelect);
 
-    AndroidPlugin.GuiTestSuiteState testSuiteState = getTestSuiteState();
+    GuiTestSuiteState testSuiteState = getGuiTestSuiteState();
     if (!testSuiteState.isImportProjectWizardAlreadyTested()) {
       testSuiteState.setImportProjectWizardAlreadyTested(true);
 
@@ -199,12 +224,7 @@ public abstract class GuiTestCase {
       return openProjectAndWaitUntilOpened(toSelect, importProjectDialog);
     }
 
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        GradleProjectImporter.getInstance().importProject(toSelect);
-      }
-    });
+    doImportProject(toSelect);
 
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
     projectFrame.waitForGradleProjectSyncToFinish();
@@ -213,42 +233,45 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  protected IdeFrameFixture openSimpleApplication() throws IOException {
-    return openProject("SimpleApplication");
+  protected File importProject(@NotNull String projectDirName) throws IOException {
+    File projectPath = setUpProject(projectDirName, false, true, null);
+    VirtualFile toSelect = findFileByIoFile(projectPath, true);
+    assertNotNull(toSelect);
+    doImportProject(toSelect);
+    return projectPath;
+  }
+
+  private static void doImportProject(@NotNull final VirtualFile projectDir) {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        GradleProjectImporter.getInstance().importProject(projectDir);
+      }
+    });
   }
 
   @NotNull
-  protected IdeFrameFixture openProject(@NotNull String projectDirName) throws IOException {
-    return openProject(projectDirName, true);
-  }
-
-  @NotNull
-  protected IdeFrameFixture openProject(@NotNull String projectDirName, boolean expectSuccessfulSync) throws IOException {
+  private IdeFrameFixture openProject(@NotNull String projectDirName) throws IOException {
     File projectPath = setUpProject(projectDirName, true, true, null);
-    return openProject(projectPath, expectSuccessfulSync);
+    return openProject(projectPath);
   }
 
   @NotNull
-  protected IdeFrameFixture openProject(@NotNull final File projectPath) {
-    return openProject(projectPath, true);
-  }
-
-  @NotNull
-  protected IdeFrameFixture openProject(@NotNull final File projectPath, boolean expectSuccessfulSync) {
+  private IdeFrameFixture openProject(@NotNull final File projectPath) {
     VirtualFile toSelect = findFileByIoFile(projectPath, true);
     assertNotNull(toSelect);
 
-    AndroidPlugin.GuiTestSuiteState state = getTestSuiteState();
+    GuiTestSuiteState state = getGuiTestSuiteState();
     if (!state.isOpenProjectWizardAlreadyTested()) {
       state.setOpenProjectWizardAlreadyTested(true);
 
       findWelcomeFrame().clickOpenProjectButton();
 
       FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
-      return openProjectAndWaitUntilOpened(toSelect, openProjectDialog, expectSuccessfulSync);
+      return openProjectAndWaitUntilOpened(toSelect, openProjectDialog);
     }
 
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
@@ -260,13 +283,6 @@ public abstract class GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFinish();
 
     return projectFrame;
-  }
-
-  @NotNull
-  private static AndroidPlugin.GuiTestSuiteState getTestSuiteState() {
-    AndroidPlugin.GuiTestSuiteState state = AndroidPlugin.getGuiTestSuiteState();
-    assertNotNull(state);
-    return state;
   }
 
   /**
@@ -293,10 +309,10 @@ public abstract class GuiTestCase {
    * @throws IOException if an unexpected I/O error occurs.
    */
   @NotNull
-  protected File setUpProject(@NotNull String projectDirName,
-                              boolean forOpen,
-                              boolean updateAndroidPluginVersion,
-                              @Nullable String gradleVersion) throws IOException {
+  private File setUpProject(@NotNull String projectDirName,
+                            boolean forOpen,
+                            boolean updateAndroidPluginVersion,
+                            @Nullable String gradleVersion) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
 
     File gradlePropertiesFilePath = new File(projectPath, SdkConstants.FN_GRADLE_PROPERTIES);
@@ -305,7 +321,7 @@ public abstract class GuiTestCase {
     }
 
     if (gradleVersion == null) {
-      createGradleWrapper(projectPath);
+      createGradleWrapper(projectPath, GRADLE_LATEST_VERSION);
     }
     else {
       createGradleWrapper(projectPath, gradleVersion);
@@ -315,12 +331,7 @@ public abstract class GuiTestCase {
       updateGradleVersions(projectPath);
     }
 
-    File androidHomePath = DefaultSdks.getDefaultAndroidHome();
-    assertNotNull(androidHomePath);
-
-    LocalProperties localProperties = new LocalProperties(projectPath);
-    localProperties.setAndroidSdkPath(androidHomePath);
-    localProperties.save();
+    updateLocalProperties(projectPath);
 
     if (forOpen) {
       File toDotIdea = new File(projectPath, DIRECTORY_BASED_PROJECT_DIR);
@@ -360,8 +371,25 @@ public abstract class GuiTestCase {
     return projectPath;
   }
 
+  protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
+    return GradleUtil.createGradleWrapper(projectDirPath, gradleVersion);
+  }
+
+  protected void updateLocalProperties(File projectPath) throws IOException {
+    File androidHomePath = IdeSdks.getAndroidSdkPath();
+    assertNotNull(androidHomePath);
+
+    LocalProperties localProperties = new LocalProperties(projectPath);
+    localProperties.setAndroidSdkPath(androidHomePath);
+    localProperties.save();
+  }
+
+  protected void updateGradleVersions(@NotNull File projectPath) throws IOException {
+    AndroidGradleTestCase.updateGradleVersions(projectPath);
+  }
+
   @NotNull
-  private static File getMasterProjectDirPath(@NotNull String projectDirName) {
+  protected File getMasterProjectDirPath(@NotNull String projectDirName) {
     return new File(getTestProjectsRootDirPath(), projectDirName);
   }
 
@@ -409,24 +437,11 @@ public abstract class GuiTestCase {
   @NotNull
   protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull VirtualFile projectDir,
                                                           @NotNull FileChooserDialogFixture fileChooserDialog) {
-    return openProjectAndWaitUntilOpened(projectDir, fileChooserDialog, true);
-  }
-
-  @NotNull
-  protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull VirtualFile projectDir,
-                                                          @NotNull FileChooserDialogFixture fileChooserDialog,
-                                                          boolean expectSuccessfulSync) {
     fileChooserDialog.select(projectDir).clickOk();
 
     File projectPath = virtualToIoFile(projectDir);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
-    if (expectSuccessfulSync) {
-      projectFrame.waitForGradleProjectSyncToFinish();
-    }
-    else {
-      projectFrame.waitForGradleProjectSyncToFail();
-    }
-
+    projectFrame.waitForGradleProjectSyncToFinish();
     return projectFrame;
   }
 

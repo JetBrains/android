@@ -25,13 +25,13 @@ import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.ex.InspectionManagerEx;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.LanguageLevelModuleExtension;
+import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.InspectionTestUtil;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -40,10 +40,10 @@ import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
-import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,8 +57,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   private boolean myCreateManifest;
   protected AndroidFacet myFacet;
-
-  private List<String> myAllowedRoots = new ArrayList<String>();
 
   public AndroidTestCase(boolean createManifest) {
     this.myCreateManifest = createManifest;
@@ -100,6 +98,15 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     createManifest();
 
     myFacet = addAndroidFacet(myModule, sdkPath, getPlatformDir(), isToAddSdk());
+
+    LanguageLevel languageLevel = getLanguageLevel();
+    if (languageLevel != null) {
+      final LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(myModule.getProject());
+      if (extension != null) {
+        extension.setLanguageLevel(languageLevel);
+      }
+    }
+
     myFixture.copyDirectoryToProject(getResDir(), "res");
 
     myAdditionalModules = new ArrayList<Module>();
@@ -124,30 +131,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       // Unit test class loader includes disk directories which security manager does not allow access to
       RenderSecurityManager.sEnabled = false;
     }
-
-    ArrayList<String> allowedRoots = new ArrayList<String>();
-    collectAllowedRoots(allowedRoots);
-    registerAllowedRoots(allowedRoots, myTestRootDisposable);
-  }
-
-  protected void collectAllowedRoots(List<String> roots) throws IOException {
-  }
-
-  public void registerAllowedRoots(List<String> roots, @NotNull Disposable disposable) {
-    final List<String> newRoots = new ArrayList<String>(roots);
-    newRoots.removeAll(myAllowedRoots);
-
-    final String[] newRootsArray = ArrayUtil.toStringArray(newRoots);
-    VfsRootAccess.allowRootAccess(newRootsArray);
-    myAllowedRoots.addAll(newRoots);
-
-    Disposer.register(disposable, new Disposable() {
-      @Override
-      public void dispose() {
-        VfsRootAccess.disallowRootAccess(newRootsArray);
-        myAllowedRoots.removeAll(newRoots);
-      }
-    });
   }
 
   protected boolean isToAddSdk() {
@@ -259,6 +242,12 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       }
     });
     return facet;
+  }
+
+  /** Defines the project level to set for the test project, or null for the default */
+  @Nullable
+  protected LanguageLevel getLanguageLevel() {
+    return null;
   }
 
   protected void doGlobalInspectionTest(@NotNull GlobalInspectionTool inspection,

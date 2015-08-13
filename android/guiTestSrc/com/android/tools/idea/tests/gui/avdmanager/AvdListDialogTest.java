@@ -16,22 +16,16 @@
 package com.android.tools.idea.tests.gui.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.fixture.JComboBoxFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import javax.swing.*;
-import java.awt.*;
-
 public class AvdListDialogTest extends GuiTestCase {
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testCreateAvd() throws Exception {
-    IdeFrameFixture ideFrame = openSimpleApplication();
+    IdeFrameFixture ideFrame = importSimpleApplication();
     AvdManagerDialogFixture avdManagerDialog = ideFrame.invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
@@ -45,28 +39,30 @@ public class AvdListDialogTest extends GuiTestCase {
 
     ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizard.getConfigureAvdOptionsStep();
     configureAvdOptionsStep.showAdvancedSettings();
+    configureAvdOptionsStep.requireAvdName("Nexus 7 API 19"); // check default
+    configureAvdOptionsStep.setAvdName("Testsuite AVD");
     configureAvdOptionsStep.setFrontCamera("Emulated");
-    configureAvdOptionsStep.setScaleFactor("1dp on device = 1px on screen").setUseHostGpu(true);
+    configureAvdOptionsStep.setScaleFactor("1dp on device = 1px on screen").selectUseHostGpu(true);
     avdEditWizard.clickFinish();
-    avdManagerDialog.close();
 
     // Ensure the AVD was created
-    avdManagerDialog.selectAvdByName("Nexus 7 2013 API 19");
+    avdManagerDialog.selectAvdByName("Testsuite AVD");
     // Then clean it up
-    avdManagerDialog.deleteAvdByName("Nexus 7 2013 API 19");
+    avdManagerDialog.deleteAvdByName("Testsuite AVD");
+
+    avdManagerDialog.close();
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testEditAvd() throws Exception {
-    IdeFrameFixture ideFrame = openSimpleApplication();
+    IdeFrameFixture ideFrame = importSimpleApplication();
     makeNexus5(ideFrame);
     AvdManagerDialogFixture avdManagerDialog = ideFrame.invokeAvdManager();
     AvdEditWizardFixture avdEditWizardFixture = avdManagerDialog.editAvdWithName("Nexus 5 API 19");
     ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizardFixture.getConfigureAvdOptionsStep();
 
     configureAvdOptionsStep.showAdvancedSettings();
-    configureAvdOptionsStep.setUseHostGpu(true);
+    configureAvdOptionsStep.selectUseHostGpu(true);
     
     avdEditWizardFixture.clickFinish();
     avdManagerDialog.close();

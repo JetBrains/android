@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.service;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
@@ -25,14 +24,20 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.easymock.IArgumentMatcher;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static org.easymock.EasyMock.*;
 
 /**
@@ -52,10 +57,12 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myAndroidProject = new AndroidProjectStub(myModule.getName());
+    myAndroidProject.setModelVersion("1.0.0");
     myAndroidProject.addVariant(DEBUG);
     myAndroidProject.addBuildType(DEBUG);
     File rootDir = myAndroidProject.getRootDir();
-    myIdeaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject, DEBUG, AndroidProject.ARTIFACT_ANDROID_TEST);
+    myIdeaAndroidProject =
+      new IdeaAndroidProject(GRADLE_SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject, DEBUG, ARTIFACT_ANDROID_TEST);
     //noinspection unchecked
     myCustomizer1 = createMock(ModuleCustomizer.class);
     //noinspection unchecked
@@ -71,8 +78,13 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     super.tearDown();
   }
 
+  @Override
+  protected CompositeException checkForSettingsDamage() throws Exception {
+    return new CompositeException();
+  }
+
   public void testImportData() {
-    final String jdkPath = Jdks.getJdkHomePath(LanguageLevel.JDK_1_6);
+    String jdkPath = Jdks.getJdkHomePath(LanguageLevel.JDK_1_6);
 
     if (jdkPath != null) {
       VfsRootAccess.allowRootAccess(jdkPath);
@@ -84,10 +96,12 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     assertEquals(key, service.getTargetDataKey());
 
     // ModuleCustomizers should be called.
-    myCustomizer1.customizeModule(myModule, myProject, myIdeaAndroidProject);
+    //noinspection ConstantConditions
+    myCustomizer1.customizeModule(eq(myProject), rootModelOfModule(myModule), eq(myIdeaAndroidProject));
     expectLastCall();
 
-    myCustomizer2.customizeModule(myModule, myProject, myIdeaAndroidProject);
+    //noinspection ConstantConditions
+    myCustomizer2.customizeModule(eq(myProject), rootModelOfModule(myModule), eq(myIdeaAndroidProject));
     expectLastCall();
 
     replay(myCustomizer1, myCustomizer2);
@@ -95,5 +109,20 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     service.importData(nodes, myProject, true);
 
     verify(myCustomizer1, myCustomizer2);
+  }
+
+  private static ModifiableRootModel rootModelOfModule(@NotNull final Module module) {
+    reportMatcher(new IArgumentMatcher() {
+      @Override
+      public void appendTo(StringBuffer buffer) {
+        buffer.append("Expected RootModel of module ").append(module.getName());
+      }
+
+      @Override
+      public boolean matches(Object argument) {
+        return argument instanceof ModifiableRootModel && ((ModifiableRootModel)argument).getModule().equals(module);
+      }
+    });
+    return null;
   }
 }

@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationToolBar;
 import com.android.tools.idea.configurations.RenderContext;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ResourceChooserDialogFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -27,7 +28,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Fixture representing the configuration toolbar above an associated layout editor
@@ -58,26 +62,29 @@ public class ConfigurationToolbarFixture {
 
 
   /** Returns true if the given device is currently selected */
-  @SuppressWarnings("ConstantConditions")
   public boolean isDevice(String id) {
-    return id.equals(getConfiguration().getDevice().getId());
+    Device device = getNonNullConfiguration().getDevice();
+    assertNotNull(device);
+    return id.equals(device.getId());
   }
 
   /**
    * Requires the orientation name to be the given name (typically Portrait or Landscape)
    */
-  @SuppressWarnings("ConstantConditions")
+  @NotNull
   public ConfigurationToolbarFixture requireOrientation(@NotNull String name)  {
-    assertEquals(name, getConfiguration().getDeviceState().getName());
+    State deviceState = getNonNullConfiguration().getDeviceState();
+    assertNotNull(deviceState);
+    assertEquals(name, deviceState.getName());
     return this;
   }
 
   /**
    * Requires the configuration theme to be the given theme
    */
-  @SuppressWarnings("ConstantConditions")
+  @NotNull
   public ConfigurationToolbarFixture requireTheme(@NotNull String theme)  {
-    assertEquals(theme, getConfiguration().getTheme());
+    assertEquals(theme, getNonNullConfiguration().getTheme());
     return this;
   }
 
@@ -92,47 +99,52 @@ public class ConfigurationToolbarFixture {
   /**
    * Invokes the "Create Landscape Variation" action in the configuration toolbar's configuration menu
    */
-  @SuppressWarnings("SpellCheckingInspection")
   public void createLandscapeVariation() {
     JButton menuButton = findToolbarButton("Configuration to render this layout with inside the IDE");
     myRobot.click(menuButton);
 
-    clickPopupMenuItem("Create Landscape Variation");
+    doClickPopupMenuItem("Create Landscape Variation");
   }
 
   public void chooseLocale(@NotNull String locale) {
     JButton localeChooser = findToolbarButton("Locale to render layout with inside the IDE");
     myRobot.click(localeChooser);
 
-    clickPopupMenuItem(locale);
+    doClickPopupMenuItem(locale);
   }
 
   public void removePreviews() {
     JButton menuButton = findToolbarButton("Configuration to render this layout with inside the IDE");
     myRobot.click(menuButton);
 
-    clickPopupMenuItem("None");
+    doClickPopupMenuItem("None");
   }
 
   /**
    * Selects a device matching the given label prefix in the configuration toolbar's device menu
    */
-  @SuppressWarnings("SpellCheckingInspection")
   public void chooseDevice(String labelPrefix) {
     JButton menuButton = findToolbarButton("The virtual device to render the layout with");
     myRobot.click(menuButton);
 
-    clickPopupMenuItem(labelPrefix);
+    doClickPopupMenuItem(labelPrefix);
   }
 
   public void createOtherVariation(@NotNull String variation) {
     JButton menuButton = findToolbarButton("Configuration to render this layout with inside the IDE");
     myRobot.click(menuButton);
 
-    clickPopupMenuItem("Create Other...");
+    doClickPopupMenuItem("Create Other...");
     ResourceChooserDialogFixture resourceChooser = ResourceChooserDialogFixture.findDialog(myRobot);
     resourceChooser.setDirectoryName(variation);
     resourceChooser.clickOK();
+  }
+
+  @NotNull
+  private Configuration getNonNullConfiguration() {
+    Configuration configuration = getConfiguration();
+    assertNotNull(configuration);
+    return configuration;
   }
 
   @Nullable
@@ -142,15 +154,15 @@ public class ConfigurationToolbarFixture {
 
   @NotNull
   private JButton findToolbarButton(@NotNull final String tooltip) {
-    return GuiTests.waitUntilFound(myRobot, new GenericTypeMatcher<JButton>(JButton.class) {
+    return waitUntilFound(myRobot, new GenericTypeMatcher<JButton>(JButton.class) {
       @Override
-      protected boolean isMatching(JButton button) {
+      protected boolean isMatching(@NotNull JButton button) {
         return tooltip.equals(button.getToolTipText());
       }
     });
   }
 
-  private void clickPopupMenuItem(@NotNull String label) {
-    GuiTests.clickPopupMenuItem(label, myToolbarWidget, myRobot);
+  private void doClickPopupMenuItem(@NotNull String label) {
+    clickPopupMenuItem(label, myToolbarWidget, myRobot);
   }
 }

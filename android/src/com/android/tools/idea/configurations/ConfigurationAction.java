@@ -65,6 +65,11 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     myRenderContext.requestRender();
   }
 
+  /**
+   * Performs a try update of the configuration.
+   * If the update needs a change of layout file, this method makes it happen.
+   * Otherwise, it simply updates the configuration
+   */
   protected void tryUpdateConfiguration() {
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null) {
@@ -79,18 +84,20 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
       // get the resources of the file's project.
       if (affectsFileSelection) {
         Module module = myRenderContext.getModule();
-        assert module != null;
-        VirtualFile file = myRenderContext.getVirtualFile();
-        assert file != null;
-        ConfigurationMatcher matcher = new ConfigurationMatcher(clone, AppResourceRepository.getAppResources(module, true), file);
-        List<VirtualFile> matchingFiles = matcher.getBestFileMatches();
-        if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {
-          // Switch files, and leave this configuration alone
-          pickedBetterMatch(matchingFiles.get(0), file);
-          AndroidFacet facet = AndroidFacet.getInstance(module);
-          assert facet != null;
-          updateConfiguration(facet.getConfigurationManager().getConfiguration(matchingFiles.get(0)), true /*commit*/);
-          return;
+        if (module != null) {
+          VirtualFile file = myRenderContext.getVirtualFile();
+          if (file != null) {
+            ConfigurationMatcher matcher = new ConfigurationMatcher(clone, AppResourceRepository.getAppResources(module, true), file);
+            List<VirtualFile> matchingFiles = matcher.getBestFileMatches();
+            if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {
+              // Switch files, and leave this configuration alone
+              pickedBetterMatch(matchingFiles.get(0), file);
+              AndroidFacet facet = AndroidFacet.getInstance(module);
+              assert facet != null;
+              updateConfiguration(facet.getConfigurationManager().getConfiguration(matchingFiles.get(0)), true /*commit*/);
+              return;
+            }
+          }
         }
       }
 

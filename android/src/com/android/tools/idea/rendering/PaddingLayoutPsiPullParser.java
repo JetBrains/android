@@ -72,7 +72,7 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
   }
 
   @Override
-  protected void push(@NotNull Element node) {
+  protected void push(@NotNull TagSnapshot node) {
     super.push(node);
 
     myZeroAttributeIsPadding = false;
@@ -162,7 +162,7 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
       }
     }
 
-    Attribute attribute = getAttribute(i);
+    AttributeSnapshot attribute = getAttribute(i);
     if (attribute != null) {
       String value = attribute.value;
       if (value != null && myIncreaseExistingPadding && ATTR_PADDING.equals(attribute.name) &&
@@ -184,8 +184,8 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
   public String getAttributeValue(String namespace, String localName) {
     boolean isPaddingAttribute = ATTR_PADDING.equals(localName);
     if (isPaddingAttribute && ANDROID_URI.equals(namespace)) {
-      Element node = getCurrentNode();
-      if (node != null && myExplodeNodes.contains(node.cookie)) {
+      TagSnapshot node = getCurrentNode();
+      if (node != null && myExplodeNodes.contains(node.tag)) {
         return FIXED_PADDING_VALUE;
       }
     }

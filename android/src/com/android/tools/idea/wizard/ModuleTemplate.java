@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.wizard;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 /**
- * Interface for module templates used in the new module wizard
+ * Properties useful for displaying a module in the various Android Studio module wizards.
  */
 public interface ModuleTemplate {
-  /**
-   * @return <code>true</code> if this template will be shown in the gallery at the top of the wizard page.
-   */
-  boolean isGalleryModuleType();
-
   /**
    * @return icon to be used in the gallery.
    */
@@ -37,22 +33,26 @@ public interface ModuleTemplate {
   /**
    * @return module template name.
    */
+  @NotNull
   String getName();
 
   /**
-   * @return description of the teplate or <code>null</code> if none.
+   * @return description of the template or {@code null} if none.
    */
   @Nullable
   String getDescription();
 
   /**
-   * @param state called when module template selection page is done. Gives a chance to update the wizard state.
-   */
-  void updateWizardStateOnSelection(ScopedStateStore state);
-
-  /**
-   * @return form factor associated with this template.
+   * @return form factor associated with this template. If {@code null}, this template does not
+   * represent an Android device module.
    */
   @Nullable
   FormFactorUtils.FormFactor getFormFactor();
+
+  /**
+   * It can be useful to update the Wizard's state upon confirmation of selecting a module.
+   *
+   * @param state of the wizard to update.
+   */
+  void updateWizardState(@NotNull ScopedStateStore state);
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -25,10 +24,9 @@ import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.fixture.ComponentFixture;
+import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -36,21 +34,22 @@ import java.awt.*;
 import java.io.File;
 import java.util.Collection;
 
+import static com.android.tools.idea.gradle.project.ChooseGradleHomeDialog.VALIDATION_MESSAGE_CLIENT_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.*;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.fest.swing.query.ComponentShowingQuery.isShowing;
+import static org.fest.swing.timing.Pause.pause;
 
-public class ChooseGradleHomeDialogFixture extends ComponentFixture<Dialog> {
+public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradleHomeDialogFixture, Dialog>
+  implements ContainerFixture<Dialog> {
   @NotNull
   public static ChooseGradleHomeDialogFixture find(@NotNull final Robot robot) {
     DialogFixture found = findDialog(new GenericTypeMatcher<Dialog>(Dialog.class) {
       @Override
-      protected boolean isMatching(Dialog dialog) {
+      protected boolean isMatching(@NotNull Dialog dialog) {
         if (!dialog.isVisible() || !dialog.isShowing()) {
           return false;
         }
@@ -68,22 +67,22 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<Dialog> {
         return true;
       }
     }).withTimeout(LONG_TIMEOUT.duration()).using(robot);
-    return new ChooseGradleHomeDialogFixture(robot, found.target);
+    return new ChooseGradleHomeDialogFixture(robot, found.target());
   }
 
   private ChooseGradleHomeDialogFixture(@NotNull Robot robot, @NotNull Dialog target) {
-    super(robot, target);
+    super(ChooseGradleHomeDialogFixture.class, robot, target);
   }
 
   @NotNull
   public ChooseGradleHomeDialogFixture chooseGradleHome(@NotNull File gradleHomePath) {
-    FixedSizeButton browseButton = robot.finder().findByType(target, FixedSizeButton.class, true);
-    robot.click(browseButton);
+    FixedSizeButton browseButton = robot().finder().findByType(target(), FixedSizeButton.class, true);
+    robot().click(browseButton);
 
-    FileChooserDialogFixture fileChooserDialog = FileChooserDialogFixture.findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    FileChooserDialogFixture fileChooserDialog = FileChooserDialogFixture.findDialog(robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
-        Collection<JLabel> descriptionLabels = robot.finder().findAll(dialog, JLabelMatcher.withText("Gradle home:"));
+      protected boolean isMatching(@NotNull JDialog dialog) {
+        Collection<JLabel> descriptionLabels = robot().finder().findAll(dialog, JLabelMatcher.withText("Gradle home:"));
         return descriptionLabels.size() == 1;
       }
     });
@@ -109,13 +108,13 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<Dialog> {
 
   @NotNull
   public ChooseGradleHomeDialogFixture requireValidationError(@NotNull final String errorText) {
-    Pause.pause(new Condition(String.format("Find error message '%1$s'", errorText)) {
+    pause(new Condition(String.format("Find error message '%1$s'", errorText)) {
       @Override
       public boolean test() {
-        ComponentFinder finder = robot.finder();
-        Collection<JPanel> errorTextPanels = finder.findAll(target, new GenericTypeMatcher<JPanel>(JPanel.class) {
+        ComponentFinder finder = robot().finder();
+        Collection<JPanel> errorTextPanels = finder.findAll(target(), new GenericTypeMatcher<JPanel>(JPanel.class) {
           @Override
-          protected boolean isMatching(JPanel panel) {
+          protected boolean isMatching(@NotNull JPanel panel) {
             // ErrorText is a private inner class
             return panel.isShowing() && panel.getClass().getSimpleName().endsWith("ErrorText");
           }
@@ -124,10 +123,10 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<Dialog> {
           return false;
         }
         JPanel errorTextPanel = getFirstItem(errorTextPanels);
-        robot.printer().printComponents(System.out, errorTextPanel);
+        assertNotNull(errorTextPanel);
         Collection<JLabel> labels = finder.findAll(errorTextPanel, new GenericTypeMatcher<JLabel>(JLabel.class) {
           @Override
-          protected boolean isMatching(JLabel label) {
+          protected boolean isMatching(@NotNull JLabel label) {
             String text = label.getText();
             return text != null && text.contains(errorText);
           }
@@ -139,18 +138,18 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<Dialog> {
     // The label with the error message above also has HTML formatting, which makes the check for error not 100% reliable.
     // To ensure that the shown error message is what we expect, we store the message as a client property in the dialog's
     // TextFieldWithBrowseButton component.
-    TextFieldWithBrowseButton field = robot.finder().findByType(target, TextFieldWithBrowseButton.class);
-    Object actual = field.getClientProperty(ChooseGradleHomeDialog.VALIDATION_MESSAGE_CLIENT_PROPERTY);
+    TextFieldWithBrowseButton field = robot().finder().findByType(target(), TextFieldWithBrowseButton.class);
+    Object actual = field.getClientProperty(VALIDATION_MESSAGE_CLIENT_PROPERTY);
     assertEquals("Error message", errorText, actual);
 
     return this;
   }
 
   public void requireNotShowing() {
-    assertFalse("Dialog '" + target.getTitle() + "' is showing", isShowing(target));
+    assertFalse("Dialog '" + target().getTitle() + "' is showing", isShowing(target()));
   }
 
   public void close() {
-    robot.close(target);
+    robot().close(target());
   }
 }

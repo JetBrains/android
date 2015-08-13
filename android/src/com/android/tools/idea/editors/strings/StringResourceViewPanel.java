@@ -15,43 +15,57 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.builder.model.ProductFlavor;
+import com.android.builder.model.Variant;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.xml.AndroidManifestParser;
+import com.android.ide.common.xml.ManifestData;
+import com.android.io.FileWrapper;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.*;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.ListSpeedSearch;
-import com.intellij.ui.SideBorder;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.table.JBTable;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class StringResourceViewPanel {
+public class StringResourceViewPanel implements HyperlinkListener {
+  private static final boolean HIDE_TRANSLATION_ORDER_LINK = Boolean.getBoolean("hide.order.translations");
+
   private final AndroidFacet myFacet;
   private JPanel myContainer;
   private JBLoadingPanel myLoadingPanel;
@@ -79,7 +93,13 @@ public class StringResourceViewPanel {
 
     ActionToolbar toolbar = createToolbar();
     myToolbarPanel.add(toolbar.getComponent(), BorderLayout.CENTER);
-    myToolbarPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+
+    if (!HIDE_TRANSLATION_ORDER_LINK) {
+      HyperlinkLabel hyperlinkLabel = new HyperlinkLabel("Order a translation...");
+      myToolbarPanel.add(hyperlinkLabel, BorderLayout.EAST);
+      hyperlinkLabel.addHyperlinkListener(this);
+      myToolbarPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+    }
 
     myDefaultValueWithBrowseBtn.setButtonIcon(AllIcons.Actions.ShowViewer);
     myTranslationWithBrowseBtn.setButtonIcon(AllIcons.Actions.ShowViewer);
@@ -263,6 +283,68 @@ public class StringResourceViewPanel {
 
   public JTable getTable() {
     return myTable;
+  }
+
+  @Override
+  public void hyperlinkUpdate(HyperlinkEvent e) {
+    StringBuilder sb = new StringBuilder("https://translate.google.com/manager/android_studio/");
+
+    // Application Version
+    sb.append("?asVer=");
+    ApplicationInfo ideInfo = ApplicationInfo.getInstance();
+    sb.append(ideInfo.getMajorVersion()).append('.')
+      .append(ideInfo.getMinorVersion()).append('.')
+      .append(ideInfo.getMicroVersion()).append('.')
+      .append(ideInfo.getPatchVersion());
+
+
+    // Package name
+    String pkg = ManifestInfo.get(myFacet.getModule(), false).getPackage();
+    if (pkg != null) {
+      sb.append("&pkgName=");
+      sb.append(pkg.replace('.', '_'));
+    }
+
+    // Application ID
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(myFacet);
+    String appId = moduleInfo.getPackage();
+    if (appId != null) {
+      sb.append("&appId=");
+      sb.append(appId.replace('.', '_'));
+    }
+
+    // Version code
+    String versionCode = null;
+    if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
+        Variant variant = myFacet.getIdeaAndroidProject().getSelectedVariant();
+      ProductFlavor flavor = variant.getMergedFlavor();
+      if (flavor.getVersionCode() != null) {
+        versionCode = flavor.getVersionCode().toString();
+      }
+    }
+    if (versionCode == null) {
+      VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(myFacet);
+      if (manifestFile != null) {
+        File file = VfsUtilCore.virtualToIoFile(manifestFile);
+        try {
+          ManifestData manifest = AndroidManifestParser.parse(new FileWrapper(file));
+          if (manifest.getVersionCode() != null) {
+            versionCode = manifest.getVersionCode().toString();
+          }
+        }
+        catch (Exception ignore) {
+        }
+      }
+    }
+    if (versionCode != null) {
+      sb.append("&apkVer=");
+      sb.append(versionCode);
+    }
+
+    // If we support additional IDE languages, we can send the language used in the IDE here
+    //sb.append("&lang=en");
+
+    BrowserUtil.browse(sb.toString());
   }
 
   private class ParseTask extends Task.Backgroundable {

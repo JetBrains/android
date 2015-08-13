@@ -18,7 +18,6 @@ package com.android.tools.idea.wizard;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -137,8 +136,8 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     if (project != null) {
       myWizardState.put(ATTR_PROJECT_LOCATION, project.getBasePath());
     }
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_RECOMMENDED_VERSION);
+    myWizardState.put(ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
+    myWizardState.put(ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_RECOMMENDED_VERSION);
     update();
 
     myInitializationComplete = true;

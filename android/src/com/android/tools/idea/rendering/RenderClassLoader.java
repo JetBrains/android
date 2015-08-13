@@ -20,7 +20,7 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.lang.UrlClassLoader;
-import org.jetbrains.android.uipreview.ProjectClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
 
 import static com.android.SdkConstants.DOT_CLASS;
 import static com.android.tools.idea.rendering.ClassConverter.isValidClassFile;
@@ -39,14 +40,14 @@ import static com.android.tools.idea.rendering.ClassConverter.isValidClassFile;
 public abstract class RenderClassLoader extends ClassLoader {
   protected static final Logger LOG = Logger.getInstance(RenderClassLoader.class);
 
-  private ClassLoader myJarClassLoader;
+  protected UrlClassLoader myJarClassLoader;
   protected boolean myInsideJarClassLoader;
 
   public RenderClassLoader(@Nullable ClassLoader parent) {
     super(parent);
   }
 
-  protected abstract URL[] getExternalJars();
+  protected abstract List<URL> getExternalJars();
 
   @Override
   protected Class<?> findClass(String name) throws ClassNotFoundException {
@@ -66,13 +67,13 @@ public abstract class RenderClassLoader extends ClassLoader {
   @Nullable
   protected Class<?> loadClassFromJar(@NotNull String name) {
     if (myJarClassLoader == null) {
-      final URL[] externalJars = getExternalJars();
+      final List<URL> externalJars = getExternalJars();
       myJarClassLoader = createClassLoader(externalJars);
     }
 
     try {
       myInsideJarClassLoader = true;
-      String relative = ClassContext.getInternalName(name) + DOT_CLASS;
+      String relative = name.replace('.', '/').concat(DOT_CLASS);
       InputStream is = myJarClassLoader.getResourceAsStream(relative);
       if (is != null) {
         byte[] data = ByteStreams.toByteArray(is);
@@ -83,11 +84,11 @@ public abstract class RenderClassLoader extends ClassLoader {
 
         byte[] rewritten = convertClass(data);
         try {
-          if (ProjectClassLoader.DEBUG_CLASS_LOADING) {
+          if (ModuleClassLoader.DEBUG_CLASS_LOADING) {
             //noinspection UseOfSystemOutOrSystemErr
             System.out.println("  defining class " + name + " from .jar file");
           }
-          return defineClass(null, rewritten, 0, rewritten.length);
+          return defineClassAndPackage(name, rewritten, 0, rewritten.length);
         }
         catch (UnsupportedClassVersionError inner) {
           // Wrap the UnsupportedClassVersionError as a InconvertibleClassError
@@ -104,8 +105,8 @@ public abstract class RenderClassLoader extends ClassLoader {
     }
   }
 
-  private ClassLoader createClassLoader(URL[] externalJars) {
-    return UrlClassLoader.build().parent(this).urls(externalJars).allowUnescaped().noPreload().get();
+  protected UrlClassLoader createClassLoader(List<URL> externalJars) {
+    return UrlClassLoader.build().parent(this).urls(externalJars).noPreload().get();
   }
 
   @Nullable
@@ -143,11 +144,11 @@ public abstract class RenderClassLoader extends ClassLoader {
 
     byte[] rewritten = convertClass(data);
     try {
-      if (ProjectClassLoader.DEBUG_CLASS_LOADING) {
+      if (ModuleClassLoader.DEBUG_CLASS_LOADING) {
         //noinspection UseOfSystemOutOrSystemErr
         System.out.println("  defining class " + fqcn + " from disk file");
       }
-      return defineClass(null, rewritten, 0, rewritten.length);
+      return defineClassAndPackage(null, rewritten, 0, rewritten.length);
     } catch (UnsupportedClassVersionError inner) {
       // Wrap the UnsupportedClassVersionError as a InconvertibleClassError
       // such that clients can look up the actual bytecode version required.
@@ -200,6 +201,29 @@ public abstract class RenderClassLoader extends ClassLoader {
         return null;
       }
       path = path.substring(0, last) + '$' + path.substring(last + 1);
+    }
+  }
+
+  @NotNull
+  protected Class<?> defineClassAndPackage(@Nullable String name, @NotNull byte[] b, int offset, int len) {
+    if (name != null) {
+      definePackage(name);
+      return defineClass(name, b, offset, len);
+    }
+    // Class name is not known at the moment.
+    Class<?> aClass = defineClass(null, b, offset, len);
+    definePackage(aClass.getName());
+    return aClass;
+  }
+
+  private void definePackage(@NotNull String className) {
+    int i = className.lastIndexOf('.');
+    if (i > 0) {
+      String packageName = className.substring(0, i);
+      Package pkg = getPackage(packageName);
+      if (pkg == null) {
+        definePackage(packageName, null, null, null, null, null, null, null);
+      }
     }
   }
 }

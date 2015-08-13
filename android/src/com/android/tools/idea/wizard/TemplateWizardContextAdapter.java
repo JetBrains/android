@@ -70,6 +70,16 @@ public final class TemplateWizardContextAdapter implements AssetStudioContext {
     myWizardState.put(ATTR_TRIM, trim);
   }
 
+  @Override
+  public boolean isDogear() {
+    return myWizardState.getBoolean(ATTR_DOGEAR);
+  }
+
+  @Override
+  public void setDogear(boolean dogEar) {
+    myWizardState.put(ATTR_DOGEAR, dogEar);
+  }
+
   @Nullable
   @Override
   public String getImagePath() {
@@ -175,5 +185,16 @@ public final class TemplateWizardContextAdapter implements AssetStudioContext {
   @Override
   public String getAssetTheme() {
     return (String)myWizardState.get(ATTR_ASSET_THEME);
+  }
+
+  @Nullable
+  @Override
+  public String getErrorLog()  {
+    return (String)myWizardState.get(ATTR_ERROR_LOG);
+  }
+
+  @Override
+  public void setErrorLog(String log) {
+    myWizardState.put(ATTR_ERROR_LOG, log);
   }
 }

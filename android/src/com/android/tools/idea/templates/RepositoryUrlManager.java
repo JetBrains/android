@@ -49,6 +49,8 @@ public class RepositoryUrlManager {
   public static final String SUPPORT_ID_V13 = "support-v13";
   /** The path ID of the appcompat library. */
   public static final String APP_COMPAT_ID_V7 = "appcompat-v7";
+  /** The path ID of the design support library. */
+  public static final String DESIGN = "design";
 
   /** The path ID of the gridlayout library. */
   public static final String GRID_LAYOUT_ID_V7 = "gridlayout-v7";
@@ -118,6 +120,7 @@ public class RepositoryUrlManager {
     .put(SUPPORT_ID_V13, new RepositoryLibrary(SUPPORT_ID_V13, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE,
                                                SUPPORT_LIBRARY_EXTENSIONS))
     .put(APP_COMPAT_ID_V7, new RepositoryLibrary(APP_COMPAT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(DESIGN, new RepositoryLibrary(DESIGN, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(GRID_LAYOUT_ID_V7, new RepositoryLibrary(GRID_LAYOUT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(MEDIA_ROUTER_ID_V7, new RepositoryLibrary(MEDIA_ROUTER_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(PLAY_SERVICES_ID, new RepositoryLibrary(PLAY_SERVICES_ID, GOOGLE_REPOSITORY_BASE_PATH, GOOGLE_BASE_COORDINATE, SdkConstants.DOT_AAR))
@@ -171,7 +174,7 @@ public class RepositoryUrlManager {
     }
 
     // Read the support repository and find the latest version available
-    String sdkLocation = sdk.getPath();
+    String sdkLocation = sdk.getLocation().getPath();
     RepositoryLibrary library = EXTRAS_REPOSITORY.get(libraryId);
 
     File supportMetadataFile = new File(String.format(library.basePath, sdkLocation, library.id), MAVEN_METADATA_FILE_NAME);
@@ -198,7 +201,7 @@ public class RepositoryUrlManager {
     }
 
     // Get the parameters to include in the path
-    String sdkLocation = sdk.getPath();
+    String sdkLocation = sdk.getLocation().getPath();
     String artifactId = gradleCoordinate.getArtifactId();
     String revision = gradleCoordinate.getFullRevision();
     RepositoryLibrary library = EXTRAS_REPOSITORY.get(artifactId);
@@ -306,7 +309,8 @@ public class RepositoryUrlManager {
     return file.exists();
   }
 
-  private static class RepositoryLibrary {
+  @VisibleForTesting
+  static class RepositoryLibrary {
     public final String id;
     public final String basePath;
     public final String baseCoordinate;

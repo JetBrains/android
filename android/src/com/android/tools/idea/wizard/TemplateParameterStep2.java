@@ -469,7 +469,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   }
 
   @Override
-  protected JLabel getDescriptionText() {
+  protected JLabel getDescriptionLabel() {
     return myParameterDescription;
   }
 

@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
-import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -31,6 +29,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.SDK_DIR_PROPERTY;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.google.common.io.Closeables.close;
+
 public class MissingAndroidSdkErrorHandler extends AbstractSyncErrorHandler {
   @NonNls public static final String FIX_SDK_DIR_PROPERTY = "Please fix the 'sdk.dir' property in the local.properties file.";
 
@@ -43,7 +46,7 @@ public class MissingAndroidSdkErrorHandler extends AbstractSyncErrorHandler {
                              @NotNull Project project) {
     String lastLine = message.get(message.size() - 1);
     if (FIX_SDK_DIR_PROPERTY.equals(lastLine)) {
-      File file = new File(project.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
+      File file = new File(getBaseDirPath(project), FN_LOCAL_PROPERTIES);
       if (file.isFile()) {
         int lineNumber = 0;
         // If we got this far, local.properties exists.
@@ -54,7 +57,7 @@ public class MissingAndroidSdkErrorHandler extends AbstractSyncErrorHandler {
           int counter = 0;
           String line;
           while ((line = reader.readLine()) != null) {
-            if (line.startsWith(SdkConstants.SDK_DIR_PROPERTY)) {
+            if (line.startsWith(SDK_DIR_PROPERTY)) {
               lineNumber = counter;
               break;
             }
@@ -66,8 +69,8 @@ public class MissingAndroidSdkErrorHandler extends AbstractSyncErrorHandler {
         }
         finally {
           try {
-            Closeables.close(reader, true /* swallowIOException */);
-          } catch (IOException e) {
+            close(reader, true /* swallowIOException */);
+          } catch (IOException ignored) {
             // Cannot happen
           }
         }

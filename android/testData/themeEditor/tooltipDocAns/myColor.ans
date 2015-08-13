@@ -1,0 +1,5 @@
+<html><body><B>myColor</B><br/> My Color Documentation <br/><hr/><table style="background-color:rgb(0,0,0);width:200px;text-align:center;vertical-align:middle;" border="0"><tr height="100"><td align="center" valign="middle" height="100" style="color:white">#000000</td></tr></table><BR/>
+<BR/>
+?android:attr/colorBackground => @color/background_dark => #ff000000<BR/>
+<BR/>
+</body></html>

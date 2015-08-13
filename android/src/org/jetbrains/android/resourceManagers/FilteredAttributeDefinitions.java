@@ -49,6 +49,12 @@ public abstract class FilteredAttributeDefinitions implements AttributeDefinitio
     return isAttributeAcceptable(name) ? myWrappee.getAttrDefByName(name) : null;
   }
 
+  @Nullable
+  @Override
+  public String getAttrGroupByName(@NotNull String name) {
+    return myWrappee.getAttrGroupByName(name);
+  }
+
   @NotNull
   @Override
   public StyleableDefinition[] getStateStyleables() {

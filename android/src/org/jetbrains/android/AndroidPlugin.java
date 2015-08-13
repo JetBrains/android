@@ -15,11 +15,9 @@
  */
 package org.jetbrains.android;
 
-import com.android.tools.idea.ddms.adb.AdbService;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author coyote
@@ -27,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidPlugin implements ApplicationComponent {
   public static Key<Runnable> EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.build");
   public static Key<Runnable> EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.sync.task");
-  public static Key<String>   GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY              = Key.create("gui.test.gradle.build.output");
+  public static Key<String> GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY = Key.create("gui.test.gradle.build.output");
   public static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
 
   private static boolean ourGuiTestingMode;
@@ -45,7 +43,6 @@ public class AndroidPlugin implements ApplicationComponent {
 
   @Override
   public void disposeComponent() {
-    AdbService.terminateDdmlib();
   }
 
   public static boolean isGuiTestingMode() {
@@ -54,21 +51,24 @@ public class AndroidPlugin implements ApplicationComponent {
 
   public static void setGuiTestingMode(boolean guiTestingMode) {
     ourGuiTestingMode = guiTestingMode;
-    if (guiTestingMode) {
-      ourGuiTestSuiteState = new GuiTestSuiteState();
-    }
+    ourGuiTestSuiteState = ourGuiTestingMode ? new GuiTestSuiteState() : null;
   }
 
   // Ideally we would have this class in IdeTestApplication. The problem is that IdeTestApplication and UI tests run in different
   // ClassLoaders and UI tests are unable to see the same instance of IdeTestApplication.
-  @Nullable
+  @NotNull
   public static GuiTestSuiteState getGuiTestSuiteState() {
+    if (!ourGuiTestingMode) {
+      throw new UnsupportedOperationException("The method 'getGuiTestSuiteState' can only be invoked when running UI tests");
+    }
     return ourGuiTestSuiteState;
   }
 
   public static class GuiTestSuiteState {
     private boolean myOpenProjectWizardAlreadyTested;
     private boolean myImportProjectWizardAlreadyTested;
+    private boolean mySkipSdkMerge;
+    private boolean myUseCachedGradleModelOnly;
 
     public boolean isOpenProjectWizardAlreadyTested() {
       return myOpenProjectWizardAlreadyTested;
@@ -84,6 +84,22 @@ public class AndroidPlugin implements ApplicationComponent {
 
     public void setImportProjectWizardAlreadyTested(boolean importProjectWizardAlreadyTested) {
       myImportProjectWizardAlreadyTested = importProjectWizardAlreadyTested;
+    }
+
+    public boolean isSkipSdkMerge() {
+      return mySkipSdkMerge;
+    }
+
+    public void setSkipSdkMerge(boolean skipSdkMerge) {
+      mySkipSdkMerge = skipSdkMerge;
+    }
+
+    public boolean syncWithCachedModelOnly() {
+      return myUseCachedGradleModelOnly;
+    }
+
+    public void setUseCachedGradleModelOnly(boolean useCachedGradleModelOnly) {
+      myUseCachedGradleModelOnly = useCachedGradleModelOnly;
     }
   }
 }

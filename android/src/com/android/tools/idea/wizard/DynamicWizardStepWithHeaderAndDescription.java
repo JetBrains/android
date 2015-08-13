@@ -45,15 +45,6 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   private JBLabel myMessageLabel;
   private JPanel myHeaderPane;
 
-  /**
-   * @deprecated Use {@link #DynamicWizardStepWithHeaderAndDescription(String, String, com.intellij.openapi.Disposable)}
-   */
-  @Deprecated
-  public DynamicWizardStepWithHeaderAndDescription(@NotNull String title, @Nullable String message,
-                                                   @Nullable Icon icon, @Nullable Disposable parentDisposable) {
-    this(title, message, parentDisposable); // TODO remove the whole ctor
-  }
-
   public DynamicWizardStepWithHeaderAndDescription(@NotNull String title, @Nullable String message, @Nullable Disposable parentDisposable) {
     super(parentDisposable);
     myTitle = title;
@@ -122,8 +113,8 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
 
   @NotNull
   @Override
-  protected Color getHeaderColor() {
-    Color color = getStepHeader().color;
+  protected JBColor getHeaderColor() {
+    JBColor color = getStepHeader().color;
     return color == null ? super.getHeaderColor() : color;
   }
 
@@ -139,9 +130,9 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     @NotNull public final String title;
     @Nullable public final String description;
     @Nullable public final Icon stepIcon;
-    @Nullable public final Color color;
+    @Nullable public final JBColor color;
 
-    private WizardStepHeaderSettings(@NotNull String title, @Nullable String description, @Nullable Icon stepIcon, @Nullable Color color) {
+    private WizardStepHeaderSettings(@NotNull String title, @Nullable String description, @Nullable Icon stepIcon, @Nullable JBColor color) {
       this.title = title;
       this.description = description;
       this.stepIcon = stepIcon;
@@ -149,7 +140,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     }
 
     @NotNull
-    public static WizardStepHeaderSettings createCustomColorHeader(@NotNull Color color, @NotNull String title) {
+    public static WizardStepHeaderSettings createCustomColorHeader(@NotNull JBColor color, @NotNull String title) {
       return new WizardStepHeaderSettings(title, PRODUCT_DESCRIPTION, null, color);
     }
 
@@ -167,24 +158,5 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     public static WizardStepHeaderSettings createTitleAndDescriptionHeader(@NotNull String title, @NotNull String description) {
       return new WizardStepHeaderSettings(title, description, null, null);
     }
-  }
-
-  // TODO Remove methods below
-  /**
-   * @deprecated No longer used, retain to avoid compilation errors.
-   */
-  @Deprecated
-  @Nullable
-  protected JComponent getHeader() {
-    return null;
-  }
-
-  /**
-   * @deprecated Unused. Will be removed when no code left in downstream projects using this.
-   */
-  @Nullable
-  @Deprecated
-  protected JBColor getTitleTextColor() {
-    return null;
   }
 }

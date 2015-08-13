@@ -15,26 +15,24 @@
  */
 package com.android.tools.idea.ddms.adb;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.*;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.logcat.AdbErrors;
-import org.jetbrains.android.logcat.AndroidToolWindowFactory;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.TimeoutException;
 
 /**
  * {@link com.android.tools.idea.ddms.adb.AdbService} is the main entry point to initializing and obtaining the
@@ -49,32 +47,64 @@ import java.util.concurrent.TimeUnit;
  * by first invoking {@link #getDebugBridge(java.io.File)} to obtain the bridge, and implementing
  * {@link com.android.ddmlib.AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
  */
-public class AdbService {
-  @NotNull private static final Ddmlib ourDdmlib = new Ddmlib();
-  @Nullable private static SettableFuture<AndroidDebugBridge> ourFuture;
-  @Nullable private static BridgeConnectorTask ourMonitorTask;
+public class AdbService implements ApplicationComponent {
+  private static final Logger LOG = Logger.getInstance(AdbService.class);
 
-  public static synchronized ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull File adb) {
+  @GuardedBy("this")
+  @Nullable private ListenableFuture<AndroidDebugBridge> myFuture;
+
+  /**
+   * adb initialization and termination could occur in separate threads (see {@link #terminateDdmlib()} and {@link CreateBridgeTask}.
+   * This lock is used to synchronize between the two.
+   * */
+  private static final Object ADB_INIT_LOCK = new Object();
+
+  @Override
+  public void initComponent() {
+    DdmPreferences.setLogLevel(Log.LogLevel.INFO.getStringValue());
+    DdmPreferences.setTimeOut(AndroidUtils.TIMEOUT);
+  }
+
+  @Override
+  public void disposeComponent() {
+    terminateDdmlib();
+  }
+
+  @NotNull
+  @Override
+  public String getComponentName() {
+    return "AdbService";
+  }
+
+  public static AdbService getInstance() {
+    return ApplicationManager.getApplication().getComponent(AdbService.class);
+  }
+
+  public synchronized ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull File adb) {
     // Cancel previous requests if they were unsuccessful
-    if (ourFuture != null && !wasSuccessful(ourFuture)) {
+    if (myFuture != null && myFuture.isDone() && !wasSuccessful(myFuture)) {
       terminateDdmlib();
     }
 
-    if (ourFuture == null) {
-      ourFuture = SettableFuture.create();
-      ourMonitorTask = new BridgeConnectorTask(adb, ourDdmlib, ourFuture);
-      ApplicationManager.getApplication().executeOnPooledThread(ourMonitorTask);
+    if (myFuture == null) {
+      Future<AndroidDebugBridge> future = ApplicationManager.getApplication().executeOnPooledThread(new CreateBridgeTask(adb));
+      // TODO: expose connection timeout in some settings UI? Also see AndroidUtils.TIMEOUT which is way too long
+      myFuture = makeTimedFuture(future, 20, TimeUnit.SECONDS);
     }
 
-    return ourFuture;
+    return myFuture;
   }
 
-  public static synchronized void terminateDdmlib() {
-    ourFuture = null;
-    if (ourMonitorTask != null) {
-      ourMonitorTask.cancel();
+  synchronized void terminateDdmlib() {
+    if (myFuture != null) {
+      myFuture.cancel(true);
+      myFuture = null;
     }
-    ourDdmlib.terminate();
+
+    synchronized (ADB_INIT_LOCK) {
+      AndroidDebugBridge.disconnectBridge();
+      AndroidDebugBridge.terminate();
+    }
   }
 
   public static boolean canDdmsBeCorrupted(@NotNull AndroidDebugBridge bridge) {
@@ -107,17 +137,13 @@ public class AdbService {
     return false;
   }
 
-  public static synchronized void restartDdmlib(@NotNull Project project) {
-    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidToolWindowFactory.TOOL_WINDOW_ID);
-    boolean hidden = false;
-    if (toolWindow != null && toolWindow.isVisible()) {
-      hidden = true;
-      toolWindow.hide(null);
-    }
+  public synchronized ListenableFuture<AndroidDebugBridge> restartDdmlib(@NotNull Project project) {
     terminateDdmlib();
-    if (hidden) {
-      toolWindow.show(null);
+    File adb = AndroidSdkUtils.getAdb(project);
+    if (adb == null) {
+      throw new RuntimeException("Unable to locate Android SDK used by project: " + project.getName());
     }
+    return getDebugBridge(adb);
   }
 
   /** Returns whether the future has completed successfully. */
@@ -135,100 +161,65 @@ public class AdbService {
     }
   }
 
-  private static class BridgeConnectorTask implements Runnable {
-    private static final long TIMEOUT_MS = 10000;
-    private final CountDownLatch myCancelLatch = new CountDownLatch(1);
-
-    private final Ddmlib myDdmlib;
-    private final SettableFuture<AndroidDebugBridge> myResult;
+  private static class CreateBridgeTask implements Callable<AndroidDebugBridge> {
     private final File myAdb;
 
-    public BridgeConnectorTask(File adb, @NotNull Ddmlib ddmlib, @NotNull SettableFuture<AndroidDebugBridge> result) {
+    public CreateBridgeTask(@NotNull File adb) {
       myAdb = adb;
-      myDdmlib = ddmlib;
-      myResult = result;
     }
 
     @Override
-    public void run() {
+    public AndroidDebugBridge call() throws Exception {
       AdbErrors.clear();
-      myDdmlib.initialize(myAdb);
+      boolean clientSupport = AndroidEnableAdbServiceAction.isAdbServiceEnabled();
+      LOG.info("Initializing adb using: " + myAdb.getAbsolutePath() + ", client support = " + clientSupport);
 
-      long startTime = System.currentTimeMillis();
-
-      while (!myDdmlib.isConnected()) {
-        // if not connected, wait for sometime, unless we were cancelled
-        if (myDdmlib.isConnectionInProgress()) {
-          try {
-            if (myCancelLatch.await(200, TimeUnit.MILLISECONDS)) {
-              break;
-            }
-          }
-          catch (InterruptedException ignore) {
-            break;
-          }
-        }
-
-        // check if we should time out
-        if (System.currentTimeMillis() > (startTime + TIMEOUT_MS)) {
-          break;
+      AndroidDebugBridge bridge;
+      synchronized (ADB_INIT_LOCK) {
+        AndroidDebugBridge.init(clientSupport);
+        bridge = AndroidDebugBridge.createBridge(myAdb.getPath(), false);
+      }
+      while (!bridge.isConnected()) {
+        try {
+          TimeUnit.MILLISECONDS.sleep(200);
+        } catch (InterruptedException e) {
+          // if cancelled, don't wait for connection and return immediately
+          return bridge;
         }
       }
 
-      if (myDdmlib.isConnected()) {
-        myResult.set(AndroidDebugBridge.getBridge());
-      }
-      else {
-        myResult.setException(new CancellationException());
-      }
-    }
-
-    public void cancel() {
-      myCancelLatch.countDown();
+      LOG.info("Successfully connected to adb");
+      return bridge;
     }
   }
 
-  /** Encapsulates DDM library initialization/termination*/
-  private static class Ddmlib {
-    private static final Logger LOG = Logger.getInstance(Ddmlib.class);
-    private AndroidDebugBridge myBridge;
-    private boolean myDdmLibInitialized = false;
-    private boolean ourDdmLibTerminated = false;
+  /** Returns a future that wraps the given future with a timeout. */
+  private static <T> ListenableFuture<T> makeTimedFuture(@NotNull final Future<T> delegate,
+                                                         final long timeout,
+                                                         @NotNull final TimeUnit unit) {
+    final SettableFuture<T> future = SettableFuture.create();
 
-    public synchronized void initialize(@NotNull File adb) {
-      boolean forceRestart = true;
-      if (!myDdmLibInitialized) {
-        myDdmLibInitialized = true;
-        ourDdmLibTerminated = false;
-        DdmPreferences.setLogLevel(Log.LogLevel.INFO.getStringValue());
-        DdmPreferences.setTimeOut(AndroidUtils.TIMEOUT);
-        AndroidDebugBridge.init(AndroidEnableAdbServiceAction.isAdbServiceEnabled());
-        LOG.info("DDMLib initialized");
-      }
-      else {
-        final AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
-        forceRestart = bridge != null && !bridge.isConnected();
-        if (forceRestart) {
-          LOG.info("Force restarting bridge: currently not connected.");
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          T value = delegate.get(timeout, unit);
+          future.set(value);
+        }
+        catch (ExecutionException e) {
+          future.setException(e.getCause());
+        }
+        catch (InterruptedException e) {
+          delegate.cancel(true);
+          future.setException(e);
+        }
+        catch (TimeoutException e) {
+          delegate.cancel(true);
+          future.setException(e);
         }
       }
-      myBridge = AndroidDebugBridge.createBridge(adb.getPath(), forceRestart);
-    }
+    });
 
-    public synchronized boolean isConnectionInProgress() {
-      return !(isConnected() || ourDdmLibTerminated);
-    }
-
-    public synchronized boolean isConnected() {
-      return myBridge.isConnected();
-    }
-
-    public synchronized void terminate() {
-      ourDdmLibTerminated = true;
-      AndroidDebugBridge.disconnectBridge();
-      AndroidDebugBridge.terminate();
-      myDdmLibInitialized = false;
-      LOG.info("DDMLib terminated");
-    }
+    return future;
   }
 }

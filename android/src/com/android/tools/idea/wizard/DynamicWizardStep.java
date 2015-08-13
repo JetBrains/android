@@ -69,16 +69,6 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
     myState = new ScopedStateStore(STEP, null, this);
   }
 
-
-  /**
-   * @deprecated No longer used, not deleted to avoid compilation errors.
-   */
-  @Deprecated
-  @Nullable
-  public static JPanel createWizardStepHeader(JBColor headerColor, Icon icon, String title) {
-    return null; // TODO: Delete when no one is using it
-  }
-
   /**
    * Attach this step to the given path, linking the state store.
    */
@@ -333,7 +323,7 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
    * @return header color for this step
    */
   @NotNull
-  protected Color getHeaderColor() {
+  protected JBColor getHeaderColor() {
     return WizardConstants.ANDROID_NPW_HEADER_COLOR;
   }
 

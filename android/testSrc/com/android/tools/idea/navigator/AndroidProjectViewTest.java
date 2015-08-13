@@ -41,6 +41,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ProjectViewTestUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -120,16 +121,16 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       " lib (Android)\n" +
       "  manifests\n" +
       "   AndroidManifest.xml (main)\n" +
+      "  jni\n" +
+      "   hello.c (main)\n" +
+      "  jniLibs\n" +
+      "   libc.so (main)\n" +
+      "   libm.so (debug)\n" +
       "  res\n" +
       "   drawable\n" +
       "    ic_launcher.png (mdpi)\n" +
       "   values\n" +
       "    strings.xml\n" +
-      "  c\n" +
-      "   hello.c (main)\n" +
-      "  jniLibs\n" +
-      "   libc.so (main)\n" +
-      "   libm.so (debug)\n" +
       " Gradle Scripts\n" +
       "  build.gradle (Project: " + rootModuleName + ")\n" +
       "  build.gradle (Module: app)\n" +
@@ -231,10 +232,15 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       @Override
       public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
         // If the sync fails, then IDE creates an empty top level module. Mimic the same behavior for this test.
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
           @Override
           public void run() {
-            NewProjectImportGradleSyncListener.createTopLevelModule(project);
+            ApplicationManager.getApplication().runWriteAction(new Runnable() {
+              @Override
+              public void run() {
+                NewProjectImportGradleSyncListener.createTopLevelModule(project);
+              }
+            });
           }
         });
       }

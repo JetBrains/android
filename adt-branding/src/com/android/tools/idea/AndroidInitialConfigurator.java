@@ -22,6 +22,7 @@ import com.intellij.ide.ui.UISettings;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.editor.ex.EditorSettingsExternalizable;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.fileTypes.FileTypeManager;
@@ -54,6 +55,7 @@ public class AndroidInitialConfigurator {
   public AndroidInitialConfigurator(MessageBus bus,
                                     final PropertiesComponent propertiesComponent,
                                     final FileTypeManager fileTypeManager) {
+    validateConfiguration();
     setupSystemProperties();
     customizeSettings(propertiesComponent);
 
@@ -61,6 +63,23 @@ public class AndroidInitialConfigurator {
     setActivateAndroidToolWindowShortcut();
 
     activateAndroidStudioInitializerExtensions();
+  }
+
+  /**
+   * Validates that the IDE configuration follows Android Studio requirements.
+   */
+  private static void validateConfiguration() {
+    String[] versions = {
+      ApplicationInfo.getInstance().getMajorVersion(),
+      ApplicationInfo.getInstance().getMinorVersion(),
+      ApplicationInfo.getInstance().getMicroVersion(),
+      ApplicationInfo.getInstance().getPatchVersion(),
+    };
+    for (String version : versions) {
+      if (version == null || !version.matches("0|([1-9]+[0-9]*)")) {
+        throw new AssertionError("Invalid version component found: " + version);
+      }
+    }
   }
 
   /**
@@ -79,7 +98,6 @@ public class AndroidInitialConfigurator {
       System.setProperty("idea.updates.url", updateUrl + "updates.xml");
       System.setProperty("idea.patches.url", updateUrl);
     }
-
   }
 
   private static void customizeSettings(PropertiesComponent propertiesComponent) {

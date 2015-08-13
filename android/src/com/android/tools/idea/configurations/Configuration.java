@@ -26,6 +26,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
 import com.android.tools.idea.rendering.*;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
@@ -33,6 +34,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -54,10 +56,10 @@ import static com.android.tools.idea.configurations.ConfigurationListener.*;
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
  * etc for use when rendering a layout.
  */
-public class Configuration implements Disposable {
+public class Configuration implements Disposable, ModificationTracker {
 
   /** Min API version that supports preferences API rendering. */
-  public static final int PREFERENCES_MIN_API = 21;
+  public static final int PREFERENCES_MIN_API = 22;
 
   /** The associated file */
   @Nullable final VirtualFile myFile;
@@ -166,6 +168,8 @@ public class Configuration implements Disposable {
 
   protected int myProjectStateVersion;
 
+  private long myModificationCount;
+
   /**
    * Creates a new {@linkplain Configuration}
    */
@@ -190,7 +194,7 @@ public class Configuration implements Disposable {
     if (file != null) {
       if (ResourceHelper.getFolderType(file) == ResourceFolderType.XML) {
         myPsiFile = AndroidPsiUtils.getPsiFileSafely(manager.getProject(), file);
-        if (myPsiFile != null && TAG_PREFERENCE_SCREEN.equals(RenderService.getRootTagName(myPsiFile))) {
+        if (myPsiFile != null && TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(myPsiFile))) {
           myTarget = manager.getTarget(PREFERENCES_MIN_API);
         }
       }
@@ -304,7 +308,7 @@ public class Configuration implements Disposable {
       destination.myStateName = source.myStateName;
       destination.myState = source.myState;
     }
-    if (editedConfig.getEffectiveLanguage() == null) {
+    if (editedConfig.getLocaleQualifier() == null) {
       destination.myLocale = source.myLocale; // avoid getLocale() since it fetches project state
     }
     if (editedConfig.getUiModeQualifier() == null) {
@@ -437,10 +441,7 @@ public class Configuration implements Disposable {
     FolderConfiguration currentConfig = DeviceConfigHelper.getFolderConfig(state);
     if (currentConfig != null) {
       if (locale.hasLanguage()) {
-        currentConfig.setLanguageQualifier(locale.language);
-        if (locale.hasRegion()) {
-          currentConfig.setRegionQualifier(locale.region);
-        }
+        currentConfig.setLocaleQualifier(locale.qualifier);
 
         if (locale.hasLanguage()) {
           LayoutLibrary layoutLib = RenderService.getLayoutLibrary(module, target);
@@ -488,6 +489,8 @@ public class Configuration implements Disposable {
               }
             } else if ("Kotlin".equals(myFile.getFileType().getName())) {
               return device;
+            } else if (ThemeEditorVirtualFile.FILENAME.equals(myFile.getName())) {
+              return device;              // takes care of correct device selection for Theme Editor
             }
           }
         }
@@ -599,7 +602,7 @@ public class Configuration implements Disposable {
    * @return if this configuration represents a locale-specific layout
    */
   public boolean isLocaleSpecificLayout() {
-    return myEditedConfig.getEffectiveLanguage() != null;
+    return myEditedConfig.getLocaleQualifier() != null;
   }
 
   /**
@@ -924,8 +927,7 @@ public class Configuration implements Disposable {
 
     // sync the selected locale
     Locale locale = getLocale();
-    myFullConfig.setLanguageQualifier(locale.language);
-    myFullConfig.setRegionQualifier(locale.region);
+    myFullConfig.setLocaleQualifier(locale.qualifier);
     if (myEditedConfig.getLayoutDirectionQualifier() != null) {
       myFullConfig.setLayoutDirectionQualifier(myEditedConfig.getLayoutDirectionQualifier());
     } else if (!locale.hasLanguage()) {
@@ -1116,6 +1118,7 @@ public class Configuration implements Disposable {
   public void updated(int flags) {
     myNotifyDirty |= flags;
     myFolderConfigDirty |= flags;
+    myModificationCount++;
 
     if (myManager.getStateVersion() != myProjectStateVersion) {
       myNotifyDirty |= MASK_PROJECT_STATE;
@@ -1236,5 +1239,10 @@ public class Configuration implements Disposable {
     if (updateFlags != 0) {
       updated(updateFlags);
     }
+  }
+
+  @Override
+  public long getModificationCount() {
+    return myModificationCount;
   }
 }

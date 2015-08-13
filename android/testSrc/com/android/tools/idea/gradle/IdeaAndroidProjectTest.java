@@ -17,15 +17,15 @@
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.intellij.testFramework.IdeaTestCase;
+import com.android.tools.idea.templates.AndroidGradleTestCase;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import java.io.File;
+import java.io.*;
 
 /**
  * Tests for {@link IdeaAndroidProject}.
  */
-public class IdeaAndroidProjectTest extends IdeaTestCase {
+public class IdeaAndroidProjectTest extends AndroidGradleTestCase {
   private AndroidProjectStub myDelegate;
   private IdeaAndroidProject myAndroidProject;
 
@@ -63,5 +63,34 @@ public class IdeaAndroidProjectTest extends IdeaTestCase {
     Variant selectedVariant = myAndroidProject.getSelectedVariant();
     assertNotNull(selectedVariant);
     assertSame(myDelegate.getFirstVariant(), selectedVariant);
+  }
+
+  public void testReadWriteObject() throws Exception {
+    if (!CAN_SYNC_PROJECTS) {
+      System.err.println("IdeaAndroidProjectDataSerializationTest.testReadWriteObject temporarily disabled");
+      return;
+    }
+
+    loadProject("projects/projectWithAppandLib");
+
+    IdeaAndroidProject ideaAndroidProject = myAndroidFacet.getIdeaAndroidProject();
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    ObjectOutputStream oos;
+    oos = new ObjectOutputStream(outputStream);
+    oos.writeObject(ideaAndroidProject);
+    oos.close();
+
+    ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+    ObjectInputStream ois = new ObjectInputStream(inputStream);
+    IdeaAndroidProject newIdeaAndroidProject = (IdeaAndroidProject)ois.readObject();
+    ois.close();
+
+    assertEquals(ideaAndroidProject.getProjectSystemId(), newIdeaAndroidProject.getProjectSystemId());
+    assertEquals(ideaAndroidProject.getModuleName(), newIdeaAndroidProject.getModuleName());
+    assertEquals(ideaAndroidProject.getRootDirPath(), newIdeaAndroidProject.getRootDirPath());
+    assertEquals(ideaAndroidProject.getDelegate().getName(), newIdeaAndroidProject.getDelegate().getName());
+    assertEquals(ideaAndroidProject.getSelectedVariant().getName(), newIdeaAndroidProject.getSelectedVariant().getName());
+    assertEquals(ideaAndroidProject.getSelectedTestArtifactName(), newIdeaAndroidProject.getSelectedTestArtifactName());
   }
 }

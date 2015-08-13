@@ -18,7 +18,12 @@ package com.android.tools.idea.gradle;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.annotations.NotNull;
 
-public class ImportedModule {
+import java.io.Serializable;
+
+public class ImportedModule implements Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final String myName;
 
   public ImportedModule(@NotNull IdeaModule module) {

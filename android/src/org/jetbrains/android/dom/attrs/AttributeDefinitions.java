@@ -18,6 +18,9 @@ public interface AttributeDefinitions {
   @Nullable
   AttributeDefinition getAttrDefByName(@NotNull String name);
 
+  @Nullable
+  String getAttrGroupByName(@NotNull String name);
+
   @NotNull
   StyleableDefinition[] getStateStyleables();
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
@@ -25,7 +24,6 @@ import com.intellij.refactoring.rename.RenameHandler;
 import com.intellij.ui.EditorTextField;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +32,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.fest.reflect.core.Reflection.field;
+import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.junit.Assert.assertNotNull;
 
 public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
 
@@ -60,6 +61,7 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
                                              @NotNull Robot robot)
   {
     // We use SwingUtilities instead of FEST here because RenameDialog is modal and GuiActionRunner doesn't return until
+    //noinspection SSBasedInspection
     SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -69,7 +71,7 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
     final Ref<RenameDialog> ref = new Ref<RenameDialog>();
     JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         if (!RefactoringBundle.message("rename.title").equals(dialog.getTitle()) || !dialog.isShowing()) {
           return false;
         }
@@ -86,20 +88,21 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
 
   @NotNull
   public String getNewName() {
-    return GuiActionRunner.execute(new GuiQuery<String>() {
+    //noinspection ConstantConditions
+    return execute(new GuiQuery<String>() {
       @Override
       protected String executeInEDT() throws Throwable {
-        String text = robot.finder().findByType(target, EditorTextField.class).getText();
+        String text = robot().finder().findByType(target(), EditorTextField.class).getText();
         return text == null ? "" : text;
       }
     });
   }
 
   public void setNewName(@NotNull final String newName) {
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        robot.finder().findByType(target, EditorTextField.class).setText(newName);
+        robot().finder().findByType(target(), EditorTextField.class).setText(newName);
       }
     });
   }
@@ -113,16 +116,19 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
    *                     rules described above; <code>false</code> otherwise
    */
   public boolean warningExists(@Nullable final String warningText) {
-    return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+    //noinspection ConstantConditions
+    return execute(new GuiQuery<Boolean>() {
       @Override
       protected Boolean executeInEDT() throws Throwable {
         JComponent errorTextPane = field("myErrorText").ofType(JComponent.class).in(getDialogWrapper()).get();
+        assertNotNull(errorTextPane);
         if (!errorTextPane.isVisible()) {
           return false;
         }
         JLabel errorLabel = field("myLabel").ofType(JLabel.class).in(errorTextPane).get();
+        assertNotNull(errorLabel);
         String text = errorLabel.getText();
-        if (Strings.isNullOrEmpty(text)) {
+        if (isNullOrEmpty(text)) {
           return false;
         }
         return warningText == null || text.contains(warningText);

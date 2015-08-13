@@ -15,53 +15,141 @@
  */
 package com.android.tools.idea.gradle;
 
-import org.gradle.tooling.model.idea.IdeaContentRoot;
-import org.gradle.tooling.model.idea.IdeaDependency;
-import org.gradle.tooling.model.idea.IdeaModule;
+import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
+import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
+import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.intellij.pom.java.LanguageLevel;
+import org.gradle.tooling.model.GradleTask;
+import org.gradle.tooling.model.idea.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public class IdeaJavaProject {
-  @NotNull private final String myModuleName;
-  @NotNull private final Collection<? extends IdeaContentRoot> myContentRoots;
-  @NotNull private final List<? extends IdeaDependency> myDependencies;
+import static com.android.tools.idea.gradle.facet.JavaGradleFacet.COMPILE_JAVA_TASK_NAME;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static java.util.Collections.emptyList;
 
-  @Nullable private final ExtIdeaCompilerOutput myCompilerOutput;
-  @Nullable private final File myBuildFolderPath;
+public class IdeaJavaProject implements Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 6L;
 
-  public IdeaJavaProject(@NotNull final IdeaModule ideaModule, @Nullable ModuleExtendedModel extendedModel) {
-    myModuleName = ideaModule.getName();
-    myContentRoots = getContentRoots(ideaModule, extendedModel);
-    myDependencies = getDependencies(ideaModule);
-    myCompilerOutput = extendedModel != null ? extendedModel.getCompilerOutput() : null;
-    myBuildFolderPath = ideaModule.getGradleProject().getBuildDirectory();
+  @NotNull private String myModuleName;
+  @NotNull private Collection<JavaModuleContentRoot> myContentRoots = Lists.newArrayList();
+  @NotNull private Collection<JavaModuleDependency> myJavaModuleDependencies = Lists.newArrayList();
+  @NotNull private Collection<JarLibraryDependency> myJarLibraryDependencies = Lists.newArrayList();
+
+  @Nullable private Map<String, Set<File>> myArtifactsByConfiguration;
+  @Nullable private ExtIdeaCompilerOutput myCompilerOutput;
+  @Nullable private File myBuildFolderPath;
+  @Nullable private String myLanguageLevel;
+
+  private boolean myBuildable;
+  private boolean myAndroidProjectWithoutVariants;
+
+  @NotNull
+  public static IdeaJavaProject newJavaProject(@NotNull final IdeaModule ideaModule,
+                                               @Nullable ModuleExtendedModel extendedModel,
+                                               boolean androidProjectWithoutVariants) {
+    Collection<? extends IdeaContentRoot> contentRoots = getContentRoots(ideaModule, extendedModel);
+    Map<String, Set<File>> artifactsByConfiguration = Maps.newHashMap();
+    if (extendedModel != null) {
+      artifactsByConfiguration = extendedModel.getArtifactsByConfiguration();
+    }
+    ExtIdeaCompilerOutput compilerOutput = extendedModel != null ? extendedModel.getCompilerOutput() : null;
+    File buildFolderPath = ideaModule.getGradleProject().getBuildDirectory();
+
+    // If this is an Android project without variants, we cannot build it.
+    boolean buildable = !androidProjectWithoutVariants && isBuildable(ideaModule);
+
+    String languageLevel = null;
+    if (extendedModel != null) {
+      languageLevel = extendedModel.getJavaSourceCompatibility();
+    }
+
+    return new IdeaJavaProject(ideaModule.getName(), contentRoots, getDependencies(ideaModule), artifactsByConfiguration, compilerOutput,
+                               buildFolderPath, languageLevel, buildable, androidProjectWithoutVariants);
   }
 
   @NotNull
   private static Collection<? extends IdeaContentRoot> getContentRoots(@NotNull IdeaModule ideaModule,
                                                                        @Nullable ModuleExtendedModel extendedModel) {
-    Collection<? extends IdeaContentRoot> contentRoots = null;
-    if (extendedModel != null) {
-      contentRoots = extendedModel.getContentRoots();
-    }
+    Collection<? extends IdeaContentRoot> contentRoots = extendedModel != null ? extendedModel.getContentRoots() : null;
     if (contentRoots != null) {
       return contentRoots;
     }
     contentRoots = ideaModule.getContentRoots();
-    return contentRoots != null ? contentRoots : Collections.<IdeaContentRoot>emptyList();
+    if (contentRoots != null) {
+      return contentRoots;
+    }
+    return emptyList();
   }
 
   @NotNull
-  private static List<? extends IdeaDependency> getDependencies(IdeaModule ideaModule) {
+  private static List<? extends IdeaDependency> getDependencies(@NotNull IdeaModule ideaModule) {
     List<? extends IdeaDependency> dependencies = ideaModule.getDependencies().getAll();
-    return dependencies != null ? dependencies : Collections.<IdeaDependency>emptyList();
+    if (dependencies != null) {
+      return dependencies;
+    }
+    return emptyList();
+  }
+
+  private static boolean isBuildable(@NotNull IdeaModule ideaModule) {
+    for (GradleTask task : ideaModule.getGradleProject().getTasks()) {
+      if (COMPILE_JAVA_TASK_NAME.equals(task.getName())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public IdeaJavaProject(@NotNull String name,
+                         @NotNull Collection<? extends IdeaContentRoot> contentRoots,
+                         @NotNull List<? extends IdeaDependency> dependencies,
+                         @Nullable Map<String, Set<File>> artifactsByConfiguration,
+                         @Nullable ExtIdeaCompilerOutput compilerOutput,
+                         @Nullable File buildFolderPath,
+                         @Nullable String languageLevel,
+                         boolean buildable,
+                         boolean androidProjectWithoutVariants) {
+    myModuleName = name;
+    for (IdeaContentRoot contentRoot : contentRoots) {
+      if (contentRoot != null) {
+        myContentRoots.add(JavaModuleContentRoot.copy(contentRoot));
+      }
+    }
+
+    for (IdeaDependency dependency : dependencies) {
+      if (dependency instanceof IdeaSingleEntryLibraryDependency) {
+        JarLibraryDependency libraryDependency = JarLibraryDependency.copy((IdeaSingleEntryLibraryDependency)dependency);
+        if (libraryDependency != null) {
+          myJarLibraryDependencies.add(libraryDependency);
+        }
+      }
+      else if (dependency instanceof IdeaModuleDependency) {
+        JavaModuleDependency moduleDependency = JavaModuleDependency.copy((IdeaModuleDependency)dependency);
+        if (moduleDependency != null) {
+          myJavaModuleDependencies.add(moduleDependency);
+        }
+      }
+    }
+
+    myArtifactsByConfiguration = artifactsByConfiguration;
+    myCompilerOutput = compilerOutput;
+    myBuildFolderPath = buildFolderPath;
+    myLanguageLevel = languageLevel;
+    myBuildable = buildable;
+    myAndroidProjectWithoutVariants = androidProjectWithoutVariants;
   }
 
   @NotNull
@@ -70,13 +158,59 @@ public class IdeaJavaProject {
   }
 
   @NotNull
-  public Collection<? extends IdeaContentRoot> getContentRoots() {
+  public Collection<JavaModuleContentRoot> getContentRoots() {
     return myContentRoots;
   }
 
-  @NotNull
-  public List<? extends IdeaDependency> getDependencies() {
-    return myDependencies;
+  public boolean containsSourceFile(@NotNull File file) {
+    for (JavaModuleContentRoot contentRoot : getContentRoots()) {
+      if (contentRoot != null) {
+        if (containsFile(contentRoot, file)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private static boolean containsFile(@NotNull JavaModuleContentRoot contentRoot, @NotNull File file) {
+    if (containsFile(contentRoot.getSourceDirPaths(), file) ||
+        containsFile(contentRoot.getTestDirPaths(), file) ||
+        containsFile(contentRoot.getResourceDirPaths(), file) ||
+        containsFile(contentRoot.getGenSourceDirPaths(), file) ||
+        containsFile(contentRoot.getGenTestDirPaths(), file) ||
+        containsFile(contentRoot.getTestResourceDirPaths(), file)) {
+      return true;
+    }
+    return false;
+  }
+
+  private static boolean containsFile(@Nullable Collection<File> folderPaths, @NotNull File file) {
+    if (folderPaths != null) {
+      for (File path : folderPaths) {
+        if (isAncestor(path, file, false)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @Nullable
+  public File getJarFilePath() {
+    Map<String, Set<File>> artifactsByConfiguration = getArtifactsByConfiguration();
+    if (artifactsByConfiguration != null) {
+      Set<File> defaultArtifacts = artifactsByConfiguration.get("default");
+      if (!defaultArtifacts.isEmpty()) {
+        return getFirstItem(defaultArtifacts);
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public Map<String, Set<File>> getArtifactsByConfiguration() {
+    return myArtifactsByConfiguration;
   }
 
   @Nullable
@@ -87,5 +221,31 @@ public class IdeaJavaProject {
   @Nullable
   public File getBuildFolderPath() {
     return myBuildFolderPath;
+  }
+
+  @NotNull
+  public Collection<JavaModuleDependency> getJavaModuleDependencies() {
+    return myJavaModuleDependencies;
+  }
+
+  @NotNull
+  public Collection<JarLibraryDependency> getJarLibraryDependencies() {
+    return myJarLibraryDependencies;
+  }
+
+  public boolean isBuildable() {
+    return myBuildable;
+  }
+
+  public boolean isAndroidProjectWithoutVariants() {
+    return myAndroidProjectWithoutVariants;
+  }
+
+  @Nullable
+  public LanguageLevel getJavaLanguageLevel() {
+    if (myLanguageLevel != null) {
+      return LanguageLevel.parse(myLanguageLevel);
+    }
+    return null;
   }
 }

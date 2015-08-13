@@ -245,7 +245,7 @@ public abstract class ImportModule implements Comparable<ImportModule> {
     }
     else if (name.equals("guava.jar") || name.startsWith("guava-")) {
       myImporter.markJarHandled(jar);
-      String version = getVersion(jar, "guava-", name, "17.0");
+      String version = getVersion(jar, "guava-", name, "18.0");
       if (version.startsWith("r")) { // really old versions
         version = "15.0";
       }
@@ -254,31 +254,31 @@ public abstract class ImportModule implements Comparable<ImportModule> {
     else if (name.startsWith("joda-time")) {
       myImporter.markJarHandled(jar);
       // Convert joda-time-2.1 jar into joda-time:joda-time:2.1 etc
-      String version = getVersion(jar, "joda-time-", name, "2.4");
+      String version = getVersion(jar, "joda-time-", name, "2.7");
       return GradleCoordinate.parseCoordinateString("joda-time:joda-time:" + version);
     }
     else if (name.startsWith("robotium-solo-")) {
       myImporter.markJarHandled(jar);
-      String version = getVersion(jar, "robotium-solo-", name, "5.2.1");
+      String version = getVersion(jar, "robotium-solo-", name, "5.3.1");
       return GradleCoordinate.parseCoordinateString("com.jayway.android.robotium:robotium-solo:" + version);
     }
     else if (name.startsWith("protobuf-java-")) {
       myImporter.markJarHandled(jar);
-      String version = getVersion(jar, "protobuf-java-", name, "2.5");
+      String version = getVersion(jar, "protobuf-java-", name, "2.6.1");
       return GradleCoordinate.parseCoordinateString("com.google.protobuf:protobuf-java:" + version);
     }
     else if (name.startsWith("gson-")) {
       myImporter.markJarHandled(jar);
-      String version = getVersion(jar, "gson-", name, "2.3");
+      String version = getVersion(jar, "gson-", name, "2.3.1");
       return GradleCoordinate.parseCoordinateString("com.google.code.gson:gson:" + version);
     }
     else if (name.startsWith("google-http-client-gson-")) {
       myImporter.markJarHandled(jar);
-      return GradleCoordinate.parseCoordinateString("com.google.http-client:google-http-client-gson:1.19.0");
+      return GradleCoordinate.parseCoordinateString("com.google.http-client:google-http-client-gson:1.20.0");
     }
     else if (name.startsWith("svg-android")) {
       myImporter.markJarHandled(jar);
-      return GradleCoordinate.parseCoordinateString("com.github.japgolly.android:svg-android:2.0.5");
+      return GradleCoordinate.parseCoordinateString("com.github.japgolly.android:svg-android:2.0.6");
     }
     else if (name.equals("gcm.jar")) {
       myImporter.markJarHandled(jar);
@@ -565,6 +565,25 @@ public abstract class ImportModule implements Comparable<ImportModule> {
             myImporter.copyTextFile(ImportModule.this, source, destRs);
             myImporter.getSummary().reportMoved(ImportModule.this, source, destRs);
             return true;
+          } else if (!sourcePath.endsWith(DOT_JAVA)
+                     && !sourcePath.endsWith(DOT_CLASS) // in case Eclipse built .class into source dir
+                     && !sourcePath.endsWith(DOT_JAR)
+                     && !sourcePath.equals("package.html") // leave docs with their code
+                     && !sourcePath.equals("overview.html")
+                     && source.isFile()) {
+            // Move resources over to the resource folder
+            File resourceDir = new File(main, FD_JAVA_RES);
+            File relative = GradleImport.computeRelativePath(srcJava, source);
+            if (relative == null) {
+              relative = GradleImport.computeRelativePath(srcJava.getCanonicalFile(), source);
+            }
+            if (relative != null) {
+              File destResource = new File(resourceDir, relative.getPath());
+              myImporter.mkdirs(destResource.getParentFile());
+              Files.copy(source, destResource);
+              myImporter.getSummary().reportMoved(ImportModule.this, source, destResource);
+              return true;
+            }
           }
           return false;
         }

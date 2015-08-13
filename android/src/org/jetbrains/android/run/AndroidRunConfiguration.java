@@ -86,6 +86,10 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Override
   protected void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException {
+    if (getTargetSelectionMode() == TargetSelectionMode.CLOUD_DEVICE_LAUNCH && !IS_VALID_CLOUD_DEVICE_SELECTION) {
+      throw new RuntimeConfigurationError(INVALID_CLOUD_DEVICE_SELECTION_ERROR);
+    }
+
     final boolean packageContainMavenProperty = doesPackageContainMavenProperty(facet);
     final JavaRunConfigurationModule configurationModule = getConfigurationModule();
     Module module = facet.getModule();
@@ -286,7 +290,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   }
 
   @Nullable
-  private String getActivityToLaunch(@NotNull final AndroidFacet facet, @Nullable ProcessHandler processHandler) {
+  protected String getActivityToLaunch(@NotNull final AndroidFacet facet, @Nullable ProcessHandler processHandler) {
     String activityToLaunch = null;
 
     if (MODE.equals(LAUNCH_DEFAULT_ACTIVITY)) {
@@ -373,6 +377,34 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     }
   }
 
+  /**
+   * Returns whether the given module corresponds to a watch face app.
+   * A module is considered to be a watch face app if there are no activities, and a single service with
+   * a specific intent filter. This definition is likely stricter than it needs to be to but we are only
+   * interested in matching the watch face template application.
+   */
+  public static boolean isWatchFaceApp(@NotNull AndroidFacet facet) {
+    ManifestInfo info = ManifestInfo.get(facet.getModule(), true);
+    if (!info.getActivities().isEmpty()) {
+      return false;
+    }
+
+    final List<Service> services = info.getServices();
+    if (services.size() != 1) {
+      return false;
+    }
+
+    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
+      public Boolean compute() {
+        List<IntentFilter> filters = services.get(0).getIntentFilters();
+        return filters.size() == 1 &&
+               AndroidDomUtil.containsAction(filters.get(0), AndroidUtils.WALLPAPER_SERVICE_ACTION_NAME) &&
+               AndroidDomUtil.containsCategory(filters.get(0), AndroidUtils.WATCHFACE_CATEGORY_NAME);
+      }
+    });
+  }
+
   private static boolean isActivityLaunchable(List<IntentFilter> intentFilters) {
     for (IntentFilter filter : intentFilters) {
       if (AndroidDomUtil.containsAction(filter, AndroidUtils.LAUNCH_ACTION_NAME)) {
@@ -382,8 +414,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     return false;
   }
 
-  private static abstract class MyApplicationLauncher extends AndroidApplicationLauncher {
-    private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunConfiguration.MyApplicationLauncher");
+  protected static abstract class MyApplicationLauncher extends AndroidApplicationLauncher {
+    protected static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunConfiguration.MyApplicationLauncher");
 
     @Nullable
     protected abstract String getActivityName(@Nullable ProcessHandler processHandler);
@@ -425,12 +457,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       if (state.isStopped()) return LaunchResult.STOP;
       processHandler.notifyTextAvailable("Launching application: " + activityPath + ".\n", STDOUT);
       AndroidRunningState.MyReceiver receiver = state.new MyReceiver();
-      boolean debug = state.isDebugMode();
       while (true) {
         if (state.isStopped()) return LaunchResult.STOP;
         String command = "am start " +
-                         (debug ? "-D " : "") +
-                         "-n \"" + activityPath + "\" " +
+                         getDebugFlags(state) +
+                         " -n \"" + activityPath + "\" " +
                          "-a android.intent.action.MAIN " +
                          "-c android.intent.category.LAUNCHER";
         boolean deviceNotResponding = false;
@@ -462,6 +493,12 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
         processHandler.notifyTextAvailable(receiver.getOutput().toString(), STDERR);
       }
       return success ? LaunchResult.SUCCESS : LaunchResult.STOP;
+    }
+
+    /** Returns the flags used to the "am start" command for launching in debug mode. */
+    @NotNull
+    protected String getDebugFlags(@NotNull AndroidRunningState state) {
+      return state.isDebugMode() ? "-D" : "";
     }
   }
 }

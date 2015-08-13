@@ -54,7 +54,7 @@ public class FmHasDependencyMethod implements TemplateMethodModelEx {
     if (args.size() != 1) {
       throw new TemplateModelException("Wrong arguments");
     }
-    String artifact = args.get(0).toString();
+    String artifact = ((TemplateScalarModel)args.get(0)).getAsString();
     if (artifact.isEmpty()) {
       return TemplateBooleanModel.FALSE;
     }

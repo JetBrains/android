@@ -19,10 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
-import com.android.tools.idea.rendering.LayoutPullParserFactory;
-import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.ProjectTopics;
@@ -74,6 +71,7 @@ import java.awt.event.HierarchyListener;
 import java.util.Map;
 
 import static com.android.SdkConstants.ANDROID_PREFIX;
+import static com.android.SdkConstants.PREFIX_BINDING_EXPR;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 
 /**
@@ -159,7 +157,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
             // Just added attribute value
             String text = child.getText();
             // See if this is an attribute that takes a resource!
-            if (text.startsWith(PREFIX_RESOURCE_REF)) {
+            if (text.startsWith(PREFIX_RESOURCE_REF) && !text.startsWith(PREFIX_BINDING_EXPR)) {
               if (text.equals(PREFIX_RESOURCE_REF) || text.equals(ANDROID_PREFIX)) {
                 // Using code completion to insert resource reference; not yet done
                 return;
@@ -194,7 +192,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
             String newText = child.getText();
             String prevText = event.getOldChild().getText();
             // See if user is working on an incomplete URL, and is still not complete, e.g. typing in @string/foo manually
-            if (newText.startsWith(PREFIX_RESOURCE_REF)) {
+            if (newText.startsWith(PREFIX_RESOURCE_REF) && !newText.startsWith(PREFIX_BINDING_EXPR)) {
               ResourceUrl prevUrl = ResourceUrl.parse(prevText);
               ResourceUrl newUrl = ResourceUrl.parse(newText);
               if (prevUrl != null && prevUrl.name.isEmpty()) {
@@ -576,8 +574,6 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
   protected boolean render(final PsiFile psiFile, final AndroidFacet facet,
                         @SuppressWarnings("unused") boolean forceFullRender) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-    
     getRenderingQueue().queue(new Update("render") {
       @Override
       public void run() {
@@ -639,12 +635,13 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
     RenderResult result = null;
     synchronized (RENDERING_LOCK) {
-      final RenderLogger logger = new RenderLogger(loggerName, module);
-      final RenderService service = RenderService.create(facet, module, psiFile, configuration, logger, toolWindowForm);
-      if (service != null) {
-        service.useDesignMode(psiFile);
-        result = service.render();
-        service.dispose();
+      RenderService renderService = RenderService.get(facet);
+      RenderLogger logger = renderService.createLogger();
+      final RenderTask task = renderService.createTask(psiFile, configuration, logger, toolWindowForm);
+      if (task != null) {
+        task.useDesignMode(psiFile);
+        result = task.render();
+        task.dispose();
       }
       if (result == null) {
         result = RenderResult.createBlank(psiFile, logger);

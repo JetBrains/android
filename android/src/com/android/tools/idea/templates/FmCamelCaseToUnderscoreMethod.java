@@ -15,22 +15,21 @@
  */
 package com.android.tools.idea.templates;
 
-import freemarker.template.SimpleScalar;
-import freemarker.template.TemplateMethodModel;
-import freemarker.template.TemplateModel;
-import freemarker.template.TemplateModelException;
+import freemarker.template.*;
 
 import java.util.List;
 
 /**
  * Method invoked by FreeMarker to convert an underscore name into a CamelCase name.
  */
-public class FmCamelCaseToUnderscoreMethod implements TemplateMethodModel {
+public class FmCamelCaseToUnderscoreMethod implements TemplateMethodModelEx {
   @Override
   public TemplateModel exec(List args) throws TemplateModelException {
     if (args.size() != 1) {
       throw new TemplateModelException("Wrong arguments");
     }
-    return new SimpleScalar(TemplateUtils.camelCaseToUnderlines(args.get(0).toString()));
+
+    String argString = ((TemplateScalarModel)args.get(0)).getAsString();
+    return new SimpleScalar(TemplateUtils.camelCaseToUnderlines(argString));
   }
 }

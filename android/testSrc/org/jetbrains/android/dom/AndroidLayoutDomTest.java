@@ -133,6 +133,18 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestHighlighting("missing_attrs.xml");
   }
 
+  public void testDataBindingHighlighting() throws Throwable {
+    doTestHighlighting("binding1.xml");
+  }
+
+  public void testDataBindingCompletion1() throws Throwable {
+    doTestCompletionVariants("binding2.xml", "name", "type");
+  }
+
+  public void testDataBindingCompletion2() throws Throwable {
+    toTestCompletion("binding3.xml", "binding3_after.xml");
+  }
+
   public void testCustomTagCompletion() throws Throwable {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
     toTestCompletion("ctn.xml", "ctn_after.xml");
@@ -378,10 +390,11 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testTagNameCompletion3() throws Throwable {
-    doTestCompletionVariants("tn3.xml", "AdapterViewFlipper", "AppWidgetHostView", "AutoCompleteTextView", "CalendarView",
-                             "CheckedTextView", "ExpandableListView", "GridView", "HorizontalScrollView", "ImageView", "KeyboardView",
-                             "ListView", "MultiAutoCompleteTextView", "ScrollView", "SearchView", "StackView", "SurfaceView", "TextView",
-                             "TextureView", "VideoView", "View", "ViewAnimator", "ViewFlipper", "ViewStub", "ViewSwitcher");
+    doTestCompletionVariants("tn3.xml", "ActionMenuView", "AdapterViewFlipper", "AppWidgetHostView", "AutoCompleteTextView",
+                             "CalendarView", "CheckedTextView", "ExpandableListView", "GLSurfaceView", "GestureOverlayView", "GridView",
+                             "HorizontalScrollView", "ImageView", "KeyboardView", "ListView", "MultiAutoCompleteTextView", "ScrollView",
+                             "SearchView", "StackView", "SurfaceView", "TextView", "TextureView", "TvView", "VideoView", "View",
+                             "ViewAnimator", "ViewFlipper", "ViewStub", "ViewSwitcher", "WebView");
   }
 
   /*public void testTagNameCompletion4() throws Throwable {

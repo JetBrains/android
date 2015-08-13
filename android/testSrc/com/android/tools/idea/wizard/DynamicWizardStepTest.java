@@ -35,7 +35,7 @@ public class DynamicWizardStepTest extends TestCase {
   public void setUp() throws Exception {
     super.setUp();
     myStep = new DummyDynamicWizardStep("TestStep");
-    myStep.init();
+    myStep.onEnterStep();
   }
 
   public void testUpdateModelFromUI() throws Exception {
@@ -127,7 +127,7 @@ public class DynamicWizardStepTest extends TestCase {
 
         @NotNull
         @Override
-        public String deriveValue(ScopedStateStore state, ScopedStateStore.Key changedKey, @Nullable String currentValue) {
+        public String deriveValue(@NotNull ScopedStateStore state, ScopedStateStore.Key changedKey, @Nullable String currentValue) {
           return state.get(INPUT_KEY) + "_derived!";
         }
       });

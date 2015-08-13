@@ -54,7 +54,7 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
   @Nullable private final Disposable myDisposable;
   private PropertyChangeListener myFocusListener;
   private JPanel myRootPane;
-  private JLabel myDescriptionText;
+  private JLabel myDescriptionLabel;
   private JBLabel myErrorWarningLabel;
   private JPanel mySouthPanel;
   private Map<Component, String> myControlDescriptions = new WeakHashMap<Component, String>();
@@ -126,10 +126,10 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
 
   @Override
   public void init() {
-    register(KEY_DESCRIPTION, getDescriptionText(), new ComponentBinding<String, JLabel>() {
+    register(KEY_DESCRIPTION, getDescriptionLabel(), new ComponentBinding<String, JLabel>() {
       @Override
-      public void setValue(String newValue, @NotNull JLabel component) {
-        setDescriptionText(newValue);
+      public void setValue(String newValue, @NotNull JLabel label) {
+        label.setText(ImportUIUtil.makeHtmlString(newValue));
       }
     });
   }
@@ -137,12 +137,8 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
   /**
    * Subclasses may override this method if they want to provide a custom description label.
    */
-  protected JLabel getDescriptionText() {
-    return myDescriptionText;
-  }
-
-  protected final void setDescriptionText(@Nullable String templateDescription) {
-    getDescriptionText().setText(ImportUIUtil.makeHtmlString(templateDescription));
+  protected JLabel getDescriptionLabel() {
+    return myDescriptionLabel;
   }
 
   @NotNull

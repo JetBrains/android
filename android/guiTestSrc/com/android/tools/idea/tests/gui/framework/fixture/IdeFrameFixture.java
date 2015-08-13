@@ -24,10 +24,14 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import com.intellij.codeInspection.ui.InspectionTree;
+import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -47,22 +51,19 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.EditorNotificationPanel;
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBusConnection;
-import org.fest.reflect.core.Reflection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.driver.ComponentDriver;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
@@ -70,43 +71,52 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.Arrays;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
+import static com.google.common.io.Files.write;
+import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.*;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.*;
 
-public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
-  private EditorFixture myEditor;
-
+public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
   @NotNull private final File myProjectPath;
-
   @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
+
+  private EditorFixture myEditor;
 
   @NotNull
   public static IdeFrameFixture find(@NotNull final Robot robot, @NotNull final File projectPath, @Nullable final String projectName) {
     final GenericTypeMatcher<IdeFrameImpl> matcher = new GenericTypeMatcher<IdeFrameImpl>(IdeFrameImpl.class) {
       @Override
-      protected boolean isMatching(IdeFrameImpl frame) {
+      protected boolean isMatching(@NotNull IdeFrameImpl frame) {
         Project project = frame.getProject();
         if (project != null && projectPath.getPath().equals(project.getBasePath())) {
           return projectName == null || projectName.equals(project.getName());
@@ -128,7 +138,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   public IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target, @NotNull File projectPath) {
-    super(robot, target);
+    super(IdeFrameFixture.class, robot, target);
     myProjectPath = projectPath;
     final Project project = getProject();
 
@@ -183,7 +193,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     Module module = getModule(moduleName);
     final ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
 
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
@@ -206,6 +216,38 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public Collection<String> getSourceFolderRelativePaths(@NotNull String moduleName, @NotNull final JpsModuleSourceRootType<?> sourceType) {
+    final Set<String> paths = Sets.newHashSet();
+
+    Module module = getModule(moduleName);
+    final ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+        try {
+          for (ContentEntry contentEntry : rootModel.getContentEntries()) {
+            for (SourceFolder folder : contentEntry.getSourceFolders()) {
+              JpsModuleSourceRootType<?> rootType = folder.getRootType();
+              if (rootType.equals(sourceType)) {
+                String path = urlToPath(folder.getUrl());
+                String relativePath = getRelativePath(myProjectPath, new File(toSystemDependentName(path)));
+                paths.add(relativePath);
+              }
+            }
+          }
+        }
+        finally {
+          rootModel.dispose();
+        }
+      }
+    });
+
+    return paths;
+  }
+
+  @NotNull
   public Module getModule(@NotNull String name) {
     for (Module module : getModuleManager().getModules()) {
       if (name.equals(module.getName())) {
@@ -223,7 +265,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   public EditorFixture getEditor() {
     if (myEditor == null) {
-      myEditor = new EditorFixture(robot, this);
+      myEditor = new EditorFixture(robot(), this);
     }
 
     return myEditor;
@@ -244,6 +286,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public GradleInvocationResult invokeProjectMake() {
+    return invokeProjectMake(null);
+  }
+
+  @NotNull
+  public GradleInvocationResult invokeProjectMake(@Nullable Runnable executeAfterInvokingMake) {
     myGradleProjectEventListener.reset();
 
     final AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<GradleInvocationResult>();
@@ -259,6 +306,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       }
     });
     selectProjectMakeAction();
+
+    if (executeAfterInvokingMake != null) {
+      executeAfterInvokingMake.run();
+    }
+
     waitForBuildToFinish(COMPILE_JAVA);
 
     GradleInvocationResult result = resultRef.get();
@@ -370,7 +422,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public ChooseDeviceDialogFixture findChooseDeviceDialog() {
-    return ChooseDeviceDialogFixture.find(this, robot);
+    return ChooseDeviceDialogFixture.find(robot());
   }
 
   @NotNull
@@ -393,8 +445,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}
    */
   public void invokeMenuPath(@NotNull String... path) {
-    JMenuItem menuItem = findActionMenuItem(path);
-    robot.click(menuItem);
+    getMenuFixture().invokeMenuPath(path);
   }
 
   /**
@@ -405,41 +456,21 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
    * @param path the series of menu name regular expressions, e.g. {@link invokeActionByMenuPath("Build", "Make( Project)?")}
    */
   public void invokeMenuPathRegex(@NotNull String... path) {
-    JMenuItem menuItem = findActionMenuItem(true, path);
-    robot.click(menuItem);
+    getMenuFixture().invokeMenuPathRegex(path);
   }
 
   @NotNull
-  private JMenuItem findActionMenuItem(@NotNull String... path) {
-    return findActionMenuItem(false, path);
-  }
-
-  @NotNull
-  private JMenuItem findActionMenuItem(final boolean pathIsRegex, @NotNull String... path) {
-    assertThat(path).isNotEmpty();
-    int segmentCount = path.length;
-    Container root = target;
-    for (int i = 0; i < segmentCount; i++) {
-      final String segment = path[i];
-      JMenuItem found = robot.finder().find(root, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
-        @Override
-        protected boolean isMatching(JMenuItem menuItem) {
-          return pathIsRegex ? menuItem.getText().matches(segment) : segment.equals(menuItem.getText());
-        }
-      });
-      if (i < segmentCount - 1) {
-        robot.click(found);
-        root = robot.findActivePopupMenu();
-        continue;
-      }
-      return found;
-    }
-    throw new AssertionError("Menu item with path " + Arrays.toString(path) + " should have been found already");
+  private MenuFixture getMenuFixture() {
+    return new MenuFixture(robot(), target());
   }
 
   @NotNull
   public IdeFrameFixture waitForBuildToFinish(@NotNull final BuildMode buildMode) {
     final Project project = getProject();
+    if (buildMode == SOURCE_GEN && !ProjectBuilder.getInstance(project).isSourceGenerationEnabled()) {
+      return this;
+    }
+
     pause(new Condition("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'") {
       @Override
       public boolean test() {
@@ -456,7 +487,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     }, LONG_TIMEOUT);
 
     waitForBackgroundTasksToFinish();
-    robot.waitForIdle();
+    robot().waitForIdle();
 
     return this;
   }
@@ -531,6 +562,21 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public IdeFrameFixture waitForGradleProjectSyncToStart() {
+    Project project = getProject();
+    final GradleSyncState syncState = GradleSyncState.getInstance(project);
+    if (!syncState.isSyncInProgress()) {
+      pause(new Condition("Syncing project " + quote(project.getName()) + " to finish") {
+        @Override
+        public boolean test() {
+          return myGradleProjectEventListener.isSyncStarted();
+        }
+      }, SHORT_TIMEOUT);
+    }
+    return this;
+  }
+
+  @NotNull
   public IdeFrameFixture waitForGradleProjectSyncToFinish() {
     waitForGradleProjectSyncToFinish(false);
     return this;
@@ -580,18 +626,18 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
                !progressManager.hasUnsafeProgressIndicator();
       }
     }, LONG_TIMEOUT);
-    robot.waitForIdle();
+    robot().waitForIdle();
     return this;
   }
 
   @NotNull
   private ActionButtonFixture findActionButtonByActionId(String actionId) {
-    return ActionButtonFixture.findByActionId(actionId, robot, target);
+    return ActionButtonFixture.findByActionId(actionId, robot(), target());
   }
 
   @NotNull
   public AndroidToolWindowFixture getAndroidToolWindow() {
-    return new AndroidToolWindowFixture(getProject(), robot);
+    return new AndroidToolWindowFixture(getProject(), robot());
   }
 
   @NotNull
@@ -601,31 +647,47 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public MessagesToolWindowFixture getMessagesToolWindow() {
-    return new MessagesToolWindowFixture(getProject(), robot);
+    return new MessagesToolWindowFixture(getProject(), robot());
   }
 
   @NotNull
   public GradleToolWindowFixture getGradleToolWindow() {
-    return new GradleToolWindowFixture(getProject(), robot);
+    return new GradleToolWindowFixture(getProject(), robot());
   }
 
-  /** Checks that the given error message is showing in the editor (or no messages are showing, if the parameter is null */
-  @Nullable
-  public EditorNotificationPanelFixture requireEditorNotification(@Nullable String message) {
-    EditorNotificationPanel panel = findPanel(message);  // fails test if not found (or if null and notifications were found)
-    assertNotNull(panel);
-    return new EditorNotificationPanelFixture(robot, panel);
+  @NotNull
+  public EditorNotificationPanelFixture requireEditorNotification(@NotNull final String message) {
+    final Ref<EditorNotificationPanel> notificationPanelRef = new Ref<EditorNotificationPanel>();
+
+    pause(new Condition("Notification with message '" + message + "' shows up") {
+      @Override
+      public boolean test() {
+        EditorNotificationPanel notificationPanel = findNotificationPanel(message);
+        notificationPanelRef.set(notificationPanel);
+        return notificationPanel != null;
+      }
+    });
+
+    EditorNotificationPanel notificationPanel = notificationPanelRef.get();
+    assertNotNull(notificationPanel);
+    return new EditorNotificationPanelFixture(robot(), notificationPanel);
   }
 
-  /** Locates an editor notification with the given main message (unless the message is null, in which case we assert
-   * that there are no visible editor notifications. Will fail if the given notification is not found. */
+  public void requireNoEditorNotification() {
+    assertNull(findNotificationPanel(null));
+  }
+
+  /**
+   * Locates an editor notification with the given main message (unless the message is {@code null}, in which case we assert that there are
+   * no visible editor notifications. Will fail if the given notification is not found.
+   */
   @Nullable
-  private EditorNotificationPanel findPanel(@Nullable String message) {
-    Collection<EditorNotificationPanel> panels = robot.finder().findAll(target, new GenericTypeMatcher<EditorNotificationPanel>(
+  private EditorNotificationPanel findNotificationPanel(@Nullable String message) {
+    Collection<EditorNotificationPanel> panels = robot().finder().findAll(target(), new GenericTypeMatcher<EditorNotificationPanel>(
       EditorNotificationPanel.class, true) {
       @Override
-      protected boolean isMatching(EditorNotificationPanel component) {
-        return true;
+      protected boolean isMatching(@NotNull EditorNotificationPanel panel) {
+        return panel.isShowing();
       }
     });
 
@@ -633,52 +695,44 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       if (!panels.isEmpty()) {
         List<String> labels = Lists.newArrayList();
         for (EditorNotificationPanel panel : panels) {
-          labels.add(getEditorNotificationLabel(panel));
+          labels.addAll(getEditorNotificationLabels(panel));
         }
-        fail("Found editor notifications when none were expected: " + labels);
+        fail("Found editor notifications when none were expected" + labels);
       }
-    } else {
-      List<String> labels = Lists.newArrayList();
-      for (EditorNotificationPanel panel : panels) {
-        String label = getEditorNotificationLabel(panel);
-        labels.add(label);
+      return null;
+    }
+
+    List<String> labels = Lists.newArrayList();
+    for (EditorNotificationPanel panel : panels) {
+      List<String> found = getEditorNotificationLabels(panel);
+      labels.addAll(found);
+      for (String label : found) {
         if (label.contains(message)) {
           return panel;
         }
       }
-
-      fail("Did not find message " + message + "; available notifications are " + labels);
     }
 
     return null;
   }
 
   /** Looks up the main label for a given editor notification panel */
-  private String getEditorNotificationLabel(@NotNull EditorNotificationPanel panel) {
-    final JLabel label = robot.finder().find(panel, JLabelMatcher.any());
-    return GuiActionRunner.execute(new GuiQuery<String>() {
-      @Override
-      @Nullable
-      protected String executeInEDT() throws Throwable {
-        return label.getText();
+  private List<String> getEditorNotificationLabels(@NotNull EditorNotificationPanel panel) {
+    final List<String> allText = Lists.newArrayList();
+    final Collection<JLabel> labels = robot().finder().findAll(panel, JLabelMatcher.any().andShowing());
+    for (final JLabel label : labels) {
+      String text = execute(new GuiQuery<String>() {
+        @Override
+        @Nullable
+        protected String executeInEDT() throws Throwable {
+          return label.getText();
+        }
+      });
+      if (isNotEmpty(text)) {
+        allText.add(text);
       }
-    });
-  }
-
-  /** Clicks the given link in the editor notification with the given message */
-  public void clickEditorNotification(@NotNull String message, @NotNull final String linkText) {
-    final EditorNotificationPanel panel = findPanel(message);
-    assertNotNull(panel);
-
-    HyperlinkLabel label = robot.finder().find(panel, new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class, true) {
-      @Override
-      protected boolean isMatching(HyperlinkLabel component) {
-        String text = Reflection.method("getText").withReturnType(String.class).in(component).invoke();
-        return text.contains(linkText);
-      }
-    });
-    ComponentDriver driver = new ComponentDriver(robot);
-    driver.click(label);
+    }
+    return allText;
   }
 
   @NotNull
@@ -692,7 +746,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
         ShowSettingsUtil.getInstance().showSettingsDialog(project, new ProjectConfigurablesGroup(project), new IdeConfigurablesGroup());
       }
     });
-    return IdeSettingsDialogFixture.find(robot);
+    return IdeSettingsDialogFixture.find(robot());
   }
 
   @NotNull
@@ -720,6 +774,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public IdeFrameFixture useLocalGradleDistribution(@NotNull File gradleHomePath) {
+    return useLocalGradleDistribution(gradleHomePath.getPath());
+  }
+
+  @NotNull
   public IdeFrameFixture useLocalGradleDistribution(@NotNull String gradleHome) {
     GradleProjectSettings settings = getGradleSettings();
     settings.setDistributionType(LOCAL);
@@ -737,8 +796,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   public AvdManagerDialogFixture invokeAvdManager() {
     ActionButtonFixture button = findActionButtonByActionId("Android.RunAndroidAvdManager");
+    button.requireVisible();
+    button.requireEnabled();
     button.click();
-    return AvdManagerDialogFixture.find(robot);
+    return AvdManagerDialogFixture.find(robot());
   }
 
   @NotNull
@@ -746,35 +807,102 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     invokeMenuPath("Analyze", "Inspect Code...");
 
     //final Ref<FileChooserDialogImpl> wrapperRef = new Ref<FileChooserDialogImpl>();
-    JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = robot().finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         return "Specify Inspection Scope".equals(dialog.getTitle());
       }
     });
-    JButton button = robot.finder().find(dialog, JButtonMatcher.withText("OK").andShowing());
-    robot.click(button);
+    JButton button = robot().finder().find(dialog, JButtonMatcher.withText("OK").andShowing());
+    robot().click(button);
 
-    final InspectionTree tree = waitUntilFound(robot, new GenericTypeMatcher<InspectionTree>(InspectionTree.class) {
+    final InspectionTree tree = waitUntilFound(robot(), new GenericTypeMatcher<InspectionTree>(InspectionTree.class) {
       @Override
-      protected boolean isMatching(InspectionTree component) {
+      protected boolean isMatching(@NotNull InspectionTree component) {
         return true;
       }
     });
 
-    return new InspectionsFixture(robot, getProject(), tree);
+    return new InspectionsFixture(robot(), getProject(), tree);
   }
 
   @NotNull
   public ProjectViewFixture getProjectView() {
-    return new ProjectViewFixture(getProject(), robot);
+    return new ProjectViewFixture(getProject(), robot());
   }
 
   @NotNull
   public Project getProject() {
-    Project project = target.getProject();
+    Project project = target().getProject();
     assertNotNull(project);
     return project;
+  }
+
+  public void closeProject() {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        closeAndDispose(getProject());
+        RecentProjectsManager.getInstance().updateLastProjectPath();
+        WelcomeFrame.showIfNoProjectOpened();
+      }
+    });
+    pause(new Condition("Waiting for 'Welcome' page to show up") {
+      @Override
+      public boolean test() {
+        for (Frame frame : Frame.getFrames()) {
+          if (frame instanceof WelcomeFrame && frame.isShowing()) {
+            return true;
+          }
+        }
+        return false;
+      }
+    });
+  }
+
+  @NotNull
+  public LibraryPropertiesDialogFixture showPropertiesForLibrary(@NotNull String libraryName) {
+    return showPropertiesDialog(robot(), libraryName, getProject());
+  }
+
+  @NotNull
+  public MessagesFixture findMessageDialog(@NotNull String title) {
+    return MessagesFixture.findByTitle(robot(), target(), title);
+  }
+
+  @NotNull
+  public IdeFrameFixture setGradleJvmArgs(@NotNull final String jvmArgs) {
+    Project project = getProject();
+
+    final GradleSettings settings = GradleSettings.getInstance(project);
+    settings.setGradleVmOptions(jvmArgs);
+
+    pause(new Condition("Gradle settings to be set") {
+      @Override
+      public boolean test() {
+        return jvmArgs.equals(settings.getGradleVmOptions());
+      }
+    }, SHORT_TIMEOUT);
+
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture updateAndroidModelVersion(@NotNull String version) throws IOException {
+    File buildFile = new File(getProjectPath(), FN_BUILD_GRADLE);
+    assertThat(buildFile).isFile();
+
+    String contents = Files.toString(buildFile, Charsets.UTF_8);
+    Pattern pattern = Pattern.compile("classpath ['\"]com.android.tools.build:gradle:(.+)['\"]");
+    Matcher matcher = pattern.matcher(contents);
+    if (matcher.find()) {
+      contents = contents.substring(0, matcher.start(1)) + version + contents.substring(matcher.end(1));
+      write(contents, buildFile, Charsets.UTF_8);
+    }
+    else {
+      fail("Cannot find declaration of Android plugin");
+    }
+    return this;
   }
 
   private static class NoOpDisposable implements Disposable {
@@ -784,7 +912,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   private void selectApp(@NotNull String appName) throws ClassNotFoundException {
-    ComboBoxActionFixture comboBoxActionFixture = new ComboBoxActionFixture(robot, this);
+    ComboBoxActionFixture comboBoxActionFixture = new ComboBoxActionFixture(robot(), this);
     comboBoxActionFixture.selectApp(appName);
   }
 }

@@ -17,8 +17,10 @@ package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.utils.SdkUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.InputValidatorEx;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,12 +112,12 @@ public class ResourceNameValidator implements InputValidatorEx {
         inputString = inputString.substring(0, inputString.length() - DOT_XML.length());
       }
 
-      if (myAllowXmlExtension && myIsImageType && AndroidUtils.hasImageExtension(inputString)) {
+      if (myAllowXmlExtension && myIsImageType && SdkUtils.hasImageExtension(inputString)) {
         inputString = inputString.substring(0, inputString.lastIndexOf('.'));
       }
 
       if (!myIsFileType) {
-        inputString = inputString.replace('.', '_');
+        inputString = AndroidResourceUtil.getFieldNameByResourceName(inputString);
       }
 
       if (myAllowXmlExtension) {
@@ -181,6 +183,10 @@ public class ResourceNameValidator implements InputValidatorEx {
     }
   }
 
+  public boolean doesResourceExist(@NotNull final String resourceName) {
+    return myExisting != null && myExisting.contains(resourceName);
+  }
+
   /**
    * Creates a new {@link ResourceNameValidator}
    *
@@ -221,14 +227,32 @@ public class ResourceNameValidator implements InputValidatorEx {
    */
   public static ResourceNameValidator create(boolean allowXmlExtension, @Nullable LocalResourceRepository appResources,
                                              @NotNull ResourceType type) {
+    return create(allowXmlExtension, appResources, type, ResourceHelper.isFileBasedResourceType(type));
+  }
+
+  /**
+   * Creates a new {@link ResourceNameValidator}. By default, the name will need to be
+   * unique in the project.
+   *
+   * @param allowXmlExtension if true, allow .xml to be entered as a suffix for the
+   *                          resource name
+   * @param appResources      the app resources to validate new resource names for
+   * @param type              the resource type of the resource name being validated
+   * @param isFileType        allows you to specify if the resource is a file.
+   *                          for resources that can be both files and values like Color.
+   * @return a new {@link ResourceNameValidator}
+   */
+  public static ResourceNameValidator create(boolean allowXmlExtension, @Nullable LocalResourceRepository appResources,
+                                             @NotNull ResourceType type, boolean isFileType) {
     Set<String> existing = null;
     if (appResources != null) {
       existing = new HashSet<String>();
       Collection<String> items = appResources.getItemsOfType(type);
-      existing.addAll(items);
+      for (String resourceName : items) {
+        existing.add(AndroidResourceUtil.getFieldNameByResourceName(resourceName));
+      }
     }
 
-    boolean isFileType = ResourceHelper.isFileBasedResourceType(type);
     return new ResourceNameValidator(allowXmlExtension, existing, isFileType, type == ResourceType.DRAWABLE);
   }
 

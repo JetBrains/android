@@ -451,8 +451,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
             return;
           }
 
-          final Module module = getModule();
-          final RenderLogger logger = new RenderLogger(myFile.getName(), module);
+          RenderService renderService = RenderService.get(myFacet);
+          final RenderLogger logger = renderService.createLogger();
 
           if (myConfiguration.getTarget() == null) {
             logger.error(null, "No render target selected", null);
@@ -472,13 +472,13 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
           RenderContext renderContext = AndroidDesignerEditorPanel.this;
           if (myRendererLock.tryLock()) {
             try {
-              final RenderService service = RenderService.create(myFacet, module, myXmlFile, myConfiguration, logger, renderContext);
-              if (service != null) {
+              final RenderTask task = renderService.createTask(myXmlFile, myConfiguration, logger, renderContext);
+              if (task != null) {
                 if (!ToggleRenderModeAction.isRenderViewPort()) {
-                  service.useDesignMode(myXmlFile);
+                  task.useDesignMode(myXmlFile);
                 }
-                renderResult = service.render();
-                service.dispose();
+                renderResult = task.render();
+                task.dispose();
               } else {
                 renderResult = RenderResult.createBlank(myXmlFile, logger);
               }
@@ -1429,10 +1429,10 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     if (result != null) {
       RenderedImage image = result.getImage();
       if (image != null) {
-        RenderService renderService = result.getRenderService();
-        image.setDeviceFrameEnabled(myShowDeviceFrames && renderService != null &&
-                                    renderService.getRenderingMode() == SessionParams.RenderingMode.NORMAL &&
-                                    renderService.getShowDecorations());
+        RenderTask renderTask = result.getRenderTask();
+        image.setDeviceFrameEnabled(myShowDeviceFrames && renderTask != null &&
+                                    renderTask.getRenderingMode() == SessionParams.RenderingMode.NORMAL &&
+                                    renderTask.getShowDecorations());
       }
     }
   }

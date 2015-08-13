@@ -69,7 +69,7 @@ import java.util.List;
  * Time: 4:15:59 PM
  * To change this template use File | Settings | File Templates.
  */
-class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRunConfiguration> {
+public class ApplicationRunParameters<T extends AndroidRunConfiguration> implements ConfigurationSpecificEditor<T> {
   public static final Key<ApplicationRunParameters> ACTIVITY_CLASS_TEXT_FIELD_KEY = Key.create("ActivityClassTextField");
 
   private ComponentWithBrowseButton<EditorTextField> myActivityField;
@@ -85,7 +85,7 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
   private final ConfigurationModuleSelector myModuleSelector;
   private Artifact myLastSelectedArtifact;
 
-  ApplicationRunParameters(final Project project, final ConfigurationModuleSelector moduleSelector) {
+  public ApplicationRunParameters(final Project project, final ConfigurationModuleSelector moduleSelector) {
     myProject = project;
     myModuleSelector = moduleSelector;
 

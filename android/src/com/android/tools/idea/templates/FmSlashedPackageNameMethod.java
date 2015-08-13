@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import freemarker.template.SimpleScalar;
-import freemarker.template.TemplateMethodModel;
-import freemarker.template.TemplateModel;
-import freemarker.template.TemplateModelException;
+import freemarker.template.*;
 
 import java.util.List;
 
@@ -26,7 +23,7 @@ import java.util.List;
  * Method invoked by FreeMarker to convert a package name (foo.bar) into
  * a slashed path (foo/bar)
  */
-public class FmSlashedPackageNameMethod implements TemplateMethodModel {
+public class FmSlashedPackageNameMethod implements TemplateMethodModelEx {
 
     @Override
     public TemplateModel exec(List args) throws TemplateModelException {
@@ -34,6 +31,7 @@ public class FmSlashedPackageNameMethod implements TemplateMethodModel {
             throw new TemplateModelException("Wrong arguments");
         }
 
-        return new SimpleScalar(args.get(0).toString().replace('.', '/'));
+        String argString = ((TemplateScalarModel)args.get(0)).getAsString();
+        return new SimpleScalar(argString.replace('.', '/'));
     }
 }

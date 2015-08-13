@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.customizer;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,10 +27,10 @@ import org.jetbrains.annotations.Nullable;
 public interface ModuleCustomizer<T> {
   /**
    * Customizes the given module (e.g. add facets, SDKs, etc.)
-   *
-   * @param module  module to customize.
-   * @param project project that owns the module to customize.
-   * @param model   the imported Gradle model.
+   * @param project              project that owns the module to customize.
+   * @param ideaModuleModel      modifiable root module of the module to customize. The caller is responsible to commit the changes to model
+   *                             and the customizer should not call commit on the model.
+   * @param externalProjectModel the imported Gradle model.
    */
-  void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable T model);
+  void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel ideaModuleModel, @Nullable T externalProjectModel);
 }

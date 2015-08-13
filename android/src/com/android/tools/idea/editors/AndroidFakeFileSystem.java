@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors;
 
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
+import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.module.Module;
@@ -25,7 +26,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.openapi.vfs.ex.dummy.DummyFileSystem;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,19 +45,38 @@ public class AndroidFakeFileSystem extends DummyFileSystem {
 
   @Override
   public VirtualFile findFileByPath(@NotNull String path) {
-    List<String> components = ContainerUtil.collect(Splitter.on(SEPARATOR).split(path).iterator());
-    if (components.size() != 3) { // all files are of form: project/module/name
+    final List<String> components = Splitter.on(SEPARATOR).splitToList(path);
+    final int size = components.size();
+
+    // All files are of form: projectPath/[moduleName]/fileName, and thus
+    // there should be at least three components in the result of splitting.
+    if (size < 3) {
       return null;
     }
 
-    Module m = findModule(findProject(components.get(0)), components.get(1));
-    if (m == null) {
+    final String projectPath = Joiner.on(SEPARATOR).join(components.subList(0, size - 2));
+    final String moduleName = components.get(size - 2);
+    final String fileName = components.get(size - 1);
+    final Project project = findProject(projectPath);
+
+    if (project == null) {
       return null;
     }
 
-    String name = components.get(2);
-    if (StringsVirtualFile.NAME.equals(name)) {
-      return StringsVirtualFile.getStringsVirtualFile(m);
+    if (ThemeEditorVirtualFile.FILENAME.equals(fileName)) {
+      if (moduleName.isEmpty()) {
+        // ThemeEditor is module-independent and is supposed to be launched for the whole project
+        // To avoid complicating name format, instead of Module name empty string is stored
+        // (full file name would have two separators in a row).
+
+        return ThemeEditorVirtualFile.getThemeEditorFile(project);
+      }
+    }
+    else if (StringsVirtualFile.NAME.equals(fileName)) {
+      Module m = findModule(project, moduleName);
+      if (m != null) {
+        return StringsVirtualFile.getStringsVirtualFile(m);
+      }
     }
 
     return null;
@@ -65,15 +84,16 @@ public class AndroidFakeFileSystem extends DummyFileSystem {
 
   @NotNull
   public static String constructPathForFile(@NotNull String fileName, @NotNull Module module) {
-    return Joiner.on(SEPARATOR).join(module.getProject().getName(), module.getName(), fileName);
+    return Joiner.on(SEPARATOR).join(module.getProject().getBasePath(), module.getName(), fileName);
+  }
+
+  @NotNull
+  public static String constructPathForFile(@NotNull String fileName, @NotNull Project project) {
+    return Joiner.on(SEPARATOR).join(project.getBasePath(), "", fileName);
   }
 
   @Nullable
-  private static Module findModule(@Nullable Project project, @NotNull String name) {
-    if (project == null) {
-      return null;
-    }
-
+  private static Module findModule(@NotNull Project project, @NotNull String name) {
     for (Module m : ModuleManager.getInstance(project).getModules()) {
       if (m.getName().equals(name)) {
         return m;
@@ -84,9 +104,9 @@ public class AndroidFakeFileSystem extends DummyFileSystem {
   }
 
   @Nullable
-  private static Project findProject(@NotNull String name) {
+  private static Project findProject(@NotNull String basePath) {
     for (Project p : ProjectManager.getInstance().getOpenProjects()) {
-      if (p.getName().equals(name)) {
+      if (basePath.equals(p.getBasePath())) {
         return p;
       }
     }

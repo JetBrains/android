@@ -1,3 +1,3 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
-    <EditText android:background="<caret>" />
+    <EditText android:autoLink="<caret>" />
 </LinearLayout>

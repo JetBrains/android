@@ -21,13 +21,13 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.detector.api.*;
+import com.intellij.codeInsight.ExceptionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.MethodSignatureUtil;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtil;
 import lombok.ast.AstVisitor;
 import lombok.ast.CompilationUnit;
 import lombok.ast.ForwardingAstVisitor;
@@ -38,7 +38,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-import static com.android.SdkConstants.CONSTRUCTOR_NAME;
 import static org.jetbrains.android.inspections.lint.IntellijLintUtils.SUPPRESS_LINT_FQCN;
 import static org.jetbrains.android.inspections.lint.IntellijLintUtils.SUPPRESS_WARNINGS_FQCN;
 
@@ -63,6 +62,7 @@ public class IntellijApiDetector extends ApiDetector {
 
   @NonNls
   private static final String TARGET_API_FQCN = "android.annotation.TargetApi";
+  private static final String SDK_INT = "SDK_INT";
 
   @Nullable
   @Override
@@ -407,42 +407,60 @@ public class IntellijApiDetector extends ApiDetector {
         PsiTypeElement typeElement = parameter.getTypeElement();
         if (typeElement != null) {
           PsiType type = typeElement.getType();
-          if (type instanceof PsiClassReferenceType) {
+          PsiClass resolved = null;
+          PsiElement reference = parameter;
+          if (type instanceof PsiDisjunctionType) {
+            type = ((PsiDisjunctionType)type).getLeastUpperBound();
+            if (type instanceof PsiClassType) {
+              resolved = ((PsiClassType)type).resolve();
+            }
+          } else if (type instanceof PsiClassReferenceType) {
             PsiClassReferenceType referenceType = (PsiClassReferenceType)type;
-            PsiClass resolved = referenceType.resolve();
-            if (resolved != null) {
-              String signature = IntellijLintUtils.getInternalName(resolved);
-              if (signature == null) {
-                continue;
-              }
+            resolved = referenceType.resolve();
+            reference = referenceType.getReference().getElement();
+          } else if (type instanceof PsiClassType) {
+            resolved = ((PsiClassType)type).resolve();
+          }
+          if (resolved != null) {
+            String signature = IntellijLintUtils.getInternalName(resolved);
+            if (signature == null) {
+              continue;
+            }
 
-              int api = mApiDatabase.getClassVersion(signature);
-              if (api == -1) {
-                continue;
-              }
-              int minSdk = getMinSdk(myContext);
-              if (api <= minSdk) {
-                continue;
-              }
-              if (mySeenTargetApi) {
-                int target = getTargetApi(statement, myFile);
-                if (target != -1) {
-                  if (api <= target) {
-                    continue;
-                  }
+            int api = mApiDatabase.getClassVersion(signature);
+            if (api == -1) {
+              continue;
+            }
+            int minSdk = getMinSdk(myContext);
+            if (api <= minSdk) {
+              continue;
+            }
+            if (mySeenTargetApi) {
+              int target = getTargetApi(statement, myFile);
+              if (target != -1) {
+                if (api <= target) {
+                  continue;
                 }
               }
-              if (mySeenSuppress && IntellijLintUtils.isSuppressed(statement, myFile, UNSUPPORTED)) {
-                continue;
-              }
-
-              Location location;
-              PsiReference reference = referenceType.getReference();
-              location = IntellijLintUtils.getLocation(myContext.file, reference.getElement());
-              String fqcn = referenceType.getClassName();
-              String message = String.format("Class requires API level %1$d (current min is %2$d): %3$s", api, minSdk, fqcn);
-              myContext.report(UNSUPPORTED, location, message);
             }
+            if (mySeenSuppress && IntellijLintUtils.isSuppressed(statement, myFile, UNSUPPORTED)) {
+              continue;
+            }
+
+            Location location;
+            location = IntellijLintUtils.getLocation(myContext.file, reference);
+            String fqcn = resolved.getName();
+            String message = String.format("Class requires API level %1$d (current min is %2$d): %3$s", api, minSdk, fqcn);
+
+            // Special case reflective operation exception which can be implicitly used
+            // with multi-catches: see issue 153406
+            if (api == 19 && fqcn.equals("ReflectiveOperationException")) {
+              message = String.format("Multi-catch with these reflection exceptions requires API level 19 (current min is %2$d) " +
+                                      "because they get compiled to the common but new super type `ReflectiveOperationException`. " +
+                                      "As a workaround either create individual catch statements, or catch `Exception`.",
+                                      api, minSdk);
+            }
+            myContext.report(UNSUPPORTED, location, message);
           }
         }
       }
@@ -662,7 +680,7 @@ public class IntellijApiDetector extends ApiDetector {
 
   private static boolean isWithinVersionCheckConditional(PsiElement element, int api) {
     PsiElement current = element.getParent();
-    PsiElement prev = current;
+    PsiElement prev = element;
     while (current != null) {
       if (current instanceof PsiIfStatement) {
         PsiIfStatement ifStatement = (PsiIfStatement)current;
@@ -676,12 +694,15 @@ public class IntellijApiDetector extends ApiDetector {
             PsiExpression left = binary.getLOperand();
             if (left instanceof PsiReferenceExpression) {
               PsiReferenceExpression ref = (PsiReferenceExpression)left;
-              if ("SDK_INT".equals(ref.getReferenceName())) {
+              if (SDK_INT.equals(ref.getReferenceName())) {
                 PsiExpression right = binary.getROperand();
                 int level = -1;
                 if (right instanceof PsiReferenceExpression) {
                   PsiReferenceExpression ref2 = (PsiReferenceExpression)right;
                   String codeName = ref2.getReferenceName();
+                  if (codeName == null) {
+                    return false;
+                  }
                   level = SdkVersionInfo.getApiByBuildCode(codeName, true);
                 } else if (right instanceof PsiLiteralExpression) {
                   PsiLiteralExpression lit = (PsiLiteralExpression)right;
@@ -719,13 +740,84 @@ public class IntellijApiDetector extends ApiDetector {
                 }
               }
             }
+          } else if (tokenType == JavaTokenType.ANDAND && (prev == ifStatement.getThenBranch())) {
+            if (isAndedWithConditional(ifStatement.getCondition(), api, prev)) {
+              return true;
+            }
+          }
+        } else if (condition instanceof PsiPolyadicExpression) {
+          PsiPolyadicExpression ppe = (PsiPolyadicExpression)condition;
+          if (ppe.getOperationTokenType() == JavaTokenType.ANDAND && (prev == ifStatement.getThenBranch())) {
+            if (isAndedWithConditional(ppe, api, prev)) {
+              return true;
+            }
           }
         }
+      } else if (current instanceof PsiPolyadicExpression && isAndedWithConditional(current, api, prev)) {
+          return true;
       } else if (current instanceof PsiMethod || current instanceof PsiFile) {
         return false;
       }
       prev = current;
       current = current.getParent();
+    }
+
+    return false;
+  }
+
+  private static boolean isAndedWithConditional(PsiElement element, int api, @Nullable PsiElement before) {
+    if (element instanceof PsiBinaryExpression) {
+      PsiBinaryExpression inner = (PsiBinaryExpression)element;
+      if (inner.getOperationTokenType() == JavaTokenType.ANDAND) {
+        return isAndedWithConditional(inner.getLOperand(), api, before) ||
+               inner.getROperand() != before &&  isAndedWithConditional(inner.getROperand(), api, before);
+      } else  if (inner.getLOperand() instanceof PsiReferenceExpression &&
+          SDK_INT.equals(((PsiReferenceExpression)inner.getLOperand()).getReferenceName())) {
+        int level = -1;
+        IElementType tokenType = inner.getOperationTokenType();
+        PsiExpression right = inner.getROperand();
+        if (right instanceof PsiReferenceExpression) {
+          PsiReferenceExpression ref2 = (PsiReferenceExpression)right;
+          String codeName = ref2.getReferenceName();
+          if (codeName == null) {
+            return false;
+          }
+          level = SdkVersionInfo.getApiByBuildCode(codeName, true);
+        } else if (right instanceof PsiLiteralExpression) {
+          PsiLiteralExpression lit = (PsiLiteralExpression)right;
+          Object value = lit.getValue();
+          if (value instanceof Integer) {
+            level = ((Integer)value).intValue();
+          }
+        }
+        if (level != -1) {
+          if (tokenType == JavaTokenType.GE) {
+            // if (SDK_INT >= ICE_CREAM_SANDWICH && <call>
+            return level >= api;
+          }
+          else if (tokenType == JavaTokenType.GT) {
+            // if (SDK_INT > ICE_CREAM_SANDWICH) && <call>
+            return level >= api - 1;
+          }
+          else if (tokenType == JavaTokenType.EQEQ) {
+            // if (SDK_INT == ICE_CREAM_SANDWICH) && <call>
+            return level >= api;
+          }
+        }
+      }
+    }
+    else if (element instanceof PsiPolyadicExpression) {
+      PsiPolyadicExpression ppe = (PsiPolyadicExpression)element;
+      if (ppe.getOperationTokenType() == JavaTokenType.ANDAND) {
+        for (PsiExpression operand : ppe.getOperands()) {
+          if (operand == before) {
+            break;
+          }
+          else if (isAndedWithConditional(operand, api, before)) {
+            return true;
+          }
+        }
+      }
     }
 
     return false;

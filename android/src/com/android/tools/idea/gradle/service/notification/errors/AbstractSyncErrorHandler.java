@@ -21,7 +21,6 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
@@ -120,7 +119,6 @@ public abstract class AbstractSyncErrorHandler {
 
     notification.setTitle(title);
     notification.setMessage(text);
-    notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
     addNotificationListener(notification, project, hyperlinks);
   }
 

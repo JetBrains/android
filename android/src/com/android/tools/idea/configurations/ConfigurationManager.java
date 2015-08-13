@@ -16,12 +16,15 @@
 package com.android.tools.idea.configurations;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
-import com.android.ide.common.resources.configuration.RegionQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkManager;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
+import com.android.sdklib.internal.androidTarget.PlatformTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
@@ -120,6 +123,7 @@ public class ConfigurationManager implements Disposable {
   private Configuration create(@NotNull VirtualFile file) {
     ConfigurationStateManager stateManager = getStateManager();
     ConfigurationFileState fileState = stateManager.getConfigurationState(file);
+    assert file.getParent() != null : file;
     FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
     if (config == null) {
       config = new FolderConfiguration();
@@ -137,7 +141,7 @@ public class ConfigurationManager implements Disposable {
   }
 
   /**
-   * Similar to {@link #getConfiguration(com.intellij.openapi.vfs.VirtualFile)}, but creates a configuration
+   * Similar to {@link #getConfiguration(VirtualFile)}, but creates a configuration
    * for a file known to be new, and crucially, bases the configuration on the existing configuration
    * for a known file. This is intended for when you fork a layout, and you expect the forked layout
    * to have a configuration that is (as much as possible) similar to the configuration of the
@@ -191,7 +195,7 @@ public class ConfigurationManager implements Disposable {
     if (myDevices == null || myDevices.isEmpty()) {
       List<Device> devices = null;
 
-      AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
+      AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
       if (platform != null) {
         final AndroidSdkData sdkData = platform.getSdkData();
         devices = new ArrayList<Device>();
@@ -253,7 +257,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public IAndroidTarget[] getTargets() {
-    AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     if (platform != null) {
       final AndroidSdkData sdkData = platform.getSdkData();
 
@@ -273,12 +277,23 @@ public class ConfigurationManager implements Disposable {
     IAndroidTarget[] targetList = getTargets();
     for (int i = targetList.length - 1; i >= 0; i--) {
       IAndroidTarget target = targetList[i];
-      if (isLayoutLibTarget(target)) {
+      if (isLayoutLibTarget(target) && isLayoutLibSupported(target)) {
         return target;
       }
     }
 
     return null;
+  }
+
+  /**
+   * Returns if the LayoutLib API (not to be confused with Platform API) level is supported.
+   */
+  private static boolean isLayoutLibSupported(IAndroidTarget target) {
+    if (target instanceof PlatformTarget) {
+      SdkManager.LayoutlibVersion layoutlibVersion = ((PlatformTarget)target).getLayoutlibVersion();
+      return layoutlibVersion.getApi() <= Bridge.API_CURRENT;
+    }
+    return false;
   }
 
   /**
@@ -385,12 +400,8 @@ public class ConfigurationManager implements Disposable {
     }
     if (myLocales == null) {
       List<Locale> locales = new ArrayList<Locale>();
-      for (String language : projectResources.getLanguages()) {
-        LanguageQualifier languageQualifier = new LanguageQualifier(language);
-        locales.add(Locale.create(languageQualifier));
-        for (String region : projectResources.getRegions(language)) {
-          locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
-        }
+      for (LocaleQualifier locale : projectResources.getLocales()) {
+        locales.add(Locale.create(locale));
       }
       myLocales = locales;
       myLocaleCacheStamp = projectResources.getModificationCount();
@@ -401,7 +412,7 @@ public class ConfigurationManager implements Disposable {
 
   @Nullable
   public IAndroidTarget getProjectTarget() {
-    AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     return platform != null ? platform.getTarget() : null;
   }
 
@@ -517,7 +528,7 @@ public class ConfigurationManager implements Disposable {
     IAndroidTarget[] targetList = getTargets();
     for (int i = targetList.length - 1; i >= 0; i--) {
       target = targetList[i];
-      if (isLayoutLibTarget(target) && target.getVersion().getApiLevel() >= min) {
+      if (isLayoutLibTarget(target) && target.getVersion().getFeatureLevel() >= min && isLayoutLibSupported(target)) {
         return target;
       }
     }

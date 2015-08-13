@@ -39,7 +39,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.wizard.ScopedStateStore.*;
+import static com.android.tools.idea.wizard.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.ScopedStateStore.Scope;
 
 /**
  * A data binding class that links Swing UI elements to a {@link ScopedStateStore}.
@@ -588,6 +589,19 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     field.addFocusListener(this);
     field.getTextField().getDocument().addDocumentListener(this);
     field.getTextField().addFocusListener(this);
+  }
+
+  protected void register(@NotNull Key<String> key, @NotNull final TextAccessor field) {
+    assert field instanceof JComponent;
+
+    JComponent component = (JComponent)field;
+    String value = bindAndGet(key, component, null);
+    if (value != null) {
+      field.setText(value);
+    } else {
+      myState.put(key, field.getText());
+    }
+    component.addFocusListener(this);
   }
 
   /**

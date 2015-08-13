@@ -54,7 +54,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
- * A {@link com.android.ide.common.rendering.api.LayoutLog} which records the problems it encounters and offers them as a
+ * A {@link LayoutLog} which records the problems it encounters and offers them as a
  * single summary at the end
  */
 public class RenderLogger extends LayoutLog {
@@ -97,11 +97,19 @@ public class RenderLogger extends LayoutLog {
   private Object myCredential;
 
   /**
-   * Construct a logger for the given named layout
+   * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
    */
-  public RenderLogger(@Nullable String name, @Nullable Module module) {
+  public RenderLogger(@Nullable String name, @Nullable Module module, @Nullable Object credential) {
     myName = name;
     myModule = module;
+    myCredential = credential;
+  }
+
+  /**
+   * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
+   */
+  public RenderLogger(@Nullable String name, @Nullable Module module) {
+    this(name, module, null);
   }
 
   @Nullable
@@ -212,7 +220,7 @@ public class RenderLogger extends LayoutLog {
     }
     if (throwable != null) {
       if (throwable instanceof ClassNotFoundException) {
-        // The project callback is given a chance to resolve classes,
+        // The LayoutlibCallback is given a chance to resolve classes,
         // and when it fails, it will record it in its own list which
         // is displayed in a special way (with action hyperlinks etc).
         // Therefore, include these messages in the visible render log,
@@ -222,10 +230,20 @@ public class RenderLogger extends LayoutLog {
         return;
       }
 
+      if (checkForIssue164378(throwable)) {
+        return;
+      }
+
       if (throwable instanceof NoSuchMethodError && "java.lang.System.arraycopy([CI[CII)V".equals(message)) {
         addMessage(getProblemForIssue73732(throwable));
         return;
       }
+
+      if ("Unable to find the layout for Action Bar.".equals(description)) {
+        description += "\nConsider updating to a more recent version of appcompat, or switch the rendering library in the IDE " +
+                       "down to API 21";
+      }
+
       if (description.equals(throwable.getLocalizedMessage()) || description.equals(throwable.getMessage())) {
         description = "Exception raised during rendering: " + description;
       } else if (message == null) {
@@ -657,10 +675,6 @@ public class RenderLogger extends LayoutLog {
     return myMissingFragments;
   }
 
-  void setCredential(@Nullable Object credential) {
-    myCredential = credential;
-  }
-
   @NotNull
   private RenderProblem.Html getProblemForIssue73732(Throwable throwable) {
     RenderProblem.Html problem = RenderProblem.create(ERROR);
@@ -675,7 +689,7 @@ public class RenderLogger extends LayoutLog {
     }
     ShowExceptionFix detailsFix = new ShowExceptionFix(myModule.getProject(), throwable);
     builder.addLink(" ", "Show Exception", ".", getLinkManager().createRunnableLink(detailsFix));
-    AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     if (platform == null) {
       // Again, shouldn't happen.
       return problem;
@@ -719,5 +733,54 @@ public class RenderLogger extends LayoutLog {
       }
     }));
     return problem;
+  }
+
+  /**
+   * Check if this is possibly an instance of http://b.android.com/164378. If likely, this adds a message with the recommended workaround.
+   */
+  private boolean checkForIssue164378(@Nullable Throwable throwable) {
+    if (isIssue164378(throwable)) {
+        RenderProblem.Html problem = RenderProblem.create(ERROR);
+        HtmlBuilder builder = problem.getHtmlBuilder();
+        addHtmlForIssue164378(throwable, myModule, getLinkManager(), builder, true);
+        addMessage(problem);
+        return true;
+    }
+    return false;
+  }
+
+
+  static boolean isIssue164378(@Nullable Throwable throwable) {
+    if (throwable instanceof NoSuchFieldError) {
+      StackTraceElement[] stackTrace = throwable.getStackTrace();
+      if (stackTrace.length >= 1 && stackTrace[0].getClassName().startsWith("android.support")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static void addHtmlForIssue164378(@NotNull Throwable throwable,
+                                    Module module,
+                                    HtmlLinkManager linkManager,
+                                    HtmlBuilder builder,
+                                    boolean addShowExceptionLink) {
+    builder.add("Rendering failed with a known bug. ");
+    if (module == null) {
+      // Unlikely, but just in case.
+      builder.add("Please rebuild the project and then clear the cache by clicking the refresh icon above the preview.").newline();
+      return;
+    }
+    builder.addLink("Please try a ", "rebuild", ".", linkManager.createCompileModuleUrl());
+    builder.newline().newline();
+    if (!addShowExceptionLink) {
+      return;
+    }
+    ShowExceptionFix showExceptionFix = new ShowExceptionFix(module.getProject(), throwable);
+    builder.addLink("Show Exception", linkManager.createRunnableLink(showExceptionFix));
+  }
+
+  static boolean isLoggingAllErrors() {
+    return LOG_ALL;
   }
 }

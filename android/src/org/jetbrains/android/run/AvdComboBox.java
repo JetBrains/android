@@ -4,15 +4,12 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.tools.idea.avdmanager.AvdBuilder;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkAdditionalData;
-import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.util.Alarm;
@@ -21,8 +18,6 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -159,14 +154,9 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
     }
 
     for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
-      if (sdk.getSdkType() instanceof AndroidSdkType) {
-        final SdkAdditionalData data = sdk.getSdkAdditionalData();
-        if (data instanceof AndroidSdkAdditionalData) {
-          platform = ((AndroidSdkAdditionalData)data).getAndroidPlatform();
-          if (platform != null) {
-            return platform;
-          }
-        }
+      platform = AndroidPlatform.getInstance(sdk);
+      if (platform != null) {
+        return platform;
       }
     }
     return null;
@@ -175,15 +165,6 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
   @Nullable
   private AndroidPlatform findAndroidPlatformFromModule() {
     Module module = getModule();
-    if (module == null) {
-      return null;
-    }
-
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return null;
-    }
-
-    return facet.getConfiguration().getAndroidPlatform();
+    return module != null ? AndroidPlatform.getInstance(module) : null;
   }
 }

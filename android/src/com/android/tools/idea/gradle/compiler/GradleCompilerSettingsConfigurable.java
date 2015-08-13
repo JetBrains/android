@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.base.Objects;
-import com.google.common.base.Strings;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.ide.PowerSaveMode;
 import com.intellij.openapi.options.Configurable;
@@ -26,12 +24,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import javax.swing.*;
+
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Configuration page for Gradle compiler settings.
@@ -39,14 +40,12 @@ import javax.swing.*;
 public class GradleCompilerSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   private final CompilerWorkspaceConfiguration myCompilerConfiguration;
   private final AndroidGradleBuildConfiguration myBuildConfiguration;
-  private final GradleSettings myGradleSettings;
 
   private JCheckBox myParallelBuildCheckBox;
 
   @SuppressWarnings("UnusedDeclaration")
   private HyperlinkLabel myParallelBuildDocHyperlinkLabel;
 
-  private RawCommandLineEditor myVmOptionsEditor;
   private JCheckBox myAutoMakeCheckBox;
   private JBLabel myUseInProcessBuildLabel;
   private JCheckBox myUseInProcessBuildCheckBox;
@@ -59,17 +58,20 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private JCheckBox myConfigureOnDemandCheckBox;
   @SuppressWarnings("UnusedDeclaration")
   private HyperlinkLabel myConfigureOnDemandDocHyperlinkLabel;
+  private JBLabel myUseInProcessBuildSpacing;
+
   private final String myDisplayName;
 
   public GradleCompilerSettingsConfigurable(@NotNull Project project, @NotNull String displayName) {
     myDisplayName = displayName;
     myCompilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
     myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-    myGradleSettings = GradleSettings.getInstance(project);
 
-    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+    boolean isInternal = SystemProperties.getBooleanProperty("idea.is.internal", false);
+    if (!isAndroidStudio() || !isInternal) {
       myUseInProcessBuildLabel.setVisible(false);
       myUseInProcessBuildCheckBox.setVisible(false);
+      myUseInProcessBuildSpacing.setVisible(false);
     }
   }
 
@@ -106,7 +108,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @Override
   public boolean isModified() {
     return myCompilerConfiguration.PARALLEL_COMPILATION != isParallelBuildsEnabled() ||
-           !Objects.equal(getVmOptions(), myGradleSettings.getGradleVmOptions()) ||
            myCompilerConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled() ||
            myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD != isExperimentalBuildEnabled() ||
            myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND != isConfigurationOnDemandEnabled() ||
@@ -116,7 +117,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @Override
   public void apply() {
     myCompilerConfiguration.PARALLEL_COMPILATION = isParallelBuildsEnabled();
-    myGradleSettings.setGradleVmOptions(getVmOptions());
     myCompilerConfiguration.MAKE_PROJECT_ON_SAVE = isAutoMakeEnabled();
     myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = isExperimentalBuildEnabled();
     myBuildConfiguration.COMMAND_LINE_OPTIONS = getCommandLineOptions();
@@ -139,11 +139,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     return myConfigureOnDemandCheckBox.isSelected();
   }
 
-  @Nullable
-  private String getVmOptions() {
-    return Strings.emptyToNull(myVmOptionsEditor.getText().trim());
-  }
-
   @NotNull
   private String getCommandLineOptions() {
     return myCommandLineOptionsEditor.getText().trim();
@@ -152,15 +147,13 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @Override
   public void reset() {
     myParallelBuildCheckBox.setSelected(myCompilerConfiguration.PARALLEL_COMPILATION);
-    String vmOptions = Strings.nullToEmpty(myGradleSettings.getGradleVmOptions());
-    myVmOptionsEditor.setText(vmOptions);
     myAutoMakeCheckBox.setSelected(myCompilerConfiguration.MAKE_PROJECT_ON_SAVE);
     myUseInProcessBuildCheckBox.setSelected(myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD);
     myConfigureOnDemandCheckBox.setSelected(myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND);
     myAutoMakeCheckBox.setText("Make project automatically (only works while not running / debugging" +
                                (PowerSaveMode.isEnabled() ? ", disabled in Power Save mode" : "") +
                                ")");
-    String commandLineOptions = Strings.nullToEmpty(myBuildConfiguration.COMMAND_LINE_OPTIONS);
+    String commandLineOptions = nullToEmpty(myBuildConfiguration.COMMAND_LINE_OPTIONS);
     myCommandLineOptionsEditor.setText(commandLineOptions);
     myConfigureOnDemandCheckBox.setSelected(myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND);
   }
@@ -181,9 +174,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myConfigureOnDemandDocHyperlinkLabel =
       createHyperlinkLabel("This option may speed up builds. This option is in \"incubation.\" Please read Gradle's ", "documentation", ".",
                            "http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:configuration_on_demand");
-
-    myVmOptionsEditor = new RawCommandLineEditor();
-    myVmOptionsEditor.setDialogCaption("Gradle VM Options");
 
     myCommandLineOptionsEditor = new RawCommandLineEditor();
     myCommandLineOptionsEditor.setDialogCaption("Command-line Options");

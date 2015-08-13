@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.MyOtherTheme" parent="@android:style/Theme.Holo.Light.DarkActionBar">
+        <item name="android:windowIsFloating">holo_purple</item>
+        <item name="android:actionBarDivider">myValue</item>
+    </style>
+</resources>

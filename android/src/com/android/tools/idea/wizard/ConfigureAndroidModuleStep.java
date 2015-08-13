@@ -16,9 +16,9 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
@@ -338,9 +338,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     List<IAndroidTarget> list = new ArrayList<IAndroidTarget>();
 
     for (IAndroidTarget target : targets) {
-      if (!target.isPlatform() &&
-          (target.getOptionalLibraries() == null ||
-           target.getOptionalLibraries().length == 0)) {
+      if (!target.isPlatform() && target.getAdditionalLibraries().isEmpty()) {
         continue;
       }
       list.add(target);
@@ -614,7 +612,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       if (file.isFile()) {
         setErrorHtml("There must not already be a file at the project location");
         return false;
-      } else if (file.isDirectory() && TemplateUtils.listFiles(file).length > 0) {
+      } else if (file.isDirectory() && WizardUtils.listFiles(file).length > 0) {
         setErrorHtml("A non-empty directory already exists at the specified project location. Existing files may be overwritten. Proceed with caution.");
       }
       if (file.getParent() == null) {

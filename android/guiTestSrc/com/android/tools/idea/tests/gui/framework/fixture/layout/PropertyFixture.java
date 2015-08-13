@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.propertyTable.AttributeProperty;
 import com.intellij.designer.model.Property;
@@ -28,7 +28,6 @@ import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.driver.JTableDriver;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +38,9 @@ import java.awt.event.KeyEvent;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilGone;
+import static javax.swing.SwingUtilities.windowForComponent;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
 /**
@@ -73,7 +74,7 @@ public class PropertyFixture {
    * Requires the property value to be the given value
    */
   public PropertyFixture requireValue(@NotNull String value) throws Exception {
-    assertEquals(value, getValue());
+    assertEquals("Property '" + myProperty.getName() + "'", value, getValue());
     return this;
   }
 
@@ -163,7 +164,7 @@ public class PropertyFixture {
 
     final JTextComponent field = waitUntilFound(myRobot, table, JTextComponentMatcher.any());
     componentDriver.focusAndWaitForFocusGain(field);
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         field.selectAll(); // workaround: when mouse clicking the focus listener doesn't kick in on some Linux window managers
@@ -177,9 +178,9 @@ public class PropertyFixture {
       // Ensure that after entering the text, the property is committed and exists text editing
       waitUntilGone(myRobot, table, JTextComponentMatcher.any());
     } else {
-      MessageDialogFixture dialog = MessageDialogFixture.findByTitle(myRobot, "Invalid Input");
-      dialog.requireMessageContains(expectedError);
-      dialog.clickOk();
+      MessagesFixture messages = MessagesFixture.findByTitle(myRobot, windowForComponent(table), "Invalid Input");
+      messages.requireMessageContains(expectedError)
+              .clickOk();
       componentDriver.pressAndReleaseKeys(field, KeyEvent.VK_ESCAPE);
     }
   }

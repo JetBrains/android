@@ -30,7 +30,6 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -156,7 +155,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
       StringBuilder sb = new StringBuilder(1000);
       sb.append("Missing registration for " + missing.size() + " issues (out of a total issue count of " + allIssues.size() + ")");
-      sb.append("\nAdd to plugin.xml (and please try to preserve the alphabetical order):\n");
+      sb.append("\nAdd to plugin.xml (and please try to preserve the case sensitive alphabetical order, where for example B < a):\n");
       for (Issue issue : missing) {
         sb.append("    <globalInspection hasStaticDescription=\"true\" shortName=\"AndroidLint");
         String id = issue.getId();
@@ -295,11 +294,13 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
   private static boolean isRelevant(Issue issue) {
     // Supported more directly by other IntelliJ checks(?)
-    if (issue == NamespaceDetector.TYPO ||             // IDEA has its own spelling check
-        issue == NamespaceDetector.UNUSED ||           // IDEA already does full validation
-        issue == ManifestTypoDetector.ISSUE ||         // IDEA already does full validation
-        issue == ManifestDetector.WRONG_PARENT ||      // IDEA already does full validation
-        issue == LocaleDetector.STRING_LOCALE) {       // IDEA checks for this in Java code
+    if (issue == NamespaceDetector.TYPO ||                  // IDEA has its own spelling check
+        issue == SupportAnnotationDetector.RESOURCE_TYPE || // We have a separate inspection for this
+        issue == SupportAnnotationDetector.TYPE_DEF ||      // We have a separate inspection for this
+        issue == NamespaceDetector.UNUSED ||                // IDEA already does full validation
+        issue == ManifestTypoDetector.ISSUE ||              // IDEA already does full validation
+        issue == ManifestDetector.WRONG_PARENT ||           // IDEA already does full validation
+        issue == LocaleDetector.STRING_LOCALE) {            // IDEA checks for this in Java code
       return false;
     }
 

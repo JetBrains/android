@@ -34,7 +34,7 @@ public class AssetStudioWizard extends TemplateWizard implements TemplateWizardS
   protected VirtualFile myTargetFile;
   protected TemplateWizardState myWizardState = new TemplateWizardState();
   protected ChooseOutputResDirStep myOutputStep;
-  protected AssetSetStep myIconStep;
+  protected RasterAssetSetStep myIconStep;
 
   public AssetStudioWizard(@Nullable Project project, @Nullable Module module, @Nullable VirtualFile targetFile) {
     super("Asset Studio", project);
@@ -46,7 +46,7 @@ public class AssetStudioWizard extends TemplateWizard implements TemplateWizardS
 
   @Override
   protected void init() {
-    myIconStep = new AssetSetStep(myWizardState, myProject, myModule, null, this, myTargetFile);
+    myIconStep = new RasterAssetSetStep(myWizardState, myProject, myModule, null, this, myTargetFile);
     Disposer.register(getDisposable(), myIconStep);
     myOutputStep = new ChooseOutputResDirStep(myWizardState, myProject, null, NONE, myModule, myTargetFile);
     addStep(myIconStep);

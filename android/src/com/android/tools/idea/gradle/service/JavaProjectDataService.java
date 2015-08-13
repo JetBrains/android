@@ -19,11 +19,13 @@ import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.java.CompilerOutputModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.java.ContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.java.DependenciesModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.java.*;
+import com.android.tools.idea.gradle.messages.Message;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -33,17 +35,25 @@ import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataSer
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.PROJECT_STRUCTURE_ISSUES;
+import static com.android.tools.idea.gradle.messages.Message.Type.ERROR;
+
 public class JavaProjectDataService implements ProjectDataService<IdeaJavaProject, Void> {
   private static final Logger LOG = Logger.getInstance(JavaProjectDataService.class);
 
   private final List<ModuleCustomizer<IdeaJavaProject>> myCustomizers =
-    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer());
+    ImmutableList.of(new JavaLanguageLevelModuleCustomizer(), new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(),
+                     new CompilerOutputModuleCustomizer(), new ArtifactsByConfigurationModuleCustomizer());
 
   @Override
   @NotNull
@@ -96,9 +106,50 @@ public class JavaProjectDataService implements ProjectDataService<IdeaJavaProjec
   }
 
   private void customizeModule(@NotNull Module module, @NotNull IdeaJavaProject javaProject) {
-    for (ModuleCustomizer<IdeaJavaProject> customizer : myCustomizers) {
-      customizer.customizeModule(module, module.getProject(), javaProject);
+    if (javaProject.isAndroidProjectWithoutVariants()) {
+      // See https://code.google.com/p/android/issues/detail?id=170722
+      ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
+      String[] text = {
+        String.format("The module '%1$s' is an Android project without build variants, and cannot be built.", module.getName()),
+        "Please fix the module's configuration in the build.gradle file and sync the project again.",
+      };
+      messages.add(new Message(PROJECT_STRUCTURE_ISSUES, ERROR, text));
+      cleanUpAndroidModuleWithoutVariants(module);
+      // No need to setup source folders, dependencies, etc. Since the Android project does not have variants, and because this can
+      // happen due to a project configuration error and there is a lot of module configuration missng, there is no point on even trying.
+      return;
     }
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    try{
+      for (ModuleCustomizer<IdeaJavaProject> customizer : myCustomizers) {
+        customizer.customizeModule(module.getProject(), rootModel, javaProject);
+      }
+    }
+    finally {
+      rootModel.commit();
+    }
+  }
+
+  private static void cleanUpAndroidModuleWithoutVariants(@NotNull Module module) {
+    // Remove Android facet, otherwise the IDE will try to build the module, and fail. The facet may have been added in a previous
+    // successful commit.
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null) {
+      ModifiableFacetModel facetModel = FacetManager.getInstance(module).createModifiableModel();
+      facetModel.removeFacet(facet);
+      facetModel.commit();
+    }
+
+    // Clear all source and exclude folders.
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    for (ContentEntry contentEntry : rootModel.getContentEntries()) {
+      contentEntry.clearSourceFolders();
+      contentEntry.clearExcludeFolders();
+    }
+
+    rootModel.commit();
   }
 
   @Override

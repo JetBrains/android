@@ -23,13 +23,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.text.NumberFormatter;
 
 public class GradleExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   @NotNull private final GradleExperimentalSettings mySettings;
 
   private JPanel myPanel;
   private JCheckBox myEnableModuleSelectionOnImportCheckBox;
-  private JCheckBox myEnableUnitTestingSupportCheckBox;
+  private JSpinner myModuleNumberSpinner;
+  private JCheckBox mySkipSourceGenOnSyncCheckbox;
 
   public GradleExperimentalSettingsConfigurable() {
     mySettings = GradleExperimentalSettings.getInstance();
@@ -67,31 +69,60 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   @Override
   public boolean isModified() {
-    return mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled() ||
-           mySettings.ENABLE_UNIT_TESTING_SUPPORT != isUnitTestingEnabled();
+    if (mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled() ||
+        mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync()) {
+      return true;
+    }
+    Integer value = getMaxModuleCountForSourceGen();
+    return value != null && mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN != value;
   }
 
   @Override
   public void apply() throws ConfigurationException {
     mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = isModuleSelectionOnImportEnabled();
-    mySettings.setUnitTestingSupportEnabled(isUnitTestingEnabled());
+    mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = isSkipSourceGenOnSync();
+    Integer value = getMaxModuleCountForSourceGen();
+    if (value != null) {
+      mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = value;
+    }
+  }
+
+  @Nullable
+  private Integer getMaxModuleCountForSourceGen() {
+    Object value = myModuleNumberSpinner.getValue();
+    return value instanceof Integer ? (Integer)value : null;
   }
 
   private boolean isModuleSelectionOnImportEnabled() {
     return myEnableModuleSelectionOnImportCheckBox.isSelected();
   }
 
-  private boolean isUnitTestingEnabled() {
-    return myEnableUnitTestingSupportCheckBox.isSelected();
+  private boolean isSkipSourceGenOnSync() {
+    return mySkipSourceGenOnSyncCheckbox.isSelected();
   }
 
   @Override
   public void reset() {
     myEnableModuleSelectionOnImportCheckBox.setSelected(mySettings.SELECT_MODULES_ON_PROJECT_IMPORT);
-    myEnableUnitTestingSupportCheckBox.setSelected(mySettings.ENABLE_UNIT_TESTING_SUPPORT);
+    mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
+    myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
   }
 
   @Override
   public void disposeUIResources() {
+  }
+
+  private void createUIComponents() {
+    int value = GradleExperimentalSettings.getInstance().MAX_MODULE_COUNT_FOR_SOURCE_GEN;
+    myModuleNumberSpinner = new JSpinner(new SpinnerNumberModel(value, 0, Integer.MAX_VALUE, 1));
+    // Force the spinner to accept numbers only.
+    JComponent editor = myModuleNumberSpinner.getEditor();
+    if (editor instanceof JSpinner.NumberEditor) {
+      JFormattedTextField textField = ((JSpinner.NumberEditor)editor).getTextField();
+      JFormattedTextField.AbstractFormatter formatter = textField.getFormatter();
+      if (formatter instanceof NumberFormatter) {
+        ((NumberFormatter)formatter).setAllowsInvalid(false);
+      }
+    }
   }
 }

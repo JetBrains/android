@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle;
 
 import com.android.SdkConstants;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -30,48 +29,58 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 /**
  * Contains Gradle related state necessary for building an IDEA module using Gradle.
  */
 public class IdeaGradleProject implements Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final String myModuleName;
   @NotNull private final List<String> myTaskNames;
   @NotNull private final String myGradlePath;
 
   @Nullable private final File myBuildFile;
+  @Nullable private final String myGradleVersion;
+
 
   /**
    * Creates a new {@link IdeaGradleProject}.
-   *
    * @param moduleName    the name of the IDEA module.
    * @param gradleProject the Gradle project.
    * @param buildFile     the build.gradle file.
+   * @param gradleVersion the version of Gradle used to sync the project.
    */
   public static IdeaGradleProject newIdeaGradleProject(@NotNull String moduleName,
                                                        @NotNull GradleProject gradleProject,
-                                                       @Nullable File buildFile) {
+                                                       @Nullable File buildFile,
+                                                       @Nullable String gradleVersion) {
     List<String> taskNames = Lists.newArrayList();
     DomainObjectSet<? extends GradleTask> tasks = gradleProject.getTasks();
     if (!tasks.isEmpty()) {
       for (GradleTask task : tasks) {
         String name = task.getName();
-        if (!Strings.isNullOrEmpty(name)) {
+        if (isNotEmpty(name)) {
           taskNames.add(task.getProject().getPath() + SdkConstants.GRADLE_PATH_SEPARATOR + task.getName());
         }
       }
     }
 
-    return new IdeaGradleProject(moduleName, taskNames, gradleProject.getPath(), buildFile);
+    return new IdeaGradleProject(moduleName, taskNames, gradleProject.getPath(), buildFile, gradleVersion);
   }
 
   public IdeaGradleProject(@NotNull String moduleName,
                            @NotNull List<String> taskNames,
                            @NotNull String gradlePath,
-                           @Nullable File buildFile) {
+                           @Nullable File buildFile,
+                           @Nullable String gradleVersion) {
     myModuleName = moduleName;
     myTaskNames = taskNames;
     myGradlePath = gradlePath;
     myBuildFile = buildFile;
+    myGradleVersion = gradleVersion;
   }
 
   @NotNull
@@ -95,5 +104,10 @@ public class IdeaGradleProject implements Serializable {
   @Nullable
   public VirtualFile getBuildFile() {
     return myBuildFile != null ? VfsUtil.findFileByIoFile(myBuildFile, true) : null;
+  }
+
+  @Nullable
+  public String getGradleVersion() {
+    return myGradleVersion;
   }
 }

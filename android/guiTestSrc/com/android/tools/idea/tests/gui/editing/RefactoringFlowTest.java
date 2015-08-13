@@ -16,26 +16,22 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture.ConflictsDialogFixture;
 import org.junit.Test;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
-
 /** Tests the editing flow of refactoring */
 public class RefactoringFlowTest extends GuiTestCase {
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testResourceConflict() throws IOException {
     // Try to rename a resource to an existing resource; check that
     // you get a warning in the conflicts dialog first
-    IdeFrameFixture project = openSimpleApplication();
+    IdeFrameFixture project = importSimpleApplication();
     EditorFixture editor = project.getEditor();
     editor.open("app/src/main/res/values/strings.xml");
     editor.moveTo(editor.findOffset("hello^_world"));
@@ -51,8 +47,7 @@ public class RefactoringFlowTest extends GuiTestCase {
     conflictsDialog.clickCancel();
   }
 
-  @Test
-  @IdeGuiTest()
+  @Test @IdeGuiTest()
   public void testWarnOverridingExternal() throws Exception {
     // Try to override a resource that is only defined in an external
     // library; check that we get an error message. Then try to override
@@ -61,7 +56,7 @@ public class RefactoringFlowTest extends GuiTestCase {
     // a resource that is only defined locally and make sure there is
     // no dialog.
 
-    IdeFrameFixture ideFrame = openProject("LayoutTest");
+    IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     EditorFixture editor = ideFrame.getEditor();
     editor.open("app/src/main/res/values/override.xml");
     // <string name="abc_searchview_description_submit">@string/abc_searchview_description_voice</string>

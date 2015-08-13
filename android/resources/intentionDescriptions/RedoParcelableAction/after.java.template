@@ -1,0 +1,37 @@
+public class Simple implements Parcelable {
+    private final String name;
+    private final int age;
+
+    public Simple(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    private Simple(Parcel in) {
+        name = in.readString();
+        age = in.readInt();
+    }
+
+    public static final Creator<Simple> CREATOR = new Creator<Simple>() {
+        @Override
+        public Simple createFromParcel(Parcel in) {
+            return new Simple(in);
+        }
+
+        @Override
+        public Simple[] newArray(int size) {
+            return new Simple[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(name);
+        dest.writeInt(age);
+    }
+}

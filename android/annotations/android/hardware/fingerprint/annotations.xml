@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.hardware.fingerprint.FingerprintManager void authenticate(android.hardware.fingerprint.FingerprintManager.CryptoObject, android.os.CancellationSignal, android.hardware.fingerprint.FingerprintManager.AuthenticationCallback, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.hardware.fingerprint.FingerprintManager void authenticate(android.hardware.fingerprint.FingerprintManager.CryptoObject, android.os.CancellationSignal, android.hardware.fingerprint.FingerprintManager.AuthenticationCallback, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.hardware.fingerprint.FingerprintManager void authenticate(android.hardware.fingerprint.FingerprintManager.CryptoObject, android.os.CancellationSignal, android.hardware.fingerprint.FingerprintManager.AuthenticationCallback, int) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.fingerprint.FingerprintManager.CryptoObject CryptoObject(java.security.Signature) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.fingerprint.FingerprintManager.CryptoObject CryptoObject(javax.crypto.Cipher) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.fingerprint.FingerprintManager.CryptoObject CryptoObject(javax.crypto.Mac) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

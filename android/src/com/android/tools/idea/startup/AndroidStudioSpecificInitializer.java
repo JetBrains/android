@@ -18,22 +18,22 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
-import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.PropertiesUtil;
-import com.android.tools.idea.run.ArrayMapRenderer;
-import com.android.tools.idea.sdk.DefaultSdks;
-import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.welcome.AndroidStudioWelcomeScreenProvider;
-import com.android.tools.idea.welcome.FirstRunWizardMode;
+import com.android.tools.idea.gradle.actions.EditBuildTypesAction;
+import com.android.tools.idea.gradle.actions.EditFlavorsAction;
+import com.android.tools.idea.gradle.actions.EditLibraryAndDependenciesAction;
+import com.android.tools.idea.gradle.actions.SelectBuildVariantAction;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.welcome.config.FirstRunWizardMode;
+import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.intellij.debugger.settings.NodeRendererSettings;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.actions.TemplateProjectSettingsGroup;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
@@ -48,13 +48,9 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
@@ -66,7 +62,6 @@ import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,6 +72,17 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Properties;
+
+import static com.android.SdkConstants.EXT_JAR;
+import static com.android.tools.idea.gradle.util.GradleUtil.cleanUpPreferences;
+import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemons;
+import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
+import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
+import static com.intellij.openapi.options.Configurable.APPLICATION_CONFIGURABLE;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtilRt.getExtension;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 /** Initialization performed only in the context of the Android IDE. */
 public class AndroidStudioSpecificInitializer implements Runnable {
@@ -109,71 +115,18 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     return "AndroidStudio".equals(PlatformUtils.getPlatformPrefix());
   }
 
-  @Override
-  public void run() {
-    checkInstallation();
-    cleanUpIdePreferences();
-
-    if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
-      replaceIdeaNewProjectActions();
-    }
-
-    if (!Boolean.getBoolean(USE_IDEA_PROJECT_STRUCTURE)) {
-      replaceProjectStructureActions();
-    }
-
-    if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
-      replaceIdeaMakeActions();
-    }
-
-    if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
-      hideIdeaNewFilePopupActions();
-    }
-    
-    try {
-      // Setup JDK and Android SDK if necessary
-      setupSdks();
-    } catch (Exception e) {
-      LOG.error("Unexpected error while setting up SDKs: ", e);
-    }
-
-    registerAppClosing();
-
-    // Always reset the Default scheme to match Android standards
-    // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
-    CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
-    if (scheme != null) {
-      CodeStyleSettings settings = scheme.getCodeStyleSettings();
-      if (settings != null) {
-        AndroidCodeStyleSettingsModifier.modify(settings);
-      }
-    }
-
-    // Modify built-in "Default" color scheme to remove background from XML tags.
-    // "Darcula" and user schemes will not be touched.
-    EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
-    TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
-    TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
-    xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
-
-    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.util.ArrayMap"));
-    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
-
-    checkAndSetAndroidSdkSources();
-  }
-
   private static void checkInstallation() {
     String studioHome = PathManager.getHomePath();
-    if (StringUtil.isEmpty(studioHome)) {
+    if (isEmpty(studioHome)) {
       LOG.info("Unable to find Studio home directory");
       return;
     }
-    File studioHomePath = new File(FileUtil.toSystemDependentName(studioHome));
+    File studioHomePath = new File(toSystemDependentName(studioHome));
     if (!studioHomePath.isDirectory()) {
       LOG.info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
       return;
     }
-    File androidPluginLibFolderPath = new File(studioHomePath, FileUtil.join("plugins", "android", "lib"));
+    File androidPluginLibFolderPath = new File(studioHomePath, join("plugins", "android", "lib"));
     if (!androidPluginLibFolderPath.isDirectory()) {
       LOG.info(String.format("The path '%1$s' does not belong to an existing directory", androidPluginLibFolderPath.getPath()));
       return;
@@ -182,10 +135,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     // Look for signs that the installation is corrupt due to improper updates (typically unzipping on top of previous install)
     // which doesn't delete files that have been removed or renamed
     String cause = null;
-    File[] children = FileUtil.notNullize(androidPluginLibFolderPath.listFiles());
+    File[] children = notNullize(androidPluginLibFolderPath.listFiles());
     if (hasMoreThanOneBuilderModelFile(children)) {
       cause = "(Found multiple versions of builder-model-*.jar in plugins/android/lib.)";
-    } else if (new File(studioHomePath, FileUtil.join("plugins", "android-designer")).exists()) {
+    } else if (new File(studioHomePath, join("plugins", "android-designer")).exists()) {
       cause = "(Found plugins/android-designer which should not be present.)";
     }
     if (cause != null) {
@@ -207,7 +160,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
     for (File file : libraryFiles) {
       String fileName = file.getName();
-      if (fileName.startsWith("builder-model-") && SdkConstants.EXT_JAR.equals(FileUtilRt.getExtension(fileName))) {
+      if (fileName.startsWith("builder-model-") && EXT_JAR.equals(getExtension(fileName))) {
         if (++builderModelFileCount > 1) {
           return true;
         }
@@ -219,10 +172,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   private static void cleanUpIdePreferences() {
     try {
-      ExtensionPoint<ConfigurableEP<Configurable>> ideConfigurable =
-        Extensions.getRootArea().getExtensionPoint(Configurable.APPLICATION_CONFIGURABLE);
-
-      GradleUtil.cleanUpPreferences(ideConfigurable, IDE_SETTINGS_TO_REMOVE);
+      ExtensionPoint<ConfigurableEP<Configurable>> ideConfigurable = Extensions.getRootArea().getExtensionPoint(APPLICATION_CONFIGURABLE);
+      cleanUpPreferences(ideConfigurable, IDE_SETTINGS_TO_REMOVE);
     }
     catch (Throwable e) {
       LOG.info("Failed to clean up IDE preferences", e);
@@ -231,6 +182,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   private static void replaceIdeaNewProjectActions() {
     // Unregister IntelliJ's version of the project actions and manually register our own.
+    replaceAction("OpenFile", new AndroidOpenFileAction());
     replaceAction("NewProject", new AndroidNewProjectAction());
     replaceAction("NewModule", new AndroidNewModuleAction());
     replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
@@ -251,17 +203,20 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     // Update the Welcome Screen actions
     ActionManager am = ActionManager.getInstance();
 
-    AndroidNewProjectAction welcomeScreenNewProject = new AndroidNewProjectAction();
-    welcomeScreenNewProject.getTemplatePresentation().setText("Start a new Android Studio project");
-    replaceAction("WelcomeScreen.CreateNewProject", welcomeScreenNewProject);
+    AndroidOpenFileAction openFileAction = new AndroidOpenFileAction();
+    openFileAction.getTemplatePresentation().setText("Open an existing Android Studio project");
+    replaceAction("WelcomeScreen.OpenProject", openFileAction);
 
-    AndroidImportProjectAction welcomeScreenImportProject = new AndroidImportProjectAction();
-    welcomeScreenImportProject.getTemplatePresentation().setText("Import project (Eclipse ADT, Gradle, etc.)");
-    replaceAction("WelcomeScreen.ImportProject", welcomeScreenImportProject);
+    AndroidNewProjectAction newProjectAction = new AndroidNewProjectAction();
+    newProjectAction.getTemplatePresentation().setText("Start a new Android Studio project");
+    replaceAction("WelcomeScreen.CreateNewProject", newProjectAction);
+
+    AndroidImportProjectAction importProjectAction = new AndroidImportProjectAction();
+    importProjectAction.getTemplatePresentation().setText("Import project (Eclipse ADT, Gradle, etc.)");
+    replaceAction("WelcomeScreen.ImportProject", importProjectAction);
     moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA", "WelcomeScreen.QuickStart",
                new Constraints(Anchor.AFTER, "WelcomeScreen.GetFromVcs"));
 
-    am.getAction("WelcomeScreen.OpenProject").getTemplatePresentation().setText("Open an existing Android Studio project");
     am.getAction("WelcomeScreen.GetFromVcs").getTemplatePresentation().setText("Check out project from Version Control");
   }
 
@@ -352,7 +307,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   }
 
   private static void setupSdks() {
-    File androidHome = DefaultSdks.getDefaultAndroidHome();
+    File androidHome = IdeSdks.getAndroidSdkPath();
     if (androidHome != null) {
       // Do not prompt user to select SDK path (we have one already.) Instead, check SDK compatibility when a project is opened.
       return;
@@ -371,7 +326,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         public void run() {
           String androidHome = sdk.getHomePath();
           assert androidHome != null;
-          DefaultSdks.createAndroidSdksForAllTargets(new File(FileUtil.toSystemDependentName(androidHome)));
+          IdeSdks.createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(androidHome)));
         }
       });
       return;
@@ -390,28 +345,27 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         // Only show "Select SDK" dialog if the "First Run" wizard is not displayed.
         boolean promptSdkSelection = wizardMode == null;
 
-        Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
+        Sdk sdk = createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
         if (sdk != null) {
           // Rename the SDK to fit our default naming convention.
-          if (sdk.getName().startsWith(AndroidSdkUtils.SDK_NAME_PREFIX)) {
+          if (sdk.getName().startsWith(SDK_NAME_PREFIX)) {
             SdkModificator sdkModificator = sdk.getSdkModificator();
-            sdkModificator.setName(AndroidSdkUtils.SDK_NAME_PREFIX +
-                                   sdk.getName().substring(AndroidSdkUtils.SDK_NAME_PREFIX.length()));
+            sdkModificator.setName(SDK_NAME_PREFIX + sdk.getName().substring(SDK_NAME_PREFIX.length()));
             sdkModificator.commitChanges();
 
             // Rename the JDK that goes along with this SDK.
-            AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+            AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
             if (additionalData != null) {
               Sdk jdk = additionalData.getJavaSdk();
               if (jdk != null) {
                 sdkModificator = jdk.getSdkModificator();
-                sdkModificator.setName(AndroidSdkUtils.DEFAULT_JDK_NAME);
+                sdkModificator.setName(DEFAULT_JDK_NAME);
                 sdkModificator.commitChanges();
               }
             }
 
             // Fill out any missing build APIs for this new SDK.
-            DefaultSdks.createAndroidSdksForAllTargets(androidSdkPath);
+            IdeSdks.createAndroidSdkPerAndroidTarget(androidSdkPath);
           }
         }
       }
@@ -420,10 +374,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   @Nullable
   private static Sdk findFirstCompatibleAndroidSdk() {
-    List<Sdk> sdks = AndroidSdkUtils.getAllAndroidSdks();
+    List<Sdk> sdks = getAllAndroidSdks();
     for (Sdk sdk : sdks) {
       String sdkPath = sdk.getHomePath();
-      if (VersionCheck.isCompatibleVersion(sdkPath)) {
+      if (isCompatibleVersion(sdkPath)) {
         return sdk;
       }
     }
@@ -436,14 +390,14 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   @Nullable
   private static File getAndroidSdkPath() {
     String studioHome = PathManager.getHomePath();
-    if (StringUtil.isEmpty(studioHome)) {
+    if (isEmpty(studioHome)) {
       LOG.info("Unable to find Studio home directory");
     }
     else {
       LOG.info(String.format("Found Studio home directory at: '%1$s'", studioHome));
       for (String path : ANDROID_SDK_RELATIVE_PATHS) {
         File dir = new File(studioHome, path);
-        String absolutePath = FileUtil.toCanonicalPath(dir.getAbsolutePath());
+        String absolutePath = toCanonicalPath(dir.getAbsolutePath());
         LOG.info(String.format("Looking for Android SDK at '%1$s'", absolutePath));
         if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath)) {
           LOG.info(String.format("Found Android SDK at '%1$s'", absolutePath));
@@ -457,19 +411,19 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     String msg = String.format("Checking if ANDROID_HOME is set: '%1$s' is '%2$s'", SdkConstants.ANDROID_HOME_ENV, androidHomeValue);
     LOG.info(msg);
 
-    if (!StringUtil.isEmpty(androidHomeValue) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
+    if (!isEmpty(androidHomeValue) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
       LOG.info("Using Android SDK specified by the environment variable.");
-      return new File(FileUtil.toSystemDependentName(androidHomeValue));
+      return new File(toSystemDependentName(androidHomeValue));
     }
 
     String sdkPath = getLastSdkPathUsedByAndroidTools();
-    if (!StringUtil.isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
+    if (!isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
       msg = String.format("Last SDK used by Android tools: '%1$s'", sdkPath);
     } else {
       msg = "Unable to locate last SDK used by Android tools";
     }
     LOG.info(msg);
-    return sdkPath == null ? null : new File(FileUtil.toSystemDependentName(sdkPath));
+    return sdkPath == null ? null : new File(toSystemDependentName(sdkPath));
   }
 
   /**
@@ -485,12 +439,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     if (userHome == null) {
       return null;
     }
-    File f = new File(new File(userHome, ".android"), "ddms.cfg");
-    if (!f.exists()) {
+    File file = new File(new File(userHome, ".android"), "ddms.cfg");
+    if (!file.exists()) {
       return null;
     }
     try {
-      Properties properties = PropertiesUtil.getProperties(f);
+      Properties properties = getProperties(file);
       return properties.getProperty("lastSdkPath");
     } catch (IOException e) {
       return null;
@@ -516,21 +470,26 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   }
 
   /**
-   * Registers an appClosing callback on the app lifecycle.
-   * Uses it to stop gradle daemons of currently opened projects.
+   * Registers an callback that gets notified when the IDE is closing.
    */
   private static void registerAppClosing() {
-    MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect();
+    Application app = ApplicationManager.getApplication();
+    MessageBusConnection connection = app.getMessageBus().connect(app);
     connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
       @Override
       public void appClosing() {
-        GradleUtil.stopAllGradleDaemons();
+        try {
+          stopAllGradleDaemons(false);
+        }
+        catch (IOException e) {
+          LOG.info("Failed to stop Gradle daemons", e);
+        }
       }
     });
   }
 
   private static void checkAndSetAndroidSdkSources() {
-    for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
+    for (Sdk sdk : getAllAndroidSdks()) {
       checkAndSetSources(sdk);
     }
   }
@@ -541,16 +500,87 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       return;
     }
 
-    SdkAdditionalData sdkData = sdk.getSdkAdditionalData();
-    if (sdkData instanceof AndroidSdkAdditionalData) {
-      AndroidSdkAdditionalData androidSdkData = (AndroidSdkAdditionalData)sdkData;
-      AndroidPlatform platform = androidSdkData.getAndroidPlatform();
-      if (platform != null) {
-        SdkModificator sdkModificator = sdk.getSdkModificator();
-        IAndroidTarget target = platform.getTarget();
-        AndroidSdkUtils.findAndSetPlatformSources(target, sdkModificator);
-        sdkModificator.commitChanges();
+    AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
+    if (platform != null) {
+      SdkModificator sdkModificator = sdk.getSdkModificator();
+      IAndroidTarget target = platform.getTarget();
+      findAndSetPlatformSources(target, sdkModificator);
+      sdkModificator.commitChanges();
+    }
+  }
+
+  @Override
+  public void run() {
+    checkInstallation();
+    cleanUpIdePreferences();
+
+    if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
+      replaceIdeaNewProjectActions();
+    }
+
+    if (!Boolean.getBoolean(USE_IDEA_PROJECT_STRUCTURE)) {
+      replaceProjectStructureActions();
+    }
+
+    if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
+      replaceIdeaMakeActions();
+    }
+
+    if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
+      hideIdeaNewFilePopupActions();
+    }
+
+    try {
+      // Setup JDK and Android SDK if necessary
+      setupSdks();
+    } catch (Exception e) {
+      LOG.error("Unexpected error while setting up SDKs: ", e);
+    }
+
+    addExtraBuildActions();
+
+    hideMiscActions();
+
+    registerAppClosing();
+
+    // Always reset the Default scheme to match Android standards
+    // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
+    CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
+    if (scheme != null) {
+      CodeStyleSettings settings = scheme.getCodeStyleSettings();
+      if (settings != null) {
+        AndroidCodeStyleSettingsModifier.modify(settings);
       }
+    }
+
+    // Modify built-in "Default" color scheme to remove background from XML tags.
+    // "Darcula" and user schemes will not be touched.
+    EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
+    TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
+    TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
+    xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
+
+    checkAndSetAndroidSdkSources();
+  }
+
+  private static void hideMiscActions() {
+    ActionManager am = ActionManager.getInstance();
+    // "Configure Plugins..." Not sure why it's called StartupWizard.
+    AnAction pluginAction = am.getAction("StartupWizard");
+    // Never applicable in the context of android studio, so just set to invisible.
+    pluginAction.getTemplatePresentation().setVisible(false);
+  }
+
+  private static void addExtraBuildActions() {
+    ActionManager actionManager = ActionManager.getInstance();
+    AnAction buildMenu = actionManager.getAction("BuildMenu");
+    if (buildMenu instanceof DefaultActionGroup) {
+      DefaultActionGroup buildMenuGroup = (DefaultActionGroup)buildMenu;
+      buildMenuGroup.addSeparator();
+      buildMenuGroup.add(new EditBuildTypesAction());
+      buildMenuGroup.add(new EditFlavorsAction());
+      buildMenuGroup.add(new EditLibraryAndDependenciesAction());
+      buildMenuGroup.add(new SelectBuildVariantAction());
     }
   }
 }

@@ -25,8 +25,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-import static com.android.tools.idea.editors.navigation.Utilities.ZERO_SIZE;
-import static com.android.tools.idea.editors.navigation.Utilities.notNull;
+import static com.android.tools.idea.editors.navigation.NavigationEditorUtils.ZERO_SIZE;
+import static com.android.tools.idea.editors.navigation.NavigationEditorUtils.notNull;
 
 public class RenderingParameters {
   @NotNull

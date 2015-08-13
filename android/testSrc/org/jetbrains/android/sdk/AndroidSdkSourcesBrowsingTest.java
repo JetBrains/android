@@ -5,9 +5,7 @@ import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -24,6 +22,7 @@ import org.jetbrains.android.augment.AndroidPsiElementFinder;
 import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -141,12 +140,11 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
 
   public void testFindingInternalResourceClasses() throws Exception {
     configureMockSdk();
+    final JdkOrderEntry jdkOrderEntry = findJdkOrderEntry();
+    assertNotNull(jdkOrderEntry);
+    final GlobalSearchScope scope = new AndroidSdkResolveScopeProvider().getScope(getProject(), jdkOrderEntry);
+    assertNotNull(scope);
     final JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
-    PsiClass activity = facade.findClass("android.app.Activity", GlobalSearchScope.allScope(getProject()));
-    assertNotNull(activity);
-
-    GlobalSearchScope scope = activity.getNavigationElement().getResolveScope();
-    assertInstanceOf(scope, AndroidSdkResolveScopeProvider.MyJdkScope.class);
 
     assertNotNull(facade.findClass(AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME, scope));
     assertNotNull(facade.findClass(AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME + ".string", scope));
@@ -155,6 +153,23 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     assertEquals(1, classes.length);
     classes = facade.findClasses(AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME + ".string", scope);
     assertEquals(1, classes.length);
+  }
+
+  public void testNoDuplicateAndroidSdkClassesFound() throws Exception {
+    configureMockSdk();
+    PsiClass[] classes = myFixture.getJavaFacade().findClasses(
+      "android.app.Activity", GlobalSearchScope.allScope(myFixture.getProject()));
+    assertEquals(1, classes.length);
+  }
+
+  @Nullable
+  private JdkOrderEntry findJdkOrderEntry() {
+    for (OrderEntry entry : ModuleRootManager.getInstance(myModule).getOrderEntries()) {
+      if (entry instanceof JdkOrderEntry) {
+        return (JdkOrderEntry)entry;
+      }
+    }
+    return null;
   }
 
   private void doTestNavigationToResource(LogicalPosition position, int expectedCount, Class<?> aClass) {
@@ -206,7 +221,7 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     for (int i = 1; i < sdkSourcesPaths.length; i++) {
       myFixture.copyDirectoryToProject(sdkSourcesPaths[i], SDK_SOURCES_TARGET_PATH);
     }
-    assert sdkSourcesDir != null && sdkSourcesDir.isDirectory();
+    assert sdkSourcesDir.isDirectory();
     final Sdk sdk = ModuleRootManager.getInstance(myFixture.getModule()).getSdk();
     assert  sdk != null;
     final SdkModificator modificator = sdk.getSdkModificator();

@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.designer.AndroidMetaModel;
 import com.android.tools.idea.designer.Insets;
 import com.android.tools.idea.rendering.IncludeReference;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.android.designer.designSurface.TransformedComponent;
@@ -277,12 +277,12 @@ public class RadViewComponent extends RadVisualComponent {
     }
     XmlTag parentTag = ((RadViewComponent)parent).getTag();
     if (parentTag != null) {
-      RenderService service = AndroidDesignerUtils.getRenderService(area);
-      if (service == null) {
+      RenderTask task = AndroidDesignerUtils.createRenderTask(area);
+      if (task == null) {
         return null;
       }
 
-      ViewInfo viewInfo = service.measureChild(getTag(), new RenderService.AttributeFilter() {
+      ViewInfo viewInfo = task.measureChild(getTag(), new RenderTask.AttributeFilter() {
         @Override
         public String getAttribute(@NotNull XmlTag n, @Nullable String namespace, @NotNull String localName) {
           if ((ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName)) && ANDROID_URI.equals(namespace)) {

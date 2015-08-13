@@ -20,6 +20,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.utils.XmlUtils;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.android.designer.designSurface.RootView;
@@ -63,7 +64,7 @@ public class AndroidDesignerUtils {
   }
 
   @Nullable
-  public static RenderService getRenderService(@NotNull EditableArea area) {
+  public static RenderTask createRenderTask(@NotNull EditableArea area) {
     AndroidDesignerEditorPanel panel = getPanel(area);
     if (panel != null) {
       Configuration configuration = panel.getConfiguration();
@@ -72,12 +73,13 @@ public class AndroidDesignerUtils {
       Module module = panel.getModule();
       AndroidFacet facet = AndroidFacet.getInstance(module);
       assert facet != null;
-      RenderLogger logger = new RenderLogger(xmlFile.getName(), module);
       @SuppressWarnings("UnnecessaryLocalVariable")
       RenderContext renderContext = panel;
-      RenderService service = RenderService.create(facet, module, xmlFile, configuration, logger, renderContext);
-      assert service != null;
-      return service;
+      RenderService renderService = RenderService.get(facet);
+      RenderLogger logger = renderService.createLogger();
+      final RenderTask task = renderService.createTask(xmlFile, configuration, logger, renderContext);
+      assert task != null;
+      return task;
     }
 
     return null;
@@ -163,8 +165,8 @@ public class AndroidDesignerUtils {
 
       // TODO: If it's a layout, do something smarter. I really only have to worry about this
       // if the creation XML calls for wrap_content!
-      RenderService service = getRenderService(area);
-      if (service != null) {
+      RenderTask task = createRenderTask(area);
+      if (task != null) {
         List<ViewInfo> roots = measureComponent(area, component, targetParent);
         if (roots != null && !roots.isEmpty()) {
           ViewInfo root = roots.get(0);
@@ -202,7 +204,7 @@ public class AndroidDesignerUtils {
    * @param area the associated {@link EditableArea}
    * @param component the component to measure
    * @param targetParent if supplied, the target parent intended for the component
-   *                     (used to find namespace declarations and size for fill_parent sizes)
+   *                     (used to find namespace declarations and size for match_parent sizes)
    * @return the measured view info objects at the root level
    */
   @Nullable
@@ -222,7 +224,7 @@ public class AndroidDesignerUtils {
         String widthValue = VALUE_FILL_PARENT;
         String heightValue = VALUE_FILL_PARENT;
 
-        // Look up the exact size of the parent, if any, such that fill_parent settings inherit the expected size
+        // Look up the exact size of the parent, if any, such that match_parent settings inherit the expected size
         if (targetParent instanceof RadViewComponent && (xml.contains(VALUE_FILL_PARENT) || xml.contains(VALUE_MATCH_PARENT))) {
           RadViewComponent parent = (RadViewComponent)targetParent;
           Rectangle paddedBounds = parent.getPaddedBounds();
@@ -263,9 +265,9 @@ public class AndroidDesignerUtils {
         sb.append('<').append('/').append(FRAME_LAYOUT).append('>');
         Document document = XmlUtils.parseDocumentSilently(sb.toString(), true);
         if (document != null && document.getDocumentElement() != null) {
-          RenderService service = getRenderService(area);
-          if (service != null) {
-            List<ViewInfo> roots = service.measure(document.getDocumentElement());
+          RenderTask task = createRenderTask(area);
+          if (task != null) {
+            List<ViewInfo> roots = task.measure(document.getDocumentElement());
             if (roots != null && !roots.isEmpty()) {
               ViewInfo root = roots.get(0);
               // Skip the outer layout we added to hold the XML

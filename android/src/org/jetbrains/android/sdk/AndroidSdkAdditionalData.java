@@ -138,4 +138,8 @@ public class AndroidSdkAdditionalData implements ValidatableSdkAdditionalData {
     }
     return myAndroidPlatform;
   }
+
+  public void clearAndroidPlatform() {
+    myAndroidPlatform = null;
+  }
 }

@@ -28,6 +28,7 @@ import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class SelectSdkDialogFixture extends IdeaDialogFixture<SelectSdkDialog> {
   @NotNull
@@ -41,8 +42,8 @@ public class SelectSdkDialogFixture extends IdeaDialogFixture<SelectSdkDialog> {
 
   @NotNull
   public SelectSdkDialogFixture setJdkPath(@NotNull final File path) {
-    final JLabel label = robot.finder().find(target, JLabelMatcher.withText("Select Java JDK:").andShowing());
-    GuiActionRunner.execute(new GuiTask() {
+    final JLabel label = robot().finder().find(target(), JLabelMatcher.withText("Select Java JDK:").andShowing());
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         Component textField = label.getLabelFor();
@@ -58,5 +59,4 @@ public class SelectSdkDialogFixture extends IdeaDialogFixture<SelectSdkDialog> {
     findAndClickOkButton(this);
     return this;
   }
-
 }

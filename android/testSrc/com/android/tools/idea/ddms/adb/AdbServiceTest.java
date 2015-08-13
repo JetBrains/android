@@ -21,16 +21,15 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 
-import java.io.File;
 import java.util.concurrent.ExecutionException;
 
 public class AdbServiceTest extends AndroidTestCase {
   // tests that basic API for getting and terminating a debug bridge works
   public void testBasics() throws ExecutionException {
-    ListenableFuture<AndroidDebugBridge> future = AdbService.getDebugBridge(AndroidSdkUtils.getAdb(getProject()));
+    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(AndroidSdkUtils.getAdb(getProject()));
     AndroidDebugBridge bridge = Uninterruptibles.getUninterruptibly(future);
     assertTrue(bridge.isConnected());
-    AdbService.terminateDdmlib();
+    AdbService.getInstance().terminateDdmlib();
   }
 
   @Override

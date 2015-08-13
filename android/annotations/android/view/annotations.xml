@@ -33,6 +33,9 @@
   <item name="android.view.ContextMenu android.view.ContextMenu setHeaderView(android.view.View)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.ContextThemeWrapper ContextThemeWrapper(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.StyleRes" />
+  </item>
   <item name="android.view.ContextThemeWrapper void onApplyThemeResource(android.content.res.Resources.Theme, int, boolean) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -187,14 +190,26 @@
   <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup) 0">
     <annotation name="android.support.annotation.LayoutRes" />
   </item>
+  <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup, boolean) 0">
     <annotation name="android.support.annotation.LayoutRes" />
+  </item>
+  <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup, boolean) 1">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup, boolean) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup, boolean) 1">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.LayoutInflater android.view.View onCreateView(android.view.View, java.lang.String, android.util.AttributeSet) 2">
     <annotation name="android.support.annotation.NonNull" />
@@ -313,17 +328,38 @@
   <item name="android.view.TouchDelegate boolean onTouchEvent(android.view.MotionEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.View">
+    <annotation name="android.support.annotation.UiThread" />
+  </item>
   <item name="android.view.View View(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View View(android.content.Context, android.util.AttributeSet) 1">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View View(android.content.Context, android.util.AttributeSet, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.View View(android.content.Context, android.util.AttributeSet, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View View(android.content.Context, android.util.AttributeSet, int, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.View android.content.res.ColorStateList getBackgroundTintList()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View android.content.res.ColorStateList getForegroundTintList()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View android.graphics.PorterDuff.Mode getBackgroundTintMode()">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View android.graphics.PorterDuff.Mode getForegroundTintMode()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View android.os.Parcelable onSaveInstanceState()">
+    <annotation name="android.support.annotation.CallSuper" />
   </item>
   <item name="android.view.View android.view.View findViewById(int) 0">
     <annotation name="android.support.annotation.IdRes" />
@@ -332,6 +368,9 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
     </annotation>
+  </item>
+  <item name="android.view.View android.view.View inflate(android.content.Context, int, android.view.ViewGroup) 1">
+    <annotation name="android.support.annotation.LayoutRes" />
   </item>
   <item name="android.view.View boolean dispatchGenericMotionEvent(android.view.MotionEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -347,6 +386,24 @@
   </item>
   <item name="android.view.View boolean dispatchKeyShortcutEvent(android.view.KeyEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View boolean dispatchNestedPreScroll(int, int, int[], int[]) 2">
+    <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.Size">
+      <val name="value" val="2" />
+    </annotation>
+  </item>
+  <item name="android.view.View boolean dispatchNestedPreScroll(int, int, int[], int[]) 3">
+    <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.Size">
+      <val name="value" val="2" />
+    </annotation>
+  </item>
+  <item name="android.view.View boolean dispatchNestedScroll(int, int, int, int, int[]) 4">
+    <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.Size">
+      <val name="value" val="2" />
+    </annotation>
   </item>
   <item name="android.view.View boolean dispatchTouchEvent(android.view.MotionEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -389,6 +446,15 @@
   <item name="android.view.View boolean startDrag(android.content.ClipData, android.view.View.DragShadowBuilder, java.lang.Object, int) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.View boolean verifyDrawable(android.graphics.drawable.Drawable)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.View int getBackgroundColor()">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.view.View int getDrawingCacheBackgroundColor()">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.view.View int getDrawingCacheQuality()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.DRAWING_CACHE_QUALITY_LOW, android.view.View.DRAWING_CACHE_QUALITY_HIGH, android.view.View.DRAWING_CACHE_QUALITY_AUTO}" />
@@ -406,6 +472,15 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.SCROLLBARS_INSIDE_OVERLAY, android.view.View.SCROLLBARS_INSIDE_INSET, android.view.View.SCROLLBARS_OUTSIDE_OVERLAY, android.view.View.SCROLLBARS_OUTSIDE_INSET}" />
     </annotation>
+  </item>
+  <item name="android.view.View int getScrollIndicators()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.SCROLL_INDICATOR_TOP, android.view.View.SCROLL_INDICATOR_BOTTOM, android.view.View.SCROLL_INDICATOR_LEFT, android.view.View.SCROLL_INDICATOR_RIGHT, android.view.View.SCROLL_INDICATOR_START, android.view.View.SCROLL_INDICATOR_END}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.view.View int getSolidColor()">
+    <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.view.View int getTextAlignment()">
     <annotation name="android.support.annotation.IntDef">
@@ -491,8 +566,17 @@
       <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
   </item>
+  <item name="android.view.View void draw(android.graphics.Canvas)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.view.View void draw(android.graphics.Canvas) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View void drawableHotspotChanged(float, float)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.View void drawableStateChanged()">
+    <annotation name="android.support.annotation.CallSuper" />
   </item>
   <item name="android.view.View void findViewsWithText(java.util.ArrayList&lt;android.view.View&gt;, java.lang.CharSequence, int) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -512,6 +596,16 @@
   <item name="android.view.View void getHitRect(android.graphics.Rect) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.View void getLocationInWindow(int[]) 0">
+    <annotation name="android.support.annotation.Size">
+      <val name="value" val="2" />
+    </annotation>
+  </item>
+  <item name="android.view.View void getLocationOnScreen(int[]) 0">
+    <annotation name="android.support.annotation.Size">
+      <val name="value" val="2" />
+    </annotation>
+  </item>
   <item name="android.view.View void getWindowVisibleDisplayFrame(android.graphics.Rect) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -521,10 +615,28 @@
   <item name="android.view.View void invalidateDrawable(android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.View void onAnimationEnd()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.View void onAnimationStart()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.View void onAttachedToWindow()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.View void onDetachedFromWindow()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.view.View void onDisplayHint(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
+  </item>
+  <item name="android.view.View void onFinishInflate()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.View void onFocusChanged(boolean, int, android.graphics.Rect)">
+    <annotation name="android.support.annotation.CallSuper" />
   </item>
   <item name="android.view.View void onFocusChanged(boolean, int, android.graphics.Rect) 1">
     <annotation name="android.support.annotation.IntDef">
@@ -534,11 +646,23 @@
   <item name="android.view.View void onFocusChanged(boolean, int, android.graphics.Rect) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.view.View void onInitializeAccessibilityEvent(android.view.accessibility.AccessibilityEvent)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.view.View void onInitializeAccessibilityEvent(android.view.accessibility.AccessibilityEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.View void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.view.View void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View void onPopulateAccessibilityEvent(android.view.accessibility.AccessibilityEvent)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.View void onRestoreInstanceState(android.os.Parcelable)">
+    <annotation name="android.support.annotation.CallSuper" />
   </item>
   <item name="android.view.View void onRtlPropertiesChanged(int) 0">
     <annotation name="android.support.annotation.IntDef">
@@ -558,6 +682,9 @@
       <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
   </item>
+  <item name="android.view.View void requestLayout()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.view.View void restoreHierarchyState(android.util.SparseArray&lt;android.os.Parcelable&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -566,6 +693,18 @@
   </item>
   <item name="android.view.View void sendAccessibilityEventUnchecked(android.view.accessibility.AccessibilityEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View void setAccessibilityDelegate(android.view.View.AccessibilityDelegate) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View void setAlpha(float) 0">
+    <annotation name="android.support.annotation.FloatRange">
+      <val name="from" val="0.0" />
+      <val name="to" val="1.0" />
+    </annotation>
+  </item>
+  <item name="android.view.View void setBackgroundColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.view.View void setBackgroundResource(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
@@ -576,10 +715,19 @@
   <item name="android.view.View void setBackgroundTintMode(android.graphics.PorterDuff.Mode) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.view.View void setDrawingCacheBackgroundColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.view.View void setDrawingCacheQuality(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.DRAWING_CACHE_QUALITY_LOW, android.view.View.DRAWING_CACHE_QUALITY_HIGH, android.view.View.DRAWING_CACHE_QUALITY_AUTO}" />
     </annotation>
+  </item>
+  <item name="android.view.View void setForegroundTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View void setForegroundTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View void setId(int) 0">
     <annotation name="android.support.annotation.IdRes" />
@@ -592,9 +740,36 @@
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL, android.view.View.LAYOUT_DIRECTION_INHERIT, android.view.View.LAYOUT_DIRECTION_LOCALE}" />
     </annotation>
   </item>
+  <item name="android.view.View void setOnClickListener(android.view.View.OnClickListener) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View void setOnLongClickListener(android.view.View.OnLongClickListener) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View void setOnStylusButtonPressListener(android.view.View.OnStylusButtonPressListener) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.View void setScrollBarStyle(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.SCROLLBARS_INSIDE_OVERLAY, android.view.View.SCROLLBARS_INSIDE_INSET, android.view.View.SCROLLBARS_OUTSIDE_OVERLAY, android.view.View.SCROLLBARS_OUTSIDE_INSET}" />
+    </annotation>
+  </item>
+  <item name="android.view.View void setScrollIndicators(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.SCROLL_INDICATOR_TOP, android.view.View.SCROLL_INDICATOR_BOTTOM, android.view.View.SCROLL_INDICATOR_LEFT, android.view.View.SCROLL_INDICATOR_RIGHT, android.view.View.SCROLL_INDICATOR_START, android.view.View.SCROLL_INDICATOR_END}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.view.View void setScrollIndicators(int, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.SCROLL_INDICATOR_TOP, android.view.View.SCROLL_INDICATOR_BOTTOM, android.view.View.SCROLL_INDICATOR_LEFT, android.view.View.SCROLL_INDICATOR_RIGHT, android.view.View.SCROLL_INDICATOR_START, android.view.View.SCROLL_INDICATOR_END}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.view.View void setScrollIndicators(int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.SCROLL_INDICATOR_TOP, android.view.View.SCROLL_INDICATOR_BOTTOM, android.view.View.SCROLL_INDICATOR_LEFT, android.view.View.SCROLL_INDICATOR_RIGHT, android.view.View.SCROLL_INDICATOR_START, android.view.View.SCROLL_INDICATOR_END}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.view.View void setTextAlignment(int) 0">
@@ -652,6 +827,22 @@
   <item name="android.view.View.DragShadowBuilder void onProvideShadowMetrics(android.graphics.Point, android.graphics.Point) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.View.MeasureSpec int getMode(int)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.MeasureSpec.UNSPECIFIED, android.view.View.MeasureSpec.EXACTLY, android.view.View.MeasureSpec.AT_MOST}" />
+    </annotation>
+  </item>
+  <item name="android.view.View.MeasureSpec int makeMeasureSpec(int, int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+      <val name="to" val="1073741823" />
+    </annotation>
+  </item>
+  <item name="android.view.View.MeasureSpec int makeMeasureSpec(int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.MeasureSpec.UNSPECIFIED, android.view.View.MeasureSpec.EXACTLY, android.view.View.MeasureSpec.AT_MOST}" />
+    </annotation>
+  </item>
   <item name="android.view.View.MeasureSpec java.lang.String toString(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -660,6 +851,9 @@
   </item>
   <item name="android.view.ViewDebug void dumpCapturedView(java.lang.String, java.lang.Object) 1">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewGroup">
+    <annotation name="android.support.annotation.UiThread" />
   </item>
   <item name="android.view.ViewGroup ViewGroup(android.content.Context, android.util.AttributeSet) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -943,6 +1137,12 @@
   <item name="android.view.Window android.view.WindowManager.LayoutParams getAttributes()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.Window int getNavigationBarColor()">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.view.Window int getStatusBarColor()">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.view.Window void setBackgroundDrawableResource(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>
@@ -957,6 +1157,27 @@
   </item>
   <item name="android.view.Window void setLogo(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.view.Window void setNavigationBarColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.view.Window void setStatusBarColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.view.Window void setTitleColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.view.Window void setWindowAnimations(int) 0">
+    <annotation name="android.support.annotation.StyleRes" />
+  </item>
+  <item name="android.view.Window.Callback android.view.ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.Window.Callback android.view.ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback, int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.Window.Callback android.view.View onCreatePanelView(int)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.WindowId void registerFocusObserver(android.view.WindowId.FocusObserver) 0">
     <annotation name="android.support.annotation.NonNull" />

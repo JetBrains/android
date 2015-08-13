@@ -17,15 +17,17 @@ package com.android.tools.idea.sdk.wizard;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.internal.repository.updater.SdkUpdaterNoWindow;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.SdkLoggerIntegration;
 import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.sdk.remote.internal.updater.SdkUpdaterNoWindow;
 import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -109,6 +111,10 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
     Runnable onSdkAvailable = new Runnable() {
       @Override
       public void run() {
+        if (!ApplicationManager.getApplication().isDispatchThread()) {
+          ApplicationManager.getApplication().invokeLater(this, ModalityState.any());
+          return;
+        }
         // TODO: since the local SDK has been parsed, this is now a good time
         // to filter requestedPackages to remove current installed packages.
         // That's because on Windows trying to update some of the packages in-place
@@ -151,12 +157,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
     // If needed, it does a backgroundable Task to load the SDK and then calls onSdkAvailable.
     // Otherwise it returns false, in which case we call onSdkAvailable ourselves.
     logger.info("Loading SDK information...\n");
-    if (!sdkState.loadAsync(1000 * 3600 * 24,  // 24 hour timeout since last check
-                       false,           // canBeCancelled
-                       onSdkAvailable,  // onSuccess
-                       null)) {         // onError -- TODO display something?
-      onSdkAvailable.run();
-    }
+    sdkState.loadAsync(1000 * 3600 * 24, false, null, onSdkAvailable, null, false);  // TODO(jbakermalone): display something on error?
   }
 
   @NotNull

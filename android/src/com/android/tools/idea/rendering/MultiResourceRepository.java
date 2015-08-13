@@ -27,6 +27,7 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +39,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   private long[] myModificationCounts;
   private Map<ResourceType, ListMultimap<String, ResourceItem>> myItems = Maps.newEnumMap(ResourceType.class);
   private final Map<ResourceType, ListMultimap<String, ResourceItem>> myCachedTypeMaps = Maps.newEnumMap(ResourceType.class);
+  private Map<String, DataBindingInfo> myDataBindingResourceFiles = Maps.newHashMap();
+  private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
 
   MultiResourceRepository(@NotNull String displayName, @NotNull List<? extends LocalResourceRepository> children) {
     super(displayName);
@@ -106,6 +109,37 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
 
     return myGeneration;
+  }
+
+  @Nullable
+  @Override
+  public DataBindingInfo getDataBindingInfoForLayout(String layoutName) {
+    for (LocalResourceRepository child : myChildren) {
+      DataBindingInfo info = child.getDataBindingInfoForLayout(layoutName);
+      if (info != null) {
+        return info;
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public Map<String, DataBindingInfo> getDataBindingResourceFiles() {
+    long modificationCount = getModificationCount();
+    if (myDataBindingResourceFilesModificationCount == modificationCount) {
+      return myDataBindingResourceFiles;
+    }
+    Map<String, DataBindingInfo> selected = Maps.newHashMap();
+    for (LocalResourceRepository child : myChildren) {
+      Map<String, DataBindingInfo> childFiles = child.getDataBindingResourceFiles();
+      if (childFiles != null) {
+        selected.putAll(childFiles);
+      }
+    }
+    myDataBindingResourceFiles = Collections.unmodifiableMap(selected);
+    myDataBindingResourceFilesModificationCount = modificationCount;
+    return myDataBindingResourceFiles;
   }
 
   @NonNull

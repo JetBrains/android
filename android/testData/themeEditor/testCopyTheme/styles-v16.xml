@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="@android:style/Theme">
+
+        <item name="myColor">?android:attr/colorBackground</item>
+
+        <item name="myStyle">?android:attr/buttonStyle</item>
+
+        <item name="myDrawable">?android:attr/actionModePasteDrawable</item>
+
+        <item name="myBoolean">?android:attr/windowNoTitle</item>
+
+        <item name="myInteger">?android:scrollbarSize</item>
+
+        <item name="myLayout">?android:preferenceLayoutChild</item>
+
+        <item name="myDeprecated">?android:preferenceLayoutChild</item>
+
+    </style>
+</resources>

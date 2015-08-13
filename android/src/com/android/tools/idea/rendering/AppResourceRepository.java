@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.Variant;
+import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
@@ -48,14 +53,29 @@ import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModul
  */
 public class AppResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
-  private List<LocalResourceRepository> myLibraries;
+  private List<FileResourceRepository> myLibraries;
+  private long myIdsModificationCount;
+
+  /**
+   * List of libraries that contain an R.txt file.
+   *
+   * The order of these libraries may not match the order of {@link #myLibraries}. It's intended to be used
+   * only to get the R.txt files for declare styleables.
+   */
+  private final LinkedList<FileResourceRepository> myAarLibraries = new LinkedList<FileResourceRepository>();
+  private Set<String> myIds;
 
   protected AppResourceRepository(@NotNull AndroidFacet facet,
                                 @NotNull List<? extends LocalResourceRepository> delegates,
-                                @NotNull List<LocalResourceRepository> libraries) {
+                                @NotNull List<FileResourceRepository> libraries) {
     super(facet.getModule().getName() + " with modules and libraries", delegates);
     myFacet = facet;
     myLibraries = libraries;
+    for (FileResourceRepository library : libraries) {
+      if (library.getResourceTextFile() != null) {
+        myAarLibraries.add(library);
+      }
+    }
   }
 
   /**
@@ -92,7 +112,7 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @NotNull
   public static AppResourceRepository create(@NotNull final AndroidFacet facet) {
-    List<LocalResourceRepository> libraries = computeLibraries(facet);
+    List<FileResourceRepository> libraries = computeLibraries(facet);
     List<LocalResourceRepository> delegates = computeRepositories(facet, libraries);
     final AppResourceRepository repository = new AppResourceRepository(facet, delegates, libraries);
 
@@ -120,7 +140,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   private static List<LocalResourceRepository> computeRepositories(@NotNull final AndroidFacet facet,
-                                                                 List<LocalResourceRepository> libraries) {
+                                                                 List<FileResourceRepository> libraries) {
     List<LocalResourceRepository> repositories = Lists.newArrayListWithExpectedSize(10);
     LocalResourceRepository resources = ProjectResourceRepository.getProjectResources(facet, true);
     repositories.addAll(libraries);
@@ -128,14 +148,14 @@ public class AppResourceRepository extends MultiResourceRepository {
     return repositories;
   }
 
-  private static List<LocalResourceRepository> computeLibraries(@NotNull final AndroidFacet facet) {
+  private static List<FileResourceRepository> computeLibraries(@NotNull final AndroidFacet facet) {
     List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
     List<File> aarDirs = findAarLibraries(facet, dependentFacets);
     if (aarDirs.isEmpty()) {
       return Collections.emptyList();
     }
 
-    List<LocalResourceRepository> resources = Lists.newArrayListWithExpectedSize(aarDirs.size());
+    List<FileResourceRepository> resources = Lists.newArrayListWithExpectedSize(aarDirs.size());
     for (File root : aarDirs) {
       resources.add(FileResourceRepository.get(root));
     }
@@ -273,24 +293,60 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   /** Returns the libraries among the app resources, if any */
   @NotNull
-  public List<LocalResourceRepository> getLibraries() {
+  public List<FileResourceRepository> getLibraries() {
     return myLibraries;
   }
 
+  @NotNull
+  Set<String> getAllIds() {
+    long currentModCount = getModificationCount();
+    if (myIdsModificationCount < currentModCount) {
+      myIdsModificationCount = currentModCount;
+      if (myIds == null) {
+        int size = 0;
+        for (FileResourceRepository library : myLibraries) {
+          if (library.getAllDeclaredIds() != null) {
+            size += library.getAllDeclaredIds().size();
+          }
+        }
+        myIds = Sets.newHashSetWithExpectedSize(size);
+      } else {
+        myIds.clear();
+      }
+      for (FileResourceRepository library : myLibraries) {
+        if (library.getAllDeclaredIds() != null) {
+          myIds.addAll(library.getAllDeclaredIds());
+        }
+      }
+      // Also add all ids from resource types, just in case it contains things that are not in the libraries.
+      myIds.addAll(getItemsOfType(ResourceType.ID));
+    }
+    return myIds;
+  }
+
   void updateRoots() {
-    List<LocalResourceRepository> libraries = computeLibraries(myFacet);
+    List<FileResourceRepository> libraries = computeLibraries(myFacet);
     List<LocalResourceRepository> repositories = computeRepositories(myFacet, libraries);
     updateRoots(repositories, libraries);
   }
 
   @VisibleForTesting
-  void updateRoots(List<LocalResourceRepository> resources, List<LocalResourceRepository> libraries) {
+  void updateRoots(List<LocalResourceRepository> resources, List<FileResourceRepository> libraries) {
+    myResourceVisibility = null;
+
     if (resources.equals(myChildren)) {
       // Nothing changed (including order); nothing to do
       return;
     }
 
+    myResourceVisibility = null;
     myLibraries = libraries;
+    myAarLibraries.clear();
+    for (FileResourceRepository library : myLibraries) {
+      if (library.getResourceTextFile() != null) {
+        myAarLibraries.add(library);
+      }
+    }
     setChildren(resources);
   }
 
@@ -298,7 +354,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @NotNull
   static AppResourceRepository createForTest(AndroidFacet facet,
                                              List<LocalResourceRepository> modules,
-                                             List<LocalResourceRepository> libraries) {
+                                             List<FileResourceRepository> libraries) {
     assert modules.containsAll(libraries);
     assert modules.size() == libraries.size() + 1; // should only combine with the module set repository
     return new AppResourceRepository(facet, modules, libraries);
@@ -321,6 +377,62 @@ public class AppResourceRepository extends MultiResourceRepository {
     return null;
   }
 
+  private ResourceVisibilityLookup myResourceVisibility;
+  private ResourceVisibilityLookup.Provider myResourceVisibilityProvider;
+
+  @Nullable
+  public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
+    if (myResourceVisibilityProvider == null) {
+      if (!myFacet.isGradleProject() || myFacet.getIdeaAndroidProject() == null) {
+        return null;
+      }
+      myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
+    }
+
+    return myResourceVisibilityProvider;
+  }
+
+  @NonNull
+  public ResourceVisibilityLookup getResourceVisibility(@NonNull AndroidFacet facet) {
+    IdeaAndroidProject project = facet.getIdeaAndroidProject();
+    if (project != null) {
+      ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
+      if (provider != null) {
+        AndroidProject delegate = project.getDelegate();
+        Variant variant = project.getSelectedVariant();
+        return provider.get(delegate, variant);
+      }
+    }
+
+    return ResourceVisibilityLookup.NONE;
+  }
+
+  /**
+   * Returns true if the given resource is private
+   *
+   * @param type the type of the resource
+   * @param name the name of the resource
+   * @return true if the given resource is private
+   */
+  public boolean isPrivate(@NonNull ResourceType type, @NonNull String name) {
+    if (myResourceVisibility == null) {
+      ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
+      if (provider == null) {
+        return false;
+      }
+      IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
+      if (project == null) {
+        // normally doesn't happen since we check in getResourceVisibility,
+        // but can be triggered during a sync (b/22523040)
+        return false;
+      }
+      myResourceVisibility = provider.get(project.getDelegate(),
+                                          project.getSelectedVariant());
+    }
+
+    return myResourceVisibility.isPrivate(type, name);
+  }
+
   // For LayoutlibCallback
 
   // Project resource ints are defined as 0x7FXX#### where XX is the resource type (layout, drawable,
@@ -328,21 +440,22 @@ public class AppResourceRepository extends MultiResourceRepository {
   // which should be fine.
   private static final int DYNAMIC_ID_SEED_START = 0x7fff0000;
 
-  /** Map of (name, id) for resources of type {@link com.android.resources.ResourceType#ID} coming from R.java */
+  /** Map of (name, id) for resources of type {@link ResourceType#ID} coming from R.java */
   private Map<ResourceType, TObjectIntHashMap<String>> myResourceValueMap;
   /** Map of (id, [name, resType]) for all resources coming from R.java */
+  @SuppressWarnings("deprecation")  // For Pair
   private TIntObjectHashMap<Pair<ResourceType, String>> myResIdValueToNameMap;
   /** Map of (int[], name) for styleable resources coming from R.java */
   private Map<IntArrayWrapper, String> myStyleableValueToNameMap;
 
-  private final TObjectIntHashMap<String> myName2DynamicIdMap = new TObjectIntHashMap<String>();
-  private final TIntObjectHashMap<Pair<ResourceType, String>> myDynamicId2ResourceMap =
-    new TIntObjectHashMap<Pair<ResourceType, String>>();
+  private final TObjectIntHashMap<TypedResourceName> myName2DynamicIdMap = new TObjectIntHashMap<TypedResourceName>();
+  private final TIntObjectHashMap<TypedResourceName> myDynamicId2ResourceMap = new TIntObjectHashMap<TypedResourceName>();
   private int myDynamicSeed = DYNAMIC_ID_SEED_START;
   private final IntArrayWrapper myWrapper = new IntArrayWrapper(null);
 
 
   @Nullable
+  @SuppressWarnings("deprecation")  // For Pair
   public Pair<ResourceType, String> resolveResourceId(int id) {
     Pair<ResourceType, String> result = null;
     if (myResIdValueToNameMap != null) {
@@ -350,9 +463,9 @@ public class AppResourceRepository extends MultiResourceRepository {
     }
 
     if (result == null) {
-      final Pair<ResourceType, String> pair = myDynamicId2ResourceMap.get(id);
+      final TypedResourceName pair = myDynamicId2ResourceMap.get(id);
       if (pair != null) {
-        result = pair;
+        result = pair.toPair();
       }
     }
 
@@ -372,7 +485,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     return null;
   }
 
-  @Nullable
+  @NotNull
   public Integer getResourceId(ResourceType type, String name) {
     final TObjectIntHashMap<String> map = myResourceValueMap != null ? myResourceValueMap.get(type) : null;
 
@@ -382,32 +495,104 @@ public class AppResourceRepository extends MultiResourceRepository {
     return map.get(name);
   }
 
+  @Nullable
+  Integer[] getDeclaredArrayValues(List<AttrResourceValue> attrs, String styleableName) {
+    ListIterator<FileResourceRepository> iter = myAarLibraries.listIterator();
+    while (iter.hasNext()) {
+      FileResourceRepository repo = iter.next();
+      File resourceTextFile = repo.getResourceTextFile();
+      if (resourceTextFile == null) {
+        continue;
+      }
+      Integer[] in = RDotTxtParser.getDeclareStyleableArray(resourceTextFile, attrs, styleableName);
+      if (in != null) {
+        // Reorder the list to place this library first. It's likely that there will be more calls to the same library.
+        iter.remove();
+        myAarLibraries.addFirst(repo);
+        return in;
+      }
+    }
+    return null;
+  }
+
   private int getDynamicId(ResourceType type, String name) {
+    TypedResourceName key = new TypedResourceName(type, name);
     synchronized (myName2DynamicIdMap) {
-      if (myName2DynamicIdMap.containsKey(name)) {
-        return myName2DynamicIdMap.get(name);
+      if (myName2DynamicIdMap.containsKey(key)) {
+        return myName2DynamicIdMap.get(key);
       }
       final int value = ++myDynamicSeed;
-      myName2DynamicIdMap.put(name, value);
-      myDynamicId2ResourceMap.put(value, Pair.of(type, name));
+      myName2DynamicIdMap.put(key, value);
+      myDynamicId2ResourceMap.put(value, key);
       return value;
     }
   }
 
-  public void setCompiledResources(TIntObjectHashMap<Pair<ResourceType, String>> id2res,
+  public void setCompiledResources(@SuppressWarnings("deprecation") TIntObjectHashMap<Pair<ResourceType, String>> id2res,
                                    Map<IntArrayWrapper, String> styleableId2name,
                                    Map<ResourceType, TObjectIntHashMap<String>> res2id) {
-    // Regularly clear dynamic seed such that we don't run out of numbers (we only have 255)
+    resetDynamicIds(true);
+    myResourceValueMap = res2id;
+    myResIdValueToNameMap = id2res;
+    myStyleableValueToNameMap = styleableId2name;
+  }
+
+  void resetDynamicIds(boolean clearAarResourceRegistry) {
+    // The dynamic ids are referenced by the generated R classes. Ensure that the R classes cache is also cleared
+    // if the dynamic ids are reset.
+    if (clearAarResourceRegistry) {
+      AarResourceClassRegistry.get(myFacet.getModule().getProject()).clearCache(this);
+    }
     synchronized (myName2DynamicIdMap) {
       myDynamicSeed = DYNAMIC_ID_SEED_START;
       myName2DynamicIdMap.clear();
       myDynamicId2ResourceMap.clear();
     }
+  }
 
-    myResourceValueMap = res2id;
-    myResIdValueToNameMap = id2res;
-    myStyleableValueToNameMap = styleableId2name;
+  private static final class TypedResourceName {
+    @Nullable
+    final ResourceType myType;
+    @NotNull
+    final String myName;
+    @SuppressWarnings("deprecation") Pair<ResourceType, String> myPair;
 
-//    AarResourceClassRegistry.get().clear();
+    public TypedResourceName(@Nullable ResourceType type, @NotNull String name) {
+      myType = type;
+      myName = name;
+    }
+
+    @SuppressWarnings("deprecation")
+    public Pair<ResourceType, String> toPair() {
+      if (myPair == null) {
+        myPair = Pair.of(myType, myName);
+      }
+      return myPair;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      TypedResourceName that = (TypedResourceName)o;
+
+      if (myType != that.myType) return false;
+      if (!myName.equals(that.myName)) return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = myType != null ? myType.hashCode() : 0;
+      result = 31 * result + (myName.hashCode());
+      return result;
+    }
+
+    @Override
+    public String toString() {
+      return String.format("Type=%1$s, value=%2$s", myType, myName);
+    }
   }
 }

@@ -19,10 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.ide.common.resources.configuration.RegionQualifier;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -121,25 +118,24 @@ public class FlagManager {
    */
   @Nullable
   public Icon getFlag(@NonNull FolderConfiguration configuration) {
-    return getFlag(configuration.getEffectiveLanguage(), configuration.getEffectiveRegion());
+    return getFlag(configuration.getLocaleQualifier());
   }
 
   /**
    * Returns the flag for the given language and region.
    *
-   * @param language the language qualifier, or null (if null, region or locale must not be null),
-   * @param region   the region, or null (if null, language or locale must not be null),
+   * @param locale the locale qualifier
    * @return a suitable flag icon, or null
    */
   @Nullable
-  public Icon getFlag(@Nullable LanguageQualifier language, @Nullable RegionQualifier region) {
-    String languageCode = language != null ? language.getValue() : null;
-    String regionCode = region != null ? region.getValue() : null;
-    if (LanguageQualifier.FAKE_LANG_VALUE.equals(languageCode)) {
-      languageCode = null;
+  public Icon getFlag(@Nullable LocaleQualifier locale) {
+    if (locale == null) {
+      return null;
     }
-    if (RegionQualifier.FAKE_REGION_VALUE.equals(regionCode)) {
-      regionCode = null;
+    String languageCode = locale.getLanguage();
+    String regionCode = locale.getRegion();
+    if (LocaleQualifier.FAKE_VALUE.equals(languageCode)) {
+      languageCode = null;
     }
     return getFlag(languageCode, regionCode);
   }
@@ -235,7 +231,14 @@ public class FlagManager {
       @Override
       public String fun(Object value) {
         String languageCode = (String)value;
-        return String.format("%1$s: %2$s", languageCode, LocaleManager.getLanguageName(languageCode));
+        if (languageCode.equals(LocaleQualifier.FAKE_VALUE)) {
+          return "Any Language";
+        }
+        String languageName = LocaleManager.getLanguageName(languageCode);
+        if (languageName != null && languageName.length() > 30) {
+          languageName = languageName.substring(0, 27) + "...";
+        }
+        return String.format("%1$s: %2$s", languageCode, languageName);
       }
     };
   }
@@ -247,7 +250,14 @@ public class FlagManager {
       @Override
       public String fun(Object value) {
         String regionCode = (String)value;
-        return String.format("%1$s: %2$s", regionCode, LocaleManager.getRegionName(regionCode));
+        if (regionCode.equals(LocaleQualifier.FAKE_VALUE)) {
+          return "Any Region";
+        }
+        String regionName = LocaleManager.getRegionName(regionCode);
+        if (regionName != null && regionName.length() > 30) {
+          regionName = regionName.substring(0, 27) + "...";
+        }
+        return String.format("%1$s: %2$s", regionCode, regionName);
       }
     };
   }

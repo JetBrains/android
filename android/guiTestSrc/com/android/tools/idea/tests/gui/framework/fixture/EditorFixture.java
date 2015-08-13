@@ -18,10 +18,13 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
+import com.android.tools.idea.editors.theme.ThemeEditor;
+import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.google.common.collect.Lists;
 import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -47,7 +50,6 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,8 +61,9 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.method;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.*;
@@ -127,7 +130,8 @@ public class EditorFixture {
    * @return the current 0-based line number, or -1 if there is no current file
    */
   public int getCurrentLineNumber() {
-    return GuiActionRunner.execute(new GuiQuery<Integer>() {
+    //noinspection ConstantConditions
+    return execute(new GuiQuery<Integer>() {
       @Override
       @Nullable
       protected Integer executeInEDT() throws Throwable {
@@ -184,7 +188,7 @@ public class EditorFixture {
                                        @Nullable final String selectBegin,
                                        @Nullable final String selectEnd,
                                        final int additionalLines) {
-    return GuiActionRunner.execute(new GuiQuery<String>() {
+    return execute(new GuiQuery<String>() {
       @Override
       @Nullable
       protected String executeInEDT() throws Throwable {
@@ -274,7 +278,7 @@ public class EditorFixture {
    */
   @Nullable
   public String getCurrentFileContents(@Nullable final String caret, @Nullable final String selectBegin, @Nullable final String selectEnd) {
-    return GuiActionRunner.execute(new GuiQuery<String>() {
+    return execute(new GuiQuery<String>() {
       @Override
       @Nullable
       protected String executeInEDT() throws Throwable {
@@ -386,7 +390,7 @@ public class EditorFixture {
    */
   @Nullable
   private JComponent getFocusedEditor() {
-    Editor editor = GuiActionRunner.execute(new GuiQuery<Editor>() {
+    Editor editor = execute(new GuiQuery<Editor>() {
       @Override
       @Nullable
       protected Editor executeInEDT() throws Throwable {
@@ -413,7 +417,7 @@ public class EditorFixture {
    */
   public EditorFixture moveTo(final int offset) {
     assertTrue(offset >= 0);
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         // TODO: Do this via mouse clicks!
@@ -441,7 +445,7 @@ public class EditorFixture {
    *                     offset than the firstOffset
    */
   public EditorFixture select(final int firstOffset, final int secondOffset) {
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         // TODO: Do this via mouse drags!
@@ -472,26 +476,27 @@ public class EditorFixture {
    * @param searchFromTop if true, search from the beginning of the file instead of from the current editor position
    * @return the 0-based offset in the document, or -1 if not found.
    */
-  public int findOffset(@Nullable final String prefix,  @Nullable final String suffix, final boolean searchFromTop) {
+  public int findOffset(@Nullable final String prefix, @Nullable final String suffix, final boolean searchFromTop) {
     assertTrue(prefix != null || suffix != null);
-    return GuiActionRunner.execute(new GuiQuery<Integer>() {
-       @Override
-       @Nullable
-       protected Integer executeInEDT() throws Throwable {
-         FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-         Editor editor = manager.getSelectedTextEditor();
-         if (editor != null) {
-           CaretModel caretModel = editor.getCaretModel();
-           Caret primaryCaret = caretModel.getPrimaryCaret();
-           Document document = editor.getDocument();
-           String contents = document.getCharsSequence().toString();
-           String target = (prefix != null ? prefix : "") + (suffix != null ? suffix : "");
-           int targetIndex = contents.indexOf(target, searchFromTop ? 0 : primaryCaret.getOffset());
-           return targetIndex != -1 ? targetIndex + (prefix != null ? prefix.length() : 0) : -1;
-         }
-         return -1;
-       }
-     });
+    //noinspection ConstantConditions
+    return execute(new GuiQuery<Integer>() {
+      @Override
+      @Nullable
+      protected Integer executeInEDT() throws Throwable {
+        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
+        Editor editor = manager.getSelectedTextEditor();
+        if (editor != null) {
+          CaretModel caretModel = editor.getCaretModel();
+          Caret primaryCaret = caretModel.getPrimaryCaret();
+          Document document = editor.getDocument();
+          String contents = document.getCharsSequence().toString();
+          String target = (prefix != null ? prefix : "") + (suffix != null ? suffix : "");
+          int targetIndex = contents.indexOf(target, searchFromTop ? 0 : primaryCaret.getOffset());
+          return targetIndex != -1 ? targetIndex + (prefix != null ? prefix.length() : 0) : -1;
+        }
+        return -1;
+      }
+    });
   }
 
   /**
@@ -525,7 +530,7 @@ public class EditorFixture {
    * Closes the current editor
    */
   public EditorFixture close() {
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         VirtualFile currentFile = getCurrentFile();
@@ -568,7 +573,7 @@ public class EditorFixture {
    * @param tabName the label in the editor, or null for the default (first) tab
    */
   public EditorFixture selectEditorTab(@Nullable final String tabName) {
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         VirtualFile currentFile = getCurrentFile();
@@ -606,7 +611,7 @@ public class EditorFixture {
    * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab) {
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         // TODO: Use UI to navigate to the file instead
@@ -614,7 +619,8 @@ public class EditorFixture {
         FileEditorManager manager = FileEditorManager.getInstance(project);
         if (tab == Tab.EDITOR) {
           manager.openTextEditor(new OpenFileDescriptor(project, file), true);
-        } else {
+        }
+        else {
           manager.openFile(file, true);
         }
       }
@@ -623,7 +629,8 @@ public class EditorFixture {
     pause(new Condition("File " + quote(file.getPath()) + " to be opened") {
       @Override
       public boolean test() {
-        return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+        //noinspection ConstantConditions
+        return execute(new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
             return file.equals(getCurrentFile());
@@ -688,11 +695,14 @@ public class EditorFixture {
         invokeActionViaKeystroke("$SelectAll");
         break;
       case FORMAT: {
-        invokeActionViaKeystroke("ReformatCode");
+        // To format without showing dialog:
+        //  invokeActionViaKeystroke("ReformatCode");
+        // However, before we replace this, make sure the dialog isn't shown in some scenarios (e.g. first users)
+        invokeActionViaKeystroke("ShowReformatFileDialog");
         JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
           @Override
-          protected boolean isMatching(JDialog dialog) {
-            return dialog.isShowing() && "Reformat Code".equals(dialog.getTitle());
+          protected boolean isMatching(@NotNull JDialog dialog) {
+            return dialog.isShowing() && dialog.getTitle().contains("Reformat");
           }
         });
         DialogFixture dialogFixture = new DialogFixture(robot, dialog);
@@ -734,6 +744,9 @@ public class EditorFixture {
       case SHOW_INTENTION_ACTIONS:
         invokeActionViaKeystroke("ShowIntentionActions");
         break;
+      case RUN_FROM_CONTEXT:
+        invokeActionViaKeystroke("RunClass");
+        break;
       case EXTEND_SELECTION:
       case SHRINK_SELECTION:
         // Need to find the right action id's for these; didn't see them in the default keymap
@@ -751,9 +764,8 @@ public class EditorFixture {
 
     Keymap keymap = KeymapManager.getInstance().getActiveKeymap();
     Shortcut[] shortcuts = keymap.getShortcuts(actionId);
-    assertNotNull(shortcuts != null);
-    assert shortcuts != null;
-    assertTrue(shortcuts.length > 0);
+    assertNotNull(shortcuts);
+    assertThat(shortcuts).isNotEmpty();
     Shortcut shortcut = shortcuts[0];
     if (shortcut instanceof KeyboardShortcut) {
       KeyboardShortcut cs = (KeyboardShortcut)shortcut;
@@ -818,6 +830,15 @@ public class EditorFixture {
     return this;
   }
 
+  @NotNull
+  public EditorFixture waitUntilErrorAnalysisFinishes() {
+    VirtualFile currentFile = getCurrentFile();
+    assertNotNull("Expected a file to be open", currentFile);
+    FileFixture file = new FileFixture(myFrame.getProject(), currentFile);
+    file.waitUntilErrorAnalysisFinishes();
+    return this;
+  }
+
   /**
    * Invokes the show intentions action, waits for the actions to be displayed and then picks the
    * one with the given label prefix
@@ -853,7 +874,7 @@ public class EditorFixture {
       selectEditorTab(Tab.DESIGN);
     }
 
-    return GuiActionRunner.execute(new GuiQuery<LayoutEditorFixture>() {
+    return execute(new GuiQuery<LayoutEditorFixture>() {
       @Override
       @Nullable
       protected LayoutEditorFixture executeInEDT() throws Throwable {
@@ -891,11 +912,21 @@ public class EditorFixture {
       selectEditorTab(Tab.EDITOR);
     }
 
-    Pause.pause(new Condition("Preview window is visible") {
+    Boolean visible = GuiActionRunner.execute(new GuiQuery<Boolean>() {
+      @Override
+      protected Boolean executeInEDT() throws Throwable {
+        AndroidLayoutPreviewToolWindowManager manager = AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
+        return manager.getToolWindowForm() != null;
+      }
+    });
+    if (visible == null || !visible) {
+      myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
+    }
+
+    pause(new Condition("Preview window is visible") {
       @Override
       public boolean test() {
-        AndroidLayoutPreviewToolWindowManager manager =
-          AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
+        AndroidLayoutPreviewToolWindowManager manager = AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
         return manager.getToolWindowForm() != null;
       }
     }, SHORT_TIMEOUT);
@@ -914,7 +945,7 @@ public class EditorFixture {
       return null;
     }
 
-    return GuiActionRunner.execute(new GuiQuery<TranslationsEditorFixture>() {
+    return execute(new GuiQuery<TranslationsEditorFixture>() {
       @Override
       @Nullable
       protected TranslationsEditorFixture executeInEDT() throws Throwable {
@@ -929,6 +960,36 @@ public class EditorFixture {
         }
 
         return new TranslationsEditorFixture(robot, (StringResourceEditor)selected);
+      }
+    });
+  }
+
+  /**
+   * Returns a fixture around the {@link com.android.tools.idea.editors.theme.ThemeEditor} <b>if</b> the currently
+   * displayed editor is a theme editor.
+   */
+  @Nullable
+  public ThemeEditorFixture getThemeEditor() {
+    VirtualFile currentFile = getCurrentFile();
+    if (!(currentFile instanceof ThemeEditorVirtualFile)) {
+      return null;
+    }
+
+    return execute(new GuiQuery<ThemeEditorFixture>() {
+      @Override
+      @Nullable
+      protected ThemeEditorFixture executeInEDT() throws Throwable {
+        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
+        FileEditor[] editors = manager.getSelectedEditors();
+        if (editors.length == 0) {
+          return null;
+        }
+        FileEditor selected = editors[0];
+        if (!(selected instanceof ThemeEditor)) {
+          return null;
+        }
+
+        return new ThemeEditorFixture(robot, (ThemeEditor)selected);
       }
     });
   }
@@ -989,7 +1050,8 @@ public class EditorFixture {
     NEXT_ERROR,
     PREVIOUS_ERROR,
     NEXT_METHOD,
-    PREVIOUS_METHOD
+    PREVIOUS_METHOD,
+    RUN_FROM_CONTEXT
   }
 
   /**
