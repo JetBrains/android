@@ -176,27 +176,27 @@ public abstract class AndroidLogcatView implements Disposable {
 
         @Override
         protected void setCustomFilter(String filter) {
-          AndroidLogcatFiltersPreferences.getInstance(project).TOOL_WINDOW_CUSTOM_FILTER = filter;
+          AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_CUSTOM_FILTER = filter;
         }
 
         @Override
         protected void saveLogLevel(String logLevelName) {
-          AndroidLogcatFiltersPreferences.getInstance(project).TOOL_WINDOW_LOG_LEVEL = logLevelName;
+          AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_LOG_LEVEL = logLevelName;
         }
 
         @Override
         public String getSelectedLogLevelName() {
-          return AndroidLogcatFiltersPreferences.getInstance(project).TOOL_WINDOW_LOG_LEVEL;
+          return AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_LOG_LEVEL;
         }
 
         @Override
         public String getCustomFilter() {
-          return AndroidLogcatFiltersPreferences.getInstance(project).TOOL_WINDOW_CUSTOM_FILTER;
+          return AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_CUSTOM_FILTER;
         }
 
         @Override
         protected void setConfiguredFilter(@Nullable ConfiguredFilter filter) {
-          AndroidLogcatFiltersPreferences.getInstance(project).TOOL_WINDOW_CONFIGURED_FILTER = filter != null ? filter.getName() : "";
+          AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_CONFIGURED_FILTER = filter != null ? filter.getName() : "";
           myConfiguredFilter = filter;
         }
 
@@ -290,7 +290,7 @@ public abstract class AndroidLogcatView implements Disposable {
     final ComboBox editFiltersCombo = new ComboBox();
     myFilterComboBoxModel = new DefaultComboBoxModel();
     editFiltersCombo.setModel(myFilterComboBoxModel);
-    String def = AndroidLogcatFiltersPreferences.getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER;
+    String def = AndroidLogcatPreferences.getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER;
     if (StringUtil.isEmpty(def)) {
       def = myDeviceContext != null ? SELECTED_APP_FILTER : NO_FILTERS;
     }
@@ -358,9 +358,6 @@ public abstract class AndroidLogcatView implements Disposable {
   public final void activate() {
     if (isActive()) {
       updateLogConsole();
-      // TODO this is here so if some changes happened in the other logcat view, things get refreshed.
-      // This is because they share AndroidLogcatFiltersPreferences, but needs to be fixed properly.
-      updateFilterCombobox(AndroidLogcatFiltersPreferences.getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER);
     }
     if (myLogConsole != null) {
       myLogConsole.activate();

@@ -27,22 +27,22 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
   name = "AndroidLogFilters",
   storages = {@Storage(
     file = StoragePathMacros.WORKSPACE_FILE)})
-public final class AndroidLogcatFiltersPreferences implements PersistentStateComponent<AndroidLogcatFiltersPreferences> {
+public final class AndroidLogcatPreferences implements PersistentStateComponent<AndroidLogcatPreferences> {
   public String TOOL_WINDOW_CUSTOM_FILTER = "";
   public String TOOL_WINDOW_LOG_LEVEL = "VERBOSE";
   public String TOOL_WINDOW_CONFIGURED_FILTER = "";
 
-  public static AndroidLogcatFiltersPreferences getInstance(Project project) {
-    return ServiceManager.getService(project, AndroidLogcatFiltersPreferences.class);
+  public static AndroidLogcatPreferences getInstance(Project project) {
+    return ServiceManager.getService(project, AndroidLogcatPreferences.class);
   }
 
   @Override
-  public AndroidLogcatFiltersPreferences getState() {
+  public AndroidLogcatPreferences getState() {
     return this;
   }
 
   @Override
-  public void loadState(AndroidLogcatFiltersPreferences object) {
+  public void loadState(AndroidLogcatPreferences object) {
     XmlSerializerUtil.copyBean(object, this);
   }
 }
