@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.actions;
+package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.compiler.actions.MakeModuleAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -24,8 +23,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidMakeModuleAction extends AndroidBuildModuleAction {
-  public AndroidMakeModuleAction() {
+import static com.android.tools.idea.gradle.util.Projects.getModulesToBuildFromSelection;
+
+public class MakeGradleModuleAction extends BuildGradleModuleAction {
+  public MakeGradleModuleAction() {
     super(new MakeModuleAction(), "Make Module(s)", "Make");
   }
 
@@ -40,7 +41,7 @@ public class AndroidMakeModuleAction extends AndroidBuildModuleAction {
 
   @Override
   protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
-    Module[] modules = Projects.getModulesToBuildFromSelection(project, dataContext);
+    Module[] modules = getModulesToBuildFromSelection(project, dataContext);
     GradleInvoker.getInstance(project).compileJava(modules, GradleInvoker.TestCompileType.NONE);
   }
 }
