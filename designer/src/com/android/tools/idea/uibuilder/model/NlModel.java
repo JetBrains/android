@@ -431,6 +431,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                       @AndroidCoordinate int parentX, @AndroidCoordinate int parentY) {
     Object cookie = view.getCookie();
     NlComponent component = null;
+    ViewInfo bounds = RenderService.getSafeBounds(view);
 
     XmlTag tag = null;
     boolean isMerge = false;
@@ -449,10 +450,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         }
         if (mergedComponent != null) {
           // Just expand the bounds
-          int left = parentX + view.getLeft();
-          int top = parentY + view.getTop();
-          int width = view.getRight() - view.getLeft();
-          int height = view.getBottom() - view.getTop();
+          int left = parentX + bounds.getLeft();
+          int top = parentY + bounds.getTop();
+          int width = bounds.getRight() - bounds.getLeft();
+          int height = bounds.getBottom() - bounds.getTop();
           Rectangle rectanglePrev = new Rectangle(mergedComponent.x, mergedComponent.y,
                                                   mergedComponent.w, mergedComponent.h);
           Rectangle rectangle = new Rectangle(left, top, width, height);
@@ -483,10 +484,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       component.viewInfo = view;
 
-      int left = parentX + view.getLeft();
-      int top = parentY + view.getTop();
-      int width = view.getRight() - view.getLeft();
-      int height = view.getBottom() - view.getTop();
+      int left = parentX + bounds.getLeft();
+      int top = parentY + bounds.getTop();
+      int width = bounds.getRight() - bounds.getLeft();
+      int height = bounds.getBottom() - bounds.getTop();
 
       component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
 
@@ -502,8 +503,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       parent = component;
     }
 
-    parentX += view.getLeft();
-    parentY += view.getTop();
+    parentX += bounds.getLeft();
+    parentY += bounds.getTop();
 
     for (ViewInfo child : view.getChildren()) {
       updateHierarchy(parent, child, parentX, parentY);

@@ -428,12 +428,13 @@ public class GraphicsLayoutRenderer {
 
   @Nullable
   private static ViewInfo viewAtPoint(@NotNull Point parentPosition, @NotNull ViewInfo view, @NotNull Point p) {
-    int x = parentPosition.x + view.getLeft();
-    int y = parentPosition.y + view.getTop();
+    ViewInfo bounds = RenderService.getSafeBounds(view);
+    int x = parentPosition.x + bounds.getLeft();
+    int y = parentPosition.y + bounds.getTop();
     Rectangle rect = new Rectangle(x,
                                    y,
-                                   view.getRight() - view.getLeft(),
-                                   view.getBottom() - view.getTop());
+                                   bounds.getRight() - bounds.getLeft(),
+                                   bounds.getBottom() - bounds.getTop());
     if (rect.contains(p)) {
       for (ViewInfo childView : view.getChildren()) {
         if (childView.getCookie() == null) {

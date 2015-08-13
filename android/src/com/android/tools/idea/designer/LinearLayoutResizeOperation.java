@@ -16,6 +16,7 @@
 package com.android.tools.idea.designer;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Maps;
@@ -397,6 +398,7 @@ public class LinearLayoutResizeOperation extends ResizeOperation {
         if (map != null) {
           for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
             ViewInfo viewInfo = entry.getValue();
+            viewInfo = RenderService.getSafeBounds(viewInfo);
             Dimension size = new Dimension(viewInfo.getRight() - viewInfo.getLeft(), viewInfo.getBottom() - viewInfo.getTop());
             unweightedSizes.put(entry.getKey(), size);
           }
