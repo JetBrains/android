@@ -47,7 +47,8 @@ public final class Recipe {
     @XmlElement(name = "merge", type = MergeInstruction.class),
     @XmlElement(name = "mkdir", type = MkDirInstruction.class),
     @XmlElement(name = "dependency", type = DependencyInstruction.class),
-    @XmlElement(name = "open", type = OpenInstruction.class)
+    @XmlElement(name = "open", type = OpenInstruction.class),
+    @XmlElement(name = "execute", type = ExecuteInstruction.class)
   })
   private List<RecipeInstruction> instructions = Lists.newArrayList();
 
@@ -263,6 +264,22 @@ public final class Recipe {
   }
 
   /**
+   * Execute another recipe file from within the current recipe file
+   */
+  private static final class ExecuteInstruction extends RecipeInstruction {
+
+    @XmlJavaTypeAdapter(StringFileAdapter.class)
+    @XmlAttribute(required = true)
+    @NotNull
+    private File file;
+
+    @Override
+    public void execute(RecipeContext context) {
+      context.execute(file);
+    }
+  }
+
+  /**
    * Post-process instruction that's always added to the end of a recipe's instruction list.
    */
   private static final class FinalInstruction extends RecipeInstruction {
@@ -272,5 +289,4 @@ public final class Recipe {
       context.updateAndSyncGradle();
     }
   }
-
 }
