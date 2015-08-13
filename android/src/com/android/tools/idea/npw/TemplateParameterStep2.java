@@ -634,14 +634,15 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     if (entry == null) {
       return null;
     }
-    final Map<String, Parameter> parameterIds = Maps.newHashMap();
-    for (Parameter parameter : entry.getParameters()) {
-      parameterIds.put(parameter.id, parameter);
-    }
     String path = entry.getMetadata().getThumbnailPath(new Function<String, Object>() {
       @Override
-      public Object apply(String input) {
-        return getStateParameterValue(parameterIds.get(input));
+      public Object apply(String variableName) {
+        Map<String, Object> contextValues = getContextValues();
+        Object value = contextValues.get(variableName);
+        if (value == null) {
+          LOG.warn("Thumbnail variable not found: " + variableName);
+        }
+        return value != null ? value.toString() : null;
       }
     });
     if (!StringUtil.isEmpty(path)) {
