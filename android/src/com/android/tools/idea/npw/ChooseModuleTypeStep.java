@@ -70,7 +70,15 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
       public String apply(@Nullable ModuleTemplate input) {
         return input == null ? "<none>" : input.getName();
       }
-    }, thumbnailSize);
+    }, thumbnailSize) {
+      @Override
+      public Dimension getPreferredScrollableViewportSize() {
+        Dimension preferred = getPreferredSize();
+        int heightInsets = getInsets().top + getInsets().bottom;
+        // Don't want to show an exact number of rows, since then it's not obvious there's another row available.
+        return new Dimension(preferred.width, (int)(computeCellSize().height * 2.2) + heightInsets);
+      }
+    };
     myFormFactorGallery.setMinimumSize(new Dimension(thumbnailSize.width * 2 + 1, thumbnailSize.height));
     myFormFactorGallery.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     AccessibleContext accessibleContext = myFormFactorGallery.getAccessibleContext();
