@@ -136,7 +136,12 @@ public final class ModuleClassLoader extends RenderClassLoader {
   @NotNull
   @Override
   protected Class<?> load(String name) throws ClassNotFoundException {
-    final Class<?> aClass = loadClassFromModuleOrDependency(myModule, name, new HashSet<Module>());
+    Class<?> aClass = loadClassFromModuleOrDependency(myModule, name, new HashSet<Module>());
+
+    if (aClass == null) {
+      aClass = loadClassFromJar(name);
+    }
+
     if (aClass != null) {
       return aClass;
     }
@@ -151,11 +156,6 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     Class<?> aClass = loadClassFromModule(module, name);
-    if (aClass != null) {
-      return aClass;
-    }
-
-    aClass = loadClassFromJar(name);
     if (aClass != null) {
       return aClass;
     }
