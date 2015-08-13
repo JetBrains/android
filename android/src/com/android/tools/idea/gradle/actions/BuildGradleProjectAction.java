@@ -13,24 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.actions;
+package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.actions.AndroidStudioActionRemover;
 import com.intellij.compiler.actions.CompileActionBase;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AndroidBuildProjectAction extends AndroidActionRemover {
-  protected AndroidBuildProjectAction(@NotNull CompileActionBase delegate, @NotNull String backupText) {
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
+
+public abstract class BuildGradleProjectAction extends AndroidStudioActionRemover {
+  protected BuildGradleProjectAction(@NotNull CompileActionBase delegate, @NotNull String backupText) {
     super(delegate, backupText);
   }
 
   @Override
   public final void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null && Projects.requiresAndroidModel(project) && Projects.isDirectGradleInvocationEnabled(project)) {
+    if (project != null && isBuildWithGradle(project) && isDirectGradleInvocationEnabled(project)) {
       buildGradleProject(project, e.getDataContext());
       return;
     }
