@@ -690,8 +690,8 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
                       " X " + myContext.getVectorHeight());
       return null;
     }
-    if (targetWidth < 0 || targetHeight < 0) {
-      errorLog.append("Size can't be negative !");
+    if (targetWidth <= 0 || targetHeight <= 0) {
+      errorLog.append("Size must be positive!");
       return null;
     }
     if (targetWidth > VdPreview.MAX_PREVIEW_IMAGE_SIZE ||
