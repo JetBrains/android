@@ -20,18 +20,10 @@ import com.android.tools.swing.ui.ClickableLabel;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -51,10 +43,6 @@ public class ResourceComponent extends JPanel {
    * Maximum number of swatch icons to be displayed by default. See {@link SwatchComponent} constructor for more details.
    */
   private static final short MAX_SWATCH_ICONS = 3;
-  /**
-   * ResourceComponent top + bottom margins
-   */
-  private static final int MARGIN = JBUI.scale(20);
 
   private final SwatchComponent mySwatchComponent = new SwatchComponent(MAX_SWATCH_ICONS);
   private final ClickableLabel myNameLabel = new ClickableLabel();
@@ -62,7 +50,7 @@ public class ResourceComponent extends JPanel {
 
   public ResourceComponent() {
     super(new BorderLayout(0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP));
-    setBorder(BorderFactory.createEmptyBorder(MARGIN / 2, 0, MARGIN / 2, 0));
+    setBorder(BorderFactory.createEmptyBorder(ThemeEditorConstants.ATTRIBUTE_MARGIN / 2, 0, ThemeEditorConstants.ATTRIBUTE_MARGIN / 2, 0));
 
     Box topRowPanel = new Box(BoxLayout.LINE_AXIS);
     topRowPanel.add(myNameLabel);
@@ -81,7 +69,7 @@ public class ResourceComponent extends JPanel {
       int firstRowHeight = Math.max(getFontMetrics(getFont()).getHeight(), myVariantCombo.getPreferredSize().height);
       int secondRowHeight = mySwatchComponent.getPreferredSize().height;
 
-      return new Dimension(0, MARGIN + ThemeEditorConstants.ATTRIBUTE_ROW_GAP + firstRowHeight + secondRowHeight);
+      return new Dimension(0, ThemeEditorConstants.ATTRIBUTE_MARGIN + ThemeEditorConstants.ATTRIBUTE_ROW_GAP + firstRowHeight + secondRowHeight);
     }
 
     return super.getPreferredSize();
