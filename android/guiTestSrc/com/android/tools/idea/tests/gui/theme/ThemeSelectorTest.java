@@ -25,14 +25,14 @@ import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialo
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTableFixture;
 import com.google.common.collect.ImmutableList;
 import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.fixture.JTableCellFixture;
-import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
@@ -40,9 +40,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import java.awt.Component;
 import java.awt.Dialog;
 import java.io.IOException;
 import java.util.List;
@@ -234,10 +231,9 @@ public class ThemeSelectorTest extends GuiTestCase {
 
     newStyleDialog.clickOk();
     themeEditor.waitForThemeSelection("[NewTheme]");
-    JTableFixture propertiesTable = themeEditor.getPropertiesTable();
-    JComponent parentEditor = (JComponent)propertiesTable.cell(row(0).column(0)).editor();
-    JComboBoxFixture parentAttributeCombo = new JComboBoxFixture(myRobot, myRobot.finder().findByType(parentEditor, JComboBox.class));
-    parentAttributeCombo.requireSelection("Theme.Holo");
+    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+    TableCell parentCell = row(0).column(0);
+    assertEquals("Theme.Holo", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     EditorFixture editor = projectFrame.getEditor();
