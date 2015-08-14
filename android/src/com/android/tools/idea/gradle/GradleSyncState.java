@@ -50,6 +50,7 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.cleanUpPreferences;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.stats.UsageTracker.*;
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 import static com.intellij.openapi.ui.MessageType.ERROR;
 import static com.intellij.openapi.ui.MessageType.INFO;
@@ -115,7 +116,7 @@ public class GradleSyncState {
     });
 
     enableNotifications();
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_GRADLE_SYNC_SKIPPED, null, null);
+    trackSyncEvent(ACTION_GRADLE_SYNC_SKIPPED);
   }
 
   public void syncStarted(boolean notifyUser) {
@@ -137,7 +138,7 @@ public class GradleSyncState {
       }
     });
 
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_GRADLE_SYNC_STARTED, null, null);
+    trackSyncEvent(ACTION_GRADLE_SYNC_STARTED);
   }
 
   public void syncFailed(@NotNull final String message) {
@@ -157,7 +158,7 @@ public class GradleSyncState {
       }
     });
 
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_GRADLE_SYNC_FAILED, null, null);
+    trackSyncEvent(ACTION_GRADLE_SYNC_FAILED);
   }
 
   public void syncEnded() {
@@ -178,9 +179,12 @@ public class GradleSyncState {
       }
     });
 
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_GRADLE_SYNC_ENDED, null, null);
+    trackSyncEvent(ACTION_GRADLE_SYNC_ENDED);
   }
 
+  private static void trackSyncEvent(@NotNull String event) {
+    UsageTracker.getInstance().trackEvent(CATEGORY_GRADLE, event, null, null);
+  }
 
   private void addInfoToEventLog(@NotNull String message) {
     addToEventLog(message, INFO);
