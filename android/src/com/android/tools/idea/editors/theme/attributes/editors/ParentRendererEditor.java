@@ -16,24 +16,41 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
 import com.android.tools.idea.editors.theme.ParentThemesListModel;
+import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.attributes.variants.VariantItemListener;
+import com.android.tools.idea.editors.theme.attributes.variants.VariantsComboItem;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.qualifiers.QualifierUtils;
+import com.android.tools.idea.editors.theme.ui.VariantsComboBox;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Custom Renderer and Editor for the theme parent attribute.
@@ -41,50 +58,120 @@ import java.awt.event.ActionListener;
  * Deals with Other through a separate dialog window.
  */
 public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, String> implements TableCellRenderer {
-  private final ComboBox myComboBox;
+  private static final Logger LOG = Logger.getInstance(ParentRendererEditor.class);
+
+  private static final String NO_PARENT = "[no parent]";
+  private static final CollectionComboBoxModel NO_PARENT_MODEL = new CollectionComboBoxModel(ImmutableList.of(NO_PARENT), NO_PARENT);
+
+  private final ComboBox myParentComboBox;
+  private final VariantsComboBox myVariantsComboBox;
   private @Nullable String myResultValue;
   private final ThemeEditorContext myContext;
-  private final JBLabel myReadOnlyLabel;
+  private final JPanel myPanel;
 
   public ParentRendererEditor(@NotNull ThemeEditorContext context) {
     myContext = context;
     // Override isShowing because of the use of a {@link CellRendererPane}
-    myComboBox = new ComboBox() {
+    myParentComboBox = new ComboBox() {
       @Override
       public boolean isShowing() {
         return true;
       }
     };
-    myComboBox.setRenderer(new StyleListCellRenderer(context, myComboBox));
-    myComboBox.addActionListener(new ParentChoiceListener());
-    myReadOnlyLabel = new JBLabel();
+    myPanel = new JPanel(new BorderLayout(0, 0));
+
+    myVariantsComboBox = new VariantsComboBox();
+    myVariantsComboBox.addItemListener(new VariantItemListener(context));
+    myVariantsComboBox.addItemListener(new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent e) {
+        stopCellEditing();
+      }
+    });
+
+    myParentComboBox.setRenderer(new StyleListCellRenderer(context, myParentComboBox));
+    myParentComboBox.addActionListener(new ParentChoiceListener());
+
+    JPanel topLine = new JPanel(new BorderLayout());
+    JLabel label = new JLabel(String.format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE,
+                                            ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), "Theme parent"));
+    topLine.add(label, BorderLayout.WEST);
+    topLine.add(myVariantsComboBox, BorderLayout.EAST);
+
+    myPanel.add(topLine, BorderLayout.CENTER);
+    myPanel.add(myParentComboBox, BorderLayout.PAGE_END);
+  }
+
+  private void updateVariants(@Nullable ThemeEditorStyle selected) {
+    if (selected == null) {
+      myVariantsComboBox.setVisible(false);
+      return;
+    }
+    myVariantsComboBox.setVisible(true);
+
+    Collection<ConfiguredElement<ThemeEditorStyle>> allParents = selected.getAllParents(myContext.getThemeResolver());
+    final String currentVariantColor = ColorUtil.toHex(ThemeEditorConstants.CURRENT_VARIANT_COLOR);
+    final String notSelectedVariantColor = ColorUtil.toHex(ThemeEditorConstants.NOT_SELECTED_VARIANT_COLOR);
+    final ArrayList<VariantsComboItem> variants = Lists.newArrayListWithCapacity(allParents.size());
+
+    ConfigurationManager manager = myContext.getConfiguration().getConfigurationManager();
+    ThemeEditorStyle currentParent = selected.getParent();
+
+    for (ConfiguredElement<ThemeEditorStyle> configuredParent : allParents) {
+      FolderConfiguration restrictedConfig =
+        QualifierUtils.restrictConfiguration(manager, configuredParent, allParents);
+      ThemeEditorStyle parent = configuredParent.getElement();
+
+      if (restrictedConfig == null) {
+        // This type is not visible
+        LOG.warn(String.format(
+          "For style '%1$s': Folder configuration '%2$s' can never be selected. There are no qualifiers combination that would allow selecting it.",
+          parent.getName(), configuredParent.getConfiguration()));
+        continue;
+      }
+
+      if (currentParent.getQualifiedName().equals(parent.getQualifiedName())) {
+        // This is the selected parent
+        variants.add(0, new VariantsComboItem(
+          String.format(ThemeEditorConstants.CURRENT_VARIANT_TEMPLATE, currentVariantColor, configuredParent.getConfiguration().toShortDisplayString()), restrictedConfig));
+      }
+      else {
+        variants.add(new VariantsComboItem(String.format(ThemeEditorConstants.NOT_SELECTED_VARIANT_TEMPLATE, notSelectedVariantColor,
+                                                         configuredParent.getConfiguration().toShortDisplayString(), parent.getName()), restrictedConfig));
+      }
+    }
+
+    myVariantsComboBox.setModel(new CollectionComboBoxModel(variants, variants.get(0)));
   }
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
     final TableModel model = table.getModel();
-    if (!model.isCellEditable(row, column)) {
-      if (AttributesTableModel.NO_PARENT.equals(value)) {
-        myReadOnlyLabel.setText(AttributesTableModel.NO_PARENT);
-      }
-      else {
-        final ThemeEditorStyle style = (ThemeEditorStyle)value;
-        myReadOnlyLabel.setText(style.getName());
-      }
-      return myReadOnlyLabel;
-    }
-    myComboBox.removeAllItems();
-    myComboBox.addItem(value);
+    final ThemeEditorStyle parent = ((ThemeEditorStyle)value).getParent();
 
-    return myComboBox;
+    myParentComboBox.setEnabled(model.isCellEditable(row, column));
+
+    if (parent == null) {
+      myParentComboBox.setModel(NO_PARENT_MODEL);
+      updateVariants(null);
+    }
+    else {
+      ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(myContext.getThemeResolver());
+      myParentComboBox.setModel(new ParentThemesListModel(defaultThemes, parent));
+      updateVariants((ThemeEditorStyle)value);
+    }
+
+    return myPanel;
   }
 
   @Override
   public Component getEditorComponent(JTable table, ThemeEditorStyle value, boolean isSelected, int row, int column) {
+    ThemeEditorStyle parent = value.getParent();
     ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(myContext.getThemeResolver());
-    myComboBox.setModel(new ParentThemesListModel(defaultThemes, value));
-    myResultValue = value.getQualifiedName();
-    return myComboBox;
+    myParentComboBox.setModel(new ParentThemesListModel(defaultThemes, parent));
+    myResultValue = parent.getQualifiedName();
+    updateVariants(value);
+    return myPanel;
   }
 
   @Override
@@ -96,9 +183,9 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      Object selectedValue = myComboBox.getSelectedItem();
+      Object selectedValue = myParentComboBox.getSelectedItem();
       if (ParentThemesListModel.SHOW_ALL_THEMES.equals(selectedValue)) {
-        myComboBox.hidePopup();
+        myParentComboBox.hidePopup();
         final ThemeSelectionDialog dialog = new ThemeSelectionDialog(myContext.getConfiguration());
 
         dialog.show();

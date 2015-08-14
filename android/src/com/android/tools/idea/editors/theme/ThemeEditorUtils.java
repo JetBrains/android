@@ -33,7 +33,7 @@ import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ResourceResolverCache;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredItemResourceValue;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -95,6 +95,7 @@ import java.awt.Color;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -209,36 +210,32 @@ public class ThemeEditorUtils {
   private static void findAllAttributes(@NotNull final ThemeEditorStyle style,
                                         @NotNull HashMultimap<String, FolderConfiguration> attributeConfigurations,
                                         @NotNull ThemeResolver resolver) {
-    for (ThemeEditorStyle parent : style.getAllParents(resolver)) {
-      findAllAttributes(parent, attributeConfigurations, resolver);
+    for (ConfiguredElement<ThemeEditorStyle> parent : style.getAllParents(resolver)) {
+      findAllAttributes(parent.getElement(), attributeConfigurations, resolver);
     }
 
-    Multimap<String, ConfiguredItemResourceValue> configuredValues = style.getConfiguredValues();
-    for (String attributeName : configuredValues.keys()) {
-      Collection<ConfiguredItemResourceValue> values = configuredValues.get(attributeName);
-
-      for (ConfiguredItemResourceValue value : values) {
-        attributeConfigurations.put(attributeName, value.getConfiguration());
-      }
+    Multimap<String, ConfiguredElement<ItemResourceValue>> configuredValues = style.getConfiguredValues();
+    for (Map.Entry<String, ConfiguredElement<ItemResourceValue>> entry : configuredValues.entries()) {
+      attributeConfigurations.put(entry.getKey(), entry.getValue().getConfiguration());
     }
   }
 
   /**
-   * Set of {@link ConfiguredItemResourceValue} items that allows overwriting elements and uses the folder and the attribute name
+   * Set of {@link ConfiguredElement} items that allows overwriting elements and uses the folder and the attribute name
    * as key.
    */
-  static class AttributeInheritanceSet implements Iterable<ConfiguredItemResourceValue> {
-    private HashSet<ConfiguredItemResourceValue> myAttributes = Sets.newHashSet();
+  static class AttributeInheritanceSet implements Iterable<ConfiguredElement<ItemResourceValue>> {
+    private HashSet<ConfiguredElement<ItemResourceValue>> myAttributes = Sets.newHashSet();
     // Index by attribute configuration and name.
-    private Map<String, ConfiguredItemResourceValue> myAttributesIndex = Maps.newHashMap();
+    private Map<String, ConfiguredElement<ItemResourceValue>> myAttributesIndex = Maps.newHashMap();
 
-    private static String getItemKey(@NotNull ConfiguredItemResourceValue item) {
-      return String.format("%1$s - %2$s", item.getConfiguration(), ResolutionUtils.getQualifiedItemName(item.getItemResourceValue()));
+    private static String getItemKey(@NotNull ConfiguredElement<ItemResourceValue> item) {
+      return String.format("%1$s - %2$s", item.getConfiguration(), ResolutionUtils.getQualifiedItemName(item.getElement()));
     }
 
-    public boolean add(@NotNull ConfiguredItemResourceValue value) {
+    public boolean add(@NotNull ConfiguredElement<ItemResourceValue> value) {
       String key = getItemKey(value);
-      ConfiguredItemResourceValue existingValue = myAttributesIndex.get(key);
+      ConfiguredElement<ItemResourceValue> existingValue = myAttributesIndex.get(key);
 
       if (existingValue != null) {
         myAttributes.remove(existingValue);
@@ -251,12 +248,12 @@ public class ThemeEditorUtils {
     }
 
     @Override
-    public Iterator<ConfiguredItemResourceValue> iterator() {
+    public Iterator<ConfiguredElement<ItemResourceValue>> iterator() {
       return myAttributes.iterator();
     }
 
     public void addAll(@NotNull AttributeInheritanceSet existingAttributes) {
-      for (ConfiguredItemResourceValue value : existingAttributes) {
+      for (ConfiguredElement<ItemResourceValue> value : existingAttributes) {
         add(value);
       }
     }
@@ -292,7 +289,7 @@ public class ThemeEditorUtils {
             inheritanceSet = new AttributeInheritanceSet();
             configuredAttributes.put(attributeName, inheritanceSet);
           }
-          inheritanceSet.add(new ConfiguredItemResourceValue(folderConfiguration, (ItemResourceValue)value, style));
+          inheritanceSet.add(ConfiguredElement.create(folderConfiguration, (ItemResourceValue)value, style));
         }
       }
     }
@@ -301,9 +298,10 @@ public class ThemeEditorUtils {
     // Now build the EditedStyleItems from the resolved attributes
     final ImmutableList.Builder<EditedStyleItem> allValues = ImmutableList.builder();
     for (String attributeName : configuredAttributes.keySet()) {
-      Iterable<ConfiguredItemResourceValue> configuredValues = configuredAttributes.get(attributeName);
-      final ConfiguredItemResourceValue bestMatch =
-        (ConfiguredItemResourceValue)style.getConfiguration().getFullConfig()
+      Iterable<ConfiguredElement<ItemResourceValue>> configuredValues = configuredAttributes.get(attributeName);
+      //noinspection unchecked
+      final ConfiguredElement<ItemResourceValue> bestMatch =
+        (ConfiguredElement<ItemResourceValue>)style.getConfiguration().getFullConfig()
           .findMatchingConfigurable(ImmutableList.copyOf(configuredValues));
 
       if (bestMatch == null) {
@@ -311,9 +309,9 @@ public class ThemeEditorUtils {
       }
       else {
         allValues.add(new EditedStyleItem(bestMatch, Iterables
-          .filter(configuredValues, new Predicate<ConfiguredItemResourceValue>() {
+          .filter(configuredValues, new Predicate<ConfiguredElement<ItemResourceValue>>() {
             @Override
-            public boolean apply(@Nullable ConfiguredItemResourceValue input) {
+            public boolean apply(@Nullable ConfiguredElement<ItemResourceValue> input) {
               return input != bestMatch;
             }
           }), style));

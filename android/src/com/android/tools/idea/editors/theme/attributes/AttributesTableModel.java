@@ -47,7 +47,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   public static final int COL_COUNT = 2;
   /** Cells containing values with classes in WIDE_CLASSES are going to have column span 2 */
   private static final Set<Class<?>> WIDE_CLASSES = ImmutableSet.of(Color.class, DrawableDomElement.class);
-  public static final String NO_PARENT = "[no parent]";
 
   protected final List<EditedStyleItem> myAttributes;
   private final Configuration myConfiguration;
@@ -199,43 +198,32 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public int getColumnSpan(int column) {
-      return 1;
+      return column == 0 ? getColumnCount() : 0;
     }
 
     @Override
     public Object getValueAt(int column) {
-      if (column == 0) {
-        return "Theme Parent";
-      }
-      else {
-        ThemeEditorStyle parent = mySelectedStyle.getParent();
-        return parent == null ? NO_PARENT : parent;
-      }
+       return mySelectedStyle;
     }
 
     @Override
     public void setValueAt(int column, String newName) {
-      if (column == 0) {
-        throw new RuntimeException("Tried to setValue at parent attribute label");
-      }
-      else {
-        ThemeEditorStyle parent = mySelectedStyle.getParent();
-        if (parent == null || !parent.getQualifiedName().equals(newName)) {
-          //Changes the value of Parent in XML
-          mySelectedStyle.setParent(newName);
-          fireTableCellUpdated(0, 1);
-        }
+      ThemeEditorStyle parent = mySelectedStyle.getParent();
+      if (parent == null || !parent.getQualifiedName().equals(newName)) {
+        // Changes the value of parent in XML
+        mySelectedStyle.setParent(newName);
+        fireTableCellUpdated(0, 0);
       }
     }
 
     @Override
     public Class<?> getCellClass(int column) {
-      return column == 0 ? String.class : ParentAttribute.class;
+      return ParentAttribute.class;
     }
 
     @Override
     public boolean isCellEditable(int column) {
-      return (column == 1 && !mySelectedStyle.isReadOnly());
+      return !mySelectedStyle.isReadOnly();
     }
   }
 

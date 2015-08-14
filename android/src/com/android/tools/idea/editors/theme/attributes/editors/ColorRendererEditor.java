@@ -44,8 +44,6 @@ import java.util.List;
  * Class that implements a {@link javax.swing.JTable} renderer and editor for color attributes.
  */
 public class ColorRendererEditor extends GraphicalResourceRendererEditor {
-  static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b><font color=\"#9B9B9B\"> - %3$s</font>";
-  static final String LABEL_EMPTY = "(empty)";
   public static final ResourceType[] COLORS_ONLY = {ResourceType.COLOR};
   public static final ResourceType[] DRAWABLES_ONLY = {ResourceType.DRAWABLE, ResourceType.MIPMAP};
   public static final ResourceType[] COLORS_AND_DRAWABLES = {ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP};
@@ -75,12 +73,12 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
 
     myItem = item;
 
-    final List<Color> colors =
-      ResourceHelper.resolveMultipleColors(context.getResourceResolver(), item.getSelectedValue(), context.getProject());
-    String colorText = colors.isEmpty() ? LABEL_EMPTY : ResourceHelper.colorToString(colors.get(0));
+    final List<Color> colors = ResourceHelper.resolveMultipleColors(context.getResourceResolver(), item.getSelectedValue(),
+                                                                    context.getProject());
     component.setSwatchIcons(SwatchComponent.colorListOf(colors));
-    component.setNameText(
-      String.format(LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), item.getQualifiedName(), colorText));
+    component
+      .setNameText(String.format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR),
+                                        item.getQualifiedName()));
     component.setValueText(item.getValue());
   }
 

@@ -44,6 +44,7 @@ import com.android.resources.ScreenSize;
 import com.android.resources.TouchScreen;
 import com.android.resources.UiMode;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -57,6 +58,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -277,5 +279,29 @@ public class QualifierUtils {
     }
 
     return finalConfiguration;
+  }
+
+  /**
+   * Returns a restricted version of the passed configuration. The value returned will be incompatible with any other configuration in the
+   * item. This configuration can be used when we want to make sure that the configuration selected will be displayed.
+   * <p/>
+   * This method can return null if there is no configuration that matches the constraints.
+   */
+  @Nullable
+  public static <T> FolderConfiguration restrictConfiguration(@NotNull ConfigurationManager manager,
+                                                              @NotNull ConfiguredElement<T> selectedItems,
+                                                              Collection<ConfiguredElement<T>> allItems) {
+    ArrayList<FolderConfiguration> incompatibleConfigurations = Lists.newArrayListWithCapacity(allItems.size() - 1);
+
+    for (ConfiguredElement configuredItem : allItems) {
+      FolderConfiguration configuration = configuredItem.getConfiguration();
+      if (configuredItem == selectedItems) {
+        continue;
+      }
+
+      incompatibleConfigurations.add(configuration);
+    }
+
+    return restrictConfiguration(manager, selectedItems.getConfiguration(), incompatibleConfigurations);
   }
 }
