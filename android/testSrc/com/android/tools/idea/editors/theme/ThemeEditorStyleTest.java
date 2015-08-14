@@ -429,4 +429,38 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     myFixture.checkResultByFile("res/values-v14/styles.xml", "themeEditor/setValueAfter/styles_parent_modified.xml", true);
     myFixture.checkResultByFile("res/values-land/styles.xml", "themeEditor/setValueAfter/styles_parent_modified.xml", true);
   }
+
+  public void testGetParentNames() {
+    myFixture.copyFileToProject("themeEditor/attributeResolution/styles_base.xml", "res/values/styles.xml");
+    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v17.xml", "res/values-v17/styles.xml");
+    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v19.xml", "res/values-v19/styles.xml");
+    VirtualFile file = myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v20.xml", "res/values-v20/styles.xml");
+
+    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    Configuration configuration = configurationManager.getConfiguration(file);
+
+    ThemeResolver resolver = new ThemeResolver(configuration);
+    ThemeEditorStyle theme = resolver.getTheme("@style/AppTheme");
+    assertNotNull(theme);
+
+    Collection<ConfiguredElement<String>> parents = theme.getParentNames();
+    assertSize(2, parents);
+    ImmutableList<String> parentNames = ImmutableList.of(
+      Iterables.get(parents, 0).getElement(),
+      Iterables.get(parents, 1).getElement()
+    );
+    assertContainsElements(parentNames, "@style/Base.V20", "@style/Base.V17");
+
+    // Set API 17 and try the same resolution
+    //noinspection ConstantConditions
+    configuration
+      .setTarget(new CompatibilityRenderTarget(configurationManager.getHighestApiTarget(), 17, configurationManager.getHighestApiTarget()));
+    parents = theme.getParentNames();
+    assertSize(2, parents);
+    parentNames = ImmutableList.of(
+      Iterables.get(parents, 0).getElement(),
+      Iterables.get(parents, 1).getElement()
+    );
+    assertContainsElements(parentNames, "@style/Base.V20", "@style/Base.V17");
+  }
 }

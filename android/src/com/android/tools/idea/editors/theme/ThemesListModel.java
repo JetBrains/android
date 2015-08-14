@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -36,32 +37,58 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
   public static final String SHOW_ALL_THEMES = "Show all themes";
   public static final String RENAME = "Rename ";
 
+  private final ThemeEditorContext myContext;
+  private final ImmutableList<ThemeEditorStyle> myDefaultThemes;
+  private final ThemeEditorStyle myDefaultTheme;
+
   private SeparatedList myAllItems;
   private Object mySelectedObject;
-  private final List<String> myEditOptions;
+  private List<String> myEditOptions = new ArrayList<String>();
 
   public ThemesListModel(@NotNull ThemeEditorContext context, @NotNull ImmutableList<ThemeEditorStyle> defaultThemes, @Nullable ThemeEditorStyle defaultTheme) {
+    myContext = context;
+    myDefaultThemes = defaultThemes;
+    myDefaultTheme = defaultTheme;
+
+    updateThemes();
+
+    myContext.addConfigurationListener(new ConfigurationListener() {
+      @Override
+      public boolean changed(int flags) {
+        if ((flags & ConfigurationListener.MASK_FOLDERCONFIG) != 0) {
+          updateThemes();
+          fireContentsChanged(this, -1, -1);
+        }
+        return true;
+      }
+    });
+  }
+
+  /**
+   * Updates the themes list reloading all the themes from the resolver
+   */
+  void updateThemes() {
     // We sort the themes, displaying the local project themes at the top sorted alphabetically. The non local themes are sorted
     // alphabetically right below the project themes.
     final Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(ThemeEditorUtils.STYLE_COMPARATOR);
-    temporarySet.addAll(context.getThemeResolver().getLocalThemes());
+    temporarySet.addAll(myContext.getThemeResolver().getLocalThemes());
 
     ImmutableList<ThemeEditorStyle> editableThemes = ImmutableList.copyOf(temporarySet);
 
-    temporarySet.addAll(defaultThemes);
+    temporarySet.addAll(myDefaultThemes);
 
     ImmutableList<ThemeEditorStyle> allThemes = ImmutableList.copyOf(temporarySet);
     ImmutableList<ThemeEditorStyle> externalThemes = allThemes.subList(editableThemes.size(), allThemes.size());
 
     Object selectedItem = null;
-    if (defaultTheme != null) {
-      selectedItem = defaultTheme;
+    if (myDefaultTheme != null) {
+      selectedItem = myDefaultTheme;
     }
     else if (!allThemes.isEmpty()) {
       selectedItem = allThemes.get(0);
     }
 
-    myEditOptions = new ArrayList<String>();
+    myEditOptions.clear();
     buildEditOptionsList(selectedItem);
 
     myAllItems = new SeparatedList(SEPARATOR, group(editableThemes), group(externalThemes, SHOW_ALL_THEMES),
