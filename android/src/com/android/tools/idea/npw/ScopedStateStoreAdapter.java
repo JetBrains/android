@@ -21,6 +21,7 @@ import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.net.URL;
 
 import static com.android.tools.idea.npw.IconStep.*;
 
@@ -117,13 +118,8 @@ public class ScopedStateStoreAdapter implements AssetStudioAssetGenerator.AssetS
 
   @Nullable
   @Override
-  public String getVectorLibIconPath() {
+  public URL getVectorLibIconPath() {
     return myState.get(ATTR_VECTOR_LIB_ICON_PATH);
-  }
-
-  @Override
-  public void setVectorLibIconPath(String name) {
-    myState.put(ATTR_VECTOR_LIB_ICON_PATH, name);
   }
 
   @Override

@@ -52,6 +52,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,7 +70,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 public class IconStep extends DynamicWizardStepWithDescription implements Disposable {
   public static final Key<String> ATTR_ASSET_NAME = createKey(AssetStudioAssetGenerator.ATTR_ASSET_NAME, PATH, String.class);
   public static final Key<String> ATTR_CLIPART_NAME = createKey(AssetStudioAssetGenerator.ATTR_CLIPART_NAME, PATH, String.class);
-  public static final Key<String> ATTR_VECTOR_LIB_ICON_PATH = createKey(AssetStudioAssetGenerator.ATTR_VECTOR_LIB_ICON_PATH, PATH, String.class);
+  public static final Key<URL> ATTR_VECTOR_LIB_ICON_PATH = createKey(AssetStudioAssetGenerator.ATTR_VECTOR_LIB_ICON_PATH, PATH, URL.class);
   public static final Key<String> ATTR_TEXT = createKey(AssetStudioAssetGenerator.ATTR_TEXT, PATH, String.class);
   public static final Key<String> ATTR_FONT = createKey(AssetStudioAssetGenerator.ATTR_FONT, PATH, String.class);
   public static final Key<AssetType> ATTR_ASSET_TYPE = createKey(AssetStudioAssetGenerator.ATTR_ASSET_TYPE, PATH, AssetType.class);
