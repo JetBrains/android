@@ -77,7 +77,7 @@ public class QualifierUtilsTest extends AndroidTestCase {
       new DensityQualifier(Density.XXXHIGH),
       new DensityQualifier(Density.XXHIGH));
 
-    assertEquals(Density.DPI_400, ((DensityQualifier)QualifierUtils.getIncompatibleDensityQualifier(densityQualifiers)).getValue());
+    assertEquals(Density.DPI_420, ((DensityQualifier)QualifierUtils.getIncompatibleDensityQualifier(densityQualifiers)).getValue());
 
     densityQualifiers = ImmutableList.<ResourceQualifier>of(
       new DensityQualifier(Density.NODPI));
