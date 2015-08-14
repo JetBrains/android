@@ -19,7 +19,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.dependency.*;
+import com.android.tools.idea.gradle.customizer.dependency.*;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
@@ -36,7 +36,7 @@ import java.io.File;
 import java.util.Collection;
 
 import static com.android.SdkConstants.FD_JARS;
-import static com.android.tools.idea.gradle.dependency.LibraryDependency.PathType.BINARY;
+import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.BINARY;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
