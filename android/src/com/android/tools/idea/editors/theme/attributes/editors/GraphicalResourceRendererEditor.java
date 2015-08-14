@@ -54,7 +54,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
 
   protected final ThemeEditorContext myContext;
   protected final ResourceComponent myComponent;
-  protected static EditedStyleItem myItem;
+  protected EditedStyleItem myItem;
   protected String myEditorValue;
 
   public GraphicalResourceRendererEditor(@NotNull ThemeEditorContext context, boolean isEditor) {
@@ -112,8 +112,6 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
     final String notSelectedVariantColor = ColorUtil.toHex(ThemeEditorConstants.NOT_SELECTED_VARIANT_COLOR);
     final ImmutableList.Builder<VariantsComboItem> variantsListBuilder = ImmutableList.builder();
 
-    myItem = item;
-
     FolderConfiguration restrictedConfig = restrictConfiguration(manager, item, item.getSelectedValueConfiguration());
     variantsListBuilder.add(new VariantsComboItem(
       String.format(ThemeEditorConstants.CURRENT_VARIANT_TEMPLATE, currentVariantColor, item.getSelectedValueConfiguration().toShortDisplayString()),
@@ -148,6 +146,8 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
   public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected, boolean hasFocus, int row, int column) {
     assert obj instanceof EditedStyleItem : "Object passed to GraphicalResourceRendererEditor.getTableCellRendererComponent must be instance of EditedStyleItem";
 
+    myItem = (EditedStyleItem)obj;
+
     updateComponentInternal(myContext, myComponent, (EditedStyleItem)obj);
     updateComponent(myContext, myComponent, (EditedStyleItem)obj);
 
@@ -156,6 +156,8 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
 
   @Override
   public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
+    myItem = value;
+
     updateComponentInternal(myContext, myComponent, value);
     updateComponent(myContext, myComponent, value);
     myEditorValue = null; // invalidate stored editor value
