@@ -19,9 +19,9 @@ import com.android.builder.model.AndroidProject;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.FullRevision.PreviewComparison;
 import com.android.sdklib.repository.PreciseRevision;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
@@ -85,10 +85,10 @@ import static java.util.Collections.sort;
 /**
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
-public class AndroidProjectDataService implements ProjectDataService<IdeaAndroidProject, Void> {
+public class AndroidProjectDataService implements ProjectDataService<AndroidGradleModel, Void> {
   private static final Logger LOG = Logger.getInstance(AndroidProjectDataService.class);
 
-  private final List<ModuleCustomizer<IdeaAndroidProject>> myCustomizers;
+  private final List<ModuleCustomizer<AndroidGradleModel>> myCustomizers;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   @SuppressWarnings("unused")
@@ -98,14 +98,14 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   }
 
   @VisibleForTesting
-  AndroidProjectDataService(@NotNull List<ModuleCustomizer<IdeaAndroidProject>> customizers) {
+  AndroidProjectDataService(@NotNull List<ModuleCustomizer<AndroidGradleModel>> customizers) {
     myCustomizers = customizers;
   }
 
   @NotNull
   @Override
-  public Key<IdeaAndroidProject> getTargetDataKey() {
-    return AndroidProjectKeys.IDE_ANDROID_PROJECT;
+  public Key<AndroidGradleModel> getTargetDataKey() {
+    return AndroidProjectKeys.IDE_ANDROID_MODEL;
   }
 
   /**
@@ -116,7 +116,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
    * @param synchronous indicates whether this operation is synchronous.
    */
   @Override
-  public void importData(@NotNull Collection<DataNode<IdeaAndroidProject>> toImport, @NotNull Project project, boolean synchronous) {
+  public void importData(@NotNull Collection<DataNode<AndroidGradleModel>> toImport, @NotNull Project project, boolean synchronous) {
     if (!toImport.isEmpty()) {
       try {
         doImport(toImport, project);
@@ -132,7 +132,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     }
   }
 
-  private void doImport(final Collection<DataNode<IdeaAndroidProject>> toImport, final Project project) throws Throwable {
+  private void doImport(final Collection<DataNode<AndroidGradleModel>> toImport, final Project project) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
@@ -141,7 +141,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
         boolean hasExtraGeneratedFolders = false;
 
-        Map<String, IdeaAndroidProject> androidModelsByModuleName = indexByModuleName(toImport);
+        Map<String, AndroidGradleModel> androidModelsByModuleName = indexByModuleName(toImport);
 
         Charset ideEncoding = EncodingProjectManager.getInstance(project).getDefaultCharset();
         FullRevision oneDotTwoModelVersion = new PreciseRevision(1, 2, 0);
@@ -154,7 +154,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         for (Module module : moduleManager.getModules()) {
-          IdeaAndroidProject androidModel = androidModelsByModuleName.get(module.getName());
+          AndroidGradleModel androidModel = androidModelsByModuleName.get(module.getName());
 
           customizeModule(module, project, androidModel);
           if (androidModel != null) {
@@ -313,20 +313,20 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   }
 
   @NotNull
-  private static Map<String, IdeaAndroidProject> indexByModuleName(@NotNull Collection<DataNode<IdeaAndroidProject>> dataNodes) {
-    Map<String, IdeaAndroidProject> index = Maps.newHashMap();
-    for (DataNode<IdeaAndroidProject> d : dataNodes) {
-      IdeaAndroidProject androidModel = d.getData();
+  private static Map<String, AndroidGradleModel> indexByModuleName(@NotNull Collection<DataNode<AndroidGradleModel>> dataNodes) {
+    Map<String, AndroidGradleModel> index = Maps.newHashMap();
+    for (DataNode<AndroidGradleModel> d : dataNodes) {
+      AndroidGradleModel androidModel = d.getData();
       index.put(androidModel.getModuleName(), androidModel);
     }
     return index;
   }
 
-  private void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject androidModel) {
+  private void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable AndroidGradleModel androidModel) {
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
     try {
-      for (ModuleCustomizer<IdeaAndroidProject> customizer : myCustomizers) {
+      for (ModuleCustomizer<AndroidGradleModel> customizer : myCustomizers) {
         customizer.customizeModule(project, rootModel, androidModel);
       }
     }

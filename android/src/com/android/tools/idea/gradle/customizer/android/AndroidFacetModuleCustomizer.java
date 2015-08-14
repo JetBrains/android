@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -41,7 +41,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 /**
  * Adds the Android facet to modules imported from {@link AndroidProject}s.
  */
-public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroidProject> {
+public class AndroidFacetModuleCustomizer implements ModuleCustomizer<AndroidGradleModel> {
 
   // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
   private static final String SEPARATOR = "/";
@@ -49,7 +49,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
   @Override
   public void customizeModule(@NotNull Project project,
                               @NotNull ModifiableRootModel moduleModel,
-                              @Nullable IdeaAndroidProject androidModel) {
+                              @Nullable AndroidGradleModel androidModel) {
     Module module = moduleModel.getModule();
     if (androidModel == null) {
       removeAllFacetsOfType(module, AndroidFacet.ID);
@@ -74,7 +74,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
     }
   }
 
-  private static void configureFacet(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject androidModel) {
+  private static void configureFacet(@NotNull AndroidFacet facet, @NotNull AndroidGradleModel androidModel) {
     JpsAndroidModuleProperties facetState = facet.getProperties();
     facetState.ALLOW_USER_CONFIGURATION = false;
 
@@ -101,7 +101,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
   }
 
   private static void syncSelectedVariantAndTestArtifact(@NotNull JpsAndroidModuleProperties facetState,
-                                                         @NotNull IdeaAndroidProject androidModel) {
+                                                         @NotNull AndroidGradleModel androidModel) {
     String variantStoredInFacet = facetState.SELECTED_BUILD_VARIANT;
     if (!isNullOrEmpty(variantStoredInFacet) && androidModel.getVariantNames().contains(variantStoredInFacet)) {
       androidModel.setSelectedVariantName(variantStoredInFacet);

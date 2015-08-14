@@ -17,7 +17,7 @@ package org.jetbrains.android.facet;
 
 import com.android.builder.model.AndroidArtifact;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,12 +32,12 @@ import static org.fest.assertions.Assertions.assertThat;
  * Tests for {@link AndroidFacet}.
  */
 public class AndroidFacetTest extends AndroidTestCase {
-  private IdeaAndroidProject myAndroidModel;
+  private AndroidGradleModel myAndroidModel;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myAndroidModel = createMock(IdeaAndroidProject.class);
+    myAndroidModel = createMock(AndroidGradleModel.class);
   }
 
   public void testProjectSyncCompletedNotification() {

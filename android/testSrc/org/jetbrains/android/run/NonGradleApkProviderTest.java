@@ -16,7 +16,7 @@
 package org.jetbrains.android.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -78,7 +78,7 @@ public class NonGradleApkProviderTest extends AndroidTestCase {
   }
 
   /**
-   * A non-Gradle APK provider can be used when an IdeaAndroidProject is present if Projects.isBuildWithGradle is false.
+   * A non-Gradle APK provider can be used when an AndroidGradleModel is present if Projects.isBuildWithGradle is false.
    */
   public void testGetPackageNameForIdeaAndroidProject() throws Exception {
     myFacet.setAndroidModel(getAndroidModel());
@@ -102,10 +102,10 @@ public class NonGradleApkProviderTest extends AndroidTestCase {
     assertTrue(apk.getFile().getPath().endsWith("_main_-variantName.apk"));
   }
 
-  private IdeaAndroidProject getAndroidModel() throws Exception {
+  private AndroidGradleModel getAndroidModel() throws Exception {
     AndroidProjectStub androidProject = new AndroidProjectStub("projectName");
     VariantStub variant = androidProject.addVariant("variantName");
-    return new IdeaAndroidProject(
+    return new AndroidGradleModel(
         new ProjectSystemId("systemId"),
         myFacet.getModule().getName(),
         androidProject.getRootDir(),

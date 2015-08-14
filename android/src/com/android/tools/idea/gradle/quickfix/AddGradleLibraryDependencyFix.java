@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.quickfix;
 
 import com.android.builder.model.*;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -28,7 +28,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -38,6 +37,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 
 /**
   * Quickfix to add dependency to another library in gradle.build file and sync the project.
@@ -122,20 +123,20 @@ public class AddGradleLibraryDependencyFix extends GradleDependencyFix {
 
   @Nullable
   private String getLibraryGradleEntryByAndroidFacet(@NotNull AndroidFacet androidFacet) {
-    IdeaAndroidProject androidProject = IdeaAndroidProject.getGradleModel(androidFacet);
-    if (androidProject == null) {
+    AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
+    if (androidModel == null) {
       return null;
     }
 
-    Variant selectedVariant = androidProject.getSelectedVariant();
-    BaseArtifact testArtifact = androidProject.findSelectedTestArtifactInSelectedVariant();
+    BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
 
     Library matchedLibrary = null;
     if (testArtifact != null) {
-      matchedLibrary = findMatchedibrary(testArtifact);
+      matchedLibrary = findMatchedLibrary(testArtifact);
     }
     if (matchedLibrary == null) {
-      matchedLibrary = findMatchedibrary(selectedVariant.getMainArtifact());
+      Variant selectedVariant = androidModel.getSelectedVariant();
+      matchedLibrary = findMatchedLibrary(selectedVariant.getMainArtifact());
     }
     if (matchedLibrary == null) {
       return null;
@@ -150,9 +151,9 @@ public class AddGradleLibraryDependencyFix extends GradleDependencyFix {
   }
 
   @Nullable
-  Library findMatchedibrary(@NotNull BaseArtifact artifact) {
+  private Library findMatchedLibrary(@NotNull BaseArtifact artifact) {
     for (JavaLibrary library : artifact.getDependencies().getJavaLibraries()) {
-      String libraryName = FileUtil.getNameWithoutExtension(library.getJarFile());
+      String libraryName = getNameWithoutExtension(library.getJarFile());
       if (libraryName.equals(myLibraryEntry.getLibraryName())) {
         return library;
       }
@@ -171,13 +172,13 @@ public class AddGradleLibraryDependencyFix extends GradleDependencyFix {
     if (libraryName == null) {
       return null;
     }
-    String[] splittedPath = file.getPath().split(System.getProperty("file.separator"));
+    String[] splitPath = file.getPath().split(System.getProperty("file.separator"));
 
-    for (int i = 1; i < splittedPath.length - 2; i++) {
-      if (libraryName.startsWith(splittedPath[i])) {
-        String groupId = splittedPath[i - 1];
-        String artifactId = splittedPath[i];
-        String version = splittedPath[i + 1];
+    for (int i = 1; i < splitPath.length - 2; i++) {
+      if (libraryName.startsWith(splitPath[i])) {
+        String groupId = splitPath[i - 1];
+        String artifactId = splitPath[i];
+        String version = splitPath[i + 1];
         if (libraryName.endsWith(version)) {
           return groupId + ":" + artifactId + ":" + version;
         }

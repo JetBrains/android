@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dependency;
 
 import com.android.builder.model.*;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.roots.DependencyScope;
@@ -84,7 +84,7 @@ public abstract class Dependency {
   }
 
   @NotNull
-  public static DependencySet extractFrom(@NotNull IdeaAndroidProject androidProject) {
+  public static DependencySet extractFrom(@NotNull AndroidGradleModel androidProject) {
     DependencySet dependencies = new DependencySet();
 
     BaseArtifact testArtifact = androidProject.findSelectedTestArtifactInSelectedVariant();

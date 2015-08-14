@@ -17,7 +17,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.builder.model.BuildType;
 import com.android.builder.model.BuildTypeContainer;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
@@ -66,7 +66,7 @@ class MoveToDebugManifestQuickFix implements AndroidLintQuickFix {
           if (facet != null) {
             VirtualFile mainManifest = facet.getMainIdeaSourceProvider().getManifestFile();
             // TODO: b/22928250
-            IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+            AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
             if (androidModel != null && mainManifest != null
                 && mainManifest.getParent() != null && mainManifest.getParent().getParent() != null) {
               final VirtualFile src = mainManifest.getParent().getParent();

@@ -57,7 +57,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       return;
     }
 
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(androidFacet);
+    AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
     if (androidModel == null) {
       return;
     }
@@ -156,10 +156,10 @@ public class AndroidJunitPatcher extends JUnitPatcher {
    * <p>We need to do this for every project dependency as well, since we're using classes and resources directories of these directly.
    *
    * @see <a href="http://b.android.com/172409">Bug 172409</a>
-   * @see com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer#customizeModule(Project, ModifiableRootModel, IdeaAndroidProject)
+   * @see com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer#customizeModule(Project, ModifiableRootModel, AndroidGradleModel)
    */
   private static void handleJavaResources(@NotNull Module module,
-                                          @NotNull IdeaAndroidProject androidModel,
+                                          @NotNull AndroidGradleModel androidModel,
                                           @NotNull PathsList classPath) {
     final CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
     CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
@@ -167,7 +167,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     for (Module affectedModule : scope.getAffectedModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(affectedModule);
       if (facet != null) {
-        IdeaAndroidProject affectedAndroidModel = IdeaAndroidProject.getGradleModel(facet);
+        AndroidGradleModel affectedAndroidModel = AndroidGradleModel.get(facet);
         if (affectedAndroidModel != null) {
           try {
             classPath.add(affectedAndroidModel.getMainArtifact().getJavaResourcesFolder());

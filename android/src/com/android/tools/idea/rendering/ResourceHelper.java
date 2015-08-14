@@ -24,7 +24,7 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.lang.databinding.DbUtil;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.ImmutableList;
@@ -691,7 +691,7 @@ public class ResourceHelper {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
         // TODO: b/23032391
-        IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+        AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
         if (androidModel != null) {
           String resourcePrefix = LintUtils.computeResourcePrefix(androidModel.getAndroidProject());
           if (resourcePrefix != null) {

@@ -36,7 +36,7 @@ import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredItemResourceValue;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.AppResourceRepository;
@@ -702,7 +702,7 @@ public class ThemeEditorUtils {
     selectedProviders.add(facet.getMainSourceProvider());
 
     // TODO: b/23031626
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
     if (androidModel != null) {
       assert facet.requiresAndroidModel();
 

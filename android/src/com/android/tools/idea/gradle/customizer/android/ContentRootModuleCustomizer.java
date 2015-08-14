@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.*;
 import com.android.sdklib.repository.FullRevision;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
@@ -45,8 +45,8 @@ import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 /**
  * Sets the content roots of an IDEA module imported from an {@link AndroidProject}.
  */
-public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaAndroidProject>
-  implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
+public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<AndroidGradleModel>
+  implements BuildVariantModuleCustomizer<AndroidGradleModel> {
   // TODO This is a temporary solution. The real fix is in the Android Gradle plug-in we need to take exploded-aar/${library}/${version}/res
   // folder somewhere else out of "exploded-aar" so the IDE can index it, but we need to exclude everything else in "exploded-aar"
   // (e.g. jar files) to avoid unnecessary indexing.
@@ -65,7 +65,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   @Override
   @NotNull
   protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel model,
-                                                                @NotNull IdeaAndroidProject androidModel) {
+                                                                @NotNull AndroidGradleModel androidModel) {
 
     List<ContentEntry> contentEntries = Lists.newArrayList(model.addContentEntry(androidModel.getRootDir()));
     File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
@@ -78,7 +78,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   @Override
   protected void setUpContentEntries(@NotNull ModifiableRootModel ideaModuleModel,
                                      @NotNull Collection<ContentEntry> contentEntries,
-                                     @NotNull IdeaAndroidProject androidModel,
+                                     @NotNull AndroidGradleModel androidModel,
                                      @NotNull List<RootSourceFolder> orphans) {
     Variant selectedVariant = androidModel.getSelectedVariant();
 
@@ -117,7 +117,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     addExcludedOutputFolders(contentEntries, androidModel);
   }
 
-  private void addSourceFolders(@NotNull IdeaAndroidProject androidModel,
+  private void addSourceFolders(@NotNull AndroidGradleModel androidModel,
                                 @NotNull Collection<ContentEntry> contentEntries,
                                 @NotNull BaseArtifact artifact,
                                 boolean isTest,
@@ -135,7 +135,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     }
   }
 
-  private void addGeneratedSourceFolders(@NotNull IdeaAndroidProject androidModel,
+  private void addGeneratedSourceFolders(@NotNull AndroidGradleModel androidModel,
                                          @NotNull Collection<ContentEntry> contentEntries,
                                          @NotNull BaseArtifact artifact,
                                          boolean isTest,
@@ -159,19 +159,19 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     }
   }
 
-  private static boolean modelVersionIsAtLeast(@NotNull IdeaAndroidProject androidModel, @NotNull String revision) {
+  private static boolean modelVersionIsAtLeast(@NotNull AndroidGradleModel androidModel, @NotNull String revision) {
     String original = androidModel.getAndroidProject().getModelVersion();
     FullRevision modelVersion;
     try {
       modelVersion = FullRevision.parseRevision(original);
     } catch (NumberFormatException e) {
-      Logger.getInstance(IdeaAndroidProject.class).warn("Failed to parse '" + original + "'", e);
+      Logger.getInstance(AndroidGradleModel.class).warn("Failed to parse '" + original + "'", e);
       return false;
     }
     return modelVersion.compareTo(FullRevision.parseRevision(revision), FullRevision.PreviewComparison.IGNORE) >= 0;
   }
 
-  private void addSourceFolder(@NotNull IdeaAndroidProject androidModel,
+  private void addSourceFolder(@NotNull AndroidGradleModel androidModel,
                                @NotNull Collection<ContentEntry> contentEntries,
                                @NotNull ProductFlavorContainer flavor,
                                @NotNull List<RootSourceFolder> orphans) {
@@ -185,7 +185,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     }
   }
 
-  private void addSourceFolder(@NotNull IdeaAndroidProject androidModel,
+  private void addSourceFolder(@NotNull AndroidGradleModel androidModel,
                                @NotNull Collection<ContentEntry> contentEntries,
                                @NotNull SourceProvider sourceProvider,
                                boolean isTest,
@@ -213,7 +213,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     return isTest ? TEST_SOURCE : SOURCE;
   }
 
-  private void addSourceFolders(@NotNull IdeaAndroidProject androidModel,
+  private void addSourceFolders(@NotNull AndroidGradleModel androidModel,
                                 @NotNull Collection<ContentEntry> contentEntries,
                                 @NotNull Collection<File> folderPaths,
                                 @NotNull JpsModuleSourceRootType type,
@@ -232,7 +232,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     return isAncestor(generatedFolderPath, folderPath, false);
   }
 
-  private void addExcludedOutputFolders(@NotNull Collection<ContentEntry> contentEntries, @NotNull IdeaAndroidProject androidModel) {
+  private void addExcludedOutputFolders(@NotNull Collection<ContentEntry> contentEntries, @NotNull AndroidGradleModel androidModel) {
     File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
     ContentEntry parentContentEntry = findParentContentEntry(buildFolderPath, contentEntries);
     if (parentContentEntry == null) {
@@ -262,7 +262,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
   @Override
   @NotNull
-  public Class<IdeaAndroidProject> getSupportedModelType() {
-    return IdeaAndroidProject.class;
+  public Class<AndroidGradleModel> getSupportedModelType() {
+    return AndroidGradleModel.class;
   }
 }

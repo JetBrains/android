@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -39,7 +39,7 @@ import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 
 import java.util.Collection;
 
-import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_ANDROID_PROJECT;
+import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_ANDROID_MODEL;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_GRADLE_PROJECT;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
@@ -125,10 +125,10 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
     myProjectResolver.populateModuleContentRoots(myAndroidModule, moduleDataNode);
 
-    // Verify module has IdeaAndroidProject.
-    Collection<DataNode<IdeaAndroidProject>> androidProjectNodes = getChildren(moduleDataNode, IDE_ANDROID_PROJECT);
+    // Verify module has AndroidGradleModel.
+    Collection<DataNode<AndroidGradleModel>> androidProjectNodes = getChildren(moduleDataNode, IDE_ANDROID_MODEL);
     assertEquals(1, androidProjectNodes.size());
-    DataNode<IdeaAndroidProject> androidProjectNode = getFirstItem(androidProjectNodes);
+    DataNode<AndroidGradleModel> androidProjectNode = getFirstItem(androidProjectNodes);
     assertNotNull(androidProjectNode);
     assertSame(myAndroidProject, androidProjectNode.getData().getAndroidProject());
 
@@ -148,8 +148,8 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
     myProjectResolver.populateModuleContentRoots(myUtilModule, moduleDataNode);
 
-    // Verify module does not have IdeaAndroidProject.
-    Collection<DataNode<IdeaAndroidProject>> androidProjectNodes = getChildren(moduleDataNode, IDE_ANDROID_PROJECT);
+    // Verify module does not have AndroidGradleModel.
+    Collection<DataNode<AndroidGradleModel>> androidProjectNodes = getChildren(moduleDataNode, IDE_ANDROID_MODEL);
     assertEquals(0, androidProjectNodes.size());
 
     // Verify module has IdeaGradleProject.
