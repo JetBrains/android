@@ -190,8 +190,13 @@ public class ThemeEditorUtils {
   private static void findAllAttributes(@NotNull final ThemeEditorStyle style,
                                         @NotNull HashMultimap<String, FolderConfiguration> attributeConfigurations,
                                         @NotNull ThemeResolver resolver) {
-    for (ConfiguredElement<ThemeEditorStyle> parent : style.getAllParents(resolver)) {
-      findAllAttributes(parent.getElement(), attributeConfigurations, resolver);
+    for (ConfiguredElement<String> parentName : style.getParentNames()) {
+      ThemeEditorStyle parent = resolver.getTheme(parentName.getElement());
+
+      /* Parent will be null if the theme does not exist in the current configuration */
+      if (parent != null) {
+        findAllAttributes(parent, attributeConfigurations, resolver);
+      }
     }
 
     Multimap<String, ConfiguredElement<ItemResourceValue>> configuredValues = style.getConfiguredValues();

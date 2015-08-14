@@ -60,6 +60,16 @@ public class ThemeEditorContext {
 
   public ThemeEditorContext(@NotNull Configuration configuration) {
     setConfiguration(configuration);
+
+    addConfigurationListener(new ConfigurationListener() {
+      @Override
+      public boolean changed(int flags) {
+        if ((ConfigurationListener.MASK_FOLDERCONFIG & flags) != 0) {
+          updateThemeResolver();
+        }
+        return true;
+      }
+    });
   }
 
   public void updateThemeResolver() {
