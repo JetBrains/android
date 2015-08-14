@@ -1,7 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.media.tv.TvContract android.net.Uri buildChannelUri(long)">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;com.android.providers.tv.permission.READ_EPG_DATA&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;com.android.providers.tv.permission.WRITE_EPG_DATA&quot;" />
+    </annotation>
+  </item>
   <item name="android.media.tv.TvContract android.net.Uri buildChannelsUriForInput(java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.tv.TvContract.Channels CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;com.android.providers.tv.permission.READ_EPG_DATA&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;com.android.providers.tv.permission.WRITE_EPG_DATA&quot;" />
+    </annotation>
   </item>
   <item name="android.media.tv.TvContract.Channels java.lang.String getVideoResolution(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
