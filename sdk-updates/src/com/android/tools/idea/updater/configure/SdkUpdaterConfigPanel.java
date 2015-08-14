@@ -60,6 +60,8 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -264,6 +266,19 @@ public class SdkUpdaterConfigPanel {
         }
       }
     });
+  }
+
+  protected static void resizeColumnsToFit(JTable table) {
+    TableColumnModel columnModel = table.getColumnModel();
+    for (int column = 1; column < table.getColumnCount(); column++) {
+      int width = 50;
+      for (int row = 0; row < table.getRowCount(); row++) {
+        TableCellRenderer renderer = table.getCellRenderer(row, column);
+        Component comp = table.prepareRenderer(renderer, row, column);
+        width = Math.max(comp.getPreferredSize().width + 1, width);
+      }
+      columnModel.getColumn(column).setPreferredWidth(width);
+    }
   }
 
   public void refresh() {

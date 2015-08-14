@@ -131,6 +131,8 @@ public class PlatformComponentsPanel {
       }
     }
     refreshModified();
+    SdkUpdaterConfigPanel.resizeColumnsToFit(myPlatformDetailTable);
+    SdkUpdaterConfigPanel.resizeColumnsToFit(myPlatformSummaryTable);
     myPlatformDetailTable.updateUI();
     myPlatformSummaryTable.updateUI();
     TreeUtil.expandAll(myPlatformDetailTable.getTree());
