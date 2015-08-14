@@ -73,7 +73,7 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
     if (window == null) {
       assert ApplicationManager.getApplication().isUnitTestMode();
     } else {
-      window.setPreferredSize(WizardConstants.DEFAULT_WIZARD_WINDOW_SIZE);
+      window.setMinimumSize(WizardConstants.DEFAULT_WIZARD_WINDOW_SIZE);
     }
     myWizard = wizard;
     super.init();

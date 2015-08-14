@@ -161,11 +161,6 @@ public class HaxmAlert extends JPanel {
     } else {
       setVisible(false);
     }
-
-    Window window = SwingUtilities.getWindowAncestor(this);
-    if (window != null) {
-      window.pack();
-    }
   }
 
   private void setupDownloadLink() {
