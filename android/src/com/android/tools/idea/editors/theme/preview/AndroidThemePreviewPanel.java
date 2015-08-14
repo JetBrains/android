@@ -273,6 +273,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   public void setBackground(Color bg) {
     super.setBackground(bg);
 
+    myAndroidPreviewPanel.setBackground(bg);
     myScrollPane.getViewport().setBackground(bg);
     myBreadcrumbs.setBackground(bg);
   }

@@ -46,7 +46,7 @@ public class GraphicsLayoutRendererTest extends AndroidTestCase {
       DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(layout.getInputStream()).getDocumentElement());
 
     BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-    GraphicsLayoutRenderer renderer = GraphicsLayoutRenderer.create(configuration, parser, false, false);
+    GraphicsLayoutRenderer renderer = GraphicsLayoutRenderer.create(configuration, parser, Color.BLACK, false, false);
 
     // The first render triggers a render (to a NOP Graphics object) so we expect sizes to have been initialized.
     Dimension initialSize = renderer.getPreferredSize();
