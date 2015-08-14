@@ -95,7 +95,6 @@ import java.awt.Color;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -486,31 +485,30 @@ public class ThemeEditorUtils {
 
   /**
    * Creates a new style by displaying the dialog of the {@link NewStyleDialog}.
-   * @param parentStyle is used in NewStyleDialog, will be preselected in the parent text field and name will be suggested based on it.
+   * @param defaultParentStyle is used in NewStyleDialog, will be preselected in the parent text field and name will be suggested based on it
+   * @param themeEditorContext  current theme editor context
    * @param isTheme whether theme or style will be created
    * @param message is used in NewStyleDialog to display message to user
-   * @return the new style name or null if the style wasn't created.
+   * @return the new style name or null if the style wasn't created
    */
   @Nullable
-  public static String showCreateNewStyleDialog(@Nullable ThemeEditorStyle parentStyle,
-                                                @NotNull final ThemeEditorContext myThemeEditorContext,
+  public static String showCreateNewStyleDialog(@Nullable ThemeEditorStyle defaultParentStyle,
+                                                @NotNull final ThemeEditorContext themeEditorContext,
                                                 boolean isTheme,
                                                 @Nullable final String message) {
-    // if isTheme is true, parentStyle shouldn't be null
-    assert !isTheme || parentStyle != null;
+    // if isTheme is true, defaultParentStyle shouldn't be null
+    assert !isTheme || defaultParentStyle != null;
 
-    final NewStyleDialog dialog = new NewStyleDialog(isTheme, myThemeEditorContext, (parentStyle == null) ? null : parentStyle.getQualifiedName(),
-                         (parentStyle == null) ? null : parentStyle.getName(), message);
+    final NewStyleDialog dialog = new NewStyleDialog(isTheme, themeEditorContext, (defaultParentStyle == null) ? null : defaultParentStyle.getQualifiedName(),
+                         (defaultParentStyle == null) ? null : defaultParentStyle.getName(), message);
 
     boolean createStyle = dialog.showAndGet();
     if (!createStyle) {
       return null;
     }
 
-    int minModuleApi = getMinApiLevel(myThemeEditorContext.getCurrentContextModule());
-    //int newAttributeApiLevel = getOriginalApiLevel(newAttributeName, myThemeEditorContext.getProject());
-    //int newValueApiLevel = getOriginalApiLevel(newAttributeValue, myThemeEditorContext.getProject());
-    int minAcceptableApi = getOriginalApiLevel(dialog.getStyleParentName(), myThemeEditorContext.getProject());
+    int minModuleApi = getMinApiLevel(themeEditorContext.getCurrentContextModule());
+    int minAcceptableApi = getOriginalApiLevel(dialog.getStyleParentName(), themeEditorContext.getProject());
 
     final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STYLE);
     FolderConfiguration config = new FolderConfiguration();
@@ -525,9 +523,9 @@ public class ThemeEditorUtils {
       return null;
     }
 
-    String parentStyleName = parentStyle != null ? parentStyle.getQualifiedName() : null;
+    String parentStyleName = dialog.getStyleParentName();
     boolean isCreated = createNewStyle(
-      myThemeEditorContext.getCurrentContextModule(), dialog.getStyleName(), parentStyleName, fileName, dirNames);
+      themeEditorContext.getCurrentContextModule(), dialog.getStyleName(), parentStyleName, fileName, dirNames);
 
     return isCreated ? SdkConstants.STYLE_RESOURCE_PREFIX + dialog.getStyleName() : null;
   }
