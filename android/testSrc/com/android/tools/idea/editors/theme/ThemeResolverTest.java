@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredItemResourceValue;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -67,9 +67,9 @@ public class ThemeResolverTest extends AndroidTestCase {
     assertEquals("Theme", theme.getParent().getName());
 
     assertEquals(1, theme.getConfiguredValues().values().size());
-    ConfiguredItemResourceValue value = Iterables.get(theme.getConfiguredValues().values(), 0);
-    assertEquals("windowBackground", value.getItemResourceValue().getName());
-    assertEquals("@drawable/pic", value.getItemResourceValue().getValue());
+    ConfiguredElement<ItemResourceValue> value = Iterables.get(theme.getConfiguredValues().values(), 0);
+    assertEquals("windowBackground", value.getElement().getName());
+    assertEquals("@drawable/pic", value.getElement().getValue());
 
     // Modify a value.
     theme.setValue("android:windowBackground", "@drawable/other");

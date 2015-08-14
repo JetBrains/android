@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
+import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.ide.common.resources.configuration.VersionQualifier;
-import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredItemResourceValue;
+import com.android.tools.idea.editors.theme.attributes.variants.VariantItemListener;
+import com.android.tools.idea.editors.theme.attributes.variants.VariantsComboItem;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.qualifiers.QualifierUtils;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
-import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -39,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -53,12 +49,6 @@ import java.util.ArrayList;
  */
 public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
   static final String DUMB_MODE_MESSAGE = "Editing theme is not possible - indexing is in progress";
-  static final String CURRENT_VARIANT_TEMPLATE = "<html><nobr><font color=\"#%1$s\">%2$s</font>";
-  static final String NOT_SELECTED_VARIANT_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b><font color=\"#9B9B9B\"> %3$s</font>";
-  @SuppressWarnings("UseJBColor") // LIGHT_GRAY works also in Darcula
-  static final Color CURRENT_VARIANT_COLOR = Color.LIGHT_GRAY;
-  @SuppressWarnings("UseJBColor")
-  static final Color NOT_SELECTED_VARIANT_COLOR = new Color(0x70ABE3);
 
   private static final Logger LOG = Logger.getInstance(GraphicalResourceRendererEditor.class);
 
@@ -77,7 +67,13 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
     };
 
     if (isEditor) {
-      myComponent.addVariantItemListener(new VariantItemListener());
+      myComponent.addVariantItemListener(new VariantItemListener(context));
+      myComponent.addVariantItemListener(new ItemListener() {
+        @Override
+        public void itemStateChanged(ItemEvent e) {
+          stopCellEditing();
+        }
+      });
     }
   }
 
@@ -92,7 +88,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
     ArrayList<FolderConfiguration> incompatibleConfigurations = Lists.newArrayListWithCapacity(
       item.getNonSelectedItemResourceValues().size() + 1);
 
-    for (ConfiguredItemResourceValue configuredItem : item.getAllConfiguredItems()) {
+    for (ConfiguredElement<ItemResourceValue> configuredItem : item.getAllConfiguredItems()) {
       FolderConfiguration configuration = configuredItem.getConfiguration();
       if (configuration == compatibleConfiguration) {
         continue;
@@ -111,15 +107,15 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
                                               @NotNull ResourceComponent component,
                                               final @NotNull EditedStyleItem item) {
     final ConfigurationManager manager = context.getConfiguration().getConfigurationManager();
-    final String currentVariantColor = ColorUtil.toHex(CURRENT_VARIANT_COLOR);
-    final String notSelectedVariantColor = ColorUtil.toHex(NOT_SELECTED_VARIANT_COLOR);
+    final String currentVariantColor = ColorUtil.toHex(ThemeEditorConstants.CURRENT_VARIANT_COLOR);
+    final String notSelectedVariantColor = ColorUtil.toHex(ThemeEditorConstants.NOT_SELECTED_VARIANT_COLOR);
     final ImmutableList.Builder<VariantsComboItem> variantsListBuilder = ImmutableList.builder();
     FolderConfiguration restrictedConfig = restrictConfiguration(manager, item, item.getSelectedValueConfiguration());
     variantsListBuilder.add(new VariantsComboItem(
-      String.format(CURRENT_VARIANT_TEMPLATE, currentVariantColor, item.getSelectedValueConfiguration().toShortDisplayString()),
+      String.format(ThemeEditorConstants.CURRENT_VARIANT_TEMPLATE, currentVariantColor, item.getSelectedValueConfiguration().toShortDisplayString()),
       restrictedConfig != null ? restrictedConfig : item.getSelectedValueConfiguration()));
 
-    for (ConfiguredItemResourceValue configuredItem : item.getNonSelectedItemResourceValues()) {
+    for (ConfiguredElement<ItemResourceValue> configuredItem : item.getNonSelectedItemResourceValues()) {
       restrictedConfig = restrictConfiguration(context.getConfiguration().getConfigurationManager(), item, configuredItem.getConfiguration());
 
       if (restrictedConfig == null) {
@@ -130,10 +126,10 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
         continue;
       }
 
-      String value = configuredItem.getItemResourceValue() != null ? " - " + configuredItem.getItemResourceValue().getValue() : "";
-      variantsListBuilder.add(new VariantsComboItem(String.format(NOT_SELECTED_VARIANT_TEMPLATE, notSelectedVariantColor,
-                                                                  configuredItem.getConfiguration().toShortDisplayString(),
-                                                                  value), restrictedConfig));
+      variantsListBuilder.add(new VariantsComboItem(String
+                                                      .format(ThemeEditorConstants.NOT_SELECTED_VARIANT_TEMPLATE, notSelectedVariantColor,
+                                                              configuredItem.getConfiguration().toShortDisplayString(),
+                                                              " - " + configuredItem.getElement().getValue()), restrictedConfig));
     }
 
     ImmutableList<VariantsComboItem> variantStrings = variantsListBuilder.build();
@@ -168,53 +164,4 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
     return myEditorValue;
   }
 
-  /**
-   * Class that wraps the display text of a variant and the folder configuration that represents.
-   */
-  private static class VariantsComboItem {
-    final String myLabel;
-    final FolderConfiguration myFolderConfiguration;
-
-    VariantsComboItem(@NotNull String label, @NotNull FolderConfiguration folderConfiguration) {
-      myLabel = label;
-      myFolderConfiguration = folderConfiguration;
-    }
-
-    @Override
-    public String toString() {
-      return myLabel;
-    }
-  }
-
-  private class VariantItemListener implements ItemListener {
-    @Override
-    public void itemStateChanged(ItemEvent e) {
-      if (e.getStateChange() != ItemEvent.SELECTED) {
-        return;
-      }
-
-      VariantsComboItem item = (VariantsComboItem)e.getItem();
-      Configuration oldConfiguration = myContext.getConfiguration();
-      ConfigurationManager manager = oldConfiguration.getConfigurationManager();
-      Configuration newConfiguration = Configuration.create(manager, null, null, item.myFolderConfiguration);
-
-      // Target and locale are global so we need to set them in the configuration manager when updated
-      VersionQualifier newVersionQualifier = item.myFolderConfiguration.getVersionQualifier();
-      if (newVersionQualifier != null) {
-        IAndroidTarget realTarget = manager.getHighestApiTarget() != null ? manager.getHighestApiTarget() : manager.getTarget();
-        manager.setTarget(new CompatibilityRenderTarget(realTarget, newVersionQualifier.getVersion(), null));
-      } else {
-        manager.setTarget(null);
-      }
-
-      LocaleQualifier newLocaleQualifier = item.myFolderConfiguration.getLocaleQualifier();
-      manager.setLocale(newLocaleQualifier != null ? Locale.create(newLocaleQualifier) : Locale.ANY);
-
-      oldConfiguration.setDevice(null, false);
-      Configuration.copyCompatible(newConfiguration, oldConfiguration);
-      oldConfiguration.updated(ConfigurationListener.MASK_FOLDERCONFIG);
-
-      GraphicalResourceRendererEditor.this.stopCellEditing();
-    }
-  }
 }
