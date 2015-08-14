@@ -86,8 +86,7 @@ public class NewStyleDialog extends DialogWrapper {
       defaultParent = ResolutionUtils.getStyle(configuration, defaultParentName, null);
     }
 
-    //noinspection GtkPreferredJComboBoxRenderer
-    myParentStyleComboBox.setRenderer(new StyleListCellRenderer(context));
+    myParentStyleComboBox.setRenderer(new StyleListCellRenderer(context, myParentStyleComboBox));
     final ParentThemesListModel parentThemesListModel = new ParentThemesListModel(defaultThemes, defaultParent);
     myParentStyleComboBox.setModel(parentThemesListModel);
     myParentStyleComboBox.addActionListener(new ActionListener() {
