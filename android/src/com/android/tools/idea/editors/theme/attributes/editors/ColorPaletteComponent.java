@@ -16,17 +16,13 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.swing.ui.SwatchComponent;
-
 import com.intellij.util.ui.JBUI;
-import java.awt.Component;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.*;
 
 import static com.intellij.util.ui.GraphicsUtil.setupAAPainting;
-
-import javax.swing.Icon;
-import org.jetbrains.annotations.NotNull;
 
 public class ColorPaletteComponent implements Icon {
   private static final int ICON_SIZE = JBUI.scale(20);

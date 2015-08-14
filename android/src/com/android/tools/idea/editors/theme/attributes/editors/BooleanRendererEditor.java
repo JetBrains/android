@@ -18,17 +18,16 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
-import java.awt.Component;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 

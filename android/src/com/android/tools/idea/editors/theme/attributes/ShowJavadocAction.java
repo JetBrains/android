@@ -28,9 +28,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.awt.RelativePoint;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.AbstractAction;
-import javax.swing.JTable;
-import java.awt.Point;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 
 /**

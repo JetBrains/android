@@ -20,11 +20,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;

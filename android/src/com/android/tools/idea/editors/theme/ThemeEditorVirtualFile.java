@@ -27,7 +27,7 @@ import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.Icon;
+import javax.swing.*;
 
 /**
  * Virtual file used to have theme editor is separate tab, not tied to any particular

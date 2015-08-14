@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import spantable.CellSpanModel;
 
 import javax.swing.table.AbstractTableModel;
-import java.awt.Color;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
