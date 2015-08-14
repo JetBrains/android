@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.gridlayout;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
@@ -50,6 +51,16 @@ public final class GridLayoutHandler extends ViewGroupHandler {
 
     @Override
     public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+      if (info.cellHasChild(row, column)) {
+        return;
+      }
+
+      NlComponent[][] children = info.getChildren();
+      int startRow = info.getRow(startY);
+      int startColumn = info.getColumn(startX);
+
+      children[startRow][startColumn].setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, Integer.toString(row));
+      children[startRow][startColumn].setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, Integer.toString(column));
     }
 
     @Override
