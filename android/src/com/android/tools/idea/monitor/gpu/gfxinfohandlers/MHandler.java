@@ -112,6 +112,11 @@ public final class MHandler implements GfxinfoHandler {
     return new TimelineData(9, SAMPLE_BUFFER_SIZE);
   }
 
+  @Override
+  public boolean getIsEnabledOnDevice() {
+    return true;
+  }
+
   private void synchronizeClocks(@NotNull IDevice device) {
     assert myClient != null;
 

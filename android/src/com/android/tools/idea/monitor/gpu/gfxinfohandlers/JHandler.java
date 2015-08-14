@@ -97,25 +97,37 @@ public final class JHandler implements GfxinfoHandler {
     return new TimelineData(3, SAMPLE_BUFFER_SIZE);
   }
 
+  @Override
+  public boolean getIsEnabledOnDevice() {
+    return myReceiver.getDetectedDeveloperOptionEnabled();
+  }
+
   /**
    * Output receiver for "dumpsys gfxinfo <pid>" in API 16 or later.
    */
   private static final class ProcessStatReceiver extends MultiLineReceiver {
-    List<String> myOutput = new ArrayList<String>();
+    private List<String> myOutput = new ArrayList<String>();
 
     private TFloatArrayList myDrawTimes = new TFloatArrayList();
     private TFloatArrayList myPrepareTimes = new TFloatArrayList();
     private TFloatArrayList myExecuteTimes = new TFloatArrayList();
+
+    private boolean myDetectedDeveloperOptionEnabled; // Indicates whether or not GPU developer options are enabled.
 
     public void reset() {
       resetSamples();
     }
 
     public void resetSamples() {
+      myDetectedDeveloperOptionEnabled = false;
       myOutput.clear();
       myDrawTimes.resetQuick();
       myPrepareTimes.resetQuick();
       myExecuteTimes.resetQuick();
+    }
+
+    public boolean getDetectedDeveloperOptionEnabled() {
+      return myDetectedDeveloperOptionEnabled;
     }
 
     /*
@@ -174,6 +186,7 @@ public final class JHandler implements GfxinfoHandler {
                 "Draw".equals(tokens[0]) &&
                 "Process".equals(tokens[1]) &&
                 "Execute".equals(tokens[2])) {
+              myDetectedDeveloperOptionEnabled = true;
               profileSectionIndex += 1;
               break;
             }
