@@ -15,19 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.gridlayout;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
-import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.Insets;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.SegmentType;
 
-import java.awt.*;
 import java.util.List;
 
 public final class GridLayoutHandler extends ViewGroupHandler {
@@ -39,127 +31,11 @@ public final class GridLayoutHandler extends ViewGroupHandler {
     return new GridDragHandler(editor, this, layout, components, type);
   }
 
-  private static final class GridDragHandler extends DragHandler {
-    private final GridInfo info;
-    private int row;
-    private int column;
-
-    private GridDragHandler(ViewEditor editor, ViewGroupHandler handler, NlComponent layout, List<NlComponent> components, DragType type) {
-      super(editor, handler, layout, components, type);
-      info = new GridInfo(layout);
-    }
-
-    @Override
-    public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
-      if (info.cellHasChild(row, column)) {
-        return;
-      }
-
-      NlComponent[][] children = info.getChildren();
-      int startRow = info.getRow(startY);
-      int startColumn = info.getColumn(startX);
-
-      children[startRow][startColumn].setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, Integer.toString(row));
-      children[startRow][startColumn].setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, Integer.toString(column));
-    }
-
-    @Override
-    public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
-      String successful = super.update(x, y, modifiers);
-
-      row = info.getRow(y);
-      column = info.getColumn(x);
-
-      return successful;
-    }
-
-    @Override
-    public void paint(@NonNull NlGraphics graphics) {
-      Insets padding = layout.getPadding();
-
-      int layoutX1 = layout.x + padding.left;
-      int layoutY1 = layout.y + padding.top;
-      int layoutX2 = layout.x + padding.left + layout.w - padding.width() - 1;
-      int layoutY2 = layout.y + padding.top + layout.h - padding.height() - 1;
-
-      graphics.useStyle(NlDrawingStyle.DROP_ZONE);
-
-      for (int x : info.getVerticalLineLocations()) {
-        graphics.drawLine(x, layoutY1, x, layoutY2);
-      }
-
-      for (int y : info.getHorizontalLineLocations()) {
-        graphics.drawLine(layoutX1, y, layoutX2, y);
-      }
-
-      graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
-      graphics.drawRect(layoutX1, layoutY1, layout.w - padding.width(), layout.h - padding.height());
-
-      graphics.useStyle(info.cellHasChild(row, column) ? NlDrawingStyle.INVALID : NlDrawingStyle.DROP_ZONE_ACTIVE);
-
-      Rectangle rectangle = getActiveDropZoneRectangle();
-      graphics.fillRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
-    }
-
-    private Rectangle getActiveDropZoneRectangle() {
-      int startRow = row;
-      int startColumn = column;
-      int endRow = row + 1;
-      int endColumn = column + 1;
-
-      if (info.cellHasChild(row, column)) {
-        Object[][] children = info.getChildren();
-
-        while (startRow > 0) {
-          if (children[row][column].equals(children[startRow - 1][column])) {
-            startRow--;
-          }
-          else {
-            break;
-          }
-        }
-
-        while (startColumn > 0) {
-          if (children[row][column].equals(children[row][startColumn - 1])) {
-            startColumn--;
-          }
-          else {
-            break;
-          }
-        }
-
-        int rowCount = info.getRowCount();
-
-        while (endRow < rowCount) {
-          if (children[row][column].equals(children[endRow][column])) {
-            endRow++;
-          }
-          else {
-            break;
-          }
-        }
-
-        int columnCount = info.getColumnCount();
-
-        while (endColumn < columnCount) {
-          if (children[row][column].equals(children[row][endColumn])) {
-            endColumn++;
-          }
-          else {
-            break;
-          }
-        }
-      }
-
-      int[] verticalLineLocations = info.getVerticalLineLocations();
-      int[] horizontalLineLocations = info.getHorizontalLineLocations();
-
-      int x = verticalLineLocations[startColumn];
-      int y = horizontalLineLocations[startRow];
-      int width = verticalLineLocations[endColumn] - x;
-      int height = horizontalLineLocations[endRow] - y;
-
-      return new Rectangle(x, y, width, height);
-    }
+  @Override
+  public ResizeHandler createResizeHandler(@NonNull ViewEditor editor,
+                                           @NonNull NlComponent child,
+                                           SegmentType horizontalEdgeType,
+                                           SegmentType verticalEdgeType) {
+    return new DefaultResizeHandler(editor, this, child, horizontalEdgeType, verticalEdgeType);
   }
 }
