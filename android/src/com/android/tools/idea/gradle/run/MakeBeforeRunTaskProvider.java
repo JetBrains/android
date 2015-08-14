@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -162,12 +162,12 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         continue;
       }
 
-      IdeaGradleProject gradleProject = facet.getGradleProject();
-      if (gradleProject == null) {
+      GradleModel gradleModel = facet.getGradleModel();
+      if (gradleModel == null) {
         continue;
       }
 
-      gradleTasks.addAll(gradleProject.getTaskNames());
+      gradleTasks.addAll(gradleModel.getTaskNames());
     }
 
     return gradleTasks;

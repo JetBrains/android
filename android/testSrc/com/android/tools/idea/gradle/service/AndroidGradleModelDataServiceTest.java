@@ -41,9 +41,9 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static org.easymock.EasyMock.*;
 
 /**
- * Tests for {@link AndroidProjectDataService}.
+ * Tests for {@link AndroidGradleModelDataService}.
  */
-public class AndroidProjectDataServiceTest extends IdeaTestCase {
+public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
   private static final String DEBUG = "debug";
 
   private AndroidProjectStub myAndroidProject;
@@ -51,7 +51,7 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
   private ModuleCustomizer<AndroidGradleModel> myCustomizer1;
   private ModuleCustomizer<AndroidGradleModel> myCustomizer2;
 
-  private AndroidProjectDataService service;
+  private AndroidGradleModelDataService service;
 
   @Override
   public void setUp() throws Exception {
@@ -67,7 +67,7 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     myCustomizer1 = createMock(ModuleCustomizer.class);
     //noinspection unchecked
     myCustomizer2 = createMock(ModuleCustomizer.class);
-    service = new AndroidProjectDataService(ImmutableList.of(myCustomizer1, myCustomizer2));
+    service = new AndroidGradleModelDataService(ImmutableList.of(myCustomizer1, myCustomizer2));
   }
 
   @Override
@@ -90,7 +90,7 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
       VfsRootAccess.allowRootAccess(jdkPath);
     }
     List<DataNode<AndroidGradleModel>> nodes = Lists.newArrayList();
-    Key<AndroidGradleModel> key = AndroidProjectKeys.IDE_ANDROID_MODEL;
+    Key<AndroidGradleModel> key = AndroidProjectKeys.ANDROID_MODEL;
     nodes.add(new DataNode<AndroidGradleModel>(key, myAndroidModel, null));
 
     assertEquals(key, service.getTargetDataKey());

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.collect.Maps;
@@ -43,17 +43,17 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 /**
  * Service that stores the "Gradle project paths" of an imported Android-Gradle project.
  */
-public class GradleProjectDataService implements ProjectDataService<IdeaGradleProject, Void> {
-  private static final Logger LOG = Logger.getInstance(GradleProjectDataService.class);
+public class GradleModelDataService implements ProjectDataService<GradleModel, Void> {
+  private static final Logger LOG = Logger.getInstance(GradleModelDataService.class);
 
   @NotNull
   @Override
-  public Key<IdeaGradleProject> getTargetDataKey() {
-    return AndroidProjectKeys.IDE_GRADLE_PROJECT;
+  public Key<GradleModel> getTargetDataKey() {
+    return AndroidProjectKeys.GRADLE_MODEL;
   }
 
   @Override
-  public void importData(@NotNull Collection<DataNode<IdeaGradleProject>> toImport, @NotNull Project project, boolean synchronous) {
+  public void importData(@NotNull Collection<DataNode<GradleModel>> toImport, @NotNull Project project, boolean synchronous) {
     if (!toImport.isEmpty()) {
       try {
         doImport(toImport, project);
@@ -64,27 +64,27 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
     }
   }
 
-  private static void doImport(final Collection<DataNode<IdeaGradleProject>> toImport, final Project project) throws Throwable {
+  private static void doImport(final Collection<DataNode<GradleModel>> toImport, final Project project) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
         if (!project.isDisposed()) {
           ModuleManager moduleManager = ModuleManager.getInstance(project);
-          Map<String, IdeaGradleProject> gradleProjectsByName = indexByModuleName(toImport);
+          Map<String, GradleModel> gradleProjectsByName = indexByModuleName(toImport);
           for (Module module : moduleManager.getModules()) {
-            IdeaGradleProject gradleProject = gradleProjectsByName.get(module.getName());
-            if (gradleProject == null) {
+            GradleModel gradleModel = gradleProjectsByName.get(module.getName());
+            if (gradleModel == null) {
               // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
               // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides not
               // to delete the orphan module when Studio prompts to do so.
               Facets.removeAllFacetsOfType(module, AndroidGradleFacet.TYPE_ID);
             }
             else {
-              String gradleVersion = gradleProject.getGradleVersion();
+              String gradleVersion = gradleModel.getGradleVersion();
               if (isNotEmpty(gradleVersion)) {
                 setGradleVersionUsed(project, gradleVersion);
               }
-              customizeModule(module, gradleProject);
+              customizeModule(module, gradleModel);
             }
           }
         }
@@ -97,18 +97,18 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
   }
 
   @NotNull
-  private static Map<String, IdeaGradleProject> indexByModuleName(@NotNull Collection<DataNode<IdeaGradleProject>> dataNodes) {
-    Map<String, IdeaGradleProject> gradleProjectsByModuleName = Maps.newHashMap();
-    for (DataNode<IdeaGradleProject> d : dataNodes) {
-      IdeaGradleProject gradleProject = d.getData();
-      gradleProjectsByModuleName.put(gradleProject.getModuleName(), gradleProject);
+  private static Map<String, GradleModel> indexByModuleName(@NotNull Collection<DataNode<GradleModel>> dataNodes) {
+    Map<String, GradleModel> gradleProjectsByModuleName = Maps.newHashMap();
+    for (DataNode<GradleModel> d : dataNodes) {
+      GradleModel gradleModel = d.getData();
+      gradleProjectsByModuleName.put(gradleModel.getModuleName(), gradleModel);
     }
     return gradleProjectsByModuleName;
   }
 
-  private static void customizeModule(@NotNull Module module, @NotNull IdeaGradleProject gradleProject) {
+  private static void customizeModule(@NotNull Module module, @NotNull GradleModel gradleModel) {
     AndroidGradleFacet androidGradleFacet = setAndGetAndroidGradleFacet(module);
-    androidGradleFacet.setGradleProject(gradleProject);
+    androidGradleFacet.setGradleModel(gradleModel);
   }
 
   /**
