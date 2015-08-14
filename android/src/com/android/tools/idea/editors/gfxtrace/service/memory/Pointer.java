@@ -18,11 +18,21 @@
 package com.android.tools.idea.editors.gfxtrace.service.memory;
 
 import com.android.tools.rpclib.binary.*;
+import com.android.tools.rpclib.schema.Type;
+import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-public final class Pointer implements BinaryObject {
+public final class Pointer implements BinaryObject, Type.Renderable {
+  @Override
+  public void render(@NotNull SimpleColoredComponent component) {
+    component.append("0x" + Long.toHexString((Long)myAddress), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+    component.append("@", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    component.append(Integer.toString(myPool.getValue()), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   long myAddress;
   PoolID myPool;
