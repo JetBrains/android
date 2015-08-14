@@ -329,7 +329,7 @@
   </item>
   <item name="android.media.MediaCodec.CryptoException int getErrorCode()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.media.MediaCodec.CryptoException.ERROR_NO_KEY, android.media.MediaCodec.CryptoException.ERROR_KEY_EXPIRED, android.media.MediaCodec.CryptoException.ERROR_RESOURCE_BUSY, android.media.MediaCodec.CryptoException.ERROR_INSUFFICIENT_OUTPUT_PROTECTION}" />
+      <val name="value" val="{android.media.MediaCodec.CryptoException.ERROR_NO_KEY, android.media.MediaCodec.CryptoException.ERROR_KEY_EXPIRED, android.media.MediaCodec.CryptoException.ERROR_RESOURCE_BUSY, android.media.MediaCodec.CryptoException.ERROR_INSUFFICIENT_OUTPUT_PROTECTION, android.media.MediaCodec.CryptoException.ERROR_SESSION_NOT_OPENED}" />
     </annotation>
   </item>
   <item name="android.media.MediaCodec.CryptoInfo void set(int, int[], int[], byte[], byte[], int) 1">
@@ -346,6 +346,9 @@
   </item>
   <item name="android.media.MediaCodec.OnFrameRenderedListener void onFrameRendered(android.media.MediaCodec, long, long) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodecInfo.VideoCapabilities android.util.Range&lt;java.lang.Double&gt; getAchievableFrameRatesFor(int, int)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.media.MediaCrypto MediaCrypto(java.util.UUID, byte[]) 0">
     <annotation name="android.support.annotation.NonNull" />
