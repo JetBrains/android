@@ -19,25 +19,29 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.attributes.ShowJavadocAction;
+import com.android.tools.idea.editors.theme.attributes.TableLabel;
+import com.android.tools.idea.editors.theme.attributes.editors.*;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.dom.drawable.DrawableDomElement;
+import org.jetbrains.android.dom.resources.Flag;
 import org.jetbrains.annotations.NotNull;
 import spantable.CellSpanModel;
 import spantable.CellSpanTable;
 
-import javax.swing.AbstractAction;
-import javax.swing.JPopupMenu;
-import javax.swing.RowSorter;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-import java.awt.MouseInfo;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.Map;
@@ -50,15 +54,23 @@ public class ThemeEditorTable extends CellSpanTable {
 
   public ThemeEditorTable() {
     putClientProperty("terminateEditOnFocusLost", true);
+    // We shouldn't allow autoCreateColumnsFromModel, because when setModel() will be invoked, it removes
+    // existing listeners to cell editors.
+    setAutoCreateColumnsFromModel(false);
+
+    for (int c = 0; c < AttributesTableModel.COL_COUNT; ++c) {
+      addColumn(new TableColumn(c));
+    }
   }
 
   public void setGoToListener(@NotNull ThemeEditorComponent.GoToListener goToListener) {
     myGoToListener = goToListener;
   }
 
-  public void setContext(@NotNull ThemeEditorContext context) {
+  public void customizeTable(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel) {
     myContext = context;
     myJavadocAction = new ShowJavadocAction(this, myContext);
+    setRenderersAndEditors(previewPanel);
   }
 
   @Override
@@ -114,6 +126,54 @@ public class ThemeEditorTable extends CellSpanTable {
   public void setClassHeights(Map<Class<?>, Integer> classHeights) {
     myClassHeights = classHeights;
     updateRowHeights();
+  }
+
+  private void setRenderersAndEditors(@NotNull AndroidThemePreviewPanel previewPanel) {
+    Project project = myContext.getProject();
+    ResourcesCompletionProvider completionProvider = new ResourcesCompletionProvider(myContext);
+    final AttributeReferenceRendererEditor styleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
+
+    setDefaultRenderer(Color.class, new DelegatingCellRenderer(new ColorRendererEditor(myContext, previewPanel, false)));
+    setDefaultRenderer(EditedStyleItem.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
+    setDefaultRenderer(ThemeEditorStyle.class,
+                       new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
+    setDefaultRenderer(String.class, new DelegatingCellRenderer(getDefaultRenderer(String.class)));
+    setDefaultRenderer(Integer.class, new DelegatingCellRenderer(new IntegerRenderer()));
+    setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(new BooleanRendererEditor(myContext)));
+    setDefaultRenderer(Enum.class, new DelegatingCellRenderer(new EnumRendererEditor()));
+    setDefaultRenderer(Flag.class, new DelegatingCellRenderer(new FlagRendererEditor()));
+    setDefaultRenderer(AttributesTableModel.ParentAttribute.class, new DelegatingCellRenderer(new ParentRendererEditor(myContext)));
+    setDefaultRenderer(DrawableDomElement.class, new DelegatingCellRenderer(new DrawableRendererEditor(myContext, previewPanel, false)));
+    setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
+      @Override
+      public Component getTableCellRendererComponent(JTable table,
+                                                     Object value,
+                                                     boolean isSelected,
+                                                     boolean hasFocus,
+                                                     int row,
+                                                     int column) {
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        Font regularFont = UIUtil.getLabelFont();
+        int regularFontSize = getFontMetrics(regularFont).getHeight();
+        Font headerFont = regularFont.deriveFont(regularFontSize * ThemeEditorConstants.ATTRIBUTES_HEADER_FONT_SCALE);
+        this.setFont(headerFont);
+        return this;
+      }
+    });
+
+    setDefaultEditor(Color.class, new DelegatingCellEditor(false, new ColorRendererEditor(myContext, previewPanel, true)));
+    setDefaultEditor(EditedStyleItem.class,
+                     new DelegatingCellEditor(false, new AttributeReferenceRendererEditor(project, completionProvider)));
+    setDefaultEditor(String.class, new DelegatingCellEditor(false, getDefaultEditor(String.class)));
+    setDefaultEditor(Integer.class, new DelegatingCellEditor(getDefaultEditor(Integer.class)));
+    setDefaultEditor(Boolean.class, new DelegatingCellEditor(false, new BooleanRendererEditor(myContext)));
+    setDefaultEditor(Enum.class, new DelegatingCellEditor(false, new EnumRendererEditor()));
+    setDefaultEditor(Flag.class, new DelegatingCellEditor(false, new FlagRendererEditor()));
+    setDefaultEditor(AttributesTableModel.ParentAttribute.class, new DelegatingCellEditor(false, new ParentRendererEditor(myContext)));
+
+    // We allow to edit style pointers as Strings.
+    setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, styleEditor));
+    setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableRendererEditor(myContext, previewPanel, true)));
   }
 
   private JPopupMenu getPopupMenuAtCell(final int row, final int column) {
