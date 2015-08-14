@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.editors.gfxtrace.renderers;
 
-import com.android.tools.idea.editors.gfxtrace.controllers.FetchedImage;
-import com.android.tools.idea.editors.gfxtrace.controllers.ImageFetcher;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.ScrubberLabelData;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.RoundedLineBorder;
-import com.android.tools.idea.editors.gfxtrace.rpc.RenderSettings;
+import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
+import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
+import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.containers.HashSet;
@@ -63,7 +64,7 @@ public class ScrubberCellRenderer implements ListCellRenderer {
   private int myRepaintsNeeded;
 
   @NotNull private List<DimensionChangeListener> myDimensionChangeListeners = new ArrayList<DimensionChangeListener>(1);
-  private ImageFetcher myImageFetcher;
+  private ServiceClient myClient;
 
   public ScrubberCellRenderer() {
     myScrubberLabel = new ScrubberLabel();
@@ -74,7 +75,7 @@ public class ScrubberCellRenderer implements ListCellRenderer {
     myRenderSettings = new RenderSettings();
     myRenderSettings.setMaxWidth(MAX_WIDTH);
     myRenderSettings.setMaxHeight(MAX_HEIGHT);
-    myRenderSettings.setWireframe(false);
+    myRenderSettings.setWireframeMode(WireframeMode.NoWireframe);
 
     myBlankIcon = new ImageIcon(createBlankImage(DEFAULT_IMAGE_SIZE));
   }
@@ -89,8 +90,8 @@ public class ScrubberCellRenderer implements ListCellRenderer {
     return blankImage;
   }
 
-  public void setup(@NotNull ImageFetcher imageFetcher) {
-    myImageFetcher = imageFetcher;
+  public void setup(@NotNull ServiceClient client) {
+    myClient = client;
   }
 
   public void addDimensionChangeListener(@NotNull DimensionChangeListener listener) {
@@ -144,7 +145,8 @@ public class ScrubberCellRenderer implements ListCellRenderer {
         myOutstandingIconFetches.add(index);
         labelData.setLoading(true);
         final AtomicBoolean shouldStopReference = shouldStop;
-        final ImageFetcher closedImageFetcher = myImageFetcher;
+        final ServiceClient closedClient = myClient;
+        final DevicePath closedDevicePath = null; //TODO: get the device
 
         // The renderer should run in parallel since it doesn't affect the state of the editor.
         ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
@@ -152,15 +154,8 @@ public class ScrubberCellRenderer implements ListCellRenderer {
           public void run() {
             ImageIcon imageIcon = null;
             try {
-              ImageFetcher.ImageFetchHandle handle = closedImageFetcher.queueColorImage(labelData.getAtomId(), myRenderSettings);
-
-              if (handle != null) {
-                FetchedImage fetchedImage = closedImageFetcher.resolveImage(handle);
-
-                if (fetchedImage != null) {
-                  imageIcon = fetchedImage.createImageIcon();
-                }
-              }
+              closedClient.getFramebufferColor(closedDevicePath, labelData.getAtomPath(), myRenderSettings);
+              // TODO: something with the result of this call
             }
             finally {
               final ImageIcon finalImageIcon = imageIcon;
@@ -232,7 +227,6 @@ public class ScrubberCellRenderer implements ListCellRenderer {
 
   public void clearState() {
     clearCache();
-    myImageFetcher = null;
   }
 
   public void clearCache() {
