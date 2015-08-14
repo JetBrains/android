@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.nullToEmpty;
 
 /**

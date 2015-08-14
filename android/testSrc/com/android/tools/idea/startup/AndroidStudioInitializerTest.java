@@ -19,14 +19,14 @@ import junit.framework.TestCase;
 
 import java.io.File;
 
-public class AndroidStudioSpecificInitializerTest extends TestCase {
+public class AndroidStudioInitializerTest extends TestCase {
   public void testHasMoreThanOneBuilderModelFileWithTwoOrMoreBuilderModelFiles() {
     File[] files = {new File("builder-model-0.11.0.jar"), new File("builder-model-0.12.0.jar")};
-    assertTrue(AndroidStudioSpecificInitializer.hasMoreThanOneBuilderModelFile(files));
+    assertTrue(AndroidStudioInitializer.hasMoreThanOneBuilderModelFile(files));
   }
 
   public void testHasMoreThanOneBuilderModelFileWithOneBuilderModelFile() {
     File[] files = {new File("builder-model-0.12.0.jar")};
-    assertFalse(AndroidStudioSpecificInitializer.hasMoreThanOneBuilderModelFile(files));
+    assertFalse(AndroidStudioInitializer.hasMoreThanOneBuilderModelFile(files));
   }
 }

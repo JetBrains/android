@@ -22,8 +22,6 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.intention.IntentionManager;
@@ -36,26 +34,14 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.HighlighterColors;
-import com.intellij.openapi.editor.XmlHighlighterColors;
-import com.intellij.openapi.editor.colors.EditorColorsManager;
-import com.intellij.openapi.editor.colors.EditorColorsScheme;
-import com.intellij.openapi.editor.markup.TextAttributes;
-import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.util.PlatformUtils;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.TimeoutUtil;
 import com.intellij.util.messages.MessageBusConnection;
@@ -71,20 +57,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.SdkConstants.EXT_JAR;
-import static com.android.tools.idea.gradle.util.GradleUtil.cleanUpPreferences;
 import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemons;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
-import static com.intellij.openapi.actionSystem.IdeActions.*;
-import static com.intellij.openapi.options.Configurable.APPLICATION_CONFIGURABLE;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.io.FileUtilRt.getExtension;
+import static com.android.tools.idea.startup.Actions.*;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
-/** Initialization performed only in the context of the Android IDE. */
-public class AndroidStudioSpecificInitializer implements Runnable {
+/** Performs Gradle-specific IDE initialization */
+public class GradleSpecificInitializer implements Runnable {
   /**
    * We set the timeout for Gradle daemons to -1, this way IDEA will not set it to 1 minute and it will use the default instead (3 hours.)
    * We need to keep Gradle daemons around as much as possible because creating new daemons is resource-consuming and slows down the IDE.
@@ -93,92 +76,59 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   static {
     System.setProperty("external.system.remote.process.idle.ttl.ms", String.valueOf(GRADLE_DAEMON_TIMEOUT_MS));
   }
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
-  private static final List<String> IDE_SETTINGS_TO_REMOVE = Lists.newArrayList(
-    "org.jetbrains.plugins.javaFX.JavaFxSettingsConfigurable", "org.intellij.plugins.xpathView.XPathConfigurable",
-    "org.intellij.lang.xpath.xslt.impl.XsltConfigImpl$UIImpl"
-  );
-  @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARDS = "use.idea.newProjectWizard";
-  @NonNls private static final String USE_IDEA_NEW_FILE_POPUPS = "use.idea.newFilePopupActions";
-  @NonNls private static final String USE_IDEA_PROJECT_STRUCTURE = "use.idea.projectStructure";
+
+  private static final Logger LOG = Logger.getInstance(GradleSpecificInitializer.class);
+
   @NonNls public static final String ENABLE_EXPERIMENTAL_ACTIONS = "enable.experimental.actions";
 
+  // Paths relative to the IDE installation folder where the Android SDK may be present.
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
+  private static final String[] ANDROID_SDK_RELATIVE_PATHS = {
+    ANDROID_SDK_FOLDER_NAME,
+    File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME
+  };
 
-  /** Paths relative to the IDE installation folder where the Android SDK maybe present. */
-  private static final String[] ANDROID_SDK_RELATIVE_PATHS =
-    { ANDROID_SDK_FOLDER_NAME, File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME,};
+  private static Set<String> unwantedIntentions = Sets.newHashSet("Add testng.jar to classpath", /* TestNGOrderEntryFix */
+                                                                  "Add jcip-annotations.jar to classpath" /* JCiPOrderEntryFix */);
 
-  public static boolean isAndroidStudio() {
-    return "AndroidStudio".equals(PlatformUtils.getPlatformPrefix());
-  }
 
-  private static void checkInstallation() {
-    String studioHome = PathManager.getHomePath();
-    if (isEmpty(studioHome)) {
-      LOG.info("Unable to find Studio home directory");
-      return;
-    }
-    File studioHomePath = new File(toSystemDependentName(studioHome));
-    if (!studioHomePath.isDirectory()) {
-      LOG.info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
-      return;
-    }
-    File androidPluginLibFolderPath = new File(studioHomePath, join("plugins", "android", "lib"));
-    if (!androidPluginLibFolderPath.isDirectory()) {
-      LOG.info(String.format("The path '%1$s' does not belong to an existing directory", androidPluginLibFolderPath.getPath()));
-      return;
-    }
+  @Override
+  public void run() {
+    setUpNewProjectActions();
+    setUpWelcomeScreenActions();
+    setUpProjectStructureActions();
+    replaceProjectPopupActions();
 
-    // Look for signs that the installation is corrupt due to improper updates (typically unzipping on top of previous install)
-    // which doesn't delete files that have been removed or renamed
-    String cause = null;
-    File[] children = notNullize(androidPluginLibFolderPath.listFiles());
-    if (hasMoreThanOneBuilderModelFile(children)) {
-      cause = "(Found multiple versions of builder-model-*.jar in plugins/android/lib.)";
-    } else if (new File(studioHomePath, join("plugins", "android-designer")).exists()) {
-      cause = "(Found plugins/android-designer which should not be present.)";
-    }
-    if (cause != null) {
-      String msg = "Your Android Studio installation is corrupt and will not work properly.\n" +
-                   cause + "\n" +
-                   "This usually happens if Android Studio is extracted into an existing older version.\n\n" +
-                   "Please reinstall (and make sure the new installation directory is empty first.)";
-      String title = "Corrupt Installation";
-      int option = Messages.showDialog(msg, title, new String[]{"Quit", "Proceed Anyway"}, 0, Messages.getErrorIcon());
-      if (option == 0) {
-        ApplicationManagerEx.getApplicationEx().exit();
-      }
-    }
-  }
+    ActionManager actionManager = ActionManager.getInstance();
+    // "Configure Plugins..." Not sure why it's called StartupWizard.
+    AnAction pluginAction = actionManager.getAction("StartupWizard");
+    // Never applicable in the context of android studio, so just set to invisible.
+    pluginAction.getTemplatePresentation().setVisible(false);
 
-  @VisibleForTesting
-  static boolean hasMoreThanOneBuilderModelFile(@NotNull File[] libraryFiles) {
-    int builderModelFileCount = 0;
-
-    for (File file : libraryFiles) {
-      String fileName = file.getName();
-      if (fileName.startsWith("builder-model-") && EXT_JAR.equals(getExtension(fileName))) {
-        if (++builderModelFileCount > 1) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  private static void cleanUpIdePreferences() {
     try {
-      ExtensionPoint<ConfigurableEP<Configurable>> ideConfigurable = Extensions.getRootArea().getExtensionPoint(APPLICATION_CONFIGURABLE);
-      cleanUpPreferences(ideConfigurable, IDE_SETTINGS_TO_REMOVE);
+      // Setup JDK and Android SDK if necessary
+      setupSdks();
+    } catch (Exception e) {
+      LOG.error("Unexpected error while setting up SDKs: ", e);
     }
-    catch (Throwable e) {
-      LOG.info("Failed to clean up IDE preferences", e);
+
+    registerAppClosing();
+
+    // Always reset the Default scheme to match Android standards
+    // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
+    CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
+    if (scheme != null) {
+      CodeStyleSettings settings = scheme.getCodeStyleSettings();
+      if (settings != null) {
+        AndroidCodeStyleSettingsModifier.modify(settings);
+      }
     }
+
+    checkAndSetAndroidSdkSources();
+    hideUnwantedIntentions();
   }
 
-  private static void replaceIdeaNewProjectActions() {
+  private static void setUpNewProjectActions() {
     // Unregister IntelliJ's version of the project actions and manually register our own.
     replaceAction("OpenFile", new AndroidOpenFileAction());
     replaceAction("NewProject", new AndroidNewProjectAction());
@@ -188,18 +138,15 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("CreateLibraryFromFile", new CreateLibraryFromFilesAction());
     replaceAction("ImportModule", new AndroidImportModuleAction());
 
-    hideAction(IdeActions.ACTION_GENERATE_ANT_BUILD, "Generate Ant Build...");
-    hideAction("AddFrameworkSupport", "Add Framework Support...");
-    hideAction("BuildArtifact", "Build Artifacts...");
-    hideAction("RunTargetAction", "Run Ant Target");
-
-    replaceProjectPopupActions();
-    replaceIdeaWelcomeScreenActions();
+    hideAction(IdeActions.ACTION_GENERATE_ANT_BUILD);
+    hideAction("AddFrameworkSupport");
+    hideAction("BuildArtifact");
+    hideAction("RunTargetAction");
   }
 
-  private static void replaceIdeaWelcomeScreenActions() {
+  private static void setUpWelcomeScreenActions() {
     // Update the Welcome Screen actions
-    ActionManager am = ActionManager.getInstance();
+    ActionManager actionManager = ActionManager.getInstance();
 
     AndroidOpenFileAction openFileAction = new AndroidOpenFileAction();
     openFileAction.getTemplatePresentation().setText("Open an existing Android Studio project");
@@ -215,10 +162,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA", "WelcomeScreen.QuickStart",
                new Constraints(Anchor.AFTER, "WelcomeScreen.GetFromVcs"));
 
-    am.getAction("WelcomeScreen.GetFromVcs").getTemplatePresentation().setText("Check out project from Version Control");
+    actionManager.getAction("WelcomeScreen.GetFromVcs").getTemplatePresentation().setText("Check out project from Version Control");
   }
 
-  private static void replaceProjectStructureActions() {
+  private static void setUpProjectStructureActions() {
     AndroidTemplateProjectStructureAction showDefaultProjectStructureAction = new AndroidTemplateProjectStructureAction();
     showDefaultProjectStructureAction.getTemplatePresentation().setText("Default Project Structure...");
     replaceAction("TemplateProjectStructure", showDefaultProjectStructureAction);
@@ -231,52 +178,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       if (children.length == 1 && children[0] instanceof TemplateProjectSettingsGroup) {
         projectSettingsGroup.replaceAction(children[0], new AndroidTemplateProjectSettingsGroup());
       }
-    }
-  }
-
-  // The original actions will be visible only on plain IDEA projects.
-  private static void hideIdeaMakeActions() {
-    // 'Build' > 'Make Project' action
-    hideAction("CompileDirty", "Make Project");
-
-    // 'Build' > 'Make Modules' action
-    // We cannot simply hide this action, because of a NPE.
-    replaceAction(ACTION_MAKE_MODULE, new MakeIdeaModuleAction());
-
-    // 'Build' > 'Rebuild' action
-    hideAction(ACTION_COMPILE_PROJECT, "Rebuild Project");
-
-    // 'Build' > 'Compile Modules' action
-    hideAction(ACTION_COMPILE, "Compile Module(s)");
-  }
-
-  private static void replaceAction(String actionId, AnAction newAction) {
-    ActionManager am = ActionManager.getInstance();
-    AnAction oldAction = am.getAction(actionId);
-    if (oldAction != null) {
-      newAction.getTemplatePresentation().setIcon(oldAction.getTemplatePresentation().getIcon());
-      am.unregisterAction(actionId);
-    }
-    am.registerAction(actionId, newAction);
-  }
-
-  private static void moveAction(@NotNull String actionId, @NotNull String oldGroupId, @NotNull String groupId, @NotNull Constraints constraints) {
-    ActionManager am = ActionManager.getInstance();
-    AnAction action = am.getAction(actionId);
-    AnAction group = am.getAction(groupId);
-    AnAction oldGroup = am.getAction(oldGroupId);
-    if (action != null && oldGroup != null && group != null && oldGroup instanceof DefaultActionGroup && group instanceof DefaultActionGroup) {
-      ((DefaultActionGroup)oldGroup).getChildren(null); //call get children to resolve stubs
-      ((DefaultActionGroup)oldGroup).remove(action);
-      ((DefaultActionGroup)group).add(action, constraints);
-    }
-  }
-
-  private static void hideAction(@NotNull String actionId, @NotNull String backupText) {
-    AnAction oldAction = ActionManager.getInstance().getAction(actionId);
-    if (oldAction != null) {
-      AnAction newAction = new AndroidStudioActionRemover(oldAction, backupText);
-      replaceAction(actionId, newAction);
     }
   }
 
@@ -451,27 +352,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     }
   }
 
-  /**
-   * Remove popup actions that we don't use
-   */
-  private static void hideIdeaNewFilePopupActions() {
-    hideAction("NewHtmlFile", "HTML File");
-
-    hideAction("NewPackageInfo", "package-info.java");
-
-    // Hide designer actions
-    hideAction("NewForm", "GUI Form");
-    hideAction("NewDialog", "Dialog");
-    hideAction("NewFormSnapshot", "Form Snapshot");
-
-    // Hide individual actions that aren't part of a group
-    replaceAction("Groovy.NewClass", new EmptyAction());
-    replaceAction("Groovy.NewScript", new EmptyAction());
-  }
-
-  /**
-   * Registers an callback that gets notified when the IDE is closing.
-   */
+  // Registers a callback that gets notified when the IDE is closing.
   private static void registerAppClosing() {
     Application app = ApplicationManager.getApplication();
     MessageBusConnection connection = app.getMessageBus().connect(app);
@@ -509,72 +390,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     }
   }
 
-  @Override
-  public void run() {
-    checkInstallation();
-    cleanUpIdePreferences();
-
-    if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
-      replaceIdeaNewProjectActions();
-    }
-
-    if (!Boolean.getBoolean(USE_IDEA_PROJECT_STRUCTURE)) {
-      replaceProjectStructureActions();
-    }
-
-    hideIdeaMakeActions();
-
-    if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
-      hideIdeaNewFilePopupActions();
-    }
-
-    try {
-      // Setup JDK and Android SDK if necessary
-      setupSdks();
-    } catch (Exception e) {
-      LOG.error("Unexpected error while setting up SDKs: ", e);
-    }
-
-    hideMiscActions();
-
-    hideUnwantedIntentions();
-
-    registerAppClosing();
-
-    // Always reset the Default scheme to match Android standards
-    // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
-    CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
-    if (scheme != null) {
-      CodeStyleSettings settings = scheme.getCodeStyleSettings();
-      if (settings != null) {
-        AndroidCodeStyleSettingsModifier.modify(settings);
-      }
-    }
-
-    // Modify built-in "Default" color scheme to remove background from XML tags.
-    // "Darcula" and user schemes will not be touched.
-    EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
-    TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
-    TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
-    xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
-
-    checkAndSetAndroidSdkSources();
-  }
-
-  private static void hideMiscActions() {
-    ActionManager am = ActionManager.getInstance();
-    // "Configure Plugins..." Not sure why it's called StartupWizard.
-    AnAction pluginAction = am.getAction("StartupWizard");
-    // Never applicable in the context of android studio, so just set to invisible.
-    pluginAction.getTemplatePresentation().setVisible(false);
-  }
-
-  private static Set<String> unwantedIntetionFamilyNames = Sets.newHashSet("Add testng.jar to classpath", /* TestNGOrderEntryFix */
-                                                                           "Add jcip-annotations.jar to classpath" /* JCiPOrderEntryFix */);
-
-  /**
-   * Disable the intentions that we don't want in android studio.
-   */
+  // Disable the intentions that we don't want in android studio.
   private static void hideUnwantedIntentions() {
     IntentionManager intentionManager = IntentionManager.getInstance();
     if (!(intentionManager instanceof IntentionManagerImpl)) {
@@ -592,7 +408,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     }
 
     for (IntentionAction intentionAction : intentionManager.getIntentionActions()) {
-      if (unwantedIntetionFamilyNames.contains(intentionAction.getFamilyName())) {
+      if (unwantedIntentions.contains(intentionAction.getFamilyName())) {
         intentionManager.unregisterIntention(intentionAction);
       }
     }

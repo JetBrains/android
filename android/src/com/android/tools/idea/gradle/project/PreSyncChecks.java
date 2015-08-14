@@ -40,7 +40,7 @@ import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.openapi.ui.Messages.*;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;

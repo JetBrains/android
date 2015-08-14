@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.Notification
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
 import com.intellij.execution.RunConfigurationProducerService;
@@ -98,7 +98,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       syncState.notifyUser();
     }
     if (shouldShowMigrateToGradleNotification()
-        && AndroidStudioSpecificInitializer.isAndroidStudio()
+        && AndroidStudioInitializer.isAndroidStudio()
         && Projects.isIdeaAndroidProject(myProject)) {
       // Suggest that Android Studio users use Gradle instead of IDEA project builder.
       showMigrateToGradleWarning();
