@@ -63,6 +63,22 @@ public abstract class UsageTracker {
   public static final String ACTION_GRADLE_SYNC_FAILED = "syncFailed";
   public static final String ACTION_GRADLE_CPP_SYNC_COMPLETED = "cppSyncCompleted";
 
+  public static final String CATEGORY_GRADLE_SYNC_FAILURE = "gradleSyncFailure";
+  public static final String ACTION_GRADLE_SYNC_FAILURE_UNKNOWN = "syncFailedCauseUnknown";
+  public static final String ACTION_GRADLE_SYNC_CONNECTION_DENIED = "syncFailedConnectionDenied";
+  public static final String ACTION_GRADLE_SYNC_CLASS_NOT_FOUND = "syncFailedClassNotFound";
+  public static final String ACTION_GRADLE_SYNC_DSL_METHOD_NOT_FOUND = "syncFailedDslMethodNotFound";
+  public static final String ACTION_GRADLE_SYNC_FAILED_TO_PARSE_SDK = "syncFailedCannotParseSdk";
+  public static final String ACTION_GRADLE_SYNC_METHOD_NOT_FOUND = "syncFailedMethodNotFound";
+  public static final String ACTION_GRADLE_SYNC_MISSING_ANDROID_PLATFORM = "syncFailedMissingAndroidPlatform";
+  public static final String ACTION_GRADLE_SYNC_MISSING_ANDROID_SUPPORT_REPO = "syncFailedMissingAndroidSupportRepo";
+  public static final String ACTION_GRADLE_SYNC_MISSING_BUILD_TOOLS = "syncFailedMissingBuildTools";
+  public static final String ACTION_GRADLE_SYNC_OUT_OF_MEMORY = "syncFailedOutOfMemory";
+  public static final String ACTION_GRADLE_SYNC_SDK_NOT_FOUND = "syncFailedSdkNotFound";
+  public static final String ACTION_GRADLE_SYNC_UNKNOWN_HOST = "syncFailedUnknownHost";
+  public static final String ACTION_GRADLE_SYNC_UNSUPPORTED_ANDROID_MODEL_VERSION = "syncFailedUnsupportedAndroidModelVersion";
+  public static final String ACTION_GRADLE_SYNC_UNSUPPORTED_GRADLE_VERSION = "syncFailedUnsupportedGradleVersion";
+
   public static final String CATEGORY_PROFILING = "profiling";
   public static final String ACTION_PROFILING_CAPTURE = "captureCreated";
   public static final String ACTION_PROFILING_OPEN = "captureOpened";
