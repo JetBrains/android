@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.gridlayout.GridLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.grid.GridLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.Maps;
