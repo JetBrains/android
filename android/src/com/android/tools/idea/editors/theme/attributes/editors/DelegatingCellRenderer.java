@@ -21,10 +21,9 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.ui.JBColor;
 
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
-import java.awt.Component;
-import java.awt.Font;
+import java.awt.*;
 
 /**
  * Cell renderer used to add tooltips to table cells containing {@link ItemResourceValue}

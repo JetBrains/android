@@ -25,25 +25,16 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTableFixture;
-import com.google.common.collect.ImmutableList;
 import org.fest.assertions.Index;
 import org.fest.swing.data.TableCell;
-import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.fixture.JMenuItemFixture;
-import org.fest.swing.fixture.JPopupMenuFixture;
-import org.fest.swing.fixture.JTableCellFixture;
-import org.fest.swing.fixture.JTableFixture;
-import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
+import javax.swing.*;
+import java.awt.*;
 import java.io.IOException;
 import java.util.List;
 
@@ -51,9 +42,7 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.data.TableCell.row;
 import static org.fest.swing.timing.Pause.pause;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * UI tests regarding the attributes table of the theme editor
