@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.editors.theme.DumbAwareActionListener;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
@@ -25,6 +26,7 @@ import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -36,7 +38,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.AbstractAction;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 /**
@@ -74,19 +75,29 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
 
     myItem = item;
 
-    final List<Color> colors = ResourceHelper.resolveMultipleColors(context.getResourceResolver(), item.getSelectedValue(),
-                                                                    context.getProject());
+    final List<Color> colors =
+      ResourceHelper.resolveMultipleColors(context.getResourceResolver(), item.getSelectedValue(), context.getProject());
     String colorText = colors.isEmpty() ? LABEL_EMPTY : ResourceHelper.colorToString(colors.get(0));
     component.setSwatchIcons(SwatchComponent.colorListOf(colors));
-    component.setNameText(String.format(LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), item.getQualifiedName(), colorText));
+    component.setNameText(
+      String.format(LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), item.getQualifiedName(), colorText));
     component.setValueText(item.getValue());
   }
 
-  private class ColorEditorActionListener implements ActionListener {
+  private class ColorEditorActionListener extends DumbAwareActionListener {
+    public ColorEditorActionListener() {
+      super(myContext.getProject());
+    }
+
     @Override
-    public void actionPerformed(final ActionEvent e) {
-      AttributeDefinition attrDefinition =
-        ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), myItem.getSelectedValue());
+    public void dumbActionPerformed(ActionEvent e) {
+      DumbService.getInstance(myProject).showDumbModeNotification(DUMB_MODE_MESSAGE);
+      ColorRendererEditor.this.cancelCellEditing();
+    }
+
+    @Override
+    public void smartActionPerformed(ActionEvent e) {
+      AttributeDefinition attrDefinition = ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), myItem.getSelectedValue());
 
       ResourceType[] allowedTypes;
       String attributeName = myItem.getName().toLowerCase();
@@ -101,7 +112,6 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
       }
 
       ChooseResourceDialog dialog = ThemeEditorUtils.getResourceDialog(myItem, myContext, allowedTypes);
-
       final String oldValue = myItem.getSelectedValue().getValue();
 
       dialog.setResourcePickerListener(new ChooseResourceDialog.ResourcePickerListener() {
