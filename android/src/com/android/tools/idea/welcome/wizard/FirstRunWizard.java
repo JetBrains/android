@@ -66,7 +66,7 @@ public class FirstRunWizard extends DynamicWizard {
   public void init() {
     File initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(myMode);
     ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
-    myComponentsPath = new InstallComponentsPath(progressStep, myMode, initialSdkLocation, myRemotePackages);
+    myComponentsPath = new InstallComponentsPath(progressStep, myMode, initialSdkLocation, myRemotePackages, true);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
       boolean sdkExists = initialSdkLocation.isDirectory() &&
                           SdkManager.createManager(initialSdkLocation.getAbsolutePath(), new NullLogger()) != null;
@@ -77,7 +77,9 @@ public class FirstRunWizard extends DynamicWizard {
       addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
       addPath(new SingleStepPath(new SelectThemeStep(KEY_CUSTOM_INSTALL)));
     }
-
+    if (myMode == FirstRunWizardMode.MISSING_SDK) {
+      addPath(new SingleStepPath(new MissingSdkAlertStep()));
+    }
     addPath(myComponentsPath);
     if (SystemInfo.isLinux && myMode == FirstRunWizardMode.NEW_INSTALL) {
       addPath(new SingleStepPath(new LinuxHaxmInfoStep()));
