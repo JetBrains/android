@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme.preview;
 
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.RenderContext;
@@ -81,11 +82,6 @@ import java.util.Map;
 public class AndroidThemePreviewPanel extends Box implements RenderContext {
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class);
 
-  // The scaling factor is based on how we want the preview to look for different devices. 160 means that a device with 160 DPI would look
-  // exactly as GraphicsLayoutRenderer would render it. A device with 300 DPI would usually look smaller but because we apply this scaling
-  // factor, it would be scaled 2x to look exactly as the 100 DPI version would look.
-  private static final double DEFAULT_SCALING_FACTOR = JBUI.scale(160);
-
   private static final Map<String, ComponentDefinition> SUPPORT_LIBRARY_COMPONENTS =
     ImmutableMap.of("android.support.design.widget.FloatingActionButton",
                     new ComponentDefinition("Fab", ThemePreviewBuilder.ComponentGroup.FAB_BUTTON,
@@ -140,7 +136,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     }
   };
 
-  private double myConstantScalingFactor = DEFAULT_SCALING_FACTOR;
+  private float myScale = 1;
   private boolean myIsAppCompatTheme = false;
 
   static class Breadcrumb extends NavigationComponent.Item {
@@ -407,9 +403,12 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     // We want the preview to remain the same size even when the device being used to render is different.
     // Adjust the scale to the current config.
     if (configuration.getDeviceState() != null) {
-      double scale = myConstantScalingFactor / configuration.getDeviceState().getHardware().getScreen().getPixelDensity().getDpiValue();
-      myAndroidPreviewPanel.setScale(scale);
-    } else {
+      float reverseDeviceScale =
+        Density.DEFAULT_DENSITY / (float)configuration.getDeviceState().getHardware().getScreen().getPixelDensity().getDpiValue();
+      // we combine our scale, the reverse device scale, and the platform scale into 1 scale factor.
+      myAndroidPreviewPanel.setScale(JBUI.scale(reverseDeviceScale * myScale));
+    }
+    else {
       LOG.error("Configuration getDeviceState returned null. Unable to set preview scale.");
     }
   }
@@ -418,8 +417,8 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
    * Sets the preview scale to allow zooming in and out. Even when zoom (scale != 1.0) is set, different devices will still render to the
    * same size as the theme preview renderer is DPI independent.
    */
-  public void setScale(double scale) {
-    myConstantScalingFactor = DEFAULT_SCALING_FACTOR * scale;
+  public void setScale(float scale) {
+    myScale = scale;
   }
 
   /**
