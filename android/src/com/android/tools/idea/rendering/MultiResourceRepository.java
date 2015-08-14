@@ -19,9 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings({
   "deprecation",  // Deprecated com.android.util.Pair is required by ProjectCallback interface
@@ -181,43 +180,10 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
 
     ListMultimap<String, ResourceItem> map = ArrayListMultimap.create();
-
+    Set<LocalResourceRepository> visited = Sets.newHashSet();
+    SetMultimap<String, String> seenQualifiers = HashMultimap.create();
     // Merge all items of the given type
-    for (int i = myChildren.size() - 1; i >= 0; i--) {
-      LocalResourceRepository resources = myChildren.get(i);
-      Map<ResourceType, ListMultimap<String, ResourceItem>> items = resources.getItems();
-      ListMultimap<String, ResourceItem> m = items.get(type);
-      if (m == null) {
-        continue;
-      }
-
-      // TODO: Start with JUST the first map here (which often contains most of the keys) and then
-      // only merge in 1...n
-      for (ResourceItem item : m.values()) {
-        String name = item.getName();
-        if (map.containsKey(name) && item.getType() != ResourceType.ID) {
-          // The item already exists in this map; only add if there isn't an item with the
-          // same qualifiers (and it's not an id; id's are allowed to be defined in multiple
-          // places even with the same qualifiers)
-          String qualifiers = item.getQualifiers();
-          boolean contains = false;
-          List<ResourceItem> list = map.get(name);
-          assert list != null;
-          for (ResourceItem existing : list) {
-            if (qualifiers.equals(existing.getQualifiers())) {
-              contains = true;
-              break;
-            }
-          }
-          if (!contains) {
-            map.put(name, item);
-          }
-        }
-        else {
-          map.put(name, item);
-        }
-      }
-    }
+    merge(visited, type, seenQualifiers, map);
 
     synchronized (this) {
       myCachedTypeMaps.put(type, map);
@@ -236,6 +202,16 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   @Override
   public Map<ResourceType, ListMultimap<String, ResourceItem>> getItems() {
     return getMap();
+  }
+
+  @Override
+  protected void doMerge(@NotNull Set<LocalResourceRepository> visited,
+                         @NotNull ResourceType type,
+                         @NotNull SetMultimap<String, String> seenQualifiers,
+                         @NotNull ListMultimap<String, ResourceItem> result) {
+    for (int i = myChildren.size() - 1; i >= 0; i--) {
+      myChildren.get(i).merge(visited, type, seenQualifiers, result);
+    }
   }
 
   @Override
