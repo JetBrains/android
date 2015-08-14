@@ -452,6 +452,39 @@ public class ThemeEditorUtils {
   }
 
   /**
+   * Creates a new style
+   * @param module the module where the new style is being created
+   * @param newStyleName the new style name
+   * @param parentStyleName the name of the new style parent
+   * @param fileName name of the xml file where the style will be added (usually "styles.xml")
+   * @param folderNames folder names where the style will be added
+   * @return true if the style was created or false otherwise
+   */
+  public static boolean createNewStyle(@NotNull final Module module, final @NotNull String newStyleName, final @Nullable String parentStyleName, final @NotNull String fileName, final @NotNull List<String> folderNames) {
+    return new WriteCommandAction<Boolean>(module.getProject(), "Create new style " + newStyleName) {
+      @Override
+      protected void run(@NotNull Result<Boolean> result) {
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(module.getProject());
+        result.setResult(AndroidResourceUtil.
+          createValueResource(module, newStyleName, null,
+                              ResourceType.STYLE, fileName, folderNames, new Processor<ResourceElement>() {
+              @Override
+              public boolean process(ResourceElement element) {
+                assert element instanceof Style;
+                final Style style = (Style)element;
+
+                if (parentStyleName != null) {
+                  style.getParentStyle().setStringValue(parentStyleName);
+                }
+
+                return true;
+              }
+            }));
+      }
+    }.execute().getResultObject();
+  }
+
+  /**
    * Creates a new style by displaying the dialog of the {@link NewStyleDialog}.
    * @param parentStyle is used in NewStyleDialog, will be preselected in the parent text field and name will be suggested based on it.
    * @param isTheme whether theme or style will be created
@@ -459,10 +492,10 @@ public class ThemeEditorUtils {
    * @return the new style name or null if the style wasn't created.
    */
   @Nullable
-  public static String createNewStyle(@Nullable ThemeEditorStyle parentStyle,
-                                      @NotNull final ThemeEditorContext myThemeEditorContext,
-                                      boolean isTheme,
-                                      @Nullable final String message) {
+  public static String showCreateNewStyleDialog(@Nullable ThemeEditorStyle parentStyle,
+                                                @NotNull final ThemeEditorContext myThemeEditorContext,
+                                                boolean isTheme,
+                                                @Nullable final String message) {
     // if isTheme is true, parentStyle shouldn't be null
     assert !isTheme || parentStyle != null;
 
@@ -492,25 +525,9 @@ public class ThemeEditorUtils {
       return null;
     }
 
-    boolean isCreated = new WriteCommandAction<Boolean>(myThemeEditorContext.getProject(), "Create new theme " + dialog.getStyleName()) {
-      @Override
-      protected void run(@NotNull Result<Boolean> result) {
-        CommandProcessor.getInstance().markCurrentCommandAsGlobal(myThemeEditorContext.getProject());
-        result.setResult(AndroidResourceUtil.
-          createValueResource(myThemeEditorContext.getCurrentContextModule(), dialog.getStyleName(), null,
-                              ResourceType.STYLE, fileName, dirNames, new Processor<ResourceElement>() {
-              @Override
-              public boolean process(ResourceElement element) {
-                assert element instanceof Style;
-                final Style style = (Style)element;
-
-                style.getParentStyle().setStringValue(dialog.getStyleParentName());
-
-                return true;
-              }
-            }));
-      }
-    }.execute().getResultObject();
+    String parentStyleName = parentStyle != null ? parentStyle.getQualifiedName() : null;
+    boolean isCreated = createNewStyle(
+      myThemeEditorContext.getCurrentContextModule(), dialog.getStyleName(), parentStyleName, fileName, dirNames);
 
     return isCreated ? SdkConstants.STYLE_RESOURCE_PREFIX + dialog.getStyleName() : null;
   }

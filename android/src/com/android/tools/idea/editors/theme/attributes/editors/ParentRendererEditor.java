@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
 import com.android.tools.idea.editors.theme.ParentThemesListModel;
@@ -32,12 +33,15 @@ import com.android.tools.idea.editors.theme.ui.VariantsComboBox;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
+import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.AbstractAction;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
@@ -51,6 +55,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Custom Renderer and Editor for the theme parent attribute.
@@ -68,6 +73,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
   private @Nullable String myResultValue;
   private final ThemeEditorContext myContext;
   private final JPanel myPanel;
+  private ThemeEditorStyle myItem;
 
   public ParentRendererEditor(@NotNull ThemeEditorContext context) {
     myContext = context;
@@ -100,22 +106,50 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
 
     myPanel.add(topLine, BorderLayout.CENTER);
     myPanel.add(myParentComboBox, BorderLayout.PAGE_END);
+
+    myVariantsComboBox.addAction(new AbstractAction("Add variation") {
+      @Override
+      public boolean isEnabled() {
+        return myItem != null && myItem.isProjectStyle();
+      }
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        final ThemeEditorStyle sourceStyle = myItem;
+        String themeName = sourceStyle.getName();
+        Module module = myContext.getCurrentContextModule();
+
+        CreateXmlResourceDialog
+          resourceDialog = new CreateXmlResourceDialog(module, ResourceType.STYLE, themeName, " ", false);
+        resourceDialog.setTitle(String.format("Create Theme '%1$s' Variant", themeName));
+        if (!resourceDialog.showAndGet()) {
+          return;
+        }
+
+        String fileName = resourceDialog.getFileName();
+        List<String> dirNames = resourceDialog.getDirNames();
+        String resName = resourceDialog.getResourceName();
+        String parentName = myItem.getParent().getQualifiedName();
+
+        ThemeEditorUtils.createNewStyle(module, resName, parentName, fileName, dirNames);
+      }
+    });
   }
 
-  private void updateVariants(@Nullable ThemeEditorStyle selected) {
-    if (selected == null) {
+  private void updateVariantsCombo() {
+    if (myItem == null) {
       myVariantsComboBox.setVisible(false);
       return;
     }
     myVariantsComboBox.setVisible(true);
 
-    Collection<ConfiguredElement<ThemeEditorStyle>> allParents = selected.getAllParents(myContext.getThemeResolver());
+    Collection<ConfiguredElement<ThemeEditorStyle>> allParents = myItem.getAllParents(myContext.getThemeResolver());
     final String currentVariantColor = ColorUtil.toHex(ThemeEditorConstants.CURRENT_VARIANT_COLOR);
     final String notSelectedVariantColor = ColorUtil.toHex(ThemeEditorConstants.NOT_SELECTED_VARIANT_COLOR);
     final ArrayList<VariantsComboItem> variants = Lists.newArrayListWithCapacity(allParents.size());
 
     ConfigurationManager manager = myContext.getConfiguration().getConfigurationManager();
-    ThemeEditorStyle currentParent = selected.getParent();
+    ThemeEditorStyle currentParent = myItem.getParent();
 
     for (ConfiguredElement<ThemeEditorStyle> configuredParent : allParents) {
       FolderConfiguration restrictedConfig =
@@ -153,13 +187,14 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
 
     if (parent == null) {
       myParentComboBox.setModel(NO_PARENT_MODEL);
-      updateVariants(null);
+      myItem = null;
     }
     else {
       ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(myContext.getThemeResolver());
       myParentComboBox.setModel(new ParentThemesListModel(defaultThemes, parent));
-      updateVariants((ThemeEditorStyle)value);
+      myItem = (ThemeEditorStyle)value;
     }
+    updateVariantsCombo();
 
     return myPanel;
   }
@@ -170,7 +205,8 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
     ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(myContext.getThemeResolver());
     myParentComboBox.setModel(new ParentThemesListModel(defaultThemes, parent));
     myResultValue = parent.getQualifiedName();
-    updateVariants(value);
+    myItem = value;
+    updateVariantsCombo();
     return myPanel;
   }
 
