@@ -20,6 +20,13 @@ import com.android.tools.rpclib.binary.BinaryObject;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class Path implements BinaryObject {
+  @Override
+  public String toString() {
+    return stringPath(new StringBuilder()).toString();
+  }
+
+  public abstract StringBuilder stringPath(StringBuilder builder);
+
   @NotNull
   public static Path wrap(BinaryObject object) {
     return (Path)object;

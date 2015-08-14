@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.Capture;
 import com.android.tools.idea.editors.gfxtrace.service.Device;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
@@ -23,17 +25,21 @@ import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
+import com.google.common.util.concurrent.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ListCellRendererWrapper;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ContextController implements PathListener {
   private static final String NO_DEVICE_AVAILABLE = "No Device Available";
@@ -67,7 +73,8 @@ public class ContextController implements PathListener {
   @NotNull private final ComboBox myCapturesView;
   @NotNull private DeviceEntry[] myDevices;
   @NotNull private CaptureEntry[] myCaptures;
-  @NotNull private AtomicBoolean myShouldStopContextSwitch = new AtomicBoolean(false);
+  @Nullable private CapturePath mySelectedCapture;
+  @Nullable private DevicePath mySelectedDevice;
 
   public ContextController(@NotNull GfxTraceEditor editor,
                            @NotNull ComboBox devicesView,
@@ -77,9 +84,9 @@ public class ContextController implements PathListener {
     myDevicesView = devicesView;
     myCapturesView = capturesView;
 
-    myDevicesView.setRenderer(new ListCellRendererWrapper<Device>() {
+    myDevicesView.setRenderer(new ListCellRendererWrapper<DeviceEntry>() {
       @Override
-      public void customize(JList list, Device value, int index, boolean selected, boolean hasFocus) {
+      public void customize(JList list, DeviceEntry value, int index, boolean selected, boolean hasFocus) {
         if (list.getModel().getSize() == 0) {
           setText(NO_DEVICE_AVAILABLE);
         }
@@ -87,14 +94,14 @@ public class ContextController implements PathListener {
           setText(NO_DEVICE_SELECTED);
         }
         else {
-          setText(value.getName() + " (" + value.getModel() + ", " + value.getOS() + ")");
+          setText(value.myDevice.getName() + " (" + value.myDevice.getModel() + ", " + value.myDevice.getOS() + ")");
         }
       }
     });
 
-    myCapturesView.setRenderer(new ListCellRendererWrapper<Capture>() {
+    myCapturesView.setRenderer(new ListCellRendererWrapper<CaptureEntry>() {
       @Override
-      public void customize(JList list, Capture value, int index, boolean selected, boolean hasFocus) {
+      public void customize(JList list, CaptureEntry value, int index, boolean selected, boolean hasFocus) {
         if (list.getModel().getSize() == 0) {
           setText(NO_CAPTURE_AVAILABLE);
         }
@@ -102,93 +109,125 @@ public class ContextController implements PathListener {
           setText(NO_CAPTURE_SELECTED);
         }
         else {
-          setText(((Capture)list.getModel().getElementAt(index)).getName());
+          setText(value.myCapture.getName());
         }
       }
     });
   }
 
   public void initialize() {
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+    myCapturesView.addItemListener(new ItemListener() {
       @Override
-      public void run() {
-        try {
-          ServiceClient client = myEditor.getClient();
-          final CapturePath[] capturePaths = client.getCaptures().get();
+      public void itemStateChanged(ItemEvent itemEvent) {
+        if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
+          assert (itemEvent.getItem() instanceof CaptureEntry);
+          CaptureEntry entry = (CaptureEntry)itemEvent.getItem();
+          myEditor.activatePath(entry.myPath);
+        }
+      }
+    });
 
-          DevicePath[] tempDevicePaths;
-          while (true) {
-            // TODO: Fix this when proper signaling from the server is implemented.
-            // The server can detect and update the number of devices it is connected to at any moment in time. Therefore, during startup,
-            // the server will find all the devices connected to it. During this period of time, the server will return an empty list of
-            // available devices. This API/RPC is yet to be finalized, hence the hack below to work around that issue.
-            tempDevicePaths = client.getDevices().get();
-            if (tempDevicePaths.length > 0) {
-              break;
-            }
-            //noinspection BusyWait
-            Thread.sleep(200l);
-          }
-          final DevicePath[] devicePaths = tempDevicePaths;
+    myDevicesView.addItemListener(new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent itemEvent) {
+        if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
+          assert (itemEvent.getItem() instanceof DeviceEntry);
+          DeviceEntry entry = (DeviceEntry)itemEvent.getItem();
+          myEditor.activatePath(entry.myPath);
+        }
+      }
+    });
 
-          final CaptureEntry[] captures = new CaptureEntry[capturePaths.length];
-          for (int i = 0; i < capturePaths.length; i++) {
-            captures[i] = new CaptureEntry(capturePaths[i], client.get(capturePaths[i]).get());
-          }
-
-          final DeviceEntry[] devices = new DeviceEntry[devicePaths.length];
-          for (int i = 0; i < capturePaths.length; i++) {
-            devices[i] = new DeviceEntry(devicePaths[i], client.get(devicePaths[i]).get());
-          }
-
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              myCaptures = captures;
-              myCapturesView.setModel(new DefaultComboBoxModel(myCaptures));
-              myCapturesView.setSelectedIndex(-1);
-
-              getCapturesView().addItemListener(new ItemListener() {
-                @Override
-                public void itemStateChanged(ItemEvent itemEvent) {
-                  if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
-                    assert (itemEvent.getItem() instanceof CaptureEntry);
-                    CaptureEntry entry = (CaptureEntry)itemEvent.getItem();
-                    myEditor.activatePath(entry.myPath);
-                  }
+    Futures.addCallback(myEditor.getClient().getCaptures(), new LoadingCallback<CapturePath[]>(LOG, null) {
+      @Override
+      public void onSuccess(@Nullable final CapturePath[] paths) {
+        final ListenableFuture<Capture>[] futures = new ListenableFuture[paths.length];
+        for (int i = 0; i < paths.length; i++) {
+          futures[i] = myEditor.getClient().get(paths[i]);
+        }
+        Futures.addCallback(Futures.allAsList(futures), new LoadingCallback<List<Capture>>(LOG, null) {
+          @Override
+          public void onSuccess(@Nullable final List<Capture> captures) {
+            EdtExecutor.INSTANCE.execute(new Runnable() {
+              @Override
+              public void run() {
+                // Back in the UI thread here
+                myCaptures = new CaptureEntry[paths.length];
+                for (int i = 0; i < paths.length; i++) {
+                  myCaptures[i] = new CaptureEntry(paths[i], captures.get(i));
                 }
-              });
+                myCapturesView.setModel(new DefaultComboBoxModel(myCaptures));
+                myCapturesView.setSelectedIndex(-1);
+              }
+            });
+          }
+        });
+      }
+    });
 
-              myDevices = devices;
-              myDevicesView.setModel(new DefaultComboBoxModel(myDevices));
-              myDevicesView.setSelectedIndex(-1);
-
-              myDevicesView.addItemListener(new ItemListener() {
-                @Override
-                public void itemStateChanged(ItemEvent itemEvent) {
-                  if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
-                    assert (itemEvent.getItem() instanceof DeviceEntry);
-                    DeviceEntry entry = (DeviceEntry)itemEvent.getItem();
-                    myEditor.activatePath(entry.myPath);
-                  }
+    Futures.addCallback(myEditor.getClient().getDevices(), new LoadingCallback<DevicePath[]>(LOG, null) {
+      @Override
+      public void onSuccess(@Nullable final DevicePath[] paths) {
+        final ListenableFuture<Device>[] futures = new ListenableFuture[paths.length];
+        for (int i = 0; i < paths.length; i++) {
+          futures[i] = myEditor.getClient().get(paths[i]);
+        }
+        Futures.addCallback(Futures.allAsList(futures), new LoadingCallback<List<Device>>(LOG, null) {
+          @Override
+          public void onSuccess(@Nullable final List<Device> devices) {
+            EdtExecutor.INSTANCE.execute(new Runnable() {
+              @Override
+              public void run() {
+                // Back in the UI thread here
+                myDevices = new DeviceEntry[paths.length];
+                for (int i = 0; i < paths.length; i++) {
+                  myDevices[i] = new DeviceEntry(paths[i], devices.get(i));
                 }
-              });
-            }
-          });
-        }
-        catch (InterruptedException e) {
-          LOG.error(e);
-        }
-        catch (ExecutionException e) {
-          LOG.error(e);
-        }
+                myDevicesView.setModel(new DefaultComboBoxModel(myDevices));
+                myDevicesView.setSelectedIndex(-1);
+              }
+            });
+          }
+        });
       }
     });
   }
 
   @Override
   public void notifyPath(Path path) {
-    // TODO: pick out the device and capture roots, and use them to update the selected item
+    if (path instanceof CapturePath) {
+      CapturePath capture = (CapturePath)path;
+      if (mySelectedCapture != capture) {
+        mySelectedCapture = capture;
+        if (myCaptures != null) {
+          for (int i = 0; i < myCaptures.length; i++) {
+            if (myCaptures[i].myPath.equals(mySelectedCapture)) {
+              myCapturesView.setSelectedIndex(i);
+              return;
+            }
+          }
+          // capture not found
+          myCapturesView.setSelectedIndex(-1);
+        }
+      }
+    }
+
+    if (path instanceof DevicePath) {
+      DevicePath device = (DevicePath)path;
+      if (mySelectedDevice != device) {
+        mySelectedDevice = device;
+        if (myDevices != null) {
+          for (int i = 0; i < myDevices.length; i++) {
+            if (myDevices[i].myPath.equals(mySelectedDevice)) {
+              myDevicesView.setSelectedIndex(i);
+              return;
+            }
+          }
+          // device not found
+          myDevicesView.setSelectedIndex(-1);
+        }
+      }
+    }
   }
 
   @NotNull

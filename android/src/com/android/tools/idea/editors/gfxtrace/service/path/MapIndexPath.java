@@ -24,6 +24,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class MapIndexPath extends Path {
+  @Override
+  public StringBuilder stringPath(StringBuilder builder) {
+    return myMap.stringPath(builder).append("[").append(myKey).append("]");
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   Path myMap;
   Box myKey;

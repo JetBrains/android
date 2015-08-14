@@ -35,6 +35,7 @@ public class AtomNode extends AtomTreeNode {
     myIndex = index;
   }
 
+  @Override
   public long getRepresentativeAtomIndex() {
     return myIndex;
   }
