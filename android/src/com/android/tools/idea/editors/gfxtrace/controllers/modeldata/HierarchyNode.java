@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers.modeldata;
 
-import com.android.tools.idea.editors.gfxtrace.rpc.AtomGroup;
-import com.android.tools.idea.editors.gfxtrace.schema.AtomReader;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,9 +32,9 @@ public class HierarchyNode extends AtomTreeNode {
     myAtomGroup = atomGroup;
   }
 
-  public long getRepresentativeAtomId() {
-    assert (myAtomGroup.getRange().getCount() > 0);
-    return myAtomGroup.getRange().getFirst() + myAtomGroup.getRange().getCount() - 1;
+  public long getRepresentativeAtomIndex() {
+    assert (myAtomGroup.isValid());
+    return myAtomGroup.getRange().getEnd() - 1;
   }
 
   public boolean isProxyFor(@NotNull AtomGroup atomGroup) {
@@ -50,8 +50,7 @@ public class HierarchyNode extends AtomTreeNode {
   @Override
   public List<TextPiece> getTextPieces(@NotNull JTree tree,
                                        @NotNull TreeNode node,
-                                       @NotNull EnumInfoCache enumInfoCache,
-                                       @NotNull AtomReader atomReader) {
+                                       @NotNull AtomList atoms) {
     return Collections.singletonList(new TextPiece(myAtomGroup.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
   }
 }
