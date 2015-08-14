@@ -40,7 +40,6 @@ import com.intellij.pom.NonNavigatable;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
@@ -56,10 +55,9 @@ final class ProjectJdkChecks {
   }
 
   static boolean hasCorrectJdkVersion(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.getAndroidModel() != null) {
-      AndroidGradleModel gradleModel = AndroidGradleModel.get(facet);
-      return hasCorrectJdkVersion(module, gradleModel);
+    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    if (androidModel != null) {
+      return hasCorrectJdkVersion(module, androidModel);
     }
     return true;
   }
