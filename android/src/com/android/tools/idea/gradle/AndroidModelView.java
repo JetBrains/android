@@ -16,10 +16,14 @@
 package com.android.tools.idea.gradle;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.AndroidProject;
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.ProxyUtil;
 import com.android.tools.idea.gradle.util.ui.ToolWindowAlikePanel;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -47,16 +51,20 @@ import static com.android.tools.idea.gradle.util.ProxyUtil.getAndroidModelProxyV
 import static com.android.tools.idea.gradle.util.ProxyUtil.isAndroidModelProxyObject;
 
 /**
- * "Android Model (Internal)" tool window to visualize the Android-Gradle model data. This is an internal only view and visible only when
- * the {@code idea.is.internal} property is set to true.
+ * "Android Model" tool window to visualize the Android-Gradle model data.
  */
-public class InternalAndroidModelView {
-  @NotNull
-  private final Project myProject;
-  @NotNull
-  private final Tree myTree;
+public class AndroidModelView {
+  private static final ImmutableMultimap<String, String> SOURCE_PROVIDERS_GROUP =
+    ImmutableMultimap.<String, String>builder().putAll("SourceProviders", "SourceProvider", "ExtraSourceProviders").build();
+  private static final ImmutableMultimap<String, String> SDK_VERSIONS_GROUP =
+    ImmutableMultimap.<String, String>builder().putAll("SdkVersions", "MinSdkVersion", "MaxSdkVersion", "TargetSdkVersion").build();
+  private static final ImmutableMultimap<String, String> ARTIFACTS_GROUP =
+    ImmutableMultimap.<String, String>builder().putAll("Artifacts", "MainArtifact", "ExtraAndroidArtifacts", "ExtraJavaArtifacts").build();
 
-  public InternalAndroidModelView(@NotNull Project project) {
+  @NotNull private final Project myProject;
+  @NotNull private final Tree myTree;
+
+  public AndroidModelView(@NotNull Project project) {
     myProject = project;
     myTree = new Tree();
     MessageBusConnection connection = myProject.getMessageBus().connect();
@@ -83,8 +91,8 @@ public class InternalAndroidModelView {
     });
   }
 
-  public static InternalAndroidModelView getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, InternalAndroidModelView.class);
+  public static AndroidModelView getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, AndroidModelView.class);
   }
 
   public void createToolWindowContent(@NotNull ToolWindow toolWindow) {
@@ -100,7 +108,8 @@ public class InternalAndroidModelView {
     if (GradleSyncState.getInstance(myProject).isSyncInProgress()) {
       myTree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode("Gradle project sync in progress ...")));
       return;
-    } else {
+    }
+    else {
       myTree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode("Loading ...")));
     }
 
@@ -113,7 +122,7 @@ public class InternalAndroidModelView {
           if (androidModel != null) {
             DefaultMutableTreeNode moduleNode = new DefaultMutableTreeNode(module.getName());
             AndroidProject androidProject = androidModel.getProxyAndroidProject();
-            addProxyObject(moduleNode, androidProject);
+            addProxyObject(moduleNode, androidProject, false, ImmutableList.of("SyncIssues", "UnresolvedDependencies", "ApiVersion"));
             rootNode.add(moduleNode);
           }
         }
@@ -140,22 +149,79 @@ public class InternalAndroidModelView {
   }
 
   private void addProxyObject(@NotNull DefaultMutableTreeNode node, @NotNull Object obj, boolean useDerivedNodeName) {
+    addProxyObject(node, obj, useDerivedNodeName, ImmutableList.<String>of());
+  }
+
+  private void addProxyObject(@NotNull DefaultMutableTreeNode node,
+                              @NotNull Object obj,
+                              boolean useDerivedNodeName,
+                              @NotNull Collection<String> skipProperties) {
+    addProxyObject(node, obj, useDerivedNodeName, skipProperties, ImmutableList.<String>of(), ImmutableMultimap.<String, String>of());
+  }
+
+  private void addProxyObject(@NotNull DefaultMutableTreeNode node,
+                              @NotNull Object obj,
+                              boolean useDerivedNodeName,
+                              @NotNull Collection<String> inlineProperties,
+                              @NotNull Multimap<String, String> groupProperties) {
+    addProxyObject(node, obj, useDerivedNodeName, ImmutableList.<String>of(), inlineProperties, groupProperties);
+  }
+
+  private void addProxyObject(@NotNull DefaultMutableTreeNode node,
+                              @NotNull Object obj,
+                              boolean useDerivedNodeName,
+                              @NotNull Collection<String> skipProperties,
+                              @NotNull Collection<String> inlineProperties,
+                              @NotNull Multimap<String, String> groupProperties) {
     assert isAndroidModelProxyObject(obj);
+    Map<String, DefaultMutableTreeNode> groupPropertyNodes = Maps.newHashMap();
 
     String name = null;
     for (Map.Entry<String, Object> entry : getAndroidModelProxyValues(obj).entrySet()) {
       String property = entry.getKey(); // method name in canonical form.
       property = property.substring(0, property.lastIndexOf('('));
       property = property.substring(property.lastIndexOf('.') + 1, property.length());
-
       if (property.startsWith("get")) {
         property = property.substring(3);
       }
+      if (skipProperties.contains(property)) {
+        continue;
+      }
+
+      boolean useDerivedNameValue = false;
+      boolean addToParentNode = false;
+
       Object value = entry.getValue();
-      if (property.equals("Name")) {
+      if (value != null && property.equals("Name")) {
         name = value.toString();
       }
-      addPropertyNode(node, property, value);
+      if (inlineProperties.contains(property)) {
+        addToParentNode = true;
+        useDerivedNameValue = useDerivedNodeName;
+      }
+
+      DefaultMutableTreeNode parentNode = node;
+      if (groupProperties.values().contains(property)) {
+        for (Map.Entry<String, String> group : groupProperties.entries()) {
+          if (group.getValue().equals(property)) {
+            String groupName = group.getKey();
+            DefaultMutableTreeNode groupNode = groupPropertyNodes.get(groupName);
+            if (groupNode == null) {
+              groupNode = new DefaultMutableTreeNode(groupName);
+              groupPropertyNodes.put(groupName, groupNode);
+            }
+            parentNode = groupNode;
+            useDerivedNameValue = true;
+            break;
+          }
+        }
+      }
+
+      addPropertyNode(parentNode, property, value, useDerivedNameValue, addToParentNode);
+    }
+
+    for (DefaultMutableTreeNode groupNode : groupPropertyNodes.values()) {
+      addToNode(node, groupNode);
     }
 
     if (useDerivedNodeName && name != null) {
@@ -163,21 +229,27 @@ public class InternalAndroidModelView {
     }
   }
 
-  private void addPropertyNode(@NotNull DefaultMutableTreeNode node, @NotNull String property, @Nullable Object value) {
-    DefaultMutableTreeNode propertyNode = new DefaultMutableTreeNode(property);
+  private void addPropertyNode(@NotNull DefaultMutableTreeNode node,
+                               @NotNull String property,
+                               @Nullable Object value,
+                               boolean useDerivedNodeName,
+                               boolean addToParentNode) {
+    DefaultMutableTreeNode propertyNode = addToParentNode ? node : new DefaultMutableTreeNode(property);
 
     if (value != null && (isAndroidModelProxyObject(value))) {
-      addProxyObject(propertyNode, value, property.isEmpty());
-    }
-    else if (value instanceof Collection && !((Collection)value).isEmpty()) {
-      for (Object obj : (Collection)value) {
-        addPropertyNode(propertyNode, "", obj);
+      if (!customizeProxyObject(propertyNode, value, useDerivedNodeName)) {
+        addProxyObject(propertyNode, value, useDerivedNodeName);
       }
     }
-    else if (value instanceof Map && !((Map)value).isEmpty()) {
-      Map map = (Map) value;
+    else if (value instanceof Collection && (!((Collection)value).isEmpty() || addToParentNode)) {
+      for (Object obj : (Collection)value) {
+        addPropertyNode(propertyNode, "", obj, true, false);
+      }
+    }
+    else if (value instanceof Map && (!((Map)value).isEmpty() || addToParentNode)) {
+      Map map = (Map)value;
       for (Object key : map.keySet()) {
-        addPropertyNode(propertyNode, key.toString(), map.get(key));
+        addPropertyNode(propertyNode, key.toString(), map.get(key), false, false);
       }
     }
     else if (value instanceof ProxyUtil.InvocationErrorValue) {
@@ -188,7 +260,34 @@ public class InternalAndroidModelView {
       propertyNode.setUserObject(getNodeValue(property, getStringForValue(value)));
     }
 
-    addToNode(node, propertyNode);
+    if (!addToParentNode) {
+      addToNode(node, propertyNode);
+    }
+  }
+
+  private boolean customizeProxyObject(@NotNull DefaultMutableTreeNode propertyNode, @NotNull Object value, boolean useDerivedName) {
+    assert isAndroidModelProxyObject(value);
+    if (value instanceof ProductFlavorContainer) {
+      addProxyObject(propertyNode, value, useDerivedName, ImmutableList.of("ProductFlavor", "ExtraSourceProviders"),
+                     SOURCE_PROVIDERS_GROUP);
+    }
+    else if (value instanceof BuildTypeContainer) {
+      addProxyObject(propertyNode, value, useDerivedName, ImmutableList.of("BuildType", "ExtraSourceProviders"), SOURCE_PROVIDERS_GROUP);
+    }
+    else if (value instanceof SourceProviderContainer) {
+      addProxyObject(propertyNode, value, useDerivedName, ImmutableList.of("SourceProvider"), ImmutableMultimap.<String, String>of());
+    }
+    else if (value instanceof ProductFlavor) {
+      addProxyObject(propertyNode, value, useDerivedName, ImmutableList.<String>of(), SDK_VERSIONS_GROUP);
+    }
+    else if (value instanceof Variant) {
+      addProxyObject(propertyNode, value, useDerivedName, ImmutableList.<String>of(),
+                     ImmutableList.of("ExtraAndroidArtifacts", "ExtraJavaArtifacts"), ARTIFACTS_GROUP);
+    }
+    else {
+      return false;
+    }
+    return true;
   }
 
   @NotNull
@@ -209,7 +308,7 @@ public class InternalAndroidModelView {
   }
 
   @NotNull
-  private static String getNodeValue(@NotNull String property, @Nullable String value) {
+  private static String getNodeValue(@NotNull String property, @NotNull String value) {
     return property.isEmpty() ? value : property + " -> " + value;
   }
 
