@@ -99,7 +99,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
    * Flag to control whether gradle projects can be synced in tests. This was
    * disabled earlier since it resulted in _LastInSuiteTest.testProjectLeak
    */
-  protected static final boolean CAN_SYNC_PROJECTS = true;
+  protected static final boolean CAN_SYNC_PROJECTS = false;
 
   private static AndroidSdkData ourPreviousSdkData;
 
