@@ -96,7 +96,7 @@ public class StyleListCellRenderer extends ColoredListCellRenderer {
       }
 
       if (style.getQualifiedName().equals(defaultAppTheme)) {
-        append("  Default", new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, new JBColor(0xFF4CAF50, 0xFFA5D6A7)), true);
+        append("  -  Default", new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, new JBColor(0xFF4CAF50, 0xFFA5D6A7)), true);
       }
     }
   }
