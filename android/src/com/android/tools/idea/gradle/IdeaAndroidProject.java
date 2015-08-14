@@ -58,8 +58,8 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
   @NotNull private File myRootDirPath;
   @NotNull private AndroidProject myAndroidProject;
 
-  @Nullable private transient CountDownLatch myProxyDelegateLatch;
-  @Nullable private AndroidProject myProxyDelegate;
+  @Nullable private transient CountDownLatch myProxyAndroidProjectLatch;
+  @Nullable private AndroidProject myProxyAndroidProject;
 
   @SuppressWarnings("NullableProblems") // Set in the constructor.
   @NotNull private String mySelectedVariantName;
@@ -103,9 +103,9 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        myProxyDelegateLatch = new CountDownLatch(1);
-        myProxyDelegate = reproxy(AndroidProject.class, myAndroidProject);
-        myProxyDelegateLatch.countDown();
+        myProxyAndroidProjectLatch = new CountDownLatch(1);
+        myProxyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
+        myProxyAndroidProjectLatch.countDown();
       }
     });
 
@@ -437,6 +437,21 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
   }
 
   /**
+   * A proxy object of the Android-Gradle project is created and maintained for persisting the Android model data. The same proxy object is
+   * also used to visualize the model information in {@link InternalAndroidModelView}.
+   *
+   * <p>If the proxy operation is still going on, this method will be blocked until that is completed.
+   *
+   * @return the proxy object of the imported Android-Gradle project.
+   */
+  @NotNull
+  AndroidProject getProxyAndroidProject() {
+    waitForAndroidProjectProxy();
+    assert myProxyAndroidProject != null;
+    return myProxyAndroidProject;
+  }
+
+  /**
    * @return the selected build variant.
    */
   @NotNull
@@ -742,22 +757,26 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
     }
   }
 
-  private void writeObject(ObjectOutputStream out) throws IOException {
-    if (myProxyDelegateLatch != null) {
+  private void waitForAndroidProjectProxy() {
+    if (myProxyAndroidProjectLatch != null) {
       try {
         // If required, wait for the proxy operation to complete.
-        myProxyDelegateLatch.await();
+        myProxyAndroidProjectLatch.await();
       }
       catch (InterruptedException e) {
         LOG.error(e);
         Thread.currentThread().interrupt();
       }
     }
+  }
+
+  private void writeObject(ObjectOutputStream out) throws IOException {
+    waitForAndroidProjectProxy();
 
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
-    out.writeObject(myProxyDelegate);
+    out.writeObject(myProxyAndroidProject);
     out.writeObject(mySelectedVariantName);
     out.writeObject(mySelectedTestArtifactName);
   }
@@ -767,7 +786,7 @@ public class IdeaAndroidProject implements AndroidModel, Serializable {
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
     myAndroidProject = (AndroidProject)in.readObject();
-    myProxyDelegate = myAndroidProject;
+    myProxyAndroidProject = myAndroidProject;
 
     myBuildTypesByName = Maps.newHashMap();
     myProductFlavorsByName = Maps.newHashMap();
