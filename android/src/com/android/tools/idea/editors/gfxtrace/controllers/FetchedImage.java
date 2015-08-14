@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.editors.gfxtrace.rpc.Binary;
-import com.android.tools.idea.editors.gfxtrace.rpc.ImageFormat;
-import com.android.tools.idea.editors.gfxtrace.rpc.ImageInfo;
+import com.android.tools.idea.editors.gfxtrace.service.ImageInfo;
+import com.android.tools.idea.editors.gfxtrace.service.image.FmtFloat32;
+import com.android.tools.idea.editors.gfxtrace.service.image.FmtRGBA;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -30,12 +30,12 @@ import java.nio.ByteOrder;
 
 public class FetchedImage {
   @NotNull private final ImageInfo myImageInfo;
-  @NotNull private final Binary myBinary;
+  @NotNull private final byte[] myData;
   @NotNull private final DepthConversionMode myDepthConversionMode = DepthConversionMode.GO_CLIENT;
 
-  public FetchedImage(@NotNull ImageInfo imageInfo, @NotNull Binary binary) {
+  public FetchedImage(@NotNull ImageInfo imageInfo, @NotNull byte[] data) {
     myImageInfo = imageInfo;
-    myBinary = binary;
+    myData = data;
   }
 
   @NotNull
@@ -55,7 +55,8 @@ public class FetchedImage {
   }
 
   private void setImageBytes(@NotNull byte[] destination) {
-    if (myImageInfo.getFormat() == ImageFormat.RGBA8) {
+    // TODO: move these into the image format classes
+    if (myImageInfo.getFormat() instanceof FmtRGBA) {
       Dimension dimension = getImageDimensions();
       final int stride = dimension.width * 4;
 
@@ -63,7 +64,7 @@ public class FetchedImage {
       assert (destination.length >= length);
 
       // Covert between top-left and bottom-left formats.
-      byte[] data = myBinary.getData();
+      byte[] data = myData;
       for (int y = 0; y < dimension.height; ++y) {
         int yOffsetSource = stride * y;
         int yOffsetDestination = length - stride - yOffsetSource;
@@ -77,7 +78,7 @@ public class FetchedImage {
         }
       }
     }
-    else if (myImageInfo.getFormat() == ImageFormat.Float32) {
+    else if (myImageInfo.getFormat() instanceof FmtFloat32) {
       Dimension dimension = getImageDimensions();
       final int stride = dimension.width * 4;
 
@@ -85,7 +86,7 @@ public class FetchedImage {
       assert (destination.length >= length);
 
       // Covert between top-left and bottom-left formats.
-      byte[] data = myBinary.getData();
+      byte[] data = myData;
       byte[] floatBuffer = new byte[4];
       ByteBuffer intBuffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
       for (int y = 0; y < dimension.height; ++y) {
