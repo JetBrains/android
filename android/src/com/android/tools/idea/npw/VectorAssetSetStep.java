@@ -37,6 +37,7 @@ import javax.swing.text.NumberFormatter;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.net.URL;
 import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Map;
@@ -215,8 +216,8 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
       }
     } else {
       if (myTemplateState.hasAttr(ATTR_VECTOR_LIB_ICON_PATH)) {
-        String path = myTemplateState.getString(ATTR_VECTOR_LIB_ICON_PATH);
-        if (path == null || path.isEmpty()) {
+        URL url = (URL) myTemplateState.get(ATTR_VECTOR_LIB_ICON_PATH);
+        if (url == null) {
           isPathEmpty = true;
         }
       } else {
@@ -402,7 +403,7 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
       return;
     }
 
-    myTemplateState.put(ATTR_VECTOR_LIB_ICON_PATH, ip.getSelectIcon().getURL().getPath());
+    myTemplateState.put(ATTR_VECTOR_LIB_ICON_PATH, ip.getSelectIcon().getURL());
     update();
   }
 }
