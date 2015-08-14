@@ -53,7 +53,6 @@ public class ScreenView {
           public void run() {
             mySurface.updateErrorDisplay(ScreenView.this, myModel.getRenderResult());
             mySurface.repaint();
-            mySurface.zoomToFit();
           }
         });
       }
