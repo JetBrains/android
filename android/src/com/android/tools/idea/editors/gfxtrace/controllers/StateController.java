@@ -20,9 +20,12 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.StateTreeNode;
 import com.android.tools.idea.editors.gfxtrace.renderers.StateTreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
-import com.android.tools.idea.editors.gfxtrace.rpc.*;
-import com.android.tools.idea.editors.gfxtrace.schema.*;
-import com.android.tools.rpclib.binary.Decoder;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
+import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
+import com.android.tools.idea.editors.gfxtrace.service.path.StatePath;
+import com.android.tools.rpclib.binary.BinaryObject;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -38,156 +41,41 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import java.awt.*;
-import java.io.ByteArrayInputStream;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class StateController implements GfxController {
+public class StateController implements PathListener {
   @NotNull private static final Logger LOG = Logger.getInstance(StateController.class);
 
   @NotNull private final GfxTraceEditor myEditor;
   @NotNull private final JBLoadingPanel myLoadingPanel;
   @NotNull private final SimpleTree myTree;
 
-  @NotNull private AtomicLong myAtomicAtomId = new AtomicLong(-1);
-  @Nullable private StructInfo myStateHierarchy;
+  @NotNull private AtomicLong myAtomicAtomIndex = new AtomicLong(-1);
 
   public StateController(@NotNull GfxTraceEditor editor, @NotNull JBScrollPane scrollPane) {
     myEditor = editor;
+    myEditor.addPathListener(this);
     myTree = new SimpleTree();
     myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT);
     myTree.setRootVisible(false);
     myTree.setCellRenderer(new StateTreeRenderer());
-    myTree.getEmptyText().setText(SELECT_CAPTURE);
+    myTree.getEmptyText().setText(GfxTraceEditor.SELECT_CAPTURE);
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), editor.getProject());
     myLoadingPanel.add(myTree);
     scrollPane.setViewportView(myLoadingPanel);
   }
 
   @Nullable
-  private static DefaultMutableTreeNode constructStateNode(@NotNull String name, @NotNull TypeKind typeKind, @Nullable Object value) {
-    StateTreeNode thisNode = null;
-    switch (typeKind) {
-      case Bool:
-      case S8:
-      case U8:
-      case S16:
-      case U16:
-      case S32:
-      case U32:
-      case S64:
-      case U64:
-      case F32:
-      case F64:
-      case String:
-      case Pointer:
-        thisNode = new StateTreeNode(name, value);
-        break;
-
-      case Enum:
-        assert (value instanceof EnumValue);
-        EnumValue enumValue = (EnumValue)value;
-        for (EnumEntry entry : enumValue.info.getEntries()) {
-          if (enumValue.value == entry.getValue()) {
-            thisNode = new StateTreeNode(name, entry.getName());
-            break;
-          }
-        }
-        if (thisNode == null) {
-          LOG.warn("Invalid bitfield value passed in: " + enumValue.value);
-        }
-        break;
-
-      case Array:
-        assert (value instanceof Array);
-        Array array = (Array)value;
-        thisNode = new StateTreeNode(name, null);
-        ArrayInfo arrayInfo = array.info;
-        Object[] elements = array.elements;
-        int i = 0;
-        for (Object element : elements) {
-          DefaultMutableTreeNode childNode = constructStateNode(Integer.toString(i++), arrayInfo.getElementType().getKind(), element);
-          if (childNode != null) {
-            thisNode.add(childNode);
-          }
-        }
-        break;
-
-      case Struct:
-        assert (value instanceof Struct);
-        Struct struct = (Struct)value;
-        thisNode = new StateTreeNode(name, null);
-        for (Field field : struct.fields) {
-          DefaultMutableTreeNode childNode = constructStateNode(field.info.getName(), field.info.getType().getKind(), field.value);
-          if (childNode != null) {
-            thisNode.add(childNode);
-          }
-        }
-        break;
-
-      case Class:
-        assert (value instanceof com.android.tools.idea.editors.gfxtrace.schema.Class);
-        com.android.tools.idea.editors.gfxtrace.schema.Class gfxClass = (com.android.tools.idea.editors.gfxtrace.schema.Class)value;
-        thisNode = new StateTreeNode(name, null);
-        for (Field field : gfxClass.fields) {
-          DefaultMutableTreeNode childNode = constructStateNode(field.info.getName(), field.info.getType().getKind(), field.value);
-          if (childNode != null) {
-            thisNode.add(childNode);
-          }
-        }
-        break;
-
-      case Map:
-        assert (value instanceof Map);
-        Map map = (Map)value;
-        thisNode = new StateTreeNode(name, null);
-        for (MapEntry mapEntry : map.elements) {
-          DefaultMutableTreeNode childNode = constructStateNode(mapEntry.key.toString(), map.info.getValueType().getKind(), mapEntry.value);
-          if (childNode != null) {
-            thisNode.add(childNode);
-          }
-        }
-        break;
-
-      case Memory:
-        // Skip, since this is not supported at the moment.
-        thisNode = null;
-        break;
-
-      case Any:
-        // Skip, since this is not supported at the moment.
-        thisNode = null;
-        break;
-
-      default:
-        throw new RuntimeException("Attempting to decode unsupported types.");
-    }
-
-    return thisNode;
+  private static DefaultMutableTreeNode constructStateNode(@NotNull String name, @Nullable Object value) {
+    return new StateTreeNode(name, value);
   }
 
-  @Override
-  public void startLoad() {
-    myTree.getEmptyText().setText("");
-  }
-
-  @Override
-  public void commitData(@NotNull GfxContextChangeState state) {
-    myStateHierarchy = state.myCaptureChangeState.mySchema.getState();
-    myTree.getEmptyText().setText("Select an atom");
-  }
-
-  public void updateTreeModelFromAtomId(final long atomId) {
+  public void updateTreeModelFromAtomPath(AtomPath path) {
     ApplicationManager.getApplication().assertIsDispatchThread();
-    assert (myEditor.getCaptureId() != null);
-    assert (myEditor.getContext() != null);
-    assert (myStateHierarchy != null);
 
-    final Client client = myEditor.getClient();
-    final StructInfo stateHierarchy = myStateHierarchy;
-    final CaptureId captureId = myEditor.getCaptureId();
-    final int contextId = myEditor.getContext();
-    myAtomicAtomId.set(atomId);
+    final ServiceClient client = myEditor.getClient();
+    final StatePath statePath = path.stateAfter();
 
     if (!myLoadingPanel.isLoading()) {
       myTree.getEmptyText().setText("");
@@ -198,19 +86,13 @@ public class StateController implements GfxController {
       @Override
       @Nullable
       public TreeNode call() throws Exception {
-        BinaryId binaryId = client.GetState(captureId, contextId, atomId).get();
-        Binary stateBinary = client.ResolveBinary(binaryId).get();
-        Struct stateStruct = (Struct)Unpack.Type(stateHierarchy, new Decoder(new ByteArrayInputStream(stateBinary.getData())));
-        return constructStateNode(stateStruct.info.getName(), TypeKind.Struct, stateStruct);
+        BinaryObject value = client.get(statePath).get();
+        return constructStateNode("state", value);
       }
     });
     Futures.addCallback(nodeFuture, new FutureCallback<TreeNode>() {
       @Override
       public void onSuccess(@Nullable TreeNode result) {
-        if (myAtomicAtomId.get() != atomId) {
-          return;
-        }
-
         myTree.setModel(new DefaultTreeModel(result));
         myTree.updateUI();
         myLoadingPanel.stopLoading();
@@ -224,16 +106,14 @@ public class StateController implements GfxController {
     }, EdtExecutor.INSTANCE);
   }
 
-  @Override
   public void clear() {
-    myStateHierarchy = null;
-    clearCache();
+    myAtomicAtomIndex.set(-1);
+    myTree.setModel(null);
+    myTree.updateUI();
   }
 
   @Override
-  public void clearCache() {
-    myAtomicAtomId.set(-1);
-    myTree.setModel(null);
-    myTree.updateUI();
+  public void notifyPath(Path path) {
+    myTree.getEmptyText().setText(GfxTraceEditor.SELECT_ATOM);
   }
 }
