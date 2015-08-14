@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
 import com.intellij.util.containers.HashSet;
@@ -32,13 +35,14 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
-public class DocumentationController {
+public class DocumentationController implements PathListener {
   @NotNull private final JTextPane myView;
   @NotNull private Map<String, String> myDocumentationCache = new HashMap<String, String>();
   @NotNull private Set<String> myRequestInProgress = new HashSet<String>();
   private String myTargetUrl;
 
-  public DocumentationController(@NotNull JTextPane textPane) {
+  public DocumentationController(@NotNull GfxTraceEditor editor, @NotNull JTextPane textPane) {
+    editor.addPathListener(this);
     myView = textPane;
     myView.setBorder(BorderFactory.createLineBorder(JBColor.border()));
   }
@@ -100,5 +104,10 @@ public class DocumentationController {
         });
       }
     });
+  }
+
+  @Override
+  public void notifyPath(Path path) {
+    // TODO: detect paths that have associated documentation...
   }
 }
