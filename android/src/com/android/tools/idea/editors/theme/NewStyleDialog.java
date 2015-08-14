@@ -48,7 +48,7 @@ public class NewStyleDialog extends DialogWrapper {
   /**
    * Creates a new style dialog. This dialog it's used both to create new themes and new styles.
    * @param isTheme Whether the new item will be a theme or a regular style. This will only affect the messages displayed to user.
-   * @param configuration The current device configuration.
+   * @param context The current theme editor context.
    * @param defaultParentName The parent style that will be preselected in the parent text field.
    * @param currentThemeName The current theme name. This is used to automatically generate style names suggestions.
    * @param message Message to display to the user when creating the new style.
@@ -162,7 +162,7 @@ public class NewStyleDialog extends DialogWrapper {
     return ((ThemeEditorStyle)myParentStyleComboBox.getSelectedItem()).getQualifiedName();
   }
 
-  static String[] COMMON_THEME_NAMES = {"Material", "Holo", "Leanback", "Micro", "DeviceDefault", "AppCompat"};
+  private static final String[] COMMON_THEME_NAMES = {"Material", "Holo", "Leanback", "Micro", "DeviceDefault", "AppCompat"};
 
   /**
    * Returns a suggestion for a new style name based on both the parent style name and the current theme name. It will try to replace parent
