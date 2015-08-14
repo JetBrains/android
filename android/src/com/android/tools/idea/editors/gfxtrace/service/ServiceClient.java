@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.any.Box;
@@ -51,6 +52,10 @@ public abstract class ServiceClient {
 
   public ListenableFuture<AtomList> get(AtomsPath p) {
     return transform(get((Path)p), new BoxTransformer<AtomList>());
+  }
+
+  public ListenableFuture<AtomGroup> get(HierarchyPath p) {
+    return transform(get((Path)p), new BoxTransformer<AtomGroup>());
   }
 
   static class BoxTransformer<T> implements Function<Box, T> {

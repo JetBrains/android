@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.StateTreeNode;
 import com.android.tools.idea.editors.gfxtrace.renderers.StateTreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
@@ -26,7 +27,6 @@ import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
 import com.android.tools.idea.editors.gfxtrace.service.path.StatePath;
 import com.android.tools.rpclib.binary.BinaryObject;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
@@ -82,7 +82,7 @@ public class StateController implements PathListener {
       myLoadingPanel.startLoading();
     }
 
-    ListenableFuture<TreeNode> nodeFuture = myEditor.getService().submit(new Callable<TreeNode>() {
+    ListenableFuture<TreeNode> nodeFuture = myEditor.getExecutor().submit(new Callable<TreeNode>() {
       @Override
       @Nullable
       public TreeNode call() throws Exception {
@@ -90,18 +90,12 @@ public class StateController implements PathListener {
         return constructStateNode("state", value);
       }
     });
-    Futures.addCallback(nodeFuture, new FutureCallback<TreeNode>() {
+    Futures.addCallback(nodeFuture, new LoadingCallback<TreeNode>(LOG, myLoadingPanel) {
       @Override
       public void onSuccess(@Nullable TreeNode result) {
         myTree.setModel(new DefaultTreeModel(result));
         myTree.updateUI();
         myLoadingPanel.stopLoading();
-      }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        myLoadingPanel.stopLoading();
-        LOG.error(t);
       }
     }, EdtExecutor.INSTANCE);
   }

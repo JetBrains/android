@@ -23,6 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class ArrayIndexPath extends Path {
+  @Override
+  public StringBuilder stringPath(StringBuilder builder) {
+    return myArray.stringPath(builder).append("[").append(myIndex).append("]");
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   Path myArray;
   long myIndex;
