@@ -85,27 +85,27 @@ import static java.util.Collections.sort;
 /**
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
-public class AndroidProjectDataService implements ProjectDataService<AndroidGradleModel, Void> {
-  private static final Logger LOG = Logger.getInstance(AndroidProjectDataService.class);
+public class AndroidGradleModelDataService implements ProjectDataService<AndroidGradleModel, Void> {
+  private static final Logger LOG = Logger.getInstance(AndroidGradleModelDataService.class);
 
   private final List<ModuleCustomizer<AndroidGradleModel>> myCustomizers;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   @SuppressWarnings("unused")
-  public AndroidProjectDataService() {
+  public AndroidGradleModelDataService() {
     this(ImmutableList.of(new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new ContentRootModuleCustomizer(),
                           new RunConfigModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer()));
   }
 
   @VisibleForTesting
-  AndroidProjectDataService(@NotNull List<ModuleCustomizer<AndroidGradleModel>> customizers) {
+  AndroidGradleModelDataService(@NotNull List<ModuleCustomizer<AndroidGradleModel>> customizers) {
     myCustomizers = customizers;
   }
 
   @NotNull
   @Override
   public Key<AndroidGradleModel> getTargetDataKey() {
-    return AndroidProjectKeys.IDE_ANDROID_MODEL;
+    return AndroidProjectKeys.ANDROID_MODEL;
   }
 
   /**
