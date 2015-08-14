@@ -116,6 +116,10 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
               Dynamic.register(type);
             }
             LOG.warn("Schema with " + atoms + " atoms");
+            for (ConstantSet set: schema.getConstants()) {
+              LOG.warn("register " + set.getType().toString());
+              ConstantSet.register(set);
+            }
           }
         });
         // Upload the trace file
