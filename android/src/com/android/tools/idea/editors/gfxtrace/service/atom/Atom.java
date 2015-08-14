@@ -39,7 +39,11 @@ public abstract class Atom {
 
   public abstract Object getFieldValue(int index);
 
+  public abstract int getObservationsIndex();
+
   public abstract Observations getObservations();
+
+  public abstract int getResultIndex();
 
   public abstract boolean getIsEndOfFrame();
 }

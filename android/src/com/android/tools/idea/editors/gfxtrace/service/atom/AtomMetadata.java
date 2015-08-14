@@ -17,7 +17,10 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.rpclib.schema.Field;
 import com.android.tools.rpclib.schema.SchemaClass;
+import com.android.tools.rpclib.schema.Struct;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
@@ -33,10 +36,34 @@ public final class AtomMetadata implements BinaryObject {
   public static AtomMetadata find(SchemaClass c) {
     for (BinaryObject o : c.getMetadata()) {
       if (o instanceof AtomMetadata) {
-        return (AtomMetadata)o;
+        AtomMetadata meta = (AtomMetadata)o;
+        meta.prepare(c);
+        return meta;
       }
     }
     return null;
+  }
+
+  boolean myIsPrepared = false;
+  int myResultIndex = -1;
+  int myObservationsIndex = -1;
+  @NotNull private static final Logger LOG = Logger.getInstance(AtomMetadata.class);
+
+  private void prepare(SchemaClass c) {
+    if (myIsPrepared) return;
+    myIsPrepared = true;
+    for (int index = 0; index < c.getFields().length; index++) {
+      Field field = c.getFields()[index];
+      if (field.getDeclared().equals("Result")) {
+        myResultIndex = index;
+      }
+      if (field.getType() instanceof Struct) {
+        BinaryID id = ((Struct)field.getType()).getID();
+        if (id.equals(Observations.ID)) {
+          myObservationsIndex = index;
+        }
+      }
+    }
   }
 
   //<<<Start:Java.ClassBody:1>>>

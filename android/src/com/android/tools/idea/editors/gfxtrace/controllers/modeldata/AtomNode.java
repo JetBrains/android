@@ -41,6 +41,11 @@ public class AtomNode extends AtomTreeNode {
   }
 
   @Override
+  public boolean contains(long atomImdex) {
+    return atomImdex == myIndex;
+  }
+
+  @Override
   public List<TextPiece> getTextPieces(@NotNull JTree tree,
                                        @NotNull TreeNode node,
                                        @NotNull AtomList atoms) {
@@ -49,19 +54,27 @@ public class AtomNode extends AtomTreeNode {
     List<TextPiece> textPieces = new ArrayList<TextPiece>();
     textPieces.add(new TextPiece(Long.toString(myIndex) + "   ", SimpleTextAttributes.REGULAR_ATTRIBUTES));
     textPieces.add(new TextPiece(atom.getName() + "(", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
-
+    int resultIndex = atom.getResultIndex();
+    int observationsIndex = atom.getObservationsIndex();
+    boolean needComma = false;
     for (int i = 0; i < atom.getFieldCount(); ++i) {
-      if (i != 0) {
+      if (i == resultIndex || i == observationsIndex) continue;
+      if (needComma) {
         textPieces.add(new TextPiece(", ", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
       }
-
+      needComma = true;
       Field field = atom.getFieldInfo(i);
       Object parameterValue = atom.getFieldValue(i);
-      textPieces.add(new TextPiece(parameterValue.toString(), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES));
+      textPieces.add(new TextPiece(field.getType().render(parameterValue), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES));
     }
 
     textPieces.add(new TextPiece(")", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
-
+    if (resultIndex >= 0) {
+      textPieces.add(new TextPiece("->", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
+      Field field = atom.getFieldInfo(resultIndex);
+      Object parameterValue = atom.getFieldValue(resultIndex);
+      textPieces.add(new TextPiece(field.getType().render(parameterValue), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES));
+    }
     return textPieces;
   }
 }

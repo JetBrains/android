@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.ScrubberLabelData;
 import com.android.tools.idea.editors.gfxtrace.renderers.ScrubberCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
-import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
+import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBList;
@@ -32,25 +36,30 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.tree.TreeNode;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScrubberController implements ScrubberCellRenderer.DimensionChangeListener, PathListener {
+public class ScrubberController implements PathListener {
   @NotNull private static final Logger LOG = Logger.getInstance(ScrubberController.class);
   @NotNull private final GfxTraceEditor myEditor;
   @NotNull private final JBScrollPane myPane;
   @NotNull private final JBList myList;
   @NotNull private ScrubberCellRenderer myScrubberCellRenderer;
   @Nullable private List<ScrubberLabelData> myFrameData;
+  private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
+  private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
+  private boolean mDisableActivation = false;
 
   public ScrubberController(@NotNull GfxTraceEditor editor, @NotNull JBScrollPane scrubberScrollPane, @NotNull JBList scrubberComponent) {
     myEditor = editor;
     myEditor.addPathListener(this);
     myPane = scrubberScrollPane;
     myList = scrubberComponent;
-    myScrubberCellRenderer = new ScrubberCellRenderer();
-    myScrubberCellRenderer.addDimensionChangeListener(this);
+    myScrubberCellRenderer = new ScrubberCellRenderer(this);
 
     Dimension minCellDimension = myScrubberCellRenderer.getCellDimensions();
 
@@ -61,83 +70,79 @@ public class ScrubberController implements ScrubberCellRenderer.DimensionChangeL
     myList.getEmptyText().setText(GfxTraceEditor.SELECT_CAPTURE);
 
     resize(minCellDimension);
+    myList.addListSelectionListener(new ListSelectionListener() {
+      @Override
+      public void valueChanged(ListSelectionEvent listSelectionEvent) {
+        if (mDisableActivation || !myAtomsPath.isValid() || listSelectionEvent.getValueIsAdjusting()) return;
+        Object selectedValue = myList.getSelectedValue();
+        if (selectedValue == null) return;
+        ScrubberLabelData labelData = (ScrubberLabelData)selectedValue;
+        AtomPath atomPath = myAtomsPath.getPath().index(labelData.getRange().getLast());
+        myEditor.activatePath(atomPath);
+      }
+    });
   }
 
   @Nullable
-  public List<ScrubberLabelData> prepareData(@NotNull AtomGroup root, @NotNull AtomList atoms) {
-    List<ScrubberLabelData> generatedList = new ArrayList<ScrubberLabelData>(root.getSubGroups().length);
+  public List<ScrubberLabelData> prepareData(@NotNull AtomsPath path, @NotNull AtomList atoms) {
+    List<ScrubberLabelData> generatedList = new ArrayList<ScrubberLabelData>();
     int frameCount = 0;
-    for (AtomGroup frame : root.getSubGroups()) {
-      assert (frame.isValid());
-      long atomIndex = frame.getRange().getEnd() - 1l;
-      if (atoms.get(atomIndex).getIsEndOfFrame()) {
-        // TODO: get an atom path from an atom index, needs a capture path from somewhere
+    Range range = new Range();
+    range.setStart(0);
+    for (int index = 0; index < atoms.getAtoms().length; ++index) {
+      Atom atom = atoms.get(index);
+      if (atom.getIsEndOfFrame()) {
+        range.setEnd(index+1);
         ScrubberLabelData frameData =
-          new ScrubberLabelData(/*atomIndex*/null, frame, Integer.toString(frameCount++), myScrubberCellRenderer.getDefaultIcon());
+          new ScrubberLabelData(path.index(index), range, Integer.toString(frameCount++), myScrubberCellRenderer.getDefaultIcon());
         generatedList.add(frameData);
+        range = new Range();
+        range.setStart(index+1);
       }
     }
     return generatedList;
   }
 
-  @Override
   public void notifyDimensionChanged(@NotNull Dimension newDimension) {
     resize(newDimension);
     myEditor.notifyDimensionChanged(newDimension);
   }
 
-  public void populateUi(@NotNull ServiceClient client) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-    assert (myFrameData != null);
+  public void populateUi(@NotNull List<ScrubberLabelData> cells) {
+    myFrameData = cells;
 
     DefaultListModel model = new DefaultListModel();
     model.ensureCapacity(myFrameData.size());
     for (ScrubberLabelData data : myFrameData) {
       model.addElement(data);
     }
-    setModel(model);
+    myList.setModel(model);
 
     if (myFrameData.size() == 0) {
       myList.getEmptyText().setText(StatusText.DEFAULT_EMPTY_TEXT);
     }
 
-    myScrubberCellRenderer.setup(client);
     myList.setCellRenderer(myScrubberCellRenderer);
   }
 
-  @Nullable
-  public AtomGroup getFrameSelectionReference() {
-    ScrubberLabelData data = getSelectedLabelData();
-    if (data == null) {
-      return null;
-    }
-
-    return data.getHierarchyReference();
-  }
-
   public void selectFrame(long atomIndex) {
-    assert (myFrameData != null);
-
-    int i = 0;
-    for (ScrubberLabelData data : myFrameData) {
-      AtomGroup group = data.getHierarchyReference();
-      if (atomIndex >= group.getRange().getStart() && atomIndex < group.getRange().getEnd()) {
-        select(i);
-        break;
+    if (myFrameData == null) return;
+    for (int i = 0; i < myFrameData.size(); ++i) {
+      if (myFrameData.get(i).getRange().contains(atomIndex)) {
+        try {
+          mDisableActivation = true;
+          myList.setSelectedIndex(i);
+          myList.scrollRectToVisible(myList.getCellBounds(i, i));
+        } finally {
+          mDisableActivation = false;
+        }
       }
-      ++i;
     }
   }
 
   public void clear() {
-    myScrubberCellRenderer.clearState();
     myList.setModel(new DefaultListModel());
     myList.setCellRenderer(new DefaultListCellRenderer());
-  }
-
-  public void clearCache() {
-    myScrubberCellRenderer.clearCache();
-    myList.clearSelection();
   }
 
   private void resize(@NotNull Dimension newDimensions) {
@@ -148,27 +153,52 @@ public class ScrubberController implements ScrubberCellRenderer.DimensionChangeL
     myPane.setMinimumSize(newDimensions);
   }
 
-  private void setModel(@NotNull ListModel model) {
-    myList.setModel(model);
-  }
-
-  @Nullable
-  private ScrubberLabelData getSelectedLabelData() {
-    Object selectedValue = myList.getSelectedValue();
-    if (selectedValue != null) {
-      return (ScrubberLabelData)selectedValue;
-    }
-    return null;
-  }
-
-  private void select(int index) {
-    myList.setSelectedIndex(index);
-    myList.scrollRectToVisible(myList.getCellBounds(index, index));
-  }
-
   @Override
   public void notifyPath(Path path) {
-    // TODO: on capture change update the scrubber list
-    myList.getEmptyText().setText("");
+    boolean updateIcons = false;
+    if (path instanceof DevicePath) {
+      updateIcons |= myRenderDevice.update((DevicePath)path);
+    }
+    if (path instanceof CapturePath) {
+      updateIcons |= myAtomsPath.update(((CapturePath)path).atoms());
+    }
+    if (path instanceof AtomPath) {
+      selectFrame(((AtomPath)path).getIndex());
+    }
+    if (updateIcons && myAtomsPath.isValid()) {
+      Futures.addCallback(myEditor.getClient().get(myAtomsPath.getPath()), new LoadingCallback<AtomList>(LOG) {
+        @Override
+        public void onSuccess(@Nullable final AtomList atoms) {
+          final List<ScrubberLabelData> cells = prepareData(myAtomsPath.getPath(), atoms);
+          EdtExecutor.INSTANCE.execute(new Runnable() {
+            @Override
+            public void run() {
+              // Back in the UI thread here
+              populateUi(cells);
+            }
+          });
+        }
+      });
+    }
+  }
+
+  public ServiceClient getClient() {
+    return myEditor.getClient();
+  }
+
+  public DevicePath getRenderDevice() {
+    return myRenderDevice.getPath();
+  }
+
+  public boolean isLoading() {
+    if (myFrameData == null) {
+      return false;
+    }
+    for(ScrubberLabelData labelData : myFrameData) {
+      if (labelData.isLoading()) {
+        return true;
+      }
+    }
+    return false;
   }
 }

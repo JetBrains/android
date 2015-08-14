@@ -15,18 +15,6 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="27e12" class="com.intellij.ui.components.JBLabel">
-            <constraints/>
-            <properties>
-              <anchor value=""/>
-              <labelFor value="d9199"/>
-              <text value="Captures:"/>
-            </properties>
-          </component>
-          <component id="d9199" class="com.intellij.openapi.ui.ComboBox" binding="myCapturesList">
-            <constraints/>
-            <properties/>
-          </component>
           <component id="b2a71" class="com.intellij.ui.components.JBLabel">
             <constraints/>
             <properties>

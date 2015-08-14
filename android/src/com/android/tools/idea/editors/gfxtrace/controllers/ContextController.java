@@ -21,10 +21,7 @@ import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.Capture;
 import com.android.tools.idea.editors.gfxtrace.service.Device;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
-import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
-import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
-import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
+import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.google.common.util.concurrent.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -44,10 +41,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ContextController implements PathListener {
   private static final String NO_DEVICE_AVAILABLE = "No Device Available";
   private static final String NO_DEVICE_SELECTED = "No Device Selected";
-  private static final String NO_CAPTURE_AVAILABLE = "No Capture Available";
-  private static final String NO_CAPTURE_SELECTED = "No Capture Selected";
 
-  class DeviceEntry {
+  private static class DeviceEntry {
     public DevicePath myPath;
     public Device myDevice;
 
@@ -57,32 +52,17 @@ public class ContextController implements PathListener {
     }
   }
 
-  class CaptureEntry {
-    public CapturePath myPath;
-    public Capture myCapture;
-
-    public CaptureEntry(CapturePath path, Capture capture) {
-      myPath = path;
-      myCapture = capture;
-    }
-  }
-
   @NotNull private static final Logger LOG = Logger.getInstance(ContextController.class);
   @NotNull private final GfxTraceEditor myEditor;
   @NotNull private final ComboBox myDevicesView;
-  @NotNull private final ComboBox myCapturesView;
-  @NotNull private DeviceEntry[] myDevices;
-  @NotNull private CaptureEntry[] myCaptures;
-  @Nullable private CapturePath mySelectedCapture;
-  @Nullable private DevicePath mySelectedDevice;
+  @Nullable private DeviceEntry[] myDevices;
+  private final PathStore<DevicePath> mySelectedDevice = new PathStore<DevicePath>();
 
   public ContextController(@NotNull GfxTraceEditor editor,
-                           @NotNull ComboBox devicesView,
-                           @NotNull ComboBox capturesView) {
+                           @NotNull ComboBox devicesView) {
     myEditor = editor;
     myEditor.addPathListener(this);
     myDevicesView = devicesView;
-    myCapturesView = capturesView;
 
     myDevicesView.setRenderer(new ListCellRendererWrapper<DeviceEntry>() {
       @Override
@@ -98,81 +78,24 @@ public class ContextController implements PathListener {
         }
       }
     });
-
-    myCapturesView.setRenderer(new ListCellRendererWrapper<CaptureEntry>() {
-      @Override
-      public void customize(JList list, CaptureEntry value, int index, boolean selected, boolean hasFocus) {
-        if (list.getModel().getSize() == 0) {
-          setText(NO_CAPTURE_AVAILABLE);
-        }
-        else if (index == -1) {
-          setText(NO_CAPTURE_SELECTED);
-        }
-        else {
-          setText(value.myCapture.getName());
-        }
-      }
-    });
-  }
-
-  public void initialize() {
-    myCapturesView.addItemListener(new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent itemEvent) {
-        if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
-          assert (itemEvent.getItem() instanceof CaptureEntry);
-          CaptureEntry entry = (CaptureEntry)itemEvent.getItem();
-          myEditor.activatePath(entry.myPath);
-        }
-      }
-    });
-
     myDevicesView.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent itemEvent) {
-        if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
-          assert (itemEvent.getItem() instanceof DeviceEntry);
-          DeviceEntry entry = (DeviceEntry)itemEvent.getItem();
-          myEditor.activatePath(entry.myPath);
+        if (itemEvent.getStateChange() != ItemEvent.SELECTED) return;
+        assert (itemEvent.getItem() instanceof DeviceEntry);
+        if (mySelectedDevice.update(((DeviceEntry)itemEvent.getItem()).myPath)) {
+          myEditor.activatePath(mySelectedDevice.getPath());
         }
       }
     });
-
-    Futures.addCallback(myEditor.getClient().getCaptures(), new LoadingCallback<CapturePath[]>(LOG, null) {
-      @Override
-      public void onSuccess(@Nullable final CapturePath[] paths) {
-        final ListenableFuture<Capture>[] futures = new ListenableFuture[paths.length];
-        for (int i = 0; i < paths.length; i++) {
-          futures[i] = myEditor.getClient().get(paths[i]);
-        }
-        Futures.addCallback(Futures.allAsList(futures), new LoadingCallback<List<Capture>>(LOG, null) {
-          @Override
-          public void onSuccess(@Nullable final List<Capture> captures) {
-            EdtExecutor.INSTANCE.execute(new Runnable() {
-              @Override
-              public void run() {
-                // Back in the UI thread here
-                myCaptures = new CaptureEntry[paths.length];
-                for (int i = 0; i < paths.length; i++) {
-                  myCaptures[i] = new CaptureEntry(paths[i], captures.get(i));
-                }
-                myCapturesView.setModel(new DefaultComboBoxModel(myCaptures));
-                myCapturesView.setSelectedIndex(-1);
-              }
-            });
-          }
-        });
-      }
-    });
-
-    Futures.addCallback(myEditor.getClient().getDevices(), new LoadingCallback<DevicePath[]>(LOG, null) {
+    Futures.addCallback(myEditor.getClient().getDevices(), new LoadingCallback<DevicePath[]>(LOG) {
       @Override
       public void onSuccess(@Nullable final DevicePath[] paths) {
         final ListenableFuture<Device>[] futures = new ListenableFuture[paths.length];
         for (int i = 0; i < paths.length; i++) {
           futures[i] = myEditor.getClient().get(paths[i]);
         }
-        Futures.addCallback(Futures.allAsList(futures), new LoadingCallback<List<Device>>(LOG, null) {
+        Futures.addCallback(Futures.allAsList(futures), new LoadingCallback<List<Device>>(LOG) {
           @Override
           public void onSuccess(@Nullable final List<Device> devices) {
             EdtExecutor.INSTANCE.execute(new Runnable() {
@@ -184,7 +107,11 @@ public class ContextController implements PathListener {
                   myDevices[i] = new DeviceEntry(paths[i], devices.get(i));
                 }
                 myDevicesView.setModel(new DefaultComboBoxModel(myDevices));
-                myDevicesView.setSelectedIndex(-1);
+                if (paths.length > 0) {
+                  if (mySelectedDevice.update(paths[0])) {
+                    myEditor.activatePath(mySelectedDevice.getPath());
+                  }
+                }
               }
             });
           }
@@ -195,33 +122,12 @@ public class ContextController implements PathListener {
 
   @Override
   public void notifyPath(Path path) {
-    if (path instanceof CapturePath) {
-      CapturePath capture = (CapturePath)path;
-      if (mySelectedCapture != capture) {
-        mySelectedCapture = capture;
-        if (myCaptures != null) {
-          for (int i = 0; i < myCaptures.length; i++) {
-            if (myCaptures[i].myPath.equals(mySelectedCapture)) {
-              myCapturesView.setSelectedIndex(i);
-              return;
-            }
-          }
-          // capture not found
-          myCapturesView.setSelectedIndex(-1);
-        }
-      }
-    }
-
     if (path instanceof DevicePath) {
-      DevicePath device = (DevicePath)path;
-      if (mySelectedDevice != device) {
-        mySelectedDevice = device;
+      if (mySelectedDevice.update((DevicePath)path)) {
         if (myDevices != null) {
           for (int i = 0; i < myDevices.length; i++) {
-            if (myDevices[i].myPath.equals(mySelectedDevice)) {
-              myDevicesView.setSelectedIndex(i);
-              return;
-            }
+            myDevicesView.setSelectedIndex(i);
+            return;
           }
           // device not found
           myDevicesView.setSelectedIndex(-1);
@@ -233,10 +139,5 @@ public class ContextController implements PathListener {
   @NotNull
   private ComboBox getDevicesView() {
     return myDevicesView;
-  }
-
-  @NotNull
-  private ComboBox getCapturesView() {
-    return myCapturesView;
   }
 }
