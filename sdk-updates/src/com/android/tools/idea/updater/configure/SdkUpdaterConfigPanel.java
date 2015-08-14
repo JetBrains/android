@@ -150,7 +150,7 @@ public class SdkUpdaterConfigPanel {
             }
             InstallComponentsPath path =
               new InstallComponentsPath(progressStep, FirstRunWizardMode.MISSING_SDK, location,
-                                        mySdkState.getPackages().getRemotePkgInfos());
+                                        mySdkState.getPackages().getRemotePkgInfos(), false);
             progressStep.setPaths(Lists.newArrayList(path));
             addPath(path);
             addPath(new SingleStepPath(progressStep));
