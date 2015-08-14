@@ -65,7 +65,7 @@ class MoveToDebugManifestQuickFix implements AndroidLintQuickFix {
           AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet != null) {
             VirtualFile mainManifest = facet.getMainIdeaSourceProvider().getManifestFile();
-            // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+            // TODO: b/22928250
             IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
             if (androidModel != null && mainManifest != null
                 && mainManifest.getParent() != null && mainManifest.getParent().getParent() != null) {

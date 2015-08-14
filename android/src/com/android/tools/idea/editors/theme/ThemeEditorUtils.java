@@ -701,7 +701,7 @@ public class ThemeEditorUtils {
     Set<SourceProvider> inactiveProviders = Sets.newHashSet();
     selectedProviders.add(facet.getMainSourceProvider());
 
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    // TODO: b/23031626
     IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
     if (androidModel != null) {
       assert facet.requiresAndroidModel();

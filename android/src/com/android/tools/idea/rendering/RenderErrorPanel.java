@@ -624,7 +624,7 @@ public class RenderErrorPanel extends JPanel {
       if (module != null) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
-          // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+          // TODO: b/23032391
           AndroidProject androidProject = IdeaAndroidProject.getGradleModel(facet).getAndroidProject();
           String modelVersion = androidProject.getModelVersion();
           if (hasLayoutRenderingIssue(androidProject)) {
