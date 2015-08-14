@@ -42,5 +42,10 @@ public class GradleIncreaseLanguageLevelTest extends GuiTestCase {
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
     editor.invokeIntentionAction("Set language level to 7");
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
+
+    projectFrame.getEditor().invokeAction(EditorFixture.EditorAction.UNDO);
+    projectFrame.waitForGradleProjectSyncToFinish();
+    projectFrame.findMessageDialog("Undo").clickOk();
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
   }
 }

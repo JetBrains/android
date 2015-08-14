@@ -22,7 +22,6 @@ import com.google.common.collect.Sets;
 import com.intellij.application.options.ModuleListCellRenderer;
 import com.intellij.codeInsight.CodeInsightUtilBase;
 import com.intellij.codeInsight.daemon.QuickFixBundle;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
@@ -179,31 +178,24 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
       public void run() {
         final boolean test = ModuleRootManager.getInstance(myCurrentModule).getFileIndex().isInTestSourceContent(myClassVFile);
 
-        final Application application = ApplicationManager.getApplication();
-        application.invokeAndWait(new Runnable() {
+        invokeAction(new Runnable() {
           @Override
           public void run() {
-            application.runWriteAction(new Runnable() {
+            addDependencyUndoable(myCurrentModule, module, test);
+            gradleSyncAndImportClass(module, editor, myReference, new Function<Void, List<PsiClass>>() {
               @Override
-              public void run() {
-                addDependency(myCurrentModule, module, test);
-                registerUndoAction(project);
-                gradleSyncAndImportClass(module, editor, myReference, new Function<Void, List<PsiClass>>() {
-                  @Override
-                  public List<PsiClass> apply(@Nullable Void input) {
-                    final List<PsiClass> targetClasses = new ArrayList<PsiClass>();
-                    for (PsiClass psiClass : myClasses) {
-                      if (ModuleUtilCore.findModuleForPsiElement(psiClass) == module) {
-                        targetClasses.add(psiClass);
-                      }
-                    }
-                    return targetClasses;
+              public List<PsiClass> apply(@Nullable Void input) {
+                final List<PsiClass> targetClasses = new ArrayList<PsiClass>();
+                for (PsiClass psiClass : myClasses) {
+                  if (ModuleUtilCore.findModuleForPsiElement(psiClass) == module) {
+                    targetClasses.add(psiClass);
                   }
-                });
+                }
+                return targetClasses;
               }
             });
           }
-        }, application.getDefaultModalityState());
+        });
       }
     };
 
@@ -240,11 +232,11 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
   }
 
   // TODO use new gradle build file API to add dependencies.
-  private static void addDependency(@NotNull Module from, @NotNull Module to, boolean test) {
+  private static void addDependencyUndoable(@NotNull Module from, @NotNull Module to, boolean test) {
     String gradlePath = getGradlePath(to);
     if (gradlePath != null) {
       Dependency dependency = new Dependency(getDependencyScope(from, test), Dependency.Type.MODULE, gradlePath);
-      addDependency(from, dependency);
+      addDependencyUndoable(from, dependency);
     }
   }
 
