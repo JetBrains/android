@@ -323,6 +323,24 @@ public class ThemeEditorUtils {
     return allValues.build();
   }
 
+  /**
+   * Finds an ItemResourceValue for a given name in a theme inheritance tree
+   * Returns null if there is not an item with that name
+   */
+  @Nullable
+  public static ItemResourceValue resolveItemFromParents(@NotNull final ThemeEditorStyle theme, @NotNull String name, boolean isFrameworkAttr){
+    ThemeEditorStyle currentTheme = theme;
+
+    for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
+      ItemResourceValue item = currentTheme.getItem(name, isFrameworkAttr);
+      if(item != null){
+        return item;
+      }
+      currentTheme = currentTheme.getParent();
+    }
+    return null;
+  }
+
   @Nullable
   public static Object extractRealValue(@NotNull final EditedStyleItem item, @NotNull final Class<?> desiredClass) {
     String value = item.getValue();
@@ -536,23 +554,25 @@ public class ThemeEditorUtils {
   }
 
   /**
-   * Checks if the theme selected in the configuration is AppCompat based.
+   * Checks if the selected theme is AppCompat
    */
-  public static boolean isAppCompatTheme(@NotNull Configuration configuration) {
-    ResourceResolver resources = configuration.getResourceResolver();
+  public static boolean isSelectedAppCompatTheme(@NotNull ThemeEditorContext context) {
+    ThemeEditorStyle currentTheme = context.getCurrentTheme();
+    return currentTheme == null ? false : isAppCompatTheme(currentTheme);
+  }
 
-    if (resources == null) {
-      LOG.error("ResourceResolver is null");
-      return false;
-    }
-
-    StyleResourceValue theme = resources.getDefaultTheme();
-    for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && theme != null; i++) {
+  /**
+   * Checks if a theme is AppCompat
+   */
+  public static boolean isAppCompatTheme(@NotNull ThemeEditorStyle themeEditorStyle) {
+    ThemeEditorStyle currentTheme = themeEditorStyle;
+    for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
       // for loop ensures that we don't run into cyclic theme inheritance.
-      if (theme.getName().startsWith("Theme.AppCompat")) {
+      //TODO: This check is not enough. User themes could also start with "Theme.AppCompat" and not be AppCompat
+      if (currentTheme.getName().startsWith("Theme.AppCompat") && currentTheme.getSourceModule() == null) {
         return true;
       }
-      theme = resources.getParent(theme);
+      currentTheme = currentTheme.getParent();
     }
     return false;
   }

@@ -263,6 +263,10 @@ public class ThemeEditorStyle {
     return item != null && getStyleResourceValue().getItem(item.getName(), item.isFrameworkAttr()) != null;
   }
 
+  public ItemResourceValue getItem(@NotNull String name, boolean isFramework) {
+    return getStyleResourceValue().getItem(name, isFramework);
+  }
+
   /**
    * See {@link #getParent(ThemeResolver)}
    */
@@ -835,19 +839,20 @@ public class ThemeEditorStyle {
   @NotNull
   public FolderConfiguration findBestConfiguration(@NotNull FolderConfiguration configuration) {
     Collection<FolderConfiguration> folderConfigurations = getFolderConfigurations();
-    Configurable bestMatch = configuration.findMatchingConfigurable(ImmutableList.copyOf(Collections2.transform(folderConfigurations, new Function<FolderConfiguration, Configurable>() {
-      @Nullable
-      @Override
-      public Configurable apply(final FolderConfiguration input) {
-        assert input != null;
-        return new Configurable() {
-          @Override
-          public FolderConfiguration getConfiguration() {
-            return input;
-          }
-        };
-      }
-    })));
+    Configurable bestMatch = configuration.findMatchingConfigurable(
+      ImmutableList.copyOf(Collections2.transform(folderConfigurations, new Function<FolderConfiguration, Configurable>() {
+        @Nullable
+        @Override
+        public Configurable apply(final FolderConfiguration input) {
+          assert input != null;
+          return new Configurable() {
+            @Override
+            public FolderConfiguration getConfiguration() {
+              return input;
+            }
+          };
+        }
+      })));
 
     return bestMatch == null ? folderConfigurations.iterator().next() : bestMatch.getConfiguration();
   }
