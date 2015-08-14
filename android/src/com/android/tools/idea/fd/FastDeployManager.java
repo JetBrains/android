@@ -24,7 +24,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -191,7 +191,6 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
   public void after(@NotNull List<? extends VFileEvent> events) {
     Set<VirtualFile> files = null;
     Map<AndroidFacet, Collection<VirtualFile>> map = null;
-    Project project = null;
     for (VFileEvent event : events) {
       VirtualFile file = event.getFile();
       if (file == null) {
@@ -235,10 +234,9 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
         files = new HashSet<VirtualFile>();
       }
       files.add(file);
-      project = facet.getModule().getProject();
     }
     if (map != null) {
-      computeDeltas(map, project, false);
+      computeDeltas(map, false);
     }
   }
 
@@ -246,95 +244,41 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     Map<AndroidFacet, Collection<VirtualFile>> map = Maps.newHashMap();
     Collection<VirtualFile> virtualFiles = Collections.singletonList(file);
     map.put(facet, virtualFiles);
-    computeDeltas(map, facet.getModule().getProject(), forceRestart);
+    computeDeltas(map, forceRestart);
   }
 
-  public void computeDeltas(Map<AndroidFacet, Collection<VirtualFile>> map, Project project, boolean forceRestart) {
-    List<ApplicationPatch> changes = computeDeltas(map);
-    if (changes != null) {
-      push(project, changes, forceRestart);
-    }
+  public void computeDeltas(Map<AndroidFacet, Collection<VirtualFile>> map, boolean forceRestart) {
+    process(forceRestart, map);
   }
 
-  @Nullable
-  private List<ApplicationPatch> computeDeltas(@NotNull Map<AndroidFacet, Collection<VirtualFile>> map) {
-    // Compute maps of deltas
-    List<ApplicationPatch> changes = Lists.newArrayList();
-    for (Map.Entry<AndroidFacet, Collection<VirtualFile>> entry : map.entrySet()) {
+  public void process(boolean forceRestart, Map<AndroidFacet, Collection<VirtualFile>> changedFiles) {
+    for (Map.Entry<AndroidFacet, Collection<VirtualFile>> entry : changedFiles.entrySet()) {
       AndroidFacet facet = entry.getKey();
       Collection<VirtualFile> files = entry.getValue();
-
-      // TODO: Make this work for non-Gradle projects, where I don't have a snapshot of the resource
-      // files that are part of the APK push!
-      IdeaAndroidProject androidProject = facet.getAndroidModel();
-      if (androidProject == null) {
+      AndroidGradleModel model = AndroidGradleModel.get(facet);
+      if (model == null) {
         continue;
       }
-
-      // Compile java files
-      if (addJavaChanges(androidProject, changes, facet, files)) {
-        // Already fully handled -- bail (this is for Gradle invocation only) since the actual
-        // computation is async and may process data later
-        return null;
-      }
-
-      // TODO: Skip if not a debug build type!
-      //Variant variant = androidProject.getSelectedVariant();
-      //if (variant.getBuildType()) {
-      // ...
-      //}
-
-      Variant variant = androidProject.getSelectedVariant();
-      String variantName = variant.getName();
-      Collection<AndroidArtifactOutput> outputs = variant.getMainArtifact().getOutputs();
-      for (AndroidArtifactOutput output : outputs) {
-        File generatedManifest = output.getGeneratedManifest();
-        // We don't have the location of the merged resources in the model, but they live relative to
-        // the generated manifest: getGeneratedManifest()/../res/
-        File res = new File(generatedManifest.getParentFile(), SdkConstants.FD_RES);
-        if (!res.exists()) {
-          // Look for resources in known Android plugin intermediate dirs; this should be handled by Gradle instead:
-          // manifests/full/debug/AndroidManifest.xml
-          // res/debug/values/values.xml
-          // res/merged/debug/values/values.xml
-          res = new File(generatedManifest.getParentFile().getParentFile().getParentFile().getParentFile(),
-                         "res" + separator + variantName);
-          if (!res.isDirectory()) {
-            res = new File(generatedManifest.getParentFile().getParentFile().getParentFile().getParentFile(),
-                           "res" + separator + "merged" + separator + variantName);
-
-            if (!res.isDirectory()) {
-              continue;
-            }
-          }
-        }
-
-        for (VirtualFile file : files) {
-          if (file.getFileType() == StdFileTypes.JAVA) {
-            continue;
-          }
-          ResourceFolderType folderType = ResourceHelper.getFolderType(file);
-          if (folderType == ResourceFolderType.VALUES) {
-            // Perform value diffs
-            diffValueResource(changes, facet, res, file);
-          }
-          else {
-            // Perform file diffing
-// NO: THIS IS INEFFICIENT! APPLY ALL CHANGES FIRST, *THEN* RUN AAPT!!!
-            diffNonValueResource(changes, facet, res, file, folderType);
-          }
-        }
-      }
+      process(facet, model, files, forceRestart);
     }
-
-    return changes;
   }
 
-  private void addJavaChangesWithGradle(final IdeaAndroidProject androidProject, final List<ApplicationPatch> changes, final AndroidFacet facet, Collection<VirtualFile> files) {
+  public void process(AndroidFacet facet, AndroidGradleModel model, Collection<VirtualFile> files, boolean forceRestart) {
+    if (REBUILD_CODE_WITH_GRADLE || REBUILD_RESOURCES_WITH_GRADLE) {
+      runGradle(AndroidGradleModel.get(facet), facet, forceRestart, files);
+    } else {
+      afterBuild(model, facet, forceRestart, files);
+    }
+  }
+
+  private void runGradle(final AndroidGradleModel model, final AndroidFacet facet,
+                                        final boolean forceRestart,
+                                        final Collection<VirtualFile> files) {
     assert REBUILD_CODE_WITH_GRADLE;
 
     final String variantName = getVariantName(facet);
-    String taskName = "incrementalSupportDex" + variantName; // TODO: Add to model
+// TODO: Add in task for resources too!
+    String taskName = "incrementalSupportDex" + variantName; // TODO: Add task name to model
 
     final Project project = facet.getModule().getProject();
     final GradleInvoker invoker = GradleInvoker.getInstance(project);
@@ -348,38 +292,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
         invoker.removeAfterGradleInvocationTask(reference.get());
 
         // Build is done: send message to app etc
-
-        Variant variant = androidProject.getSelectedVariant();
-        Collection<AndroidArtifactOutput> outputs = variant.getMainArtifact().getOutputs();
-        for (AndroidArtifactOutput output : outputs) {
-          File apk = output.getMainOutputFile().getOutputFile();
-          // TODO: Get intermediates folder from model!
-          File intermediates = new File(apk.getParentFile().getParentFile().getParentFile(), "intermediates");
-
-          File restart = new File(intermediates, "restart-dex" + File.separator + variantName + File.separator + "classes.dex");
-          if (restart.exists()) {
-            try {
-              byte[] bytes = Files.toByteArray(restart);
-              List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(2);
-
-              boolean forceRestart = false;
-              changes.add(new ApplicationPatch("classes.dex", bytes));
-
-              File incremental = new File(intermediates, "reload-dex" + File.separator + variantName + File.separator + "classes.dex");
-              if (incremental.exists()) {
-                forceRestart = false; // let the server device, it has a patch that might work
-                bytes = Files.toByteArray(incremental);
-                changes.add(new ApplicationPatch("classes.dex.3", bytes));
-              }
-
-              push(facet.getModule().getProject(), changes, forceRestart);
-            } catch (Throwable t) {
-              // TODO
-              t.printStackTrace();
-            }
-            break;
-          }
-        }
+        afterBuild(model, facet, forceRestart, files);
       }
     };
     reference.set(task);
@@ -387,7 +300,123 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     invoker.executeTasks(Collections.singletonList(taskName));
   }
 
-  private boolean addJavaChanges(IdeaAndroidProject androidProject, List<ApplicationPatch> changes, AndroidFacet facet, Collection<VirtualFile> files) {
+
+  private void afterBuild(AndroidGradleModel model, AndroidFacet facet, boolean forceRestart,
+                          Collection<VirtualFile> files) {
+    List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(4);
+
+    if (REBUILD_CODE_WITH_GRADLE) {
+      gatherGradleCodeChanges(model, facet, changes);
+    } else {
+      computeCodeChangesDirectly(model, changes, facet, files);
+    }
+    if (REBUILD_RESOURCES_WITH_GRADLE) {
+      gatherGradleResourceChanges(model, facet, changes);
+    } else {
+      computeResourceChangesDirectly(model, facet, files, changes);
+    }
+
+    push(facet.getModule().getProject(), changes, forceRestart);
+  }
+
+  @SuppressWarnings({"MethodMayBeStatic", "UnusedParameters"}) // won't be as soon as it really calls Gradle
+  private void gatherGradleResourceChanges(AndroidGradleModel model, AndroidFacet facet,
+                                           List<ApplicationPatch> changes) {
+    assert REBUILD_RESOURCES_WITH_GRADLE;
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
+
+  private void computeResourceChangesDirectly(AndroidGradleModel model, AndroidFacet facet, Collection<VirtualFile> files,
+                                           List<ApplicationPatch> changes) {
+    // TODO: Skip if not a debug build type!
+    //Variant variant = model.getSelectedVariant();
+    //if (variant.getBuildType()) {
+    // ...
+    //}
+
+    Variant variant = model.getSelectedVariant();
+    String variantName = variant.getName();
+    Collection<AndroidArtifactOutput> outputs = variant.getMainArtifact().getOutputs();
+    for (AndroidArtifactOutput output : outputs) {
+      File generatedManifest = output.getGeneratedManifest();
+      // We don't have the location of the merged resources in the model, but they live relative to
+      // the generated manifest: getGeneratedManifest()/../res/
+      File res = new File(generatedManifest.getParentFile(), SdkConstants.FD_RES);
+      if (!res.exists()) {
+        // Look for resources in known Android plugin intermediate dirs; this should be handled by Gradle instead:
+        // manifests/full/debug/AndroidManifest.xml
+        // res/debug/values/values.xml
+        // res/merged/debug/values/values.xml
+        res = new File(generatedManifest.getParentFile().getParentFile().getParentFile().getParentFile(),
+                       "res" + separator + variantName);
+        if (!res.isDirectory()) {
+          res = new File(generatedManifest.getParentFile().getParentFile().getParentFile().getParentFile(),
+                         "res" + separator + "merged" + separator + variantName);
+
+          if (!res.isDirectory()) {
+            continue;
+          }
+        }
+      }
+
+      for (VirtualFile file : files) {
+        if (file.getFileType() == StdFileTypes.JAVA) {
+          continue;
+        }
+        ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+        if (folderType == ResourceFolderType.VALUES) {
+          // Perform value diffs
+          diffValueResource(changes, facet, res, file);
+        }
+        else {
+          // Perform file diffing
+// NO: THIS IS INEFFICIENT! APPLY ALL CHANGES FIRST, *THEN* RUN AAPT!!!
+          diffNonValueResource(changes, facet, res, file, folderType);
+        }
+      }
+    }
+  }
+
+  private static void gatherGradleCodeChanges(AndroidGradleModel model,
+                                              AndroidFacet facet,
+                                              List<ApplicationPatch> changes) {
+    assert REBUILD_CODE_WITH_GRADLE;
+    Variant variant = model.getSelectedVariant();
+    Collection<AndroidArtifactOutput> outputs = variant.getMainArtifact().getOutputs();
+    final String variantName = getVariantName(facet);
+    for (AndroidArtifactOutput output : outputs) {
+      File apk = output.getMainOutputFile().getOutputFile();
+      // TODO: Get intermediates folder from model!
+      File intermediates = new File(apk.getParentFile().getParentFile().getParentFile(), "intermediates");
+
+      File restart = new File(intermediates, "restart-dex" + File.separator + variantName + File.separator + "classes.dex");
+      if (restart.exists()) {
+        try {
+          byte[] bytes = Files.toByteArray(restart);
+
+          changes.add(new ApplicationPatch("classes.dex", bytes));
+          //forceRestart = true;
+
+          File incremental = new File(intermediates, "reload-dex" + File.separator + variantName + File.separator + "classes.dex");
+          if (incremental.exists()) {
+            //forceRestart = false; // let the server device, it has a patch that might work
+            bytes = Files.toByteArray(incremental);
+            changes.add(new ApplicationPatch("classes.dex.3", bytes));
+          }
+
+        } catch (Throwable t) {
+          Logger.getInstance(FastDeployManager.class).error("Couldn't generate dex", t);
+        }
+        break;
+      }
+    }
+  }
+
+  @SuppressWarnings("UnusedParameters")
+  private boolean computeCodeChangesDirectly(AndroidGradleModel model, List<ApplicationPatch> changes, AndroidFacet facet,
+                                             Collection<VirtualFile> files) {
+    assert !REBUILD_CODE_WITH_GRADLE;
+
     // Could be a mixture of resources and java files: extract the JAva files
     List<VirtualFile> sources = Lists.newArrayListWithExpectedSize(files.size());
     for (VirtualFile file : files) {
@@ -399,11 +428,6 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       return false;
     }
 
-    if (REBUILD_CODE_WITH_GRADLE) {
-      addJavaChangesWithGradle(androidProject, changes, facet, sources);
-      return true;
-    }
-
     // Recompile & redex just these files. I really just want to call
     //    ./gradlew :app:preDexDebug :app:dexDebug
     // here and have that do the bare minimum (e.g. compile just the changed java files
@@ -412,19 +436,20 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     // So perform optimized stage here
     //GradleInvoker.getInstance(module.getProject()).compileJava(new Module[] { module }, GradleInvoker.TestCompileType.NONE);
     try {
-      compileJavaFiles(androidProject, changes, facet, sources);
+      compileJavaFiles(changes, facet, sources);
     }
     catch (IOException e) {
-      e.printStackTrace();
+      Logger.getInstance(FastDeployManager.class).error("Couldn't compile/dex Java", e);
     }
     catch (InterruptedException e) {
-      e.printStackTrace();
+      Logger.getInstance(FastDeployManager.class).error("Couldn't compile/dex Java", e);
     }
 
     return false;
   }
 
-  private void compileJavaFiles(IdeaAndroidProject androidProject, List<ApplicationPatch> changes, AndroidFacet facet, List<VirtualFile> sources) throws IOException, InterruptedException {
+  private void compileJavaFiles(List<ApplicationPatch> changes, AndroidFacet facet, List<VirtualFile> sources)
+      throws IOException, InterruptedException {
     List<String> args = Lists.newArrayList();
     File jdkPath = IdeSdks.getJdkPath();
     if (jdkPath == null) {
@@ -835,14 +860,13 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
   }
 
   @NotNull
-  private String getVariantName(@NotNull AndroidFacet facet) {
-    String variantName;
-    if (facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
-      variantName = facet.getAndroidModel().getSelectedVariant().getName();
-    } else {
-      variantName = "debug";
+  private static String getVariantName(@NotNull AndroidFacet facet) {
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    if (model != null) {
+      return model.getSelectedVariant().getName();
     }
-    return variantName;
+
+    return "debug";
   }
 
   private void postBalloon(MessageType type, String message) {
@@ -860,7 +884,6 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       }
     }
   }
-
 
   // Based on NodeUtils#duplicateNode, but that code is package private and not complete (it doesn
   // duplicate non-element nodes etc). Seems to be optimized for resource manager. Here we need a more
