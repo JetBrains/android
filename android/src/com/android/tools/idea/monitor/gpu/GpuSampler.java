@@ -125,16 +125,11 @@ public class GpuSampler extends DeviceSampler {
 
   public static int decodeApiLevel(@NotNull Client client) {
     int apiLevel = client.getDevice().getApiLevel();
-    if (apiLevel <= 0) {
-      return JHandler.MIN_API_LEVEL;
+    // TODO remove this version promotion workaround after M launches
+    if (apiLevel == 22) {
+      String versionString = client.getDevice().getProperty(IDevice.PROP_BUILD_VERSION);
+      return "M".equals(versionString) ? MHandler.MIN_API_LEVEL : 22;
     }
-    else {
-      // TODO remove this version promotion workaround after M launches
-      if (apiLevel == 22) {
-        String versionString = client.getDevice().getProperty(IDevice.PROP_BUILD_VERSION);
-        return "M".equals(versionString) ? MHandler.MIN_API_LEVEL : 22;
-      }
-      return apiLevel;
-    }
+    return apiLevel;
   }
 }
