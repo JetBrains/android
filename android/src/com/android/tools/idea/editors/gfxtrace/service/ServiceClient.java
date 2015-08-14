@@ -17,15 +17,14 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
-import com.android.tools.rpclib.binary.BinaryID;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
+import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.any.Box;
-import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
-import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
-import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
-import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
-import com.android.tools.idea.editors.gfxtrace.service.path.TimingInfoPath;
+import com.android.tools.rpclib.binary.BinaryID;
+import com.google.common.base.Function;
 import com.google.common.util.concurrent.ListenableFuture;
+
+import static com.google.common.util.concurrent.Futures.transform;
 
 public abstract class ServiceClient {
   //<<<Start:Java.ClientBody:1>>>
@@ -41,4 +40,23 @@ public abstract class ServiceClient {
   public abstract ListenableFuture<Void> prerenderFramebuffers(DevicePath device, CapturePath capture, BinaryID api, int width, int height, long[] atomIndicies);
   public abstract ListenableFuture<Path> set(Path p, Box v);
   //<<<End:Java.ClientBody:1>>>
+
+  public ListenableFuture<Device> get(DevicePath p) {
+    return transform(get((Path)p), new BoxTransformer<Device>());
+  }
+
+  public ListenableFuture<Capture> get(CapturePath p) {
+    return transform(get((Path)p), new BoxTransformer<Capture>());
+  }
+
+  public ListenableFuture<AtomList> get(AtomsPath p) {
+    return transform(get((Path)p), new BoxTransformer<AtomList>());
+  }
+
+  static class BoxTransformer<T> implements Function<Box, T> {
+    @Override
+    public T apply(Box v) {
+      return (T)v.unwrap();
+    }
+  }
 }
