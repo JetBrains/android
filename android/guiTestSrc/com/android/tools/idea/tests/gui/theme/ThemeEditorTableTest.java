@@ -69,16 +69,13 @@ public class ThemeEditorTableTest extends GuiTestCase {
   public void testParentValueCell() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
-    JTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     // Cell (0,0) should be the parent editor
-    JTableCellFixture parentValueCell = themeEditorTable.cell(row(0).column(0));
-    parentValueCell.requireEditable();
-    Component parentEditor = parentValueCell.editor();
-    assertTrue(parentEditor instanceof JComponent);
-    JComboBoxFixture parentComboBox = new JComboBoxFixture(myRobot, myRobot.finder().findByType((JComponent)parentEditor, JComboBox.class));
+    TableCell parentCell = row(0).column(0);
 
-    List<String> parentsList = ImmutableList.copyOf(parentComboBox.contents());
+
+    List<String> parentsList = themeEditorTable.getComboBoxContentsAt(parentCell);
     // The expected elements are:
     // 0. Holo Light
     // 1. -- Separator
@@ -86,6 +83,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     // 3. AppCompat
     // 4. -- Separator
     // 5. Show all themes
+    assertNotNull(parentsList);
     assertThat(parentsList)
       .hasSize(6)
       .contains("Theme.Holo.Light.DarkActionBar", Index.atIndex(0))
@@ -96,29 +94,29 @@ public class ThemeEditorTableTest extends GuiTestCase {
     assertThat(parentsList.get(1)).startsWith("javax.swing.JSeparator");
     assertThat(parentsList.get(4)).startsWith("javax.swing.JSeparator");
 
-    // Checks that selecting a separator does nothing
-    parentValueCell.click();
+    JTableCellFixture parentCellFixture = themeEditorTable.cell(parentCell);
+    parentCellFixture.requireEditable();
 
+    // Checks that selecting a separator does nothing
+    parentCellFixture.click();
+    Component parentEditor = parentCellFixture.editor();
+    assertTrue(parentEditor instanceof JComponent);
+    JComboBoxFixture parentComboBox = new JComboBoxFixture(myRobot, myRobot.finder().findByType((JComponent)parentEditor, JComboBox.class));
     parentComboBox.selectItem(4);
-    parentComboBox.requireSelection("Theme.Holo.Light.DarkActionBar");
+    assertEquals("Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     // Selects a new parent
     final String newParent = "Theme.AppCompat.NoActionBar";
-    parentValueCell.click();
+    parentCellFixture.click();
 
     parentComboBox.selectItem(newParent);
-    parentComboBox.requireSelection(newParent);
+    assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
-    // Since the editor lost the focus, make sure we get the right editor
-    parentEditor = parentValueCell.editor();
-    parentComboBox = new JComboBoxFixture(myRobot, myRobot.finder().findByType((JComponent)parentEditor, JComboBox.class));
-    parentComboBox.requireSelection("Theme.Holo.Light.DarkActionBar");
+    assertEquals("Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     projectFrame.invokeMenuPathRegex("Edit", "Redo.*");
-    parentEditor = parentValueCell.editor();
-    parentComboBox = new JComboBoxFixture(myRobot, myRobot.finder().findByType((JComponent)parentEditor, JComboBox.class));
-    parentComboBox.requireSelection(newParent);
+    assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     pause(new Condition("Wait for potential tooltips to disappear") {
       @Override
@@ -126,7 +124,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
         return myRobot.findActivePopupMenu() == null;
       }
     });
-    testParentPopup(parentValueCell, newParent, themeEditor);
+    testParentPopup(themeEditorTable.cell(parentCell), newParent, themeEditor);
 
     projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     EditorFixture editor = projectFrame.getEditor();

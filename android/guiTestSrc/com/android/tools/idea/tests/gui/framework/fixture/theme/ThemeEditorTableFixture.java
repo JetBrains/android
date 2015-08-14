@@ -17,16 +17,20 @@ package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
 import com.android.tools.idea.editors.theme.ThemeEditorTable;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import com.google.common.collect.ImmutableList;
 import org.fest.swing.annotation.RunsInCurrentThread;
 import org.fest.swing.core.Robot;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.Component;
 import java.awt.Font;
+import java.util.List;
 
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertTrue;
@@ -96,6 +100,32 @@ public class ThemeEditorTableFixture extends JTableFixture {
         assertTrue(renderer instanceof ResourceComponent);
         ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)renderer);
         return resourceComponent.getColorValue();
+      }
+    });
+  }
+
+  @Nullable
+  public List<String> getComboBoxContentsAt(@NotNull final TableCell cell) {
+    return execute(new GuiQuery<List<String>>() {
+      @Override
+      protected List<String> executeInEDT() throws Throwable {
+        Component renderer = rendererComponentAt(cell);
+        assertTrue(renderer instanceof JComponent);
+        JComboBoxFixture comboBox = new JComboBoxFixture(robot(), robot().finder().findByType((JComponent)renderer, JComboBox.class));
+        return ImmutableList.copyOf(comboBox.contents());
+      }
+    });
+  }
+
+  @Nullable
+  public String getComboBoxSelectionAt(@NotNull final TableCell cell) {
+    return execute(new GuiQuery<String>() {
+      @Override
+      protected String executeInEDT() throws Throwable {
+        Component renderer = rendererComponentAt(cell);
+        assertTrue(renderer instanceof JComponent);
+        JComboBoxFixture comboBox = new JComboBoxFixture(robot(), robot().finder().findByType((JComponent)renderer, JComboBox.class));
+        return comboBox.selectedItem();
       }
     });
   }
