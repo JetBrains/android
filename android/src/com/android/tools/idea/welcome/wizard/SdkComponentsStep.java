@@ -226,16 +226,6 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   }
 
   @Override
-  public void onEnterStep() {
-    super.onEnterStep();
-    if (myMode == FirstRunWizardMode.MISSING_SDK) {
-      Messages.showWarningDialog((Project)null,
-                                 "No Android SDK found.\n\nBefore continuing, you must download the necessary components\nor select an existing SDK.",
-                                 "No Android SDK Found");
-    }
-  }
-
-  @Override
   public void init() {
     register(mySdkDownloadPathKey, myPath);
     if (!myRootNode.getImmediateChildren().isEmpty()) {
