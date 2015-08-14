@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.DumbAwareActionListener;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
@@ -27,6 +28,7 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -36,7 +38,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 /**
  * Class that implements a {@link javax.swing.JTable} renderer and editor for drawable attributes.
@@ -44,8 +45,7 @@ import java.awt.event.ActionListener;
 public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
   static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b><font color=\"#9B9B9B\"></font>";
 
-  @Nullable
-  private RenderTask myRenderTask;
+  @Nullable private RenderTask myRenderTask;
   private final AndroidThemePreviewPanel myPreviewPanel;
   private EditedStyleItem myItem;
 
@@ -73,8 +73,7 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
       final RenderService service = RenderService.get(facet);
-      result =
-        service.createTask(null, configuration, new RenderLogger("ThemeEditorLogger", module), null);
+      result = service.createTask(null, configuration, new RenderLogger("ThemeEditorLogger", module), null);
     }
 
     return result;
@@ -95,11 +94,20 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     component.setValueText(item.getValue());
   }
 
-  private class EditorClickListener implements ActionListener {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      ChooseResourceDialog dialog = ThemeEditorUtils.getResourceDialog(myItem, myContext, ColorRendererEditor.DRAWABLES_ONLY);
+  private class EditorClickListener extends DumbAwareActionListener {
+    public EditorClickListener() {
+      super(myContext.getProject());
+    }
 
+    @Override
+    public void dumbActionPerformed(ActionEvent e) {
+      DumbService.getInstance(myContext.getProject()).showDumbModeNotification(DUMB_MODE_MESSAGE);
+      DrawableRendererEditor.this.cancelCellEditing();
+    }
+
+    @Override
+    public void smartActionPerformed(ActionEvent e) {
+      ChooseResourceDialog dialog = ThemeEditorUtils.getResourceDialog(myItem, myContext, ColorRendererEditor.DRAWABLES_ONLY);
       final String oldValue = myItem.getSelectedValue().getValue();
 
       dialog.setResourcePickerListener(new ChooseResourceDialog.ResourcePickerListener() {
