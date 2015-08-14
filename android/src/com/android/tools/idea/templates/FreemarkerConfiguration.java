@@ -27,6 +27,7 @@ import freemarker.template.TemplateExceptionHandler;
 public final class FreemarkerConfiguration extends Configuration {
   public FreemarkerConfiguration() {
     setDefaultEncoding(Charsets.UTF_8.name());
+    setLocalizedLookup(false);
     setIncompatibleImprovements(Configuration.getVersion());
     setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
     setObjectWrapper(new PropertyObjectWrapper());

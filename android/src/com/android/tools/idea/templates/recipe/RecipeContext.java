@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.*;
+import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
@@ -65,10 +66,9 @@ public final class RecipeContext {
   private static final String GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle";
 
   @NotNull private final Project myProject;
-  @NotNull private final PrefixTemplateLoader myLoader;
+  @NotNull private final StudioTemplateLoader myLoader;
   @NotNull private final Configuration myFreemarker;
   @NotNull private final Map<String, Object> myParamMap;
-  @NotNull private final File myTemplateRoot;
   @NotNull private final File myOutputRoot;
   @NotNull private final File myModuleRoot;
   private final boolean mySyncGradleIfNeeded; // User can disable gradle syncing if they know they're going to sync themselves anyway
@@ -76,10 +76,9 @@ public final class RecipeContext {
   private boolean myNeedsGradleSync;
 
   public RecipeContext(@NotNull Project project,
-                                @NotNull PrefixTemplateLoader loader,
+                                @NotNull StudioTemplateLoader loader,
                                 @NotNull Configuration freemarker,
                                 @NotNull Map<String, Object> paramMap,
-                                @NotNull File templateRoot,
                                 @NotNull File outputRoot,
                                 @NotNull File moduleRoot,
                                 boolean syncGradleIfNeeded) {
@@ -87,17 +86,15 @@ public final class RecipeContext {
     myLoader = loader;
     myFreemarker = freemarker;
     myParamMap = paramMap;
-    myTemplateRoot = templateRoot;
     myOutputRoot = outputRoot;
     myModuleRoot = moduleRoot;
     mySyncGradleIfNeeded = syncGradleIfNeeded;
   }
 
   public RecipeContext(@NotNull Module module,
-                       @NotNull PrefixTemplateLoader loader,
+                       @NotNull StudioTemplateLoader loader,
                        @NotNull Configuration freemarker,
                        @NotNull Map<String, Object> paramMap,
-                       @NotNull File templateRoot,
                        boolean syncGradleIfNeeded) {
     File moduleRoot = new File(module.getModuleFilePath()).getParentFile();
 
@@ -105,7 +102,6 @@ public final class RecipeContext {
     myLoader = loader;
     myFreemarker = freemarker;
     myParamMap = paramMap;
-    myTemplateRoot = templateRoot;
     myOutputRoot = moduleRoot;
     myModuleRoot = moduleRoot;
     mySyncGradleIfNeeded = syncGradleIfNeeded;
@@ -148,9 +144,7 @@ public final class RecipeContext {
         copyTemplateResource(from, to);
       }
       else {
-        from = getSourceFile(from);
-        myLoader.setTemplateFile(from);
-        String contents = processFreemarkerTemplate(myFreemarker, myParamMap, from);
+        String contents = processFreemarkerTemplate(myFreemarker, myParamMap, from, null);
 
         contents = format(contents, to);
         File targetFile = getTargetFile(to);
@@ -161,7 +155,7 @@ public final class RecipeContext {
     catch (IOException e) {
       throw new RuntimeException(e);
     }
-    catch (TemplateException e) {
+    catch (TemplateProcessingException e) {
       throw new RuntimeException(e);
     }
   }
@@ -202,13 +196,12 @@ public final class RecipeContext {
       }
 
       String sourceText;
-      from = getSourceFile(from);
       if (hasExtension(from, DOT_FTL)) {
         // Perform template substitution of the template prior to merging
-        myLoader.setTemplateFile(from);
-        sourceText = processFreemarkerTemplate(myFreemarker, myParamMap, from);
+        sourceText = processFreemarkerTemplate(myFreemarker, myParamMap, from, null);
       }
       else {
+        from = myLoader.getSourceFile(from);
         sourceText = readTextFile(from);
         if (sourceText == null) {
           return;
@@ -237,6 +230,9 @@ public final class RecipeContext {
       throw new RuntimeException(e);
     }
     catch (TemplateException e) {
+      throw new RuntimeException(e);
+    }
+    catch (TemplateProcessingException e) {
       throw new RuntimeException(e);
     }
   }
@@ -291,20 +287,6 @@ public final class RecipeContext {
   }
 
   /**
-   * Returns the absolute path to the file which will get read from.
-   */
-  @NotNull
-  public File getSourceFile(@NotNull File file) {
-    if (file.isAbsolute()) {
-      return file;
-    }
-    else {
-      // If it's a relative file path, get the data from the template data directory
-      return new File(myTemplateRoot, file.getPath());
-    }
-  }
-
-  /**
    * Returns the absolute path to the file which will get written to.
    */
   @NotNull
@@ -318,12 +300,11 @@ public final class RecipeContext {
   /**
    * Merge the URLs from our gradle template into the target module's build.gradle file
    */
-  private void mergeDependenciesIntoGradle() throws IOException, TemplateException {
+  private void mergeDependenciesIntoGradle() throws Exception {
     File gradleBuildFile = GradleUtil.getGradleBuildFilePath(myModuleRoot);
     String templateRoot = TemplateManager.getTemplateRootFolder().getPath();
     File gradleTemplate = new File(templateRoot, FileUtil.join("gradle", "utils", "dependencies.gradle.ftl"));
-    myLoader.setTemplateFile(gradleTemplate);
-    String contents = processFreemarkerTemplate(myFreemarker, myParamMap, gradleTemplate);
+    String contents = processFreemarkerTemplate(myFreemarker, myParamMap, gradleTemplate, null);
     String destinationContents = null;
     if (gradleBuildFile.exists()) {
       destinationContents = readTextFile(gradleBuildFile);
@@ -364,7 +345,7 @@ public final class RecipeContext {
   }
 
   private void copyTemplateResource(@NotNull File from, @NotNull File to) throws IOException {
-    from = getSourceFile(from);
+    from = myLoader.getSourceFile(from);
     to = getTargetFile(to);
 
     VirtualFile sourceFile = VfsUtil.findFileByIoFile(from, true);
