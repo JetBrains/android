@@ -1209,6 +1209,11 @@
   <item name="android.content.Context void unbindService(android.content.ServiceConnection) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.Intent ACTION_CALL">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CALL_PHONE&quot;" />
+    </annotation>
+  </item>
   <item name="android.content.Intent int fillIn(android.content.Intent, int)">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.Intent.FILL_IN_ACTION, android.content.Intent.FILL_IN_DATA, android.content.Intent.FILL_IN_CATEGORIES, android.content.Intent.FILL_IN_COMPONENT, android.content.Intent.FILL_IN_PACKAGE, android.content.Intent.FILL_IN_SOURCE_BOUNDS, android.content.Intent.FILL_IN_SELECTOR, android.content.Intent.FILL_IN_CLIP_DATA}" />
