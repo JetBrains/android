@@ -27,6 +27,11 @@ import java.util.*;
 public class GradleApkProviderTest extends AndroidGradleTestCase {
 
   public void testGetPackageName() throws Exception {
+    if (!CAN_SYNC_PROJECTS) {
+      System.err.println("GradleApkProviderTest.testGetPackageName temporarily disabled");
+      return;
+    }
+
     loadProject("projects/runConfig/activity");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, false);
     // See testData/Projects/runConfig/activity/build.gradle
@@ -36,10 +41,14 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
   }
 
   public void testGetApks() throws Exception {
-    IDevice device = Mockito.mock(IDevice.class);
+    if (!CAN_SYNC_PROJECTS) {
+      System.err.println("GradleApkProviderTest.testGetApks temporarily disabled");
+      return;
+    }
 
     loadProject("projects/runConfig/activity");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, false);
+    IDevice device = Mockito.mock(IDevice.class);
     Collection<ApkInfo> apks = provider.getApks(device);
     assertNotNull(apks);
     assertEquals(1, apks.size());
@@ -49,6 +58,11 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
   }
 
   public void testGetPackageNameForTest() throws Exception {
+    if (!CAN_SYNC_PROJECTS) {
+      System.err.println("GradleApkProviderTest.testGetPackageNameForTest temporarily disabled");
+      return;
+    }
+
     loadProject("projects/runConfig/activity");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, true);
     // See testData/Projects/runConfig/activity/build.gradle
@@ -58,10 +72,14 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
   }
 
   public void testGetApksForTest() throws Exception {
-    IDevice device = Mockito.mock(IDevice.class);
+    if (!CAN_SYNC_PROJECTS) {
+      System.err.println("GradleApkProviderTest.testGetApksForTest temporarily disabled");
+      return;
+    }
 
     loadProject("projects/runConfig/activity");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, true);
+    IDevice device = Mockito.mock(IDevice.class);
     Collection<ApkInfo> apks = provider.getApks(device);
     assertNotNull(apks);
     assertEquals(2, apks.size());
