@@ -40,6 +40,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,12 +73,13 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   public InstallComponentsPath(@NotNull ProgressStep progressStep,
                                @NotNull FirstRunWizardMode mode,
                                @NotNull File sdkLocation,
-                               @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
+                               @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages,
+                               boolean installUpdates) {
     myProgressStep = progressStep;
     myMode = mode;
     mySdkLocation = sdkLocation;
     myRemotePackages = remotePackages;
-    myComponentInstaller = new ComponentInstaller(remotePackages);
+    myComponentInstaller = new ComponentInstaller(remotePackages, installUpdates);
   }
 
   private ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason, @NotNull ScopedStateStore stateStore, boolean createAvd) {
@@ -197,8 +199,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       return new MergeOperation(handoffSource, installContext, progressRatio);
     }
     if (isNonEmptyDirectory(destination)) {
-      SdkManager manager = SdkManager.createManager(destination.getAbsolutePath(), new NullLogger());
-      if (manager != null) {
+      if (AndroidSdkData.getSdkData(destination) != null) {
         // We have SDK, first operation simply passes path through
         return InstallOperation.wrap(installContext, new ReturnValue(), 0);
       }
