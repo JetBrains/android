@@ -22,12 +22,11 @@ import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.ResourceHelper;
-import javax.swing.JComboBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.JList;
-import java.awt.Color;
+import javax.swing.*;
+import java.awt.*;
 
 public class StyleListPaletteCellRenderer extends StyleListCellRenderer {
   private static final String PRIMARY_MATERIAL = "colorPrimary";

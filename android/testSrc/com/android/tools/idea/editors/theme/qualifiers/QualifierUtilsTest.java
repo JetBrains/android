@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.editors.theme.qualifiers;
 
-import com.android.ide.common.resources.configuration.DensityQualifier;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.ResourceQualifier;
-import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
-import com.android.ide.common.resources.configuration.VersionQualifier;
+import com.android.ide.common.resources.configuration.*;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.idea.configurations.ConfigurationManager;
