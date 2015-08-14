@@ -274,6 +274,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   private static void addGradleLibraries(List<AndroidLibrary> list, AndroidFacet facet) {
     AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
+      // TODO: b/23032391
       Collection<AndroidLibrary> libraries = androidModel.getMainArtifact().getDependencies().getLibraries();
       Set<File> unique = Sets.newHashSet();
       for (AndroidLibrary library : libraries) {
@@ -400,7 +401,7 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @NonNull
   public ResourceVisibilityLookup getResourceVisibility(@NonNull AndroidFacet facet) {
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    // TODO: b/23032391
     IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
     if (androidModel != null) {
       ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
@@ -427,7 +428,7 @@ public class AppResourceRepository extends MultiResourceRepository {
       if (provider == null) {
         return false;
       }
-      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      // TODO: b/23032391
       IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
       if (androidModel == null) {
         // normally doesn't happen since we check in getResourceVisibility,

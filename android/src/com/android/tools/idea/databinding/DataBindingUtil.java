@@ -186,7 +186,7 @@ public class DataBindingUtil {
     // TODO Instead of checking library dependency, we should be checking whether data binding plugin is
     // applied to this facet or not. Having library dependency does not guarantee data binding
     // unless the plugin is applied as well.
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    // TODO: b/23031914
     IdeaAndroidProject gradleModel = IdeaAndroidProject.getGradleModel(facet);
     return GradleUtil.dependsOn(gradleModel, SdkConstants.DATA_BINDING_LIB_ARTIFACT);
   }

@@ -705,7 +705,7 @@ class IntellijLintProject extends Project {
     public List<File> getProguardFiles() {
       if (mProguardFiles == null) {
         if (myFacet.requiresAndroidModel()) {
-          // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+          // TODO: b/22928250
           IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
           if (androidModel != null) {
             ProductFlavor flavor = androidModel.getAndroidProject().getDefaultConfig().getProductFlavor();
@@ -801,7 +801,7 @@ class IntellijLintProject extends Project {
         return manifestPackage;
       }
 
-      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      // TODO: b/22928250
       IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
       if (androidModel != null) {
         return androidModel.getApplicationId();
@@ -832,7 +832,7 @@ class IntellijLintProject extends Project {
 
     @Override
     public int getBuildSdk() {
-      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      // TODO: b/22928250
       IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
       if (androidModel != null) {
         String compileTarget = androidModel.getAndroidProject().getCompileTarget();
@@ -853,7 +853,7 @@ class IntellijLintProject extends Project {
     @Nullable
     @Override
     public AndroidProject getGradleProjectModel() {
-      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      // TODO: b/22928250
       IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
       if (androidModel != null) {
         androidModel.getSelectedVariant();
@@ -866,7 +866,7 @@ class IntellijLintProject extends Project {
     @Nullable
     @Override
     public Variant getCurrentVariant() {
-      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      // TODO: b/22928250
       IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
       if (androidModel != null) {
         return androidModel.getSelectedVariant();
@@ -884,7 +884,7 @@ class IntellijLintProject extends Project {
     @Nullable
     @Override
     public Boolean dependsOn(@NonNull String artifact) {
-      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      // TODO: b/22928250
       IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
 
       if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {

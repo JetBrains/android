@@ -326,7 +326,7 @@ public class AndroidJavaDocRenderer {
       List<ItemInfo> results = Lists.newArrayList();
 
       AppResourceRepository resources = getAppResources();
-      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+      // TODO: b/22927607
       IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
       if (androidModel != null) {
         assert facet.requiresAndroidModel();

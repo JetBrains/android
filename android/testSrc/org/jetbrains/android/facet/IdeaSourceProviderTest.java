@@ -39,6 +39,7 @@ import static org.junit.Assume.assumeTrue;
 /**
  * Test for utility functions provided by IdeaSourceProvider
  *
+ * This test uses the Gradle model as source data to test the implementation.
  */
 public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   private Module myAppModule;
@@ -53,7 +54,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
     loadProject("projects/projectWithAppandLib");
     assertNotNull(myAndroidFacet);
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
     IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myAndroidFacet);
     assertNotNull(androidModel);
 
@@ -323,7 +323,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  actualProvider.getManifestFile());
 
     // Try finding paid flavor
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
     ProductFlavorContainer paidFlavor = IdeaAndroidProject.getGradleModel(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
@@ -463,7 +462,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
   public void testSourceProviderContainsFile() throws Exception {
     assertNotNull(myAppFacet.getAndroidModel());
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
     ProductFlavorContainer paidFlavor = IdeaAndroidProject.getGradleModel(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
@@ -485,7 +483,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
   public void testSourceProviderIsContainedByFolder() throws Exception {
     assertNotNull(myAppFacet.getAndroidModel());
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
     ProductFlavorContainer paidFlavor = IdeaAndroidProject.getGradleModel(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());

@@ -182,7 +182,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
       if (facet != null && facet.requiresAndroidModel()) {
         // Try a bit harder; we don't have a compiler module extension or mechanism
         // to query this yet, so just hardcode it (ugh!)
-        // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+        // TODO: b/22597804
         IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
         if (androidModel != null) {
           Variant variant = androidModel.getSelectedVariant();
