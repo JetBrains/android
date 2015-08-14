@@ -575,11 +575,16 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   @Nullable
-  ThemeEditorStyle getSelectedTheme() {
+  ThemeEditorStyle getHoveredTheme() {
     if (myHoverPreviewTheme != null) {
       return myThemeEditorContext.getThemeResolver().getTheme(myHoverPreviewTheme);
     }
-    else if (myThemeName != null) {
+    return null;
+  }
+
+  @Nullable
+  ThemeEditorStyle getSelectedTheme() {
+    if (myThemeName != null) {
       return myThemeEditorContext.getThemeResolver().getTheme(myThemeName);
     }
     return null;
@@ -720,7 +725,7 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   public void reload(@Nullable final String defaultThemeName, @Nullable final String defaultSubStyleName, @Nullable final String defaultModuleName) {
-    // Need to clean myHoverPreviewTheme, because we no longer "hovering".
+    // Need to clean myHoverPreviewTheme, because we are no longer "hovering".
     myHoverPreviewTheme = null;
 
     // Unsubscribing from ResourceNotificationManager, because Module might be changed
@@ -746,10 +751,15 @@ public class ThemeEditorComponent extends Splitter {
    * Loads the theme attributes table for the current selected theme or substyle.
    */
   private void loadStyleAttributes() {
-    final ThemeEditorStyle selectedTheme = getSelectedTheme();
-    final ThemeEditorStyle selectedStyle = getUsedStyle();
+    ThemeEditorStyle selectedTheme = getHoveredTheme();
+    ThemeEditorStyle selectedStyle = null;
 
-    if (selectedTheme == null || selectedStyle == null) {
+    if (selectedTheme == null) {
+      selectedTheme = getSelectedTheme();
+      selectedStyle = getCurrentSubStyle();
+    }
+
+    if (selectedTheme == null) {
       LOG.error("No style/theme selected");
       return;
     }
@@ -761,7 +771,8 @@ public class ThemeEditorComponent extends Splitter {
     configuration.setTheme(selectedTheme.getQualifiedName());
 
     assert configuration.getResourceResolver() != null; // ResourceResolver is only null if no theme was set.
-    myModel = new AttributesTableModel(configuration, selectedStyle, getSelectedAttrGroup(), myThemeEditorContext);
+    myModel = new AttributesTableModel(configuration, selectedStyle != null ? selectedStyle : selectedTheme,
+                                       getSelectedAttrGroup(), myThemeEditorContext);
 
     myModel.addThemePropertyChangedListener(new AttributesTableModel.ThemePropertyChangedListener() {
       @Override
