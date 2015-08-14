@@ -39,17 +39,6 @@
             <constraints/>
             <properties/>
           </component>
-          <component id="c96e8" class="com.intellij.ui.components.JBLabel">
-            <constraints/>
-            <properties>
-              <labelFor value="5f847"/>
-              <text value="Graphics Context:"/>
-            </properties>
-          </component>
-          <component id="5f847" class="com.intellij.openapi.ui.ComboBox" binding="myGfxContextList">
-            <constraints/>
-            <properties/>
-          </component>
         </children>
       </grid>
       <grid id="d4c8e" class="com.intellij.openapi.ui.ThreeComponentsSplitter" binding="myThreePanes" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">

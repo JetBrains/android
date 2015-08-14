@@ -55,7 +55,6 @@ public class GfxTraceViewPanel implements Disposable {
   private ComboBox myDeviceList;
   private ComboBox myCapturesList;
   private JBPanel myTopPanel;
-  private ComboBox myGfxContextList;
   private JBScrollPane myColorScrollPane;
   private JBScrollPane myWireframeScrollPane;
   private JBScrollPane myDepthScrollPane;
@@ -126,10 +125,6 @@ public class GfxTraceViewPanel implements Disposable {
 
   public JBPanel getTopPanel() {
     return myTopPanel;
-  }
-
-  public ComboBox getGfxContextList() {
-    return myGfxContextList;
   }
 
   public JBScrollPane getColorScrollPane() {
