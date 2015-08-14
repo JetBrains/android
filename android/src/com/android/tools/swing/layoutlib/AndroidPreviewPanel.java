@@ -30,6 +30,7 @@ import org.w3c.dom.Document;
 import javax.swing.JComponent;
 import javax.swing.Scrollable;
 import javax.swing.SwingWorker;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -77,7 +78,8 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
                 }
               }
 
-              GraphicsLayoutRenderer graphicsLayoutRenderer = GraphicsLayoutRenderer.create(myConfiguration, parser, false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
+              GraphicsLayoutRenderer graphicsLayoutRenderer = GraphicsLayoutRenderer
+                .create(myConfiguration, parser, getBackground(), false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
               graphicsLayoutRenderer.setScale(myScale);
               graphicsLayoutRenderer.setSize(getWidth(), getHeight());
 
@@ -264,5 +266,12 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
     synchronized (myGraphicsLayoutRendererLock) {
       return myGraphicsLayoutRenderer != null ? myGraphicsLayoutRenderer.findViewAtPoint(p) : null;
     }
+  }
+
+  @Override
+  public void setBackground(Color bg) {
+    super.setBackground(bg);
+
+    invalidateGraphicsRenderer();
   }
 }
