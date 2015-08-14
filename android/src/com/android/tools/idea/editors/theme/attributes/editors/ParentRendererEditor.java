@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -89,6 +88,12 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
     myVariantsComboBox.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
+        stopCellEditing();
+      }
+    });
+    myVariantsComboBox.addPopupClosingListener(new VariantsComboBox.PopupClosingListener() {
+      @Override
+      public void popupClosed() {
         stopCellEditing();
       }
     });
