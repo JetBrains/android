@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
+import java.awt.CardLayout;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -89,6 +90,8 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
   private JLabel mySizeLabel;
   private JLabel myDpXLabel;
   private JLabel myDpLabel;
+  private JPanel myIconPickerAndFileBrowserPanel;
+  private JPanel myResourceNamePanel;
 
   private AbstractAction myEnterKeyButtonAction = new AbstractAction() {
     @Override
@@ -276,13 +279,11 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
     }
 
     if (myMaterialIconsRadioButton.isSelected()) {
-      show(myIconPickerPanel, myIconLabel);
-      hide(myImageFileBrowserPanel, myImageFileLabel);
+      ((CardLayout)myIconPickerAndFileBrowserPanel.getLayout()).show(myIconPickerAndFileBrowserPanel, "IconPicker");
     }
     else {
       assert myLocalSVGFilesRadioButton.isSelected();
-      show(myImageFileBrowserPanel, myImageFileLabel);
-      hide(myIconPickerPanel, myIconLabel);
+      ((CardLayout)myIconPickerAndFileBrowserPanel.getLayout()).show(myIconPickerAndFileBrowserPanel, "SvgFileBrowser");
     }
   }
 
