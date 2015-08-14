@@ -86,11 +86,163 @@
       <val name="apis" val="&quot;..22&quot;" />
     </annotation>
   </item>
+  <item name="android.provider.CalendarContract CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALENDAR&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALENDAR&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CalendarContract.Attendees CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALENDAR&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALENDAR&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CalendarContract.CalendarAlerts CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALENDAR&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALENDAR&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CalendarContract.CalendarEntity CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALENDAR&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALENDAR&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CalendarContract.Calendars CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALENDAR&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALENDAR&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CalendarContract.Colors CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALENDAR&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALENDAR&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CalendarContract.EventDays CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALENDAR&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALENDAR&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CalendarContract.Events CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALENDAR&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALENDAR&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CalendarContract.EventsEntity CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALENDAR&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALENDAR&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CalendarContract.ExtendedProperties CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALENDAR&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALENDAR&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CalendarContract.Instances CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALENDAR&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALENDAR&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CalendarContract.Reminders CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALENDAR&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALENDAR&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CalendarContract.SyncState CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALENDAR&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALENDAR&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CallLog CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALL_LOG&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALL_LOG&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CallLog.Calls CONTENT_FILTER_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALL_LOG&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALL_LOG&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CallLog.Calls CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_CALL_LOG&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_CALL_LOG&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.CallLog.Calls CONTENT_URI_WITH_VOICEMAIL">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="" />
+    </annotation>
+  </item>
   <item name="android.provider.DocumentsProvider android.net.Uri canonicalize(android.net.Uri)">
     <annotation name="android.support.annotation.CallSuper" />
   </item>
   <item name="android.provider.DocumentsProvider android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle)">
     <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.provider.UserDictionary CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_USER_DICTIONARY&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_USER_DICTIONARY&quot;" />
+    </annotation>
+  </item>
+  <item name="android.provider.UserDictionary.Words CONTENT_URI">
+    <annotation name="android.support.annotation.RequiresPermission.Read">
+      <val name="value" val="&quot;android.permission.READ_USER_DICTIONARY&quot;" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresPermission.Write">
+      <val name="value" val="&quot;android.permission.WRITE_USER_DICTIONARY&quot;" />
+    </annotation>
   </item>
 </root>
 
