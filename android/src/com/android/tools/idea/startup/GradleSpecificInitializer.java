@@ -220,16 +220,11 @@ public class GradleSpecificInitializer implements Runnable {
       return;
     }
 
-    final Sdk sdk = findFirstCompatibleAndroidSdk();
+    Sdk sdk = findFirstCompatibleAndroidSdk();
     if (sdk != null) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          String androidHome = sdk.getHomePath();
-          assert androidHome != null;
-          IdeSdks.createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(androidHome)));
-        }
-      });
+      String sdkHomePath = sdk.getHomePath();
+      assert sdkHomePath != null;
+      IdeSdks.createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(sdkHomePath)));
       return;
     }
 
