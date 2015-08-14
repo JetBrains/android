@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractCompileOutputModuleCustomizer;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -31,19 +31,19 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 /**
  * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleCustomizer<IdeaJavaProject> {
+public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleCustomizer<JavaProject> {
   @NonNls private static final String CLASSES_FOLDER_NAME = "classes";
 
   @Override
-  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable IdeaJavaProject javaModel) {
-    if (javaModel == null) {
+  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable JavaProject javaProject) {
+    if (javaProject == null) {
       return;
     }
     File mainClassesFolder = null;
     File testClassesFolder = null;
-    ExtIdeaCompilerOutput compilerOutput = javaModel.getCompilerOutput();
+    ExtIdeaCompilerOutput compilerOutput = javaProject.getCompilerOutput();
     if (compilerOutput == null) {
-      File buildFolderPath = javaModel.getBuildFolderPath();
+      File buildFolderPath = javaProject.getBuildFolderPath();
       if (buildFolderPath != null) {
         mainClassesFolder = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, "main"));
         testClassesFolder = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, "test"));

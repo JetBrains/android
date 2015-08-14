@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
@@ -26,9 +26,6 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.npw.CreateModuleFromArchiveAction;
-import com.android.tools.idea.npw.NewModuleWizardState;
-import com.android.tools.idea.npw.WrapArchiveWizardPath;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -73,6 +70,8 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public final class WrapArchiveWizardPathTest extends AndroidTestBase {
   public static final String LIB_DIR_NAME = "lib";
@@ -197,7 +196,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
     Files.write(createRealJarArchive(), myJarFile);
 
     VirtualFile baseDir = getProject().getBaseDir();
-    AndroidGradleTestCase.createGradleWrapper(VfsUtilCore.virtualToIoFile(baseDir));
+    AndroidGradleTestCase.createGradleWrapper(virtualToIoFile(baseDir));
     System.out.printf("Project location: %s\n", baseDir);
   }
 
@@ -321,7 +320,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
 
     @Override
     protected void run(@NotNull final Result<File> result) throws Throwable {
-      File path = new File(VfsUtilCore.virtualToIoFile(myProject.getBaseDir()), myModuleName + File.separator + LIB_DIR_NAME);
+      File path = new File(virtualToIoFile(myProject.getBaseDir()), myModuleName + File.separator + LIB_DIR_NAME);
       VirtualFile directory = VfsUtil.createDirectories(path.getAbsolutePath());
       VirtualFile archive = directory.createChildData(this, LIBRARY_JAR_NAME);
       archive.setBinaryContent(createRealJarArchive());
@@ -329,7 +328,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
       final VirtualFile topBuildGradle = createFile(myProject.getBaseDir(), SdkConstants.FN_BUILD_GRADLE, TOP_LEVEL_BUILD_GRADLE);
       PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
       GradleSettingsFile settingsGradle = GradleSettingsFile.getOrCreate(myProject);
-      settingsGradle.addModule(WrapArchiveWizardPath.makeAbsolute(myModuleName), VfsUtilCore.virtualToIoFile(directory.getParent()));
+      settingsGradle.addModule(WrapArchiveWizardPath.makeAbsolute(myModuleName), virtualToIoFile(directory.getParent()));
       final AtomicReference<String> error = Atomics.newReference();
       final AtomicBoolean done = new AtomicBoolean(false);
       GradleProjectImporter.getInstance().requestProjectSync(myProject, new GradleSyncListener.Adapter() {
@@ -342,13 +341,10 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
           AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
           GradleProject gradleProject = new GradleProjectStub(myProject.getName(),
                                                               WrapArchiveWizardPath.makeAbsolute(myModuleName),
-                                                              VfsUtilCore.virtualToIoFile(topBuildGradle),
+                                                              virtualToIoFile(topBuildGradle),
                                                               "compile");
-          IdeaGradleProject ideaGradleProject = IdeaGradleProject.newIdeaGradleProject(myModuleName,
-                                                                                       gradleProject,
-                                                                                       VfsUtilCore.virtualToIoFile(moduleBuildGradle),
-                                                                                       "2.2.1");
-          facet.setGradleProject(ideaGradleProject);
+          GradleModel gradleModel = GradleModel.create(myModuleName, gradleProject, virtualToIoFile(moduleBuildGradle), "2.2.1");
+          facet.setGradleModel(gradleModel);
           modifiableModel.addFacet(facet);
           modifiableModel.commit();
           assert Projects.isBuildWithGradle(module);
@@ -366,7 +362,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
       if (!done.get()) {
         throw new IllegalStateException("Sync should've been complete by now");
       }
-      result.setResult(VfsUtilCore.virtualToIoFile(archive));
+      result.setResult(virtualToIoFile(archive));
     }
 
   }

@@ -18,7 +18,7 @@ package com.android.tools.idea.editors;
 import com.android.SdkConstants;
 import com.android.tools.idea.actions.AndroidImportModuleAction;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.base.Throwables;
@@ -59,9 +59,9 @@ public class UnimportedModuleNotificationProvider extends EditorNotifications.Pr
     if (module != null) {
       AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
       if (facet != null) {
-        IdeaGradleProject gradleProject = facet.getGradleProject();
-        if (gradleProject != null) {
-          VirtualFile buildFile = gradleProject.getBuildFile();
+        GradleModel gradleModel = facet.getGradleModel();
+        if (gradleModel != null) {
+          VirtualFile buildFile = gradleModel.getBuildFile();
           if (buildFile != null && file.getParent().equals(parent)) {
             return true;
           }

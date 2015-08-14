@@ -40,7 +40,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_ANDROID_MODEL;
+import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer.EXCLUDED_OUTPUT_FOLDER_NAMES;
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
@@ -763,7 +763,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
     public void updateSelectedVariantIn(@NotNull DataNode<ModuleData> moduleNode) {
       if (variant != null) {
-        DataNode<AndroidGradleModel> androidProjectNode = find(moduleNode, IDE_ANDROID_MODEL);
+        DataNode<AndroidGradleModel> androidProjectNode = find(moduleNode, ANDROID_MODEL);
         if (androidProjectNode != null) {
           androidProjectNode.getData().setSelectedVariantName(variant.getName());
         }
