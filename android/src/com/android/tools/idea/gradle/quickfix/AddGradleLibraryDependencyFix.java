@@ -28,6 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -172,13 +173,13 @@ public class AddGradleLibraryDependencyFix extends GradleDependencyFix {
     if (libraryName == null) {
       return null;
     }
-    String[] splitPath = file.getPath().split(System.getProperty("file.separator"));
+    List<String> splitPath = StringUtil.split(file.getPath(), System.getProperty("file.separator"));
 
-    for (int i = 1; i < splitPath.length - 2; i++) {
-      if (libraryName.startsWith(splitPath[i])) {
-        String groupId = splitPath[i - 1];
-        String artifactId = splitPath[i];
-        String version = splitPath[i + 1];
+    for (int i = 1; i < splitPath.size() - 2; i++) {
+      if (libraryName.startsWith(splitPath.get(i))) {
+        String groupId = splitPath.get(i - 1);
+        String artifactId = splitPath.get(i);
+        String version = splitPath.get(i + 1);
         if (libraryName.endsWith(version)) {
           return groupId + ":" + artifactId + ":" + version;
         }
