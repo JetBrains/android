@@ -105,6 +105,10 @@ public class ResourceComponent extends JPanel {
     myVariantCombo.addItemListener(itemListener);
   }
 
+  public void addVariantPopupClosingListener(@NotNull VariantsComboBox.PopupClosingListener listener) {
+    myVariantCombo.addPopupClosingListener(listener);
+  }
+
   public void setValueText(@NotNull String value) {
     mySwatchComponent.setText(value);
   }

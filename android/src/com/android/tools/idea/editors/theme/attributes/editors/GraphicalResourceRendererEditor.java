@@ -26,6 +26,7 @@ import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.qualifiers.QualifierUtils;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import com.android.tools.idea.editors.theme.ui.VariantsComboBox;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -72,6 +73,12 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
       myComponent.addVariantItemListener(new ItemListener() {
         @Override
         public void itemStateChanged(ItemEvent e) {
+          stopCellEditing();
+        }
+      });
+      myComponent.addVariantPopupClosingListener(new VariantsComboBox.PopupClosingListener() {
+        @Override
+        public void popupClosed() {
           stopCellEditing();
         }
       });
