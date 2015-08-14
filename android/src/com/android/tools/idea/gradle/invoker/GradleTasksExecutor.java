@@ -20,7 +20,7 @@ import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
-import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
@@ -731,8 +731,8 @@ class GradleTasksExecutor extends Task.Backgroundable {
         AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
         // if we got here facet is not null;
         assert facet != null;
-        IdeaGradleProject gradleProject = facet.getGradleProject();
-        return gradleProject != null ? gradleProject.getBuildFile() : null;
+        GradleModel gradleModel = facet.getGradleModel();
+        return gradleModel != null ? gradleModel.getBuildFile() : null;
       }
     }
     return null;

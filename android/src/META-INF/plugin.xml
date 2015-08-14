@@ -196,8 +196,8 @@
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleNotificationExtension"/>
     <buildProcess.parametersProvider implementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildProcessParametersProvider"/>
-    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.GradleProjectDataService" />
-    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.AndroidProjectDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.GradleModelDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.AndroidGradleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.JavaProjectDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.ProjectCleanupDataService" />
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />

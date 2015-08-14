@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -591,14 +591,14 @@ public class GradleProjectImporter {
   private static boolean isCacheMissingModels(@NotNull DataNode<ModuleData> cache, @NotNull Module module) {
     AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
     if (gradleFacet != null) {
-      DataNode<IdeaGradleProject> gradleDataNode = find(cache, IDE_GRADLE_PROJECT);
+      DataNode<GradleModel> gradleDataNode = find(cache, GRADLE_MODEL);
       if (gradleDataNode == null) {
         return true;
       }
 
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null) {
-        DataNode<AndroidGradleModel> androidDataNode = find(cache, IDE_ANDROID_MODEL);
+        DataNode<AndroidGradleModel> androidDataNode = find(cache, ANDROID_MODEL);
         if (androidDataNode == null) {
           return true;
         }
@@ -606,7 +606,7 @@ public class GradleProjectImporter {
       else {
         JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
         if (javaFacet != null) {
-          DataNode<IdeaJavaProject> javaProjectDataNode = find(cache, IDE_JAVA_PROJECT);
+          DataNode<JavaProject> javaProjectDataNode = find(cache, JAVA_PROJECT);
           if (javaProjectDataNode == null) {
             return true;
           }

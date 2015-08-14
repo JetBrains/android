@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.customizer.java;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -38,13 +38,13 @@ import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 /**
  * Configures Java SDK for Java library module.
  */
-public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<IdeaJavaProject> {
+public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<JavaProject> {
   @Override
-  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable IdeaJavaProject javaModel) {
-    if (javaModel == null) {
+  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable JavaProject javaProject) {
+    if (javaProject == null) {
       return;
     }
-    LanguageLevel languageLevel = javaModel.getJavaLanguageLevel();
+    LanguageLevel languageLevel = javaProject.getJavaLanguageLevel();
 
     if (isNotSupported(languageLevel)) {
       // Java language 1.8 is not supported, fall back to the minimum Java language level in dependent modules.

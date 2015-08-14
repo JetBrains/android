@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
@@ -37,11 +37,11 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.text.StringUtil.endsWithIgnoreCase;
 
-public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomizer<IdeaJavaProject> {
+public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomizer<JavaProject> {
   @Override
-  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable IdeaJavaProject javaModel) {
-    if (javaModel != null) {
-      Map<String, Set<File>> artifactsByConfiguration = javaModel.getArtifactsByConfiguration();
+  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable JavaProject javaProject) {
+    if (javaProject != null) {
+      Map<String, Set<File>> artifactsByConfiguration = javaProject.getArtifactsByConfiguration();
       if (artifactsByConfiguration != null) {
         for (Map.Entry<String, Set<File>> entry : artifactsByConfiguration.entrySet()) {
           Set<File> artifacts = entry.getValue();
