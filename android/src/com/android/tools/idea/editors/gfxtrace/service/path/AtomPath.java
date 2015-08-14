@@ -23,6 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class AtomPath extends Path {
+  public StatePath stateAfter() {
+    return new StatePath ().setAfter(this);
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   AtomsPath myAtoms;
   long myIndex;
