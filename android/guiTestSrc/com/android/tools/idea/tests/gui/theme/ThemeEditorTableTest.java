@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
-import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
@@ -24,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.ResourceComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTableFixture;
 import com.google.common.collect.ImmutableList;
@@ -174,7 +172,6 @@ public class ThemeEditorTableTest extends GuiTestCase {
     ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
 
     JTableFixture themeEditorTable = themeEditor.getPropertiesTable();
-    assertNotNull(themeEditorTable);
 
     // Cell (1,0) should be some color
     JTableCellFixture colorCell = themeEditorTable.cell(row(1).column(0));
@@ -210,13 +207,12 @@ public class ThemeEditorTableTest extends GuiTestCase {
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(1).column(0);
-    Component colorRenderer = themeEditorTable.getRendererComponent(cell);
-    assertNotNull(colorRenderer);
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)colorRenderer);
 
-    assertEquals("android:colorBackground", resourceComponent.getAttributeName());
-    assertEquals(Font.PLAIN, resourceComponent.getValueFont().getStyle());
-    assertEquals("@android:color/background_holo_light", resourceComponent.getValueString());
+    Font cellFont = themeEditorTable.valueFontAt(cell);
+    assertNotNull(cellFont);
+    assertEquals(Font.PLAIN, cellFont.getStyle());
+    assertEquals("android:colorBackground", themeEditorTable.attributeNameAt(cell));
+    assertEquals("@android:color/background_holo_light", themeEditorTable.valueAt(cell));
 
     JTableCellFixture colorCell = themeEditorTable.cell(cell);
     colorCell.requireEditable();
@@ -227,13 +223,11 @@ public class ThemeEditorTableTest extends GuiTestCase {
     dialog.setColorWithIntegers(color);
     dialog.clickOK();
 
-    colorRenderer = themeEditorTable.getRendererComponent(cell);
-    assertNotNull(colorRenderer);
-    resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)colorRenderer);
-
-    assertEquals("android:colorBackground", resourceComponent.getAttributeName());
-    assertEquals(ResourceHelper.colorToString(color), resourceComponent.getColorValue());
-    assertEquals(Font.BOLD, resourceComponent.getValueFont().getStyle());
-    assertEquals("@color/background_holo_light", resourceComponent.getValueString());
+    cellFont = themeEditorTable.valueFontAt(cell);
+    assertNotNull(cellFont);
+    assertEquals(Font.BOLD, cellFont.getStyle());
+    assertEquals("android:colorBackground", themeEditorTable.attributeNameAt(cell));
+    assertEquals(ResourceHelper.colorToString(color), themeEditorTable.colorValueAt(cell));
+    assertEquals("@color/background_holo_light", themeEditorTable.valueAt(cell));
   }
 }
