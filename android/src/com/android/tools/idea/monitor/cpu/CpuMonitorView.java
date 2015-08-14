@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
+import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
 
 public class CpuMonitorView extends BaseMonitorView implements DeviceContext.DeviceSelectionListener {
   /**

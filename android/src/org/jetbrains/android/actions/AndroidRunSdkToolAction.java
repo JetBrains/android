@@ -2,7 +2,7 @@ package org.jetbrains.android.actions;
 
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.CommonBundle;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -47,7 +47,7 @@ public abstract class AndroidRunSdkToolAction extends DumbAwareAction {
   }
 
   public void doAction(@NotNull Project project) {
-    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+    if (AndroidStudioInitializer.isAndroidStudio()) {
       File androidHome = IdeSdks.getAndroidSdkPath();
       if (androidHome != null) {
         doRunTool(project, androidHome.getPath());

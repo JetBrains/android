@@ -30,7 +30,7 @@ import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -218,7 +218,7 @@ public class ProjectSyncMessages {
     else {
       msg = new Message(group, Message.Type.ERROR, NonNavigatable.INSTANCE, text);
     }
-    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+    if (AndroidStudioInitializer.isAndroidStudio()) {
       GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
       if (coordinate != null) {
         hyperlinks.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));

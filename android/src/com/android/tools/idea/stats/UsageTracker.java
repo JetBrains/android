@@ -16,7 +16,7 @@
 package com.android.tools.idea.stats;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.internal.statistic.StatisticsUploadAssistant;
 import com.intellij.openapi.components.ServiceManager;
 import org.jetbrains.annotations.NotNull;
@@ -96,6 +96,6 @@ public abstract class UsageTracker {
                                   @Nullable Integer eventValue);
 
   public boolean canTrack() {
-    return AndroidStudioSpecificInitializer.isAndroidStudio() && StatisticsUploadAssistant.isSendAllowed();
+    return AndroidStudioInitializer.isAndroidStudio() && StatisticsUploadAssistant.isSendAllowed();
   }
 }
