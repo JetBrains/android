@@ -3,29 +3,30 @@ package org.jetbrains.android.actions;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.android.exportSignedPackage.CheckModulePanel;
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
+import static org.jetbrains.android.util.AndroidUtils.getApplicationFacets;
+
 /**
  * @author Eugene.Kudelevsky
  */
 public class GenerateSignedApkAction extends AnAction {
-
   public GenerateSignedApkAction() {
     super(AndroidBundle.message("android.generate.signed.apk.action.text"));
   }
 
-  private static boolean checkFacet(final AndroidFacet facet) {
+  private static boolean checkFacet(@NotNull AndroidFacet facet) {
     final CheckModulePanel panel = new CheckModulePanel();
     panel.updateMessages(facet);
     final boolean hasError = panel.hasError();
@@ -61,13 +62,13 @@ public class GenerateSignedApkAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    final Project project = e.getData(CommonDataKeys.PROJECT);
+    Project project = e.getProject();
     assert project != null;
 
-    List<AndroidFacet> facets = AndroidUtils.getApplicationFacets(project);
-    assert facets.size() > 0;
-    if (facets.size() == 1) {
-      if (!checkFacet(facets.get(0))) return;
+    List<AndroidFacet> facets = getApplicationFacets(project);
+    assert !facets.isEmpty();
+    if (facets.size() == 1 && !checkFacet(facets.get(0))) {
+      return;
     }
 
     ExportSignedPackageWizard wizard = new ExportSignedPackageWizard(project, facets, true);
@@ -76,7 +77,9 @@ public class GenerateSignedApkAction extends AnAction {
 
   @Override
   public void update(AnActionEvent e) {
-    final Project project = e.getData(CommonDataKeys.PROJECT);
-    e.getPresentation().setEnabled(project != null && AndroidUtils.getApplicationFacets(project).size() > 0);
+    Project project = e.getProject();
+    boolean enabled = project != null && !getApplicationFacets(project).isEmpty() &&
+                      (isBuildWithGradle(project) || !requiresAndroidModel(project) /* Available for Gradle projects and legacy IDEA Android projects */);
+    e.getPresentation().setEnabledAndVisible(enabled);
   }
 }
