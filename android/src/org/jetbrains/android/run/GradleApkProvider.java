@@ -57,7 +57,8 @@ public class GradleApkProvider implements ApkProvider {
   @Override
   @NotNull
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
-    IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
     assert androidModel != null; // This is a Gradle project, there must be an IdeaAndroidProject.
     Variant selectedVariant = androidModel.getSelectedVariant();
 
@@ -94,7 +95,8 @@ public class GradleApkProvider implements ApkProvider {
 
   @Override
   public String getTestPackageName() throws ApkProvisionException {
-    IdeaAndroidProject androidModel = myFacet.getAndroidModel();
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myFacet);
     assert androidModel != null; // This is a Gradle project, there must be an IdeaAndroidProject.
     // In the case of Gradle projects, either the merged flavor provides a test package name,
     // or we just append ".test" to the source package name

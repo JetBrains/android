@@ -17,6 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -61,7 +62,7 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
 
     loadProject("projects/projectWithAppandLib");
     assertNotNull(myAndroidFacet);
-    IdeaAndroidProject androidModel = myAndroidFacet.getAndroidModel();
+    AndroidModel androidModel = myAndroidFacet.getAndroidModel();
     assertNotNull(androidModel);
 
     // Set up modules

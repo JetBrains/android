@@ -20,6 +20,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.res2.DataBindingResourceType;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.DataBindingInfo;
@@ -185,7 +186,9 @@ public class DataBindingUtil {
     // TODO Instead of checking library dependency, we should be checking whether data binding plugin is
     // applied to this facet or not. Having library dependency does not guarantee data binding
     // unless the plugin is applied as well.
-    return GradleUtil.dependsOn(facet.getAndroidModel(), SdkConstants.DATA_BINDING_LIB_ARTIFACT);
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    IdeaAndroidProject gradleModel = IdeaAndroidProject.getGradleModel(facet);
+    return GradleUtil.dependsOn(gradleModel, SdkConstants.DATA_BINDING_LIB_ARTIFACT);
   }
 
   static PsiClass getOrCreatePsiClass(DataBindingInfo info) {

@@ -227,14 +227,8 @@ public final class GradleUtil {
 
   @Nullable
   public static AndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null) {
-      IdeaAndroidProject androidModel = facet.getAndroidModel();
-      if (androidModel != null) {
-        return androidModel.getAndroidProject();
-      }
-    }
-    return null;
+    IdeaAndroidProject gradleModel = IdeaAndroidProject.getGradleModel(module);
+    return gradleModel != null ? gradleModel.getAndroidProject() : null;
   }
 
   /**
