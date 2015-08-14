@@ -86,6 +86,7 @@
       <action id="EditLibraryAndDependencies" class="com.android.tools.idea.gradle.actions.EditLibraryAndDependenciesAction"/>
       <action id="SelectBuildVariant" class="com.android.tools.idea.gradle.actions.SelectBuildVariantAction"/>
       <add-to-group group-id="BuildMenu" anchor="last"/>
+      <separator/>
     </group>
 
     <action id="LegacyNewAndroidComponent" class="com.android.tools.idea.actions.LegacyNewAndroidComponentAction">
