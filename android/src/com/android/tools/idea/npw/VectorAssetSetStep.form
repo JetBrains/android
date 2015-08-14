@@ -3,11 +3,11 @@
   <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="8" y="-7" width="894" height="605"/>
+      <xy x="8" y="-7" width="743" height="605"/>
     </constraints>
     <properties>
-      <minimumSize width="844" height="400"/>
-      <preferredSize width="844" height="400"/>
+      <minimumSize width="720" height="400"/>
+      <preferredSize width="720" height="400"/>
       <toolTipText value=""/>
     </properties>
     <border type="none"/>
@@ -70,7 +70,7 @@
         <children>
           <component id="207db" class="javax.swing.JLabel">
             <constraints>
-              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <text value="Vector Drawable Preview"/>
@@ -91,8 +91,8 @@
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <minimum-size width="400" height="160"/>
-            <preferred-size width="400" height="180"/>
+            <minimum-size width="320" height="160"/>
+            <preferred-size width="320" height="180"/>
           </grid>
         </constraints>
         <properties/>
@@ -101,7 +101,7 @@
           <component id="3f923" class="javax.swing.JRadioButton" binding="myMaterialIconsRadioButton" default-binding="true">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                <preferred-size width="121" height="60"/>
+                <preferred-size width="144" height="60"/>
               </grid>
             </constraints>
             <properties>
@@ -119,28 +119,6 @@
               <text value="Local SVG file"/>
             </properties>
           </component>
-          <component id="f86d9" class="javax.swing.JLabel" binding="myResourceNameLabel">
-            <constraints>
-              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                <minimum-size width="-1" height="15"/>
-                <preferred-size width="135" height="15"/>
-              </grid>
-            </constraints>
-            <properties>
-              <text value="Resource name:"/>
-            </properties>
-          </component>
-          <component id="5777" class="javax.swing.JTextField" binding="myResourceNameField">
-            <constraints>
-              <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                <minimum-size width="-1" height="20"/>
-                <preferred-size width="50" height="20"/>
-              </grid>
-            </constraints>
-            <properties>
-              <text value=""/>
-            </properties>
-          </component>
           <grid id="ccedc" binding="myIconPickerPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
@@ -155,7 +133,7 @@
               <component id="c0d5e" class="javax.swing.JLabel" binding="myIconLabel">
                 <constraints>
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                    <preferred-size width="130" height="18"/>
+                    <preferred-size width="111" height="18"/>
                   </grid>
                 </constraints>
                 <properties>
@@ -187,7 +165,7 @@
                 <constraints>
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="-1" height="40"/>
-                    <preferred-size width="130" height="40"/>
+                    <preferred-size width="109" height="40"/>
                   </grid>
                 </constraints>
                 <properties>
@@ -202,14 +180,49 @@
               </component>
             </children>
           </grid>
+          <grid id="39588" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <minimum-size width="150" height="20"/>
+                <preferred-size width="200" height="40"/>
+              </grid>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="f86d9" class="javax.swing.JLabel" binding="myResourceNameLabel">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                    <minimum-size width="-1" height="15"/>
+                    <preferred-size width="111" height="15"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <text value="Resource name:"/>
+                </properties>
+              </component>
+              <component id="5777" class="javax.swing.JTextField" binding="myResourceNameField">
+                <constraints>
+                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                    <minimum-size width="-1" height="20"/>
+                    <preferred-size width="50" height="20"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <text value=""/>
+                </properties>
+              </component>
+            </children>
+          </grid>
         </children>
       </grid>
       <grid id="1aaeb" binding="myPropertyPanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false">
-            <minimum-size width="400" height="160"/>
-            <preferred-size width="400" height="180"/>
+            <minimum-size width="320" height="160"/>
+            <preferred-size width="320" height="180"/>
           </grid>
         </constraints>
         <properties/>
@@ -264,7 +277,7 @@
             </children>
           </grid>
           <grid id="e6643" binding="myResizePanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="0" left="0" bottom="0" right="0"/>
+            <margin top="0" left="0" bottom="20" right="0"/>
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
                 <minimum-size width="150" height="30"/>
@@ -340,7 +353,7 @@
                 </constraints>
                 <properties>
                   <selected value="false"/>
-                  <text value="Override default icon size from Material Design"/>
+                  <text value="Override default size from Material Design"/>
                 </properties>
               </component>
             </children>
