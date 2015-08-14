@@ -308,7 +308,8 @@ public final class GradleUtil {
     }
     // At the time we're called, module.getModuleFile() may be null, but getModuleFilePath returns the path where it will be created.
     File moduleFilePath = new File(module.getModuleFilePath());
-    return getGradleBuildFile(moduleFilePath.getParentFile());
+    File parentFile = moduleFilePath.getParentFile();
+    return parentFile != null ? getGradleBuildFile(parentFile) : null;
   }
 
   /**
