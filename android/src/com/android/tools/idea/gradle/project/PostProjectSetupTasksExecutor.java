@@ -145,6 +145,8 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
+    new ExternalDependenciesUsageTracker(myProject).trackExternalDependenciesInAndroidApps();
+
     executeProjectChanges(myProject, new Runnable() {
       @Override
       public void run() {
