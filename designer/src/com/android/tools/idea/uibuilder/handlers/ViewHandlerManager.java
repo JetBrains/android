@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.gridlayout.GridLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.Maps;
@@ -37,7 +38,9 @@ import static com.android.SdkConstants.*;
  * Tracks and provides {@link ViewHandler} instances in this project
  */
 public class ViewHandlerManager implements ProjectComponent {
-  /** View handlers are named the same as the class for the view they represent, plus this suffix */
+  /**
+   * View handlers are named the same as the class for the view they represent, plus this suffix
+   */
   public static final String HANDLER_CLASS_SUFFIX = "Handler";
 
   private final Project myProject;
@@ -186,10 +189,10 @@ public class ViewHandlerManager implements ProjectComponent {
     try {
       String defaultHandlerPkgPrefix = "com.android.tools.idea.uibuilder.handlers.";
       String handlerClass = defaultHandlerPkgPrefix + viewTag + HANDLER_CLASS_SUFFIX;
-      @SuppressWarnings("unchecked")
-      Class<? extends ViewHandler> cls = (Class<? extends ViewHandler>)Class.forName(handlerClass);
+      @SuppressWarnings("unchecked") Class<? extends ViewHandler> cls = (Class<? extends ViewHandler>)Class.forName(handlerClass);
       return cls.newInstance();
-    } catch (Exception ignore) {
+    }
+    catch (Exception ignore) {
     }
 
     if (viewTag.indexOf('.') != -1) {
@@ -212,7 +215,8 @@ public class ViewHandlerManager implements ProjectComponent {
             }
           }
         }
-      } else {
+      }
+      else {
         for (PsiClass cls : classes) {
           // Look for bytecode and instantiate if possible, then return
           // TODO: Instantiate
