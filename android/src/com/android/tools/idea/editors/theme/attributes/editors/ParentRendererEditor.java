@@ -73,7 +73,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
 
   public ParentRendererEditor(@NotNull ThemeEditorContext context) {
     myContext = context;
-    myParentComboBox = new ComboBox();
+    myParentComboBox = new JComboBox();
     // Override isShowing because of the use of a {@link CellRendererPane}
     myPanel = new JPanel(new BorderLayout(0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP)) {
       @Override
