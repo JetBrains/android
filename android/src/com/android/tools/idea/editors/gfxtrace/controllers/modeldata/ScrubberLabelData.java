@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers.modeldata;
 
-import com.android.tools.idea.editors.gfxtrace.rpc.AtomGroup;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
+import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 public class ScrubberLabelData {
-  private long myAtomId;
+  private AtomPath myAtomPath;
   @NotNull private String myLabel;
   @NotNull private AtomGroup myHierarchyReference;
 
@@ -30,8 +31,8 @@ public class ScrubberLabelData {
   private boolean myIsCurrentlyLoadingIcon;
   private boolean myIsSelected;
 
-  public ScrubberLabelData(long atomId, @NotNull AtomGroup hierarchyReference, @NotNull String label, @NotNull ImageIcon icon) {
-    myAtomId = atomId;
+  public ScrubberLabelData(AtomPath atomPath, @NotNull AtomGroup hierarchyReference, @NotNull String label, @NotNull ImageIcon icon) {
+    myAtomPath = atomPath;
     myHierarchyReference = hierarchyReference;
     myLabel = label;
     myImageIcon = icon;
@@ -42,8 +43,8 @@ public class ScrubberLabelData {
     return myLabel;
   }
 
-  public long getAtomId() {
-    return myAtomId;
+  public AtomPath getAtomPath() {
+    return myAtomPath;
   }
 
   @NotNull
