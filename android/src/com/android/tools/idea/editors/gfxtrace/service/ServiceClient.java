@@ -30,7 +30,7 @@ import static com.google.common.util.concurrent.Futures.transform;
 public abstract class ServiceClient {
   //<<<Start:Java.ClientBody:1>>>
   public abstract ListenableFuture<Path> follow(Path p);
-  public abstract ListenableFuture<Box> get(Path p);
+  public abstract ListenableFuture<Object> get(Path p);
   public abstract ListenableFuture<CapturePath[]> getCaptures();
   public abstract ListenableFuture<DevicePath[]> getDevices();
   public abstract ListenableFuture<ImageInfoPath> getFramebufferColor(DevicePath device, AtomPath after, RenderSettings settings);
@@ -39,37 +39,37 @@ public abstract class ServiceClient {
   public abstract ListenableFuture<TimingInfoPath> getTimingInfo(DevicePath device, CapturePath capture, TimingFlags flags);
   public abstract ListenableFuture<CapturePath> importCapture(String name, byte[] Data);
   public abstract ListenableFuture<Void> prerenderFramebuffers(DevicePath device, CapturePath capture, BinaryID api, int width, int height, long[] atomIndicies);
-  public abstract ListenableFuture<Path> set(Path p, Box v);
+  public abstract ListenableFuture<Path> set(Path p, Object v);
   //<<<End:Java.ClientBody:1>>>
 
   public ListenableFuture<Device> get(DevicePath p) {
-    return transform(get((Path)p), new BoxTransformer<Device>());
+    return transform(get((Path)p), new FutureCast<Device>());
   }
 
   public ListenableFuture<Capture> get(CapturePath p) {
-    return transform(get((Path)p), new BoxTransformer<Capture>());
+    return transform(get((Path)p), new FutureCast<Capture>());
   }
 
   public ListenableFuture<AtomList> get(AtomsPath p) {
-    return transform(get((Path)p), new BoxTransformer<AtomList>());
+    return transform(get((Path)p), new FutureCast<AtomList>());
   }
 
   public ListenableFuture<AtomGroup> get(HierarchyPath p) {
-    return transform(get((Path)p), new BoxTransformer<AtomGroup>());
+    return transform(get((Path)p), new FutureCast<AtomGroup>());
   }
 
   public ListenableFuture<ImageInfo> get(ImageInfoPath p) {
-    return transform(get((Path)p), new BoxTransformer<ImageInfo>());
+    return transform(get((Path)p), new FutureCast<ImageInfo>());
   }
 
   public ListenableFuture<byte[]> get(BlobPath p) {
-    return transform(get((Path)p), new BoxTransformer<byte[]>());
+    return transform(get((Path)p), new FutureCast<byte[]>());
   }
 
-  static class BoxTransformer<T> implements Function<Box, T> {
+  static class FutureCast<T> implements Function<Object, T> {
     @Override
-    public T apply(Box v) {
-      return (T)v.unwrap();
+    public T apply(Object v) {
+      return (T)v;
     }
   }
 }

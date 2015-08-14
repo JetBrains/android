@@ -31,7 +31,7 @@ public final class MapIndexPath extends Path {
 
   //<<<Start:Java.ClassBody:1>>>
   Path myMap;
-  Box myKey;
+  Object myKey;
 
   // Constructs a default-initialized {@link MapIndexPath}.
   public MapIndexPath() {}
@@ -46,11 +46,11 @@ public final class MapIndexPath extends Path {
     return this;
   }
 
-  public Box getKey() {
+  public Object getKey() {
     return myKey;
   }
 
-  public MapIndexPath setKey(Box v) {
+  public MapIndexPath setKey(Object v) {
     myKey = v;
     return this;
   }
@@ -80,14 +80,14 @@ public final class MapIndexPath extends Path {
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       MapIndexPath o = (MapIndexPath)obj;
       e.object(o.myMap.unwrap());
-      e.variant(o.myKey);
+      e.variant(Box.wrap(o.myKey));
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       MapIndexPath o = (MapIndexPath)obj;
       o.myMap = Path.wrap(d.object());
-      o.myKey = (Box)d.variant();
+      o.myKey = ((Box)d.variant()).unwrap();
     }
     //<<<End:Java.KlassBody:2>>>
   }

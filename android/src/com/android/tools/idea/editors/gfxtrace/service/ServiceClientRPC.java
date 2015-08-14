@@ -45,7 +45,7 @@ public final class ServiceClientRPC extends ServiceClient {
     return myExecutorService.submit(new FollowCallable(p));
   }
   @Override
-  public ListenableFuture<Box> get(Path p) {
+  public ListenableFuture<Object> get(Path p) {
     return myExecutorService.submit(new GetCallable(p));
   }
   @Override
@@ -81,7 +81,7 @@ public final class ServiceClientRPC extends ServiceClient {
     return myExecutorService.submit(new PrerenderFramebuffersCallable(device, capture, api, width, height, atomIndicies));
   }
   @Override
-  public ListenableFuture<Path> set(Path p, Box v) {
+  public ListenableFuture<Path> set(Path p, Object v) {
     return myExecutorService.submit(new SetCallable(p, v));
   }
 
@@ -98,7 +98,7 @@ public final class ServiceClientRPC extends ServiceClient {
       return result.myValue;
     }
   }
-  private class GetCallable implements Callable<Box> {
+  private class GetCallable implements Callable<Object> {
     private final CallGet myCall;
 
     private GetCallable(Path p) {
@@ -106,7 +106,7 @@ public final class ServiceClientRPC extends ServiceClient {
       myCall.setP(p);
     }
     @Override
-    public Box call() throws Exception {
+    public Object call() throws Exception {
       ResultGet result = (ResultGet)myBroadcaster.Send(myCall);
       return result.myValue;
     }
@@ -226,7 +226,7 @@ public final class ServiceClientRPC extends ServiceClient {
   private class SetCallable implements Callable<Path> {
     private final CallSet myCall;
 
-    private SetCallable(Path p, Box v) {
+    private SetCallable(Path p, Object v) {
       myCall = new CallSet();
       myCall.setP(p);
       myCall.setV(v);
