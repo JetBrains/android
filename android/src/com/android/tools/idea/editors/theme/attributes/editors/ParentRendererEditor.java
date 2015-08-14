@@ -142,35 +142,46 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
     }
     myVariantsComboBox.setVisible(true);
 
-    Collection<ConfiguredElement<ThemeEditorStyle>> allParents = myItem.getAllParents(myContext.getThemeResolver());
+    Collection<ConfiguredElement<String>> allParents = myItem.getParentNames();
     final String currentVariantColor = ColorUtil.toHex(ThemeEditorConstants.CURRENT_VARIANT_COLOR);
     final String notSelectedVariantColor = ColorUtil.toHex(ThemeEditorConstants.NOT_SELECTED_VARIANT_COLOR);
     final ArrayList<VariantsComboItem> variants = Lists.newArrayListWithCapacity(allParents.size());
 
     ConfigurationManager manager = myContext.getConfiguration().getConfigurationManager();
-    ThemeEditorStyle currentParent = myItem.getParent();
+    ThemeEditorStyle currentParent = myItem.getParent(myContext.getThemeResolver());
 
-    for (ConfiguredElement<ThemeEditorStyle> configuredParent : allParents) {
+    ConfiguredElement<String> selectedElement = null;
+    if (currentParent != null) {
+      //noinspection unchecked
+      selectedElement = (ConfiguredElement<String>)currentParent.getConfiguration().getFullConfig()
+        .findMatchingConfigurable(ImmutableList.copyOf(allParents));
+    }
+    if (selectedElement == null) {
+      selectedElement = allParents.iterator().next();
+    }
+
+    for (ConfiguredElement<String> configuredParent : allParents) {
       FolderConfiguration restrictedConfig =
         QualifierUtils.restrictConfiguration(manager, configuredParent, allParents);
-      ThemeEditorStyle parent = configuredParent.getElement();
+      String parentName = configuredParent.getElement();
 
       if (restrictedConfig == null) {
         // This type is not visible
         LOG.warn(String.format(
           "For style '%1$s': Folder configuration '%2$s' can never be selected. There are no qualifiers combination that would allow selecting it.",
-          parent.getName(), configuredParent.getConfiguration()));
+          parentName, configuredParent.getConfiguration()));
         continue;
       }
 
-      if (currentParent.getQualifiedName().equals(parent.getQualifiedName())) {
+      if (configuredParent.getConfiguration().equals(selectedElement.getConfiguration())) {
         // This is the selected parent
         variants.add(0, new VariantsComboItem(
           String.format(ThemeEditorConstants.CURRENT_VARIANT_TEMPLATE, currentVariantColor, configuredParent.getConfiguration().toShortDisplayString()), restrictedConfig));
       }
       else {
         variants.add(new VariantsComboItem(String.format(ThemeEditorConstants.NOT_SELECTED_VARIANT_TEMPLATE, notSelectedVariantColor,
-                                                         configuredParent.getConfiguration().toShortDisplayString(), parent.getName()), restrictedConfig));
+                                                         configuredParent.getConfiguration().toShortDisplayString(), " - " + parentName),
+                                           restrictedConfig));
       }
     }
 

@@ -20,6 +20,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -82,5 +83,30 @@ public class ThemeResolverTest extends AndroidTestCase {
     FileDocumentManager.getInstance().saveAllDocuments();
     assertTrue(new String(myStyleFile.contentsToByteArray(), "UTF-8").contains("@drawable/other"));
     assertTrue(new String(myStyleFile.contentsToByteArray(), "UTF-8").contains("@drawable/second_background"));
+  }
+
+  /** Check that, after a configuration update, the resolver updates the list of themes */
+  public void testConfigurationUpdate() {
+    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v17.xml", "res/values-v17/styles.xml");
+    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v19.xml", "res/values-v19/styles.xml");
+    VirtualFile file = myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v20.xml", "res/values-v20/styles.xml");
+
+    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    Configuration configuration = configurationManager.getConfiguration(file);
+
+    ThemeEditorContext context = new ThemeEditorContext(configuration);
+    ThemeResolver resolver = context.getThemeResolver();
+    assertNotNull(resolver.getTheme("@style/V20OnlyTheme"));
+    assertNotNull(resolver.getTheme("@style/V19OnlyTheme"));
+    assertNotNull(resolver.getTheme("@style/V17OnlyTheme"));
+
+    // Set API level 17 and check that only the V17 theme can be resolved
+    //noinspection ConstantConditions
+    configuration
+      .setTarget(new CompatibilityRenderTarget(configurationManager.getHighestApiTarget(), 17, configurationManager.getHighestApiTarget()));
+    resolver = context.getThemeResolver();
+    assertNull(resolver.getTheme("@style/V20OnlyTheme"));
+    assertNull(resolver.getTheme("@style/V19OnlyTheme"));
+    assertNotNull(resolver.getTheme("@style/V17OnlyTheme"));
   }
 }
