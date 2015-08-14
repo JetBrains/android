@@ -111,7 +111,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository impl
   protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
     if (mItems.isEmpty()) {
       // Force lazy initialization
-      getMap(type);
+      getMap();
     }
     ListMultimap<String, ResourceItem> multimap = mItems.get(type);
     if (multimap == null && create) {
