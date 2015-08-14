@@ -23,6 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class AtomsPath extends Path {
+  public AtomPath index(long i) {
+    return new AtomPath().setAtoms(this).setIndex(i);
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   CapturePath myCapture;
 
