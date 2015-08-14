@@ -57,6 +57,21 @@ public class ThemeEditorContext {
 
   private final List<ChangeListener> myChangeListeners = new ArrayList<ChangeListener>();
   private final List<ConfigurationListener> myConfigurationListeners = new ArrayList<ConfigurationListener>();
+  private boolean myEnabledListeners = true;
+  private final ConfigurationListener myConfigurationListener = new ConfigurationListener() {
+    @Override
+    public boolean changed(int flags) {
+      if (!myEnabledListeners) {
+        return true;
+      }
+
+      boolean accepted = true;
+      for (ConfigurationListener listener : myConfigurationListeners) {
+        accepted &= listener.changed(flags);
+      }
+      return accepted;
+    }
+  };
 
   public ThemeEditorContext(@NotNull Configuration configuration) {
     setConfiguration(configuration);
@@ -73,10 +88,13 @@ public class ThemeEditorContext {
   }
 
   public void updateThemeResolver() {
+    // Disable listeners since we are not interested in the setTheme(null) update
+    myEnabledListeners = false;
     // setTheme(null) is required since the configuration could have a link to a non existent theme (if it was removed).
     // If the configuration is pointing to a theme that does not exist anymore, the local resource resolution breaks so ThemeResolver
     // fails to find the local themes.
     myConfiguration.setTheme(null);
+    myEnabledListeners = true;
     myThemeResolver = new ThemeResolver(myConfiguration);
   }
 
@@ -130,7 +148,6 @@ public class ThemeEditorContext {
 
   public void addConfigurationListener(@NotNull ConfigurationListener configurationListener) {
     myConfigurationListeners.add(configurationListener);
-    myConfiguration.addListener(configurationListener);
   }
 
   @NotNull
@@ -139,16 +156,16 @@ public class ThemeEditorContext {
   }
 
   public void setConfiguration(@NotNull Configuration configuration) {
-    for (ConfigurationListener listener : myConfigurationListeners) {
-      myConfiguration.removeListener(listener);
+    // myConfiguration can be null when called from the constructor
+    //noinspection ConstantConditions
+    if (myConfiguration != null) {
+      myConfiguration.removeListener(myConfigurationListener);
     }
 
     myConfiguration = configuration;
     updateThemeResolver();
 
-    for (ConfigurationListener listener : myConfigurationListeners) {
-      myConfiguration.addListener(listener);
-    }
+    myConfiguration.addListener(myConfigurationListener);
 
     fireNewConfiguration();
   }
@@ -164,10 +181,7 @@ public class ThemeEditorContext {
   }
 
   public void dispose() {
-    for (ConfigurationListener listener : myConfigurationListeners) {
-      myConfiguration.removeListener(listener);
-    }
-
+    myConfiguration.removeListener(myConfigurationListener);
     myConfigurationListeners.clear();
   }
 
