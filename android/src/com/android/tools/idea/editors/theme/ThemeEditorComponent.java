@@ -564,7 +564,7 @@ public class ThemeEditorComponent extends Splitter {
    * @return whether creation of new theme succeeded.
    */
   private boolean createNewTheme() {
-    String newThemeName = ThemeEditorUtils.createNewStyle(getSelectedTheme(), myThemeEditorContext, !isSubStyleSelected(), null);
+    String newThemeName = ThemeEditorUtils.showCreateNewStyleDialog(getSelectedTheme(), myThemeEditorContext, !isSubStyleSelected(), null);
     if (newThemeName != null) {
       // We don't need to call reload here, because myResourceChangeListener will take care of it
       myThemeName = newThemeName;
@@ -696,7 +696,7 @@ public class ThemeEditorComponent extends Splitter {
       .format("<html>The %1$s '<code>%2$s</code>' is Read-Only.<br/>A new %1$s will be created to modify '<code>%3$s</code>'.<br/></html>",
               isSubStyleSelected() ? "style" : "theme", selectedStyle.getQualifiedName(), rv.getName());
 
-    final String newStyleName = ThemeEditorUtils.createNewStyle(selectedStyle, myThemeEditorContext, !isSubStyleSelected(), message);
+    final String newStyleName = ThemeEditorUtils.showCreateNewStyleDialog(selectedStyle, myThemeEditorContext, !isSubStyleSelected(), message);
 
     if (newStyleName == null) {
       return;
@@ -742,7 +742,7 @@ public class ThemeEditorComponent extends Splitter {
                               "A new theme will be created to point to the modified style '%3$s'.<br/></html>",
                               selectedTheme.getQualifiedName(), rv.getName(), newStyleName);
 
-      final String newThemeName = ThemeEditorUtils.createNewStyle(selectedTheme, myThemeEditorContext, true, message);
+      final String newThemeName = ThemeEditorUtils.showCreateNewStyleDialog(selectedTheme, myThemeEditorContext, true, message);
       if (newThemeName != null) {
         // We don't need to call reload, because myResourceChangeListener will take care of it
         myThemeName = newThemeName;
