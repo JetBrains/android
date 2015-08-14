@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +25,9 @@ import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.*;
 import java.util.*;
+
+import static java.lang.reflect.Proxy.getInvocationHandler;
+import static java.lang.reflect.Proxy.isProxyClass;
 
 public final class ProxyUtil {
   /*
@@ -112,12 +112,12 @@ public final class ProxyUtil {
     }
 
     // Only modify proxy objects...
-    if (!Proxy.isProxyClass(object.getClass())) {
+    if (!isProxyClass(object.getClass())) {
       return object;
     }
 
     // ...that are not our own proxy.
-    if (Proxy.getInvocationHandler(object) instanceof WrapperInvocationHandler) {
+    if (getInvocationHandler(object) instanceof WrapperInvocationHandler) {
       return object;
     }
 
@@ -190,15 +190,28 @@ public final class ProxyUtil {
     }
 
     private boolean proxyEquals(Object other) {
-      return other != null && Proxy.isProxyClass(other.getClass()) && Proxy.getInvocationHandler(other).equals(this);
+      return other != null && isProxyClass(other.getClass()) && getInvocationHandler(other).equals(this);
     }
   }
 
-  private static class InvocationErrorValue implements Serializable {
+  public static class InvocationErrorValue implements Serializable {
     public Throwable exception;
 
     private InvocationErrorValue(Throwable exception) {
       this.exception = exception;
     }
+  }
+
+  public static boolean isAndroidModelProxyObject(@NotNull Object obj) {
+    return isProxyClass(obj.getClass()) && getInvocationHandler(obj) instanceof WrapperInvocationHandler;
+  }
+
+  @NotNull
+  public static Map<String, Object> getAndroidModelProxyValues(@NotNull Object obj) {
+    if (isAndroidModelProxyObject(obj)) {
+      WrapperInvocationHandler handler = (WrapperInvocationHandler)getInvocationHandler(obj);
+      return handler.values;
+    }
+    return ImmutableMap.of();
   }
 }
