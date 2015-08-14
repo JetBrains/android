@@ -15,18 +15,30 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
-import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
+import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
+import com.android.tools.idea.editors.gfxtrace.service.ImageInfo;
+import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
+import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
+import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.rpclib.binary.BinaryObject;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.tree.TreeNode;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,11 +46,25 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class FrameBufferController implements PathListener {
+  private static final int MAX_SIZE = 0xffff;
+
+  @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   @NotNull private final GfxTraceEditor myEditor;
   @NotNull private final JBRunnerTabs myBufferTabs;
-  @NotNull private final JBScrollPane[] myBufferScrollPanes;
-  @NotNull private AtomicLong myCurrentFetchAtomIndex = new AtomicLong();
-  @NotNull private JBLoadingPanel[] myLoadingPanels = new JBLoadingPanel[BufferType.length];
+
+  @NotNull private final BufferTab colorTab = new BufferTab();
+  @NotNull private final BufferTab wireframeTab = new BufferTab();
+  @NotNull private final BufferTab depthTab = new BufferTab();
+
+  private DevicePath myRenderDevice;
+  private AtomPath myAtomPath;
+
+  private final class BufferTab {
+    public JBScrollPane myPane;
+    public JBLoadingPanel myLoading;
+    public boolean myIsDepth = false;
+    public RenderSettings mySettings = new RenderSettings();
+  }
 
   public FrameBufferController(@NotNull GfxTraceEditor editor,
                                @NotNull JBRunnerTabs bufferTabs,
@@ -49,145 +75,90 @@ public class FrameBufferController implements PathListener {
     myEditor.addPathListener(this);
     myBufferTabs = bufferTabs;
 
-    myBufferScrollPanes = new JBScrollPane[]{colorScrollPane, wireframePane, depthScrollPane};
-    assert (myBufferScrollPanes.length == BufferType.length);
+    initTab(colorTab, colorScrollPane);
+    initTab(wireframeTab, wireframePane);
+    wireframeTab.mySettings.setWireframeMode(WireframeMode.AllWireframe);
+    initTab(depthTab, depthScrollPane);
+    depthTab.myIsDepth = true;
+  }
 
-    for (int i = 0; i < myBufferScrollPanes.length; ++i) {
-      myBufferScrollPanes[i].getVerticalScrollBar().setUnitIncrement(20);
-      myBufferScrollPanes[i].getHorizontalScrollBar().setUnitIncrement(20);
-      myBufferScrollPanes[i].setBorder(BorderFactory.createLineBorder(JBColor.border()));
+  private void initTab(BufferTab tab, JBScrollPane pane) {
+    tab.myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
+    tab.myPane = pane;
+    tab.myPane.getVerticalScrollBar().setUnitIncrement(20);
+    tab.myPane.getHorizontalScrollBar().setUnitIncrement(20);
+    tab.myPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+    tab.myPane.setViewportView(tab.myLoading);
 
-      myLoadingPanels[i] = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
-      myBufferScrollPanes[i].setViewportView(myLoadingPanels[i]);
-    }
-
+    tab.mySettings.setMaxHeight(MAX_SIZE);
+    tab.mySettings.setMaxWidth(MAX_SIZE);
+    tab.mySettings.setWireframeMode(WireframeMode.NoWireframe);
     // TODO: Add a way to pan the viewport with the keyboard.
-  }
-
-  public void setImageForId(final long atomIndex) {
-    // TODO: Add toggle for between scaled and full size.
-
-    ApplicationManager.getApplication().assertIsDispatchThread();
-
-    if (myCurrentFetchAtomIndex.get() == atomIndex) {
-      // Early out if the given atomIndex was already fetched or is in the process of being fetched.
-      return;
-    }
-
-    clearCache();
-
-    // Only color, wireframe, and depth are fetched at the moment, since the server hasn't implemented stencil buffers.
-    final List<BufferType> bufferOrder =
-      new ArrayList<BufferType>(Arrays.asList(BufferType.COLOR_BUFFER, BufferType.WIREFRAME_BUFFER, BufferType.DEPTH_BUFFER));
-
-    for (JBLoadingPanel panel : myLoadingPanels) {
-      if (!panel.isLoading()) {
-        panel.startLoading();
-      }
-    }
-
-    myCurrentFetchAtomIndex.set(atomIndex);
-
-    // This needs to run in parallel to the main worker thread since it's slow and it doesn't affect the other controllers.
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        // Prioritize the currently selected tab in bufferOrder.
-        if (myBufferTabs.getSelectedInfo() != null) {
-          String tabName = myBufferTabs.getSelectedInfo().getText();
-          for (BufferType buffer : BufferType.values()) {
-            if (buffer.getName().equals(tabName)) {
-              if (bufferOrder.remove(buffer)) {
-                bufferOrder.add(0, buffer);
-              }
-              break;
-            }
-          }
-        }
-
-        for (BufferType buffer : bufferOrder) {
-          if (atomIndex != myCurrentFetchAtomIndex.get()) {
-            return;
-          }
-
-          //setIcons(atomIndex, fetchedImage.createImageIcon(), buffer);
-        }
-
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            if (atomIndex == myCurrentFetchAtomIndex.get()) {
-              stopLoading();
-            }
-          }
-        });
-      }
-    });
-  }
-
-  public void clear() {
-    stopLoading();
-    clearCache();
-  }
-
-  public void clearCache() {
-    for (JBLoadingPanel panel : myLoadingPanels) {
-      panel.getContentPanel().removeAll();
-    }
-    myCurrentFetchAtomIndex.set(-1);
-  }
-
-  private void stopLoading() {
-    for (JBLoadingPanel panel : myLoadingPanels) {
-      if (panel.isLoading()) {
-        panel.stopLoading();
-      }
-    }
-  }
-
-  private void setIcons(final long closedAtomIndex, @NotNull final ImageIcon image, @NotNull final BufferType bufferType) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        if (myCurrentFetchAtomIndex.get() == closedAtomIndex) {
-          int index = bufferType.ordinal();
-          myLoadingPanels[index].add(new JBLabel(image));
-          if (myLoadingPanels[index].isLoading()) {
-            myLoadingPanels[index].stopLoading();
-          }
-
-          myBufferScrollPanes[index].repaint();
-        }
-      }
-    });
   }
 
   @Override
   public void notifyPath(Path path) {
-    // TODO: detect selections that should update the frame buffer
+    boolean updateTabs = false;
+    if (path instanceof DevicePath) {
+      myRenderDevice = (DevicePath)path;
+      updateTabs = true;
+      LOG.warn("Activating device " + myRenderDevice);
+    }
+    if (path instanceof AtomPath) {
+      myAtomPath = (AtomPath)path;
+      updateTabs = true;
+      LOG.warn("Activating atom " + myAtomPath);
+    }
+    if (updateTabs && (myRenderDevice != null) && (myAtomPath != null)) {
+      LOG.warn("Updating framebuffer tabs");
+      // TODO: maybe do the selected tab first, but it's probably not much of a win
+      updateTab(colorTab);
+      updateTab(wireframeTab);
+      updateTab(depthTab);
+    }
   }
 
-  public enum BufferType {
-    COLOR_BUFFER("Color"),
-    WIREFRAME_BUFFER("Wirefame"),
-    DEPTH_BUFFER("Depth");
-
-    private static final int length = BufferType.values().length;
-    @NotNull final private String myName;
-
-    BufferType(@NotNull String name) {
-      myName = name;
+  public void updateTab(final BufferTab tab) {
+    if (!tab.myLoading.isLoading()) {
+      tab.myLoading.startLoading();
     }
-
-    @NotNull
-    public String getName() {
-      return myName;
+    ListenableFuture<ImageInfoPath> imagePathF;
+    if (tab.myIsDepth) {
+      imagePathF = myEditor.getClient().getFramebufferDepth(myRenderDevice, myAtomPath);
+    } else {
+      imagePathF = myEditor.getClient().getFramebufferColor(myRenderDevice, myAtomPath, tab.mySettings);
     }
+    Futures.addCallback(imagePathF, new LoadingCallback<ImageInfoPath>(LOG, tab.myLoading) {
+      @Override
+      public void onSuccess(@Nullable final ImageInfoPath imagePath) {
+        updateTab(tab, imagePath);
+      }
+    });
+  }
 
-    @Override
-    @NotNull
-    public String toString() {
-      return getName();
-    }
+  private void updateTab(final BufferTab tab, final ImageInfoPath imageInfoPath) {
+    Futures.addCallback(myEditor.getClient().get(imageInfoPath), new LoadingCallback<ImageInfo>(LOG, tab.myLoading) {
+      @Override
+      public void onSuccess(@Nullable final ImageInfo imageInfo) {
+        LOG.warn("Got image " + imageInfo);
+        Futures.addCallback(myEditor.getClient().get(imageInfo.getData()), new LoadingCallback<byte[]>(LOG, tab.myLoading) {
+          @Override
+          public void onSuccess(@Nullable final byte[] data) {
+            final FetchedImage fetchedImage = new FetchedImage(imageInfo, data);
+            final ImageIcon image = fetchedImage.createImageIcon();
+            EdtExecutor.INSTANCE.execute(new Runnable() {
+              @Override
+              public void run() {
+                // Back in the UI thread here
+                tab.myLoading.stopLoading();
+                tab.myLoading.getContentPanel().removeAll();
+                tab.myLoading.add(new JBLabel(image));
+                tab.myPane.repaint();
+              }
+            });
+          }
+        });
+      }
+    });
   }
 }
