@@ -20,7 +20,13 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
+import com.intellij.notification.EventLog;
+import com.intellij.notification.LogModel;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -29,10 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.isIn;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 @BelongsToTestGroups({THEME})
@@ -48,7 +51,7 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
     final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
     final ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
 
-    assertThat(themeEditor.getModulesList(), containsInAnyOrder("app", "library", "library2", "library3"));
+    assertThat(themeEditor.getModulesList(), containsInAnyOrder("app", "library", "library2", "library3", "nothemeslibrary"));
     final JComboBoxFixture modulesComboBox = themeEditor.getModulesComboBox();
 
     modulesComboBox.selectItem("app");
@@ -71,5 +74,34 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
     final List<String> library3Themes = themeEditor.getThemesList();
     assertThat("[Library3Theme]", isIn(library3Themes));
     assertThat(library3Themes, not(containsInAnyOrder("[AppTheme]", "[Library1DependentTheme]", "[Library1Theme]", "[Library2Theme]")));
+  }
+
+  @Test
+  @IdeGuiTest
+  public void testModuleWithoutThemes() throws IOException {
+    final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
+    final ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+
+    final JComboBoxFixture modulesComboBox = themeEditor.getModulesComboBox();
+
+    modulesComboBox.selectItem("app");
+    themeEditor.getThemesComboBox().selectItem("[AppTheme]");
+    themeEditor.waitForThemeSelection("[AppTheme]");
+
+    modulesComboBox.selectItem("nothemeslibrary");
+    myRobot.waitForIdle();
+
+    final LogModel logModel = EventLog.getLogModel(projectFrame.getProject());
+    assertThat(logModel.getNotifications(), everyItem(new BaseMatcher<Notification>() {
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("a notification which is not an error");
+      }
+
+      @Override
+      public boolean matches(Object item) {
+        return (item instanceof Notification && ((Notification)item).getType() != NotificationType.ERROR);
+      }
+    }));
   }
 }
