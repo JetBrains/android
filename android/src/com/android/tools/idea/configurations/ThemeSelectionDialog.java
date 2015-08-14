@@ -22,13 +22,20 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collections;
+import java.util.Set;
+
 
 public class ThemeSelectionDialog extends DialogWrapper {
   @NotNull private final ThemeSelectionPanel myPanel;
 
   public ThemeSelectionDialog(@NotNull Configuration configuration) {
+    this(configuration, Collections.<String>emptySet());
+  }
+
+  public ThemeSelectionDialog(@NotNull Configuration configuration, @NotNull Set<String> excludedThemes) {
     super(configuration.getModule().getProject());
-    myPanel = new ThemeSelectionPanel(this, configuration);
+    myPanel = new ThemeSelectionPanel(this, configuration, excludedThemes);
     setTitle("Select Theme");
     init();
   }
