@@ -46,7 +46,7 @@ public abstract class DeviceSampler implements Runnable {
    */
   public static final int INHERITED_TYPE_START = 3;
 
-  @NotNull protected TimelineData myData;
+  @NotNull protected TimelineData myTimelineData;
   @NotNull protected final List<TimelineEventListener> myListeners = Lists.newLinkedList();
   protected int mySampleFrequencyMs;
   /**
@@ -58,8 +58,8 @@ public abstract class DeviceSampler implements Runnable {
   @NotNull private final Semaphore myDataSemaphore;
   protected volatile boolean myRunning;
 
-  public DeviceSampler(@NotNull TimelineData data, int sampleFrequencyMs) {
-    myData = data;
+  public DeviceSampler(@NotNull TimelineData timelineData, int sampleFrequencyMs) {
+    myTimelineData = timelineData;
     mySampleFrequencyMs = sampleFrequencyMs;
     myDataSemaphore = new Semaphore(0, true);
   }
@@ -82,7 +82,7 @@ public abstract class DeviceSampler implements Runnable {
     if (myExecutingTask != null) {
       myRunning = false;
       myDataSemaphore.release();
-      myData.clear();
+      myTimelineData.clear();
 
       try {
         // Wait for the task to finish.
@@ -106,19 +106,31 @@ public abstract class DeviceSampler implements Runnable {
     }
   }
 
-  public void setClient(@Nullable Client client) {
-    if (client != myClient) {
+  @NotNull
+  public TimelineData getTimelineData() {
+    return myTimelineData;
+  }
+
+  protected boolean requiresSamplerRestart(@Nullable Client client) {
+    return client != myClient;
+  }
+
+  public final void setClient(@Nullable Client client) {
+    if (requiresSamplerRestart(client)) {
       stop();
       myClient = client;
-      myData.clear();
+      prepareSampler(client);
+      myTimelineData.clear();
       start();
     }
   }
 
-  @Nullable
+  protected void prepareSampler(@Nullable Client client) {}
+
   /**
    * This method returns a local copy of <code>myClient</code>, as it is volatile.
    */
+  @Nullable
   public Client getClient() {
     return myClient;
   }

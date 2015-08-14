@@ -25,8 +25,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public class NetworkSampler extends DeviceSampler {
-
   public static final String NETWORK_STATS_FILE = "/proc/net/xt_qtaguid/stats";
+  private static final int TIMELINE_DATA_STREAM_SIZE = 2;
+  private static final int TIMELINE_DATA_SIZE = 2048;
   private static final int MAX_TIMEOUT_SECOND = 1;
   private static final Logger LOG = Logger.getLogger(NetworkSampler.class.getName());
   private static final String LINE_SPLIT_REGEX = "[ \t\r\n\f]";
@@ -39,8 +40,8 @@ public class NetworkSampler extends DeviceSampler {
   // The first sampling values are not current traffic, because they can include previous network traffic values.
   private boolean myIsFirstSample;
 
-  public NetworkSampler(@NotNull TimelineData timelineData, int frequencyMs) {
-    super(timelineData, frequencyMs);
+  public NetworkSampler(int frequencyMs) {
+    super(new TimelineData(TIMELINE_DATA_STREAM_SIZE, TIMELINE_DATA_SIZE), frequencyMs);
   }
 
   @NotNull
@@ -66,7 +67,7 @@ public class NetworkSampler extends DeviceSampler {
 
   public boolean canReadNetworkStatistics() {
     IDevice device = myClient != null ? myClient.getDevice() : null;
-    if (device == null) {
+    if (device == null || device.isOffline()) {
       return false;
     }
 
@@ -147,7 +148,7 @@ public class NetworkSampler extends DeviceSampler {
       myIsFirstSample = false;
     }
     else {
-      myData.add(System.currentTimeMillis(), myDataType, rxBytesIncreased / 1024.f, txBytesIncreased / 1024.f);
+      myTimelineData.add(System.currentTimeMillis(), myDataType, rxBytesIncreased / 1024.f, txBytesIncreased / 1024.f);
     }
   }
 
