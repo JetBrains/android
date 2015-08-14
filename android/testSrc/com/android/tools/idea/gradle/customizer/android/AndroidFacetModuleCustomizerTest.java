@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
@@ -59,7 +59,8 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     VariantStub selectedVariant = myAndroidProject.getFirstVariant();
     assertNotNull(selectedVariant);
     String selectedVariantName = selectedVariant.getName();
-    IdeaAndroidProject androidModel = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
+    AndroidGradleModel
+      androidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
                                                              selectedVariantName, AndroidProject.ARTIFACT_ANDROID_TEST);
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();

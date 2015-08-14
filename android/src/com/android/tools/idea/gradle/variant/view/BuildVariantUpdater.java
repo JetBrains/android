@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
@@ -96,7 +96,7 @@ class BuildVariantUpdater {
         for (Module module : modules) {
           AndroidFacet androidFacet = AndroidFacet.getInstance(module);
           assert androidFacet != null;
-          IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(androidFacet);
+          AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
           assert androidModel != null;
 
           if (!androidModel.getSelectedTestArtifactName().equals(testArtifactName)) {
@@ -127,7 +127,7 @@ class BuildVariantUpdater {
     if (facet == null) {
       return null;
     }
-    IdeaAndroidProject androidModel = getAndroidModel(facet, variant);
+    AndroidGradleModel androidModel = getAndroidModel(facet, variant);
     if (androidModel == null) {
       return null;
     }
@@ -146,7 +146,7 @@ class BuildVariantUpdater {
   }
 
   private boolean updateSelectedVariant(@NotNull AndroidFacet androidFacet,
-                                        @NotNull IdeaAndroidProject androidModel,
+                                        @NotNull AndroidGradleModel androidModel,
                                         @NotNull String variantToSelect,
                                         @NotNull List<AndroidFacet> affectedFacets) {
     Variant selectedVariant = androidModel.getSelectedVariant();
@@ -183,11 +183,11 @@ class BuildVariantUpdater {
   }
 
   @NotNull
-  private static Module invokeCustomizers(@NotNull Module module, @NotNull IdeaAndroidProject androidModel) {
+  private static Module invokeCustomizers(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
     try {
-      for (ModuleCustomizer<IdeaAndroidProject> customizer : getCustomizers(androidModel.getProjectSystemId())) {
+      for (ModuleCustomizer<AndroidGradleModel> customizer : getCustomizers(androidModel.getProjectSystemId())) {
         customizer.customizeModule(module.getProject(), rootModel, androidModel);
       }
     }
@@ -198,18 +198,18 @@ class BuildVariantUpdater {
   }
 
   @NotNull
-  private static List<BuildVariantModuleCustomizer<IdeaAndroidProject>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId) {
+  private static List<BuildVariantModuleCustomizer<AndroidGradleModel>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId) {
     return getCustomizers(targetProjectSystemId, BuildVariantModuleCustomizer.EP_NAME.getExtensions());
   }
 
   @VisibleForTesting
   @NotNull
-  static List<BuildVariantModuleCustomizer<IdeaAndroidProject>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId,
+  static List<BuildVariantModuleCustomizer<AndroidGradleModel>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId,
                                                                                @NotNull BuildVariantModuleCustomizer... allCustomizers) {
-    List<BuildVariantModuleCustomizer<IdeaAndroidProject>> customizers = Lists.newArrayList();
+    List<BuildVariantModuleCustomizer<AndroidGradleModel>> customizers = Lists.newArrayList();
     for (BuildVariantModuleCustomizer customizer : allCustomizers) {
-      // Supported model type must be IdeaAndroidProject or subclass.
-      if (IdeaAndroidProject.class.isAssignableFrom(customizer.getSupportedModelType())) {
+      // Supported model type must be AndroidGradleModel or subclass.
+      if (AndroidGradleModel.class.isAssignableFrom(customizer.getSupportedModelType())) {
         // Build system should be ProjectSystemId.IDE or match the build system sent as parameter.
         ProjectSystemId projectSystemId = customizer.getProjectSystemId();
         if (Objects.equal(projectSystemId, targetProjectSystemId) || Objects.equal(projectSystemId, ProjectSystemId.IDE)) {
@@ -234,7 +234,7 @@ class BuildVariantUpdater {
     if (facet == null) {
       return;
     }
-    IdeaAndroidProject androidModel = getAndroidModel(facet, variant);
+    AndroidGradleModel androidModel = getAndroidModel(facet, variant);
     if (androidModel == null) {
       return;
     }
@@ -256,8 +256,8 @@ class BuildVariantUpdater {
   }
 
   @Nullable
-  private static IdeaAndroidProject getAndroidModel(@NotNull AndroidFacet facet, @NotNull String variantToSelect) {
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+  private static AndroidGradleModel getAndroidModel(@NotNull AndroidFacet facet, @NotNull String variantToSelect) {
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
     if (androidModel == null) {
       logAndShowUpdateFailure(variantToSelect, String.format("Cannot find AndroidProject for module '%1$s'.", facet.getModule().getName()));
     }

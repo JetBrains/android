@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.sdk.Jdks;
@@ -47,9 +47,9 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
   private static final String DEBUG = "debug";
 
   private AndroidProjectStub myAndroidProject;
-  private IdeaAndroidProject myAndroidModel;
-  private ModuleCustomizer<IdeaAndroidProject> myCustomizer1;
-  private ModuleCustomizer<IdeaAndroidProject> myCustomizer2;
+  private AndroidGradleModel myAndroidModel;
+  private ModuleCustomizer<AndroidGradleModel> myCustomizer1;
+  private ModuleCustomizer<AndroidGradleModel> myCustomizer2;
 
   private AndroidProjectDataService service;
 
@@ -62,7 +62,7 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     myAndroidProject.addBuildType(DEBUG);
     File rootDir = myAndroidProject.getRootDir();
     myAndroidModel =
-      new IdeaAndroidProject(GRADLE_SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject, DEBUG, ARTIFACT_ANDROID_TEST);
+      new AndroidGradleModel(GRADLE_SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject, DEBUG, ARTIFACT_ANDROID_TEST);
     //noinspection unchecked
     myCustomizer1 = createMock(ModuleCustomizer.class);
     //noinspection unchecked
@@ -89,9 +89,9 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     if (jdkPath != null) {
       VfsRootAccess.allowRootAccess(jdkPath);
     }
-    List<DataNode<IdeaAndroidProject>> nodes = Lists.newArrayList();
-    Key<IdeaAndroidProject> key = AndroidProjectKeys.IDE_ANDROID_PROJECT;
-    nodes.add(new DataNode<IdeaAndroidProject>(key, myAndroidModel, null));
+    List<DataNode<AndroidGradleModel>> nodes = Lists.newArrayList();
+    Key<AndroidGradleModel> key = AndroidProjectKeys.IDE_ANDROID_MODEL;
+    nodes.add(new DataNode<AndroidGradleModel>(key, myAndroidModel, null));
 
     assertEquals(key, service.getTargetDataKey());
 

@@ -1053,7 +1053,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         // Gradle Files' if it is a gradle project.
         // See https://code.google.com/p/android/issues/detail?id=59018 for more info.
 
-        // The problem is that at this point, the project maybe a Gradle-based project, but its IdeaAndroidProject may be null.
+        // The problem is that at this point, the project maybe a Gradle-based project, but its AndroidGradleModel may be null.
         // We can check if there is a top-level build.gradle or settings.gradle file.
         DataManager.getInstance().getDataContextFromFocus().doWhenDone(new Consumer<DataContext>() {
           @Override

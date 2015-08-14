@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.google.common.collect.Lists;
@@ -99,7 +99,7 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<IdeaJ
   private static LanguageLevel getLanguageLevelForAndroidModule(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
       if (androidModel != null) {
         return androidModel.getJavaLanguageLevel();
       }

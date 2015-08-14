@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
@@ -185,17 +185,17 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeaAndroidProject getAndroidProjectForModule(@NotNull String name) {
+  public AndroidGradleModel getAndroidProjectForModule(@NotNull String name) {
     Module module = getModule(name);
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null && facet.requiresAndroidModel()) {
-      // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
-      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+      // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
       if (androidModel != null) {
         return androidModel;
       }
     }
-    throw new AssertionError("Unable to find IdeaAndroidProject for module " + quote(name));
+    throw new AssertionError("Unable to find AndroidGradleModel for module " + quote(name));
   }
 
   @NotNull
@@ -284,14 +284,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeaAndroidProject getAndroidModel(@NotNull String moduleName) {
+  public AndroidGradleModel getAndroidModel(@NotNull String moduleName) {
     Module module = getModule(moduleName);
     assertNotNull("Could not find module " + moduleName, module);
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertNotNull("Module " + moduleName + " is not an Android module", facet);
     assertTrue("Module " + moduleName + " is not a Gradle project", facet.requiresAndroidModel());
-    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
+    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
     assertNotNull("Module " + moduleName + " does not have a Gradle project (not synced yet or sync failed?)", androidModel);
 
     return androidModel;

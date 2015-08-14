@@ -19,8 +19,8 @@ import com.android.builder.model.AndroidProject;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.FullRevision.PreviewComparison;
 import com.android.sdklib.repository.PreciseRevision;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -132,8 +132,8 @@ public class BuildVariantView {
     myTestArtifactComboBox.setToolTipText(tooltip);
 
     if (hasModules) {
-      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(modules.get(0));
-      assert androidModel != null; // getGradleModules() returns only android modules and at this stage we have the IdeaAndroidProject.
+      AndroidGradleModel androidModel = AndroidGradleModel.get(modules.get(0));
+      assert androidModel != null; // getGradleModules() returns only android modules and at this stage we have the AndroidGradleModel.
       String selectedTestArtifactName = androidModel.getSelectedTestArtifactName();
       for (int i = 0; i < myTestArtifactComboBox.getItemCount(); i++) {
         NamedArtifactType namedArtifactType = (NamedArtifactType)myTestArtifactComboBox.getModel().getElementAt(i);
@@ -156,7 +156,7 @@ public class BuildVariantView {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null && androidFacet.requiresAndroidModel()) {
-        IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(androidFacet);
+        AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
         if (androidModel != null) {
           if (!supportsUnitTests(androidModel.getAndroidProject(), minimumSupportedVersion)) {
             return Collections.emptyList();
@@ -247,8 +247,8 @@ public class BuildVariantView {
 
       BuildVariantItem[] variantNames = getVariantNames(module);
       if (variantNames != null) {
-        // If we got here IdeaAndroidProject is *not* null.
-        IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(module);
+        // If we got here AndroidGradleModel is *not* null.
+        AndroidGradleModel androidModel = AndroidGradleModel.get(module);
         assert androidModel != null;
         variantName = androidModel.getSelectedVariant().getName();
         variantNamesPerRow.add(variantNames);
@@ -299,7 +299,7 @@ public class BuildVariantView {
 
   @Nullable
   private static BuildVariantItem[] getVariantNames(@NotNull Module module) {
-    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(module);
+    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
     if (androidModel == null) {
       return null;
     }
@@ -660,7 +660,7 @@ public class BuildVariantView {
         public void actionPerformed(ActionEvent e) {
           if (myValue instanceof Module) {
             Module module = (Module)myValue;
-            IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(module);
+            AndroidGradleModel androidModel = AndroidGradleModel.get(module);
             assert androidModel != null;
             ModuleVariantsInfoDialog dialog = new ModuleVariantsInfoDialog(module, androidModel);
             dialog.show();

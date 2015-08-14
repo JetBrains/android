@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractCompileOutputModuleCustomizer;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -33,12 +33,12 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 /**
  * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleCustomizer<IdeaAndroidProject>
-  implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
+public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleCustomizer<AndroidGradleModel>
+  implements BuildVariantModuleCustomizer<AndroidGradleModel> {
   @Override
   public void customizeModule(@NotNull Project project,
                               @NotNull ModifiableRootModel moduleModel,
-                              @Nullable IdeaAndroidProject androidModel) {
+                              @Nullable AndroidGradleModel androidModel) {
     if (androidModel == null) {
       return;
     }
@@ -63,7 +63,7 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
 
   @Override
   @NotNull
-  public Class<IdeaAndroidProject> getSupportedModelType() {
-    return IdeaAndroidProject.class;
+  public Class<AndroidGradleModel> getSupportedModelType() {
+    return AndroidGradleModel.class;
   }
 }

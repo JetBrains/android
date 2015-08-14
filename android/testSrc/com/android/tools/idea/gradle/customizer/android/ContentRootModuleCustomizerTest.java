@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.Variant;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -41,7 +41,7 @@ import static java.util.Collections.sort;
  */
 public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   private AndroidProjectStub myAndroidProject;
-  private IdeaAndroidProject myAndroidModel;
+  private AndroidGradleModel myAndroidModel;
 
   private ContentRootModuleCustomizer myCustomizer;
 
@@ -57,7 +57,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     Collection<Variant> variants = myAndroidProject.getVariants();
     Variant selectedVariant = getFirstItem(variants);
     assertNotNull(selectedVariant);
-    myAndroidModel = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), baseDir, myAndroidProject,
+    myAndroidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), baseDir, myAndroidProject,
                                             selectedVariant.getName(), ARTIFACT_ANDROID_TEST);
 
     addContentEntry();
