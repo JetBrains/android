@@ -16,10 +16,10 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ComboboxSpeedSearch;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -117,6 +117,8 @@ public class AttributesPanel {
     myAttributesTable.setBackground(null); // Get rid of default white background of the table.
     myAttributesScrollPane.setBackground(null); // needed for OS X, as by default is set to white
     myAttributesScrollPane.getViewport().setBackground(null); // needed for OS X, as by default is set to white
+    myAttributesScrollPane.getVerticalScrollBar().setUnitIncrement(AndroidPreviewPanel.VERTICAL_SCROLLING_UNIT_INCREMENT);
+    myAttributesScrollPane.getVerticalScrollBar().setBlockIncrement(AndroidPreviewPanel.VERTICAL_SCROLLING_BLOCK_INCREMENT);
   }
 
   /**
