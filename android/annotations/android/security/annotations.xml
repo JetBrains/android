@@ -17,6 +17,7 @@
   </item>
   <item name="android.security.KeyChain java.security.PrivateKey getPrivateKey(android.content.Context, java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.WorkerThread" />
   </item>
   <item name="android.security.KeyChain java.security.PrivateKey getPrivateKey(android.content.Context, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -26,6 +27,7 @@
   </item>
   <item name="android.security.KeyChain java.security.cert.X509Certificate[] getCertificateChain(android.content.Context, java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.WorkerThread" />
   </item>
   <item name="android.security.KeyChain java.security.cert.X509Certificate[] getCertificateChain(android.content.Context, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />

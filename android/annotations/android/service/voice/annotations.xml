@@ -21,6 +21,18 @@
   <item name="android.service.voice.AlwaysOnHotwordDetector.EventPayload byte[] getTriggerAudio()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.service.voice.VoiceInteractionSession void onHandleAssist(android.os.Bundle, android.app.assist.AssistStructure, android.app.assist.AssistContent) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.voice.VoiceInteractionSession void onHandleAssist(android.os.Bundle, android.app.assist.AssistStructure, android.app.assist.AssistContent) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.voice.VoiceInteractionSession void onHandleAssist(android.os.Bundle, android.app.assist.AssistStructure, android.app.assist.AssistContent) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.voice.VoiceInteractionSession void onHandleScreenshot(android.graphics.Bitmap) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.service.voice.VoiceInteractionSession.AbortVoiceRequest android.app.VoiceInteractor.Prompt getVoicePrompt()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
