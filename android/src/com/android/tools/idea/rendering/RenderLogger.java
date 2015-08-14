@@ -178,7 +178,7 @@ public class RenderLogger extends LayoutLog {
     if (LOG_ALL) {
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {
-        LOG.error(String.format("%1$s: %2$s", myName, description));
+        LOG.warn(String.format("%1$s: %2$s", myName, description));
       }
       finally {
         RenderSecurityManager.exitSafeRegion(token);
@@ -212,7 +212,7 @@ public class RenderLogger extends LayoutLog {
     if (LOG_ALL) {
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {
-        LOG.error(String.format("%1$s: %2$s", myName, description), throwable);
+        LOG.warn(String.format("%1$s: %2$s", myName, description), throwable);
       }
       finally {
         RenderSecurityManager.exitSafeRegion(token);
