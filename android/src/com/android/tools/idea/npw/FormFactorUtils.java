@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IPkgDescAddon;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.google.common.base.Predicate;
@@ -52,12 +54,12 @@ public class FormFactorUtils {
   /** TODO: Turn into an enum and combine with {@link DeviceMenuAction.FormFactor} */
   public static class FormFactor implements Comparable<FormFactor> {
     public static final FormFactor MOBILE = new FormFactor("Mobile", DeviceMenuAction.FormFactor.MOBILE, "Phone and Tablet", 15,
-                                                           Lists.newArrayList("20", "Glass", "Google APIs"), null, 0, null);
+                                                           Lists.newArrayList("20", "google_gdk", "google_apis", "google_tv_addon", "Glass"), null, 0, null);
     // TODO: in the future instead of whitelisting maybe we could determine this by availability of system images.
     public static final FormFactor WEAR = new FormFactor("Wear", DeviceMenuAction.FormFactor.WEAR, "Wear", 21,
-                                                         null, Lists.newArrayList("20", "21", "22"), 1, null);
+                                                         Lists.newArrayList("google_apis"), Lists.newArrayList("20", "21", "22"), 1, null);
     public static final FormFactor TV = new FormFactor("TV", DeviceMenuAction.FormFactor.TV, "TV", 21,
-                                                       Lists.newArrayList("20"), null, 2, null);
+                                                       Lists.newArrayList("20", "google_apis", "google_gdk"), null, 2, null);
     public static final FormFactor CAR = new FormFactor("Car", DeviceMenuAction.FormFactor.CAR, "Android Auto", 21,
             null, null, 3, MOBILE);
 
@@ -230,28 +232,49 @@ public class FormFactorUtils {
         if (input == null) {
           return false;
         }
-        if (input.getPkgDesc().getType() == PkgType.PKG_ADDON) {
-          IPkgDescAddon addon = (IPkgDescAddon)input.getPkgDesc();
-          return doFilter(formFactor, minSdkLevel, addon.getName().getId(), addon.getAndroidVersion().getFeatureLevel());
-        }
-        // TODO: add other package types
-        return false;
+        return filterPkgDesc(input.getPkgDesc(), formFactor, minSdkLevel);
       }
     };
+  }
+
+  public static Predicate<LocalPkgInfo> getMinSdkLocalPackageFilter(
+    @NotNull final FormFactor formFactor, final int minSdkLevel) {
+    return new Predicate<LocalPkgInfo>() {
+      @Override
+      public boolean apply(@Nullable LocalPkgInfo input) {
+        if (input == null) {
+          return false;
+        }
+        return filterPkgDesc(input.getDesc(), formFactor, minSdkLevel);
+      }
+    };
+  }
+
+  private static boolean filterPkgDesc(IPkgDesc pkgDesc, FormFactor formFactor, int minSdkLevel) {
+    if (pkgDesc.getType() == PkgType.PKG_ADDON) {
+      IPkgDescAddon addon = (IPkgDescAddon)pkgDesc;
+      return doFilter(formFactor, minSdkLevel, addon.getName().getId(), addon.getAndroidVersion().getFeatureLevel());
+    }
+    // TODO: add other package types
+    return false;
   }
 
   private static boolean doFilter(@NotNull FormFactor formFactor, int minSdkLevel, @Nullable String inputName, int targetSdkLevel) {
     if (!formFactor.myApiWhitelist.isEmpty()) {
       // If a whitelist is present, only allow things on the whitelist
+      boolean found = false;
       for (String filterItem : formFactor.myApiWhitelist) {
         if (matches(filterItem, inputName, targetSdkLevel)) {
-          return true;
+          found = true;
+          break;
         }
       }
-      return false;
+      if (!found) {
+        return false;
+      }
     }
 
-    // If we don't have a whitelist, let's check the blacklist
+    // Now check the blacklist
     for (String filterItem : formFactor.myApiBlacklist) {
       if (matches(filterItem, inputName, targetSdkLevel)) {
         return false;
