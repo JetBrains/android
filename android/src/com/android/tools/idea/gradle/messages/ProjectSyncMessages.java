@@ -19,7 +19,7 @@ import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors.MissingModule;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -161,9 +161,9 @@ public class ProjectSyncMessages {
   @Nullable
   private static VirtualFile getBuildFile(@NotNull Module module) {
     AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
-    if (gradleFacet != null && gradleFacet.getGradleProject() != null) {
-      IdeaGradleProject gradleProject = gradleFacet.getGradleProject();
-      return gradleProject.getBuildFile();
+    if (gradleFacet != null && gradleFacet.getGradleModel() != null) {
+      GradleModel gradleModel = gradleFacet.getGradleModel();
+      return gradleModel.getBuildFile();
     }
     return null;
   }

@@ -40,9 +40,9 @@ import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Collections.emptyList;
 
-public class IdeaJavaProject implements Serializable {
+public class JavaProject implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 6L;
+  private static final long serialVersionUID = 1L;
 
   @NotNull private String myModuleName;
   @NotNull private Collection<JavaModuleContentRoot> myContentRoots = Lists.newArrayList();
@@ -58,9 +58,9 @@ public class IdeaJavaProject implements Serializable {
   private boolean myAndroidProjectWithoutVariants;
 
   @NotNull
-  public static IdeaJavaProject newJavaProject(@NotNull final IdeaModule ideaModule,
-                                               @Nullable ModuleExtendedModel extendedModel,
-                                               boolean androidProjectWithoutVariants) {
+  public static JavaProject create(@NotNull final IdeaModule ideaModule,
+                                   @Nullable ModuleExtendedModel extendedModel,
+                                   boolean androidProjectWithoutVariants) {
     Collection<? extends IdeaContentRoot> contentRoots = getContentRoots(ideaModule, extendedModel);
     Map<String, Set<File>> artifactsByConfiguration = Maps.newHashMap();
     if (extendedModel != null) {
@@ -77,7 +77,7 @@ public class IdeaJavaProject implements Serializable {
       languageLevel = extendedModel.getJavaSourceCompatibility();
     }
 
-    return new IdeaJavaProject(ideaModule.getName(), contentRoots, getDependencies(ideaModule), artifactsByConfiguration, compilerOutput,
+    return new JavaProject(ideaModule.getName(), contentRoots, getDependencies(ideaModule), artifactsByConfiguration, compilerOutput,
                                buildFolderPath, languageLevel, buildable, androidProjectWithoutVariants);
   }
 
@@ -113,15 +113,15 @@ public class IdeaJavaProject implements Serializable {
     return false;
   }
 
-  public IdeaJavaProject(@NotNull String name,
-                         @NotNull Collection<? extends IdeaContentRoot> contentRoots,
-                         @NotNull List<? extends IdeaDependency> dependencies,
-                         @Nullable Map<String, Set<File>> artifactsByConfiguration,
-                         @Nullable ExtIdeaCompilerOutput compilerOutput,
-                         @Nullable File buildFolderPath,
-                         @Nullable String languageLevel,
-                         boolean buildable,
-                         boolean androidProjectWithoutVariants) {
+  public JavaProject(@NotNull String name,
+                     @NotNull Collection<? extends IdeaContentRoot> contentRoots,
+                     @NotNull List<? extends IdeaDependency> dependencies,
+                     @Nullable Map<String, Set<File>> artifactsByConfiguration,
+                     @Nullable ExtIdeaCompilerOutput compilerOutput,
+                     @Nullable File buildFolderPath,
+                     @Nullable String languageLevel,
+                     boolean buildable,
+                     boolean androidProjectWithoutVariants) {
     myModuleName = name;
     for (IdeaContentRoot contentRoot : contentRoots) {
       if (contentRoot != null) {

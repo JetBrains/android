@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.project.subset.ModulesToImportDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
@@ -45,7 +45,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_GRADLE_PROJECT;
+import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture.findByText;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
@@ -96,7 +96,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     DataNode<ModuleData> module = new DataNode<ModuleData>(MODULE, data, null);
     if (isGradleProject) {
       List<String> taskNames = Collections.emptyList();
-      module.createChild(IDE_GRADLE_PROJECT, new IdeaGradleProject("app", taskNames, ":" + name, null, null));
+      module.createChild(GRADLE_MODEL, new GradleModel("app", taskNames, ":" + name, null, null));
     }
     return module;
   }

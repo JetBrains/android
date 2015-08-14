@@ -19,9 +19,9 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.ImportedModule;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -59,8 +59,6 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
-import static com.android.tools.idea.gradle.IdeaGradleProject.newIdeaGradleProject;
-import static com.android.tools.idea.gradle.IdeaJavaProject.newJavaProject;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.getModelVersion;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.trackSyncError;
@@ -154,7 +152,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       else {
         AndroidGradleModel androidModel = new AndroidGradleModel(GRADLE_SYSTEM_ID, gradleModule.getName(), moduleRootDirPath,
                                                                  androidProject, selectedVariant.getName(), DEFAULT_TEST_ARTIFACT);
-        ideModule.createChild(IDE_ANDROID_MODEL, androidModel);
+        ideModule.createChild(ANDROID_MODEL, androidModel);
       }
     }
 
@@ -170,8 +168,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     String gradleVersion = buildScriptModel != null ? buildScriptModel.getGradleVersion() : null;
 
     File buildFilePath = buildScript.getSourceFile();
-    IdeaGradleProject ideaGradleProject = newIdeaGradleProject(gradleModule.getName(), gradleProject, buildFilePath, gradleVersion);
-    ideModule.createChild(IDE_GRADLE_PROJECT, ideaGradleProject);
+    GradleModel gradleModel = GradleModel.create(gradleModule.getName(), gradleProject, buildFilePath, gradleVersion);
+    ideModule.createChild(GRADLE_MODEL, gradleModel);
 
     if (androidProject == null || androidProjectWithoutVariants) {
       // This is a Java lib module.
@@ -183,8 +181,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                  @NotNull DataNode<ModuleData> ideModule,
                                  boolean androidProjectWithoutVariants) {
     ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-    IdeaJavaProject javaProject = newJavaProject(gradleModule, model, androidProjectWithoutVariants);
-    ideModule.createChild(IDE_JAVA_PROJECT, javaProject);
+    JavaProject javaProject = JavaProject.create(gradleModule, model, androidProjectWithoutVariants);
+    ideModule.createChild(JAVA_PROJECT, javaProject);
   }
 
   @Override
