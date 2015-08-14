@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -75,7 +76,7 @@ public class StyleListCellRenderer extends ColoredListCellRenderer {
       }
 
       if (!style.isProjectStyle()) {
-        String simplifiedName = simplifyName(style);
+        String simplifiedName = ThemeEditorUtils.simplifyThemeName(style);
         if (StringUtil.isEmpty(simplifiedName)) {
           append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
         }
@@ -98,31 +99,4 @@ public class StyleListCellRenderer extends ColoredListCellRenderer {
     }
   }
 
-  /**
-   * Returns a more user-friendly version of a given themeName.
-   * Aimed at framework themes with names of the form Theme.*.Light.*
-   * or Theme.*.*
-   */
-  @NotNull
-  private static String simplifyName(@NotNull ThemeEditorStyle theme) {
-    String result;
-    String name = theme.getQualifiedName();
-    String[] pieces = name.split("\\.");
-    if (pieces.length > 1 && !"Light".equals(pieces[1])) {
-      result = pieces[1];
-    }
-    else {
-      result = "Theme";
-    }
-    ThemeEditorStyle parent = theme;
-    while (parent != null) {
-      if ("Theme.Light".equals(parent.getName())) {
-        return result + " Light";
-      }
-      else {
-        parent = parent.getParent();
-      }
-    }
-    return result + " Dark";
-  }
 }
