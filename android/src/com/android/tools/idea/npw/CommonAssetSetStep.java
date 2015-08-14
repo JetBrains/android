@@ -143,6 +143,9 @@ abstract public class CommonAssetSetStep extends TemplateWizardStep implements D
 
   abstract protected void initialize();
 
+  /**
+   * Generate a resource name.
+   */
   @NotNull
   abstract protected String computeResourceName();
 
