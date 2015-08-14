@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.swing.JButton;
+import javax.swing.*;
 import java.io.IOException;
 import java.util.List;
 

@@ -17,8 +17,8 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.intellij.util.ui.AbstractTableCellEditor;
 
-import javax.swing.JTable;
-import java.awt.Component;
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * Wrapper for AbstractTableCellEditors used for providing JTable's cell editors
