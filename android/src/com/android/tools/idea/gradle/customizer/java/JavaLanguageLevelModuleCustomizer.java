@@ -99,7 +99,7 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<IdeaJ
   private static LanguageLevel getLanguageLevelForAndroidModule(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      IdeaAndroidProject androidModel = facet.getAndroidModel();
+      IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(facet);
       if (androidModel != null) {
         return androidModel.getJavaLanguageLevel();
       }

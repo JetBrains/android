@@ -64,7 +64,7 @@ public class ConflictSet {
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      IdeaAndroidProject currentAndroidModel = getAndroidModel(module);
+      IdeaAndroidProject currentAndroidModel = IdeaAndroidProject.getGradleModel(module);
       if (currentAndroidModel == null || !currentAndroidModel.isLibrary()) {
         continue;
       }
@@ -76,7 +76,7 @@ public class ConflictSet {
       String selectedVariant = currentAndroidModel.getSelectedVariant().getName();
 
       for (Module dependent : ModuleUtilCore.getAllDependentModules(module)) {
-        IdeaAndroidProject dependentAndroidModel = getAndroidModel(dependent);
+        IdeaAndroidProject dependentAndroidModel = IdeaAndroidProject.getGradleModel(dependent);
         if (dependentAndroidModel == null) {
           continue;
         }

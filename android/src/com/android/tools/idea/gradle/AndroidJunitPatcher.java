@@ -57,7 +57,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       return;
     }
 
-    IdeaAndroidProject androidModel = androidFacet.getAndroidModel();
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(androidFacet);
     if (androidModel == null) {
       return;
     }
@@ -167,7 +167,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     for (Module affectedModule : scope.getAffectedModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(affectedModule);
       if (facet != null) {
-        IdeaAndroidProject affectedAndroidModel = facet.getAndroidModel();
+        IdeaAndroidProject affectedAndroidModel = IdeaAndroidProject.getGradleModel(facet);
         if (affectedAndroidModel != null) {
           try {
             classPath.add(affectedAndroidModel.getMainArtifact().getJavaResourcesFolder());

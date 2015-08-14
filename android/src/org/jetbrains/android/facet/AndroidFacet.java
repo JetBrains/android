@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.run.LaunchCompatibility;
@@ -179,7 +180,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * @return the Android model associated to this facet.
    */
   @Nullable
-  public IdeaAndroidProject getAndroidModel() {
+  public AndroidModel getAndroidModel() {
     return myAndroidModel;
   }
 

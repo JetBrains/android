@@ -53,7 +53,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
     loadProject("projects/projectWithAppandLib");
     assertNotNull(myAndroidFacet);
-    IdeaAndroidProject androidModel = myAndroidFacet.getAndroidModel();
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    IdeaAndroidProject androidModel = IdeaAndroidProject.getGradleModel(myAndroidFacet);
     assertNotNull(androidModel);
 
     // Set up modules
@@ -322,7 +323,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  actualProvider.getManifestFile());
 
     // Try finding paid flavor
-    ProductFlavorContainer paidFlavor = myAppFacet.getAndroidModel().findProductFlavor("paid");
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    ProductFlavorContainer paidFlavor = IdeaAndroidProject.getGradleModel(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
@@ -461,7 +463,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
   public void testSourceProviderContainsFile() throws Exception {
     assertNotNull(myAppFacet.getAndroidModel());
-    ProductFlavorContainer paidFlavor = myAppFacet.getAndroidModel().findProductFlavor("paid");
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    ProductFlavorContainer paidFlavor = IdeaAndroidProject.getGradleModel(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
@@ -482,7 +485,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
   public void testSourceProviderIsContainedByFolder() throws Exception {
     assertNotNull(myAppFacet.getAndroidModel());
-    ProductFlavorContainer paidFlavor = myAppFacet.getAndroidModel().findProductFlavor("paid");
+    // TODO: Resolve direct IdeaAndroidProject dep (b/22596984)
+    ProductFlavorContainer paidFlavor = IdeaAndroidProject.getGradleModel(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
