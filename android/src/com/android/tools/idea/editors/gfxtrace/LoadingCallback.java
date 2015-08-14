@@ -22,9 +22,19 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class LoadingCallback<T> implements FutureCallback<T> {
   @Nullable private final Logger myLogger;
-  @Nullable private final JBLoadingPanel myLoading;
+  @Nullable private final Done myLoading;
+
+  public LoadingCallback(Logger logger) {
+    myLogger = logger;
+    myLoading = null;
+  }
 
   public LoadingCallback(Logger logger, JBLoadingPanel loading) {
+    myLogger = logger;
+    myLoading = new LoadingPanelDone(loading);
+  }
+
+  public LoadingCallback(Logger logger, Done loading) {
     myLogger = logger;
     myLoading = loading;
   }
@@ -35,6 +45,23 @@ public abstract class LoadingCallback<T> implements FutureCallback<T> {
       myLogger.error(t);
     }
     if (myLoading != null) {
+      myLoading.stopLoading();
+    }
+  }
+
+  public interface Done {
+    void stopLoading();
+  }
+
+  private class LoadingPanelDone implements Done {
+    @Nullable private final JBLoadingPanel myLoading;
+
+    private LoadingPanelDone(JBLoadingPanel loading) {
+      myLoading = loading;
+    }
+
+    @Override
+    public void stopLoading() {
       myLoading.stopLoading();
     }
   }

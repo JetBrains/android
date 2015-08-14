@@ -56,8 +56,8 @@ public class FrameBufferController implements PathListener {
   @NotNull private final BufferTab wireframeTab = new BufferTab();
   @NotNull private final BufferTab depthTab = new BufferTab();
 
-  private DevicePath myRenderDevice;
-  private AtomPath myAtomPath;
+  private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
+  private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
 
   private final class BufferTab {
     public JBScrollPane myPane;
@@ -100,17 +100,12 @@ public class FrameBufferController implements PathListener {
   public void notifyPath(Path path) {
     boolean updateTabs = false;
     if (path instanceof DevicePath) {
-      myRenderDevice = (DevicePath)path;
-      updateTabs = true;
-      LOG.warn("Activating device " + myRenderDevice);
+      updateTabs |= myRenderDevice.update((DevicePath)path);
     }
     if (path instanceof AtomPath) {
-      myAtomPath = (AtomPath)path;
-      updateTabs = true;
-      LOG.warn("Activating atom " + myAtomPath);
+      updateTabs |= myAtomPath.update((AtomPath)path);
     }
-    if (updateTabs && (myRenderDevice != null) && (myAtomPath != null)) {
-      LOG.warn("Updating framebuffer tabs");
+    if (updateTabs && myRenderDevice.isValid() && myAtomPath.isValid()) {
       // TODO: maybe do the selected tab first, but it's probably not much of a win
       updateTab(colorTab);
       updateTab(wireframeTab);
@@ -124,9 +119,9 @@ public class FrameBufferController implements PathListener {
     }
     ListenableFuture<ImageInfoPath> imagePathF;
     if (tab.myIsDepth) {
-      imagePathF = myEditor.getClient().getFramebufferDepth(myRenderDevice, myAtomPath);
+      imagePathF = myEditor.getClient().getFramebufferDepth(myRenderDevice.getPath(), myAtomPath.getPath());
     } else {
-      imagePathF = myEditor.getClient().getFramebufferColor(myRenderDevice, myAtomPath, tab.mySettings);
+      imagePathF = myEditor.getClient().getFramebufferColor(myRenderDevice.getPath(), myAtomPath.getPath(), tab.mySettings);
     }
     Futures.addCallback(imagePathF, new LoadingCallback<ImageInfoPath>(LOG, tab.myLoading) {
       @Override
@@ -140,7 +135,6 @@ public class FrameBufferController implements PathListener {
     Futures.addCallback(myEditor.getClient().get(imageInfoPath), new LoadingCallback<ImageInfo>(LOG, tab.myLoading) {
       @Override
       public void onSuccess(@Nullable final ImageInfo imageInfo) {
-        LOG.warn("Got image " + imageInfo);
         Futures.addCallback(myEditor.getClient().get(imageInfo.getData()), new LoadingCallback<byte[]>(LOG, tab.myLoading) {
           @Override
           public void onSuccess(@Nullable final byte[] data) {
