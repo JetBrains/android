@@ -15,42 +15,11 @@
  */
 package com.android.tools.idea.editors.theme.qualifiers;
 
-import com.android.ide.common.resources.configuration.DensityQualifier;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.KeyboardStateQualifier;
-import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
-import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.ide.common.resources.configuration.NavigationMethodQualifier;
-import com.android.ide.common.resources.configuration.NavigationStateQualifier;
-import com.android.ide.common.resources.configuration.NightModeQualifier;
-import com.android.ide.common.resources.configuration.ResourceQualifier;
-import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
-import com.android.ide.common.resources.configuration.ScreenRatioQualifier;
-import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
-import com.android.ide.common.resources.configuration.TextInputMethodQualifier;
-import com.android.ide.common.resources.configuration.TouchScreenQualifier;
-import com.android.ide.common.resources.configuration.UiModeQualifier;
-import com.android.ide.common.resources.configuration.VersionQualifier;
-import com.android.resources.Density;
-import com.android.resources.Keyboard;
-import com.android.resources.KeyboardState;
-import com.android.resources.LayoutDirection;
-import com.android.resources.Navigation;
-import com.android.resources.NavigationState;
-import com.android.resources.NightMode;
-import com.android.resources.ScreenOrientation;
-import com.android.resources.ScreenRatio;
-import com.android.resources.ScreenSize;
-import com.android.resources.TouchScreen;
-import com.android.resources.UiMode;
+import com.android.ide.common.resources.configuration.*;
+import com.android.resources.*;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,11 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class QualifierUtils {
   private static final Logger LOG = Logger.getInstance(QualifierUtils.class);

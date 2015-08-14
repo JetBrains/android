@@ -29,18 +29,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTable
 import com.google.common.collect.ImmutableList;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
-import org.fest.swing.fixture.DialogFixture;
-import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.fixture.JTextComponentFixture;
-import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.fixture.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.swing.JButton;
-import java.awt.Dialog;
+import javax.swing.*;
+import java.awt.*;
 import java.io.IOException;
 import java.util.List;
 
@@ -48,10 +43,7 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Index.atIndex;
 import static org.fest.swing.data.TableCell.row;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * UI tests for the theme selector in the Theme Editor

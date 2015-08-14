@@ -23,16 +23,13 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
-import java.awt.Component;
-import javax.swing.JComboBox;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.ListCellRenderer;
-import javax.swing.JList;
-import javax.swing.JSeparator;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * A {@link ListCellRenderer} to render {@link ThemeEditorStyle} elements.
