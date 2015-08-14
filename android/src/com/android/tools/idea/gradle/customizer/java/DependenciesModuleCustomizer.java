@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
@@ -45,11 +45,11 @@ import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static java.util.Collections.singletonList;
 
-public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<IdeaJavaProject> {
+public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<JavaProject> {
   private static final DependencyScope DEFAULT_DEPENDENCY_SCOPE = COMPILE;
 
   @Override
-  protected void setUpDependencies(@NotNull ModifiableRootModel moduleModel, @NotNull IdeaJavaProject javaProject) {
+  protected void setUpDependencies(@NotNull ModifiableRootModel moduleModel, @NotNull JavaProject javaProject) {
     List<String> unresolved = Lists.newArrayList();
     for (JavaModuleDependency dependency : javaProject.getJavaModuleDependencies()) {
       updateDependency(moduleModel, dependency);

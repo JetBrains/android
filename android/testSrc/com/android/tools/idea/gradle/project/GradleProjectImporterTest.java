@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.intellij.facet.FacetManager;
@@ -117,8 +117,8 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       model.commit();
     }
 
-    myCachedModule.createChild(IDE_GRADLE_PROJECT, createMock(IdeaGradleProject.class));
-    myCachedModule.createChild(IDE_ANDROID_MODEL, createMock(AndroidGradleModel.class));
+    myCachedModule.createChild(GRADLE_MODEL, createMock(GradleModel.class));
+    myCachedModule.createChild(ANDROID_MODEL, createMock(AndroidGradleModel.class));
     assertFalse(GradleProjectImporter.isCacheMissingModels(myCachedProject, myProject));
   }
 
@@ -132,8 +132,8 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       model.commit();
     }
 
-    myCachedModule.createChild(IDE_GRADLE_PROJECT, createMock(IdeaGradleProject.class));
-    myCachedModule.createChild(IDE_JAVA_PROJECT, createMock(IdeaJavaProject.class));
+    myCachedModule.createChild(GRADLE_MODEL, createMock(GradleModel.class));
+    myCachedModule.createChild(JAVA_PROJECT, createMock(JavaProject.class));
     assertFalse(GradleProjectImporter.isCacheMissingModels(myCachedProject, myProject));
   }
 
@@ -147,7 +147,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       model.commit();
     }
 
-    myCachedModule.createChild(IDE_GRADLE_PROJECT, createMock(IdeaGradleProject.class));
+    myCachedModule.createChild(GRADLE_MODEL, createMock(GradleModel.class));
     assertTrue(GradleProjectImporter.isCacheMissingModels(myCachedProject, myProject));
   }
 
@@ -161,7 +161,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       model.commit();
     }
 
-    myCachedModule.createChild(IDE_GRADLE_PROJECT, createMock(IdeaGradleProject.class));
+    myCachedModule.createChild(GRADLE_MODEL, createMock(GradleModel.class));
     assertTrue(GradleProjectImporter.isCacheMissingModels(myCachedProject, myProject));
   }
 

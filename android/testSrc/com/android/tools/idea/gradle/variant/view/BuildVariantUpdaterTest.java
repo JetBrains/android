@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.JavaProject;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
@@ -37,8 +37,8 @@ public class BuildVariantUpdaterTest extends TestCase {
   public void testGetCustomizers() {
     BuildVariantModuleCustomizer<?> customizer1 = createCustomizer(GradleConstants.SYSTEM_ID, AndroidGradleModelStub.class);
     BuildVariantModuleCustomizer<?> customizer2 = createCustomizer(ProjectSystemId.IDE, AndroidGradleModel.class);
-    BuildVariantModuleCustomizer<?> customizer3 = createCustomizer(GradleConstants.SYSTEM_ID, IdeaJavaProject.class);
-    BuildVariantModuleCustomizer<?> customizer4 = createCustomizer(ProjectSystemId.IDE, IdeaJavaProject.class);
+    BuildVariantModuleCustomizer<?> customizer3 = createCustomizer(GradleConstants.SYSTEM_ID, JavaProject.class);
+    BuildVariantModuleCustomizer<?> customizer4 = createCustomizer(ProjectSystemId.IDE, JavaProject.class);
 
     replay(customizer1, customizer2, customizer3, customizer4);
 
