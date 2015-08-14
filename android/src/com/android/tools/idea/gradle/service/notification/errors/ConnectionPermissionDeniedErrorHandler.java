@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
-import com.android.tools.idea.gradle.project.ProjectImportErrorHandler;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -25,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.CONNECTION_PERMISSION_DENIED_PREFIX;
+
 public class ConnectionPermissionDeniedErrorHandler extends AbstractSyncErrorHandler {
   @Override
   public boolean handleError(@NotNull List<String> message,
@@ -32,7 +33,7 @@ public class ConnectionPermissionDeniedErrorHandler extends AbstractSyncErrorHan
                              @NotNull NotificationData notification,
                              @NotNull Project project) {
     String firstLine = message.get(0);
-    if (firstLine != null && firstLine.startsWith(ProjectImportErrorHandler.CONNECTION_PERMISSION_DENIED_PREFIX)) {
+    if (firstLine != null && firstLine.startsWith(CONNECTION_PERMISSION_DENIED_PREFIX)) {
       NotificationHyperlink quickFix =
         new OpenUrlHyperlink("http://tools.android.com/tech-docs/project-sync-issues-android-studio",
                              "More details (and potential fix)");

@@ -18,7 +18,10 @@ package com.android.tools.idea.gradle.project;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.sdklib.repository.FullRevision;
-import com.android.tools.idea.gradle.*;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.ImportedModule;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -58,7 +61,9 @@ import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.IdeaGradleProject.newIdeaGradleProject;
 import static com.android.tools.idea.gradle.IdeaJavaProject.newJavaProject;
+import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.getModelVersion;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.isSupportedVersion;
+import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.trackSyncError;
 import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidSdks;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
@@ -69,6 +74,7 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_N
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.addLocalMavenRepoInitScriptCommandLineOption;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static com.android.tools.idea.stats.UsageTracker.*;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -105,7 +111,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public ModuleData createModule(@NotNull IdeaModule gradleModule, @NotNull ProjectData projectData) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null && !isSupportedVersion(androidProject)) {
-      String msg = getUnsupportedModelVersionErrorMsg(GradleModelVersionCheck.getModelVersion(androidProject));
+      trackSyncError(ACTION_GRADLE_SYNC_UNSUPPORTED_ANDROID_MODEL_VERSION, androidProject.getModelVersion());
+
+      String msg = getUnsupportedModelVersionErrorMsg(getModelVersion(androidProject));
       throw new IllegalStateException(msg);
     }
     return nextResolver.createModule(gradleModule, projectData);
@@ -114,7 +122,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
     ImportedModule importedModule = new ImportedModule(gradleModule);
-    ideModule.createChild(AndroidProjectKeys.IMPORTED_MODULE, importedModule);
+    ideModule.createChild(IMPORTED_MODULE, importedModule);
 
     GradleProject gradleProject = gradleModule.getGradleProject();
     GradleScript buildScript = null;
@@ -122,7 +130,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       buildScript = gradleProject.getBuildScript();
     } catch (UnsupportedOperationException ignore) {}
 
-    if (buildScript == null || !inAndroidGradleProject(gradleModule)) {
+    if (buildScript == null || !isAndroidGradleProject(gradleModule)) {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
       return;
     }
@@ -181,7 +189,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    if (!inAndroidGradleProject(gradleModule)) {
+    if (!isAndroidGradleProject(gradleModule)) {
       nextResolver.populateModuleCompileOutputSettings(gradleModule, ideModule);
     }
   }
@@ -190,14 +198,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public void populateModuleDependencies(@NotNull IdeaModule gradleModule,
                                          @NotNull DataNode<ModuleData> ideModule,
                                          @NotNull DataNode<ProjectData> ideProject) {
-    if (!inAndroidGradleProject(gradleModule)) {
+    if (!isAndroidGradleProject(gradleModule)) {
       // For plain Java projects (non-Gradle) we let the framework populate dependencies
       nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
     }
   }
 
   // Indicates it is an "Android" project if at least one module has an AndroidProject.
-  private boolean inAndroidGradleProject(@NotNull IdeaModule gradleModule) {
+  private boolean isAndroidGradleProject(@NotNull IdeaModule gradleModule) {
     if (!resolverCtx.findModulesWithModel(AndroidProject.class).isEmpty()) {
       return true;
     }
@@ -329,12 +337,20 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         // Project is using an old version of Gradle (and most likely an old version of the plug-in.)
         if ("org.gradle.api.artifacts.result.ResolvedComponentResult".equals(msg) ||
             "org.gradle.api.artifacts.result.ResolvedModuleVersionResult".equals(msg)) {
+
+          trackSyncError(CATEGORY_GRADLE_SYNC_FAILURE, ACTION_GRADLE_SYNC_UNSUPPORTED_GRADLE_VERSION);
           return new ExternalSystemException("The project is using an unsupported version of Gradle.");
         }
       }
     }
     ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
-    return userFriendlyError != null ? userFriendlyError : nextResolver.getUserFriendlyError(error, projectPath, buildFilePath);
+
+    if (userFriendlyError == null) {
+      trackSyncError(error);
+      return nextResolver.getUserFriendlyError(error, projectPath, buildFilePath);
+    }
+
+    return userFriendlyError;
   }
 
   @NotNull
