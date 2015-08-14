@@ -392,14 +392,14 @@ public class ThemeEditorComponent extends Splitter {
 
       @Override
       public void popupMenuWillBecomeInvisible(PopupMenuEvent popupMenuEvent) {
-      }
-
-      @Override
-      public void popupMenuCanceled(PopupMenuEvent popupMenuEvent) {
         myHoverPreviewTheme = null;
         mySubStyleName = null;
         mySubStyleSourceAttribute = null;
         loadStyleAttributes();
+      }
+
+      @Override
+      public void popupMenuCanceled(PopupMenuEvent popupMenuEvent) {
       }
     });
 
