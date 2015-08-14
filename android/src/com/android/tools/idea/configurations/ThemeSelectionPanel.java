@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeResolver;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
@@ -83,14 +83,18 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   @Nullable private ThemeCategory myCategory = ThemeCategory.ALL;
   @NotNull private Map<ThemeCategory, List<String>> myThemeMap = Maps.newEnumMap(ThemeCategory.class);
   @NotNull private ThemeResolver myThemeResolver;
+  @NotNull private Set<String> myExcludedThemes;
   private boolean myIgnore;
 
-  public ThemeSelectionPanel(@NotNull ThemeSelectionDialog dialog, @NotNull Configuration configuration) {
+  public ThemeSelectionPanel(@NotNull ThemeSelectionDialog dialog,
+                             @NotNull Configuration configuration,
+                             @NotNull Set<String> excludedThemes) {
     myDialog = dialog;
     myConfiguration = configuration;
+    myExcludedThemes = excludedThemes;
     myThemeResolver = new ThemeResolver(configuration);
     String currentTheme = configuration.getTheme();
-    touchTheme(currentTheme);
+    touchTheme(currentTheme, myExcludedThemes);
 
     myCategoryTree.setModel(new CategoryModel());
     myCategoryTree.setRootVisible(false);
@@ -377,14 +381,14 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   private List<String> getFrameworkThemes() {
     if (myFrameworkThemes == null) {
-      myFrameworkThemes = getSortedNames(getPublicThemes(myThemeResolver.getFrameworkThemes()));
+      myFrameworkThemes = getFilteredSortedNames(getPublicThemes(myThemeResolver.getFrameworkThemes()), myExcludedThemes);
     }
     return myFrameworkThemes;
   }
 
   private List<String> getProjectThemes() {
     if (myProjectThemes == null) {
-      myProjectThemes = getSortedNames(getPublicThemes(myThemeResolver.getLocalThemes()));
+      myProjectThemes = getFilteredSortedNames(getPublicThemes(myThemeResolver.getLocalThemes()), myExcludedThemes);
     }
 
     return myProjectThemes;
@@ -392,7 +396,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   private List<String> getLibraryThemes() {
     if (myLibraryThemes == null) {
-      myLibraryThemes = getSortedNames(getPublicThemes(myThemeResolver.getExternalLibraryThemes()));
+      myLibraryThemes = getFilteredSortedNames(getPublicThemes(myThemeResolver.getExternalLibraryThemes()), myExcludedThemes);
     }
 
     return myLibraryThemes;
@@ -436,17 +440,19 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   @Nullable
   public String getTheme() {
     String selected = (String)myThemeList.getSelectedValue();
-    touchTheme(selected);
+    touchTheme(selected, myExcludedThemes);
     return selected;
   }
 
-  private static void touchTheme(@Nullable String selected) {
+  private static void touchTheme(@Nullable String selected, Set<String> excludedThemes) {
     if (selected != null) {
       if (ourRecent == null || !ourRecent.contains(selected)) {
         if (ourRecent == null) {
           ourRecent = new LinkedList<String>();
         }
-        ourRecent.addFirst(selected);
+        if (!excludedThemes.contains(selected)) {
+          ourRecent.addFirst(selected);
+        }
       }
     }
   }
@@ -546,10 +552,13 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     }
   }
 
-  private static List<String> getSortedNames(Collection<ThemeEditorStyle> themesRaw) {
+  private static List<String> getFilteredSortedNames(Collection<ThemeEditorStyle> themesRaw, Set<String> excludedThemes) {
     List<String> themes = new ArrayList<String>(themesRaw.size());
     for (ThemeEditorStyle theme : themesRaw) {
-      themes.add(theme.getQualifiedName());
+      String qualifiedName = theme.getQualifiedName();
+      if (!excludedThemes.contains(qualifiedName)) {
+        themes.add(qualifiedName);
+      }
     }
     Collections.sort(themes);
     return themes;

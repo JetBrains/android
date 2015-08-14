@@ -34,7 +34,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
@@ -51,6 +50,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -221,7 +221,8 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
       Object selectedValue = myParentComboBox.getSelectedItem();
       if (ParentThemesListModel.SHOW_ALL_THEMES.equals(selectedValue)) {
         myParentComboBox.hidePopup();
-        final ThemeSelectionDialog dialog = new ThemeSelectionDialog(myContext.getConfiguration());
+        final ThemeSelectionDialog dialog =
+          new ThemeSelectionDialog(myContext.getConfiguration(), Collections.singleton(myContext.getCurrentTheme().getQualifiedName()));
 
         dialog.show();
 
