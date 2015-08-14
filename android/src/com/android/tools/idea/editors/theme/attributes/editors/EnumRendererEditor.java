@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 

@@ -20,12 +20,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ColorPalette;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.rendering.ResourceHelper;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
+import com.google.common.collect.*;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 

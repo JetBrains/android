@@ -22,11 +22,10 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import spantable.CellSpanModel;
 
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.event.CellEditorListener;
 import javax.swing.table.TableCellEditor;
-import java.awt.Component;
-import java.awt.Font;
+import java.awt.*;
 import java.util.EventObject;
 
 /**

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.intellij.openapi.diagnostic.Logger;
 
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
-import java.awt.Component;
+import java.awt.*;
 
 public class IntegerRenderer extends DefaultTableCellRenderer {
   private static final Logger LOG = Logger.getInstance(IntegerRenderer.class);
