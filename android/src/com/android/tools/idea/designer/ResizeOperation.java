@@ -16,6 +16,7 @@
 package com.android.tools.idea.designer;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
@@ -202,6 +203,7 @@ public class ResizeOperation implements EditOperation {
         }
       });
       if (viewInfo != null) {
+        viewInfo = RenderService.getSafeBounds(viewInfo);
         int left = viewInfo.getLeft();
         int top = viewInfo.getTop();
         fillBounds = new Rectangle(left, top, viewInfo.getRight() - left, viewInfo.getBottom() - top);
