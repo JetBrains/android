@@ -81,10 +81,11 @@ public class RenderedViewHierarchy {
       if (cookie instanceof XmlTag) {
         tag = (XmlTag)cookie;
       }
-      int x = info.getLeft();
-      int y = info.getTop();
-      int width = info.getRight() - x;
-      int height = info.getBottom() - y;
+      ViewInfo bounds = RenderService.getSafeBounds(info);
+      int x = bounds.getLeft();
+      int y = bounds.getTop();
+      int width = bounds.getRight() - x;
+      int height = bounds.getBottom() - y;
       x += parentX;
       y += parentY;
       RenderedView view = new RenderedView(parent, info, tag, x, y, width, height);

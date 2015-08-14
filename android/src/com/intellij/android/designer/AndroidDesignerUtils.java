@@ -169,7 +169,7 @@ public class AndroidDesignerUtils {
       if (task != null) {
         List<ViewInfo> roots = measureComponent(area, component, targetParent);
         if (roots != null && !roots.isEmpty()) {
-          ViewInfo root = roots.get(0);
+          ViewInfo root = RenderService.getSafeBounds(roots.get(0));
           size.width = root.getRight() - root.getLeft();
           size.height = root.getBottom() - root.getTop();
           if (size.width != 0 && size.height != 0) {
