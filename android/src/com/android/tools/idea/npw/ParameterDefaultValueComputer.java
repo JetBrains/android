@@ -153,7 +153,10 @@ public final class ParameterDefaultValueComputer {
     // The maximum depth of the parameter dependency tree would be a number of parameters,
     // hence this is our "worst case" number of iterations (note we'll need +1 iteration
     // to check the value is stable) we would need to compute the values.
-    final int maxIterations = myComputedParameters.size();
+    // Update: it turns out we do have circular dependencies which in most cases turn into
+    // a stable situation, but worst case is 2 times the number of iterations since a value
+    // can also be modified because of a "unique" qualifier.
+    final int maxIterations = 2 * myComputedParameters.size();
     Map<String, Object> updatedValues = ImmutableMap.of();
     for (int i = 0; i <= maxIterations; i++) {
       updatedValues = computeUpdatedValues(computedValues);
