@@ -383,9 +383,14 @@ public final class RecipeContext {
         File newParent = new File(destinationFile, directories);
         targetDir = checkedCreateDirectoryIfMissing(newParent);
       }
-      VfsUtilCore.copyFile(this, file, targetDir);
+      File target = new File(destinationFile, relativePath);
+      if (target.exists()) {
+        LOG.warn("Target file already exists, skipping the copy of: " + target.getPath());
+      }
+      else {
+        VfsUtilCore.copyFile(this, file, targetDir);
+      }
     }
     return true;
   }
 }
-
