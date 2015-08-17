@@ -22,6 +22,7 @@ import com.android.ddmlib.MultiLineReceiver;
 import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
 import com.android.tools.idea.monitor.gpu.GpuSampler;
+import com.intellij.util.ThreeState;
 import gnu.trove.TLongArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -113,8 +114,8 @@ public final class MHandler implements GfxinfoHandler {
   }
 
   @Override
-  public boolean getIsEnabledOnDevice() {
-    return true;
+  public ThreeState getIsEnabledOnDevice(@NotNull IDevice device) {
+    return ThreeState.YES;
   }
 
   private void synchronizeClocks(@NotNull IDevice device) {

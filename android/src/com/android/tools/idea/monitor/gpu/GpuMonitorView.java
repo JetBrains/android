@@ -185,7 +185,7 @@ public class GpuMonitorView extends BaseMonitorView
   }
 
   @Override
-  public void onGpuProfileStateChanged(@NotNull final Client client, final boolean enabled) {
+  public void notifyGpuProfileStateChanged(@NotNull final Client client, final boolean enabled) {
     // TODO revisit the dataflow in future refactor (i.e. consider adding error states to TimelineData)
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
@@ -193,6 +193,7 @@ public class GpuMonitorView extends BaseMonitorView
         if (myClient == client) {
           if (!enabled) {
             ((CardLayout)myCardPanel.getLayout()).show(myCardPanel, NEEDS_PROFILING_ENABLED_ID);
+            myGpuSampler.getTimelineData().clear();
           }
           else {
             configureTimelineComponent(myGpuSampler.getTimelineData());

@@ -24,6 +24,7 @@ import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.LHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.MHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.GfxinfoHandler;
+import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,6 +93,7 @@ public class GpuSampler extends DeviceSampler {
       myCurrentGfxinfoHandler = null;
     }
 
+    setGpuProfileSetting(true);
     if (myCurrentGfxinfoHandler != null) {
       myCurrentGfxinfoHandler.setClient(client);
     }
@@ -107,18 +109,31 @@ public class GpuSampler extends DeviceSampler {
     if (device != null) {
       try {
         ClientData data = client.getClientData();
-        myCurrentGfxinfoHandler.sample(device, data, myTimelineData);
 
-        boolean newGpuProfilingState = myCurrentGfxinfoHandler.getIsEnabledOnDevice();
-        if (myGpuProfileState != newGpuProfilingState) {
-          myProfileStateListener.onGpuProfileStateChanged(client, newGpuProfilingState);
-          myGpuProfileState = newGpuProfilingState;
+        ThreeState newGpuProfilingState = myCurrentGfxinfoHandler.getIsEnabledOnDevice(device);
+        if (newGpuProfilingState != ThreeState.UNSURE) {
+          boolean newGpuBooleanState = newGpuProfilingState.toBoolean();
+          setGpuProfileSetting(newGpuBooleanState);
+        }
+
+        if (myGpuProfileState) {
+          myCurrentGfxinfoHandler.sample(device, data, myTimelineData);
         }
       }
       catch (RuntimeException e) {
         throw new InterruptedException("Sample error, interrupting.");
       }
       catch (Exception ignored) {
+      }
+    }
+  }
+
+  private void setGpuProfileSetting(boolean newState) {
+    if (myGpuProfileState != newState) {
+      myGpuProfileState = newState;
+      Client client = getClient();
+      if (client != null) {
+        myProfileStateListener.notifyGpuProfileStateChanged(client, myGpuProfileState);
       }
     }
   }
