@@ -118,6 +118,8 @@ public class ToolComponentsPanel {
       }
     }
     refreshModified();
+    SdkUpdaterConfigPanel.resizeColumnsToFit(myToolsDetailTable);
+    SdkUpdaterConfigPanel.resizeColumnsToFit(myToolsSummaryTable);
     myToolsDetailTable.updateUI();
     myToolsSummaryTable.updateUI();
     TreeUtil.expandAll(myToolsDetailTable.getTree());

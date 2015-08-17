@@ -50,9 +50,4 @@ class ApiLevelColumnInfo extends ColumnInfo<UpdaterTreeNode, String> {
       return "Unknown";
     }
   }
-
-  @Override
-  public int getWidth(JTable table) {
-    return 70;
-  }
 }
