@@ -36,8 +36,8 @@ import static com.android.tools.idea.editors.theme.preview.ThemePreviewBuilder.*
 
 public class ThemePreviewBuilderTest extends TestCase {
   // Xpath to search all the components
-  static final String COMPONENTS_XPATH = "/LinearLayout/" + THEME_PREVIEW_LAYOUT + "/RelativeLayout/LinearLayout/*";
-  static final String GROUP_LABELS_XPATH = "/LinearLayout/" + THEME_PREVIEW_LAYOUT + "/RelativeLayout/TextView/";
+  static final String COMPONENTS_XPATH = "/LinearLayout/" + THEME_PREVIEW_LAYOUT + "/FrameLayout/LinearLayout/*";
+  static final String GROUP_LABELS_XPATH = "/LinearLayout/" + THEME_PREVIEW_LAYOUT + "/FrameLayout/TextView/";
 
   public void testEmptyPreview() throws ParserConfigurationException, XPathExpressionException {
     Document document = new ThemePreviewBuilder().build();
