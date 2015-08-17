@@ -344,7 +344,10 @@ public class StateListPicker extends JPanel {
           facet.refreshResources();
         }
         updateComponent(myComponent, myState.getValue(), myState.getAlpha());
-        myComponent.repaint();
+
+        // If a resource was overridden, it may affect several states of the state list.
+        // Thus we need to repaint all components.
+        repaintAllComponents();
       }
     }
   }
@@ -379,14 +382,17 @@ public class StateListPicker extends JPanel {
         assert facet != null;
         facet.refreshResources();
         updateComponent(myComponent, myState.getValue(), myState.getAlpha());
-        myComponent.repaint();
+
+        // If a resource was overridden, it may affect several states of the state list.
+        // Thus we need to repaint all components.
+        repaintAllComponents();
       }
     }
   }
 
   private void updateComponent(@NotNull StateComponent component, @NotNull String resourceName, @Nullable String alphaValue) {
     component.setValueText(resourceName);
-    component.setAlphaVisible(alphaValue != null);
+    component.setAlphaVisible(!StringUtil.isEmpty(alphaValue));
 
     ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
     assert resourceResolver != null;
@@ -403,7 +409,7 @@ public class StateListPicker extends JPanel {
       List<Color> colorList = ImmutableList.of(color);
       component.setValueIcons(SwatchComponent.colorListOf(colorList));
 
-      if (alphaValue != null) {
+      if (!StringUtil.isEmpty(alphaValue)) {
         try {
           float alpha = Float.parseFloat(ResourceHelper.resolveStringValue(resourceResolver, alphaValue));
           component.getAlphaComponent().setText(alphaValue);
@@ -416,6 +422,13 @@ public class StateListPicker extends JPanel {
                     myStateList.getFileName()));
         }
       }
+    }
+  }
+
+  private void repaintAllComponents() {
+    for (StateComponent component : myStateComponents) {
+      updateComponent(component, component.getResourceValue(), component.getAlphaValue());
+      component.repaint();
     }
   }
 
