@@ -43,10 +43,12 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   @NotNull
   @Override
-  protected String getQualifiedActivityName(@NotNull IDevice device) {
-    String activityName = computeDefaultActivity(myFacet, device);
-    assert activityName != null; // validated by validate below
-    return activityName;
+  protected String getQualifiedActivityName(@NotNull IDevice device) throws ActivityLocatorException {
+    String activity = computeDefaultActivity(myFacet, device);
+    if (activity == null) {
+      throw new ActivityLocatorException(AndroidBundle.message("default.activity.not.found.error"));
+    }
+    return activity;
   }
 
   @Override
