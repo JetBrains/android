@@ -18,8 +18,10 @@ package com.android.tools.idea.editors.theme.ui;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.swing.ui.ClickableLabel;
 import com.android.tools.swing.ui.SwatchComponent;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,14 +42,24 @@ public class ResourceComponent extends JPanel {
 
   private final SwatchComponent mySwatchComponent = new SwatchComponent(MAX_SWATCH_ICONS);
   private final ClickableLabel myNameLabel = new ClickableLabel();
+  protected final JBLabel myWarningLabel = new JBLabel();
+
   private final VariantsComboBox myVariantCombo = new VariantsComboBox();
 
   public ResourceComponent() {
     super(new BorderLayout(0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP));
     setBorder(BorderFactory.createEmptyBorder(ThemeEditorConstants.ATTRIBUTE_MARGIN / 2, 0, ThemeEditorConstants.ATTRIBUTE_MARGIN / 2, 0));
 
+    myWarningLabel.setIcon(AllIcons.General.BalloonWarning);
+    myWarningLabel.setVisible(false);
+
+    myNameLabel.setForeground(ThemeEditorConstants.RESOURCE_ITEM_COLOR);
+    myNameLabel.setFont(myNameLabel.getFont().deriveFont(Font.BOLD));
+
     Box topRowPanel = new Box(BoxLayout.LINE_AXIS);
     topRowPanel.add(myNameLabel);
+    topRowPanel.add(myWarningLabel);
+
     topRowPanel.add(Box.createHorizontalGlue());
     topRowPanel.add(myVariantCombo);
     add(topRowPanel, BorderLayout.CENTER);
@@ -75,6 +87,14 @@ public class ResourceComponent extends JPanel {
 
   public void setNameText(@NotNull String name) {
     myNameLabel.setText(name);
+  }
+
+  public void setWarning(@NotNull String warning){
+    myWarningLabel.setToolTipText(warning);
+  }
+
+  public void setWarningVisible(boolean isVisible){
+    myWarningLabel.setVisible(isVisible);
   }
 
   public void setVariantsModel(@Nullable ComboBoxModel comboBoxModel) {
@@ -134,5 +154,17 @@ public class ResourceComponent extends JPanel {
   @NotNull
   public ValidationInfo createSwatchValidationInfo(@NotNull String errorText) {
     return new ValidationInfo(errorText, mySwatchComponent);
+  }
+
+  @Override
+  public String getToolTipText(MouseEvent event) {
+    if (myWarningLabel.isVisible()) {
+      validate();
+      if (SwingUtilities.getLocalBounds(myWarningLabel)
+        .contains(SwingUtilities.convertMouseEvent(this, event, myWarningLabel).getPoint())) {
+        return myWarningLabel.getToolTipText();
+      }
+    }
+    return super.getToolTipText(event);
   }
 }
