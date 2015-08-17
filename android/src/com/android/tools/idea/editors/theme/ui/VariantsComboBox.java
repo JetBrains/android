@@ -35,6 +35,7 @@ import javax.swing.plaf.ButtonUI;
 import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,7 +51,8 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
   private static final Border VARIANT_MENU_BORDER = JBUI.Borders.empty(5, 0);
   private static final Border VARIANT_ITEM_BORDER = new JBEmptyBorder(5);
   private static final JBColor VARIANT_MENU_BACKGROUND_COLOR = JBColor.WHITE;
-  
+
+  private final List<PopupClosingListener> myPopupClosingListeners = new ArrayList<PopupClosingListener>();
   private ComboBoxModel myModel = new DefaultComboBoxModel();
   private ListDataListener myListDataListener = new ListDataListener() {
     @Override
@@ -70,6 +72,17 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
   };
   private List<Action> myActions = Lists.newArrayList();
 
+  /**
+   * Listens to this combobox popup closing
+   */
+  public interface PopupClosingListener {
+    void popupClosed();
+  }
+
+  public void addPopupClosingListener(final PopupClosingListener listener) {
+    myPopupClosingListeners.add(listener);
+  }
+
   public VariantsComboBox() {
 
     setBorder(BorderFactory.createEmptyBorder());
@@ -79,7 +92,7 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
     addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (!isVisible()) {
+        if (!isShowing()) {
           return;
         }
 
@@ -111,6 +124,9 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
           @Override
           public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
             Toolkit.getDefaultToolkit().removeAWTEventListener(clickListener);
+            for (PopupClosingListener listener : myPopupClosingListeners) {
+              listener.popupClosed();
+            }
           }
         });
         variantsMenu.show(VariantsComboBox.this, 0, getSize().height);
