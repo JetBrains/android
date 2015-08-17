@@ -21,7 +21,6 @@ import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +41,7 @@ public class ResourceComponent extends JPanel {
 
   private final SwatchComponent mySwatchComponent = new SwatchComponent(MAX_SWATCH_ICONS);
   private final ClickableLabel myNameLabel = new ClickableLabel();
-  protected final JBLabel myWarningLabel = new JBLabel();
+  protected final ClickableLabel myWarningLabel = new ClickableLabel();
 
   private final VariantsComboBox myVariantCombo = new VariantsComboBox();
 
@@ -132,6 +131,7 @@ public class ResourceComponent extends JPanel {
 
   public void addActionListener(final ActionListener listener) {
     myNameLabel.addActionListener(listener);
+    myWarningLabel.addActionListener(listener);
     mySwatchComponent.addActionListener(listener);
     addMouseListener(new MouseAdapter() {
       @Override
