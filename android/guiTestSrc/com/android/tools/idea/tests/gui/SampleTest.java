@@ -57,5 +57,10 @@ public class SampleTest extends GuiTestCase {
     editor.moveTo(editor.findOffset(" ", "<string name=\"action", true));
     editor.enterText("    ");
     editor.invokeAction(EditorFixture.EditorAction.FORMAT);
+
+    // Test IME
+    editor.enterImeText("デバッグ");
+    assertEquals("    デバッグ^<string name=\"action_settings\">Settings</string>",
+                 editor.getCurrentLineContents(false, true, 0));
   }
 }

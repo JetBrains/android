@@ -48,17 +48,20 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
+import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.FocusManager;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.KeyStroke;
+import javax.annotation.Nonnull;
+import javax.swing.*;
 import java.awt.Component;
+import java.awt.event.InputMethodEvent;
 import java.awt.event.KeyEvent;
+import java.awt.font.TextHitInfo;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
@@ -329,6 +332,33 @@ public class EditorFixture {
     Component component = getFocusedEditor();
     if (component != null) {
       robot.enterText(text);
+    }
+
+    return this;
+  }
+
+  /**
+   * Type the given text into the editor as if the user had typed it
+   * with an IME (an input method editor)
+   *
+   * @param text the text to type at the current editor position
+   */
+  public EditorFixture enterImeText(@NotNull final String text) {
+    final Component component = getFocusedEditor();
+    if (component != null && !text.isEmpty()) {
+      execute(new GuiTask() {
+        @Override
+        protected void executeInEDT() throws Throwable {
+          // Simulate editing by sending the same IME events that we observe arriving from a real input method
+          int characterCount = text.length();
+          TextHitInfo caret = TextHitInfo.afterOffset(characterCount - 1);
+          TextHitInfo visiblePosition = TextHitInfo.beforeOffset(0);
+          AttributedCharacterIterator iterator = new AttributedString(text).getIterator();
+          int id = InputMethodEvent.INPUT_METHOD_TEXT_CHANGED;
+          InputMethodEvent event = new InputMethodEvent(component, id, iterator, characterCount, caret, visiblePosition);
+          component.dispatchEvent(event);
+        }
+      });
     }
 
     return this;
@@ -707,9 +737,17 @@ public class EditorFixture {
           }
         });
         DialogFixture dialogFixture = new DialogFixture(robot, dialog);
-        // For some reason, the button is not found
-        //dialogFixture.button("Run").click();
-        dialogFixture.click();
+
+        // Find and click the Run button. We can't just invoke
+        //    dialogFixture.button("Run").click();
+        // because that searches by button name (which is null for the Run button), not the button *title*.
+        dialogFixture.button(new GenericTypeMatcher<JButton>(JButton.class) {
+          @Override
+          protected boolean isMatching(@Nonnull JButton component) {
+            return component.getText().equals("Run");
+          }
+        }).click();
+
         break;
       }
       case GOTO_DECLARATION:
