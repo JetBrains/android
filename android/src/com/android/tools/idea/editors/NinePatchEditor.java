@@ -22,17 +22,15 @@ import com.android.draw9patch.ui.ImageViewer;
 import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileDocumentManagerAdapter;
-import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorLocation;
-import com.intellij.openapi.fileEditor.FileEditorState;
-import com.intellij.openapi.fileEditor.FileEditorStateLevel;
+import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,23 +47,21 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
   private static final String NAME = "9-Patch";
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
+  private final Project myProject;
   private VirtualFile myFile;
 
   private BufferedImage myBufferedImage;
   private ImageEditorPanel myImageEditorPanel;
   private boolean myDirtyFlag;
 
-  public NinePatchEditor(Project project, VirtualFile file) {
+  public NinePatchEditor(@NotNull Project project, @NotNull VirtualFile file) {
+    myProject = project;
+
     // Listen for 'Save All' events
     FileDocumentManagerListener saveListener = new FileDocumentManagerAdapter() {
       @Override
       public void beforeAllDocumentsSaving() {
-        try {
-          saveFile();
-        }
-        catch (IOException e) {
-          LOG.error("Unexpected exception while saving 9-patch file", e);
-        }
+        saveFile();
       }
     };
     project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, saveListener);
@@ -88,14 +84,35 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
     return GraphicsUtilities.toCompatibleImage(myBufferedImage);
   }
 
-  private void saveFile() throws IOException {
+  private void saveFile() {
+    UIUtil.invokeLaterIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          saveFileFromEDT();
+        }
+        catch (IOException e) {
+          LOG.error("Unexpected exception while saving 9-patch file", e);
+        }
+      }
+    });
+  }
+
+  // Saving Files using VFS requires EDT and a write action.
+  private void saveFileFromEDT() throws IOException {
     if (!myDirtyFlag) {
       return;
     }
 
-    ByteArrayOutputStream stream = new ByteArrayOutputStream((int) myFile.getLength());
-    ImageIO.write(myBufferedImage, "PNG", stream);
-    myFile.setBinaryContent(stream.toByteArray());
+    new WriteCommandAction.Simple(myProject, "Update N-patch", PsiManager.getInstance(myProject).findFile(myFile)) {
+      @Override
+      protected void run() throws Throwable {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream((int)myFile.getLength());
+        ImageIO.write(myBufferedImage, "PNG", stream);
+        myFile.setBinaryContent(stream.toByteArray());
+      }
+    }.execute();
+
     myDirtyFlag = false;
   }
 
@@ -174,12 +191,7 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
 
   @Override
   public void dispose() {
-    try {
-      saveFile();
-    }
-    catch (IOException e) {
-      LOG.error("Unexpected exception while saving 9-patch file", e);
-    }
+    saveFile();
 
     if (myImageEditorPanel != null) {
       myImageEditorPanel.getViewer().removePatchUpdateListener(this);
