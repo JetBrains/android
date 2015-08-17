@@ -43,9 +43,11 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
 
   private SeparatedList myAllItems;
   private Object mySelectedObject;
-  private List<String> myEditOptions = new ArrayList<String>();
+  private final List<String> myEditOptions = new ArrayList<String>();
 
-  public ThemesListModel(@NotNull ThemeEditorContext context, @NotNull ImmutableList<ThemeEditorStyle> defaultThemes, @Nullable ThemeEditorStyle defaultTheme) {
+  public ThemesListModel(@NotNull ThemeEditorContext context,
+                         @NotNull ImmutableList<ThemeEditorStyle> defaultThemes,
+                         @Nullable ThemeEditorStyle defaultTheme) {
     myContext = context;
     myDefaultThemes = defaultThemes;
     myDefaultTheme = defaultTheme;
@@ -67,7 +69,7 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
   /**
    * Updates the themes list reloading all the themes from the resolver
    */
-  void updateThemes() {
+  private void updateThemes() {
     // We sort the themes, displaying the local project themes at the top sorted alphabetically. The non local themes are sorted
     // alphabetically right below the project themes.
     final Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(ThemeEditorUtils.STYLE_COMPARATOR);
@@ -80,12 +82,14 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     ImmutableList<ThemeEditorStyle> allThemes = ImmutableList.copyOf(temporarySet);
     ImmutableList<ThemeEditorStyle> externalThemes = allThemes.subList(editableThemes.size(), allThemes.size());
 
-    Object selectedItem = null;
-    if (myDefaultTheme != null) {
-      selectedItem = myDefaultTheme;
-    }
-    else if (!allThemes.isEmpty()) {
-      selectedItem = allThemes.get(0);
+    Object selectedItem = getSelectedItem();
+    if (!(selectedItem instanceof ThemeEditorStyle)) {
+      if (myDefaultTheme != null) {
+        selectedItem = myDefaultTheme;
+      }
+      else if (!allThemes.isEmpty()) {
+        selectedItem = allThemes.get(0);
+      }
     }
 
     myEditOptions.clear();
