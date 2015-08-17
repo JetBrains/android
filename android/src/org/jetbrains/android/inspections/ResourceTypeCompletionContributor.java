@@ -77,7 +77,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
     //if (parameters.getCompletionType() != CompletionType.SMART) return;
     PsiElement pos = parameters.getPosition();
 
-    if (JavaCompletionData.AFTER_DOT.accepts(pos)) {
+    if (JavaKeywordCompletion.AFTER_DOT.accepts(pos)) {
       return;
     }
 
