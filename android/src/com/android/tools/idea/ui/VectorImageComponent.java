@@ -16,45 +16,29 @@
 package com.android.tools.idea.ui;
 
 import com.android.ide.common.util.AssetUtil;
+import com.android.tools.swing.util.GraphicsUtil;
+import com.intellij.ui.Gray;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 
 /**
  * VectorImageComponent is a Swing component that displays an image.
  * Particularly added a 3D boundary and center the image in the middle.
  */
 public class VectorImageComponent extends ImageComponent {
-  TexturePaint mChessBoardPatternPaint;
-  private static final int TEXTURE_SIZE = 16;
-
-  public VectorImageComponent() {
-    // Set up a texture paint for chess board pattern.
-    int imageSize = TEXTURE_SIZE;
-    BufferedImage img = UIUtil.createImage(imageSize, imageSize, BufferedImage.TYPE_INT_RGB);
-    int[] data = ((DataBufferInt) (img.getRaster().getDataBuffer()))
-      .getData();
-    // Fill the data as chess board pattern
-    for (int i = 0; i < imageSize * imageSize; i++) {
-      // x, y will be either 0 or 1. Combination of x and y can denote which
-      // quadrant the current pixel is in.
-      int x = (i % imageSize) / (imageSize / 2);
-      int y = (i / imageSize) / (imageSize / 2);
-      data[i] = ((x + y) % 2 == 0) ? 0xAAAAAA : 0xEEEEEE;
-    }
-    mChessBoardPatternPaint = new TexturePaint(img, new Rectangle2D.Float(0, 0, TEXTURE_SIZE, TEXTURE_SIZE));
-  }
+  private Rectangle myRectangle = new Rectangle();
+  private static final int CELL_SIZE = 8;
 
   @Override
   protected void paintChildren(@NotNull Graphics g) {
-    // Draw the chess board background all the time.
     Graphics2D g2d = (Graphics2D) g;
-    g2d.setPaint(mChessBoardPatternPaint);
-    g2d.fillRect(0, 0, getWidth(), getHeight());
+
+    // Draw the chess board background all the time.
+    myRectangle.setBounds(getX(), getY(), getWidth(), getHeight());
+    GraphicsUtil.paintCheckeredBackground(g, Gray.xAA, Gray.xEE, myRectangle, CELL_SIZE);
 
     // Then draw the icon to the center.
     if (myIcon == null) return;
