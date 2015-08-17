@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.grid;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public final class GridInfoTest {
   @Test
@@ -30,5 +31,10 @@ public final class GridInfoTest {
   public void initLineLocationsDifferenceModNewCellSizeEqualsZero() {
     int[] actual = GridInfo.initLineLocations(718, 526, new int[]{0, 248, 718});
     assertArrayEquals(new int[]{0, 248, 526, 558, 590, 622, 654, 686, 717}, actual);
+  }
+
+  @Test
+  public void getIndex() {
+    assertEquals(1, GridInfo.getIndex(new int[]{0, 248, 248, 248, 248, 248, 248, 248, 248, 520, 767}, 380, true));
   }
 }

@@ -32,13 +32,15 @@ import static com.android.SdkConstants.*;
 
 public class ComponentDescriptor {
   @NonNull private final String myTagName;
+  @NonNull List<Pair<String, String>> myAttributes = Lists.newArrayList();
   @NonNull private ComponentDescriptor[] myChildren = new ComponentDescriptor[0];
   @AndroidCoordinate private int myX;
   @AndroidCoordinate private int myY;
   @AndroidCoordinate private int myWidth;
   @AndroidCoordinate private int myHeight;
-  @NonNull List<Pair<String, String>> myAttributes = Lists.newArrayList();
   @Nullable private ViewInfo myViewInfo;
+  @Nullable private Object myViewObject;
+  @Nullable private Object myLayoutParamsObject;
 
   public ComponentDescriptor(@NonNull String tagName) {
     myTagName = tagName;
@@ -125,6 +127,16 @@ public class ComponentDescriptor {
     return this;
   }
 
+  public ComponentDescriptor viewObject(@Nullable Object viewObject) {
+    myViewObject = viewObject;
+    return this;
+  }
+
+  public ComponentDescriptor layoutParamsObject(@Nullable Object layoutParamsObject) {
+    myLayoutParamsObject = layoutParamsObject;
+    return this;
+  }
+
   public void appendXml(@NonNull StringBuilder sb, int depth) {
     for (int i = 0; i < depth; i++) {
       sb.append("  ");
@@ -167,7 +179,7 @@ public class ComponentDescriptor {
     }
     int right = left + myWidth;
     int bottom = top + myHeight;
-    myViewInfo = new ViewInfo(myTagName, tag, left, top, right, bottom);
+    myViewInfo = new ViewInfo(myTagName, tag, left, top, right, bottom, myViewObject, myLayoutParamsObject);
 
     List<ViewInfo> childList = Lists.newArrayList();
     XmlTag[] subTags = tag.getSubTags();
