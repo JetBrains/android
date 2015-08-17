@@ -24,7 +24,6 @@ import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.ui.JBMenuItem;
-import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
@@ -34,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Class that implements a {@link javax.swing.JTable} renderer and editor for color attributes.
@@ -48,9 +48,8 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
   public ColorRendererEditor(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel, boolean isEditor) {
     super(context, isEditor);
 
-    final ColorEditorActionListener colorEditorListener = new ColorEditorActionListener();
     if (isEditor) {
-      myComponent.addActionListener(colorEditorListener);
+      myComponent.addActionListener(new ColorEditorActionListener());
     }
     myPreviewPanel = previewPanel;
   }
@@ -62,10 +61,31 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
     final List<Color> colors = ResourceHelper.resolveMultipleColors(context.getResourceResolver(), item.getSelectedValue(),
                                                                     context.getProject());
     component.setSwatchIcons(SwatchComponent.colorListOf(colors));
-    component
-      .setNameText(String.format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR),
-                                        item.getQualifiedName()));
+    component.setNameText(item.getQualifiedName());
     component.setValueText(item.getValue());
+
+    Set<String> lowContrastColors = ColorUtils.getLowContrastColors(context, item);
+    if (!lowContrastColors.isEmpty()) {
+      component.setWarningVisible(true);
+      // Using html for the tooltip because the color names are bold
+      // Formatted color names are concatenated into an error message
+      StringBuilder contrastErrorMessageBuilder = new StringBuilder("<html>Not enough contrast with ");
+      int i = 0;
+      for (String color : lowContrastColors) {
+        contrastErrorMessageBuilder.append(color);
+        if (i < lowContrastColors.size() - 2) {
+          contrastErrorMessageBuilder.append(", ");
+        }
+        else if (i == lowContrastColors.size() - 2) {
+          contrastErrorMessageBuilder.append(" and ");
+        }
+        i++;
+      }
+      myComponent.setWarning(contrastErrorMessageBuilder.toString());
+    }
+    else {
+      component.setWarningVisible(false);
+    }
   }
 
   private class ColorEditorActionListener extends DumbAwareActionListener {
