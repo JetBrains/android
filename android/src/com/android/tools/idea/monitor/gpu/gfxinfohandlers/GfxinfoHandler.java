@@ -19,6 +19,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.chartlib.TimelineData;
+import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,12 +44,19 @@ public interface GfxinfoHandler {
 
   /**
    * Callback to create the model for this sampler.
+   *
    * @return the TimelineData model
    */
-  @NotNull TimelineData createTimelineData();
+  @NotNull
+  TimelineData createTimelineData();
 
   /**
-   * Check if the developer option for GPU monitoring is turned on.
+   * Checks if the developer option for GPU monitoring is turned on.
+   *
+   * @return a {@code ThreeState} enum. {@code ThreeState.YES} indicates it is enabled,
+   * {@code ThreeState.NO} indicates it is disabled, and {@code ThreeState.UNSURE} indicates
+   * the operation has timed out and we can not determine what the value is.
+   * In this case, treat the value as the last known good value instead
    */
-  boolean getIsEnabledOnDevice();
+  ThreeState getIsEnabledOnDevice(@NotNull IDevice device);
 }
