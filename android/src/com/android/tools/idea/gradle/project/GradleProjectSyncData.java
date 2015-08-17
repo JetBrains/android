@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -36,9 +37,9 @@ import java.util.Arrays;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
-import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
-import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
 import static com.android.tools.idea.sdk.IdeSdks.getAndroidSdkPath;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.io.Closeables.close;
@@ -204,15 +205,7 @@ public class GradleProjectSyncData implements Serializable {
 
   @NotNull
   private static File getProjectStateFile(@NotNull Project project) throws IOException {
-    Module projectModule = findGradleProjectModule(project);
-    if (projectModule != null) {
-      File buildFolderPath = getBuildFolderPath(projectModule);
-      if (buildFolderPath != null) {
-        return new File(buildFolderPath, join(FD_INTERMEDIATES, STATE_FILE_NAME));
-      }
-    }
-    // TODO: Once we upgrade to Gradle 2.0, we can get the build directory from there. For now assume "build".
-    return new File(virtualToIoFile(project.getBaseDir()), join(BUILD_DIR_DEFAULT_NAME, FD_INTERMEDIATES, STATE_FILE_NAME));
+    return new File(PathManager.getSystemPath(), join("external_build_system", "Projects", project.getLocationHash(), STATE_FILE_NAME));
   }
 
   private void addFileChecksum(File rootDirPath, @Nullable VirtualFile vf) throws IOException {
