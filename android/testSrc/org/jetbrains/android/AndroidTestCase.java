@@ -66,7 +66,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   @Override
-  public void setUp() throws Exception {
+  protected void setUp() throws Exception {
     super.setUp();
 
     // this will throw an exception if we don't have a full Android SDK, so we need to do this first thing before any other setup
@@ -117,8 +117,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       facet.setLibraryProject(data.myLibrary);
       final String rootPath = getContentRootPath(data.myDirName);
       myFixture.copyDirectoryToProject("res", rootPath + "/res");
-      myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML,
-                                  rootPath + '/' + SdkConstants.FN_ANDROID_MANIFEST_XML);
+      myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, rootPath + '/' + SdkConstants.FN_ANDROID_MANIFEST_XML);
       if (data.myIsMainModuleDependency) {
         ModuleRootModificationUtil.addDependency(myModule, additionalModule);
       }
@@ -254,7 +253,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     return facet;
   }
 
-  /** Defines the project level to set for the test project, or null for the default */
+  /**
+   * Defines the project level to set for the test project, or null for the default
+   */
   @Nullable
   protected LanguageLevel getLanguageLevel() {
     return null;
