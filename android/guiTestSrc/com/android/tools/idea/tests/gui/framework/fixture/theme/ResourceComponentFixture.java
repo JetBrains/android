@@ -23,17 +23,12 @@ import org.fest.swing.fixture.JPanelFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.Font;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.awt.*;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 
 public class ResourceComponentFixture extends JPanelFixture {
-  private static final Pattern COMMON_PATTERN = Pattern.compile("<html><nobr><b><font color=\"(.*?)\">(.*?)</font></b>");
-  private static final Pattern COLOR_PATTERN = Pattern.compile("- (.*?)</font>");
 
   public ResourceComponentFixture(@NotNull Robot robot, @NotNull ResourceComponent target) {
     super(robot, target);
@@ -41,7 +36,7 @@ public class ResourceComponentFixture extends JPanelFixture {
 
   @NotNull
   private JButtonFixture getLabel() {
-    return new JButtonFixture(robot(), robot().finder().findByType(this.target(), ClickableLabel.class));
+    return new JButtonFixture(robot(), robot().finder().findByName(ResourceComponent.NAME_LABEL, ClickableLabel.class));
   }
 
   @NotNull
@@ -49,22 +44,11 @@ public class ResourceComponentFixture extends JPanelFixture {
     return SwatchComponentFixture.find(robot());
   }
 
-  @Nullable
-  public String getColorValue() {
-    String labelValue = getLabel().text();
-    assertNotNull(labelValue);
-    Matcher matcher = COLOR_PATTERN.matcher(labelValue);
-    assertTrue(matcher.find());
-    return matcher.group(1);
-  }
-
-  @Nullable
+  @NotNull
   public String getAttributeName() {
     String labelValue = getLabel().text();
     assertNotNull(labelValue);
-    Matcher matcher = COMMON_PATTERN.matcher(labelValue);
-    assertTrue(matcher.find());
-    return matcher.group(2);
+    return labelValue;
   }
 
   @NotNull
