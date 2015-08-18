@@ -43,6 +43,7 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Index.atIndex;
 import static org.fest.swing.data.TableCell.row;
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 /**
@@ -255,17 +256,21 @@ public class ThemeSelectorTest extends GuiTestCase {
     assertThat(themeList).contains("Theme.AppCompat.Light.NoActionBar");
 
     EditorFixture editor = projectFrame.getEditor();
+
+    // TODO: Make the test work without having to close the theme editor
+    editor.close();
+
     editor.open("app/build.gradle");
 
     editor.moveTo(editor.findOffset("compile 'com.android.support:app", null, true));
     editor.invokeAction(EditorFixture.EditorAction.DELETE_LINE);
     editor.invokeAction(EditorFixture.EditorAction.SAVE);
 
-    themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
     projectFrame.requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
     projectFrame.waitForGradleProjectSyncToFinish();
 
     // Check AppCompat themes are gone
+    themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
     themeList = themeEditor.getThemesList();
     assertThat(themeList)
       .excludes("Theme.AppCompat.Light.NoActionBar")
