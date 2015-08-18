@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.monitor.gpu.gfxinfohandlers;
 
-import com.android.ddmlib.*;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.ClientData;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.MultiLineReceiver;
 import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
 import com.android.tools.idea.monitor.gpu.GpuSampler;
@@ -24,19 +27,15 @@ import gnu.trove.TFloatArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Sampler for Lollipop API or higher.
  */
 public final class LHandler implements GfxinfoHandler {
-  public static final int SAMPLE_BUFFER_SIZE = 2048;
   public static final int MIN_API_LEVEL = 21;
 
   private ProcessStatReceiver myReceiver = new ProcessStatReceiver();
@@ -76,8 +75,8 @@ public final class LHandler implements GfxinfoHandler {
       if (!myIgnoreInitialSamples) {
         for (int i = 0; i < myReceiver.getLogSize(); ++i) {
           long time = timeDelta * (long)(i + 1) / (long)myReceiver.getLogSize() + myLastSampleTime;
-          timeline.add(time, DeviceSampler.TYPE_DATA, myReceiver.getDrawTime(i), myReceiver.getPrepareTime(i),
-                       myReceiver.getProcessTime(i), myReceiver.getExecuteTime(i));
+          timeline.add(time, DeviceSampler.TYPE_DATA, myReceiver.getDrawTime(i), myReceiver.getPrepareTime(i), myReceiver.getProcessTime(i),
+                       myReceiver.getExecuteTime(i));
         }
       }
       myIgnoreInitialSamples = false;
@@ -114,23 +113,16 @@ public final class LHandler implements GfxinfoHandler {
     private TFloatArrayList myProcessTimes = new TFloatArrayList();
     private TFloatArrayList myExecuteTimes = new TFloatArrayList();
 
-    private boolean myDetectedDeveloperOptionEnabled; // Indicates whether or not GPU developer options are enabled.
-
     public void reset() {
       resetSamples();
     }
 
     public void resetSamples() {
-      myDetectedDeveloperOptionEnabled = false;
       myOutput.clear();
       myDrawTimes.resetQuick();
       myPrepareTimes.resetQuick();
       myProcessTimes.resetQuick();
       myExecuteTimes.resetQuick();
-    }
-
-    public boolean getDetectedDeveloperOptionEnabled() {
-      return myDetectedDeveloperOptionEnabled;
     }
 
     /*
@@ -198,7 +190,6 @@ public final class LHandler implements GfxinfoHandler {
                 "Prepare".equals(tokens[1]) &&
                 "Process".equals(tokens[2]) &&
                 "Execute".equals(tokens[3])) {
-              myDetectedDeveloperOptionEnabled = true;
               profileSectionIndex += 1;
               break;
             }

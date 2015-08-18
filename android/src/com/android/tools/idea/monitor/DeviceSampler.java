@@ -55,6 +55,7 @@ public abstract class DeviceSampler implements Runnable {
   @NotNull private final Semaphore myDataSemaphore;
   protected volatile boolean myRunning;
   protected volatile CountDownLatch myTaskStatus;
+  protected volatile boolean myIsPaused;
 
   public DeviceSampler(@NotNull TimelineData timelineData, int sampleFrequencyMs) {
     myTimelineData = timelineData;
@@ -116,8 +117,28 @@ public abstract class DeviceSampler implements Runnable {
       myClient = client;
       prepareSampler(client);
       myTimelineData.clear();
+      if (!myIsPaused) {
+        start();
+      }
+    }
+  }
+
+  public final void setIsPaused(boolean paused) {
+    myIsPaused = paused;
+    if (myIsPaused) {
+      if (myClient != null) {
+        stop();
+      }
+    }
+    else {
+      myTimelineData.clear();
+      prepareSampler(myClient);
       start();
     }
+  }
+
+  public final boolean getIsPaused() {
+    return myIsPaused;
   }
 
   protected void prepareSampler(@Nullable Client client) {}
@@ -149,7 +170,7 @@ public abstract class DeviceSampler implements Runnable {
       try {
         long start = System.currentTimeMillis();
         boolean acquired = myDataSemaphore.tryAcquire(timeToWait, TimeUnit.MILLISECONDS);
-        if (myRunning) {
+        if (myRunning && !myIsPaused) {
           sample(acquired);
         }
         timeToWait -= System.currentTimeMillis() - start;
@@ -166,9 +187,6 @@ public abstract class DeviceSampler implements Runnable {
 
   @NotNull
   public abstract String getName();
-
-  @NotNull
-  public abstract String getDescription();
 
   protected abstract void sample(boolean forced) throws InterruptedException;
 }
