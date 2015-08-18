@@ -614,6 +614,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     }
     else if (selectedComponent == myStateListPickerPanel) {
       myNewResourceAction.setEnabled(false);
+      myResultResourceName = null;
     }
     else {
       boolean isProjectPanel = selectedComponent == myProjectPanel.myComponent;
