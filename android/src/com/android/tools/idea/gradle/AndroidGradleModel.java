@@ -29,6 +29,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -44,8 +45,8 @@ import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer.EXCLUDED_OUTPUT_FOLDER_NAMES;
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -442,6 +443,15 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     return myRootDir;
   }
 
+  @Override
+  public boolean isGenerated(@NotNull VirtualFile file) {
+    VirtualFile buildFolder = findFileByIoFile(myAndroidProject.getBuildFolder(), false);
+    if (buildFolder != null && isAncestor(buildFolder, file, false)) {
+      return true;
+    }
+    return false;
+  }
+
   /**
    * @return the imported Android-Gradle project.
    */
@@ -621,7 +631,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
       return false;
     }
     for (File generatedSourceFolder : myExtraGeneratedSourceFolders) {
-      if (isAncestor(folderPath, generatedSourceFolder, false)) {
+      if (FileUtil.isAncestor(folderPath, generatedSourceFolder, false)) {
         return true;
       }
     }
@@ -737,7 +747,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   private static boolean containsFile(@NotNull Collection<File> directories, @NotNull File file) {
     for (File directory : directories) {
-      if (isAncestor(directory, file, false)) {
+      if (FileUtil.isAncestor(directory, file, false)) {
         return true;
       }
     }

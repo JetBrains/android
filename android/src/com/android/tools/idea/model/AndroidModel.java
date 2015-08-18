@@ -132,6 +132,14 @@ public interface AndroidModel {
   File getRootDirPath();
 
   /**
+   * Indicates whether the given file or directory is generated.
+   *
+   * @param file the file or directory.
+   * @return {@code true} if the given file or directory is generated; {@code false} otherwise.
+   */
+  boolean isGenerated(@NotNull VirtualFile file);
+
+  /**
    * @return the path of the root directory of the module.
    *
    * TODO: Do we really need two methods in our model interface for getting the root dir? It looks like it's not
