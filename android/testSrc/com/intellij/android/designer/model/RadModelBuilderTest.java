@@ -49,9 +49,9 @@ public class RadModelBuilderTest extends LayoutEditorTestBase {
                  "        TextView - \"My TextView\"",
                  printTree(rootComponent, false));
     assertEquals("RadViewComponent{tag=<LinearLayout>, bounds=[0,0:768x1280}\n" +
-                 "    RadViewContainer{tag=<LinearLayout>, bounds=[0,100:768x1084}\n" +
-                 "        RadViewComponent{tag=<Button>, bounds=[0,100:768x200}\n" +
-                 "        RadViewComponent{tag=<TextView>, bounds=[0,300:400x220}",
+                 "    RadViewContainer{tag=<LinearLayout>, bounds=[0,98:768x1086}\n" +
+                 "        RadViewComponent{tag=<Button>, bounds=[0,98:768x200}\n" +
+                 "        RadViewComponent{tag=<TextView>, bounds=[0,298:400x220}",
                  printTree(rootComponent, true));
 
     final RadViewComponent parent = (RadViewComponent)rootComponent.getChildren().get(0);
@@ -72,10 +72,10 @@ public class RadModelBuilderTest extends LayoutEditorTestBase {
                  printTree(rootComponent, false)
     );
     assertEquals("RadViewComponent{tag=<LinearLayout>, bounds=[0,0:768x1280}\n" +
-                 "    RadViewContainer{tag=<LinearLayout>, bounds=[0,100:768x1084}\n" +
-                 "        RadViewComponent{tag=<Button>, bounds=[0,100:768x200}\n" +
-                 "        RadViewComponent{tag=<TextView>, bounds=[0,300:400x220}\n" +
-                 "        RadViewComponent{tag=<EditText>, id=@+id/editText, bounds=[0,520:400x200}",
+                 "    RadViewContainer{tag=<LinearLayout>, bounds=[0,98:768x1086}\n" +
+                 "        RadViewComponent{tag=<Button>, bounds=[0,98:768x200}\n" +
+                 "        RadViewComponent{tag=<TextView>, bounds=[0,298:400x220}\n" +
+                 "        RadViewComponent{tag=<EditText>, id=@+id/editText, bounds=[0,518:400x200}",
                  printTree(rootComponent, true));
 
     // Also make sure the various state getters work correctly:
