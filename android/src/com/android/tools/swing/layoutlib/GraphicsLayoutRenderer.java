@@ -333,7 +333,7 @@ public class GraphicsLayoutRenderer {
         });
       }
       catch (Exception e) {
-        LOG.error("Exception running render action", e);
+        LOG.warn("Exception running render action", e);
       }
 
 
@@ -346,10 +346,10 @@ public class GraphicsLayoutRenderer {
       if (result != null && result.getStatus() != Result.Status.SUCCESS) {
         //noinspection ThrowableResultOfMethodCallIgnored
         if (result.getException() != null) {
-          LOG.error(result.getException());
+          LOG.warn(result.getException());
         }
         else {
-          LOG.error("Render error (no exception). Status=" + result.getStatus().name());
+          LOG.warn("Render error (no exception). Status=" + result.getStatus().name());
         }
         return false;
       }
@@ -394,7 +394,7 @@ public class GraphicsLayoutRenderer {
       });
 
       if (session == null) {
-        LOG.error("initRenderSession failed (returned null)");
+        LOG.warn("initRenderSession failed (returned null)");
         return null;
       }
 
@@ -402,16 +402,16 @@ public class GraphicsLayoutRenderer {
       if (result != null && result.getStatus() != Result.Status.SUCCESS) {
         //noinspection ThrowableResultOfMethodCallIgnored
         if (result.getException() != null) {
-          LOG.error(result.getException());
+          LOG.warn(result.getException());
         }
         else {
-          LOG.error("Render error (no exception). Status=" + result.getStatus().name());
+          LOG.warn("Render error (no exception). Status=" + result.getStatus().name());
         }
       }
       return session;
     }
     catch (Exception e) {
-      LOG.error("initRenderSession failed", e);
+      LOG.warn("initRenderSession failed", e);
       return null;
     }
   }
