@@ -83,13 +83,9 @@ public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
     if (myLocalInfo == null) {
       return;
     }
-    String localIid = myLocalInfo.getDesc().getInstallId();
-    String remoteIid = remote.getPkgDesc().getInstallId();
+    String localIid = myLocalInfo.getDesc().getBaseInstallId();
+    String remoteIid = remote.getPkgDesc().getBaseInstallId();
     if (remoteIid.equals(localIid)) {
-      return;
-    }
-    if (!myLocalInfo.getDesc().isPreview() && remote.getPkgDesc().isPreview() &&
-        remoteIid.equals(localIid + PkgDesc.PREVIEW_SUFFIX)) {
       return;
     }
     assert false : String.format("%s doesn't match %s", remoteIid, localIid);
