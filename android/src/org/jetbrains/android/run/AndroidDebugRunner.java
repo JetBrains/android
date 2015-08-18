@@ -350,55 +350,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     return null;
   }
 
-  private static class AndroidDebugState implements RemoteState, AndroidExecutionState {
-    private final Project myProject;
-    private final RemoteConnection myConnection;
-    private final AndroidRunningState myState;
-    private final IDevice myDevice;
-
-    private volatile ConsoleView myConsoleView;
-
-    public AndroidDebugState(Project project,
-                             RemoteConnection connection,
-                             AndroidRunningState state,
-                             IDevice device) {
-      myProject = project;
-      myConnection = connection;
-      myState = state;
-      myDevice = device;
-    }
-
-    @Override
-    public ExecutionResult execute(final Executor executor, @NotNull final ProgramRunner runner) throws ExecutionException {
-      RemoteDebugProcessHandler process = new RemoteDebugProcessHandler(myProject);
-      myState.setProcessHandler(process);
-      myConsoleView = myState.getConfiguration().attachConsole(myState, executor);
-      return new DefaultExecutionResult(myConsoleView, process);
-    }
-
-    @Override
-    public RemoteConnection getRemoteConnection() {
-      return myConnection;
-    }
-
-    @Override
-    public IDevice[] getDevices() {
-      return new IDevice[]{myDevice};
-    }
-
-    @Nullable
-    @Override
-    public ConsoleView getConsoleView() {
-      return myConsoleView;
-    }
-
-    @NotNull
-    @Override
-    public AndroidRunConfigurationBase getConfiguration() {
-      return myState.getConfiguration();
-    }
-  }
-
   @Override
   @NotNull
   public String getRunnerId() {
