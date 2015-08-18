@@ -58,12 +58,6 @@ public class MemorySampler extends DeviceSampler implements AndroidDebugBridge.I
     return "Memory Sampler";
   }
 
-  @NotNull
-  @Override
-  public String getDescription() {
-    return "memory information";
-  }
-
   @SuppressWarnings("ConstantConditions")
   protected void recordSample(int type) {
     float freeMb = 0.0f;

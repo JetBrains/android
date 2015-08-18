@@ -24,6 +24,7 @@ import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.DeviceSampler;
 import com.android.tools.idea.monitor.TimelineEventListener;
+import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.LHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.MHandler;
@@ -31,7 +32,6 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComponentWithActions;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -46,18 +46,23 @@ public class GpuMonitorView extends BaseMonitorView
   public static final int POST_M_SAMPLE_FREQUENCY_MS = 200;
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
 
-  private static final String NEEDS_PROFILING_ENABLED_ID = "needs profiling enabled";
-  private static final String NEEDS_NEWER_API_ID = "needs newer api";
-  private static final String TIMELINE_ID = "timeline";
+  private static final String NEEDS_NEWER_API_LABEL = "This device does not support the minimum API level (16) for GPU monitor.";
+  private static final String NEEDS_PROFILING_ENABLED_LABEL = "GPU Profiling needs to be enabled in the device's developer options.";
 
-  private final JPanel myCardPanel = new JPanel(new CardLayout());
-  @Nullable private TimelineComponent myCurrentTimelineComponent;
+  @NotNull private final JPanel myPanel;
   @NotNull private final GpuSampler myGpuSampler;
+  @Nullable private TimelineComponent myCurrentTimelineComponent;
   @Nullable private Client myClient;
   private int myApiLevel;
 
   public GpuMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
     super(project);
+
+    myPanel = new JPanel(new BorderLayout());
+
+    addOverlayText(NEEDS_NEWER_API_LABEL, 0);
+    addOverlayText(PAUSED_LABEL, 1);
+    addOverlayText(NEEDS_PROFILING_ENABLED_LABEL, 2);
 
     myGpuSampler = new GpuSampler(PRE_M_SAMPLE_FREQUENCY_MS, this);
     myGpuSampler.addListener(this);
@@ -66,24 +71,18 @@ public class GpuMonitorView extends BaseMonitorView
     configureTimelineComponent(myGpuSampler.getTimelineData());
     deviceContext.addListener(this, project);
 
-    JLabel enabledLabel = new JLabel("GPU Profiling needs to be enabled in the developer options.");
-    enabledLabel.setHorizontalAlignment(SwingConstants.CENTER);
-    myCardPanel.add(enabledLabel, NEEDS_PROFILING_ENABLED_ID);
-    JLabel apiNotSupportedLabel = new JLabel("This device does not support the minimum API level (16) for GPU monitor.");
-    apiNotSupportedLabel.setHorizontalAlignment(SwingConstants.CENTER);
-    myCardPanel.add(apiNotSupportedLabel, NEEDS_NEWER_API_ID);
-    myCardPanel.setBackground(BACKGROUND_COLOR);
-    setComponent(myCardPanel);
+    myPanel.setBackground(BACKGROUND_COLOR);
+    setViewComponent(myPanel);
+
+    setPaused(true); // Start GPU monitor as paused because GPU monitor uses app memory on the device.
   }
 
+  @Override
   @NotNull
   public ActionGroup getToolbarActions() {
-    return new DefaultActionGroup();
-  }
-
-  @NotNull
-  public ComponentWithActions createComponent() {
-    return new ComponentWithActions.Impl(getToolbarActions(), null, null, null, myContentPane);
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new RecordingAction(this));
+    return group;
   }
 
   @Override
@@ -98,6 +97,11 @@ public class GpuMonitorView extends BaseMonitorView
 
   @Override
   public void clientSelected(@Nullable final Client client) {
+    if (client != myClient) {
+      setOverlayEnabled(NEEDS_NEWER_API_LABEL, false);
+      setOverlayEnabled(NEEDS_PROFILING_ENABLED_LABEL, false);
+    }
+
     myClient = client;
     myGpuSampler.setClient(client);
     if (client != null) {
@@ -110,11 +114,23 @@ public class GpuMonitorView extends BaseMonitorView
   }
 
   @Override
-  public void onStart() {
+  public void setPaused(boolean paused) {
+    myGpuSampler.setIsPaused(paused);
+    setOverlayEnabled(PAUSED_LABEL, paused);
+    if (myCurrentTimelineComponent != null) {
+      myCurrentTimelineComponent.setUpdateData(!paused);
+    }
   }
 
   @Override
-  public void onStop() {
+  public boolean isPaused() {
+    return myGpuSampler.getIsPaused();
+  }
+
+  @NotNull
+  @Override
+  public String getDescription() {
+    return "gpu usage";
   }
 
   @Override
@@ -125,14 +141,12 @@ public class GpuMonitorView extends BaseMonitorView
   private void configureTimelineComponent(@NotNull TimelineData data) {
     EventData events = new EventData();
 
-    CardLayout layout = (CardLayout)myCardPanel.getLayout();
-
     if (myApiLevel >= MHandler.MIN_API_LEVEL) {
       // Buffer at one and a half times the sample frequency.
       float bufferTimeInSeconds = POST_M_SAMPLE_FREQUENCY_MS * 1.5f / 1000.f;
 
       if (myCurrentTimelineComponent != null) {
-        myCardPanel.remove(myCurrentTimelineComponent);
+        myPanel.remove(myCurrentTimelineComponent);
       }
       myCurrentTimelineComponent = new TimelineComponent(data, events, bufferTimeInSeconds, 17.0f, 67.0f, 3.0f);
 
@@ -148,15 +162,15 @@ public class GpuMonitorView extends BaseMonitorView
       myCurrentTimelineComponent.configureStream(8, "Misc Time", new JBColor(0x008f7f, 0x00796b));
       myCurrentTimelineComponent.setBackground(BACKGROUND_COLOR);
 
-      myCardPanel.add(myCurrentTimelineComponent, TIMELINE_ID);
-      layout.show(myCardPanel, TIMELINE_ID);
+      setOverlayEnabled(NEEDS_NEWER_API_LABEL, false);
+      myPanel.add(myCurrentTimelineComponent, BorderLayout.CENTER);
     }
     else if (myApiLevel >= JHandler.MIN_API_LEVEL) {
       // Buffer at one and a half times the sample frequency.
       float bufferTimeInSeconds = PRE_M_SAMPLE_FREQUENCY_MS * 1.5f / 1000.f;
 
       if (myCurrentTimelineComponent != null) {
-        myCardPanel.remove(myCurrentTimelineComponent);
+        myPanel.remove(myCurrentTimelineComponent);
       }
       myCurrentTimelineComponent = new TimelineComponent(data, events, bufferTimeInSeconds, 17.0f, 100.0f, 3.0f);
 
@@ -176,11 +190,11 @@ public class GpuMonitorView extends BaseMonitorView
         myCurrentTimelineComponent.setBackground(BACKGROUND_COLOR);
       }
 
-      myCardPanel.add(myCurrentTimelineComponent, TIMELINE_ID);
-      layout.show(myCardPanel, TIMELINE_ID);
+      setOverlayEnabled(NEEDS_NEWER_API_LABEL, false);
+      myPanel.add(myCurrentTimelineComponent, BorderLayout.CENTER);
     }
     else {
-      layout.show(myCardPanel, NEEDS_NEWER_API_ID);
+      setOverlayEnabled(NEEDS_NEWER_API_LABEL, true);
     }
   }
 
@@ -191,12 +205,12 @@ public class GpuMonitorView extends BaseMonitorView
       @Override
       public void run() {
         if (myClient == client) {
-          if (!enabled) {
-            ((CardLayout)myCardPanel.getLayout()).show(myCardPanel, NEEDS_PROFILING_ENABLED_ID);
-            myGpuSampler.getTimelineData().clear();
+          setOverlayEnabled(NEEDS_PROFILING_ENABLED_LABEL, !enabled);
+          if (enabled) {
+            configureTimelineComponent(myGpuSampler.getTimelineData());
           }
           else {
-            configureTimelineComponent(myGpuSampler.getTimelineData());
+            myGpuSampler.getTimelineData().clear();
           }
         }
       }

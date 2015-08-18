@@ -24,7 +24,6 @@ import gnu.trove.TFloatArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +36,6 @@ import java.util.concurrent.TimeoutException;
  * Sampler for Jellybean API or higher.
  */
 public final class JHandler implements GfxinfoHandler {
-  public static final int SAMPLE_BUFFER_SIZE = 2048;
   public static final int MIN_API_LEVEL = 16;
 
   private ProcessStatReceiver myReceiver = new ProcessStatReceiver();
