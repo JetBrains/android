@@ -37,7 +37,7 @@ public class VectorImageComponent extends ImageComponent {
     Graphics2D g2d = (Graphics2D) g;
 
     // Draw the chess board background all the time.
-    myRectangle.setBounds(getX(), getY(), getWidth(), getHeight());
+    myRectangle.setBounds(0, 0, getWidth(), getHeight());
     GraphicsUtil.paintCheckeredBackground(g, Gray.xAA, Gray.xEE, myRectangle, CELL_SIZE);
 
     // Then draw the icon to the center.
