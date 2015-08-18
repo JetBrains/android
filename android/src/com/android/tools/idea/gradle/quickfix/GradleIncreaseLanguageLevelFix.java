@@ -45,7 +45,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
  * Most of the code is duplicated from {@link IncreaseLanguageLevelFix} except
  * the {@link GradleIncreaseLanguageLevelFix#invoke} method.
  */
-public class GradleIncreaseLanguageLevelFix implements IntentionAction {
+public class GradleIncreaseLanguageLevelFix extends GradleDependencyFix {
   private static final Logger LOG = Logger.getInstance(GradleIncreaseLanguageLevelFix.class);
 
   private final LanguageLevel myLevel;
@@ -97,7 +97,7 @@ public class GradleIncreaseLanguageLevelFix implements IntentionAction {
     final Module module = ModuleUtilCore.findModuleForFile(virtualFile, project);
     final LanguageLevel moduleLevel = module == null ? null : LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    invokeAction(new Runnable() {
       @Override
       public void run() {
         if (moduleLevel != null && isLanguageLevelAcceptable(project, module, myLevel)) {
@@ -108,6 +108,7 @@ public class GradleIncreaseLanguageLevelFix implements IntentionAction {
           } else {
             LOG.error("Setting language level on Java module is not supported");
           }
+          registerUndoAction(project);
           GradleProjectImporter.getInstance().requestProjectSync(project, null);
         }
         else {

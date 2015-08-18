@@ -72,26 +72,21 @@ public class AddGradleJetbrainsAnnotationFix extends GradleDependencyFix {
     throws IncorrectOperationException {
     VirtualFile location = PsiUtilCore.getVirtualFile(myReference.getElement());
     boolean inTests = location != null && ModuleRootManager.getInstance(myCurrentModule).getFileIndex().isInTestSourceContent(location);
-    final Dependency dependency = new Dependency(getDependencyScope(myCurrentModule, inTests), Dependency.Type.EXTERNAL,
-                                                 "org.jetbrains:annotations:13.0");
+    final Dependency dependency =
+      new Dependency(getDependencyScope(myCurrentModule, inTests), Dependency.Type.EXTERNAL, "org.jetbrains:annotations:13.0");
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    invokeAction(new Runnable() {
       @Override
       public void run() {
-        new WriteCommandAction(project) {
+        addDependencyUndoable(myCurrentModule, dependency);
+        gradleSyncAndImportClass(myCurrentModule, editor, myReference, new Function<Void, List<PsiClass>>() {
           @Override
-          protected void run(@NotNull final Result result) throws Throwable {
-            addDependency(myCurrentModule, dependency);
-            gradleSyncAndImportClass(myCurrentModule, editor, myReference, new Function<Void, List<PsiClass>>() {
-              @Override
-              public List<PsiClass> apply(@Nullable Void input) {
-                PsiClass aClass =
-                  JavaPsiFacade.getInstance(project).findClass(myClassName, GlobalSearchScope.moduleWithLibrariesScope(myCurrentModule));
-                return aClass != null ? ImmutableList.of(aClass) : null;
-              }
-            });
+          public List<PsiClass> apply(@Nullable Void input) {
+            PsiClass aClass =
+              JavaPsiFacade.getInstance(project).findClass(myClassName, GlobalSearchScope.moduleWithLibrariesScope(myCurrentModule));
+            return aClass != null ? ImmutableList.of(aClass) : null;
           }
-        }.execute();
+        });
       }
     });
   }
