@@ -16,11 +16,15 @@
 package com.android.tools.idea.gradle;
 
 import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.*;
 import com.intellij.execution.configurations.JavaParameters;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestCase;
@@ -56,6 +60,22 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     myPatcher = new AndroidJunitPatcher();
     myJavaParameters = new JavaParameters();
     myJavaParameters.getClassPath().addAll(getExampleClasspath());
+
+    // Adding the facet makes Projects#isBuildWithGradle return 'true'.
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        FacetManager facetManager = FacetManager.getInstance(myModule);
+        ModifiableFacetModel model = facetManager.createModifiableModel();
+        try {
+          AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
+          model.addFacet(facet);
+        }
+        finally {
+          model.commit();
+        }
+      }
+    });
   }
 
   private List<String> getExampleClasspath() {
