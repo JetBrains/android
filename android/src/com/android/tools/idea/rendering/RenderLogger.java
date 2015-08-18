@@ -34,8 +34,10 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -117,6 +119,14 @@ public class RenderLogger extends LayoutLog {
     return myModule;
   }
 
+  @Nullable
+  public Project getProject() {
+    if (myModule != null) {
+      return myModule.getProject();
+    }
+    return null;
+  }
+
   public void addMessage(@NotNull RenderProblem message) {
     if (myMessages == null) {
       myMessages = Lists.newArrayList();
@@ -173,7 +183,7 @@ public class RenderLogger extends LayoutLog {
 
   @Override
   public void error(@Nullable String tag, @Nullable String message, @Nullable Object data) {
-    String description = describe(message);
+    String description = describe(message, null);
 
     if (LOG_ALL) {
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
@@ -187,7 +197,7 @@ public class RenderLogger extends LayoutLog {
 
     // Workaround: older layout libraries don't provide a tag for this error
     if (tag == null && message != null &&
-        (message.startsWith("Failed to find style ") || message.startsWith("Unable to resolve parent style name: "))) { //$NON-NLS-1$
+        (message.startsWith("Failed to find style ") || message.startsWith("Unable to resolve parent style name: "))) {
       tag = LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
     }
     addTag(tag);
@@ -208,7 +218,7 @@ public class RenderLogger extends LayoutLog {
 
   @Override
   public void error(@Nullable String tag, @Nullable String message, @Nullable Throwable throwable, @Nullable Object data) {
-    String description = describe(message);
+    String description = describe(message, throwable);
     if (LOG_ALL) {
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {
@@ -387,7 +397,12 @@ public class RenderLogger extends LayoutLog {
     }
 
     addTag(tag);
-    addMessage(RenderProblem.createPlain(ERROR, description).tag(tag).throwable(throwable));
+    if (getProject() == null) {
+      addMessage(RenderProblem.createPlain(ERROR, description).tag(tag).throwable(throwable));
+    } else {
+      addMessage(RenderProblem.createPlain(ERROR, description, getProject(), getLinkManager(), throwable).tag(tag));
+    }
+
   }
 
   /**
@@ -404,7 +419,7 @@ public class RenderLogger extends LayoutLog {
 
   @Override
   public void warning(@Nullable String tag, @NotNull String message, @Nullable Object data) {
-    String description = describe(message);
+    String description = describe(message, null);
 
     if (TAG_INFO.equals(tag)) {
       Logger.getInstance(getClass()).info(description);
@@ -479,7 +494,7 @@ public class RenderLogger extends LayoutLog {
       return;
     }
 
-    String description = describe(message);
+    String description = describe(message, throwable);
     if (myFidelityWarningStrings != null && myFidelityWarningStrings.contains(description)) {
       // Exclude duplicates
       return;
@@ -533,9 +548,9 @@ public class RenderLogger extends LayoutLog {
   }
 
   @NotNull
-  private static String describe(@Nullable String message) {
-    if (message == null) {
-      return "";
+  private static String describe(@Nullable String message, @Nullable Throwable throwable) {
+    if (StringUtil.isEmptyOrSpaces(message)) {
+      return throwable != null && throwable.getMessage() != null ? throwable.getMessage() : "";
     }
     else {
       return message;

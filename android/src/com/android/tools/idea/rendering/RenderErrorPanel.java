@@ -934,13 +934,20 @@ public class RenderErrorPanel extends JPanel {
         }
 
         String html = message.getHtml();
-        builder.getStringBuilder().append(html);
-        builder.newlineIfNecessary();
-
         Throwable throwable = message.getThrowable();
+
         if (throwable != null) {
           reportSandboxError(builder, throwable, false, true);
-          reportThrowable(builder, throwable, !html.isEmpty());
+          if (reportThrowable(builder, throwable, !html.isEmpty() || !message.isDefaultHtml())) {
+            // The error was hidden.
+            if (!html.isEmpty()) {
+              builder.getStringBuilder().append(html);
+              builder.newlineIfNecessary();
+            }
+          }
+        } else {
+          builder.getStringBuilder().append(html);
+          builder.newlineIfNecessary();
         }
 
         if (tag != null) {
@@ -1012,8 +1019,12 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  /** Display the problem list encountered during a render */
-  private void reportThrowable(@NotNull HtmlBuilder builder, @NotNull final Throwable throwable, boolean hideIfIrrelevant) {
+  /**
+   * Display the problem list encountered during a render.
+   *
+   * @return if the throwable was hidden.
+   */
+  private boolean reportThrowable(@NotNull HtmlBuilder builder, @NotNull final Throwable throwable, boolean hideIfIrrelevant) {
     StackTraceElement[] frames = throwable.getStackTrace();
     int end = -1;
     boolean haveInterestingFrame = false;
@@ -1036,7 +1047,7 @@ public class RenderErrorPanel extends JPanel {
           ShowExceptionFix detailsFix = new ShowExceptionFix(myResult.getModule().getProject(), throwable);
           builder.addLink("Show Exception", myLinkManager.createRunnableLink(detailsFix));
         }
-        return;
+        return true;
       } else {
         // List just the top frames
         for (int i = 0; i < frames.length; i++) {
@@ -1136,6 +1147,7 @@ public class RenderErrorPanel extends JPanel {
         }
       }
     }));
+    return false;
   }
 
   private static boolean isHiddenFrame(StackTraceElement frame) {
