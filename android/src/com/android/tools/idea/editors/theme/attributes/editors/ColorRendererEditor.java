@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.*;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
@@ -22,13 +23,14 @@ import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
+import com.google.common.collect.Iterables;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * Class that implements a {@link javax.swing.JTable} renderer and editor for color attributes.
@@ -40,34 +42,21 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
 
   @Override
   protected void updateComponent(@NotNull ThemeEditorContext context, @NotNull ResourceComponent component, @NotNull EditedStyleItem item) {
-    assert context.getResourceResolver() != null;
+    ResourceResolver resourceResolver = context.getResourceResolver();
+    assert resourceResolver != null;
 
-    final List<Color> colors = ResourceHelper.resolveMultipleColors(context.getResourceResolver(), item.getSelectedValue(), context.getProject());
+    final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, item.getSelectedValue(), context.getProject());
     component.setSwatchIcons(SwatchComponent.colorListOf(colors));
     component.setNameText(item.getQualifiedName());
     component.setValueText(item.getValue());
 
-    Set<String> lowContrastColors = ColorUtils.getLowContrastColors(context, item);
-    if (!lowContrastColors.isEmpty()) {
-      component.setWarningVisible(true);
-      // Using html for the tooltip because the color names are bold
-      // Formatted color names are concatenated into an error message
-      StringBuilder contrastErrorMessageBuilder = new StringBuilder("<html>Not enough contrast with ");
-      int i = 0;
-      for (String color : lowContrastColors) {
-        contrastErrorMessageBuilder.append(color);
-        if (i < lowContrastColors.size() - 2) {
-          contrastErrorMessageBuilder.append(", ");
-        }
-        else if (i == lowContrastColors.size() - 2) {
-          contrastErrorMessageBuilder.append(" and ");
-        }
-        i++;
-      }
-      myComponent.setWarning(contrastErrorMessageBuilder.toString());
+    if (!colors.isEmpty()) {
+      Color color = Iterables.getLast(colors);
+      Map<String, Color> contrastColorsWithWarning = ColorUtils.getContrastColorsWithWarning(context, item.getName());
+      component.setWarning(ColorUtils.getContrastWarningMessage(contrastColorsWithWarning, color));
     }
     else {
-      component.setWarningVisible(false);
+      component.setWarning(null);
     }
   }
 

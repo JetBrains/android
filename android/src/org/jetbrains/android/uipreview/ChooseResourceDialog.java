@@ -16,13 +16,12 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.MaterialColorUtils;
-import com.android.tools.idea.editors.theme.StateListPicker;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.editors.theme.MaterialColors;
+import com.android.tools.idea.editors.theme.*;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
@@ -32,12 +31,7 @@ import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.ide.util.treeView.NodeRenderer;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.ActionPopupMenu;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -49,11 +43,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.ColorPickerListener;
-import com.intellij.ui.DoubleClickListener;
-import com.intellij.ui.JBSplitter;
-import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.TreeSpeedSearch;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.treeStructure.Tree;
@@ -74,31 +64,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.ToolTipManager;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -106,14 +72,13 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Resource Chooser, with previews. Based on ResourceDialog in the android-designer.
@@ -191,41 +156,27 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   }
 
   public ChooseResourceDialog(@NotNull Module module, @NotNull ResourceType[] types, @Nullable String value, @Nullable XmlTag tag) {
-    this(module, types, value, tag, ResourceNameVisibility.HIDE, null);
+    this(module, null, types, value, false, tag, ResourceNameVisibility.HIDE, null);
   }
 
-  /**
-   * Constructor to use when the dialog needs to know the name of the resource used to open it
-   */
-  public ChooseResourceDialog(@NotNull Module module,
-                              @NotNull ResourceType[] types,
-                              @Nullable String value,
-                              @Nullable XmlTag tag,
-                              ResourceNameVisibility resourceNameVisibility,
-                              @Nullable String resourceName) {
-    this(module, null, types, value, tag, resourceNameVisibility, resourceName, null);
-  }
-
-  /**
-   * Constructor to use to get the statelist panel, where the statelist shown is the one represented by colorStates
-   */
   public ChooseResourceDialog(@NotNull Module module,
                               @NotNull Configuration configuration,
                               @NotNull ResourceType[] types,
-                              @NotNull ResourceHelper.StateList stateList,
-                              ResourceNameVisibility resourceNameVisibility,
-                              @Nullable String resourceName) {
-    this(module, configuration, types, null, null, resourceNameVisibility, resourceName, stateList);
+                              @NotNull String value,
+                              boolean isFrameworkValue,
+                              @NotNull ResourceNameVisibility resourceNameVisibility,
+                              @Nullable String resourceNameSuggestion) {
+    this(module, configuration, types, value, isFrameworkValue, null, resourceNameVisibility, resourceNameSuggestion);
   }
 
   private ChooseResourceDialog(@NotNull Module module,
                                @Nullable Configuration configuration,
                                @NotNull ResourceType[] types,
                                @Nullable String value,
+                               boolean isFrameworkValue,
                                @Nullable XmlTag tag,
-                               ResourceNameVisibility resourceNameVisibility,
-                               @Nullable String resourceName,
-                               @Nullable ResourceHelper.StateList stateList) {
+                               @NotNull ResourceNameVisibility resourceNameVisibility,
+                               @Nullable String resourceNameSuggestion) {
     super(module.getProject());
     myModule = module;
     myTag = tag;
@@ -244,65 +195,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     myProjectPanel.myTreeBuilder.expandAll(null);
     mySystemPanel.myTreeBuilder.expandAll(null);
 
-    boolean doSelection = value != null;
-    int numberOfTabs = 2;
-
-    if (ArrayUtil.contains(ResourceType.COLOR, types) || ArrayUtil.contains(ResourceType.DRAWABLE, types)) {
-      Color color = ResourceHelper.parseColor(value);
-      myColorPicker = new ColorPicker(myDisposable, color, true, new ColorPickerListener() {
-        @Override
-        public void colorChanged(Color color) {
-          notifyResourcePickerListeners(ResourceHelper.colorToString(color));
-        }
-
-        @Override
-        public void closed(@Nullable Color color) {
-        }
-      });
-      myColorPicker.pickARGB();
-
-      myColorPickerPanel = new ResourceDialogTabComponent(new JPanel(new BorderLayout()), ResourceType.COLOR, ResourceFolderType.VALUES);
-      myColorPickerPanel.setBorder(null);
-      myColorPickerPanel.addCenter(myColorPicker);
-      myContentPanel.addTab("Color", myColorPickerPanel);
-      numberOfTabs++;
-
-      if (myResourceNameVisibility != ResourceNameVisibility.HIDE) {
-        myColorPickerPanel.addResourceDialogSouthPanel(resourceName, false);
-      }
-
-      if (color != null) {
-        myContentPanel.setSelectedIndex(numberOfTabs - 1);
-        doSelection = false;
-      }
-      myColorPickerPanel.setValidator(
-        ResourceNameValidator.create(false, AppResourceRepository.getAppResources(myModule, true), ResourceType.COLOR, false));
-    }
-    if (stateList != null) {
-      final ResourceFolderType resFolderType = stateList.getType();
-      final ResourceType resType = ResourceType.getEnum(resFolderType.getName());
-      assert resType != null;
-
-      assert configuration != null;
-      myStateListPicker = new StateListPicker(stateList, module, configuration);
-      myStateListPickerPanel = new ResourceDialogTabComponent(new JPanel(new BorderLayout()), resType, resFolderType);
-      myStateListPickerPanel.setBorder(null);
-      myStateListPickerPanel.addCenter(myStateListPicker);
-      myStateListPickerPanel.setChangeFileNameVisible(false);
-
-      myContentPanel.addTab("StateList", myStateListPickerPanel);
-      numberOfTabs++;
-
-      if (myResourceNameVisibility != ResourceNameVisibility.HIDE) {
-        myStateListPickerPanel.addResourceDialogSouthPanel(resourceName, true);
-      }
-
-      myContentPanel.setSelectedIndex(numberOfTabs - 1);
-
-      myStateListPickerPanel.setValidator(
-        ResourceNameValidator.create(true, AppResourceRepository.getAppResources(myModule, true), resType, true));
-    }
-    if (doSelection && value.startsWith("@")) {
+    if (value != null && value.startsWith("@")) {
       value = StringUtil.replace(value, "+", "");
       int index = value.indexOf('/');
       if (index != -1) {
@@ -322,6 +215,73 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       }
     }
 
+    Color color = null;
+    if (configuration != null) {
+      assert value != null;
+
+      ResourceResolver resolver = configuration.getResourceResolver();
+      assert resolver != null;
+      ResourceValue resValue = resolver.findResValue(value, isFrameworkValue);
+      ResourceHelper.StateList stateList = resValue != null ? ResourceHelper.resolveStateList(resolver, resValue, module.getProject()) : null;
+
+      if (stateList != null) {
+        final ResourceFolderType resFolderType = stateList.getType();
+        final ResourceType resType = ResourceType.getEnum(resFolderType.getName());
+        assert resType != null;
+
+        myStateListPicker = new StateListPicker(stateList, module, configuration);
+        myStateListPickerPanel = new ResourceDialogTabComponent(new JPanel(new BorderLayout()), resType, resFolderType);
+        myStateListPickerPanel.setBorder(null);
+        myStateListPickerPanel.addCenter(myStateListPicker);
+        myStateListPickerPanel.setChangeFileNameVisible(false);
+
+        if (myResourceNameVisibility != ResourceNameVisibility.HIDE) {
+          myStateListPickerPanel.addResourceDialogSouthPanel(resourceNameSuggestion, true);
+        }
+
+        myStateListPickerPanel
+          .setValidator(ResourceNameValidator.create(true, AppResourceRepository.getAppResources(myModule, true), resType, true));
+      }
+      else {
+        color = ResourceHelper.resolveColor(resolver, resValue, module.getProject());
+      }
+    }
+
+    if (ArrayUtil.contains(ResourceType.COLOR, types) || ArrayUtil.contains(ResourceType.DRAWABLE, types)) {
+      if (color == null) {
+        color = ResourceHelper.parseColor(value);
+      }
+      myColorPicker = new ColorPicker(myDisposable, color, true, new ColorPickerListener() {
+        @Override
+        public void colorChanged(Color color) {
+          notifyResourcePickerListeners(ResourceHelper.colorToString(color));
+        }
+
+        @Override
+        public void closed(@Nullable Color color) {
+        }
+      });
+      myColorPicker.pickARGB();
+
+      myColorPickerPanel = new ResourceDialogTabComponent(new JPanel(new BorderLayout()), ResourceType.COLOR, ResourceFolderType.VALUES);
+      myColorPickerPanel.setBorder(null);
+      myColorPickerPanel.addCenter(myColorPicker);
+      myContentPanel.addTab("Color", myColorPickerPanel);
+      myContentPanel.setSelectedIndex(myContentPanel.getTabCount() - 1);
+
+      if (myResourceNameVisibility != ResourceNameVisibility.HIDE) {
+        myColorPickerPanel.addResourceDialogSouthPanel(resourceNameSuggestion, false);
+      }
+
+      myColorPickerPanel.setValidator(
+        ResourceNameValidator.create(false, AppResourceRepository.getAppResources(myModule, true), ResourceType.COLOR, false));
+    }
+
+    if (myStateListPicker != null) {
+      myContentPanel.addTab("StateList", myStateListPickerPanel);
+      myContentPanel.setSelectedIndex(myContentPanel.getTabCount() - 1);
+    }
+
     myContentPanel.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(ChangeEvent e) {
@@ -333,6 +293,15 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     init();
     // we need to trigger this once before the window is made visible to update any extra labels
     doValidate();
+  }
+
+  public void setContrastParameters(@NotNull Map<String, Color> contrastColorsWithWarning, boolean isBackground) {
+    if (myColorPicker != null) {
+      myColorPicker.setContrastParameters(contrastColorsWithWarning, isBackground);
+    }
+    if (myStateListPicker != null) {
+      myStateListPicker.setContrastParameters(contrastColorsWithWarning, isBackground);
+    }
   }
 
   @Override
