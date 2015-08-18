@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-
 /**
- * Parses a specific element of a build.gradle file.
+ * Common configuration names used in dependencies.
  */
-interface GradleDslElementParser {
-  /**
-   * Attempts to parse the given PSI element.
-   *
-   * @param e the PSI element to parse.
-   * @param buildFile the build.gradle file being parsed.
-   * @return {@code true} if this parser was able to parse the given PSI element; {@code false} otherwise.
-   */
-  boolean parse(@NotNull GroovyPsiElement e, @NotNull GradleBuildModel buildFile);
+public final class CommonConfigurationNames {
+  public static final String ANDROID_TEST_COMPILE = "androidTestCompile";
+  public static final String APK = "apk";
+  public static final String COMPILE = "compile";
+  public static final String DEBUG_COMPILE = "debugCompile";
+  public static final String PROVIDED = "provided";
+  public static final String RELEASE_COMPILE = "releaseCompile";
+  public static final String RUNTIME = "runtime";
+  public static final String TEST_COMPILE = "testCompile";
+  public static final String TEST_RUNTIME = "testRuntime";
+
+  private CommonConfigurationNames() {
+  }
 }

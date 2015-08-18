@@ -39,7 +39,7 @@ import static com.intellij.psi.util.PsiTreeUtil.*;
  */
 class DependenciesElementParser implements GradleDslElementParser {
   @Override
-  public boolean parse(@NotNull GroovyPsiElement e, @NotNull GradleBuildFile buildFile) {
+  public boolean parse(@NotNull GroovyPsiElement e, @NotNull GradleBuildModel buildFile) {
     if (e instanceof GrMethodCallExpression) {
       GrMethodCallExpression expression = (GrMethodCallExpression)e;
       GrReferenceExpression childExpression = findChildOfType(expression, GrReferenceExpression.class);
@@ -57,7 +57,7 @@ class DependenciesElementParser implements GradleDslElementParser {
     return false;
   }
 
-  private static void parse(@NotNull GrClosableBlock closure, @NotNull GradleBuildFile buildFile) {
+  private static void parse(@NotNull GrClosableBlock closure, @NotNull GradleBuildModel buildFile) {
     DependenciesElement dependencies = new DependenciesElement(closure);
     Collection<GrMethodCallExpression> expressions = findChildrenOfType(closure, GrMethodCallExpression.class);
     for (GrMethodCallExpression expression : expressions) {
