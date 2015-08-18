@@ -34,7 +34,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashSet;
@@ -116,14 +115,6 @@ public class RenderLogger extends LayoutLog {
   @Nullable
   public Module getModule() {
     return myModule;
-  }
-
-  @Nullable
-  public Project getProject() {
-    if (myModule != null) {
-      return myModule.getProject();
-    }
-    return null;
   }
 
   public void addMessage(@NotNull RenderProblem message) {
@@ -396,12 +387,7 @@ public class RenderLogger extends LayoutLog {
     }
 
     addTag(tag);
-    if (getProject() == null) {
-      addMessage(RenderProblem.createPlain(ERROR, description).tag(tag).throwable(throwable));
-    } else {
-      addMessage(RenderProblem.createPlain(ERROR, description, getProject(), getLinkManager(), throwable).tag(tag));
-    }
-
+    addMessage(RenderProblem.createPlain(ERROR, description).tag(tag).throwable(throwable));
   }
 
   /**
