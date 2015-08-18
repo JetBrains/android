@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.dsl.parser.DependenciesElement;
 import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyElement;
-import com.android.tools.idea.gradle.dsl.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -56,9 +56,9 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testParseExternalDependenciesWithCompactNotation() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
-    GradleBuildFile parsedBuildFile = openAndParseAppBuildFile(projectFrame);
+    GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
 
-    List<DependenciesElement> dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
@@ -79,9 +79,9 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testAddExternalDependencyWithCompactNotation() throws IOException {
     final IdeFrameFixture projectFrame = importSimpleApplication();
-    final GradleBuildFile parsedBuildFile = openAndParseAppBuildFile(projectFrame);
+    final GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
 
-    List<DependenciesElement> dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
     assertThat(dependenciesBlocks).hasSize(1);
     final Ref<DependenciesElement> dependenciesBlockRef = new Ref<DependenciesElement>(dependenciesBlocks.get(0));
 
@@ -97,11 +97,11 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
             dependenciesBlockRef.get().addExternalDependency("compile", "joda-time:joda-time:2.3");
           }
         });
-        parsedBuildFile.reparse();
+        buildModel.reparse();
       }
     });
 
-    dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    dependenciesBlocks = buildModel.getDependenciesBlocksView();
     assertThat(dependenciesBlocks).hasSize(1);
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
 
@@ -127,9 +127,9 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSetVersionOnExternalDependencyWithCompactNotation() throws IOException {
     final IdeFrameFixture projectFrame = importSimpleApplication();
-    final GradleBuildFile parsedBuildFile = openAndParseAppBuildFile(projectFrame);
+    final GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
 
-    List<DependenciesElement> dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
     assertThat(dependenciesBlocks).hasSize(1);
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
 
@@ -150,11 +150,11 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
             appCompat.setVersion("1.2.3");
           }
         });
-        parsedBuildFile.reparse();
+        buildModel.reparse();
       }
     });
 
-    dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    dependenciesBlocks = buildModel.getDependenciesBlocksView();
     assertThat(dependenciesBlocks).hasSize(1);
     dependenciesBlock = dependenciesBlocks.get(0);
 
@@ -172,8 +172,8 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
     IdeFrameFixture projectFrame = importSimpleApplication();
     replaceDependenciesInAppBuildFile(projectFrame, "compile group: 'com.google.code.guice', name: 'guice', version: '1.0'");
 
-    GradleBuildFile parsedBuildFile = openAndParseAppBuildFile(projectFrame);
-    List<DependenciesElement> dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
@@ -191,8 +191,8 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
     final IdeFrameFixture projectFrame = importSimpleApplication();
     replaceDependenciesInAppBuildFile(projectFrame, "compile group: 'com.google.code.guice', name: 'guice', version: '1.0'");
 
-    final GradleBuildFile parsedBuildFile = openAndParseAppBuildFile(projectFrame);
-    List<DependenciesElement> dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    final GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
@@ -209,11 +209,11 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
             guice.setVersion("1.2.3");
           }
         });
-        parsedBuildFile.reparse();
+        buildModel.reparse();
       }
     });
 
-    dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    dependenciesBlocks = buildModel.getDependenciesBlocksView();
     assertThat(dependenciesBlocks).hasSize(1);
     dependenciesBlock = dependenciesBlocks.get(0);
 
@@ -250,21 +250,21 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
       }
     });
 
-    final GradleBuildFile parsedBuildFile = openAndParseAppBuildFile(projectFrame);
+    final GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         WriteCommandAction.runWriteCommandAction(projectFrame.getProject(), new Runnable() {
           @Override
           public void run() {
-            parsedBuildFile.addExternalDependency("compile", "joda-time:joda-time:2.3");
+            buildModel.addExternalDependency("compile", "joda-time:joda-time:2.3");
           }
         });
-        parsedBuildFile.reparse();
+        buildModel.reparse();
       }
     });
 
-    List<DependenciesElement> dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
@@ -284,9 +284,9 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
     replaceDependenciesInAppBuildFile(projectFrame,
                                       "runtime /* Hey */ 'org.springframework:spring-core:2.5', /* Hey */ 'org.springframework:spring-aop:2.5'");
 
-    GradleBuildFile parsedBuildFile = openAndParseAppBuildFile(projectFrame);
+    GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
 
-    List<DependenciesElement> dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
@@ -313,9 +313,9 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
                                       "        [group: 'org.springframework', name: 'spring-aop', version: '2.5']\n" +
                                       "    )");
 
-    GradleBuildFile parsedBuildFile = openAndParseAppBuildFile(projectFrame);
+    GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
 
-    List<DependenciesElement> dependenciesBlocks = parsedBuildFile.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
@@ -361,19 +361,19 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
   }
 
   @NotNull
-  private static GradleBuildFile openAndParseAppBuildFile(@NotNull final IdeFrameFixture projectFrame) {
+  private static GradleBuildModel openAndParseAppBuildFile(@NotNull final IdeFrameFixture projectFrame) {
     String relativePath = APP_BUILD_GRADLE_RELATIVE_PATH;
     projectFrame.getEditor().open(relativePath).getCurrentFile();
     final VirtualFile appBuildFile = projectFrame.findFileByRelativePath(relativePath, true);
-    GradleBuildFile parsed = execute(new GuiQuery<GradleBuildFile>() {
+    GradleBuildModel buildModel = execute(new GuiQuery<GradleBuildModel>() {
       @Override
       @NotNull
-      protected GradleBuildFile executeInEDT() throws Throwable {
-        return GradleBuildFile.parseFile(appBuildFile, projectFrame.getProject());
+      protected GradleBuildModel executeInEDT() throws Throwable {
+        return GradleBuildModel.parseBuildFile(appBuildFile, projectFrame.getProject());
       }
     });
-    assertNotNull(parsed);
-    return parsed;
+    assertNotNull(buildModel);
+    return buildModel;
   }
 
   @NotNull
