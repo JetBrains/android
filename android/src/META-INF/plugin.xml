@@ -46,6 +46,14 @@
       <skipForDefaultProject/>
     </component>
     <component>
+      <implementation-class>com.android.tools.idea.editors.navigation.macros.Macros</implementation-class>
+      <skipForDefaultProject/>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.rendering.PsiProjectListener</implementation-class>
+      <skipForDefaultProject/>
+    </component>
+    <component>
       <implementation-class>com.android.tools.idea.rendering.ResourceNotificationManager</implementation-class>
       <skipForDefaultProject/>
     </component>
