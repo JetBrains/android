@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.grid;
 
 import java.lang.reflect.Field;
+import java.util.Formatter;
 
 final class ChildInfo {
   private final int row1;
@@ -53,5 +54,17 @@ final class ChildInfo {
 
   int getColumn2() {
     return column2;
+  }
+
+  @Override
+  public String toString() {
+    Formatter formatter = new Formatter();
+
+    formatter.format("row1: %s%n", row1);
+    formatter.format("column1: %s%n", column1);
+    formatter.format("row2: %s%n", row2);
+    formatter.format("column2: %s%n", column2);
+
+    return formatter.toString();
   }
 }
