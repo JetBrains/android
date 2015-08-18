@@ -92,19 +92,6 @@ public class ThemeEditorTableFixture extends JTableFixture {
   }
 
   @Nullable
-  public String colorValueAt(@NotNull final TableCell cell) {
-    return execute(new GuiQuery<String>() {
-      @Override
-      protected String executeInEDT() throws Throwable {
-        Component renderer = rendererComponentAt(cell);
-        assertTrue(renderer instanceof ResourceComponent);
-        ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)renderer);
-        return resourceComponent.getColorValue();
-      }
-    });
-  }
-
-  @Nullable
   public List<String> getComboBoxContentsAt(@NotNull final TableCell cell) {
     return execute(new GuiQuery<List<String>>() {
       @Override

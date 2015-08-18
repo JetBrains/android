@@ -38,6 +38,7 @@ public class ResourceComponent extends JPanel {
    * Maximum number of swatch icons to be displayed by default. See {@link SwatchComponent} constructor for more details.
    */
   private static final short MAX_SWATCH_ICONS = 3;
+  public static final String NAME_LABEL = "Name Label";
 
   private final SwatchComponent mySwatchComponent = new SwatchComponent(MAX_SWATCH_ICONS);
   private final ClickableLabel myNameLabel = new ClickableLabel();
@@ -52,6 +53,7 @@ public class ResourceComponent extends JPanel {
     myWarningLabel.setIcon(AllIcons.General.BalloonWarning);
     myWarningLabel.setVisible(false);
 
+    myNameLabel.setName(NAME_LABEL);
     myNameLabel.setForeground(ThemeEditorConstants.RESOURCE_ITEM_COLOR);
     myNameLabel.setFont(myNameLabel.getFont().deriveFont(Font.BOLD));
 
