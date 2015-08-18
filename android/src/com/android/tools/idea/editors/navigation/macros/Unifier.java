@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
+import com.google.common.base.Objects;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafElement;
@@ -22,6 +23,7 @@ import com.intellij.psi.impl.source.tree.java.PsiIdentifierImpl;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
@@ -32,12 +34,12 @@ public class Unifier {
   // A stand-in method name used to make statement wildcards: wild cards that match statements - e.g. $f.$()
   public static final String STATEMENTS_SENTINEL = "$$";
   // A stand-in method name used to match blocks: wild cards that match a set of statements - e.g. $f.$$()
-  private static final boolean DEBUG = false;
+  public static boolean DEBUG = false;
   private int indent = 0;
 
   @Nullable
-  public static Map<String, PsiElement> match(PsiMethod method, PsiElement element) {
-    return new Unifier().unify(method.getParameterList(), method.getBody().getStatements()[0].getFirstChild(), element);
+  public static Map<String, PsiElement> match(CodeTemplate template, PsiElement element) {
+    return new Unifier().unify(template.getParameters(), template.getBody(), element);
   }
 
   /*
@@ -55,24 +57,15 @@ public class Unifier {
   }
 
   @Nullable
-  public Map<String, PsiElement> unify(PsiMethod macro, PsiElement candidate) {
-    return unify(macro.getParameterList(), macro.getBody(), candidate);
-  }
-
-  @Nullable
-  public Map<String, PsiElement> unify(PsiParameterList parameterList, PsiElement body, PsiElement candidate) {
+  public Map<String, PsiElement> unify(List<String> parameterList, PsiElement body, PsiElement candidate) {
     Matcher myMatcher = new Matcher(candidate);
-    for (PsiParameter parameter : parameterList.getParameters()) {
-      myMatcher.bindings.put(parameter.getName(), UNBOUND);
+    for (String parameter : parameterList) {
+      myMatcher.bindings.put(parameter, UNBOUND);
     }
     body.accept(myMatcher);
     Map<String, PsiElement> bindings = myMatcher.getBindings();
     if (DEBUG) System.out.println("Unifier: bindings = " + bindings);
     return bindings;
-  }
-
-  private static boolean equals2(@Nullable Object a, @Nullable Object b) {
-    return a == null ? b == null : a.equals(b);
   }
 
   private class Matcher extends JavaElementVisitor {
@@ -193,7 +186,7 @@ public class Unifier {
               PsiClass c1 = (PsiClass)r1;
               PsiClass c2 = (PsiClass)r2;
               // When one psi class is compiled but the other is from source, the instances are not '=='. Compare qualified names.
-              if (equals2(c1.getQualifiedName(), c2.getQualifiedName())){
+              if (Objects.equal(c1.getQualifiedName(), c2.getQualifiedName())){
                 return;
               }
             }

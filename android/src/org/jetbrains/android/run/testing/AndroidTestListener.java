@@ -116,10 +116,9 @@ public class AndroidTestListener implements ITestRunListener {
 
   @Override
   public void testAssumptionFailure(TestIdentifier test, String trace) {
-    ServiceMessageBuilder builder = ServiceMessageBuilder.testFailed(test.getTestName());
-    builder.addAttribute("message", "Assumption Failed");
+    ServiceMessageBuilder builder = ServiceMessageBuilder.testIgnored(test.getTestName());
+    builder.addAttribute("message", "Test ignored. Assumption Failed:");
     builder.addAttribute("details", trace);
-    builder.addAttribute("error", "true");
     getProcessHandler().notifyTextAvailable(builder.toString() + "\n", ProcessOutputTypes.STDOUT);
   }
 

@@ -16,20 +16,34 @@
 package com.android.tools.idea.sdk.wizard;
 
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
 import com.android.tools.idea.wizard.DialogWrapperHost;
 import com.android.tools.idea.wizard.DynamicWizard;
 import com.android.tools.idea.wizard.DynamicWizardPath;
 import com.android.tools.idea.wizard.ScopedStateStore;
+import com.google.common.collect.Sets;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.SystemInfo;
+import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.SKIPPED_INSTALL_REQUESTS_KEY;
 
 /**
  * Provides a wizard which can install a list of items.
@@ -76,16 +90,124 @@ public class SdkQuickfixWizard extends DynamicWizard {
   @Override
   public void init() {
     ScopedStateStore state = getState();
-    for (IPkgDesc desc : myRequestedPackages) {
-      state.listPush(INSTALL_REQUESTS_KEY, desc);
-    }
     addPath(new SdkQuickfixPath(getDisposable()));
+
+    Set<IPkgDesc> problems = findProblemPackages();
+    int selectedOption = 1; // Install all, default when there are no problems.
+
+    if (!problems.isEmpty()) {
+      StringBuilder warningBuilder = new StringBuilder("Due to your system configuration and the packages to be installed, \n" +
+                                                       "it is likely that the following packages cannot be successfully installed while ");
+      warningBuilder.append(ApplicationNamesInfo.getInstance().getFullProductName());
+      warningBuilder.append(" is running. \n\nPlease exit and install the following packages using the standalone SDK manager:");
+      for (IPkgDesc problemPkg : problems) {
+        warningBuilder.append("\n    -");
+        warningBuilder.append(problemPkg.getListDescription());
+      }
+      if (problems.size() == myRequestedPackages.size()) {
+        selectedOption = Messages.showDialog(getProject(), warningBuilder.toString(), "Warning", new String[]{
+          String.format("Exit %s and launch SDK Manager", ApplicationNamesInfo.getInstance().getProductName()),
+          "Attempt to install packages"}, 0, AllIcons.General.Warning);
+      }
+      else {
+        String[] options = new String[] {
+          String.format("Exit %s and launch SDK Manager", ApplicationNamesInfo.getInstance().getProductName()),
+          "Attempt to install all packages",
+          "Install safe packages"
+        };
+
+        selectedOption = Messages.showDialog(
+          getProject(), warningBuilder.toString(), "Warning",
+          options,
+          2, AllIcons.General.Warning);
+      }
+    }
+    if (selectedOption == 0) {
+      startSdkManagerAndExit();
+    }
+    else {
+      for (IPkgDesc desc : myRequestedPackages) {
+        if (selectedOption == 2 && problems.contains(desc)) {
+          state.listPush(SKIPPED_INSTALL_REQUESTS_KEY, desc);
+        }
+        else {
+          state.listPush(INSTALL_REQUESTS_KEY, desc);
+        }
+      }
+    }
     super.init();
+  }
+
+  private void startSdkManagerAndExit() {
+    // We know that the SDK exists since we already used it to look up the fact that a package is an upgrade.
+    //noinspection ConstantConditions
+    RunAndroidSdkManagerAction.runSpecificSdkManagerSynchronously(getProject(), AndroidSdkUtils.tryToChooseAndroidSdk().getLocation());
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        ApplicationManagerEx.getApplicationEx().exit(true, true);
+      }
+    });
+  }
+
+  /**
+   * Find packages that might not be able to be installed while studio is running.
+   * Currently this means packages that are upgrades on windows systems, since windows locks files that are in use.
+   * @return
+   */
+  private Set<IPkgDesc> findProblemPackages() {
+    Set<IPkgDesc> result = Sets.newHashSet();
+    if (!SystemInfo.isWindows) {
+      return result;
+    }
+    SdkState state = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
+    state.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, false);
+    Set<String> available = Sets.newHashSet();
+    for (UpdatablePkgInfo update : state.getPackages().getUpdatedPkgs()) {
+      if (update.hasRemote(false)) {
+        available.add(update.getRemote(false).getPkgDesc().getInstallId());
+      }
+      if (update.hasPreview()) {
+        available.add(update.getRemote(true).getPkgDesc().getInstallId());
+      }
+    }
+    for (IPkgDesc request : myRequestedPackages) {
+      if (available.contains(request.getInstallId())) {
+        // This is an update
+        result.add(request);
+      }
+    }
+    return result;
+
   }
 
   @Override
   public void performFinishingActions() {
-    /* Pass, the installation actions are done in {@link SmwOldApiDirectInstall} */
+    List<IPkgDesc> skipped = myState.get(SKIPPED_INSTALL_REQUESTS_KEY);
+    if (skipped != null && !skipped.isEmpty()) {
+      StringBuilder warningBuilder = new StringBuilder("The following packages were not installed.\n\n Would you like to exit ");
+      warningBuilder.append(ApplicationNamesInfo.getInstance().getFullProductName());
+      warningBuilder.append(" and install the following packages using the standalone SDK manager?");
+      for (IPkgDesc problemPkg : skipped) {
+        warningBuilder.append("\n");
+        warningBuilder.append(problemPkg.getListDescription());
+      }
+      String restartOption = String.format("Exit %s and launch SDK Manager", ApplicationNamesInfo.getInstance().getProductName());
+      int result = Messages.showDialog(getProject(), warningBuilder.toString(), "Warning", new String[]{restartOption, "Skip installation"},
+                                       0, AllIcons.General.Warning);
+      if (result == 0) {
+        startSdkManagerAndExit();
+      }
+    }
+    // We've already installed things, so clearly there's an SDK.
+    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
+    SdkState.getInstance(data).loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, true);
+  }
+
+  @NotNull
+  @Override
+  protected String getProgressTitle() {
+    return "Finishing install...";
   }
 
   @Override
@@ -93,8 +215,9 @@ public class SdkQuickfixWizard extends DynamicWizard {
     return "Provides a method for handling quickfix SDK installation actions";
   }
 
-  private class SdkQuickfixPath extends DynamicWizardPath {
+  private static class SdkQuickfixPath extends DynamicWizardPath {
     private Disposable myDisposable;
+    private LicenseAgreementStep myLicenseAgreementStep;
 
     public SdkQuickfixPath(Disposable disposable) {
       myDisposable = disposable;
@@ -102,7 +225,8 @@ public class SdkQuickfixWizard extends DynamicWizard {
 
     @Override
     protected void init() {
-      addStep(new LicenseAgreementStep(myDisposable));
+      myLicenseAgreementStep = new LicenseAgreementStep(myDisposable);
+      addStep(myLicenseAgreementStep);
       addStep(new SmwOldApiDirectInstall(myDisposable));
     }
 
@@ -114,6 +238,7 @@ public class SdkQuickfixWizard extends DynamicWizard {
 
     @Override
     public boolean performFinishingActions() {
+      myLicenseAgreementStep.performFinishingActions();
       return true;
     }
   }

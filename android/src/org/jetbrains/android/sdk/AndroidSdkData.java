@@ -16,25 +16,16 @@
 
 package org.jetbrains.android.sdk;
 
-import com.android.SdkConstants;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
-import com.android.sdklib.internal.repository.updater.SettingsController;
 import com.android.sdklib.repository.local.LocalSdk;
-import com.android.sdklib.repository.remote.RemoteSdk;
-import com.android.tools.idea.sdk.DefaultSdks;
-import com.android.utils.NullLogger;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.reference.SoftReference;
-import com.intellij.util.containers.HashMap;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,26 +33,26 @@ import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
+import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
+import static com.android.SdkConstants.FD_TOOLS;
+import static com.android.tools.idea.sdk.IdeSdks.isValidAndroidSdkPath;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
+import static org.jetbrains.android.util.AndroidCommonUtils.parsePackageRevision;
+
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidSdkData {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidSdkData");
-
-  private final Map<IAndroidTarget, SoftReference<AndroidTargetData>> myTargetDatas =
-    new HashMap<IAndroidTarget, SoftReference<AndroidTargetData>>();
+  private final Map<IAndroidTarget, SoftReference<AndroidTargetData>> myTargetDataByTarget = Maps.newHashMap();
 
   private final LocalSdk myLocalSdk;
-  private final RemoteSdk myRemoteSdk;
-  private final SettingsController mySettingsController;
   private final DeviceManager myDeviceManager;
 
   private final int myPlatformToolsRevision;
   private final int mySdkToolsRevision;
 
   private static final ConcurrentMap<String/* sdk path */, SoftReference<AndroidSdkData>> ourCache = Maps.newConcurrentMap();
-
-  /** Singleton access classes */
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull File sdkLocation) {
@@ -70,7 +61,7 @@ public class AndroidSdkData {
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull File sdkLocation, boolean forceReparse) {
-    String canonicalPath = FileUtil.toCanonicalPath(sdkLocation.getPath());
+    String canonicalPath = toCanonicalPath(sdkLocation.getPath());
 
     // Try to use cached data.
     if (!forceReparse) {
@@ -87,19 +78,18 @@ public class AndroidSdkData {
     }
 
     File canonicalLocation = new File(canonicalPath);
-    if (!DefaultSdks.isValidAndroidSdkPath(canonicalLocation)) {
+    if (!isValidAndroidSdkPath(canonicalLocation)) {
       return null;
     }
 
-    LocalSdk localSdk = new LocalSdk(canonicalLocation);
-    AndroidSdkData sdkData = new AndroidSdkData((localSdk));
+    AndroidSdkData sdkData = new AndroidSdkData(new LocalSdk(canonicalLocation));
     ourCache.put(canonicalPath, new SoftReference<AndroidSdkData>(sdkData));
     return sdkData;
   }
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull String sdkPath) {
-    File file = new File(FileUtil.toSystemDependentName(sdkPath));
+    File file = new File(toSystemDependentName(sdkPath));
     return getSdkData(file);
   }
 
@@ -128,13 +118,11 @@ public class AndroidSdkData {
 
   private AndroidSdkData(@NotNull LocalSdk localSdk) {
     myLocalSdk = localSdk;
-    mySettingsController = new SettingsController(new NullLogger() /* TODO */);
-    myRemoteSdk = new RemoteSdk(mySettingsController);
-    String path = localSdk.getPath();
-    assert path != null;
-    myPlatformToolsRevision = AndroidCommonUtils.parsePackageRevision(path, SdkConstants.FD_PLATFORM_TOOLS);
-    mySdkToolsRevision = AndroidCommonUtils.parsePackageRevision(path, SdkConstants.FD_TOOLS);
-    myDeviceManager = DeviceManager.createInstance(localSdk.getLocation(), new MessageBuildingSdkLog());
+    File location = getLocation();
+    String locationPath = location.getPath();
+    myPlatformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
+    mySdkToolsRevision = parsePackageRevision(locationPath, FD_TOOLS);
+    myDeviceManager = DeviceManager.createInstance(location, new MessageBuildingSdkLog());
   }
 
   @NotNull
@@ -143,7 +131,6 @@ public class AndroidSdkData {
 
     // The LocalSdk should always have been initialized.
     assert location != null;
-
     return location;
   }
 
@@ -177,18 +164,12 @@ public class AndroidSdkData {
 
   @Nullable
   public IAndroidTarget findTargetByApiLevel(@NotNull String apiLevel) {
-    IAndroidTarget candidate = null;
     for (IAndroidTarget target : getTargets()) {
-      if (AndroidSdkUtils.targetHasId(target, apiLevel)) {
-        if (target.isPlatform()) {
-          return target;
-        }
-        else if (candidate == null) {
-          candidate = target;
-        }
+      if (targetHasId(target, apiLevel)) {
+        return target;
       }
     }
-    return candidate;
+    return null;
   }
 
   @Nullable
@@ -209,27 +190,17 @@ public class AndroidSdkData {
     if (obj == null) return false;
     if (obj.getClass() != getClass()) return false;
     AndroidSdkData sdkData = (AndroidSdkData)obj;
-    return FileUtil.filesEqual(getLocation(), sdkData.getLocation());
+    return filesEqual(getLocation(), sdkData.getLocation());
   }
 
   @Override
   public int hashCode() {
-    return FileUtil.fileHashCode(getLocation());
+    return fileHashCode(getLocation());
   }
 
   @NotNull
   public LocalSdk getLocalSdk() {
     return myLocalSdk;
-  }
-
-  @NotNull
-  public RemoteSdk getRemoteSdk() {
-    return myRemoteSdk;
-  }
-
-  @NotNull
-  public SettingsController getSettingsController() {
-    return mySettingsController;
   }
 
   @NotNull
@@ -239,11 +210,11 @@ public class AndroidSdkData {
 
   @NotNull
   public AndroidTargetData getTargetData(@NotNull IAndroidTarget target) {
-    final SoftReference<AndroidTargetData> targetDataRef = myTargetDatas.get(target);
+    final SoftReference<AndroidTargetData> targetDataRef = myTargetDataByTarget.get(target);
     AndroidTargetData targetData = targetDataRef != null ? targetDataRef.get() : null;
     if (targetData == null) {
       targetData = new AndroidTargetData(this, target);
-      myTargetDatas.put(target, new SoftReference<AndroidTargetData>(targetData));
+      myTargetDataByTarget.put(target, new SoftReference<AndroidTargetData>(targetData));
     }
     return targetData;
   }

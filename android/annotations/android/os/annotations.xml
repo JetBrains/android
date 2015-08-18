@@ -18,6 +18,126 @@
   <item name="android.os.AsyncTask void execute(java.lang.Runnable) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.os.AsyncTask Result doInBackground(Params...)">
+    <annotation name="android.support.annotation.WorkerThread" />
+  </item>
+  <item name="android.os.AsyncTask android.os.AsyncTask&lt;Params,Progress,Result&gt; execute(Params...)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask android.os.AsyncTask&lt;Params,Progress,Result&gt; executeOnExecutor(java.util.concurrent.Executor, Params...)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void execute(java.lang.Runnable)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void onCancelled()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void onCancelled(Result)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void onPostExecute(Result)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void onPreExecute()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void onProgressUpdate(Progress...)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.os.AsyncTask void publishProgress(Progress...)">
+    <annotation name="android.support.annotation.WorkerThread" />
+  </item>
+  <item name="android.os.BaseBundle boolean[] getBooleanArray(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle boolean[] getBooleanArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle double[] getDoubleArray(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle double[] getDoubleArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle int[] getIntArray(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle int[] getIntArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle java.lang.Object get(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle java.lang.String getString(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle java.lang.String getString(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle java.lang.String getString(java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle java.lang.String[] getStringArray(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle java.lang.String[] getStringArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle long[] getLongArray(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle long[] getLongArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putBoolean(java.lang.String, boolean) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putBooleanArray(java.lang.String, boolean[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putBooleanArray(java.lang.String, boolean[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putDouble(java.lang.String, double) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putDoubleArray(java.lang.String, double[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putDoubleArray(java.lang.String, double[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putInt(java.lang.String, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putIntArray(java.lang.String, int[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putIntArray(java.lang.String, int[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putLong(java.lang.String, long) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putLongArray(java.lang.String, long[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putLongArray(java.lang.String, long[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putString(java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putString(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putStringArray(java.lang.String, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.BaseBundle void putStringArray(java.lang.String, java.lang.String[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.os.Binder android.os.UserHandle getCallingUserHandle()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -36,14 +156,245 @@
   <item name="android.os.Bundle EMPTY">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.os.Bundle T getParcelable(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle T getParcelable(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle android.os.Bundle getBundle(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle android.os.Bundle getBundle(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle android.os.IBinder getBinder(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle android.os.IBinder getBinder(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle android.os.Parcelable[] getParcelableArray(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle android.os.Parcelable[] getParcelableArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle android.util.Size getSize(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle android.util.Size getSize(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle android.util.SizeF getSizeF(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle android.util.SizeF getSizeF(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle android.util.SparseArray&lt;T&gt; getSparseParcelableArray(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle android.util.SparseArray&lt;T&gt; getSparseParcelableArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle byte[] getByteArray(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle byte[] getByteArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle char[] getCharArray(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle char[] getCharArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle float[] getFloatArray(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle float[] getFloatArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.io.Serializable getSerializable(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.io.Serializable getSerializable(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.lang.CharSequence getCharSequence(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.lang.CharSequence getCharSequence(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.lang.CharSequence getCharSequence(java.lang.String, java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.lang.CharSequence[] getCharSequenceArray(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.lang.CharSequence[] getCharSequenceArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.os.Bundle java.lang.Object clone()">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Bundle java.util.ArrayList&lt;T&gt; getParcelableArrayList(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.util.ArrayList&lt;T&gt; getParcelableArrayList(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.util.ArrayList&lt;java.lang.CharSequence&gt; getCharSequenceArrayList(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.util.ArrayList&lt;java.lang.CharSequence&gt; getCharSequenceArrayList(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.util.ArrayList&lt;java.lang.Integer&gt; getIntegerArrayList(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.util.ArrayList&lt;java.lang.Integer&gt; getIntegerArrayList(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.util.ArrayList&lt;java.lang.String&gt; getStringArrayList(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle java.util.ArrayList&lt;java.lang.String&gt; getStringArrayList(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.os.Bundle java.util.Set&lt;java.lang.String&gt; keySet()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.os.Bundle short[] getShortArray(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle short[] getShortArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.os.Bundle void putAll(android.os.Bundle) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Bundle void putBinder(java.lang.String, android.os.IBinder) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putBinder(java.lang.String, android.os.IBinder) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putBundle(java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putBundle(java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putByte(java.lang.String, byte) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putByteArray(java.lang.String, byte[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putByteArray(java.lang.String, byte[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putChar(java.lang.String, char) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putCharArray(java.lang.String, char[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putCharArray(java.lang.String, char[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putCharSequence(java.lang.String, java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putCharSequence(java.lang.String, java.lang.CharSequence) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putCharSequenceArray(java.lang.String, java.lang.CharSequence[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putCharSequenceArray(java.lang.String, java.lang.CharSequence[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putCharSequenceArrayList(java.lang.String, java.util.ArrayList&lt;java.lang.CharSequence&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putCharSequenceArrayList(java.lang.String, java.util.ArrayList&lt;java.lang.CharSequence&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putFloat(java.lang.String, float) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putFloatArray(java.lang.String, float[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putFloatArray(java.lang.String, float[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putIntegerArrayList(java.lang.String, java.util.ArrayList&lt;java.lang.Integer&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putIntegerArrayList(java.lang.String, java.util.ArrayList&lt;java.lang.Integer&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putParcelable(java.lang.String, android.os.Parcelable) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putParcelable(java.lang.String, android.os.Parcelable) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putParcelableArray(java.lang.String, android.os.Parcelable[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putParcelableArray(java.lang.String, android.os.Parcelable[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putParcelableArrayList(java.lang.String, java.util.ArrayList&lt;? extends android.os.Parcelable&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putParcelableArrayList(java.lang.String, java.util.ArrayList&lt;? extends android.os.Parcelable&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putSerializable(java.lang.String, java.io.Serializable) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putSerializable(java.lang.String, java.io.Serializable) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putShort(java.lang.String, short) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putShortArray(java.lang.String, short[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putShortArray(java.lang.String, short[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putSize(java.lang.String, android.util.Size) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putSize(java.lang.String, android.util.Size) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putSizeF(java.lang.String, android.util.SizeF) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putSizeF(java.lang.String, android.util.SizeF) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putSparseParcelableArray(java.lang.String, android.util.SparseArray&lt;? extends android.os.Parcelable&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putSparseParcelableArray(java.lang.String, android.util.SparseArray&lt;? extends android.os.Parcelable&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putStringArrayList(java.lang.String, java.util.ArrayList&lt;java.lang.String&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Bundle void putStringArrayList(java.lang.String, java.util.ArrayList&lt;java.lang.String&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.os.Bundle void readFromParcel(android.os.Parcel) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -129,11 +480,26 @@
   <item name="android.os.Handler void dump(android.util.Printer, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.os.Looper android.os.Looper myLooper()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Looper android.os.MessageQueue getQueue()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.os.Looper android.os.MessageQueue myQueue()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Looper java.lang.Thread getThread()">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Looper void dump(android.util.Printer, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Looper void dump(android.util.Printer, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Looper void setMessageLogging(android.util.Printer) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.os.MemoryFile int readBytes(byte[], int, int, int) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -154,6 +520,12 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Message void writeToParcel(android.os.Parcel, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.MessageQueue void addIdleHandler(android.os.MessageQueue.IdleHandler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.MessageQueue void removeIdleHandler(android.os.MessageQueue.IdleHandler) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Messenger Messenger(android.os.Handler) 0">
@@ -278,6 +650,18 @@
   </item>
   <item name="android.os.PatternMatcher void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.PersistableBundle android.os.PersistableBundle getPersistableBundle(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.PersistableBundle android.os.PersistableBundle getPersistableBundle(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.PersistableBundle void putPersistableBundle(java.lang.String, android.os.PersistableBundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.PersistableBundle void putPersistableBundle(java.lang.String, android.os.PersistableBundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.os.PowerManager android.os.PowerManager.WakeLock newWakeLock(int, java.lang.String)">
     <annotation name="android.support.annotation.NonNull" />

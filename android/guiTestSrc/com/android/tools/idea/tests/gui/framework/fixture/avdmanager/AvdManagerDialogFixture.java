@@ -15,61 +15,66 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
-import com.android.tools.idea.avdmanager.AvdEditWizard;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.intellij.ui.components.JBLabel;
+import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.table.TableView;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.data.TableCell;
-import org.fest.swing.data.TableCellFinder;
-import org.fest.swing.data.TableCellInRowByValue;
-import org.fest.swing.data.TableCellInSelectedRow;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.*;
+import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JPopupMenuFixture;
+import org.fest.swing.fixture.JTableCellFixture;
+import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
+import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Controls the Avd Manager Dialog for GUI test cases
  */
-public class AvdManagerDialogFixture extends ComponentFixture<JDialog> {
+public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFixture, JFrame> {
 
-  public AvdManagerDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(robot, target);
+  public AvdManagerDialogFixture(@NotNull Robot robot, @NotNull JFrame target) {
+    super(AvdManagerDialogFixture.class, robot, target);
   }
 
   @NotNull
   public static AvdManagerDialogFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JFrame frame = waitUntilFound(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
-        return "AVD Manager".equals(dialog.getTitle()) && dialog.isShowing();
+      protected boolean isMatching(@NotNull JFrame dialog) {
+        return "Android Virtual Device Manager".equals(dialog.getTitle()) && dialog.isShowing();
       }
     });
-    return new AvdManagerDialogFixture(robot, dialog);
+    return new AvdManagerDialogFixture(robot, frame);
   }
 
   public AvdEditWizardFixture createNew() {
     JButton newAvdButton = findButtonByText("Create Virtual Device...");
-    robot.click(newAvdButton);
-    return AvdEditWizardFixture.find(robot);
+    final JButtonFixture button = new JButtonFixture(robot(), newAvdButton);
+    button.requireEnabled();
+    button.requireVisible();
+    button.click();
+    return AvdEditWizardFixture.find(robot());
   }
 
   public AvdEditWizardFixture editAvdWithName(@NotNull String name) {
-    final TableView tableView = robot.finder().findByType(target, TableView.class, true);
-    JTableFixture tableFixture = new JTableFixture(robot, tableView);
-    TableCell cell = tableFixture.cell(name);
-    final TableCell actionCell = TableCell.row(cell.row).column(7);
+    final TableView tableView = robot().finder().findByType(target(), TableView.class, true);
+    JTableFixture tableFixture = new JTableFixture(robot(), tableView);
+    JTableCellFixture cell = tableFixture.cell(name);
+    final TableCell actionCell = TableCell.row(cell.row()).column(7);
 
     JTableCellFixture actionCellFixture = tableFixture.cell(actionCell);
 
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         tableView.editCellAt(actionCell.row, actionCell.column);
@@ -77,50 +82,49 @@ public class AvdManagerDialogFixture extends ComponentFixture<JDialog> {
     });
 
     JPanel actionPanel = (JPanel)actionCellFixture.editor();
-    JBLabel editButtonLabel = robot.finder().find(actionPanel, new GenericTypeMatcher<JBLabel>(JBLabel.class) {
+    HyperlinkLabel editButtonLabel = robot().finder().find(actionPanel, new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
       @Override
-      protected boolean isMatching(JBLabel component) {
+      protected boolean isMatching(@NotNull HyperlinkLabel component) {
         return "Edit this AVD".equals(component.getToolTipText());
       }
     });
-    robot.click(editButtonLabel);
-    return AvdEditWizardFixture.find(robot);
+    robot().click(editButtonLabel);
+    return AvdEditWizardFixture.find(robot());
   }
 
   @NotNull
   private JButton findButtonByText(@NotNull String text) {
-    return robot.finder().find(target, JButtonMatcher.withText(text).andShowing());
+    return robot().finder().find(target(), JButtonMatcher.withText(text).andShowing());
   }
 
   public void selectAvdByName(@NotNull String name) {
-    TableView tableView = robot.finder().findByType(target, TableView.class, true);
-    JTableFixture tableFixture = new JTableFixture(robot, tableView);
+    TableView tableView = robot().finder().findByType(target(), TableView.class, true);
+    JTableFixture tableFixture = new JTableFixture(robot(), tableView);
 
-    TableCell cell = tableFixture.cell(name);
-    tableFixture.selectCell(cell);
+    tableFixture.cell(name).select();
   }
 
   public void deleteAvdByName(String name) {
-    TableView tableView = robot.finder().findByType(target, TableView.class, true);
-    JTableFixture tableFixture = new JTableFixture(robot, tableView);
+    TableView tableView = robot().finder().findByType(target(), TableView.class, true);
+    JTableFixture tableFixture = new JTableFixture(robot(), tableView);
 
-    TableCell cell = tableFixture.cell(name);
-    tableFixture.click(cell, MouseButton.RIGHT_BUTTON);
+    JTableCellFixture cell = tableFixture.cell(name);
+    cell.click(RIGHT_BUTTON);
 
-    JPopupMenu contextMenu = robot.findActivePopupMenu();
-    JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot, contextMenu);
+    JPopupMenu contextMenu = robot().findActivePopupMenu();
+    assertNotNull(contextMenu);
+    JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot(), contextMenu);
     contextMenuFixture.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
       @Override
-      protected boolean isMatching(JMenuItem component) {
+      protected boolean isMatching(@NotNull JMenuItem component) {
         return "Delete".equals(component.getText());
       }
     }).click();
 
-    JOptionPaneFixture optionPaneFixture = new JOptionPaneFixture(robot);
-    optionPaneFixture.yesButton().click();
+    MessagesFixture.findByTitle(robot(), target(), "Confirm Deletion").clickYes();
   }
 
   public void close() {
-    robot.click(findButtonByText("OK"));
+    robot().close(target());
   }
 }

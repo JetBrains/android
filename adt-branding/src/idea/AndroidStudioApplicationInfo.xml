@@ -14,17 +14,20 @@
   ~ limitations under the License.
   -->
 <component>
-  <version major="1" minor="1.0" strict="1.1.0" eap="false" />
+  <version major="1" minor="3" micro="0" patch="10" full="{0}.{1}" eap="false" />
   <company name="Google" url="http://developer.android.com"/>
-  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="135.1286"/>
+  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="141.1532.4"/>
   <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="90c653" progressY="238" progressTailIcon="/community_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
-  <icon size128="/artwork/icon_AS_128.png" size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size12="/artwork/toolWindowProject_AS.png"/>
+  <icon size128="/artwork/icon_AS_128.png" size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size32opaque="/artwork/icon_AS_white.png" size12="/artwork/toolWindowProject_AS.png" ico="artwork/androidstudio.ico"/>
   <package code="__PACKAGE_CODE__"/>
-  <names product="Android Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
+  <names product="Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
 
-  <welcome-screen logo-url="/artwork/welcome.png"/>
+  <welcome-screen logo-url="/artwork/welcome.png"
+                  caption-url="/welcomeCaption_community.png"
+                  slogan-url="/developSlogan_community.png"/>
+
   <editor background-url="/artwork/studio_logo_background.png"/>
 
   <plugins url="http://plugins.jetbrains.com"/>
@@ -33,17 +36,19 @@
 
   <help file="ideahelp.jar" root="idea"/>
   <documentation url="http://tools.android.com/welcome-to-android-studio"/>
-  <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR&amp;status=New"
-        release-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR&amp;status=New"/>
+  <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR &#10;&#10;IMPORTANT: Please read http://tools.android.com/filing-bugs carefully and supply all required information.&amp;status=New"
+        release-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR &#10;&#10;IMPORTANT: Please read http://tools.android.com/filing-bugs carefully and supply all required information.&amp;status=New"/>
   <whatsnew url="http://tools.android.com/recent"/>
   <keymap win="https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"
           mac="https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard_Mac.pdf"/>
 
+  <!--
+  Temporarily disabled: There is a bug in IDEA which prevents having a single plugins page extension.
   <plugins-page category="VCS Integration" title="Select VCS Integration Plugins"/>
-  <plugins-page title="Select Other Plugins"/>
+  -->
 
-  <statistics settings="http://dl-sdk.appspot.com/diamond/stats/stat-assistant.xml"
-              service="http://dl-sdk.appspot.com/diamond/stats/index.jsp"
+  <statistics settings="https://dl.google.com/android/studio/stats/stat-assistant.xml"
+              service="https://dl.google.com/android/studio/stats/upload"
               service-key="android-studio" />
 
 </component>

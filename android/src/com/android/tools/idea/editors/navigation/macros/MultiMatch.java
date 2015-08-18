@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.navigation.macros;
 
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -24,14 +23,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MultiMatch {
-  public final PsiMethod macro;
-  public final Map<String, PsiMethod> subMacros = new LinkedHashMap<String, PsiMethod>(); // make deterministic while prototyping
+  public final CodeTemplate macro;
+  public final Map<String, CodeTemplate> subMacros = new LinkedHashMap<String, CodeTemplate>(); // make deterministic while prototyping
 
-  public MultiMatch(PsiMethod macro) {
+  public MultiMatch(CodeTemplate macro) {
     this.macro = macro;
   }
 
-  public void addSubMacro(String name, PsiMethod macro) {
+  public void addSubMacro(String name, CodeTemplate macro) {
     subMacros.put(name, macro);
   }
 
@@ -42,9 +41,9 @@ public class MultiMatch {
       return null;
     }
     Map<String, Map<String, PsiElement>> subBindings = new HashMap<String, Map<String, PsiElement>>();
-    for (Map.Entry<String, PsiMethod> entry : subMacros.entrySet()) {
+    for (Map.Entry<String, CodeTemplate> entry : subMacros.entrySet()) {
       String name = entry.getKey();
-      PsiMethod template = entry.getValue();
+      CodeTemplate template = entry.getValue();
       Map<String, PsiElement> subBinding = Unifier.match(template, bindings.get(name));
       if (subBinding == null) {
         return null;
@@ -52,18 +51,6 @@ public class MultiMatch {
       subBindings.put(name, subBinding);
     }
     return new Bindings<PsiElement>(bindings, subBindings);
-  }
-
-  public String instantiate(Bindings<String> bindings) {
-    Map<String, String> bb = bindings.bindings;
-
-    for (Map.Entry<String, PsiMethod> entry : subMacros.entrySet()) {
-      String name = entry.getKey();
-      PsiMethod template = entry.getValue();
-      bb.put(name, Instantiation.instantiate2(template, bindings.subBindings.get(name)));
-    }
-
-    return Instantiation.instantiate2(macro, bb);
   }
 
   public static class Bindings<T> {
@@ -75,29 +62,8 @@ public class MultiMatch {
       this.subBindings = subBindings;
     }
 
-    Bindings() {
-      this(new HashMap<String, T>(), new HashMap<String, Map<String, T>>());
-    }
-
     public T get(String key) {
       return bindings.get(key);
-    }
-
-    public void put(String key, T value) {
-      bindings.put(key, value);
-    }
-
-    public T get(String key1, String key2) {
-      Map<String, T> subBinding = subBindings.get(key1);
-      return subBinding == null ? null : subBinding.get(key2);
-    }
-
-    public void put(String key1, String key2, T value) {
-      Map<String, T> subBinding = subBindings.get(key1);
-      if (subBinding == null) {
-        subBindings.put(key1, subBinding = new HashMap<String, T>());
-      }
-      subBinding.put(key2, value);
     }
 
     @Override

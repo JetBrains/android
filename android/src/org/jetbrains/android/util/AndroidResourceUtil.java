@@ -29,6 +29,7 @@ import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -58,6 +59,7 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
+import org.jetbrains.android.dom.resources.ScalarResourceElement;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -141,7 +143,6 @@ public class AndroidResourceUtil {
                                               @NotNull String resourceName,
                                               boolean onlyInOwnPackages) {
     resourceName = getRJavaFieldName(resourceName);
-
     final List<PsiJavaFile> rClassFiles = findRJavaFiles(facet, onlyInOwnPackages);
     final List<PsiField> result = new ArrayList<PsiField>();
 
@@ -150,19 +151,13 @@ public class AndroidResourceUtil {
         continue;
       }
       final PsiClass rClass = findClass(rClassFile.getClasses(), AndroidUtils.R_CLASS_NAME);
-
-      if (rClass != null) {
-        final PsiClass resourceTypeClass = findClass(rClass.getInnerClasses(), resClassName);
-
-        if (resourceTypeClass != null) {
-          final PsiField field = resourceTypeClass.findFieldByName(resourceName, false);
-
-          if (field != null) {
-            result.add(field);
-          }
-        }
-      }
+      findResourceFieldsFromClass(rClass, resClassName, Collections.singleton(resourceName), result);
     }
+    PsiClass inMemoryRClass = facet.getLightRClass();
+    if (inMemoryRClass != null) {
+      findResourceFieldsFromClass(inMemoryRClass, resClassName, Collections.singleton(resourceName), result);
+    }
+
     return result.toArray(new PsiField[result.size()]);
   }
 
@@ -182,24 +177,35 @@ public class AndroidResourceUtil {
       if (rClassFile == null) {
         continue;
       }
-      final PsiClass rClass = findClass(rClassFile.getClasses(), AndroidUtils.R_CLASS_NAME);
+      findResourceFieldsFromClass(findClass(rClassFile.getClasses(), AndroidUtils.R_CLASS_NAME),
+          resClassName, resourceNames, result);
+    }
+    PsiClass inMemoryRClass = facet.getLightRClass();
+    if (inMemoryRClass != null) {
+      findResourceFieldsFromClass(inMemoryRClass, resClassName, resourceNames, result);
+    }
 
-      if (rClass != null) {
-        final PsiClass resourceTypeClass = findClass(rClass.getInnerClasses(), resClassName);
+    return result.toArray(new PsiField[result.size()]);
+  }
 
-        if (resourceTypeClass != null) {
-          for (String resourceName : resourceNames) {
-            String fieldName = getRJavaFieldName(resourceName);
-            final PsiField field = resourceTypeClass.findFieldByName(fieldName, false);
+  private static void findResourceFieldsFromClass(@Nullable PsiClass rClass,
+      @NotNull String resClassName, @NotNull Collection<String> resourceNames,
+      @NotNull List<PsiField> result) {
 
-            if (field != null) {
-              result.add(field);
-            }
+    if (rClass != null) {
+      final PsiClass resourceTypeClass = findClass(rClass.getInnerClasses(), resClassName);
+
+      if (resourceTypeClass != null) {
+        for (String resourceName : resourceNames) {
+          String fieldName = getRJavaFieldName(resourceName);
+          final PsiField field = resourceTypeClass.findFieldByName(fieldName, false);
+
+          if (field != null) {
+            result.add(field);
           }
         }
       }
     }
-    return result.toArray(new PsiField[result.size()]);
   }
 
   @NotNull
@@ -884,6 +890,83 @@ public class AndroidResourceUtil {
     return true;
   }
 
+  public static boolean changeColorResource(@NotNull AndroidFacet facet,
+                                            @NotNull final String colorName,
+                                            @NotNull final String newValue,
+                                            @NotNull String fileName,
+                                            @NotNull List<String> dirNames) {
+    if (dirNames.isEmpty()) {
+      return false;
+    }
+    ArrayList<VirtualFile> resFiles = Lists.newArrayListWithExpectedSize(dirNames.size());
+
+    for (String dirName : dirNames) {
+      final VirtualFile resFile = findResourceFile(facet, fileName, dirName);
+      if (resFile != null) {
+        resFiles.add(resFile);
+      }
+    }
+
+    if (!ensureFilesWritable(facet.getModule().getProject(), resFiles)) {
+      return false;
+    }
+    final Resources[] resourcesElements = new Resources[resFiles.size()];
+
+    for (int i = 0; i < resFiles.size(); i++) {
+      final Resources resources = AndroidUtils.loadDomElement(facet.getModule(), resFiles.get(i), Resources.class);
+      if (resources == null) {
+        AndroidUtils.reportError(facet.getModule().getProject(), AndroidBundle.message("not.resource.file.error", fileName));
+        return false;
+      }
+      resourcesElements[i] = resources;
+    }
+
+    List<PsiFile> psiFiles = Lists.newArrayListWithExpectedSize(resFiles.size());
+    Project project = facet.getModule().getProject();
+    PsiManager manager = PsiManager.getInstance(project);
+    for (VirtualFile file : resFiles) {
+      PsiFile psiFile = manager.findFile(file);
+      if (psiFile != null) {
+        psiFiles.add(psiFile);
+      }
+    }
+    PsiFile[] files = psiFiles.toArray(new PsiFile[psiFiles.size()]);
+    WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, "Change Color Resource", files) {
+      @Override
+      protected void run(@NotNull Result<Boolean> result) throws Throwable {
+        result.setResult(false);
+        for (Resources resources : resourcesElements) {
+          for (ScalarResourceElement colorElement : resources.getColors()) {
+            String colorValue = colorElement.getName().getStringValue();
+            if (StringUtil.equalsIgnoreCase(colorValue, colorName)) {
+              colorElement.setStringValue(newValue);
+              result.setResult(true);
+            }
+          }
+        }
+      }
+    };
+
+    return action.execute().getResultObject();
+  }
+
+  @Nullable
+  private static VirtualFile findResourceFile(@NotNull AndroidFacet facet,
+                                              @NotNull final String fileName,
+                                              @NotNull String dirName) {
+    final VirtualFile resDir = facet.getPrimaryResourceDir();
+
+    if (resDir == null) {
+      return null;
+    }
+    VirtualFile dir = resDir.findChild(dirName);
+
+    if (dir == null) {
+      return null;
+    }
+    return dir.findChild(fileName);
+  }
+
   @Nullable
   private static VirtualFile findOrCreateResourceFile(@NotNull AndroidFacet facet,
                                                       @NotNull final String fileName,
@@ -1048,6 +1131,10 @@ public class AndroidResourceUtil {
     }
 
     return 0;
+  }
+
+  public static boolean ensureFilesWritable(@NotNull Project project, @NotNull Collection<VirtualFile> files) {
+    return !ReadonlyStatusHandler.getInstance(project).ensureFilesWritable(files).hasReadonlyFiles();
   }
 
   public static class MyReferredResourceFieldInfo {

@@ -16,7 +16,6 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.prefs.AndroidLocation;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
@@ -26,6 +25,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.run.ExternalToolRunner;
+import com.android.tools.idea.sdk.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -61,12 +61,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.NO_SKIN;
  */
 public class AvdManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
-  private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG) {
-    @Override
-    public void error(Throwable t, String errorFormat, Object... args) {
-      IJ_LOG.error(errorFormat != null ? String.format(errorFormat, args) : "", t);
-    }
-  };
+  private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG);
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
   public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
   private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null);
@@ -334,7 +329,7 @@ public class AvdManagerConnection {
 
         commandLine.addParameters("-avd", avdName);
 
-        EmulatorRunner runner = new EmulatorRunner(project, "AVD: " + avdName, commandLine);
+        EmulatorRunner runner = new EmulatorRunner(project, "AVD: " + avdName, commandLine, info);
         ProcessHandler processHandler;
         try {
           processHandler = runner.start();
@@ -392,7 +387,7 @@ public class AvdManagerConnection {
   public AvdInfo createOrUpdateAvd(@Nullable AvdInfo currentInfo,
                                           @NotNull String avdName,
                                           @NotNull Device device,
-                                          @NotNull AvdWizardConstants.SystemImageDescription systemImageDescription,
+                                          @NotNull SystemImageDescription systemImageDescription,
                                           @NotNull ScreenOrientation orientation,
                                           boolean isCircular,
                                           @Nullable String sdCard,
@@ -456,7 +451,7 @@ public class AvdManagerConnection {
   }
 
   @Nullable
-  private static File getRoundSkin(AvdWizardConstants.SystemImageDescription systemImageDescription) {
+  private static File getRoundSkin(SystemImageDescription systemImageDescription) {
     File[] skins = systemImageDescription.getSkins();
     for (File skin : skins) {
       if (skin.getName().contains("Round")) {

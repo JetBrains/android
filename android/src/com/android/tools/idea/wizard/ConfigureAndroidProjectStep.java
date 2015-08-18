@@ -16,7 +16,6 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -31,7 +30,6 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.ui.JBColor;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -83,25 +81,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   public void init() {
     register(WizardConstants.APPLICATION_NAME_KEY, myAppName);
     register(WizardConstants.COMPANY_DOMAIN_KEY, myCompanyDomain);
-    register(WizardConstants.PACKAGE_NAME_KEY, myPackageName, new ComponentBinding<String, LabelWithEditLink>() {
-      @Override
-      public void setValue(@Nullable String newValue, @NotNull LabelWithEditLink component) {
-        newValue = newValue == null ? "" : newValue;
-        component.setText(newValue);
-      }
-
-      @Nullable
-      @Override
-      public String getValue(@NotNull LabelWithEditLink component) {
-        return component.getText();
-      }
-
-      @Nullable
-      @Override
-      public Document getDocument(@NotNull LabelWithEditLink component) {
-        return component.getDocument();
-      }
-    });
+    register(WizardConstants.PACKAGE_NAME_KEY, myPackageName);
     registerValueDeriver(WizardConstants.PACKAGE_NAME_KEY, PACKAGE_NAME_DERIVER);
     register(WizardConstants.PROJECT_LOCATION_KEY, myProjectLocation);
     registerValueDeriver(WizardConstants.PROJECT_LOCATION_KEY, myProjectLocationDeriver);

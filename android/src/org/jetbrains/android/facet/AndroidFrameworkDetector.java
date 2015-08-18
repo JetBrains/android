@@ -16,7 +16,6 @@
 package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.facet.FacetType;
 import com.intellij.framework.detection.DetectedFrameworkDescription;
 import com.intellij.framework.detection.FacetBasedFrameworkDetector;
@@ -53,6 +52,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+
 /**
  * @author nik
  */
@@ -68,7 +69,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
   public List<? extends DetectedFrameworkDescription> detect(@NotNull Collection<VirtualFile> newFiles,
                                                              @NotNull FrameworkDetectionContext context) {
     Project project = context.getProject();
-    if (project != null && Projects.isGradleProject(project)) {
+    if (project != null && isBuildWithGradle(project)) {
       return Collections.emptyList();
     }
     return super.detect(newFiles, context);

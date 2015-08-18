@@ -1206,8 +1206,8 @@
     <creation>
       <![CDATA[
           <RadioGroup
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
           </RadioGroup>
       ]]>
     </creation>
@@ -1230,8 +1230,8 @@
     <creation>
       <![CDATA[
           <TwoLineListItem
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
           </TwoLineListItem>
       ]]>
     </creation>
@@ -1248,17 +1248,17 @@
     <creation>
       <![CDATA[
           <DialerFilter
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <EditText
               android:id="@android:id/hint"
-              android:layout_width="fill_parent"
+              android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:text="Hint"
               />
             <EditText
               android:id="@android:id/primary"
-              android:layout_width="fill_parent"
+              android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:layout_below="@android:id/hint"
               android:text="Primary"
@@ -1280,37 +1280,37 @@
     <creation>
       <![CDATA[
         <TabHost
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
           <LinearLayout
-              android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
               android:orientation="vertical">
             <TabWidget
                 android:id="@android:id/tabs"
-                android:layout_width="fill_parent"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content">
             </TabWidget>
             <FrameLayout
                 android:id="@android:id/tabcontent"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
               <LinearLayout
                   android:id="@+id/tab1"
-                  android:layout_width="fill_parent"
-                  android:layout_height="fill_parent"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
                   android:orientation="vertical">
               </LinearLayout>
               <LinearLayout
                   android:id="@+id/tab2"
-                  android:layout_width="fill_parent"
-                  android:layout_height="fill_parent"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
                   android:orientation="vertical">
               </LinearLayout>
               <LinearLayout
                   android:id="@+id/tab3"
-                  android:layout_width="fill_parent"
-                  android:layout_height="fill_parent"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
                   android:orientation="vertical">
               </LinearLayout>
             </FrameLayout>
@@ -1347,14 +1347,14 @@
     <creation>
       <![CDATA[
         <SlidingDrawer
-          android:layout_width="fill_parent"
-          android:layout_height="fill_parent"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
           android:content="@+id/content"
           android:handle="@+id/handle">
           <LinearLayout
               android:id="@+id/content"
-              android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
               android:orientation="vertical">
           </LinearLayout>
           <Button
@@ -1392,8 +1392,8 @@
       <![CDATA[
           <LinearLayout
             android:orientation="horizontal"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
           </LinearLayout>
       ]]>
     </creation>
@@ -1417,8 +1417,8 @@
     <creation>
       <![CDATA[
           <FrameLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
           </FrameLayout>
       ]]>
     </creation>
@@ -1441,8 +1441,8 @@
     <creation>
       <![CDATA[
           <AbsoluteLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
           </AbsoluteLayout>
       ]]>
     </creation>
@@ -1464,8 +1464,8 @@
     <creation>
       <![CDATA[
           <TableLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
           </TableLayout>
       ]]>
     </creation>
@@ -1484,8 +1484,8 @@
     <creation>
       <![CDATA[
           <TableRow
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
           </TableRow>
       ]]>
     </creation>
@@ -1512,8 +1512,8 @@
     <creation>
       <![CDATA[
           <GridLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
           </GridLayout>
       ]]>
     </creation>
@@ -1541,8 +1541,8 @@
       <![CDATA[
           <android.support.v7.widget.GridLayout
             xmlns:grid="http://schemas.android.com/apk/res-auto"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
           </android.support.v7.widget.GridLayout>
       ]]>
     </creation>
@@ -1562,8 +1562,8 @@
     <creation>
       <![CDATA[
           <RelativeLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
           </RelativeLayout>
       ]]>
     </creation>
@@ -1594,8 +1594,8 @@
             <![CDATA[
             <LinearLayout
               android:orientation="vertical"
-              android:layout_width="fill_parent"
-              android:layout_height="fill_parent">
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
             </LinearLayout>
         ]]>
           </creation>

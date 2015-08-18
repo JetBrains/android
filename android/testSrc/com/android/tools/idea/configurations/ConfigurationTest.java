@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
-import com.android.ide.common.resources.configuration.RegionQualifier;
-import com.android.ide.common.resources.configuration.VersionQualifier;
+import com.android.ide.common.resources.configuration.*;
 import com.android.resources.NightMode;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
@@ -89,13 +86,13 @@ public class ConfigurationTest extends AndroidTestCase {
     }
 
     FolderConfiguration fullConfig = configuration.getFullConfig();
-    LanguageQualifier languageQualifier = fullConfig.getLanguageQualifier();
+    LocaleQualifier languageQualifier = fullConfig.getLocaleQualifier();
     String configDisplayString = fullConfig.toDisplayString();
     assertNotNull(configDisplayString, languageQualifier);
-    assertEquals("en", languageQualifier.getValue());
-    RegionQualifier regionQualifier = fullConfig.getRegionQualifier();
-    assertNotNull(configDisplayString, regionQualifier);
-    assertEquals("US", regionQualifier.getValue());
+    assertEquals("en", languageQualifier.getLanguage());
+    String region = fullConfig.getLocaleQualifier().getRegion();
+    assertNotNull(configDisplayString, region);
+    assertEquals("US", region);
     assertEquals(UiMode.TELEVISION, fullConfig.getUiModeQualifier().getValue());
     assertEquals(NightMode.NIGHT, fullConfig.getNightModeQualifier().getValue());
     assertEquals(ScreenOrientation.PORTRAIT, fullConfig.getScreenOrientationQualifier().getValue());

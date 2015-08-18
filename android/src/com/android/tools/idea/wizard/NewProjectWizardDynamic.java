@@ -26,10 +26,13 @@ import com.android.tools.idea.wizard.FormFactorUtils.FormFactor;
 import com.google.common.collect.Lists;
 import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -44,14 +47,16 @@ import java.util.List;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.FILES_TO_OPEN_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
 
 /**
  * Presents a wizard to the user to create a new project.
  */
 public class NewProjectWizardDynamic extends DynamicWizard {
+
   private static final String ERROR_MSG_TITLE = "Error in New Project Wizard";
-  private final List<File> myFilesToOpen = Lists.newArrayList();
+  private Project myProject;
 
   public NewProjectWizardDynamic(@Nullable Project project, @Nullable Module module) {
     super(project, module, "New Project");
@@ -62,11 +67,10 @@ public class NewProjectWizardDynamic extends DynamicWizard {
   public void init() {
     if (!AndroidSdkUtils.isAndroidSdkAvailable() || !TemplateManager.templatesAreValid()) {
       String title = "SDK problem";
-      String msg =
-        "<html>Your Android SDK is missing, out of date, or is missing templates.<br>" +
-        "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
-      super.init();
+      String msg = "<html>Your Android SDK is missing, out of date, or is missing templates.<br>" +
+                   "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
       Messages.showErrorDialog(msg, title);
+      return;
     }
     addPaths();
     initState();
@@ -88,6 +92,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
    */
   protected void initState() {
     ScopedStateStore state = getState();
+    // TODO(jbakermalone): move the setting of this state closer to where it is used, so it's clear what's needed.
     state.put(WizardConstants.GRADLE_VERSION_KEY, GRADLE_LATEST_VERSION);
     state.put(WizardConstants.GRADLE_PLUGIN_VERSION_KEY, GRADLE_PLUGIN_RECOMMENDED_VERSION);
     state.put(WizardConstants.USE_PER_MODULE_REPOS_KEY, false);
@@ -108,6 +113,8 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     if (mavenUrl != null) {
       state.put(WizardConstants.MAVEN_URL_KEY, mavenUrl);
     }
+
+    state.put(FILES_TO_OPEN_KEY, Lists.<File>newArrayList());
   }
 
   @Override
@@ -117,6 +124,15 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
   @Override
   public void performFinishingActions() {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        runFinish();
+      }
+    });
+  }
+
+  private void runFinish() {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
@@ -140,13 +156,6 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     String projectName = getState().get(APPLICATION_NAME_KEY);
     if (projectName == null) {
       projectName = "Unnamed Project";
-    }
-
-    // Collect files to open
-    for (AndroidStudioWizardPath path : myPaths) {
-      if (path instanceof NewFormFactorModulePath) {
-        myFilesToOpen.addAll(((NewFormFactorModulePath)path).getFilesToOpen());
-      }
     }
 
     // Pick the highest language level of all the modules/form factors.
@@ -188,7 +197,9 @@ public class NewProjectWizardDynamic extends DynamicWizard {
         }
 
         private boolean openTemplateFiles(Project project) {
-          return TemplateUtils.openEditors(project, myFilesToOpen, true);
+          List<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
+          assert filesToOpen != null; // Always initialized in initState
+          return TemplateUtils.openEditors(project, filesToOpen, true);
         }
       }, null, initialLanguageLevel);
     }
@@ -200,5 +211,32 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
       LOG.error(e);
     }
+  }
+
+  @NotNull
+  @Override
+  protected String getProgressTitle() {
+    return "Creating project...";
+  }
+
+  @Override
+  protected void doFinish() throws IOException {
+    final String location = myState.get(PROJECT_LOCATION_KEY);
+    String name = myState.get(APPLICATION_NAME_KEY);
+    assert location != null && name != null;
+    new WriteCommandAction.Simple(getProject()) {
+      @Override
+      protected void run() throws Throwable {
+        VfsUtil.createDirectoryIfMissing(location);
+      }
+    }.execute();
+    myProject = ProjectManager.getInstance().createProject(name, location);
+    super.doFinish();
+  }
+
+  @Nullable
+  @Override
+  protected Project getProject() {
+    return myProject;
   }
 }

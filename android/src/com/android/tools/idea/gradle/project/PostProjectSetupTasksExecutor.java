@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
@@ -26,7 +27,8 @@ import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
+import com.android.tools.idea.gradle.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
@@ -35,15 +37,13 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.Notification
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -51,34 +51,26 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.io.URLUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,14 +79,25 @@ import java.util.*;
 
 import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
+import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
+import static com.android.tools.idea.gradle.project.ProjectDiagnostics.findAndReportStructureIssues;
+import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
-import static com.android.tools.idea.gradle.util.Projects.hasErrors;
+import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
+import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
+import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.notification.NotificationType.INFORMATION;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.needsAnnotationsJarInClasspath;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
+import static com.intellij.util.ArrayUtil.toStringArray;
+import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class PostProjectSetupTasksExecutor {
   private static final String SOURCES_JAR_NAME_SUFFIX = "-sources.jar";
@@ -106,10 +109,14 @@ public class PostProjectSetupTasksExecutor {
   private static boolean ourCheckedExpiration;
 
   private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
+  private static final boolean DEFAULT_USING_CACHED_PROJECT_DATA = false;
+  private static final long DEFAULT_LAST_SYNC_TIMESTAMP = -1;
 
   @NotNull private final Project myProject;
 
   private volatile boolean myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
+  private volatile boolean myUsingCachedProjectData = DEFAULT_USING_CACHED_PROJECT_DATA;
+  private volatile long myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
 
   @NotNull
   public static PostProjectSetupTasksExecutor getInstance(@NotNull Project project) {
@@ -121,32 +128,18 @@ public class PostProjectSetupTasksExecutor {
   }
 
   /**
-   * Invoked after project state (e.g. {@code AndroidProject} instances) have been restored from disk cache (e.g. when reopening a project
-   * that was successfully synced with Gradle before being closed).
-   */
-  public void onProjectRestoreFromDisk() {
-    ensureValidSdks();
-
-    if (hasErrors(myProject)) {
-      addSdkLinkIfNecessary();
-      checkSdkToolsVersion(myProject);
-      return;
-    }
-
-    findAndShowVariantConflicts();
-    addSdkLinkIfNecessary();
-    checkSdkToolsVersion(myProject);
-
-    TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
-  }
-
-  /**
    * Invoked after a project has been synced with Gradle.
    */
   public void onProjectSyncCompletion() {
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
+    messages.reportDependencySetupErrors();
+    messages.reportComponentIncompatibilities();
+
+    findAndReportStructureIssues(myProject);
+
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
-      if (!ProjectJdkChecks.hasCorrectJdkVersion(module)) {
+      if (!hasCorrectJdkVersion(module)) {
         // we already displayed the error, no need to check each module.
         break;
       }
@@ -155,18 +148,19 @@ public class PostProjectSetupTasksExecutor {
     if (hasErrors(myProject)) {
       addSdkLinkIfNecessary();
       checkSdkToolsVersion(myProject);
-      GradleSyncState.getInstance(myProject).syncEnded();
+      updateGradleSyncState();
       return;
     }
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    executeProjectChanges(myProject, new Runnable() {
       @Override
       public void run() {
         attachSourcesToLibraries();
-        ensureAllModulesHaveValidSdks();
+        adjustModuleStructures();
+        ensureValidSdks();
       }
     });
-    Projects.enforceExternalBuild(myProject);
+    enforceExternalBuild(myProject);
 
     AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
 
@@ -176,39 +170,56 @@ public class PostProjectSetupTasksExecutor {
 
     ProjectResourceRepository.moduleRootsChanged(myProject);
 
-    GradleSyncState.getInstance(myProject).syncEnded();
+    updateGradleSyncState();
 
     if (myGenerateSourcesAfterSync) {
       ProjectBuilder.getInstance(myProject).generateSourcesOnly();
     }
-    else {
-      // set default value back.
-      myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
-    }
 
-    ensureValidSdks();
+    // set default value back.
+    myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
   }
 
-  private void ensureAllModulesHaveValidSdks() {
+  private void updateGradleSyncState() {
+    if (!myUsingCachedProjectData) {
+      // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
+      // previous sync, and not the one from the sync that just ended.
+      GradleSyncState.getInstance(myProject).syncEnded();
+      GradleProjectSyncData.save(myProject);
+    } else {
+      long lastSyncTimestamp = myLastSyncTimestamp;
+      if (lastSyncTimestamp == DEFAULT_LAST_SYNC_TIMESTAMP) {
+        lastSyncTimestamp = System.currentTimeMillis();
+      }
+      GradleSyncState.getInstance(myProject).syncSkipped(lastSyncTimestamp);
+    }
+
+    // set default value back.
+    myUsingCachedProjectData = DEFAULT_USING_CACHED_PROJECT_DATA;
+    myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
+  }
+
+  private void adjustModuleStructures() {
     Set<Sdk> androidSdks = Sets.newHashSet();
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
       ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-      ModifiableRootModel model = moduleRootManager.getModifiableModel();
 
-      Sdk sdk = model.getSdk();
+      adjustInterModuleDependencies(moduleRootManager);
+
+      Sdk sdk = moduleRootManager.getSdk();
       if (sdk != null) {
         if (isAndroidSdk(sdk)) {
           androidSdks.add(sdk);
         }
-        model.dispose();
         continue;
       }
+      ModifiableRootModel model = moduleRootManager.getModifiableModel();
       try {
-        Sdk jdk = DefaultSdks.getDefaultJdk();
+        Sdk jdk = IdeSdks.getJdk();
         model.setSdk(jdk);
       }
       finally {
@@ -219,6 +230,35 @@ public class PostProjectSetupTasksExecutor {
     for (Sdk sdk: androidSdks) {
       refreshLibrariesIn(sdk);
     }
+
+    removeAllModuleCompiledArtifacts(myProject);
+  }
+
+  private static void adjustInterModuleDependencies(@NotNull ModuleRootManager moduleRootManager) {
+    // Verifies that inter-module dependencies between Android modules are correctly set. If module A depends on module B, and module B
+    // does not contain sources but exposes an AAR as an artifact, the IDE should set the dependency in the 'exploded AAR' instead of trying
+    // to find the library in module B. The 'exploded AAR' is in the 'build' folder of module A.
+    // See: https://code.google.com/p/android/issues/detail?id=162634
+    AndroidProject androidProject = getAndroidProject(moduleRootManager.getModule());
+    if (androidProject == null) {
+      return;
+    }
+
+    ModifiableRootModel modifiableModel = moduleRootManager.getModifiableModel();
+    try {
+      for (Module dependency : moduleRootManager.getModuleDependencies()) {
+        AndroidProject dependencyAndroidProject = getAndroidProject(dependency);
+        if (dependencyAndroidProject == null) {
+          LibraryDependency backup = getModuleCompiledArtifact(dependency);
+          if (backup != null) {
+            DependenciesModuleCustomizer.updateLibraryDependency(modifiableModel, backup, androidProject);
+          }
+        }
+      }
+    }
+    finally {
+      modifiableModel.commit();
+    }
   }
 
   // After a sync, the contents of an IDEA SDK does not get refreshed. This is an issue when an IDEA SDK is corrupt (e.g. missing libraries
@@ -227,41 +267,51 @@ public class PostProjectSetupTasksExecutor {
   // not found in editors. Removing and adding the libraries effectively refreshes the contents of the IDEA SDK, and references in editors
   // work again.
   private static void refreshLibrariesIn(@NotNull Sdk sdk) {
-    VirtualFile[] libraries = sdk.getRootProvider().getFiles(OrderRootType.CLASSES);
+    VirtualFile[] libraries = sdk.getRootProvider().getFiles(CLASSES);
 
     SdkModificator sdkModificator = sdk.getSdkModificator();
-    sdkModificator.removeRoots(OrderRootType.CLASSES);
+    sdkModificator.removeRoots(CLASSES);
     sdkModificator.commitChanges();
 
     sdkModificator = sdk.getSdkModificator();
     for (VirtualFile library : libraries) {
-      sdkModificator.addRoot(library, OrderRootType.CLASSES);
+      sdkModificator.addRoot(library, CLASSES);
     }
     sdkModificator.commitChanges();
   }
 
   private void attachSourcesToLibraries() {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(myProject);
+    LibraryAttachments storedLibraryAttachments = getStoredLibraryAttachments(myProject);
+
     for (Library library : libraryTable.getLibraries()) {
-      if (library.getFiles(OrderRootType.SOURCES).length > 0) {
-        // has sources already.
-        continue;
+      Set<String> sourcePaths = Sets.newHashSet();
+
+      for (VirtualFile file : library.getFiles(SOURCES)) {
+        sourcePaths.add(file.getUrl());
       }
 
-      for (VirtualFile classFile : library.getFiles(OrderRootType.CLASSES)) {
+      Library.ModifiableModel libraryModel = library.getModifiableModel();
+
+      // Find the source attachment based on the location of the library jar file.
+      for (VirtualFile classFile : library.getFiles(CLASSES)) {
         VirtualFile sourceJar = findSourceJarForJar(classFile);
         if (sourceJar != null) {
-          Library.ModifiableModel model = library.getModifiableModel();
-          try {
-            String url = AbstractDependenciesModuleCustomizer.pathToUrl(sourceJar.getPath());
-            model.addRoot(url, OrderRootType.SOURCES);
-            break;
-          }
-          finally {
-            model.commit();
+          String url = pathToUrl(sourceJar.getPath());
+          if (!sourcePaths.contains(url)) {
+            libraryModel.addRoot(url, SOURCES);
+            sourcePaths.add(url);
           }
         }
       }
+
+      if (storedLibraryAttachments != null) {
+        storedLibraryAttachments.addUrlsTo(libraryModel);
+      }
+      libraryModel.commit();
+    }
+    if (storedLibraryAttachments != null) {
+      storedLibraryAttachments.removeFromProject();
     }
   }
 
@@ -333,7 +383,7 @@ public class PostProjectSetupTasksExecutor {
     }
 
     int startingIndex = -1;
-    List<String> pathSegments = FileUtil.splitPath(jarFilePath.getParentFile().getPath());
+    List<String> pathSegments = splitPath(jarFilePath.getParentFile().getPath());
     int segmentCount = pathSegments.size();
     for (int i = 0; i < segmentCount; i++) {
       if (ResourceFolderManager.EXPLODED_AAR.equals(pathSegments.get(i))) {
@@ -351,7 +401,7 @@ public class PostProjectSetupTasksExecutor {
     String groupId = pathSegments.get(startingIndex++);
 
     if (ImportModule.SUPPORT_GROUP_ID.equals(groupId)) {
-      File androidHomePath = DefaultSdks.getDefaultAndroidHome();
+      File androidHomePath = IdeSdks.getAndroidSdkPath();
 
       File repositoryLocation = SdkMavenRepository.ANDROID.getRepositoryLocation(androidHomePath, true);
       if (repositoryLocation != null) {
@@ -365,7 +415,7 @@ public class PostProjectSetupTasksExecutor {
 
         String sourceJarName = artifactId + "-" + version + SOURCES_JAR_NAME_SUFFIX;
         sourceJarRelativePath.add(sourceJarName);
-        File sourceJar = new File(repositoryLocation, FileUtil.join(ArrayUtil.toStringArray(sourceJarRelativePath)));
+        File sourceJar = new File(repositoryLocation, join(toStringArray(sourceJarRelativePath)));
         return sourceJar.isFile() ? sourceJar : null;
       }
     }
@@ -376,15 +426,15 @@ public class PostProjectSetupTasksExecutor {
   @Nullable
   private static File getJarFromJarUrl(@NotNull String url) {
     // URLs for jar file start with "jar://" and end with "!/".
-    if (!url.startsWith(StandardFileSystems.JAR_PROTOCOL_PREFIX)) {
+    if (!url.startsWith(JAR_PROTOCOL_PREFIX)) {
       return null;
     }
-    String path = url.substring(StandardFileSystems.JAR_PROTOCOL_PREFIX.length());
-    int index = path.lastIndexOf(URLUtil.JAR_SEPARATOR);
+    String path = url.substring(JAR_PROTOCOL_PREFIX.length());
+    int index = path.lastIndexOf(JAR_SEPARATOR);
     if (index != -1) {
       path = path.substring(0, index);
     }
-    return new File(FileUtil.toSystemDependentName(path));
+    return new File(toSystemDependentName(path));
   }
 
   private void findAndShowVariantConflicts() {
@@ -427,7 +477,7 @@ public class PostProjectSetupTasksExecutor {
     // Piggy-back off of the SDK update check (which is called from a handful of places) to also see if this is an expired preview build
     checkExpiredPreviewBuild(project);
 
-    File androidHome = DefaultSdks.getDefaultAndroidHome();
+    File androidHome = IdeSdks.getAndroidSdkPath();
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
       InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
       String message = "Version " + VersionCheck.MIN_TOOLS_REV + " is available.";
@@ -472,7 +522,7 @@ public class PostProjectSetupTasksExecutor {
         Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
         if (sdk != null && !invalidAndroidSdks.contains(sdk) && (isMissingAndroidLibrary(sdk) || shouldRemoveAnnotationsJar(sdk))) {
           // First try to recreate SDK; workaround for issue 78072
-          AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+          AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
           AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
           if (additionalData != null && sdkData != null) {
             IAndroidTarget target = additionalData.getBuildTarget(sdkData);
@@ -484,10 +534,10 @@ public class PostProjectSetupTasksExecutor {
             if (target != null) {
               SdkModificator sdkModificator = sdk.getSdkModificator();
               sdkModificator.removeAllRoots();
-              for (OrderRoot orderRoot : AndroidSdkUtils.getLibraryRootsForTarget(target, sdk.getHomePath(), true)) {
+              for (OrderRoot orderRoot : getLibraryRootsForTarget(target, sdk.getHomePath(), true)) {
                 sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
               }
-              ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
+              attachJdkAnnotations(sdkModificator);
               sdkModificator.commitChanges();
             }
           }
@@ -501,7 +551,7 @@ public class PostProjectSetupTasksExecutor {
         }
 
         IdeaAndroidProject androidProject = androidFacet.getIdeaAndroidProject();
-        if (checkJdkVersion && !ProjectJdkChecks.hasCorrectJdkVersion(module, androidProject)) {
+        if (checkJdkVersion && !hasCorrectJdkVersion(module, androidProject)) {
           // we already displayed the error, no need to check each module.
           checkJdkVersion = false;
         }
@@ -515,7 +565,7 @@ public class PostProjectSetupTasksExecutor {
 
   private static boolean isMissingAndroidLibrary(@NotNull Sdk sdk) {
     if (isAndroidSdk(sdk)) {
-      for (VirtualFile library : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
+      for (VirtualFile library : sdk.getRootProvider().getFiles(CLASSES)) {
         // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
         // annotations.jar and res folder.
         if (library.getName().equals(FN_FRAMEWORK_LIBRARY) && library.exists()) {
@@ -538,7 +588,7 @@ public class PostProjectSetupTasksExecutor {
    */
   private static boolean shouldRemoveAnnotationsJar(@NotNull Sdk sdk) {
     if (isAndroidSdk(sdk)) {
-      AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+      AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
       AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
       boolean needsAnnotationsJar = false;
       if (additionalData != null && sdkData != null) {
@@ -547,7 +597,7 @@ public class PostProjectSetupTasksExecutor {
           needsAnnotationsJar = needsAnnotationsJarInClasspath(target);
         }
       }
-      for (VirtualFile library : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
+      for (VirtualFile library : sdk.getRootProvider().getFiles(CLASSES)) {
         // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
         // annotations.jar and res folder.
         if (library.getName().equals(FN_ANNOTATIONS_JAR) && library.exists() && !needsAnnotationsJar) {
@@ -565,9 +615,9 @@ public class PostProjectSetupTasksExecutor {
     List<String> missingPlatforms = Lists.newArrayList();
 
     for (Sdk sdk : invalidAndroidSdks) {
-      SdkAdditionalData additionalData = sdk.getSdkAdditionalData();
-      if (additionalData instanceof AndroidSdkAdditionalData) {
-        String platform = ((AndroidSdkAdditionalData)additionalData).getBuildTargetHashString();
+      AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
+      if (additionalData != null) {
+        String platform = additionalData.getBuildTargetHashString();
         if (platform != null) {
           missingPlatforms.add("'" + platform + "'");
           AndroidVersion version = AndroidTargetHash.getPlatformVersion(platform);
@@ -586,9 +636,16 @@ public class PostProjectSetupTasksExecutor {
     }
   }
 
-
   public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
     myGenerateSourcesAfterSync = generateSourcesAfterSync;
+  }
+
+  public void setLastSyncTimestamp(long lastSyncTimestamp) {
+    myLastSyncTimestamp = lastSyncTimestamp;
+  }
+
+  public void setUsingCachedProjectData(boolean usingCachedProjectData) {
+    myUsingCachedProjectData = usingCachedProjectData;
   }
 
   private static class InstallSdkToolsHyperlink extends NotificationHyperlink {

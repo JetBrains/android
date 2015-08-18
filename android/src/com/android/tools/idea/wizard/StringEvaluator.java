@@ -17,9 +17,9 @@ package com.android.tools.idea.wizard;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.idea.templates.FreemarkerConfiguration;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
-import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 
 import java.io.IOException;
@@ -44,9 +44,7 @@ public class StringEvaluator implements TemplateLoader {
   private static final String BOOLEAN_TEMPLATE = "<#if (%s)>true<#else>false</#if>";
 
   public StringEvaluator() {
-
-    myFreemarker = new Configuration();
-    myFreemarker.setObjectWrapper(new DefaultObjectWrapper());
+    myFreemarker = new FreemarkerConfiguration();
     myFreemarker.setTemplateLoader(this);
   }
 

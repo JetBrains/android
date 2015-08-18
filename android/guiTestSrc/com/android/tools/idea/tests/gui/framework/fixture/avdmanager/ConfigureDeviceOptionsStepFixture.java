@@ -15,106 +15,82 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
-
 import com.android.resources.Navigation;
-import com.android.tools.idea.avdmanager.ConfigureDeviceOptionsStep;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class ConfigureDeviceOptionsStepFixture extends AbstractWizardStepFixture {
+public class ConfigureDeviceOptionsStepFixture extends AbstractWizardStepFixture<ConfigureDeviceOptionsStepFixture> {
   protected ConfigureDeviceOptionsStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(robot, target);
+    super(ConfigureDeviceOptionsStepFixture.class, robot, target);
   }
 
-
+  @NotNull
   public ConfigureDeviceOptionsStepFixture setDeviceName(@NotNull String deviceName) {
     replaceText(findTextFieldWithLabel("Device Name"), deviceName);
     return this;
   }
 
+  @NotNull
   public ConfigureDeviceOptionsStepFixture setScreenSize(double screenSize) {
-    replaceText(findTextFieldWithLabel("Screensize:"), Double.toString(screenSize));
+    replaceText(findTextFieldWithLabel("Screensize:"), String.valueOf(screenSize));
     return this;
   }
 
+  @NotNull
   public ConfigureDeviceOptionsStepFixture setScreenResolutionX(int width) {
-    replaceText(findTextFieldWithLabel("Resolution:"), Integer.toString(width));
+    replaceText(findTextFieldWithLabel("Resolution:"), String.valueOf(width));
     return this;
   }
 
+  @NotNull
   public ConfigureDeviceOptionsStepFixture setScreenResolutionY(int height) {
-    replaceText(findTextFieldWithLabel("x"), Integer.toString(height));
+    replaceText(findTextFieldWithLabel("x"), String.valueOf(height));
     return this;
   }
 
-  public ConfigureDeviceOptionsStepFixture setHasHardwareButtons(boolean hasHardwareButtons) {
-    JCheckBoxFixture checkBoxFixture = getCheckBoxFixtureByLabel(robot, target, "Has Hardware Buttons");
-    if (hasHardwareButtons) {
-      checkBoxFixture.check();
-    } else {
-      checkBoxFixture.uncheck();
-    }
+  @NotNull
+  public ConfigureDeviceOptionsStepFixture selectHasHardwareButtons(boolean value) {
+    findCheckBoxWithLabel("Has Hardware Buttons").setSelected(value);
     return this;
   }
 
-  public ConfigureDeviceOptionsStepFixture setHasHardwareKeyboard(boolean hasHardwareKeyboard) {
-    JCheckBoxFixture checkBoxFixture = getCheckBoxFixtureByLabel(robot, target, "Has Hardware Keyboard");
-    if (hasHardwareKeyboard) {
-      checkBoxFixture.check();
-    } else {
-      checkBoxFixture.uncheck();
-    }
+  @NotNull
+  public ConfigureDeviceOptionsStepFixture selectHasHardwareKeyboard(boolean value) {
+    findCheckBoxWithLabel("Has Hardware Keyboard").setSelected(value);
     return this;
   }
 
-  public ConfigureDeviceOptionsStepFixture setSupportsPortrait(boolean supportsPortrait) {
-    JCheckBoxFixture checkBoxFixture = getCheckBoxFixtureByLabel(robot, target, "Portrait");
-    if (supportsPortrait) {
-      checkBoxFixture.check();
-    } else {
-      checkBoxFixture.uncheck();
-    }
+  @NotNull
+  public ConfigureDeviceOptionsStepFixture selectSupportsPortrait(boolean value) {
+    findCheckBoxWithLabel("Portrait").setSelected(value);
     return this;
   }
 
-  public ConfigureDeviceOptionsStepFixture setSupportsLandscape(boolean supportsLandscape) {
-    JCheckBoxFixture checkBoxFixture = getCheckBoxFixtureByLabel(robot, target, "Landscape");
-    if (supportsLandscape) {
-      checkBoxFixture.check();
-    } else {
-      checkBoxFixture.uncheck();
-    }
+  @NotNull
+  public ConfigureDeviceOptionsStepFixture selectSupportsLandscape(boolean value) {
+    findCheckBoxWithLabel("Landscape").setSelected(value);
     return this;
   }
 
-  public ConfigureDeviceOptionsStepFixture setHasFrontCamera(boolean hasFrontCamera) {
-    JCheckBoxFixture checkBoxFixture = getCheckBoxFixtureByLabel(robot, target, "Front-facing camera");
-    if (hasFrontCamera) {
-      checkBoxFixture.check();
-    } else {
-      checkBoxFixture.uncheck();
-    }
+  @NotNull
+  public ConfigureDeviceOptionsStepFixture selectHasFrontCamera(boolean value) {
+    findCheckBoxWithLabel("Front-facing camera").setSelected(value);
     return this;
   }
 
-  public ConfigureDeviceOptionsStepFixture setHasBackCamera(boolean hasBackCamera) {
-    JCheckBoxFixture checkBoxFixture = getCheckBoxFixtureByLabel(robot, target, "Back-facing camera");
-    if (hasBackCamera) {
-      checkBoxFixture.check();
-    } else {
-      checkBoxFixture.uncheck();
-    }
+  @NotNull
+  public ConfigureDeviceOptionsStepFixture selectHasBackCamera(boolean value) {
+    findCheckBoxWithLabel("Back-facing camera").setSelected(value);
     return this;
   }
 
+  @NotNull
   public ConfigureDeviceOptionsStepFixture setNavigation(@NotNull Navigation navigation) {
-    JComboBoxFixture fixture = getComboBoxFixtureByLabel(robot, target, "Navigation Style");
+    JComboBoxFixture fixture = findComboBoxWithLabel("Navigation Style");
     fixture.selectItem(navigation.getShortDisplayValue());
     return this;
   }

@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.ArrayUtil;
+import org.fest.swing.image.ScreenshotTaker;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.internal.runners.model.ReflectiveCallable;
@@ -32,13 +33,10 @@ import org.junit.runners.model.TestClass;
 
 import java.awt.*;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.reflect.core.Reflection.method;
+import static org.junit.Assert.assertNotNull;
 
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
   private Class<? extends Annotation> myBeforeClass;
@@ -46,9 +44,11 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   private TestClass myTestClass;
 
+  @Nullable private final ScreenshotTaker myScreenshotTaker;
+
   public GuiTestRunner(Class<?> testClass) throws InitializationError {
     super(testClass);
-
+    myScreenshotTaker = canRunGuiTests() ? new ScreenshotTaker() : null;
     try {
       // A random class which is reachable from module community-main's classpath but not
       // module android's classpath
@@ -110,15 +110,22 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     return !GraphicsEnvironment.isHeadless();
   }
 
-  @SuppressWarnings("unchecked")
   private void loadClassesWithIdeClassLoader() throws Exception {
     ClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
     Thread.currentThread().setContextClassLoader(ideClassLoader);
 
     Class<?> testClass = getTestClass().getJavaClass();
     myTestClass = new TestClass(ideClassLoader.loadClass(testClass.getName()));
-    myBeforeClass = (Class<? extends Annotation>)ideClassLoader.loadClass(Before.class.getName());
-    myAfterClass = (Class<? extends Annotation>)ideClassLoader.loadClass(After.class.getName());
+    myBeforeClass = loadAnnotation(ideClassLoader, Before.class);
+    myAfterClass = loadAnnotation(ideClassLoader, After.class);
+  }
+
+  @NotNull
+  @SuppressWarnings("unchecked")
+  private static Class<? extends Annotation> loadAnnotation(@NotNull ClassLoader classLoader,
+                                                            @NotNull Class<? extends Annotation> annotationType)
+  throws ClassNotFoundException {
+    return (Class<? extends Annotation>)classLoader.loadClass(annotationType.getCanonicalName());
   }
 
   @Override
@@ -127,28 +134,23 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
   }
 
   @Override
-  protected Statement methodInvoker(FrameworkMethod method, Object test) {
+  protected Statement methodInvoker(final FrameworkMethod method, Object test) {
     if (canRunGuiTests()) {
       try {
-        ClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
-        //noinspection unchecked
-        Class<? extends Annotation> ideGuiTestClass =
-          (Class<? extends Annotation>)ideClassLoader.loadClass(IdeGuiTest.class.getCanonicalName());
-        Annotation annotation = method.getMethod().getAnnotation(ideGuiTestClass);
-        if (annotation != null && Proxy.isProxyClass(annotation.getClass())) {
-          InvocationHandler invocationHandler = Proxy.getInvocationHandler(annotation);
-          Method closeProjectBeforeExecutionMethod = ideGuiTestClass.getDeclaredMethod("closeProjectBeforeExecution");
-          Object result = invocationHandler.invoke(annotation, closeProjectBeforeExecutionMethod, ArrayUtil.EMPTY_OBJECT_ARRAY);
-          assertThat(result).isInstanceOfAny(Boolean.class, boolean.class);
-          if ((Boolean)result) {
-            method("closeAllProjects").in(test).invoke();
-          }
-        }
+        assertNotNull(myScreenshotTaker);
+        return new MethodInvoker(method, test, myScreenshotTaker);
       }
       catch (Throwable e) {
         return new Fail(e);
       }
     }
-    return new MethodInvoker(method, test);
+    // Skip the test.
+    return new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        String msg = String.format("Skipping test '%1$s'. UI tests cannot run in a headless environment.", method.getName());
+        System.out.println(msg);
+      }
+    };
   }
 }

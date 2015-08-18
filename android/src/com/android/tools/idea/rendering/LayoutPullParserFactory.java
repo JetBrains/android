@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.api.Features;
-import com.android.ide.common.rendering.api.HardwareConfig;
-import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.legacy.ILegacyPullParser;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.configurations.Configuration;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -83,15 +83,15 @@ public class LayoutPullParserFactory {
   private static boolean prefCapableTargetInstalled(@NotNull PsiFile file) {
     Module module = ModuleUtilCore.findModuleForPsiElement(file);
     if (module != null) {
-      AndroidPlatform platform = AndroidPlatform.getPlatform(module);
+      AndroidPlatform platform = AndroidPlatform.getInstance(module);
       if (platform != null) {
-        for (IAndroidTarget target : platform.getSdkData().getTargets()) {
-          AndroidVersion version = target.getVersion();
-          if (version.getFeatureLevel() >= PREFERENCES_MIN_API && !version.isPreview()) {
-            // TODO: remove revision check after the right LayoutLib is released.
-            // When the revision check is removed, we will show the option to render Preferences, and then a message to update the
-            // SDK Platform.
-            if (target.getRevision() > 2) {
+        IAndroidTarget[] targets = platform.getSdkData().getTargets();
+        for (int i = targets.length - 1; i >= 0; i--) {
+          IAndroidTarget target = targets[i];
+          if (target.isPlatform()) {
+            AndroidVersion version = target.getVersion();
+            int featureLevel = version.getFeatureLevel();
+            if (featureLevel >= PREFERENCES_MIN_API) {
               return true;
             }
           }
@@ -102,8 +102,8 @@ public class LayoutPullParserFactory {
   }
 
   @Nullable
-  public static ILayoutPullParser create(@NotNull final RenderService renderService) {
-    final ResourceFolderType folderType = renderService.getFolderType();
+  public static ILayoutPullParser create(@NotNull final RenderTask renderTask) {
+    final ResourceFolderType folderType = renderTask.getFolderType();
     if (folderType == null) {
       return null;
     }
@@ -114,32 +114,38 @@ public class LayoutPullParserFactory {
         @Nullable
         @Override
         public ILayoutPullParser compute() {
-          return create(renderService);
+          return create(renderTask);
         }
       });
     }
 
-    XmlFile file = renderService.getPsiFile();
+    XmlFile file = renderTask.getPsiFile();
+    if (file == null) {
+      throw new IllegalArgumentException("RenderTask always should always have PsiFile when it has ResourceFolderType");
+    }
 
-    // IntelliJ bug: Claims that folderType can be null below. Suppressed.
-    //noinspection ConstantConditions
     switch (folderType) {
       case LAYOUT: {
-        RenderLogger logger = renderService.getLogger();
-        Set<XmlTag> expandNodes = renderService.getExpandNodes();
-        HardwareConfig hardwareConfig = renderService.getHardwareConfigHelper().getConfig();
+        RenderLogger logger = renderTask.getLogger();
+        Set<XmlTag> expandNodes = renderTask.getExpandNodes();
+        HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
         return LayoutPsiPullParser.create(file, logger, expandNodes, hardwareConfig.getDensity());
       }
       case DRAWABLE:
-        renderService.setDecorations(false);
+        renderTask.setDecorations(false);
         return createDrawableParser(file);
       case MENU:
-        if (renderService.supportsCapability(Features.ACTION_BAR)) {
-          return new MenuLayoutParserFactory(renderService).render();
+        if (renderTask.supportsCapability(Features.ACTION_BAR)) {
+          Configuration configuration = renderTask.getConfiguration();
+          String theme = findFrameworkTheme(configuration.getTheme(), renderTask.getResourceResolver());
+          if (theme != null) {
+            configuration.setTheme(theme);
+          }
+          return new MenuLayoutParserFactory(renderTask).render();
         }
-        renderService.setRenderingMode(V_SCROLL);
-        renderService.setDecorations(false);
-        return new MenuPreviewRenderer(renderService, file).render();
+        renderTask.setRenderingMode(V_SCROLL);
+        renderTask.setDecorations(false);
+        return new MenuPreviewRenderer(renderTask, file).render();
       case XML: {
         // Switch on root type
         XmlTag rootTag = file.getRootTag();
@@ -147,12 +153,12 @@ public class LayoutPullParserFactory {
           String tag = rootTag.getName();
           if (tag.equals(TAG_APPWIDGET_PROVIDER)) {
             // Widget
-            renderService.setDecorations(false);
+            renderTask.setDecorations(false);
             return createWidgetParser(rootTag);
           } else if (tag.equals(TAG_PREFERENCE_SCREEN)) {
-            RenderLogger logger = renderService.getLogger();
-            Set<XmlTag> expandNodes = renderService.getExpandNodes();
-            HardwareConfig hardwareConfig = renderService.getHardwareConfigHelper().getConfig();
+            RenderLogger logger = renderTask.getLogger();
+            Set<XmlTag> expandNodes = renderTask.getExpandNodes();
+            HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
             return LayoutPsiPullParser.create(file, logger, expandNodes, hardwareConfig.getDensity());
           }
         }
@@ -164,6 +170,23 @@ public class LayoutPullParserFactory {
         assert false : folderType;
         return null;
     }
+  }
+
+  /** Finds nearest theme in the framework that the given theme reference inherits from, or null if not found */
+  @Nullable
+  private static String findFrameworkTheme(String theme, ResourceResolver resourceResolver) {
+    if (theme.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)) {
+      return theme;
+    }
+    ResourceValue resValue = resourceResolver.findResValue(theme, false);
+    while (resValue instanceof StyleResourceValue) {
+      StyleResourceValue srv = (StyleResourceValue)resValue;
+      if (srv.isFramework()) {
+        return ANDROID_STYLE_RESOURCE_PREFIX + srv.getName();
+      }
+      resValue = resourceResolver.getParent(srv);
+    }
+    return null;
   }
 
   private static ILegacyPullParser createDrawableParser(XmlFile file) {

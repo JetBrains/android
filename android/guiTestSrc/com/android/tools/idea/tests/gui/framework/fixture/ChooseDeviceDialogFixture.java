@@ -22,7 +22,6 @@ import com.intellij.util.ThreeState;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.DialogMatcher;
-import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.*;
 import org.jetbrains.android.run.AvdComboBox;
@@ -32,38 +31,38 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.junit.Assert.assertNotNull;
 
-public class ChooseDeviceDialogFixture extends ComponentFixture<JDialog> {
+public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDialogFixture, JDialog>
+  implements ContainerFixture<JDialog> {
+
   @NotNull
-  public static ChooseDeviceDialogFixture find(@NotNull IdeFrameFixture project, @NotNull Robot robot) {
-    Dialog dialog = WindowFinder.findDialog(DialogMatcher.withTitle(AndroidBundle.message("choose.device.dialog.title"))).withTimeout(LONG_TIMEOUT.duration()).using(robot).target;
+  public static ChooseDeviceDialogFixture find(@NotNull Robot robot) {
+    Dialog dialog = WindowFinder.findDialog(DialogMatcher.withTitle(AndroidBundle.message("choose.device.dialog.title")))
+                                .withTimeout(LONG_TIMEOUT.duration()).using(robot)
+                                .target();
     assertThat(dialog).isInstanceOf(JDialog.class);
-    return new ChooseDeviceDialogFixture(project, robot, (JDialog)dialog);
+    return new ChooseDeviceDialogFixture(robot, (JDialog)dialog);
   }
 
-  private ChooseDeviceDialogFixture(@NotNull IdeFrameFixture project, @NotNull Robot robot, @NotNull JDialog target) {
-    super(robot, target);
+  private ChooseDeviceDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
+    super(ChooseDeviceDialogFixture.class, robot, target);
   }
 
   @NotNull
   protected JButton findButtonByText(@NotNull String text) {
-    return robot.finder().find(target, JButtonMatcher.withText(text).andShowing());
-  }
-
-  @NotNull
-  protected JRadioButton findRadioButtonByText(@NotNull String text) {
-    return robot.finder().find(target, new JRadioButtonTextMatcher(text).andShowing());
+    return robot().finder().find(target(), withText(text).andShowing());
   }
 
   private boolean chooseRunningDeviceStep(@NotNull String deviceName) {
-    new JRadioButtonFixture(robot, findRadioButtonByText("Choose a running device")).requireEnabled().requireVisible().click();
+    new JRadioButtonFixture(robot(), findRadioButtonByText("Choose a running device")).click();
 
-    JBTable deviceTable = robot.finder().findByType(target, JBTable.class);
+    JBTable deviceTable = robot().finder().findByType(target(), JBTable.class);
     assertNotNull(deviceTable);
-    JTableFixture deviceTableFixture = new JTableFixture(robot, deviceTable);
+    JTableFixture deviceTableFixture = new JTableFixture(robot(), deviceTable);
 
     int deviceColumnIndex = deviceTable.getColumn("Device").getModelIndex();
     int compatibleColumnIndex = deviceTable.getColumn("Compatible").getModelIndex();
@@ -93,24 +92,27 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<JDialog> {
 
   @NotNull
   public ChooseDeviceDialogFixture getChooseDeviceDialog(@NotNull String deviceName) {
-    new JRadioButtonFixture(robot, findRadioButtonByText("Launch emulator")).requireVisible().requireEnabled().click();
+    JRadioButtonFixture launchEmulatorButton = new JRadioButtonFixture(robot(), findRadioButtonByText("Launch emulator"));
+    launchEmulatorButton.click();
 
-    AvdComboBox avdComboBox = robot.finder().findByType(AvdComboBox.class);
-    new JComboBoxFixture(robot, avdComboBox.getComboBox()).requireEnabled().requireVisible().requireNotEditable().selectItem(deviceName).requireSelection(deviceName);
+    AvdComboBox avdComboBox = robot().finder().findByType(AvdComboBox.class);
+    JComboBoxFixture comboBox = new JComboBoxFixture(robot(), avdComboBox.getComboBox());
+    comboBox.requireNotEditable()
+            .selectItem(deviceName)
+            .requireSelection(deviceName);
 
     return this;
   }
 
   @NotNull
-  public ChooseDeviceDialogFixture useSameDeviceStep(boolean useSameDevice) {
-    JCheckBoxFixture useSameDeviceCheckBox = new JCheckBoxFixture(robot, "Use same device for future launches");
-    useSameDeviceCheckBox.requireVisible().requireEnabled();
-    if (useSameDevice) {
-      useSameDeviceCheckBox.check();
-    }
-    else {
-      useSameDeviceCheckBox.uncheck();
-    }
+  protected JRadioButton findRadioButtonByText(@NotNull String text) {
+    return robot().finder().find(target(), new JRadioButtonTextMatcher(text).andShowing());
+  }
+
+  @NotNull
+  public ChooseDeviceDialogFixture selectUseSameDeviceStep(boolean value) {
+    JCheckBoxFixture useSameDeviceCheckBox = new JCheckBoxFixture(robot(), "Use same device for future launches");
+    useSameDeviceCheckBox.setSelected(value);
     return this;
   }
 
@@ -125,11 +127,11 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<JDialog> {
   }
 
   public void clickOk() {
-    robot.click(findButtonByText("OK"));
+    findAndClickOkButton(this);
   }
 
   public void clickCancel() {
-    robot.click(findButtonByText("Cancel"));
+    findAndClickCancelButton(this);
   }
 
   private static class JRadioButtonTextMatcher extends GenericTypeMatcher<JRadioButton> {
@@ -142,7 +144,7 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<JDialog> {
     }
 
     @Override
-    protected boolean isMatching(JRadioButton button) {
+    protected boolean isMatching(@NotNull JRadioButton button) {
       return myText.equals(button.getText()) && (!myIsShowing || button.isShowing());
     }
 

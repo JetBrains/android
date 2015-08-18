@@ -21,6 +21,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.CommonBundle;
+import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -60,10 +61,12 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import static com.android.SdkConstants.SUPPORT_ANNOTATIONS_PREFIX;
 import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 /**
@@ -242,6 +245,82 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     AndroidLayoutPreviewToolWindowManager.renderIfApplicable(project);
   }
 
+  private static final String STRING_RES_ANNOTATION = SUPPORT_ANNOTATIONS_PREFIX + "StringRes";
+
+  private static boolean hasMethodOnlyOverloadedWithOneIntParameter(final PsiMethod method, int index) {
+    if (method.getNameIdentifier() == null) {
+      return false;
+    }
+    final PsiParameterList parameterList = method.getParameterList();
+    final int parameterCount = parameterList.getParametersCount();
+
+    if (parameterCount == 0) {
+      return false;
+    }
+
+    final PsiClass aClass = method.getContainingClass();
+    if (aClass == null) {
+      return false;
+    }
+
+    final String methodName = method.getName();
+    final PsiMethod[] sameNameMethods = aClass.findMethodsByName(methodName, false);
+    for (PsiMethod sameNameMethod : sameNameMethods) {
+      if (method.equals(sameNameMethod)) {
+        continue;
+      }
+      final PsiParameterList otherParameterList = sameNameMethod.getParameterList();
+      if (parameterCount != otherParameterList.getParametersCount()) {
+        continue;
+      }
+
+      boolean found = true;
+      for (int i = 0; i < parameterCount; i++) {
+        PsiParameter parameter = parameterList.getParameters()[i];
+        PsiParameter otherParameter = otherParameterList.getParameters()[i];
+
+        // We want to find a method that all parameters matches except ith parameter be int.
+        if (i == index) {
+          if (!PsiType.INT.equals(otherParameter.getType())) {
+            found = false;
+            break;
+          } else {
+            if (!AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION, false, false)) {
+              found = false;
+              break;
+            }
+          }
+        }
+        else if (!parameter.getType().equals(otherParameter.getType())) {
+          found = false;
+          break;
+        }
+      }
+
+      if (found) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static boolean useGetStringMethodForStringRes(final PsiElement element) {
+    // Check if the element is an argument of a method call.
+    if (element.getParent() instanceof PsiExpressionList) {
+      PsiExpressionList expressionList = (PsiExpressionList)element.getParent();
+      int index = Arrays.asList(expressionList.getExpressions()).indexOf(element);
+
+      PsiElement prevSibling = expressionList.getPrevSibling();
+      if (prevSibling != null && prevSibling.getReference() != null) {
+        PsiElement resolved = prevSibling.getReference().resolve();
+        if (resolved instanceof PsiMethod && hasMethodOnlyOverloadedWithOneIntParameter((PsiMethod)resolved, index)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   private static void createJavaResourceReference(final Module module,
                                                   final Editor editor,
                                                   final PsiFile file,
@@ -260,7 +339,11 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
 
     if (extendsContext && !inStaticContext) {
       if (ResourceType.STRING == resType) {
-        template = new TemplateImpl("", methodName + '(' + field + ')', "");
+        if (useGetStringMethodForStringRes(element)) {
+          template = new TemplateImpl("", methodName + '(' + field + ')', "");
+        } else {
+          template = new TemplateImpl("", field, "");
+        }
       }
       else {
         template = new TemplateImpl("", "$resources$." + methodName + "(" + field + ")", "");
@@ -270,17 +353,24 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       }
     }
     else {
+      boolean addContextVariable = true;
       if (ResourceType.STRING == resType) {
-        template = new TemplateImpl("", "$context$." + methodName + "(" + field + ")", "");
+        if (useGetStringMethodForStringRes(element)) {
+          template = new TemplateImpl("", "$context$." + methodName + '(' + field + ')', "");
+        } else {
+          template = new TemplateImpl("", field, "");
+          addContextVariable = false;
+        }
       }
       else {
         template = new TemplateImpl("", "$context$.getResources()." + methodName + "(" + field + ")", "");
       }
-      final boolean extendsView = getContainingInheritorOf(element, VIEW_CLASS_NAME) != null;
-      MacroCallNode node =
-        new MacroCallNode(extendsView && !inStaticContext ? new MyVarOfTypeExpression("getContext()") : new VariableOfTypeMacro());
-      node.addParameter(new ConstantNode(CONTEXT));
-      template.addVariable("context", node, new ConstantNode(""), true);
+      if (addContextVariable) {
+        final boolean extendsView = getContainingInheritorOf(element, VIEW_CLASS_NAME) != null;
+        MacroCallNode node = new MacroCallNode(extendsView && !inStaticContext ? new MyVarOfTypeExpression("getContext()") : new VariableOfTypeMacro());
+        node.addParameter(new ConstantNode(CONTEXT));
+        template.addVariable("context", node, new ConstantNode(""), true);
+      }
     }
     final int offset = element.getTextOffset();
     editor.getCaretModel().moveToOffset(offset);

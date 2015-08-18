@@ -33,7 +33,7 @@ public class SdkMergerTest extends AndroidTestCase {
   public static final String SDK_20_FINGERPRINT = "tools,23.0.2,null\n" +
                                                   "platform-tools,20.0.0,null\n" +
                                                   "build-tools-20.0.0,20.0.0,null\n" +
-                                                  "doc-l,null,1\n" +
+                                                  "doc,null,1\n" +
                                                   "android-19,null,2\n" +
                                                   "android-20,null,2\n";
   public static final String SDK_L_FINGERPRINT = "tools,23.0.2,null\n" +
@@ -68,7 +68,7 @@ public class SdkMergerTest extends AndroidTestCase {
                                                   "build-tools-19.0.3,19.0.3,null\n" +
                                                   "build-tools-19.1.0,19.1.0,null\n" +
                                                   "build-tools-20.0.0,20.0.0,null\n" +
-                                                  "doc-l,null,1\n" +
+                                                  "doc,null,1\n" +
                                                   "android-8,null,3\n" +
                                                   "android-10,null,2\n" +
                                                   "android-14,null,3\n" +

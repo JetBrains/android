@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.Message;
+import com.android.ide.common.blame.SourceFile;
+import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.ParsingFailedException;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
@@ -40,7 +43,7 @@ public class DexExceptionParser implements PatternAwareOutputParser {
   private static final Pattern ALREADY_ADDED_EXCEPTION = Pattern.compile("already added: L(.+);");
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<Message> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     Matcher m1 = ERROR.matcher(line);
     if (!m1.matches()) {
@@ -56,7 +59,7 @@ public class DexExceptionParser implements PatternAwareOutputParser {
     }
     String message = String.format("Class %1s has already been added to output. Please remove duplicate copies.",
                                    m2.group(1).replace('/', '.').replace('$', '.'));
-    messages.add(new GradleMessage(GradleMessage.Kind.ERROR, message, null, -1, -1));
+    messages.add(new Message(Message.Kind.ERROR, message, new SourceFilePosition(SourceFile.UNKNOWN, SourcePosition.UNKNOWN)));
     return true;
   }
 }

@@ -52,16 +52,10 @@ public class NavigationReaderTest extends TestCase {
     model.add(t2);
 
     String output = toString(model);
-    //System.out.println(output);
 
     Object model2 = fromString(output);
     String output2 = toString(model2);
-    //System.out.println(output2);
 
     assertEquals(output, output2);
   }
-
-  //public static void main(String[] args) throws FileNotFoundException {
-  //  new NavigationReaderTest().test1();
-  //}
 }

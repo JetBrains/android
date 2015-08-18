@@ -16,8 +16,8 @@
 package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.Nullable;
-import com.android.annotations.Property;
-import com.android.annotations.Transient;
+import com.android.tools.idea.editors.navigation.annotations.Property;
+import com.android.tools.idea.editors.navigation.annotations.Transient;
 
 public class MenuState extends State {
   @Nullable
@@ -33,7 +33,7 @@ public class MenuState extends State {
   }
 
   public static MenuState create(String className, String xmlResourceName) {
-       return new MenuState(className, xmlResourceName);
+    return new MenuState(className, xmlResourceName);
   }
 
   @Override

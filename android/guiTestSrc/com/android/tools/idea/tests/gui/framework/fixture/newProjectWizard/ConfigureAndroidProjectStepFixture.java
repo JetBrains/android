@@ -20,20 +20,20 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.fest.swing.timing.Pause.pause;
 
-public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixture {
+public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixture<ConfigureAndroidProjectStepFixture> {
   protected ConfigureAndroidProjectStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(robot, target);
+    super(ConfigureAndroidProjectStepFixture.class, robot, target);
   }
 
   @NotNull
@@ -52,18 +52,18 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
 
   @NotNull
   public ConfigureAndroidProjectStepFixture enterPackageName(@NotNull String text) {
-    LabelWithEditLink link = robot.finder().findByType(target, LabelWithEditLink.class);
+    LabelWithEditLink link = robot().finder().findByType(target(), LabelWithEditLink.class);
 
-    JBLabel editLabel = robot.finder().find(link, new GenericTypeMatcher<JBLabel>(JBLabel.class) {
+    JBLabel editLabel = robot().finder().find(link, new GenericTypeMatcher<JBLabel>(JBLabel.class) {
       @Override
-      protected boolean isMatching(JBLabel label) {
+      protected boolean isMatching(@NotNull JBLabel label) {
         return "<html><a>Edit</a></html>".equals(label.getText());
       }
     });
-    robot.click(editLabel);
+    robot().click(editLabel);
 
-    final JTextField textField = robot.finder().findByType(link, JTextField.class);
-    Pause.pause(new Condition("'Package name' field is visible") {
+    final JTextField textField = robot().finder().findByType(link, JTextField.class);
+    pause(new Condition("'Package name' field is visible") {
       @Override
       public boolean test() {
         return textField.isShowing();
@@ -72,14 +72,15 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
     replaceText(textField, text);
 
     // click "Done"
-    robot.click(editLabel);
+    robot().click(editLabel);
     return this;
   }
 
   @NotNull
   public File getLocationInFileSystem() {
-    final TextFieldWithBrowseButton locationField = robot.finder().findByType(target, TextFieldWithBrowseButton.class);
-    return GuiActionRunner.execute(new GuiQuery<File>() {
+    final TextFieldWithBrowseButton locationField = robot().finder().findByType(target(), TextFieldWithBrowseButton.class);
+    //noinspection ConstantConditions
+    return execute(new GuiQuery<File>() {
       @Override
       protected File executeInEDT() throws Throwable {
         String location = locationField.getText();

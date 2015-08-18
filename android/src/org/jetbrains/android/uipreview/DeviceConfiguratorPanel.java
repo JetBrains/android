@@ -20,10 +20,13 @@ import com.android.ide.common.resources.configuration.*;
 import com.android.resources.*;
 import com.android.tools.idea.rendering.FlagManager;
 import com.google.common.collect.Maps;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.util.Ref;
 import com.intellij.ui.*;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -38,16 +41,16 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
 
 /**
  * @author Eugene.Kudelevsky
@@ -137,12 +140,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       else if (qualifier instanceof UiModeQualifier) {
         myEditors.put(name, new MyUiModeEditor());
       }
-      else if (qualifier instanceof LanguageQualifier) {
-        myEditors.put(name, new MyLanguageEditor());
-      }
-      else if (qualifier instanceof RegionQualifier) {
-        myEditors.put(name, new MyRegionEditor());
-      }
       else if (qualifier instanceof LocaleQualifier) {
         myEditors.put(name, new MyLocaleEditor());
       }
@@ -205,27 +202,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
           myAvailableQualifiersConfig.removeQualifier(selectedQualifier);
           myChosenQualifiersConfig.addQualifier(selectedQualifier);
 
-          if (selectedQualifier instanceof LocaleQualifier) {
-            // Have to remove language and regions; they are incompatible
-            LanguageQualifier language = myChosenQualifiersConfig.getLanguageQualifier();
-            if (language != null) {
-              myAvailableQualifiersConfig.addQualifier(language);
-              myChosenQualifiersConfig.removeQualifier(language);
-            }
-            RegionQualifier region = myChosenQualifiersConfig.getRegionQualifier();
-            if (region != null) {
-              myAvailableQualifiersConfig.addQualifier(region);
-              myChosenQualifiersConfig.removeQualifier(region);
-            }
-          } else if (selectedQualifier instanceof LanguageQualifier || selectedQualifier instanceof RegionQualifier) {
-            // Remove locale qualifier: they are incompatible
-            LocaleQualifier locale = myChosenQualifiersConfig.getLocaleQualifier();
-            if (locale != null) {
-              myAvailableQualifiersConfig.addQualifier(locale);
-              myChosenQualifiersConfig.removeQualifier(locale);
-            }
-          }
-
           updateLists();
           applyEditors();
 
@@ -280,7 +256,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     ourIcons.put(DensityQualifier.NAME, AndroidIcons.Configs.Dpi);
     ourIcons.put(ScreenHeightQualifier.NAME, AndroidIcons.Configs.Height);
     ourIcons.put(KeyboardStateQualifier.NAME, AndroidIcons.Configs.Keyboard);
-    ourIcons.put(LanguageQualifier.NAME, AndroidIcons.Configs.Language);
     ourIcons.put(LocaleQualifier.NAME, AndroidIcons.Configs.Locale);
     ourIcons.put(CountryCodeQualifier.NAME, AndroidIcons.Configs.Mcc);
     ourIcons.put(NetworkCodeQualifier.NAME, AndroidIcons.Configs.Mnc);
@@ -288,7 +263,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     ourIcons.put(NavigationMethodQualifier.NAME, AndroidIcons.Configs.NavpadMethod);
     ourIcons.put(ScreenOrientationQualifier.NAME, AndroidIcons.Configs.Orientation);
     ourIcons.put(ScreenRatioQualifier.NAME, AndroidIcons.Configs.Ratio);
-    ourIcons.put(RegionQualifier.NAME, AndroidIcons.Configs.Region);
     ourIcons.put(ScreenSizeQualifier.NAME, AndroidIcons.Configs.Size);
     ourIcons.put(SmallestScreenWidthQualifier.NAME, AndroidIcons.Configs.SmallestWidth);
     ourIcons.put(ScreenWidthQualifier.NAME, AndroidIcons.Configs.Width);
@@ -1149,214 +1123,180 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     return font.deriveFont((float)(font.getSize() - 2));
   }
 
-  private class MyLanguageEditor extends MyQualifierEditor<LanguageQualifier> {
-    private final JBList myList = new JBList();
-
-    @Override
-    JComponent getComponent() {
-      BorderLayout layout = new BorderLayout(5, 5); // Matches constants in createUIComponents
-      final JPanel panel = new JPanel(layout);
-      panel.setBorder(new EmptyBorder(0, 20, 0, 0));
-      JBLabel header = new JBLabel("Language:");
-      header.setLabelFor(myList);
-      panel.add(header, BorderLayout.NORTH);
-      SortedListModel<String> model = new SortedListModel<String>(String.CASE_INSENSITIVE_ORDER);
-      model.addAll(LocaleManager.getLanguageCodes(false));
-      myList.setModel(model);
-      myList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-      myList.setCellRenderer(FlagManager.get().getLanguageCodeCellRenderer());
-      JBScrollPane scroll = new JBScrollPane(myList);
-      JComponent list = ListWithFilter.wrap(myList, scroll, FlagManager.getLanguageNameMapper());
-      panel.add(list, BorderLayout.CENTER);
-      JLabel tipLabel = new JBLabel("Tip: Type in list to filter");
-      tipLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-      tipLabel.setFont(adFont());
-      panel.add(tipLabel, BorderLayout.SOUTH);
-      myList.addListSelectionListener(myUpdatingListListener);
-
-      return panel;
-    }
-
-    @Override
-    void reset(@NotNull LanguageQualifier qualifier) {
-      if (qualifier.isValid() && !qualifier.hasFakeValue()) {
-        String value = qualifier.getValue();
-        ListModel model = myList.getModel();
-        for (int i = 0, n = model.getSize(); i < n; i++) {
-          if (value.equals(model.getElementAt(i))) {
-            myList.setSelectedIndex(i);
-            break;
-          }
-        }
-      } else {
-        myList.setSelectedIndex(-1);
-      }
-    }
-
-    @NotNull
-    @Override
-    LanguageQualifier apply() throws InvalidOptionValueException {
-      Object selectedValue = myList.getSelectedValue();
-      if (selectedValue == null) {
-        throw new InvalidOptionValueException("Select a language");
-      }
-      return new LanguageQualifier((String) selectedValue);
-    }
-  }
-
-  private class MyRegionEditor extends MyQualifierEditor<RegionQualifier> {
-    private final JBList myList = new JBList();
-
-    @Override
-    JComponent getComponent() {
-      BorderLayout layout = new BorderLayout(5, 5); // Matches constants in createUIComponents
-      final JPanel panel = new JPanel(layout);
-      panel.setBorder(new EmptyBorder(0, 20, 0, 0));
-      JBLabel header = new JBLabel("Region:");
-      header.setLabelFor(myList);
-      panel.add(header, BorderLayout.NORTH);
-      SortedListModel<String> model = new SortedListModel<String>(String.CASE_INSENSITIVE_ORDER);
-      model.addAll(LocaleManager.getRegionCodes(false));
-      myList.setModel(model);
-      myList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-      myList.setCellRenderer(FlagManager.get().getRegionCodeCellRenderer());
-      JBScrollPane scroll = new JBScrollPane(myList);
-      JComponent list = ListWithFilter.wrap(myList, scroll, FlagManager.getRegionNameMapper());
-      panel.add(list, BorderLayout.CENTER);
-      JLabel tipLabel = new JBLabel("Tip: Type in list to filter");
-      tipLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-      tipLabel.setFont(adFont());
-      panel.add(tipLabel, BorderLayout.SOUTH);
-      myList.addListSelectionListener(myUpdatingListListener);
-
-      return panel;
-    }
-
-    @Override
-    void reset(@NotNull RegionQualifier qualifier) {
-      if (qualifier.isValid() && !qualifier.hasFakeValue()) {
-        String value = qualifier.getValue();
-        ListModel model = myList.getModel();
-        for (int i = 0, n = model.getSize(); i < n; i++) {
-          if (value.equals(model.getElementAt(i))) {
-            myList.setSelectedIndex(i);
-            break;
-          }
-        }
-      } else {
-        myList.setSelectedIndex(-1);
-      }
-    }
-
-    @NotNull
-    @Override
-    RegionQualifier apply() throws InvalidOptionValueException {
-      Object selectedValue = myList.getSelectedValue();
-      if (selectedValue == null) {
-        throw new InvalidOptionValueException("Select a region");
-      }
-      return new RegionQualifier((String) selectedValue);
-    }
-  }
-
   private class MyLocaleEditor extends MyQualifierEditor<LocaleQualifier> {
     private final JBList myLanguageList = new JBList();
     private final JBList myRegionList = new JBList();
+    private JBCheckBox myShowAllRegions;
+    private JBLabel myWarningsLabel;
+
 
     @Override
     JComponent getComponent() {
       GridBagConstraints gridBagConstraints;
       JPanel pane = new JPanel(new GridBagLayout());
+      pane.setBorder(new EmptyBorder(0, 20, 0, 0)); // pad 20 pixels on the left hand side to space out the two views
 
-      SortedListModel<String> languageModel = new SortedListModel<String>(String.CASE_INSENSITIVE_ORDER);
+      myShowAllRegions = new JBCheckBox("Show All Regions", false);
+      myWarningsLabel = new JBLabel("BCP 47 tags (3-letter languages or regions) will only match on API 21");
+      myWarningsLabel.setIcon(AllIcons.General.BalloonWarning);
+      myWarningsLabel.setVisible(false);
+      JBLabel languageLabel = new JBLabel("Language:");
+      JBLabel languageTip = new JBLabel("Tip: Type in list to filter");
+      JBLabel regionLabel = new JBLabel("Specific Region Only:");
+
+      SortedListModel<String> languageModel = new SortedListModel<String>(new Comparator<String>() {
+        @Override
+        public int compare(String s1, String s2) {
+          // Special language comparator: We want to prefer 2-letter language codes.
+          int delta = s1.length() - s2.length();
+          if (delta != 0) {
+            return delta;
+          }
+          return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+        }
+      });
       languageModel.addAll(LocaleManager.getLanguageCodes(true));
       myLanguageList.setModel(languageModel);
       myLanguageList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       myLanguageList.setCellRenderer(FlagManager.get().getLanguageCodeCellRenderer());
       JBScrollPane scroll = new JBScrollPane(myLanguageList);
       JComponent languagePane = ListWithFilter.wrap(myLanguageList, scroll, FlagManager.getLanguageNameMapper());
-      JBLabel languageLabel = new JBLabel("Language:");
       languageLabel.setLabelFor(myLanguageList);
-      JBLabel languageTip = new JBLabel("Tip: Type in list to filter");
       languageTip.setFont(adFont());
 
-      SortedListModel<String> regionModel = new SortedListModel<String>(String.CASE_INSENSITIVE_ORDER);
-      regionModel.addAll(LocaleManager.getRegionCodes(true));
-      myRegionList.setModel(regionModel);
       myRegionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       myRegionList.setCellRenderer(FlagManager.get().getRegionCodeCellRenderer());
-      JBScrollPane regionScroll = new JBScrollPane(myRegionList);
-      JComponent regionPane = ListWithFilter.wrap(myRegionList, regionScroll, FlagManager.getRegionNameMapper());
+      updateRegionList(null);
+      // We can't enable filter lists on the region mode, since fast search doesn't seem to
+      // work on models that can change after creation.
+      JComponent regionPane = new JBScrollPane(myRegionList);
 
-      JBLabel regionLabel = new JBLabel("Region: (Optional)");
-      JBLabel regionTip = new JBLabel("Tip: Type in list to filter");
-      regionTip.setFont(adFont());
-      regionLabel.setLabelFor(myRegionList);
-
+      Insets insets = new Insets(0, 20, 0, 0);
       gridBagConstraints = new GridBagConstraints();
-      gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
-      gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-      gridBagConstraints.anchor = GridBagConstraints.LINE_START;
+      gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
       pane.add(languageLabel, gridBagConstraints);
       gridBagConstraints = new GridBagConstraints();
       gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+      gridBagConstraints.anchor = GridBagConstraints.LINE_START;
+      gridBagConstraints.insets = insets;
+      pane.add(regionLabel, gridBagConstraints);
+      gridBagConstraints = new GridBagConstraints();
       gridBagConstraints.fill = GridBagConstraints.BOTH;
-      gridBagConstraints.weightx = 0.1;
-      gridBagConstraints.weighty = 0.1;
+      gridBagConstraints.weightx = 1;
+      gridBagConstraints.weighty = 1;
       pane.add(languagePane, gridBagConstraints);
-
       gridBagConstraints = new GridBagConstraints();
       gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
-      gridBagConstraints.anchor = GridBagConstraints.LINE_END;
+      gridBagConstraints.fill = GridBagConstraints.BOTH;
+      gridBagConstraints.weightx = 1;
+      gridBagConstraints.weighty = 1;
+      gridBagConstraints.insets = insets;
+      pane.add(regionPane, gridBagConstraints);
+      gridBagConstraints = new GridBagConstraints();
+      gridBagConstraints.anchor = GridBagConstraints.EAST;
       pane.add(languageTip, gridBagConstraints);
-
       gridBagConstraints = new GridBagConstraints();
       gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
       gridBagConstraints.anchor = GridBagConstraints.LINE_START;
-      pane.add(regionLabel, gridBagConstraints);
+      gridBagConstraints.insets = insets;
+      pane.add(myShowAllRegions, gridBagConstraints);
       gridBagConstraints = new GridBagConstraints();
       gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
-      gridBagConstraints.fill = GridBagConstraints.BOTH;
-      gridBagConstraints.weightx = 0.1;
-      gridBagConstraints.weighty = 0.1;
-      pane.add(regionPane, gridBagConstraints);
-
-      gridBagConstraints = new GridBagConstraints();
-      gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
-      gridBagConstraints.anchor = GridBagConstraints.LINE_END;
-      pane.add(regionTip, gridBagConstraints);
+      gridBagConstraints.anchor = GridBagConstraints.LINE_START;
+      pane.add(myWarningsLabel, gridBagConstraints);
 
       myLanguageList.addListSelectionListener(myUpdatingListListener);
       myRegionList.addListSelectionListener(myUpdatingListListener);
+      myLanguageList.addListSelectionListener(new ListSelectionListener() {
+        @Override
+        public void valueChanged(ListSelectionEvent listSelectionEvent) {
+          // If selecting languages, attempt to pick relevant regions, if applicable
+          updateRegionList((String)myLanguageList.getSelectedValue());
+        }
+      });
+      myShowAllRegions.addChangeListener(new ChangeListener() {
+        @Override
+        public void stateChanged(ChangeEvent changeEvent) {
+          updateRegionList((String)myLanguageList.getSelectedValue());
+        }
+      });
 
       return pane;
+    }
+
+    /** Populate the region list based on an optional language selection */
+    private void updateRegionList(@Nullable String languageCode) {
+      final Ref<String> preferred = new Ref<String>(null);
+      SortedListModel<String> regionModel = new SortedListModel<String>(new Comparator<String>() {
+        @Override
+        public int compare(String s1, String s2) {
+          // Sort "Any Region" to the top
+          if (s1.equals(FAKE_VALUE)) {
+            return -1;
+          } else if (s2.equals(FAKE_VALUE)) {
+            return 1;
+          }
+          if (s1.equals(preferred.get())) {
+            return -1;
+          } else if (s2.equals(preferred.get())) {
+            return 1;
+          }
+          // Special language comparator: We want to prefer 2-letter language codes.
+          int delta = s1.length() - s2.length();
+          if (delta != 0) {
+            return delta;
+          }
+          return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+        }
+      });
+      regionModel.add(FAKE_VALUE);
+      if (!myShowAllRegions.isSelected() && languageCode != null) {
+        preferred.set(LocaleManager.getLanguageRegion(languageCode));
+        final List<String> relevant = LocaleManager.getRelevantRegions(languageCode);
+        for (String code : relevant) {
+          regionModel.add(code);
+        }
+      } else {
+        for (String code : LocaleManager.getRegionCodes(true)) {
+          regionModel.add(code);
+        }
+      }
+      myRegionList.setModel(regionModel);
+      if (languageCode != null && regionModel.getSize() > 0) {
+        myRegionList.setSelectedIndex(0);
+      }
     }
 
     @Override
     void reset(@NotNull LocaleQualifier qualifier) {
       if (qualifier.isValid() && !qualifier.hasFakeValue()) {
-        LanguageQualifier language = qualifier.getLanguageQualifier();
-        RegionQualifier region = qualifier.getRegionQualifier();
+        String language = qualifier.getLanguage();
+        String region = qualifier.getRegion();
         ListModel languageModel = myLanguageList.getModel();
         ListModel regionModel = myRegionList.getModel();
 
-        if (language != null) {
-          String value = language.getValue();
-          for (int i = 0, n = languageModel.getSize(); i < n; i++) {
-            if (value.equals(languageModel.getElementAt(i))) {
-              myLanguageList.setSelectedIndex(i);
+        for (int i = 0, n = languageModel.getSize(); i < n; i++) {
+          if (language.equals(languageModel.getElementAt(i))) {
+            myLanguageList.setSelectedIndex(i);
+            break;
+          }
+        }
+        if (region != null) {
+          boolean found = false;
+          for (int i = 0, n = regionModel.getSize(); i < n; i++) {
+            if (region.equals(regionModel.getElementAt(i))) {
+              myRegionList.setSelectedIndex(i);
+              found = true;
               break;
             }
           }
-        } else {
-          myLanguageList.setSelectedIndex(-1);
-        }
-        if (region != null) {
-          String value = region.getValue();
-          for (int i = 0, n = regionModel.getSize(); i < n; i++) {
-            if (value.equals(regionModel.getElementAt(i))) {
-              myRegionList.setSelectedIndex(i);
-              break;
+          if (!found && !myShowAllRegions.isSelected()) {
+            myShowAllRegions.setSelected(true);
+            for (int i = 0, n = regionModel.getSize(); i < n; i++) {
+              if (region.equals(regionModel.getElementAt(i))) {
+                myRegionList.setSelectedIndex(i);
+                break;
+              }
             }
           }
         } else {
@@ -1371,16 +1311,16 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     @NotNull
     @Override
     LocaleQualifier apply() throws InvalidOptionValueException {
-      Object selectedLanguage = myLanguageList.getSelectedValue();
+      String selectedLanguage = (String)myLanguageList.getSelectedValue();
       if (selectedLanguage == null) {
-        throw new InvalidOptionValueException("Select a BCP 47 language tag");
+        throw new InvalidOptionValueException("Select a language tag");
       }
-      Object selectedRegion = myRegionList.getSelectedValue();
-      if (selectedRegion != null) {
-        return new LocaleQualifier(LocaleQualifier.PREFIX + selectedLanguage + '+' + selectedRegion);
+      String selectedRegion = (String)myRegionList.getSelectedValue();
+      if (FAKE_VALUE.equals(selectedRegion)) {
+        selectedRegion = null;
       }
-
-      return new LocaleQualifier(LocaleQualifier.PREFIX + selectedLanguage);
+      myWarningsLabel.setVisible(selectedLanguage.length() > 2 || selectedRegion != null && selectedRegion.length() > 2);
+      return new LocaleQualifier(null, selectedLanguage, selectedRegion, null);
     }
   }
 

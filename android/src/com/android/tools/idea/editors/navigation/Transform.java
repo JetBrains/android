@@ -87,8 +87,4 @@ public class Transform {
   public ModelPoint viewToModel(Point loc) {
     return new ModelPoint(viewToModelX(loc.x), viewToModelY(loc.y));
   }
-
-  public ModelDimension viewToModel(Dimension dim) {
-    return new ModelDimension(viewToModelW(dim.width), viewToModelH(dim.height));
-  }
 }

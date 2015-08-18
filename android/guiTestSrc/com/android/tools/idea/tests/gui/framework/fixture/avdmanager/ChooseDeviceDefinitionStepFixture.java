@@ -15,82 +15,89 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
-import com.android.sdklib.devices.Device;
-import com.android.tools.idea.avdmanager.ChooseDeviceDefinitionStep;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
-import com.android.tools.idea.wizard.LabelWithEditLink;
 import com.intellij.ui.SearchTextField;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.JButtonMatcher;
-import org.fest.swing.data.TableCell;
-import org.fest.swing.fixture.ComponentFixture;
-import org.fest.swing.fixture.JOptionPaneFixture;
+import org.fest.swing.exception.ActionFailedException;
 import org.fest.swing.fixture.JPopupMenuFixture;
+import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 
-public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture {
+import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
+import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+import static org.junit.Assert.assertNotNull;
+
+public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture<ChooseDeviceDefinitionStepFixture> {
   public ChooseDeviceDefinitionStepFixture(@NotNull Robot robot, @NotNull JRootPane rootPane) {
-    super(robot, rootPane);
+    super(ChooseDeviceDefinitionStepFixture.class, robot, rootPane);
   }
 
+  @NotNull
   public ChooseDeviceDefinitionStepFixture enterSearchTerm(@NotNull String searchTerm) {
-    SearchTextField searchField = robot.finder().findByType(target, SearchTextField.class);
+    SearchTextField searchField = robot().finder().findByType(target(), SearchTextField.class);
     replaceText(searchField.getTextEditor(), searchTerm);
     return this;
   }
 
+  @NotNull
   public ChooseDeviceDefinitionStepFixture selectDeviceByName(@NotNull final String deviceName) {
-    final TableView deviceList = robot.finder().find(target, new GenericTypeMatcher<TableView>(TableView.class) {
-      @Override
-      protected boolean isMatching(TableView component) {
-        return component.getColumnCount() > 1; // There are two tables on this step, but the category table only has 1 column
-      }
-    });
-    JTableFixture deviceListFixture = new JTableFixture(robot, deviceList);
-
-    TableCell cell = deviceListFixture.cell(deviceName);
-    deviceListFixture.selectCell(cell);
+    JTableFixture deviceListFixture = getTableFixture();
+    JTableCellFixture cell = deviceListFixture.cell(deviceName);
+    cell.select();
     return this;
   }
 
+  @NotNull
   public ChooseDeviceDefinitionStepFixture removeDeviceByName(@NotNull final String deviceName) {
-    final TableView deviceList = robot.finder().find(target, new GenericTypeMatcher<TableView>(TableView.class) {
-      @Override
-      protected boolean isMatching(TableView component) {
-        return component.getColumnCount() > 1; // There are two tables on this step, but the category table only has 1 column
-      }
-    });
-    JTableFixture deviceListFixture = new JTableFixture(robot, deviceList);
+    JTableFixture deviceListFixture = getTableFixture();
 
-    TableCell cell = deviceListFixture.cell(deviceName);
-    deviceListFixture.click(cell, MouseButton.RIGHT_BUTTON);
+    deviceListFixture.cell(deviceName).click(RIGHT_BUTTON);
 
-    JPopupMenu popupMenu = robot.findActivePopupMenu();
-    JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot, popupMenu);
+    JPopupMenu popupMenu = robot().findActivePopupMenu();
+    assertNotNull(popupMenu);
+    JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot(), popupMenu);
     contextMenuFixture.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
       @Override
-      protected boolean isMatching(JMenuItem component) {
+      protected boolean isMatching(@NotNull JMenuItem component) {
         return "Delete".equals(component.getText());
       }
     }).click();
 
-    JOptionPaneFixture optionPaneFixture = new JOptionPaneFixture(robot);
-    optionPaneFixture.yesButton().click();
+    MessagesFixture.findByTitle(robot(), target(), "Confirm Deletion").clickYes();
     return this;
   }
 
+  @NotNull
   public DeviceEditWizardFixture createNewDevice() {
-    JButton newDeviceButton = robot.finder().find(target, JButtonMatcher.withText("New Hardware Profile").andShowing());
-    robot.click(newDeviceButton);
-    return DeviceEditWizardFixture.find(robot);
+    JButton newDeviceButton = robot().finder().find(target(), withText("New Hardware Profile").andShowing());
+    robot().click(newDeviceButton);
+    return DeviceEditWizardFixture.find(robot());
+  }
+
+  @NotNull
+  private JTableFixture getTableFixture() {
+    final TableView deviceList = robot().finder().find(target(), new GenericTypeMatcher<TableView>(TableView.class) {
+      @Override
+      protected boolean isMatching(@NotNull TableView component) {
+        return component.getRowCount() > 0 && component.getColumnCount() > 1; // There are two tables on this step, but the category table only has 1 column
+      }
+    });
+    return new JTableFixture(robot(), deviceList);
+  }
+
+  public boolean deviceExists(@NotNull String deviceName) {
+    try {
+      getTableFixture().cell(deviceName);
+      return true;
+    }
+    catch (ActionFailedException e) {
+      return false;
+    }
   }
 }

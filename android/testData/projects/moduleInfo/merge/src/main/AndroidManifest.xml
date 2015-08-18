@@ -27,6 +27,12 @@
         android:allowBackup="true"
         android:label="@string/app_name">
       <activity android:name=".Main" android:label="Main" />
+      <service android:name=".WatchFace" android:label="Watch Face">
+        <intent-filter>
+          <action android:name="android.service.wallpaper.WallpaperService" />
+          <category android:name="com.google.android.wearable.watchface.category.WATCH_FACE" />
+        </intent-filter>
+      </service>
     </application>
 
 </manifest>

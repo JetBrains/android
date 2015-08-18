@@ -20,10 +20,10 @@ import com.intellij.openapi.fileChooser.ex.FileSystemTreeImpl;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 
 import javax.swing.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,16 +31,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static org.fest.reflect.core.Reflection.field;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
+import static org.junit.Assert.assertNotNull;
 
 public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialogImpl> {
   @NotNull
   public static FileChooserDialogFixture findOpenProjectDialog(@NotNull Robot robot) {
     return findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
-        return dialog.isShowing() && "Open Project".equals(dialog.getTitle());
+      protected boolean isMatching(@NotNull JDialog dialog) {
+        return dialog.isShowing() && "Open File or Project".equals(dialog.getTitle());
       }
     });
   }
@@ -49,7 +51,7 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
   public static FileChooserDialogFixture findImportProjectDialog(@NotNull Robot robot) {
     return findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      protected boolean isMatching(JDialog dialog) {
+      protected boolean isMatching(@NotNull JDialog dialog) {
         String title = dialog.getTitle();
         return dialog.isShowing() && title != null && title.startsWith("Select") && title.endsWith("Project to Import");
       }
@@ -70,10 +72,9 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
     final FileSystemTreeImpl fileSystemTree = field("myFileSystemTree").ofType(FileSystemTreeImpl.class)
                                                                        .in(getDialogWrapper())
                                                                        .get();
-
+    assertNotNull(fileSystemTree);
     final AtomicBoolean fileSelected = new AtomicBoolean();
-
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         fileSystemTree.select(file, new Runnable() {

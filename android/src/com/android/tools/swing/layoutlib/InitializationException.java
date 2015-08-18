@@ -16,8 +16,8 @@
 package com.android.tools.swing.layoutlib;
 
 /**
-* An {@linkplain InitializationException} is thrown when there is an error while initializing the {@link GraphicsLayoutRenderer}.
-*/
+ * An {@linkplain InitializationException} is thrown when there is an error while initializing the {@link GraphicsLayoutRenderer}.
+ */
 public class InitializationException extends Exception {
   InitializationException(String message) {
     super(message);

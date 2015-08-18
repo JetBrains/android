@@ -15,71 +15,65 @@
  */
 package com.android.tools.idea.gradle.customizer.android;
 
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.dependency.Dependency;
-import com.android.tools.idea.gradle.dependency.DependencySet;
-import com.android.tools.idea.gradle.dependency.LibraryDependency;
-import com.android.tools.idea.gradle.dependency.ModuleDependency;
+import com.android.tools.idea.gradle.dependency.*;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.base.Objects;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import java.io.File;
 import java.util.Collection;
-import java.util.List;
 
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_DEPENDENCIES;
+import static com.android.SdkConstants.FD_JARS;
+import static com.android.tools.idea.gradle.dependency.LibraryDependency.PathType.BINARY;
+import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.Projects.setModuleCompiledArtifact;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 /**
- * Sets the dependencies of a module imported from an {@link com.android.builder.model.AndroidProject}.
+ * Sets the dependencies of a module imported from an {@link AndroidProject}.
  */
 public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<IdeaAndroidProject>
   implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
-  private static final Logger LOG = Logger.getInstance(AbstractDependenciesModuleCustomizer.class);
 
   @Override
-  protected void setUpDependencies(@NotNull ModifiableRootModel model,
-                                   @NotNull IdeaAndroidProject androidProject,
-                                   @NotNull List<Message> errorsFound) {
+  protected void setUpDependencies(@NotNull ModifiableRootModel moduleModel, @NotNull IdeaAndroidProject androidProject) {
     DependencySet dependencies = Dependency.extractFrom(androidProject);
     for (LibraryDependency dependency : dependencies.onLibraries()) {
-      updateDependency(model, dependency);
+      updateLibraryDependency(moduleModel, dependency, androidProject.getDelegate());
     }
     for (ModuleDependency dependency : dependencies.onModules()) {
-      updateDependency(model, dependency, errorsFound);
+      updateModuleDependency(moduleModel, dependency, androidProject.getDelegate());
     }
 
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(model.getProject());
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(moduleModel.getProject());
     Collection<SyncIssue> syncIssues = androidProject.getSyncIssues();
     if (syncIssues != null) {
-      messages.reportSyncIssues(syncIssues, model.getModule());
+      messages.reportSyncIssues(syncIssues, moduleModel.getModule());
     }
     else {
       Collection<String> unresolvedDependencies = androidProject.getDelegate().getUnresolvedDependencies();
-      messages.reportUnresolvedDependencies(unresolvedDependencies, model.getModule());
+      messages.reportUnresolvedDependencies(unresolvedDependencies, moduleModel.getModule());
     }
   }
 
-  private void updateDependency(@NotNull ModifiableRootModel model, @NotNull LibraryDependency dependency) {
-    Collection<String> binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
-    setUpLibraryDependency(model, dependency.getName(), dependency.getScope(), binaryPaths);
-  }
-
-  private void updateDependency(@NotNull ModifiableRootModel model,
-                                @NotNull ModuleDependency dependency,
-                                @NotNull List<Message> errorsFound) {
-    ModuleManager moduleManager = ModuleManager.getInstance(model.getProject());
+  private void updateModuleDependency(@NotNull ModifiableRootModel moduleModel,
+                                      @NotNull ModuleDependency dependency,
+                                      @NotNull AndroidProject androidProject) {
+    ModuleManager moduleManager = ModuleManager.getInstance(moduleModel.getProject());
     Module moduleDependency = null;
     for (Module module : moduleManager.getModules()) {
       AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
@@ -91,36 +85,55 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
         }
       }
     }
+    LibraryDependency compiledArtifact = dependency.getBackupDependency();
+
     if (moduleDependency != null) {
-      ModuleOrderEntry orderEntry = model.addModuleOrderEntry(moduleDependency);
+      ModuleOrderEntry orderEntry = moduleModel.addModuleOrderEntry(moduleDependency);
       orderEntry.setExported(true);
+
+      if (compiledArtifact != null) {
+        setModuleCompiledArtifact(moduleDependency, compiledArtifact);
+      }
       return;
     }
 
-    LibraryDependency backup = dependency.getBackupDependency();
-    boolean hasLibraryBackup = backup != null;
-    String msg = String.format("Unable to find module with Gradle path '%1$s'.", dependency.getGradlePath());
+    String backupName = compiledArtifact != null ? compiledArtifact.getName() : null;
 
-    Message.Type type = Message.Type.ERROR;
-    if (hasLibraryBackup) {
-      msg += String.format(" Linking to library '%1$s' instead.", backup.getName());
-      type = Message.Type.WARNING;
-    }
-
-    LOG.info(msg);
-
-    errorsFound.add(new Message(FAILED_TO_SET_UP_DEPENDENCIES, type, msg));
+    DependencySetupErrors setupErrors = getSetupErrors(moduleModel.getProject());
+    setupErrors.addMissingModule(dependency.getGradlePath(), moduleModel.getModule().getName(), backupName);
 
     // fall back to library dependency, if available.
-    if (hasLibraryBackup) {
-      updateDependency(model, backup);
+    if (compiledArtifact != null) {
+      updateLibraryDependency(moduleModel, compiledArtifact, androidProject);
+    }
+  }
+
+  public static void updateLibraryDependency(@NotNull ModifiableRootModel moduleModel,
+                                             @NotNull LibraryDependency dependency,
+                                             @NotNull AndroidProject androidProject) {
+    Collection<String> binaryPaths = dependency.getPaths(BINARY);
+    setUpLibraryDependency(moduleModel, dependency.getName(), dependency.getScope(), binaryPaths);
+
+    File buildFolder = androidProject.getBuildFolder();
+
+    // Exclude jar files that are in "jars" folder in "build" folder.
+    // see https://code.google.com/p/android/issues/detail?id=123788
+    ContentEntry[] contentEntries = moduleModel.getContentEntries();
+    for (String binaryPath : binaryPaths) {
+      File parent = new File(binaryPath).getParentFile();
+      if (parent != null && FD_JARS.equals(parent.getName()) && isAncestor(buildFolder, parent, true)) {
+        ContentEntry parentContentEntry = findParentContentEntry(parent, contentEntries);
+        if (parentContentEntry != null) {
+          parentContentEntry.addExcludeFolder(pathToIdeaUrl(parent));
+        }
+      }
     }
   }
 
   @Override
   @NotNull
   public ProjectSystemId getProjectSystemId() {
-    return GradleConstants.SYSTEM_ID;
+    return GRADLE_SYSTEM_ID;
   }
 
   @Override

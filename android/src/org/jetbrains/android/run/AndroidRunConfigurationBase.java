@@ -22,9 +22,14 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.run.CloudConfiguration;
+import com.android.tools.idea.run.CloudDebuggingTargetChooser;
+import com.android.tools.idea.run.CloudTargetChooser;
+import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.intellij.CommonBundle;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -35,12 +40,14 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
 import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
@@ -63,6 +70,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+
+import static com.android.tools.idea.gradle.util.Projects.isGradleProjectWithoutModel;
+import static com.android.tools.idea.run.CloudConfiguration.Kind.MATRIX;
+import static com.android.tools.idea.run.CloudConfiguration.Kind.SINGLE_DEVICE;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunConfigurationBase");
@@ -88,6 +99,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public boolean SHOW_LOGCAT_AUTOMATICALLY = true;
   public boolean FILTER_LOGCAT_AUTOMATICALLY = true;
 
+  public int SELECTED_CLOUD_MATRIX_CONFIGURATION_ID = 0;
+  public String SELECTED_CLOUD_MATRIX_PROJECT_ID = "";
+  public int SELECTED_CLOUD_DEVICE_CONFIGURATION_ID = 0;
+  public String SELECTED_CLOUD_DEVICE_PROJECT_ID = "";
+  public boolean IS_VALID_CLOUD_MATRIX_SELECTION = false; // indicates whether the selected matrix config + project combo is valid
+  public String INVALID_CLOUD_MATRIX_SELECTION_ERROR = ""; // specifies the error if the matrix config + project combo is invalid
+  public boolean IS_VALID_CLOUD_DEVICE_SELECTION = false; // indicates whether the selected cloud device config + project combo is valid
+  public String INVALID_CLOUD_DEVICE_SELECTION_ERROR = ""; // specifies the error if the cloud device config + project combo is invalid
+  public String CLOUD_DEVICE_SERIAL_NUMBER = "";
+
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory) {
     super(new JavaRunConfigurationModule(project, false), factory);
   }
@@ -103,7 +124,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     Project project = module.getProject();
-    if (Projects.isGradleProjectWithoutModel(project)) {
+    if (isGradleProjectWithoutModel(project)) {
       // This only shows an error message on the "Run Configuration" dialog, but does not prevent user from running app.
       throw new RuntimeConfigurationException(GRADLE_SYNC_FAILED_ERR_MSG);
     }
@@ -196,7 +217,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     Project project = env.getProject();
 
-    if (Projects.isGradleProjectWithoutModel(project)) {
+    if (isGradleProjectWithoutModel(project)) {
       // This prevents user from running the app.
       throw new ExecutionException(GRADLE_SYNC_FAILED_ERR_MSG);
     }
@@ -207,7 +228,21 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       if (!variant.getMainArtifact().isSigned()) {
         AndroidArtifactOutput output = GradleUtil.getOutput(variant.getMainArtifact());
         String message = AndroidBundle.message("run.error.apk.not.signed", output.getMainOutputFile().getOutputFile().getName());
-        Messages.showErrorDialog(project, message, CommonBundle.getErrorTitle());
+        String title = CommonBundle.getErrorTitle();
+        NotificationHyperlink quickfix =
+          new NotificationHyperlink("open.sign.configuration", "Open Project Structure Dialog") {
+            @Override
+            protected void execute(@NotNull Project project) {
+              ProjectSettingsService service = ProjectSettingsService.getInstance(project);
+              if (service instanceof AndroidProjectSettingsService) {
+                ((AndroidProjectSettingsService)service).openSigningConfiguration(module);
+              }
+              else {
+                service.openModuleSettings(module);
+              }
+            }
+          };
+        AndroidGradleNotification.getInstance(project).showBalloon(title, message, NotificationType.ERROR, quickfix);
         return null;
       }
     }
@@ -245,11 +280,20 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       case USB_DEVICE:
         targetChooser = new UsbDeviceTargetChooser();
         break;
+      case CLOUD_MATRIX_TEST:
+        targetChooser = new CloudTargetChooser(MATRIX, SELECTED_CLOUD_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_MATRIX_PROJECT_ID);
+        break;
+      case CLOUD_DEVICE_LAUNCH:
+        targetChooser = new CloudTargetChooser(SINGLE_DEVICE, SELECTED_CLOUD_DEVICE_CONFIGURATION_ID, SELECTED_CLOUD_DEVICE_PROJECT_ID);
+        break;
+      case CLOUD_DEVICE_DEBUGGING:
+        targetChooser = new CloudDebuggingTargetChooser(CLOUD_DEVICE_SERIAL_NUMBER);
+        break;
       default:
         assert false : "Unknown target selection mode " + TARGET_SELECTION_MODE;
         break;
     }
-    
+
     AndroidApplicationLauncher applicationLauncher = getApplicationLauncher(facet);
     if (applicationLauncher != null) {
       final boolean supportMultipleDevices = supportMultipleDevices() && executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID);
@@ -326,5 +370,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     super.writeExternal(element);
     writeModule(element);
     DefaultJDOMExternalizer.writeExternal(this, element);
+  }
+
+  public boolean usesSimpleLauncher() {
+    return true;
   }
 }

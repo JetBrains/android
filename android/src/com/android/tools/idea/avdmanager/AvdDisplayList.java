@@ -19,13 +19,12 @@ import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.wizard.WizardUtils;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.IdeBorderFactory;
@@ -170,6 +169,12 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
   @Override
   public void notifyRun() {
+  }
+
+  @NotNull
+  @Override
+  public JComponent getComponent() {
+    return this;
   }
 
   private final MouseAdapter myEditingListener = new MouseAdapter() {
@@ -572,7 +577,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       long sizeInBytes = 0;
       if (avdInfo != null) {
         File avdDir = new File(avdInfo.getDataFolderPath());
-        for (File file : TemplateUtils.listFiles(avdDir)) {
+        for (File file : WizardUtils.listFiles(avdDir)) {
           sizeInBytes += file.length();
         }
       }

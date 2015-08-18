@@ -22,10 +22,12 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.*;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.Function;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -300,55 +302,75 @@ public abstract class ManifestInfo {
   @NotNull
   public abstract AndroidVersion getMinSdkVersion();
 
-  /** @return the list activities defined in the manifest. */
+  /** @return the list of activities defined in the manifest. */
   @NotNull
   public List<Activity> getActivities() {
-    return ApplicationManager.getApplication().runReadAction(new Computable<List<Activity>>() {
+    return getApplicationComponents(new Function<Application, List<Activity>>() {
       @Override
-      public List<Activity> compute() {
-        List<Activity> activities = Lists.newArrayList();
-
-        for (Manifest m : getManifests()) {
-          Application application = m.getApplication();
-          if (application != null) {
-            activities.addAll(application.getActivities());
-          }
-        }
-
-        return activities;
+      public List<Activity> fun(Application application) {
+        return application.getActivities();
       }
     });
   }
 
-  /** @return the list activity aliases defined in the manifest. */
+  /** @return the list of activity aliases defined in the manifest. */
   @NotNull
   public List<ActivityAlias> getActivityAliases() {
-    return ApplicationManager.getApplication().runReadAction(new Computable<List<ActivityAlias>>() {
+    return getApplicationComponents(new Function<Application, List<ActivityAlias>>() {
       @Override
-      public List<ActivityAlias> compute() {
-        List<ActivityAlias> activityAliases = Lists.newArrayList();
+      public List<ActivityAlias> fun(Application application) {
+        return application.getActivityAliass();
+      }
+    });
+  }
 
-        for (Manifest m : getManifests()) {
+  /** @return the list of services defined in the manifest. */
+  @NotNull
+  public List<Service> getServices() {
+    return getApplicationComponents(new Function<Application, List<Service>>() {
+      @Override
+      public List<Service> fun(Application application) {
+        return application.getServices();
+      }
+    });
+  }
+
+  private <T> List<T> getApplicationComponents(final Function<Application, List<T>> accessor) {
+    final List<Manifest> manifests = getManifests();
+    if (manifests.isEmpty()) {
+      Logger.getInstance(ManifestInfo.class).warn("List of manifests is empty, possibly needs a gradle sync.");
+    }
+
+    return ApplicationManager.getApplication().runReadAction(new Computable<List<T>>() {
+      @Override
+      public List<T> compute() {
+        List<T> components = Lists.newArrayList();
+
+        for (Manifest m : manifests) {
           Application application = m.getApplication();
           if (application != null) {
-            activityAliases.addAll(application.getActivityAliass());
+            components.addAll(accessor.fun(application));
           }
         }
 
-
-        return activityAliases;
+        return components;
       }
     });
   }
 
   @NotNull
   public List<UsesFeature> getRequiredFeatures() {
+    final List<Manifest> manifests = getManifests();
+    if (manifests.isEmpty()) {
+      Logger.getInstance(ManifestInfo.class).warn("List of manifests is empty, possibly needs a gradle sync.");
+    }
+
     return ApplicationManager.getApplication().runReadAction(new Computable<List<UsesFeature>>() {
       @Override
       public List<UsesFeature> compute() {
         List<UsesFeature> usesFeatures = Lists.newArrayList();
 
-        for (Manifest m : getManifests()) {
+        for (Manifest m : manifests) {
           usesFeatures.addAll(m.getUsesFeatures());
         }
 

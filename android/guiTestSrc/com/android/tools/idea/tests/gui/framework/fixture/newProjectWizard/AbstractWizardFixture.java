@@ -15,36 +15,31 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.intellij.ui.GuiUtils;
+import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.JButtonMatcher;
-import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.fixture.ComponentFixture;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
+import org.fest.swing.fixture.ContainerFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
-import java.util.Collection;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 
 /**
  * Base class for fixtures which control wizards that extend {@link com.android.tools.idea.wizard.DynamicWizard}
  */
-public abstract class AbstractWizardFixture extends ComponentFixture<JDialog> {
+public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDialog> implements ContainerFixture<JDialog> {
 
-  public AbstractWizardFixture(Robot robot, JDialog target) {
-    super(robot, target);
+  public AbstractWizardFixture(@NotNull Class<S> selfType, @NotNull Robot robot, @NotNull JDialog target) {
+    super(selfType, robot, target);
   }
 
   @NotNull
   protected JRootPane findStepWithTitle(@NotNull final String title) {
-    final JRootPane rootPane = target.getRootPane();
-    GuiTests.waitUntilFound(robot, rootPane, new GenericTypeMatcher<JLabel>(JLabel.class) {
+    JRootPane rootPane = target().getRootPane();
+    waitUntilFound(robot(), rootPane, new GenericTypeMatcher<JLabel>(JLabel.class) {
       @Override
-      protected boolean isMatching(JLabel label) {
+      protected boolean isMatching(@NotNull JLabel label) {
         return title.equals(label.getText());
       }
     });
@@ -52,7 +47,20 @@ public abstract class AbstractWizardFixture extends ComponentFixture<JDialog> {
   }
 
   @NotNull
-  protected JButton findButtonByText(@NotNull String text) {
-    return robot.finder().find(target, JButtonMatcher.withText(text).andShowing());
+  public S clickNext() {
+    findAndClickButton(this, "Next");
+    return myself();
+  }
+
+  @NotNull
+  public S clickFinish() {
+    findAndClickButton(this, "Finish");
+    return myself();
+  }
+
+  @NotNull
+  public S clickCancel() {
+    findAndClickCancelButton(this);
+    return myself();
   }
 }

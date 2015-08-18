@@ -33,6 +33,12 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
   private static final String BASE_PATH = "apiCheck/";
 
   @Override
+  @Nullable
+  protected LanguageLevel getLanguageLevel() {
+    return LanguageLevel.JDK_1_7;
+  }
+
+  @Override
   public void setUp() throws Exception {
     super.setUp();
     AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
@@ -69,6 +75,11 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testVersionConditional3() throws Exception {
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
   public void testFieldWithinCall() throws Exception {
     AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
     doTest(inspection, null);
@@ -101,9 +112,21 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testReflectiveOperationException() throws Exception {
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkData == null || !ConfigureAndroidModuleStep.isJdk7Supported(sdkData)) {
+      System.out.println("Skipping IntellijApiDetectorTest#testReflectiveOperationException: Test JDK must be JDK 7 or higher");
+      return;
+    }
+
+    // Regression test for https://code.google.com/p/android/issues/detail?id=153406
+    // Ensure that we flag implicitly used ReflectiveOperationExceptions
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
   // This test does not yet work reliably; need to ensure correct JDK 7 loading.
-  @Ignore
-  public void DISABLEDtestTryWithResources() throws Exception {
+  public void testTryWithResources() throws Exception {
     // TODO: Allow setting a custom minSdkVersion in the manifest so I can test both with and without
 
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
@@ -111,14 +134,6 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
       System.out.println("Skipping IntellijApiDetectorTest#testTryWithResources: Test JDK must be JDK 7 or higher");
       return;
     }
-
-    // Try to allow JDK 7 features on this project; without it, we get a warning that try-with-resources
-    // is not valid for this project. However this isn't enough; I need to have the right classes on
-    // the class path too, otherwise we get
-    //  Incompatible types. Found: 'java.io.BufferedReader', required: 'java.lang.AutoCloseable'
-    LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(getProject());
-    assertNotNull(extension);
-    extension.setLanguageLevel(LanguageLevel.JDK_1_7);
 
     AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
     doTest(inspection, null);

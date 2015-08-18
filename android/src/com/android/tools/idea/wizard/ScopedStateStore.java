@@ -173,19 +173,17 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
    * Push the given value onto a list. If no list is present for the given key it will be created.
    * @return true iff the state changed as a result of this operation.
    */
-  public <T> boolean listPush(@NotNull Key<List<T>> key, @Nullable T value) {
-    boolean stateChanged = false;
-    if (value != null) {
-      List<T> list = null;
-      if (containsKey(key)) {
-        list = get(key);
-      }
-      if (list == null) {
-        list = Lists.newArrayList();
-      }
-      stateChanged = list.add(value);
-      put(key, list);
+  public <T> boolean listPush(@NotNull Key<List<T>> key, @NotNull T value) {
+    List<T> list = null;
+    if (containsKey(key)) {
+      list = get(key);
     }
+    if (list == null) {
+      list = Lists.newArrayList();
+    }
+    boolean stateChanged = list.add(value);
+    put(key, list);
+
     if (stateChanged) {
       notifyListeners(key);
     }
@@ -206,14 +204,12 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
    * Remove the given value from a list.
    * @return true iff the state changed as a result of this operation.
    */
-  public <T extends List, V> boolean listRemove(@NotNull Key<T> key, @Nullable V value) {
+  public <T extends List, V> boolean listRemove(@NotNull Key<T> key, @NotNull V value) {
     boolean stateChanged = false;
-    if (value != null) {
-      if (containsKey(key)) {
-        T list = get(key);
-        if (list != null) {
-          stateChanged = list.remove(value);
-        }
+    if (containsKey(key)) {
+      T list = get(key);
+      if (list != null) {
+        stateChanged = list.remove(value);
       }
     }
     if (stateChanged) {

@@ -16,11 +16,10 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.sdklib.repository.FullRevision;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -29,6 +28,10 @@ import java.util.List;
 import java.util.Properties;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
+import static com.google.common.io.Files.createTempDir;
+import static com.google.common.io.Files.write;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 
 /**
  * Tests for {@link GradleUtil}.
@@ -53,69 +56,69 @@ public class GradleUtilTest extends TestCase {
   }
 
   public void testGetGradleWrapperPropertiesFilePath() throws IOException {
-    myTempDir = Files.createTempDir();
+    myTempDir = createTempDir();
     File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
-    FileUtilRt.createIfNotExists(wrapper);
+    createIfNotExists(wrapper);
     GradleUtil.updateGradleDistributionUrl("1.6", wrapper);
 
-    Properties properties = PropertiesUtil.getProperties(wrapper);
+    Properties properties = getProperties(wrapper);
     String distributionUrl = properties.getProperty("distributionUrl");
     assertEquals("https://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
   }
 
   public void testLeaveGradleWrapperAloneBin() throws IOException {
     // Ensure that if we already have the right version, we don't replace a -bin.zip with a -all.zip
-    myTempDir = Files.createTempDir();
+    myTempDir = createTempDir();
     File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
-    Files.write("#Wed Apr 10 15:27:10 PDT 2013\n" +
-                "distributionBase=GRADLE_USER_HOME\n" +
-                "distributionPath=wrapper/dists\n" +
-                "zipStoreBase=GRADLE_USER_HOME\n" +
-                "zipStorePath=wrapper/dists\n" +
-                "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
+    write("#Wed Apr 10 15:27:10 PDT 2013\n" +
+          "distributionBase=GRADLE_USER_HOME\n" +
+          "distributionPath=wrapper/dists\n" +
+          "zipStoreBase=GRADLE_USER_HOME\n" +
+          "zipStorePath=wrapper/dists\n" +
+          "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
     GradleUtil.updateGradleDistributionUrl("1.9", wrapper);
 
-    Properties properties = PropertiesUtil.getProperties(wrapper);
+    Properties properties = getProperties(wrapper);
     String distributionUrl = properties.getProperty("distributionUrl");
     assertEquals("https://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
   }
 
   public void testLeaveGradleWrapperAloneAll() throws IOException {
     // Ensure that if we already have the right version, we don't replace a -all.zip with a -bin.zip
-    myTempDir = Files.createTempDir();
+    myTempDir = createTempDir();
     File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
-    Files.write("#Wed Apr 10 15:27:10 PDT 2013\n" +
-                "distributionBase=GRADLE_USER_HOME\n" +
-                "distributionPath=wrapper/dists\n" +
-                "zipStoreBase=GRADLE_USER_HOME\n" +
-                "zipStorePath=wrapper/dists\n" +
-                "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-all.zip", wrapper, Charsets.UTF_8);
+    write("#Wed Apr 10 15:27:10 PDT 2013\n" +
+          "distributionBase=GRADLE_USER_HOME\n" +
+          "distributionPath=wrapper/dists\n" +
+          "zipStoreBase=GRADLE_USER_HOME\n" +
+          "zipStorePath=wrapper/dists\n" +
+          "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-all.zip", wrapper, Charsets.UTF_8);
     GradleUtil.updateGradleDistributionUrl("1.9", wrapper);
 
-    Properties properties = PropertiesUtil.getProperties(wrapper);
+    Properties properties = getProperties(wrapper);
     String distributionUrl = properties.getProperty("distributionUrl");
     assertEquals("https://services.gradle.org/distributions/gradle-1.9-all.zip", distributionUrl);
   }
 
   public void testReplaceGradleWrapper() throws IOException {
     // Test that when we replace to a new version we use -all.zip
-    myTempDir = Files.createTempDir();
+    myTempDir = createTempDir();
     File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
-    Files.write("#Wed Apr 10 15:27:10 PDT 2013\n" +
-                "distributionBase=GRADLE_USER_HOME\n" +
-                "distributionPath=wrapper/dists\n" +
-                "zipStoreBase=GRADLE_USER_HOME\n" +
-                "zipStorePath=wrapper/dists\n" +
-                "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
+    write("#Wed Apr 10 15:27:10 PDT 2013\n" +
+          "distributionBase=GRADLE_USER_HOME\n" +
+          "distributionPath=wrapper/dists\n" +
+          "zipStoreBase=GRADLE_USER_HOME\n" +
+          "zipStorePath=wrapper/dists\n" +
+          "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
     GradleUtil.updateGradleDistributionUrl("1.6", wrapper);
 
-    Properties properties = PropertiesUtil.getProperties(wrapper);
+    Properties properties = getProperties(wrapper);
     String distributionUrl = properties.getProperty("distributionUrl");
     assertEquals("https://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
   }
 
   public void testUpdateGradleDistributionUrl() {
-    myTempDir = Files.createTempDir();
+    myTempDir = createTempDir();
     File wrapperPath = GradleUtil.getGradleWrapperPropertiesFilePath(myTempDir);
 
     List<String> expected = Lists.newArrayList(FileUtil.splitPath(myTempDir.getPath()));
@@ -136,7 +139,7 @@ public class GradleUtilTest extends TestCase {
   }
 
   public void testGetGradleBuildFilePath() {
-    myTempDir = Files.createTempDir();
+    myTempDir = createTempDir();
     File buildFilePath = GradleUtil.getGradleBuildFilePath(myTempDir);
     assertEquals(new File(myTempDir, FN_BUILD_GRADLE), buildFilePath);
   }
@@ -278,5 +281,24 @@ public class GradleUtilTest extends TestCase {
     url = "http://myown.com/gradle-2.2.1-bin.zip";
     version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertNull(version);
+  }
+
+  public void testHasLayoutRenderingIssue() {
+    AndroidProjectStub model = new AndroidProjectStub("app");
+
+    model.setModelVersion("1.1.0");
+    assertFalse(GradleUtil.hasLayoutRenderingIssue(model));
+
+    model.setModelVersion("1.2.0");
+    assertTrue(GradleUtil.hasLayoutRenderingIssue(model));
+
+    model.setModelVersion("1.2.1");
+    assertTrue(GradleUtil.hasLayoutRenderingIssue(model));
+
+    model.setModelVersion("1.2.2");
+    assertTrue(GradleUtil.hasLayoutRenderingIssue(model));
+
+    model.setModelVersion("1.2.3");
+    assertFalse(GradleUtil.hasLayoutRenderingIssue(model));
   }
 }

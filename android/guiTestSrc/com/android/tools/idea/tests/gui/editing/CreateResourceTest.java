@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -27,14 +27,13 @@ import java.io.IOException;
 
 /** Tests creating new resources */
 public class CreateResourceTest extends GuiTestCase {
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testLibraryPrefix() throws IOException {
     // Tests creating a new resource in a library project with a predefined library prefix,
     // and makes sure the prefix is correct, including checking that we don't end up with
     // double prefixes as described in issue http://b.android.com/77421.
 
-    IdeFrameFixture ideFrame = openProject("LayoutTest");
+    IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     EditorFixture editor = ideFrame.getEditor();
     editor.open("lib/src/main/java/com/android/tools/test/mylibrary/LibraryActivity.java");
     editor.select(editor.findOffset("R.layout.^activity_library"),

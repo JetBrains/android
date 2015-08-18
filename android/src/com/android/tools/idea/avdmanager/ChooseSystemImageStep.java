@@ -48,9 +48,9 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
     super(parentDisposable);
     mySystemImageList.addSelectionListener(this);
     // We want to filter out any system images which are incompatible with our device
-    Predicate<AvdWizardConstants.SystemImageDescription> filter = new Predicate<AvdWizardConstants.SystemImageDescription>() {
+    Predicate<SystemImageDescription> filter = new Predicate<SystemImageDescription>() {
       @Override
-      public boolean apply(AvdWizardConstants.SystemImageDescription input) {
+      public boolean apply(SystemImageDescription input) {
         return systemImageMatchesDevice(input, myCurrentDevice);
       }
     };
@@ -59,7 +59,7 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
     setBodyComponent(myPanel);
   }
 
-  public static boolean systemImageMatchesDevice(AvdWizardConstants.SystemImageDescription image, Device device) {
+  public static boolean systemImageMatchesDevice(SystemImageDescription image, Device device) {
     if (device == null || image == null) {
       return false;
     }
@@ -104,7 +104,7 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
       myState.remove(SYSTEM_IMAGE_KEY);
     }
     myCurrentDevice = newDevice;
-    AvdWizardConstants.SystemImageDescription selectedImage = myState.get(SYSTEM_IMAGE_KEY);
+    SystemImageDescription selectedImage = myState.get(SYSTEM_IMAGE_KEY);
     // synchronously get the local images in case one should already be selected
     mySystemImageList.refreshLocalImagesSynchronously();
     if (selectedImage != null) {
@@ -127,9 +127,13 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
   }
 
   @Override
-  public void onSystemImageSelected(@Nullable AvdWizardConstants.SystemImageDescription systemImage) {
+  public void onSystemImageSelected(@Nullable SystemImageDescription systemImage) {
     mySystemImagePreview.setImage(systemImage);
-    myState.put(SYSTEM_IMAGE_KEY, systemImage);
+    if (systemImage != null && !systemImage.isRemote()) {
+      myState.put(SYSTEM_IMAGE_KEY, systemImage);
+    } else {
+      myState.remove(SYSTEM_IMAGE_KEY);
+    }
   }
 
   @NotNull
@@ -146,5 +150,6 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
 
   private void createUIComponents() {
     mySystemImageList = new SystemImageList(myProject);
+    mySystemImagePreview = new SystemImagePreview(getDisposable());
   }
 }

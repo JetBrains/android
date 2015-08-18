@@ -35,6 +35,7 @@ import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.util.List;
@@ -496,6 +497,28 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     check(file, testClass);
   }
 
+  public void testPrivateEnum2() {
+    String testClass =
+      "package test.pkg;\n" +
+      "\n" +
+      "import com.android.demo.myapplication.R;\n" +
+      "\n" +
+      "public class UnusedReference2 {\n" +
+      "    public enum DocumentBulkAction {\n" +
+      "        UPDATE_ALL() {\n" +
+      "            @Override\n" +
+      "            public int getLabelId() {\n" +
+      "                return R.string.update_all;\n" +
+      "            }\n" +
+      "        };\n" +
+      "\n" +
+      "        public abstract int getLabelId();\n" +
+      "    }\n" +
+      "}\n";
+    PsiFile file = myFixture.addFileToProject("src/test/pkg/UnusedReference2.java", testClass);
+    check(file, testClass);
+  }
+
   public void testPrivateEnum() {
     String testClass =
       "package test.pkg;\n" +
@@ -572,6 +595,25 @@ public class LombokPsiConverterTest extends AndroidTestCase {
       "}";
     PsiFile file = myFixture.addFileToProject("src/test/pkg/R12.java", testClass);
     check(file, testClass);
+  }
+
+  public void testClassDeclarationInBlockStatement() {
+    // Regression test for issue 161534
+    String testClass =
+      "package test.pkg;\n" +
+      "\n" +
+      "public class R15 {\n" +
+      "    private static void sendMessage(String message) {\n" +
+      "        int x, y = 5;\n" +
+      "        class MessageThread extends Thread {\n" +
+      "            @Override public void run() {\n" +
+      "            }\n" +
+      "        }\n" +
+      "        new MessageThread().start();\n" +
+      "    }\n" +
+      "}\n";
+
+    check(testClass, "src/test/pkg/R15.java");
   }
 
   public void testJava7() {
@@ -707,12 +749,12 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     check(psiFile, psiFile.getText());
   }
 
-  private void check(String source, String relativePath) {
+  private void check(@Language("JAVA") String source, String relativePath) {
     PsiFile file = myFixture.addFileToProject(relativePath, source);
     check(file, source);
   }
 
-  private static void check(PsiFile psiFile, String source) {
+  private static void check(PsiFile psiFile, @Language("JAVA") String source) {
     assertTrue(psiFile.getClass().getName(), psiFile instanceof PsiJavaFile);
     PsiJavaFile psiJavaFile = (PsiJavaFile)psiFile;
     CompilationUnit node = LombokPsiConverter.convert(psiJavaFile);

@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.invoker.GradleInvoker.TestCompileType;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
@@ -109,15 +108,27 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @Override
   public MakeBeforeRunTask createTask(RunConfiguration runConfiguration) {
     // "Gradle-aware Make" is only available in Android Studio.
-    if (AndroidStudioSpecificInitializer.isAndroidStudio()
-        // Enable "Gradle-aware Make" only for android configurations...
-        && (runConfiguration instanceof AndroidRunConfigurationBase  ||
-            // ...and JUnit configurations if unit-testing support is enabled.
-            (GradleExperimentalSettings.getInstance().ENABLE_UNIT_TESTING_SUPPORT && runConfiguration instanceof JUnitConfiguration))) {
-      return new MakeBeforeRunTask();
+    if (AndroidStudioSpecificInitializer.isAndroidStudio() && configurationTypeIsSupported(runConfiguration)) {
+      MakeBeforeRunTask task = new MakeBeforeRunTask();
+      if (runConfiguration instanceof AndroidRunConfigurationBase) {
+        // For Android configurations, we want to replace the default make, so this new task needs to be enabled.
+        // In AndroidRunConfigurationType#configureBeforeTaskDefaults we disable the default make, which is
+        // enabled by default. For other configurations we leave it disabled, so we don't end up with two different
+        // make steps executed by default. If the task is added to the run configuration manually, it will be
+        // enabled by the UI layer later.
+        task.setEnabled(true);
+      }
+      return task;
     } else {
       return null;
     }
+  }
+
+  private static boolean configurationTypeIsSupported(RunConfiguration runConfiguration) {
+    return runConfiguration instanceof AndroidRunConfigurationBase ||
+           runConfiguration instanceof JUnitConfiguration ||
+           // Avoid direct dependency on the TestNG plugin:
+           runConfiguration.getClass().getSimpleName().equals("TestNGConfiguration");
   }
 
   @Override

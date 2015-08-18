@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.sdk;
 
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -54,8 +54,8 @@ public class AndroidSdkDataTest extends AndroidTestCase {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        DefaultSdks.setDefaultAndroidHome(sdkDir, null);
-        ProjectRootManager.getInstance(getProject()).setProjectSdk(DefaultSdks.getEligibleAndroidSdks().get(0));
+        IdeSdks.setAndroidSdkPath(sdkDir, null);
+        ProjectRootManager.getInstance(getProject()).setProjectSdk(IdeSdks.getEligibleAndroidSdks().get(0));
       }
     });
   }

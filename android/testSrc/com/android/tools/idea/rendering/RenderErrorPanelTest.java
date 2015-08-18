@@ -91,10 +91,11 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     configurationManager.setTarget(target);
     Configuration configuration = configurationManager.getConfiguration(file);
     assertSame(target, configuration.getTarget());
-    RenderLogger logger = new RenderLogger("myLogger", myModule);
-    RenderService service = RenderService.create(facet, myModule, psiFile, configuration, logger, null);
-    assertNotNull(service);
-    RenderResult render = RenderTestBase.renderOnSeparateThread(service);
+    RenderService renderService = RenderService.get(facet);
+    RenderLogger logger = renderService.createLogger();
+    final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
+    assertNotNull(task);
+    RenderResult render = RenderTestBase.renderOnSeparateThread(task);
     assertNotNull(render);
 
     if (logOperation != null) {
@@ -281,7 +282,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
           "\tat java.lang.Thread.run(Thread.java:680)\n");
         logger.error(null, null, throwable, null);
         //noinspection ConstantConditions
-        target.set(render.getRenderService().getConfiguration().getTarget());
+        target.set(render.getRenderTask().getConfiguration().getTarget());
 
         assertTrue(logger.hasProblems());
       }
@@ -510,7 +511,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         logger.error(null, null, throwable, null);
 
         //noinspection ConstantConditions
-        target.set(render.getRenderService().getConfiguration().getTarget());
+        target.set(render.getRenderTask().getConfiguration().getTarget());
       }
     };
 

@@ -121,7 +121,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
       if (myIdeaAndroidProject == null) {
         lastApkFolder = VfsUtilCore.virtualToIoFile(myWizard.getProject().getBaseDir());
       } else {
-        lastApkFolder = VfsUtilCore.virtualToIoFile(myIdeaAndroidProject.getRootDir());
+        lastApkFolder = myIdeaAndroidProject.getRootDirPath();
       }
     }
     myApkPathField.setText(lastApkFolder.getAbsolutePath());

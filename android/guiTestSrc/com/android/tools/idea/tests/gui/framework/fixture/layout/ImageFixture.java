@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.tools.idea.rendering.ImageUtils;
-import com.android.tools.idea.rendering.RenderTestBase;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -28,6 +26,8 @@ import java.io.InputStream;
 
 import static com.android.tools.idea.rendering.RenderTestBase.assertImageSimilar;
 import static com.android.tools.idea.rendering.RenderTestBase.getTempDir;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.RELATIVE_DATA_PATH;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.getTestDataDir;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -39,8 +39,7 @@ public class ImageFixture {
    * you can generate all the missing thumbnails in one go, rather than having to run
    * the test repeatedly to get to each new render assertion generating its thumbnail.
    */
-  @SuppressWarnings("FieldCanBeLocal")
-  private static boolean FAIL_ON_MISSING_THUMBNAIL = true;
+  private static final boolean FAIL_ON_MISSING_THUMBNAIL = true;
 
   private int myThumbnailSize = 250;
   private double myMaxPercentDifference = 5.0;
@@ -81,7 +80,7 @@ public class ImageFixture {
 
     InputStream is = ImageFixture.class.getResourceAsStream(relativePath);
     if (is == null) {
-      File sourceDir = GuiTests.getTestDataDir();
+      File sourceDir = getTestDataDir();
       File thumbnailDir = sourceDir;
       if (thumbnailDir == null) {
         thumbnailDir = getTempDir();
@@ -100,7 +99,7 @@ public class ImageFixture {
         ImageIO.write(thumbnail, "PNG", file);
         if (sourceDir == null) {
           String message = "Thumbnail did not exist. You should copy the following generated thumbnail file into $AOSP" + File.separator +
-                           GuiTests.RELATIVE_DATA_PATH + " : " + file.getCanonicalPath();
+                           RELATIVE_DATA_PATH + " : " + file.getCanonicalPath();
           if (FAIL_ON_MISSING_THUMBNAIL) {
             fail(message);
           }

@@ -22,23 +22,28 @@ import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.run.AndroidRunConfiguration;
 import org.jetbrains.android.run.AndroidRunConfigurationType;
 import org.jetbrains.android.run.TargetSelectionMode;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static org.jetbrains.android.util.AndroidUtils.addRunConfiguration;
 
 /**
  * Creates run configurations for modules imported from {@link com.android.builder.model.AndroidProject}s.
  */
 public class RunConfigModuleCustomizer implements ModuleCustomizer<IdeaAndroidProject> {
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject androidProject) {
+  public void customizeModule(@NotNull Project project,
+                              @NotNull ModifiableRootModel ideaModuleModel,
+                              @Nullable IdeaAndroidProject androidProject) {
     if (androidProject != null) {
+      Module module = ideaModuleModel.getModule();
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && !facet.isLibraryProject()) {
         RunManager runManager = RunManager.getInstance(project);
@@ -53,7 +58,7 @@ public class RunConfigModuleCustomizer implements ModuleCustomizer<IdeaAndroidPr
             }
           }
         }
-        AndroidUtils.addRunConfiguration(facet, null, false, TargetSelectionMode.SHOW_DIALOG, null);
+        addRunConfiguration(facet, null, false, TargetSelectionMode.SHOW_DIALOG, null);
       }
     }
   }

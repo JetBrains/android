@@ -77,7 +77,7 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     expect(tasks.isEmpty()).andReturn(true);
     replay(project, tasks);
 
-    IdeaGradleProject gradleProject = IdeaGradleProject.newIdeaGradleProject(myModule.getName(), project, myBuildFile);
+    IdeaGradleProject gradleProject = IdeaGradleProject.newIdeaGradleProject(myModule.getName(), project, myBuildFile, "2.2.1");
 
     FacetManager facetManager = FacetManager.getInstance(myModule);
     ModifiableFacetModel model = facetManager.createModifiableModel();

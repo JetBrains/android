@@ -20,6 +20,8 @@ package com.android.tools.idea.gradle.messages;
  * displayed in the tool window.
  */
 public final class CommonMessageGroupNames {
+  public static final String PROJECT_STRUCTURE_ISSUES = "Project structure issues";
+  public static final String MISSING_DEPENDENCIES_BETWEEN_MODULES = "Missing dependencies between modules";
   public static final String FAILED_TO_SET_UP_DEPENDENCIES = "Failed to set up dependencies";
   public static final String FAILED_TO_SET_UP_SDK = "Failed to set up SDK";
   public static final String UNRESOLVED_ANDROID_DEPENDENCIES = "Unresolved Android dependencies";

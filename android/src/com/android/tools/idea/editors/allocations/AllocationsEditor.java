@@ -38,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
@@ -45,10 +46,10 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class AllocationsEditor implements FileEditor {
-  private final AllocationsViewPanel myAllocationsViewPanel;
+  private final JPanel myPanel;
 
   public AllocationsEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
-    myAllocationsViewPanel = new AllocationsViewPanel(project);
+    myPanel = new JPanel(new BorderLayout());
     parseAllocationsFileInBackground(project, file);
   }
 
@@ -82,7 +83,8 @@ public class AllocationsEditor implements FileEditor {
 
       @Override
       public void onSuccess() {
-        myAllocationsViewPanel.setAllocations(myAllocations);
+        AllocationsView view = new AllocationsView(project, myAllocations);
+        myPanel.add(view.getComponent(), BorderLayout.CENTER);
       }
 
       @Override
@@ -101,7 +103,7 @@ public class AllocationsEditor implements FileEditor {
   @NotNull
   @Override
   public JComponent getComponent() {
-    return myAllocationsViewPanel.getComponent();
+    return myPanel;
   }
 
   @Nullable

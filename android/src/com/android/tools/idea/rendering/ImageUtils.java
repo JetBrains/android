@@ -558,6 +558,26 @@ public class ImageUtils {
   }
 
   /**
+   * Returns the perceived brightness of the given RGB integer on a scale from 0 to 255
+   *
+   * @param rgb the RGB triplet, 8 bits each
+   * @return the perceived brightness, with 0 maximally dark and 255 maximally bright
+   */
+  public static int getBrightness(int rgb) {
+    if ((rgb & 0xFFFFFF) != 0) {
+      int r = (rgb & 0xFF0000) >> 16;
+      int g = (rgb & 0x00FF00) >> 8;
+      int b = (rgb & 0x0000FF);
+      // One perceived luminance formula is (0.299*red + 0.587*green + 0.114*blue)
+      // In order to keep this fast since we don't need a very accurate
+      // measure, I'll just estimate this with integer math:
+      return (int) ((299L*r + 587*g + 114*b) / 1000);
+    }
+
+    return 0;
+  }
+
+  /**
    * Interface implemented by cropping functions that determine whether
    * a pixel should be cropped or not.
    */

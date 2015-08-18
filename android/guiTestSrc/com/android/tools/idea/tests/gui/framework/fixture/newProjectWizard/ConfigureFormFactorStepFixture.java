@@ -21,34 +21,36 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.driver.AbstractButtonDriver;
 import org.fest.swing.driver.BasicJComboBoxCellReader;
 import org.fest.swing.driver.JComboBoxDriver;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture {
+import static org.fest.swing.edt.GuiActionRunner.execute;
+
+public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<ConfigureFormFactorStepFixture> {
   protected ConfigureFormFactorStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(robot, target);
+    super(ConfigureFormFactorStepFixture.class, robot, target);
   }
 
   @NotNull
   public ConfigureFormFactorStepFixture selectMinimumSdkApi(@NotNull final FormFactor formFactor, @NotNull final String api) {
-    JCheckBox checkBox = robot.finder().find(target, new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
+    JCheckBox checkBox = robot().finder().find(target(), new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
       @Override
-      protected boolean isMatching(JCheckBox checkBox) {
+      protected boolean isMatching(@NotNull JCheckBox checkBox) {
         String text = checkBox.getText();
         // "startsWith" instead of "equals" because the UI may add "(Not installed)" at the end.
         return text != null && text.startsWith(formFactor.toString());
       }
     });
-    AbstractButtonDriver buttonDriver = new AbstractButtonDriver(robot);
+    AbstractButtonDriver buttonDriver = new AbstractButtonDriver(robot());
     buttonDriver.requireEnabled(checkBox);
     buttonDriver.select(checkBox);
 
-    final JComboBox comboBox = robot.finder().findByName(target, formFactor.id + ".minSdk", JComboBox.class);
-    int itemIndex = GuiActionRunner.execute(new GuiQuery<Integer>() {
+    final JComboBox comboBox = robot().finder().findByName(target(), formFactor.id + ".minSdk", JComboBox.class);
+    //noinspection ConstantConditions
+    int itemIndex = execute(new GuiQuery<Integer>() {
       @Override
       protected Integer executeInEDT() throws Throwable {
         BasicJComboBoxCellReader cellReader = new BasicJComboBoxCellReader();
@@ -65,7 +67,7 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture {
     if (itemIndex < 0) {
       throw new LocationUnavailableException("Unable to find SDK " + api + " in " + formFactor + " drop-down");
     }
-    JComboBoxDriver comboBoxDriver = new JComboBoxDriver(robot);
+    JComboBoxDriver comboBoxDriver = new JComboBoxDriver(robot());
     comboBoxDriver.selectItem(comboBox, itemIndex);
     return this;
   }

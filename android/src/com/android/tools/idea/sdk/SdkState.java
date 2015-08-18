@@ -18,53 +18,67 @@ package com.android.tools.idea.sdk;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.sdklib.internal.repository.sources.SdkSources;
 import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.Update;
-import com.android.sdklib.repository.local.UpdateResult;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
-import com.android.sdklib.repository.remote.RemoteSdk;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.tools.idea.sdk.remote.RemoteSdk;
+import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
 import com.android.utils.ILogger;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.*;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
+import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.reference.SoftReference;
+import com.intellij.util.concurrency.Semaphore;
 import org.jetbrains.android.sdk.AndroidSdkData;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class SdkState {
+
+  public final static long DEFAULT_EXPIRATION_PERIOD_MS = TimeUnit.DAYS.toMillis(1);
+
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.sdk.SdkState");
 
-  @GuardedBy(value = "sSdkStates")
-  private static final Set<SoftReference<SdkState>> sSdkStates = new HashSet<SoftReference<SdkState>>();
+  @GuardedBy(value = "sSdkStates") private static final Set<SoftReference<SdkState>> sSdkStates = new HashSet<SoftReference<SdkState>>();
 
-  @NonNull
-  private final AndroidSdkData mySdkData;
-  private LocalPkgInfo[] myLocalPkgInfos = new LocalPkgInfo[0];
-  private SdkSources mySources;
-  private UpdateResult myUpdates;
-  private Multimap<PkgType, RemotePkgInfo> myRemotePkgs;
+  @Nullable private final AndroidSdkData mySdkData;
+  private final RemoteSdk myRemoteSdk;
+  private SdkPackages myPackages = new SdkPackages();
 
   private long myLastRefreshMs;
-  private BackgroundableProcessIndicator myIndicator;
+  private LoadTask myTask;
 
-  private SdkState(@NonNull AndroidSdkData sdkData) {
+  private final Object myTaskLock = new Object();
+
+  private SdkState(@Nullable AndroidSdkData sdkData) {
     mySdkData = sdkData;
+    if (mySdkData == null) {
+      myPackages = new SdkPackages();
+    }
+    myRemoteSdk = new RemoteSdk(new LogWrapper(Logger.getInstance(SdkState.class)));
+  }
+
+  /**
+   * This shouldn't be needed unless interacting with the internals of the remote sdk.
+   *
+   * @return
+   */
+  @NonNull
+  public RemoteSdk getRemoteSdk() {
+    return myRemoteSdk;
   }
 
   @NonNull
-  public static SdkState getInstance(@NonNull AndroidSdkData sdkData) {
+  public static SdkState getInstance(@Nullable AndroidSdkData sdkData) {
     synchronized (sSdkStates) {
       for (Iterator<SoftReference<SdkState>> it = sSdkStates.iterator(); it.hasNext(); ) {
         SoftReference<SdkState> ref = it.next();
@@ -85,37 +99,130 @@ public class SdkState {
     }
   }
 
-  @NonNull
+  @Nullable
   public AndroidSdkData getSdkData() {
     return mySdkData;
   }
 
   @NonNull
-  public LocalPkgInfo[] getLocalPkgInfos() {
-    return myLocalPkgInfos;
-  }
-
-  @Nullable
-  public UpdateResult getUpdates() {
-    return myUpdates;
+  public SdkPackages getPackages() {
+    return myPackages;
   }
 
   public boolean loadAsync(long timeoutMs,
                            boolean canBeCancelled,
+                           @Nullable Runnable onLocalComplete,
                            @Nullable Runnable onSuccess,
-                           @Nullable Runnable onError) {
-    if (myIndicator != null) {
+                           @Nullable Runnable onError,
+                           boolean forceRefresh) {
+    return load(timeoutMs, canBeCancelled, createList(onLocalComplete), createList(onSuccess), createList(onError), forceRefresh, false);
+  }
+
+  private boolean load(long timeoutMs,
+                       boolean canBeCancelled,
+                       @NonNull List<Runnable> onLocalComplete,
+                       @NonNull List<Runnable> onSuccess,
+                       @NonNull List<Runnable> onError,
+                       boolean forceRefresh,
+                       boolean sync) {
+    if (!forceRefresh && System.currentTimeMillis() - myLastRefreshMs < timeoutMs) {
+      for (Runnable localComplete : onLocalComplete) {
+        localComplete.run();
+      }
+      for (Runnable success : onSuccess) {
+        success.run();
+      }
       return false;
     }
+    synchronized (myTaskLock) {
+      if (myTask != null) {
+        myTask.addCallbacks(onLocalComplete, onSuccess, onError);
+        return false;
+      }
 
-    if (System.currentTimeMillis() - myLastRefreshMs < timeoutMs) {
-      return false;
+      myTask = new LoadTask(canBeCancelled, onLocalComplete, onSuccess, onError, forceRefresh, sync);
+    }
+    if (!ApplicationManager.getApplication().isDispatchThread()) {
+      // not dispatch thread, assume progress is being handled elsewhere. Just run the task.
+      myTask.run(new EmptyProgressIndicator());
+      return true;
     }
 
-    LoadTask task = new LoadTask(canBeCancelled, onSuccess, onError);
-    myIndicator = new BackgroundableProcessIndicator(task);
-    ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, myIndicator);
+    ProgressManager.getInstance().run(myTask);
+
     return true;
+  }
+
+  public boolean loadSynchronously(long timeoutMs,
+                                   boolean canBeCancelled,
+                                   @Nullable Runnable onLocalComplete,
+                                   @Nullable Runnable onSuccess,
+                                   @Nullable final Runnable onError,
+                                   boolean forceRefresh) {
+    final Semaphore completed = new Semaphore();
+    completed.down();
+    Runnable complete = new Runnable() {
+      @Override
+      public void run() {
+        completed.up();
+      }
+    };
+
+    List<Runnable> onLocalCompletes = createList(onLocalComplete);
+    List<Runnable> onSuccesses = createList(onSuccess);
+    List<Runnable> onErrors = createList(onError);
+    onSuccesses.add(complete);
+    onErrors.add(complete);
+    boolean result = load(timeoutMs, canBeCancelled, onLocalCompletes, onSuccesses, onErrors, forceRefresh, true);
+    if (!ApplicationManager.getApplication().isDispatchThread()) {
+      // Not dispatch thread, assume progress is being handled elsewhere.
+      if (result) {
+        // We don't have to wait since load() ran in-thread.
+        return result;
+      }
+      try {
+        completed.waitForUnsafe();
+      }
+      catch (InterruptedException e) {
+        onError.run();
+        return false;
+      }
+      return true;
+    }
+
+    // If we are on the dispatch thread, show progress while waiting.
+    ProgressManager pm = ProgressManager.getInstance();
+    ProgressIndicator indicator = pm.getProgressIndicator();
+    indicator = indicator == null ? new ProgressWindow(false, false, null) : indicator;
+    pm.executeProcessUnderProgress(new Runnable() {
+      @Override
+      public void run() {
+        boolean success = false;
+        ProgressManager.getInstance().getProgressIndicator().setIndeterminate(true);
+        try {
+          completed.waitForUnsafe();
+          success = true;
+        }
+        catch (InterruptedException e) {
+          LOG.warn(e);
+        }
+
+        if (!success) {
+          if (onError != null) {
+            onError.run();
+          }
+        }
+      }
+    }, indicator);
+    return result;
+  }
+
+  @NonNull
+  private static List<Runnable> createList(@Nullable Runnable r) {
+    if (r == null) {
+      return Lists.newArrayList();
+    }
+    return Lists.newArrayList(r);
   }
 
 
@@ -132,7 +239,8 @@ public class SdkState {
     public void error(@Nullable Throwable t, @Nullable String msgFormat, Object... args) {
       if (msgFormat == null && t != null) {
         myIndicator.setText2(t.toString());
-      } else if (msgFormat != null) {
+      }
+      else if (msgFormat != null) {
         myIndicator.setText2(String.format(msgFormat, args));
       }
     }
@@ -154,20 +262,39 @@ public class SdkState {
   }
 
 
-  private class LoadTask extends Task.Backgroundable {
+  private class LoadTask extends Task.ConditionalModal {
 
-    @Nullable private final Runnable myOnSuccess;
-    @Nullable private final Runnable myOnError;
+    private final List<Runnable> myOnSuccesses = Lists.newArrayList();
+    private final List<Runnable> myOnErrors = Lists.newArrayList();
+    private final List<Runnable> myOnLocalCompletes = Lists.newArrayList();
+    private final boolean myForceRefresh;
+    private ProgressWindow myProgress;
 
     public LoadTask(boolean canBeCancelled,
-                    @Nullable Runnable onSuccess,
-                    @Nullable Runnable onError) {
-      super(null /*project*/,
-            "Loading Android SDK",
-            canBeCancelled,
-            PerformInBackgroundOption.ALWAYS_BACKGROUND);
-      myOnSuccess = onSuccess;
-      myOnError = onError;
+                    @NonNull List<Runnable> onLocalComplete,
+                    @NonNull List<Runnable> onSuccess,
+                    @NonNull List<Runnable> onError,
+                    boolean forceRefresh,
+                    boolean modal) {
+      super(null /*project*/, "Loading Android SDK", canBeCancelled,
+            modal ? PerformInBackgroundOption.DEAF : PerformInBackgroundOption.ALWAYS_BACKGROUND);
+      addCallbacks(onLocalComplete, onSuccess, onError);
+      myForceRefresh = forceRefresh;
+    }
+
+    public void setProgress(ProgressWindow progress) {
+      assert myProgress == null;
+      myProgress = progress;
+    }
+
+    public void addCallbacks(@NonNull List<Runnable> onLocalComplete, @NonNull List<Runnable> onSuccess, @NonNull List<Runnable> onError) {
+      myOnLocalCompletes.addAll(onLocalComplete);
+      myOnSuccesses.addAll(onSuccess);
+      myOnErrors.addAll(onError);
+    }
+
+    public ProgressWindow getProgress() {
+      return myProgress;
     }
 
     @Override
@@ -175,62 +302,80 @@ public class SdkState {
       boolean success = false;
       try {
         IndicatorLogger logger = new IndicatorLogger(indicator);
-
-        ApplicationEx app = ApplicationManagerEx.getApplicationEx();
-        SdkLifecycleListener notifier = app.getMessageBus().syncPublisher(SdkLifecycleListener.TOPIC);
-
-        // fetch local sdk
-        indicator.setText("Loading local SDK...");
-        indicator.setText2("");
-        myLocalPkgInfos = mySdkData.getLocalSdk().getPkgsInfos(PkgType.PKG_ALL);
-        notifier.localSdkLoaded(mySdkData);
-        indicator.setFraction(0.25);
-
+        SdkPackages packages = new SdkPackages();
+        if (mySdkData != null) {
+          // fetch local sdk
+          indicator.setText("Loading local SDK...");
+          indicator.setText2("");
+          if (myForceRefresh) {
+            mySdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
+          }
+          packages.setLocalPkgInfos(mySdkData.getLocalSdk().getPkgsInfos(PkgType.PKG_ALL));
+          myLastRefreshMs = 0;  // until the load is complete, while only partial results are available, set the last refresh time to
+                                // 0 to ensure further calls block until the complete load has finished.
+          myPackages = packages;
+          indicator.setFraction(0.25);
+        }
         if (indicator.isCanceled()) {
           return;
         }
-
+        synchronized (myTaskLock) {
+          for (Runnable onLocalComplete : myOnLocalCompletes) {
+            onLocalComplete.run();
+          }
+          myOnLocalCompletes.clear();
+        }
         // fetch sdk repository sources.
         indicator.setText("Find SDK Repository...");
         indicator.setText2("");
-        mySources = mySdkData.getRemoteSdk().fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, logger);
+        SdkSources sources = myRemoteSdk.fetchSources(myForceRefresh ? 0 : RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, logger);
         indicator.setFraction(0.50);
 
         if (indicator.isCanceled()) {
           return;
         }
-
         // fetch remote sdk
         indicator.setText("Check SDK Repository...");
         indicator.setText2("");
-        myRemotePkgs = mySdkData.getRemoteSdk().fetch(mySources, logger);
-        notifier.remoteSdkLoaded(mySdkData);
+        Multimap<PkgType, RemotePkgInfo> remotes = myRemoteSdk.fetch(sources, logger);
+        // compute updates
+        indicator.setText("Compute SDK updates...");
         indicator.setFraction(0.75);
+        packages.setRemotePkgInfos(remotes);
+        myPackages = packages;
+        if (indicator.isCanceled()) {
+          return;
+        }
+        indicator.setText2("");
+        indicator.setFraction(1.0);
 
         if (indicator.isCanceled()) {
           return;
         }
-
-        // compute updates
-        indicator.setText("Compute SDK updates...");
-        indicator.setText2("");
-        myUpdates = Update.computeUpdates(myLocalPkgInfos, myRemotePkgs);
-        notifier.updatesComputed(mySdkData);
-        indicator.setFraction(1.0);
-
         success = true;
-        if (myOnSuccess != null) {
-          ApplicationManager.getApplication().invokeLater(myOnSuccess);
-        }
+        myLastRefreshMs = System.currentTimeMillis();
       }
       finally {
-        myIndicator = null;
         myLastRefreshMs = System.currentTimeMillis();
-        if (!success && myOnError != null) {
-          ApplicationManager.getApplication().invokeLater(myOnError);
+        synchronized (myTaskLock) {
+          // The processing of the task is now complete. To ensure that no more callbacks are added, and to allow another task to be
+          // kicked off when needed, set myTask to null.
+          myTask = null;
+          if (success) {
+            for (Runnable onLocalComplete : myOnLocalCompletes) {  // in case some were added by another call in the interim.
+              onLocalComplete.run();
+            }
+            for (Runnable onSuccess : myOnSuccesses) {
+              onSuccess.run();
+            }
+          }
+          else {
+            for (Runnable onError : myOnErrors) {
+              onError.run();
+            }
+          }
         }
       }
     }
   }
-
 }

@@ -308,8 +308,7 @@ public class DeviceArtPainter {
       @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
       BufferedImage result = new BufferedImage(framedWidth, framedHeight, BufferedImage.TYPE_INT_ARGB);
       Graphics2D g = result.createGraphics();
-      //noinspection UseJBColor
-      g.setColor(new Color(128, 0, 0, 0));
+      g.setColor(Gray.TRANSPARENT);
       g.fillRect(0, 0, result.getWidth(), result.getHeight());
 
       RenderedImage.paintClipped(g, scaledImage, device, screenX, screenY, false);
@@ -370,8 +369,7 @@ public class DeviceArtPainter {
     @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
     BufferedImage composite = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = composite.createGraphics();
-    //noinspection UseJBColor
-    g.setColor(new Color(0, 0, 0, 0));
+    g.setColor(Gray.TRANSPARENT);
     g.fillRect(0, 0, composite.getWidth(), composite.getHeight());
 
     NinePatch ninePatch = NinePatch.load(image, true, false);
@@ -818,8 +816,7 @@ public class DeviceArtPainter {
       @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
       BufferedImage composite = new BufferedImage(myFrameWidth, myFrameHeight, BufferedImage.TYPE_INT_ARGB);
       Graphics g = composite.createGraphics();
-      //noinspection UseJBColor
-      g.setColor(new Color(0, 0, 0, 0));
+      g.setColor(Gray.TRANSPARENT);
       g.fillRect(0, 0, composite.getWidth(), composite.getHeight());
 
       Graphics2D g2d = (Graphics2D)g;

@@ -22,72 +22,130 @@ import com.google.common.base.Throwables;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
-import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.impl.status.InlineProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.beans.PropertyChangeListener;
-import java.io.*;
+import java.io.File;
 
 public class HprofEditor extends UserDataHolderBase implements FileEditor {
-
-  private final HprofViewPanel myHprofViewPanel;
+  @NotNull private static final Logger LOG = Logger.getInstance(HprofEditor.class);
+  private final JPanel myPanel;
+  private boolean myIsValid = true;
 
   public HprofEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
-    myHprofViewPanel = new HprofViewPanel(project);
+    myPanel = new JPanel();
     parseHprofFileInBackground(project, file);
   }
 
-  private void parseHprofFileInBackground(final Project project, final VirtualFile file) {
-    final Task.Modal parseTask = new Task.Modal(project, "Parsing hprof file", false) {
-      private String myErrorMessage;
+  private void parseHprofFileInBackground(@NotNull final Project project, @NotNull final VirtualFile file) {
+    TaskInfo taskInfo = new TaskInfo() {
+      @NotNull
+      @Override
+      public String getTitle() {
+        return "";
+      }
+
+      @Override
+      public String getCancelText() {
+        return null;
+      }
+
+      @Override
+      public String getCancelTooltipText() {
+        return null;
+      }
+
+      @Override
+      public boolean isCancellable() {
+        return false;
+      }
+
+      @Override
+      public String getProcessId() {
+        return null;
+      }
+    };
+
+    final InlineProgressIndicator indicator = new InlineProgressIndicator(true, taskInfo) {
+      @Override
+      protected void queueProgressUpdate(Runnable update) {
+        ApplicationManager.getApplication().invokeLater(update);
+      }
+
+      @Override
+      protected void queueRunningUpdate(Runnable update) {
+        ApplicationManager.getApplication().invokeLater(update);
+      }
+    };
+
+    JPanel indicatorWrapper = new JPanel();
+    indicatorWrapper.add(indicator.getComponent());
+    myPanel.setLayout(new GridBagLayout());
+    myPanel.add(indicatorWrapper);
+
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       private Snapshot mySnapshot;
 
       @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        indicator.setIndeterminate(true);
-
+      public void run() {
         final File hprofFile = VfsUtilCore.virtualToIoFile(file);
         try {
-          // Currently HprofParser takes too much memory and cripples the IDE.]
-          // new HprofParser(new MemoryMappedFileBuffer(hprofFile)).parse();
-          // TODO: Use HprofParser
-          mySnapshot = new Snapshot(null);
-        } catch(Throwable throwable){
-          throwable.printStackTrace();
-          //noinspection ThrowableResultOfMethodCallIgnored
-          myErrorMessage = "Unexpected error while parsing hprof file: "
-                           + Throwables.getRootCause(throwable).getMessage();
-          throw new ProcessCanceledException();
+          indicator.setFraction(0.0);
+          indicator.setText("Parsing hprof file...");
+          mySnapshot = new HprofParser(new MemoryMappedFileBuffer(hprofFile)).parse();
+
+          indicator.setFraction(0.5);
+          indicator.setText("Computing dominators...");
+          mySnapshot.computeDominators();
+
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              myPanel.removeAll();
+              myPanel.setLayout(new BorderLayout());
+              myPanel.add(new HprofViewPanel(project, HprofEditor.this, mySnapshot).getComponent(), BorderLayout.CENTER);
+            }
+          });
         }
-      }
-
-      @Override
-      public void onSuccess() {
-        myHprofViewPanel.setSnapshot(mySnapshot);
-      }
-
-      @Override
-      public void onCancel() {
-        Messages.showErrorDialog(project, myErrorMessage, getName());
-      }
-    };
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        parseTask.queue();
+        catch (Throwable throwable) {
+          LOG.info(throwable);
+          //noinspection ThrowableResultOfMethodCallIgnored
+          final String errorMessage = "Unexpected error while processing hprof file: " + Throwables.getRootCause(throwable).getMessage();
+          indicator.cancel();
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              Messages.showErrorDialog(project, errorMessage, getName());
+            }
+          });
+        }
+        finally {
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              myPanel.removeAll();
+              myPanel.setLayout(new BorderLayout());
+              if (mySnapshot != null) {
+                myPanel.add(new HprofViewPanel(project, HprofEditor.this, mySnapshot).getComponent(), BorderLayout.CENTER);
+              }
+            }
+          });
+        }
       }
     });
   }
@@ -95,7 +153,7 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
   @NotNull
   @Override
   public JComponent getComponent() {
-    return myHprofViewPanel.getComponent();
+    return myPanel;
   }
 
   @Nullable
@@ -125,10 +183,14 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
     return false;
   }
 
+  public void setInvalid() {
+    myIsValid = false;
+  }
+
   @Override
   public boolean isValid() {
     // TODO: handle deletion of the underlying file?
-    return true;
+    return myIsValid;
   }
 
   @Override

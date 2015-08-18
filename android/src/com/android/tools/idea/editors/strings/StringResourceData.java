@@ -255,7 +255,8 @@ public class StringResourceData {
     }
 
     if (locale.hasRegion()) {
-      Locale base = Locale.create(locale.language, null);
+      // Drop region
+      Locale base = Locale.create(locale.qualifier.getLanguage());
       if (myTranslations.get(key, base) != null) {
         return false;
       }
@@ -266,22 +267,46 @@ public class StringResourceData {
 
   @VisibleForTesting
   @NotNull
-  static String summarizeLocales(@NotNull Iterable<Locale> locales) {
-    if (Iterables.isEmpty(locales)) {
+  static String summarizeLocales(@NotNull Collection<Locale> locales) {
+    if (locales.isEmpty()) {
       return "";
     }
 
-    final int size = Iterables.size(locales);
-    final int max = 3;
+    final int size = locales.size();
+
     if (size == 1) {
       return getLabel(Iterables.getFirst(locales, null));
     }
-    else if (size <= max) {
-      return String.format("%1$s and %2$s", getLabels(Iterables.limit(locales, size - 1)), getLabel(Iterables.get(locales, size - 1)));
+
+    final int max = 3;
+    List<Locale> sorted = getLowest(locales, max);
+    if (size <= max) {
+      return String.format("%1$s and %2$s", getLabels(Iterables.limit(sorted, size - 1)), getLabel(sorted.get(size - 1)));
     }
     else {
-      return String.format("%1$s and %2$d more", getLabels(Iterables.limit(locales, max)), size - max);
+      return String.format("%1$s and %2$d more", getLabels(sorted), size - max);
     }
+  }
+
+  private static List<Locale> getLowest(Collection<Locale> locales, int n) {
+    List<Locale> result = Lists.newArrayListWithExpectedSize(n);
+    List<Locale> input = Lists.newArrayList(locales);
+
+    Comparator<Locale> comparator = new Comparator<Locale>() {
+      @Override
+      public int compare(Locale l1, Locale l2) {
+        return getLabel(l1).compareTo(getLabel(l2));
+      }
+    };
+
+    // rather than sorting the whole list, we just extract the first n
+    for (int i = 0; i < locales.size() && i < n; i++) {
+      Locale min = Collections.min(input, comparator);
+      result.add(min);
+      input.remove(min);
+    }
+
+    return result;
   }
 
   private static String getLabels(Iterable<Locale> locales) {

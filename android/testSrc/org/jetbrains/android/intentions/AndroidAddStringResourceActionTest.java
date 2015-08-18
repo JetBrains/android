@@ -1,14 +1,20 @@
 package org.jetbrains.android.intentions;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -27,6 +33,10 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     TemplateManagerImpl.setTemplateTesting(getProject(), getTestRootDisposable());
+
+    Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
+    assertNotNull(sdk);
+    ExternalAnnotationsSupport.addAnnotations(sdk);
   }
 
   public void test1() throws IOException {
@@ -169,6 +179,10 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", "AndroidManifest.xml");
     myFixture.configureFromExistingVirtualFile(file);
     assertFalse(new AndroidAddStringResourceAction().isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
+  }
+
+  public void testUseResourceId() throws IOException {
+    doTest();
   }
 
   private void doTest() throws IOException {

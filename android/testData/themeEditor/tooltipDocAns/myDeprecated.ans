@@ -1,0 +1,4 @@
+<html><body><B>myDeprecated</B><br/> DEPRECATED <br/><hr/><BR/>
+?android:attr/preferenceLayoutChild => @layout/preference_child => preference_child.xml<BR/>
+<BR/>
+</body></html>

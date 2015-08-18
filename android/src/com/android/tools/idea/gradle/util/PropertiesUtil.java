@@ -16,13 +16,14 @@
 package com.android.tools.idea.gradle.util;
 
 import com.google.common.base.Charsets;
-import com.google.common.io.Closeables;
-import com.intellij.openapi.util.io.FileUtilRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.util.Properties;
+
+import static com.google.common.io.Closeables.close;
+import static com.intellij.openapi.util.io.FileUtilRt.createParentDirs;
 
 public final class PropertiesUtil {
   private PropertiesUtil() {
@@ -39,17 +40,18 @@ public final class PropertiesUtil {
     Properties properties = new Properties();
     Reader reader = null;
     try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
       reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(filePath)), Charsets.UTF_8);
       properties.load(reader);
-    } finally {
-      Closeables.close(reader, true);
+    }
+    finally {
+      close(reader, true);
     }
     return properties;
   }
 
-  public static void savePropertiesToFile(@NotNull Properties properties, @NotNull File filePath, @Nullable String comments) throws IOException {
-    FileUtilRt.createParentDirs(filePath);
+  public static void savePropertiesToFile(@NotNull Properties properties, @NotNull File filePath, @Nullable String comments)
+    throws IOException {
+    createParentDirs(filePath);
     FileOutputStream out = null;
     try {
       //noinspection IOResourceOpenedButNotSafelyClosed
@@ -60,8 +62,9 @@ public final class PropertiesUtil {
       // plugin which does not read the .properties file with UTF-8 encoding. In the future when
       // nobody is using older (0.7.x) versions of the Gradle plugin anymore we can upgrade this
       properties.store(out, comments);
-    } finally {
-      Closeables.close(out, true);
+    }
+    finally {
+      close(out, true);
     }
   }
 }

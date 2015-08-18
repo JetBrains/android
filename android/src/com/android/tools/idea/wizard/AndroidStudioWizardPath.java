@@ -19,6 +19,8 @@ import com.intellij.ide.wizard.Step;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * Interface for the wizard paths
  */
@@ -41,6 +43,12 @@ public interface AndroidStudioWizardPath {
    * @return the current step object for this path, or null if this path has not yet been started, or has already ended.
    */
   Step getCurrentStep();
+
+  /**
+   * Get all steps in the path. This should not be used outside the wizard framework.
+   * @return all steps in this path.
+   */
+  List<? extends Step> getAllSteps();
 
   /**
    * @return true iff this path has more visible steps following its current step.

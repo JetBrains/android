@@ -79,7 +79,7 @@ public class LayoutWidgetFixture {
 
   @Override
   public String toString() {
-    assert myView.tag != null;
+    assertNotNull(myView.tag);
     return myView.tag.toString();
   }
 }

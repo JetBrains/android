@@ -16,8 +16,10 @@
 
 package com.android.tools.idea;
 
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -157,6 +159,24 @@ public class AndroidPsiUtils {
         return PsiManager.getInstance(project).findDirectory(dir);
       }
     });
+  }
+
+  /**
+   * Returns the root tag for the given {@link PsiFile}, if any, acquiring the read
+   * lock to do so if necessary
+   *
+   * @param file the file to look up the root tag for
+   * @return the corresponding root tag, if any
+   */
+  @Nullable
+  public static String getRootTagName(@NotNull PsiFile file) {
+    if (ResourceHelper.getFolderType(file) == ResourceFolderType.XML) {
+      if (file instanceof XmlFile) {
+        XmlTag rootTag = getRootTagSafely(((XmlFile)file));
+        return rootTag == null ? null : rootTag.getName();
+      }
+    }
+    return null;
   }
 
   /** Type of resource reference: R.type.name or android.R.type.name or neither */
@@ -314,6 +334,27 @@ public class AndroidPsiUtils {
         @Override
         public String compute() {
           return psiClass.getQualifiedName();
+        }
+      });
+    }
+  }
+
+  /**
+   * Returns the value of the given tag's attribute and acquires a read lock if necessary
+   *
+   * @param tag the tag to look up the attribute for
+   * @return the attribute value, or null
+   */
+  @Nullable
+  public static String getAttributeSafely(@NotNull final XmlTag tag, @Nullable final String namespace, @NotNull final String name) {
+    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return tag.getAttributeValue(name, namespace);
+    } else {
+      return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+        @Nullable
+        @Override
+        public String compute() {
+          return tag.getAttributeValue(name, namespace);
         }
       });
     }

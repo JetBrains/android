@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.resources.ResourceType;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -25,7 +27,9 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -67,10 +71,10 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     // res3 is not used as an overlay here; instead we use it to simulate an AAR library below
     final ModuleResourceRepository moduleRepository = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2));
     final ProjectResourceRepository projectResources = ProjectResourceRepository.createForTest(
-      myFacet, Arrays.<LocalResourceRepository>asList(moduleRepository));
+      myFacet, Collections.<LocalResourceRepository>singletonList(moduleRepository));
 
     final AppResourceRepository appResources = AppResourceRepository.createForTest(
-      myFacet, Collections.<LocalResourceRepository>singletonList(projectResources), Collections.<LocalResourceRepository>emptyList());
+      myFacet, Collections.<LocalResourceRepository>singletonList(projectResources), Collections.<FileResourceRepository>emptyList());
 
     assertTrue(appResources.hasResourceItem(ResourceType.STRING, "title_card_flip"));
     assertFalse(appResources.hasResourceItem(ResourceType.STRING, "non_existent_title_card_flip"));
@@ -82,8 +86,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertFalse(moduleRepository.hasResourceItem(ResourceType.STRING, "non_existent_title_card_flip"));
 
     FileResourceRepository aar1 = FileResourceRepository.get(VfsUtilCore.virtualToIoFile(res3));
-    appResources.updateRoots(Arrays.<LocalResourceRepository>asList(projectResources, aar1),
-                             Collections.<LocalResourceRepository>singletonList(aar1));
+    appResources.updateRoots(Arrays.asList(projectResources, aar1), Collections.singletonList(aar1));
 
     assertTrue(appResources.hasResourceItem(ResourceType.STRING, "another_unique_string"));
     assertTrue(aar1.hasResourceItem(ResourceType.STRING, "another_unique_string"));
@@ -131,6 +134,38 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
         assertNotSame(item, newItem);
       }
     });
+  }
+
+  public void testGetDeclaredArrayValues() throws IOException {
+    final AppResourceRepository appResources = createTestAppResourceRepository(myFacet);
+    ImmutableList.Builder<AttrResourceValue> builder = ImmutableList.builder();
+    // simple styleable test.
+    ImmutableList<AttrResourceValue> attrList = builder.add(new AttrResourceValue(ResourceType.ATTR, "some-attr", false)).build();
+    Integer[] foundValues = appResources.getDeclaredArrayValues(attrList, "Styleable1");
+    assertOrderedEquals(foundValues, 0x7f010000);
+
+    // slightly complex test.
+    builder = ImmutableList.builder();
+    attrList = builder
+      .add(new AttrResourceValue(ResourceType.ATTR, "app_attr1", false),
+           new AttrResourceValue(ResourceType.ATTR, "app_attr2", false),
+           new AttrResourceValue(ResourceType.ATTR, "framework-attr1", true),
+           new AttrResourceValue(ResourceType.ATTR, "app_attr3", false),
+           new AttrResourceValue(ResourceType.ATTR, "framework_attr2", true)).build();
+    foundValues = appResources.getDeclaredArrayValues(attrList, "Styleable_with_underscore");
+    assertOrderedEquals(foundValues, 0x7f010000, 0x7f010068, 0x01010125, 0x7f010069, 0x01010142);
+  }
+
+  static AppResourceRepository createTestAppResourceRepository(AndroidFacet facet) throws IOException {
+    final ModuleResourceRepository moduleRepository = ModuleResourceRepository.createForTest(facet, Collections.<VirtualFile>emptyList());
+    final ProjectResourceRepository projectResources = ProjectResourceRepository.createForTest(
+      facet, Collections.<LocalResourceRepository>singletonList(moduleRepository));
+
+    final AppResourceRepository appResources = AppResourceRepository.createForTest(
+      facet, Collections.<LocalResourceRepository>singletonList(projectResources), Collections.<FileResourceRepository>emptyList());
+    FileResourceRepository aar = FileResourceRepositoryTest.getTestRepository();
+    appResources.updateRoots(Arrays.asList(projectResources, aar), Collections.singletonList(aar));
+    return appResources;
   }
 
   // TODO: When we can load gradle projects from unit tests, test that we properly override

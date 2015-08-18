@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Maps;
+import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -46,11 +47,11 @@ public class MenuLayoutParserFactory extends LayoutPullParserFactory{
       "    android:layout_height=\"match_parent\" />\n";
 
   @NotNull
-  private final RenderService myRenderService;
+  private final RenderTask myRenderTask;
 
-  public MenuLayoutParserFactory(@NotNull RenderService renderService) {
-    assert renderService.supportsCapability(Features.ACTION_BAR) : "Action Bar not supported.";
-    myRenderService = renderService;
+  public MenuLayoutParserFactory(@NotNull RenderTask renderTask) {
+    assert renderTask.supportsCapability(Features.ACTION_BAR) : "Action Bar not supported.";
+    myRenderTask = renderTask;
   }
 
   @NotNull
@@ -59,8 +60,15 @@ public class MenuLayoutParserFactory extends LayoutPullParserFactory{
     if (frameLayoutDocument == null) {
       return createEmptyParser();
     }
-    String resourceName = ResourceHelper.getResourceName(myRenderService.getPsiFile());
-    myRenderService.getLayoutlibCallback().getActionBarHandler().setMenuIdNames(Collections.singletonList(resourceName));
+    XmlFile psiFile = myRenderTask.getPsiFile();
+    if (psiFile == null) {
+      throw new IllegalStateException("RenderTask should have PsiFile to render menu files");
+    }
+    String resourceName = ResourceHelper.getResourceName(psiFile);
+    ActionBarHandler actionBarHandler = myRenderTask.getLayoutlibCallback().getActionBarHandler();
+    if (actionBarHandler != null) {
+      actionBarHandler.setMenuIdNames(Collections.singletonList(resourceName));
+    }
     Map<Element, Object> viewCookies = Maps.newHashMap();
     return new DomPullParser(frameLayoutDocument.getDocumentElement()).setViewCookies(viewCookies);
   }

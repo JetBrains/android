@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -36,29 +37,32 @@ public class RenderResult {
   @Nullable private final List<ViewInfo> myRootViews;
   @Nullable private final RenderedImage myImage;
   @Nullable private RenderedViewHierarchy myHierarchy;
-  @Nullable private final RenderService myRenderService;
+  @Nullable private final RenderTask myRenderTask;
   @Nullable private final RenderSession mySession; // TEMPORARY
   @Nullable private IncludeReference myIncludedWithin = IncludeReference.NONE;
 
-  public RenderResult(@Nullable RenderService renderService,
+  public RenderResult(@Nullable RenderTask renderTask,
                       @Nullable RenderSession session,
                       @NotNull PsiFile file,
                       @NotNull RenderLogger logger) {
-    myRenderService = renderService;
+    myRenderTask = renderTask;
     mySession = session;
     myFile = file;
     myLogger = logger;
-    if (session != null && session.getResult().isSuccess() && renderService != null) {
+    if (session != null && session.getResult().isSuccess() && renderTask != null) {
       List<ViewInfo> systemRootViews = session.getSystemRootViews();
       myRootViews = systemRootViews != null ? systemRootViews : session.getRootViews();
-      Configuration configuration = renderService.getConfiguration();
+      Configuration configuration = renderTask.getConfiguration();
       BufferedImage image = session.getImage();
-      boolean alphaChannelImage = session.isAlphaChannelImage() || renderService.requiresTransparency();
+      boolean alphaChannelImage = session.isAlphaChannelImage() || renderTask.requiresTransparency();
       ShadowType shadowType = alphaChannelImage ? ShadowType.NONE : ShadowType.RECTANGULAR;
-      if (shadowType == ShadowType.NONE && renderService.isNonRectangular()) {
+      if (shadowType == ShadowType.NONE && renderTask.isNonRectangular()) {
         shadowType = ShadowType.ARBITRARY;
-      } else if (HardwareConfigHelper.isRound(renderService.getConfiguration().getDevice())) {
-        shadowType = ShadowType.ARBITRARY;
+      } else {
+        Device device = renderTask.getConfiguration().getDevice();
+        if (device != null && device.isScreenRound()) {
+          shadowType = ShadowType.ARBITRARY;
+        }
       }
       myImage = new RenderedImage(configuration, image, alphaChannelImage, shadowType);
     } else {
@@ -104,14 +108,19 @@ public class RenderResult {
     return myImage;
   }
 
+  @Nullable
+  public BufferedImage getRenderedImage() {
+    return myImage != null ? myImage.getOriginalImage() : null;
+  }
+
   @NotNull
   public PsiFile getFile() {
     return myFile;
   }
 
   @Nullable
-  public RenderService getRenderService() {
-    return myRenderService;
+  public RenderTask getRenderTask() {
+    return myRenderTask;
   }
 
   @NotNull

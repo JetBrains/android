@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NonNls;
 
 public class JavaGradleFacetConfiguration implements FacetConfiguration {
   @NonNls public String BUILD_FOLDER_PATH;
+  public boolean BUILDABLE;
 
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {

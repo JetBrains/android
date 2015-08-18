@@ -122,6 +122,12 @@ public final class TemplateParameterStep2Test extends LightIdeaTestCase {
       public void performFinishingActions() {
         // Do nothing
       }
+
+      @NotNull
+      @Override
+      protected String getProgressTitle() {
+        return "dummy";
+      }
     };
     Disposer.register(parentDisposable, dynamicWizard.getDisposable());
     dynamicWizard.init();

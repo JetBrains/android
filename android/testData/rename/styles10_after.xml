@@ -1,0 +1,7 @@
+<resources>
+  <style name="newStyle">
+  </style>
+
+  <style name="st" parent="@style/newStyle">
+  </style>
+</resources>

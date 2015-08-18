@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.media.session.MediaController MediaController(android.content.Context, android.media.session.MediaSession.Token) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaController MediaController(android.content.Context, android.media.session.MediaSession.Token) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaController android.app.PendingIntent getSessionActivity()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController android.media.MediaMetadata getMetadata()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController android.media.session.MediaController.PlaybackInfo getPlaybackInfo()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController android.media.session.MediaController.TransportControls getTransportControls()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaController android.media.session.MediaSession.Token getSessionToken()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaController android.media.session.PlaybackState getPlaybackState()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController android.os.Bundle getExtras()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController boolean dispatchMediaButtonEvent(android.view.KeyEvent) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaController java.lang.CharSequence getQueueTitle()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController java.util.List&lt;android.media.session.MediaSession.QueueItem&gt; getQueue()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController long getFlags()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.session.MediaSession.FLAG_HANDLES_MEDIA_BUTTONS, android.media.session.MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.media.session.MediaController void registerCallback(android.media.session.MediaController.Callback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaController void registerCallback(android.media.session.MediaController.Callback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaController void registerCallback(android.media.session.MediaController.Callback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController void sendCommand(java.lang.String, android.os.Bundle, android.os.ResultReceiver) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaController void sendCommand(java.lang.String, android.os.Bundle, android.os.ResultReceiver) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController void sendCommand(java.lang.String, android.os.Bundle, android.os.ResultReceiver) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController void unregisterCallback(android.media.session.MediaController.Callback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaController.Callback void onExtrasChanged(android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController.Callback void onMetadataChanged(android.media.MediaMetadata) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController.Callback void onPlaybackStateChanged(android.media.session.PlaybackState) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaController.Callback void onQueueChanged(java.util.List&lt;android.media.session.MediaSession.QueueItem&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController.Callback void onQueueTitleChanged(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController.Callback void onSessionEvent(java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaController.Callback void onSessionEvent(java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController.TransportControls void sendCustomAction(android.media.session.PlaybackState.CustomAction, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaController.TransportControls void sendCustomAction(android.media.session.PlaybackState.CustomAction, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaController.TransportControls void sendCustomAction(java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaController.TransportControls void sendCustomAction(java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession MediaSession(android.content.Context, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSession MediaSession(android.content.Context, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSession android.media.session.MediaController getController()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSession android.media.session.MediaSession.Token getSessionToken()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSession void sendSessionEvent(java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSession void sendSessionEvent(java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession void setCallback(android.media.session.MediaSession.Callback) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession void setCallback(android.media.session.MediaSession.Callback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession void setCallback(android.media.session.MediaSession.Callback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession void setExtras(android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession void setFlags(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.session.MediaSession.FLAG_HANDLES_MEDIA_BUTTONS, android.media.session.MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.media.session.MediaSession void setMediaButtonReceiver(android.app.PendingIntent) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession void setMetadata(android.media.MediaMetadata) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession void setPlaybackState(android.media.session.PlaybackState) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession void setPlaybackToRemote(android.media.VolumeProvider) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSession void setQueue(java.util.List&lt;android.media.session.MediaSession.QueueItem&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession void setQueueTitle(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession void setSessionActivity(android.app.PendingIntent) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession.Callback boolean onMediaButtonEvent(android.content.Intent) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSession.Callback void onCommand(java.lang.String, android.os.Bundle, android.os.ResultReceiver) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSession.Callback void onCommand(java.lang.String, android.os.Bundle, android.os.ResultReceiver) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession.Callback void onCommand(java.lang.String, android.os.Bundle, android.os.ResultReceiver) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession.Callback void onCustomAction(java.lang.String, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSession.Callback void onCustomAction(java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSession.Callback void onSetRating(android.media.Rating) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSessionManager java.util.List&lt;android.media.session.MediaController&gt; getActiveSessions(android.content.ComponentName)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSessionManager java.util.List&lt;android.media.session.MediaController&gt; getActiveSessions(android.content.ComponentName) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSessionManager void addOnActiveSessionsChangedListener(android.media.session.MediaSessionManager.OnActiveSessionsChangedListener, android.content.ComponentName) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSessionManager void addOnActiveSessionsChangedListener(android.media.session.MediaSessionManager.OnActiveSessionsChangedListener, android.content.ComponentName) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSessionManager void addOnActiveSessionsChangedListener(android.media.session.MediaSessionManager.OnActiveSessionsChangedListener, android.content.ComponentName, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSessionManager void addOnActiveSessionsChangedListener(android.media.session.MediaSessionManager.OnActiveSessionsChangedListener, android.content.ComponentName, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSessionManager void addOnActiveSessionsChangedListener(android.media.session.MediaSessionManager.OnActiveSessionsChangedListener, android.content.ComponentName, android.os.Handler) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.MediaSessionManager void removeOnActiveSessionsChangedListener(android.media.session.MediaSessionManager.OnActiveSessionsChangedListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSessionManager.OnActiveSessionsChangedListener void onActiveSessionsChanged(java.util.List&lt;android.media.session.MediaController&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.PlaybackState android.os.Bundle getExtras()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.session.PlaybackState.CustomAction.Builder Builder(java.lang.String, java.lang.CharSequence, int) 2">
+    <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+</root>
+

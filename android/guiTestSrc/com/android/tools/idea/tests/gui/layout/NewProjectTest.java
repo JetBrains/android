@@ -19,7 +19,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -48,8 +48,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class NewProjectTest extends GuiTestCase {
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testCreateNewMobileProject() {
     IdeFrameFixture projectFrame = newProject("Test Application").create();
     FileFixture layoutFile = projectFrame.findExistingFileByRelativePath("app/src/main/res/layout/activity_main.xml");
@@ -84,8 +83,7 @@ public class NewProjectTest extends GuiTestCase {
     }
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testNoWarningsInNewProjects() throws IOException {
     // Creates a new default project, and checks that if we run Analyze > Inspect Code, there are no warnings.
     // This checks that our (default) project templates are warnings-clean.
@@ -100,7 +98,7 @@ public class NewProjectTest extends GuiTestCase {
     editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("defaultConfig {", null, true));
     editor.enterText("\nresValue \"string\", \"foo\", \"Typpo Here\"");
-    projectFrame.clickEditorNotification("Gradle files have changed since last project sync", "Sync Now");
+    projectFrame.requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
     projectFrame.waitForGradleProjectSyncToFinish();
 
     InspectionsFixture inspections = projectFrame.inspectCode();
@@ -121,8 +119,7 @@ public class NewProjectTest extends GuiTestCase {
                  inspections.getResults());
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testRenderResourceInitialization() throws IOException {
     // Regression test for https://code.google.com/p/android/issues/detail?id=76966
     IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("9").create();
@@ -138,8 +135,7 @@ public class NewProjectTest extends GuiTestCase {
     projectFrame.waitForBackgroundTasksToFinish();
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testLanguageLevelForApi21() {
     // Verifies that creating a project with L will set the language level correctly
     // both in the generated Gradle model as well as in the synced project and modules
@@ -165,8 +161,7 @@ public class NewProjectTest extends GuiTestCase {
     }
   }
 
-  @Test
-  @IdeGuiTest(closeProjectBeforeExecution = true)
+  @Test @IdeGuiTest
   public void testStillBuildingMessage() throws Exception {
     // Creates a new project with minSdk 15, which should use appcompat.
     // Check that if there are render-error messages on first render,

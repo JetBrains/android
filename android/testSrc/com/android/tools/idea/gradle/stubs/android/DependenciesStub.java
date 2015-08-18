@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
@@ -55,8 +54,8 @@ public class DependenciesStub implements Dependencies {
     myProjects.add(project);
   }
 
-  @NonNull
   @Override
+  @NotNull
   public List<String> getProjects() {
     return myProjects;
   }

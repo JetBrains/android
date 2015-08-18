@@ -15,25 +15,31 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.idea.wizard.WizardUtils;
 import com.android.utils.SparseArray;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.ide.impl.ProjectPaneSelectInTarget;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
@@ -246,13 +252,7 @@ public class TemplateUtils {
   */
   @NotNull
   public static File[] listFiles(@Nullable File dir) {
-    if (dir != null) {
-      File[] files = dir.listFiles();
-      if (files != null) {
-        return files;
-      }
-    }
-    return ArrayUtil.EMPTY_FILE_ARRAY;
+    return WizardUtils.listFiles(dir);
   }
 
   /**
@@ -397,4 +397,59 @@ public class TemplateUtils {
       }
     });
   }
+
+  /**
+   * Replaces the contents of the given file with the given string. Outputs
+   * text in UTF-8 character encoding. The file is created if it does not
+   * already exist.
+   */
+  public static void writeFile(@NotNull Object requestor, @Nullable String contents, @NotNull File to) throws IOException {
+    if (contents == null) {
+      return;
+    }
+    VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(to);
+    if (vf == null) {
+      // Creating a new file
+      VirtualFile parentDir = checkedCreateDirectoryIfMissing(to.getParentFile());
+      vf = parentDir.createChildData(requestor, to.getName());
+    }
+    Document document = FileDocumentManager.getInstance().getDocument(vf);
+    if (document != null) {
+      document.setText(contents.replaceAll("\r\n", "\n"));
+      FileDocumentManager.getInstance().saveDocument(document);
+    }
+    else {
+      vf.setBinaryContent(contents.getBytes(Charsets.UTF_8), -1, -1, requestor);
+    }
+  }
+
+  /**
+   * Creates a directory for the given file and returns the VirtualFile object.
+   *
+   * @return virtual file object for the given path. It can never be null.
+   */
+  @NotNull
+  public static VirtualFile checkedCreateDirectoryIfMissing(final @NotNull File directory) throws IOException {
+    return WriteCommandAction.runWriteCommandAction(null, new ThrowableComputable<VirtualFile, IOException>() {
+      @Override
+      public VirtualFile compute() throws IOException {
+        VirtualFile dir = VfsUtil.createDirectoryIfMissing(directory.getAbsolutePath());
+        if (dir == null) {
+          throw new IOException("Unable to create " + directory.getAbsolutePath());
+        }
+        else {
+          return dir;
+        }
+      }
+    });
+  }
+
+  /**
+   * Returns true iff the given file has the given extension (with or without .)
+   */
+  public static boolean hasExtension(File file, String extension) {
+    String noDotExtension = extension.startsWith(".") ? extension.substring(1) : extension;
+    return Files.getFileExtension(file.getName()).equalsIgnoreCase(noDotExtension);
+  }
+
 }

@@ -25,18 +25,29 @@ import org.junit.runners.model.RunnerBuilder;
 import org.junit.runners.model.Statement;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.DOT_CLASS;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GUI_TESTS_RUNNING_IN_SUITE_PROPERTY;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Test runner that automatically includes all test classes that extend {@link GuiTestCase}.
+ * Test runner that automatically includes all test classes that extend {@link GuiTestCase}, or if specified, the tests belonging to
+ * specific groups.
  */
 public class GuiTestSuiteRunner extends Suite {
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface IncludeTestGroups {
+    TestGroup[] value();
+  }
+
   public GuiTestSuiteRunner(Class<?> suiteClass, RunnerBuilder builder) throws InitializationError {
     super(builder, suiteClass, getGuiTestClasses(suiteClass));
     System.setProperty(GUI_TESTS_RUNNING_IN_SUITE_PROPERTY, "true");
@@ -45,11 +56,12 @@ public class GuiTestSuiteRunner extends Suite {
   @NotNull
   private static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass) throws InitializationError {
     List<File> guiTestClassFiles = Lists.newArrayList();
+    List<TestGroup> suiteGroups = getSuiteGroups(suiteClass);
     File parentDir = getParentDir(suiteClass);
 
     String packagePath = suiteClass.getPackage().getName().replace('.', File.separatorChar);
     int packagePathIndex = parentDir.getPath().indexOf(packagePath);
-    assert packagePathIndex > -1;
+    assertThat(packagePathIndex).isGreaterThan(-1);
     String testDirPath = parentDir.getPath().substring(0, packagePathIndex);
 
     findPotentialGuiTestClassFiles(parentDir, guiTestClassFiles);
@@ -60,7 +72,7 @@ public class GuiTestSuiteRunner extends Suite {
       String className = path.substring(testDirPath.length(), path.indexOf(DOT_CLASS)).replace(File.separatorChar, '.');
       try {
         Class<?> testClass = classLoader.loadClass(className);
-        if (GuiTestCase.class.isAssignableFrom(testClass)) {
+        if (GuiTestCase.class.isAssignableFrom(testClass) && isInGroup(testClass, suiteGroups)) {
           guiTestClasses.add(testClass);
         }
       }
@@ -69,6 +81,20 @@ public class GuiTestSuiteRunner extends Suite {
       }
     }
     return guiTestClasses.toArray(new Class<?>[guiTestClasses.size()]);
+  }
+
+  @NotNull
+  private static List<TestGroup> getSuiteGroups(@NotNull Class<?> suiteClass) {
+    for (Annotation annotation : suiteClass.getAnnotations()) {
+      if (annotation instanceof IncludeTestGroups) {
+        TestGroup[] values = ((IncludeTestGroups)annotation).value();
+        if (values != null) {
+          return Lists.newArrayList(values);
+        }
+        break;
+      }
+    }
+    return Collections.emptyList();
   }
 
   private static void findPotentialGuiTestClassFiles(@NotNull File directory, @NotNull List<File> guiTestClassFiles) {
@@ -93,6 +119,26 @@ public class GuiTestSuiteRunner extends Suite {
     catch (URISyntaxException e) {
       throw new InitializationError(e);
     }
+  }
+
+  private static boolean isInGroup(@NotNull Class<?> testClass, List<TestGroup> suiteGroups) {
+    if (suiteGroups.isEmpty()) {
+      return true;
+    }
+    for (Annotation annotation : testClass.getAnnotations()) {
+      if (annotation instanceof BelongsToTestGroups) {
+        TestGroup[] testGroups = ((BelongsToTestGroups)annotation).value();
+        if (testGroups != null) {
+          for (TestGroup testGroup : testGroups) {
+            if (suiteGroups.contains(testGroup)) {
+              return true;
+            }
+          }
+        }
+        break;
+      }
+    }
+    return false;
   }
 
   @Override

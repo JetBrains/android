@@ -29,17 +29,30 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.TAG_RESOURCES;
+import static com.android.SdkConstants.TAG_ATTR;
+import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
+import static com.android.SdkConstants.TAG_EAT_COMMENT;
+import static com.android.SdkConstants.TAG_ENUM;
+import static com.android.SdkConstants.TAG_FLAG;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_VALUE;
+import static com.android.SdkConstants.ATTR_FORMAT;
+import static com.android.SdkConstants.ATTR_PARENT;
 
 /**
  * @author yole
  */
 public class AttributeDefinitionsImpl implements AttributeDefinitions {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl");
+
+  //Used for parsing group of attributes, used heuristically to skip long comments before <eat-comment/>
+  private static final int ATTR_GROUP_MAX_CHARACTERS = 40;
 
   private Map<String, AttributeDefinition> myAttrs = new HashMap<String, AttributeDefinition>();
   private Map<String, StyleableDefinitionImpl> myStyleables = new HashMap<String, StyleableDefinitionImpl>();
@@ -59,13 +72,42 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     if (document == null) return;
     final XmlTag rootTag = document.getRootTag();
     if (rootTag == null || !TAG_RESOURCES.equals(rootTag.getName())) return;
+
+    String attrGroup = null;
     for (XmlTag tag : rootTag.getSubTags()) {
       String tagName = tag.getName();
-      if (tagName.equals(TAG_ATTR)) {
-        parseAttrTag(tag, null);
+      if (TAG_ATTR.equals(tagName)) {
+        AttributeDefinition def = parseAttrTag(tag, null);
+
+        // Sets group for attribute, for example: sets "Button Styles" group for "buttonStyleSmall" attribute
+        if (def != null) {
+          def.setAttrGroup(attrGroup);
+        }
       }
-      else if (tagName.equals(TAG_DECLARE_STYLEABLE)) {
-        parseDeclareStyleableTag(tag, parentMap);
+      else if (TAG_DECLARE_STYLEABLE.equals(tagName)) {
+        StyleableDefinitionImpl def = parseDeclareStyleableTag(tag, parentMap);
+        // Only "Theme" Styleable has attribute groups
+        if (def != null && def.getName().equals("Theme")) {
+          parseAndAddAttrGroups(tag);
+        }
+      }
+      else if (TAG_EAT_COMMENT.equals(tagName)) {
+
+        // The framework attribute file follows a special convention where related attributes are grouped together,
+        // and there is always a set of comments that indicate these sections which look like this:
+        //     <!-- =========== -->
+        //     <!-- Text styles -->
+        //     <!-- =========== -->
+        //     <eat-comment />
+        // These section headers are always immediately followed by an <eat-comment>,
+        // so to identify these we just look for <eat-comments>, and then we look for the comment within the block that isn't ascii art.
+        String newAttrGroup = getCommentBeforeEatComment(tag);
+
+        // Not all <eat-comment /> sections are actually attribute headers, some are comments.
+        // We identify these by looking at the line length; category comments are short, and descriptive comments are longer
+        if (newAttrGroup != null && newAttrGroup.length() <= ATTR_GROUP_MAX_CHARACTERS) {
+          attrGroup = newAttrGroup;
+        }
       }
     }
 
@@ -111,7 +153,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
     AttributeDefinition def = myAttrs.get(name);
     if (def == null) {
-      def = new AttributeDefinition(name);
+      def = new AttributeDefinition(name, parentStyleable, Collections.<AttributeFormat>emptySet());
       myAttrs.put(def.getName(), def);
     }
     def.addFormats(formats);
@@ -128,6 +170,27 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
         def.addDocValue(docValue, styleable);
       }
     }
+  }
+
+  @Nullable
+  private static String getCommentBeforeEatComment(XmlTag tag) {
+    PsiElement comment = XmlDocumentationProvider.findPreviousComment(tag);
+    for (int i = 0; i < 5; ++i) {
+      if (comment == null) {
+        break;
+      }
+      String value = StringUtil.trim(XmlUtil.getCommentText((XmlComment)comment));
+
+      //  This check is there to ignore "formatting" comments like the first and third lines in
+      //  <!-- ============== -->
+      //  <!-- Generic styles -->
+      //  <!-- ============== -->
+      if (!StringUtil.isEmpty(value) && value.charAt(0) != '*' && value.charAt(0) != '=') {
+        return value;
+      }
+      comment = XmlDocumentationProvider.findPreviousComment(comment.getPrevSibling());
+    }
+    return null;
   }
 
   @Nullable
@@ -155,6 +218,13 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       }
       else {
         def.addValue(valueName);
+        PsiElement comment = XmlDocumentationProvider.findPreviousComment(value);
+        if (comment != null) {
+          String docValue = XmlUtil.getCommentText((XmlComment)comment);
+          if (!StringUtil.isEmpty(docValue)) {
+            def.addValueDoc(valueName, docValue);
+          }
+        }
 
         final String strIntValue = value.getAttributeValue(ATTR_VALUE);
         if (strIntValue != null) {
@@ -175,11 +245,11 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
   }
 
-  private void parseDeclareStyleableTag(XmlTag tag, Map<StyleableDefinitionImpl, String[]> parentMap) {
+  private StyleableDefinitionImpl parseDeclareStyleableTag(XmlTag tag, Map<StyleableDefinitionImpl, String[]> parentMap) {
     String name = tag.getAttributeValue(ATTR_NAME);
     if (name == null) {
       LOG.info("Found declare-styleable tag with no name: " + tag.getText());
-      return;
+      return null;
     }
     StyleableDefinitionImpl def = new StyleableDefinitionImpl(name);
     String parentNameAttributeValue = tag.getAttributeValue(ATTR_PARENT);
@@ -196,6 +266,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     for (XmlTag subTag : tag.findSubTags(TAG_ATTR)) {
       parseStyleableAttr(def, subTag);
     }
+    return def;
   }
 
   private void parseStyleableAttr(StyleableDefinitionImpl def, XmlTag tag) {
@@ -208,6 +279,25 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     final AttributeDefinition attr = parseAttrTag(tag, def.getName());
     if (attr != null) {
       def.addAttribute(attr);
+    }
+  }
+
+  private void parseAndAddAttrGroups(XmlTag tag) {
+    String attrGroup = null;
+    for (XmlTag subTag : tag.getSubTags()) {
+      String subTagName = subTag.getName();
+      if (TAG_ATTR.equals(subTagName)) {
+        AttributeDefinition def = myAttrs.get(subTag.getAttributeValue(ATTR_NAME));
+        if (def != null) {
+          def.setAttrGroup(attrGroup);
+        }
+      }
+      else if (TAG_EAT_COMMENT.equals(subTagName)) {
+        String newAttrGroup = getCommentBeforeEatComment(subTag);
+        if (newAttrGroup != null && newAttrGroup.length() <= ATTR_GROUP_MAX_CHARACTERS) {
+          attrGroup = newAttrGroup;
+        }
+      }
     }
   }
 
@@ -227,6 +317,15 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   @Nullable
   public AttributeDefinition getAttrDefByName(@NotNull String name) {
     return myAttrs.get(name);
+  }
+
+  @Nullable
+  @Override
+  public String getAttrGroupByName(@NotNull String name) {
+    if (myAttrs.get(name) == null) {
+      return null;
+    }
+    return myAttrs.get(name).getAttrGroup();
   }
 
   @NotNull

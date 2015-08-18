@@ -17,67 +17,65 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseGradleHomeDialogFixture;
 import com.intellij.openapi.application.ApplicationManager;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.File;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.UNSUPPORTED_GRADLE_HOME_PROPERTY;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SUPPORTED_GRADLE_HOME_PROPERTY;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
+import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * UI Test for {@link com.android.tools.idea.gradle.project.ChooseGradleHomeDialog}.
  */
+@BelongsToTestGroups({PROJECT_SUPPORT})
 public class ChooseGradleHomeDialogTest extends GuiTestCase {
-  private static final String MINIMUM_GRADLE_VERSION = "2.1";
-
   @Test @IdeGuiTest
   public void testValidationWithInvalidMinimumGradleVersion() {
-    String oldGradleHome = System.getProperty(UNSUPPORTED_GRADLE_HOME_PROPERTY);
-    if (isEmpty(oldGradleHome)) {
-      String msg = String.format("Test '%1$s' skipped. It requires the system property '%2$s'.", getTestName(),
-                                 UNSUPPORTED_GRADLE_HOME_PROPERTY);
-      System.out.println(msg);
+    File unsupportedGradleHome = getUnsupportedGradleHome();
+    if (unsupportedGradleHome == null) {
+      skip("testValidationWithInvalidMinimumGradleVersion");
       return;
     }
 
     ChooseGradleHomeDialogFixture dialog = launchChooseGradleHomeDialog();
-    dialog.chooseGradleHome(new File(oldGradleHome))
+    dialog.chooseGradleHome(unsupportedGradleHome)
           .clickOk()
-          .requireValidationError("Gradle " + MINIMUM_GRADLE_VERSION + " or newer is required")
+          .requireValidationError("Gradle " + GRADLE_MINIMUM_VERSION + " or newer is required")
           .close();
   }
 
   @Test
   public void testValidateWithValidMinimumGradleVersion() {
-    String gradleHome = System.getProperty(SUPPORTED_GRADLE_HOME_PROPERTY);
-    if (isEmpty(gradleHome)) {
-      String msg = String.format("Test '%1$s' skipped. It requires the system property '%2$s'.", getTestName(),
-                                 SUPPORTED_GRADLE_HOME_PROPERTY);
-      System.out.println(msg);
+    File gradleHomePath = getGradleHomePath();
+    if (gradleHomePath == null) {
+      skip("testValidateWithValidMinimumGradleVersion");
       return;
     }
 
     ChooseGradleHomeDialogFixture dialog = launchChooseGradleHomeDialog();
-    dialog.chooseGradleHome(new File(gradleHome))
+    dialog.chooseGradleHome(gradleHomePath)
           .clickOk()
           .requireNotShowing();  // if it is not showing on the screen, it means that there were no validation errors.
   }
 
   @NotNull
   private ChooseGradleHomeDialogFixture launchChooseGradleHomeDialog() {
-    final ChooseGradleHomeDialog dialog = GuiActionRunner.execute(new GuiQuery<ChooseGradleHomeDialog>() {
+    final ChooseGradleHomeDialog dialog = execute(new GuiQuery<ChooseGradleHomeDialog>() {
       @Override
       protected ChooseGradleHomeDialog executeInEDT() throws Throwable {
-        return new ChooseGradleHomeDialog(MINIMUM_GRADLE_VERSION);
+        return new ChooseGradleHomeDialog(GRADLE_MINIMUM_VERSION);
       }
     });
+    assertNotNull(dialog);
 
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override

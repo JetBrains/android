@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ProjectView;
@@ -38,14 +37,16 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertNotNull;
 
 public class ProjectViewFixture extends ToolWindowFixture {
@@ -57,12 +58,13 @@ public class ProjectViewFixture extends ToolWindowFixture {
   public PaneFixture selectProjectPane() {
     activate();
     final ProjectView projectView = ProjectView.getInstance(myProject);
-    Pause.pause(new Condition("Project view is initialized") {
+    pause(new Condition("Project view is initialized") {
       @Override
       public boolean test() {
+        //noinspection ConstantConditions
         return field("isInitialized").ofType(boolean.class).in(projectView).get();
       }
-    }, GuiTests.SHORT_TIMEOUT);
+    }, SHORT_TIMEOUT);
 
     final String id = "ProjectPane";
     GuiActionRunner.execute(new GuiTask() {
@@ -94,7 +96,29 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
     @NotNull
     public NodeFixture findExternalLibrariesNode() {
-      final AbstractTreeStructure treeStructure = myPane.getTreeBuilder().getTreeStructure();
+      final AtomicReference<AbstractTreeStructure> treeStructureRef = new AtomicReference<AbstractTreeStructure>();
+      pause(new Condition("Tree Structure to be built") {
+        @Override
+        public boolean test() {
+          AbstractTreeStructure treeStructure = GuiActionRunner.execute(new GuiQuery<AbstractTreeStructure>() {
+            @Override
+            protected AbstractTreeStructure executeInEDT() throws Throwable {
+              try {
+                return myPane.getTreeBuilder().getTreeStructure();
+              }
+              catch (NullPointerException e) {
+                // expected;
+              }
+              return null;
+            }
+          });
+          treeStructureRef.set(treeStructure);
+          return treeStructure != null;
+        }
+      }, SHORT_TIMEOUT);
+
+      final AbstractTreeStructure treeStructure = treeStructureRef.get();
+
       ExternalLibrariesNode node = GuiActionRunner.execute(new GuiQuery<ExternalLibrariesNode>() {
         @Nullable
         @Override
@@ -143,6 +167,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     public boolean isJdk() {
       if (myNode instanceof NamedLibraryElementNode) {
         NamedLibraryElement value = ((NamedLibraryElementNode)myNode).getValue();
+        assertNotNull(value);
         LibraryOrSdkOrderEntry orderEntry = value.getOrderEntry();
         if (orderEntry instanceof JdkOrderEntry) {
           Sdk sdk = ((JdkOrderEntry)orderEntry).getJdk();

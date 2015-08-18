@@ -29,9 +29,11 @@ import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -45,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
+
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
   /** Environment variable or system property containing the full path to an SDK install */
@@ -54,6 +58,15 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   private static final String PLATFORM_DIR_PROPERTY = "ADT_TEST_PLATFORM";
 
   protected JavaCodeInsightTestFixture myFixture;
+
+  protected AndroidTestBase() {
+    IdeaTestCase.initPlatformPrefix();
+
+    // IDEA14 seems to be stricter regarding validating accesses against known roots. By default, it contains the entire idea folder,
+    // but it doesn't seem to include our custom structure tools/idea/../adt/idea where the android plugin is placed.
+    // The following line explicitly adds that folder as an allowed root.
+    VfsRootAccess.allowRootAccess(FileUtil.toCanonicalPath(getAndroidPluginHome()));
+  }
 
   public static String getAbsoluteTestDataPath() {
     // The following code doesn't work right now that the Android
@@ -222,7 +235,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   @Nullable
   protected AndroidSdkData createTestSdkManager() {
     Sdk androidSdk = createAndroidSdk(getTestSdkPath(), getPlatformDir());
-    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
+    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(androidSdk);
     if (data != null) {
       AndroidPlatform androidPlatform = data.getAndroidPlatform();
       if (androidPlatform != null) {

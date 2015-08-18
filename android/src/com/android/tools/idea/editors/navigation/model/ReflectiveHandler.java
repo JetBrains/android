@@ -16,7 +16,9 @@
 package com.android.tools.idea.editors.navigation.model;
 
 import com.android.annotations.Nullable;
-import com.android.annotations.Property;
+import com.android.tools.idea.editors.navigation.annotations.Property;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ArrayUtil;
 import org.xml.sax.*;
 import org.xml.sax.Locator;
 import org.xml.sax.helpers.DefaultHandler;
@@ -29,14 +31,13 @@ import java.util.*;
 
 class ReflectiveHandler extends DefaultHandler {
   // public static final List<String> DEFAULT_PACKAGES = Arrays.<String>asList("java.lang", "android.view", "android.widget");
-  public static final List<String> DEFAULT_PACKAGES = Arrays.asList();
-  public static final List<String> DEFAULT_CLASSES = Arrays.asList();
-  public static final String[] EMPTY_STRING_ARRAY = new String[0];
+  public static final List<String> DEFAULT_PACKAGES = Collections.emptyList();
+  public static final List<String> DEFAULT_CLASSES = Collections.emptyList();
 
   private final List<String> packagesImports = new ArrayList<String>(DEFAULT_PACKAGES);
   private final List<String> classImports = new ArrayList<String>(DEFAULT_CLASSES);
   private final MyErrorHandler errorHandler;
-  private final Stack<ElementInfo> stack = new Stack<ElementInfo>();
+  private final Deque<ElementInfo> stack = new ArrayDeque<ElementInfo>();
   private final Map<String, Object> idToValue = new HashMap<String, Object>();
   private final Map<Class, Constructor> classToConstructor = new IdentityHashMap<Class, Constructor>();
   private final Map<Constructor, String[]> constructorToParameterNames = new IdentityHashMap<Constructor, String[]>();
@@ -85,7 +86,7 @@ class ReflectiveHandler extends DefaultHandler {
   }
 
   public Class getClassForName(String tag) throws ClassNotFoundException {
-    String simpleName = Utilities.capitalize(tag);
+    String simpleName = StringUtil.capitalize(tag);
     ClassLoader classLoader = getClass().getClassLoader();
     for (String clazz : classImports) {
       if (clazz.endsWith("." + simpleName)) {
@@ -126,7 +127,7 @@ class ReflectiveHandler extends DefaultHandler {
 
   private static String[] findParameterNames(@Nullable Constructor constructor) {
     if (constructor == null) {
-      return EMPTY_STRING_ARRAY;
+      return ArrayUtil.EMPTY_STRING_ARRAY;
     }
     Annotation[][] annotations = constructor.getParameterAnnotations();
     String[] result = new String[annotations.length];
@@ -249,7 +250,8 @@ class ReflectiveHandler extends DefaultHandler {
     private void installAttributes(MyErrorHandler errorHandler, String[] constructorParameterNames) throws SAXException {
       for (Map.Entry<String, String> entry : attributes.entrySet()) {
         String attributeName = entry.getKey();
-        if (Utilities.RESERVED_ATTRIBUTES.contains(attributeName) || Utilities.contains(constructorParameterNames, attributeName) || "class".equals(attributeName)) {
+        if (Utilities.RESERVED_ATTRIBUTES.contains(attributeName) ||
+            ArrayUtil.contains(attributeName, constructorParameterNames) || "class".equals(attributeName)) {
           continue;
         }
         try {
@@ -331,7 +333,7 @@ class ReflectiveHandler extends DefaultHandler {
 
   private String[] getConstructorParameterNames(Class type) {
     if (type == null) {
-      return EMPTY_STRING_ARRAY;
+      return ArrayUtil.EMPTY_STRING_ARRAY;
     }
     return getParameterNames(getConstructor(type));
   }
@@ -386,7 +388,7 @@ class ReflectiveHandler extends DefaultHandler {
           if (stack.isEmpty()) {
             throw new SAXException("Empty body at root");
           }
-          final ElementInfo last = stack.getLast();
+          final ElementInfo last = stack.peekFirst();
           final Method getter = getGetter(last.type, qName);
           elementInfo.myValueAlreadySetInOuter = true;
           elementInfo.type = getter.getReturnType();
@@ -410,7 +412,7 @@ class ReflectiveHandler extends DefaultHandler {
       if (id != null) {
         idToValue.put(id, elementInfo.getValue());
       }
-      stack.push(elementInfo);
+      stack.addFirst(elementInfo);
     }
     catch (ClassNotFoundException e) {
       errorHandler.handleError(e);
@@ -447,7 +449,7 @@ class ReflectiveHandler extends DefaultHandler {
         if (stack.isEmpty()) {
           return null;
         }
-        Class outerType = stack.getLast().type;
+        Class outerType = stack.peekFirst().type;
         try {
           return getSetter(outerType, qName).getParameterTypes()[0];
         }
@@ -464,12 +466,12 @@ class ReflectiveHandler extends DefaultHandler {
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    ElementInfo elementInfo = stack.pop();
+    ElementInfo elementInfo = stack.removeFirst();
     result = elementInfo.getValue();
     elementInfo.installAttributes(errorHandler, getConstructorParameterNames(elementInfo.type));
     elementInfo.installSubElements(errorHandler);
     if (stack.size() != 0) {
-      stack.getLast().elements.add(elementInfo);
+      stack.peekFirst().elements.add(elementInfo);
     }
   }
 }

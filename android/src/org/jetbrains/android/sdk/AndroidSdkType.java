@@ -15,10 +15,10 @@
  */
 package org.jetbrains.android.sdk;
 
-import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.Jdks;
+import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.JavaDependentSdkType;
@@ -26,8 +26,6 @@ import com.intellij.openapi.roots.AnnotationOrderRootType;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtil;
 import icons.AndroidIcons;
 import org.jdom.Element;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
@@ -38,15 +36,19 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType {
-
   @NonNls public static final String SDK_NAME = "Android SDK";
   @NonNls public static final String DEFAULT_EXTERNAL_DOCUMENTATION_URL = "http://developer.android.com/reference/";
 
@@ -54,17 +56,17 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     super(SDK_NAME);
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String getBinPath(@NotNull Sdk sdk) {
-    final Sdk internalJavaSdk = getInternalJavaSdk(sdk);
+    Sdk internalJavaSdk = getInternalJavaSdk(sdk);
     return internalJavaSdk == null ? null : JavaSdk.getInstance().getBinPath(internalJavaSdk);
   }
 
   @Override
   @Nullable
   public String getToolsPath(@NotNull Sdk sdk) {
-    final Sdk jdk = getInternalJavaSdk(sdk);
+    Sdk jdk = getInternalJavaSdk(sdk);
     if (jdk != null && jdk.getVersionString() != null) {
       return JavaSdk.getInstance().getToolsPath(jdk);
     }
@@ -74,63 +76,40 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   @Override
   @Nullable
   public String getVMExecutablePath(@NotNull Sdk sdk) {
-    final Sdk internalJavaSdk = getInternalJavaSdk(sdk);
+    Sdk internalJavaSdk = getInternalJavaSdk(sdk);
     return internalJavaSdk == null ? null : JavaSdk.getInstance().getVMExecutablePath(internalJavaSdk);
   }
 
   @Override
+  @Nullable
   public String suggestHomePath() {
     return null;
   }
 
   @Override
-  public boolean isValidSdkHome(String path) {
-    return validateAndroidSdk(path).getFirst();
-  }
-
-  /**
-   * Indicates whether the given path belongs to a valid Android SDK.
-   *
-   * @param path the given path.
-   * @return a pair where the first value is {@code true} if the path belongs to a valid Android SDK. If pair's first value is
-   * {@code false}, the second value will be a non-null explaining why the path is not valid.
-   */
-  @NotNull
-  public static Pair<Boolean, String> validateAndroidSdk(@Nullable String path) {
-    if (path == null) {
-      return Pair.create(Boolean.FALSE, "");
+  public boolean isValidSdkHome(@Nullable String path) {
+    if (isEmpty(path)) {
+      return false;
     }
-
-    path = FileUtil.toSystemDependentName(path);
-    final File f = new File(path);
-    if (!f.exists() || !f.isDirectory()) {
-      return Pair.create(Boolean.FALSE, "SDK does not exist");
-    }
-
-    final File platformsDir = new File(f, SdkConstants.FD_PLATFORMS);
-    if (!platformsDir.exists() || !platformsDir.isDirectory()) {
-      return Pair.create(Boolean.FALSE, "SDK does not contain any platforms");
-    }
-
-    //noinspection ConstantConditions
-    return Pair.create(Boolean.TRUE, null);
+    File sdkPath = new File(toSystemDependentName(path));
+    return validateAndroidSdk(sdkPath, false).success;
   }
 
   @Override
   public String getVersionString(@NotNull Sdk sdk) {
-    final Sdk internalJavaSdk = getInternalJavaSdk(sdk);
+    Sdk internalJavaSdk = getInternalJavaSdk(sdk);
     return internalJavaSdk != null ? internalJavaSdk.getVersionString() : null;
   }
 
-  @Nullable
   @Override
+  @NotNull
   public String suggestSdkName(String currentSdkName, String sdkHome) {
     return SDK_NAME;
   }
 
   @Override
-  public boolean setupSdkPaths(Sdk sdk, SdkModel sdkModel) {
-    final List<String> javaSdks = new ArrayList<String>();
+  public boolean setupSdkPaths(@NotNull Sdk sdk, @NotNull SdkModel sdkModel) {
+    final List<String> javaSdks = Lists.newArrayList();
     final Sdk[] sdks = sdkModel.getSdks();
     for (Sdk jdk : sdks) {
       if (Jdks.isApplicableJdk(jdk)) {
@@ -144,10 +123,10 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     }
 
     MessageBuildingSdkLog log = new MessageBuildingSdkLog();
-    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+    AndroidSdkData sdkData = getSdkData(sdk);
 
     if (sdkData == null) {
-      String errorMessage = log.getErrorMessage().length() > 0 ? log.getErrorMessage() : AndroidBundle.message("cannot.parse.sdk.error");
+      String errorMessage = !log.getErrorMessage().isEmpty() ? log.getErrorMessage() : AndroidBundle.message("cannot.parse.sdk.error");
       Messages.showErrorDialog(errorMessage, "SDK Parsing Error");
       return false;
     }
@@ -169,7 +148,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
 
     for (int i = 0; i < targets.length; i++) {
       IAndroidTarget target = targets[i];
-      String targetName = AndroidSdkUtils.getTargetPresentableName(target);
+      String targetName = getTargetPresentableName(target);
       targetNames[i] = targetName;
       if (target.isPlatform() && (version == null || target.getVersion().compareTo(version) > 0)) {
         newestPlatform = targetName;
@@ -177,22 +156,23 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
       }
     }
 
-    final AndroidNewSdkDialog dialog =
-      new AndroidNewSdkDialog(null, javaSdks, javaSdks.get(0), Arrays.asList(targetNames),
-                              newestPlatform != null ? newestPlatform : targetNames[0]);
+    AndroidNewSdkDialog dialog = new AndroidNewSdkDialog(null, javaSdks, javaSdks.get(0), Arrays.asList(targetNames),
+                                                         newestPlatform != null ? newestPlatform : targetNames[0]);
     if (!dialog.showAndGet()) {
       return false;
     }
-    final String name = javaSdks.get(dialog.getSelectedJavaSdkIndex());
-    final Sdk jdk = sdkModel.findSdk(name);
-    final IAndroidTarget target = targets[dialog.getSelectedTargetIndex()];
-    final String sdkName = AndroidSdkUtils.chooseNameForNewLibrary(target);
-    AndroidSdkUtils.setUpSdk(sdk, sdkName, sdks, target, jdk, true);
+    String name = javaSdks.get(dialog.getSelectedJavaSdkIndex());
+    Sdk jdk = sdkModel.findSdk(name);
+    IAndroidTarget target = targets[dialog.getSelectedTargetIndex()];
+    String sdkName = chooseNameForNewLibrary(target);
+    setUpSdk(sdk, sdkName, sdks, target, jdk, true);
+
     return true;
   }
 
   @Override
-  public AdditionalDataConfigurable createAdditionalDataConfigurable(SdkModel sdkModel, SdkModificator sdkModificator) {
+  @NotNull
+  public AdditionalDataConfigurable createAdditionalDataConfigurable(@NotNull SdkModel sdkModel, @NotNull SdkModificator sdkModificator) {
     return new AndroidSdkConfigurable(sdkModel, sdkModificator);
   }
 
@@ -204,27 +184,31 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   }
 
   @Override
-  public SdkAdditionalData loadAdditionalData(@NotNull Sdk currentSdk, Element additional) {
+  @NotNull
+  public SdkAdditionalData loadAdditionalData(@NotNull Sdk currentSdk, @NotNull Element additional) {
     return new AndroidSdkAdditionalData(currentSdk, additional);
   }
 
   @Override
+  @NotNull
   public String getPresentableName() {
     return AndroidBundle.message("android.sdk.presentable.name");
   }
 
   @Override
+  @NotNull
   public Icon getIcon() {
     return AndroidIcons.Android;
   }
 
   @Override
+  @NotNull
   public Icon getIconForAddAction() {
     return getIcon();
   }
 
-  @Nullable
   @Override
+  @NotNull
   public String getDefaultDocumentationUrl(@NotNull Sdk sdk) {
     return DEFAULT_EXTERNAL_DOCUMENTATION_URL;
   }
@@ -238,15 +222,13 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   }
 
   @Nullable
-  private static Sdk getInternalJavaSdk(Sdk sdk) {
-    final SdkAdditionalData data = sdk.getSdkAdditionalData();
-    if (data instanceof AndroidSdkAdditionalData) {
-      return ((AndroidSdkAdditionalData)data).getJavaSdk();
-    }
-    return null;
+  private static Sdk getInternalJavaSdk(@NotNull Sdk sdk) {
+    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
+    return data != null ? data.getJavaSdk() : null;
   }
 
   public static AndroidSdkType getInstance() {
     return SdkType.findInstance(AndroidSdkType.class);
   }
+
 }

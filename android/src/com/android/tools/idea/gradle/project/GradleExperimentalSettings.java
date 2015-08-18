@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.openapi.components.*;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.util.ui.UIUtil;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,25 +28,12 @@ import org.jetbrains.annotations.NotNull;
 )
 public class GradleExperimentalSettings implements PersistentStateComponent<GradleExperimentalSettings> {
   public boolean SELECT_MODULES_ON_PROJECT_IMPORT;
-  public boolean ENABLE_UNIT_TESTING_SUPPORT;
+  public boolean SKIP_SOURCE_GEN_ON_PROJECT_SYNC;
+  public int MAX_MODULE_COUNT_FOR_SOURCE_GEN = 5;
 
   @NotNull
   public static GradleExperimentalSettings getInstance() {
     return ServiceManager.getService(GradleExperimentalSettings.class);
-  }
-
-  public void setUnitTestingSupportEnabled(boolean enabled) {
-    ENABLE_UNIT_TESTING_SUPPORT = enabled;
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-          if (!project.isDefault() && project.isOpen() && !project.isDisposed()) {
-            BuildVariantView.getInstance(project).updateTestArtifactComboBox();
-          }
-        }
-      }
-    });
   }
 
   @Override

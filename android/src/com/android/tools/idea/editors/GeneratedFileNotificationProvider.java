@@ -65,7 +65,7 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
       return null;
     }
     if (VfsUtilCore.isAncestor(buildFolder, file, false)) {
-      if (fileEditor.isModified() && myGeneratedSourceFileChangeTracker.isEditedGeneratedFile(file)) {
+      if (myGeneratedSourceFileChangeTracker.isEditedGeneratedFile(file)) {
         // A warning is already being displayed by GeneratedFileEditingNotificationProvider
         return null;
       }

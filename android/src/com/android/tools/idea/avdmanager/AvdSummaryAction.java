@@ -23,9 +23,10 @@ import com.android.utils.HtmlBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 
-import javax.swing.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.util.HashMap;
@@ -102,9 +103,8 @@ public class AvdSummaryAction extends AvdUiAction {
     }
     htmlBuilder.closeHtmlBody();
     String[] options = {"Copy to Clipboard and Close", "Close"};
-    int i = JOptionPane
-      .showOptionDialog(null, htmlBuilder.getHtml(), "Details for " + info.getName(), JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE,
-                        null, options, options[1]);
+    int i = Messages.showDialog((Project)null, htmlBuilder.getHtml(), "Details for " + info.getName(),
+                                options, 0, AllIcons.General.InformationDialog);
     if (i == 0) {
       CopyPasteManager.getInstance().setContents(new StringSelection(StringUtil.stripHtml(htmlBuilder.getHtml(), true)));
     }

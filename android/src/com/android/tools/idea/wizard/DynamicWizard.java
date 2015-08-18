@@ -19,12 +19,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
@@ -96,7 +97,8 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     myModule = module;
     myName = name;
     myHost.setTitle(name);
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
+    Application application = ApplicationManager.getApplication();
+    if (application == null || application.isUnitTestMode()) {
       myUpdateQueue = null;
     } else {
       myUpdateQueue = new MergingUpdateQueue("wizard", 100, true, MergingUpdateQueue.ANY_COMPONENT, myHost.getDisposable(), null, true);
@@ -173,8 +175,8 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   }
 
   /**
-   * Declare any finishing actions that will take place at the completion of the wizard.
-   * This function is called inside of a {@link WriteCommandAction}.
+   * Declare any finishing actions that will take place at the completion of the wizard. This will
+   * be executed by a worker thread, under progress.
    */
   public abstract void performFinishingActions();
 
@@ -183,7 +185,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
    * If the this wizard is a global one, the function returns null.
    */
   @Nullable
-  protected final Project getProject() {
+  protected Project getProject() {
     return myProject;
   }
 
@@ -243,18 +245,12 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     return sum;
   }
 
-  protected void showStep(@NotNull Step step) {
+  private void showStep(@NotNull Step step) {
     JComponent component = step.getComponent();
+    addStepIfNecessary(step);
     Icon icon = step.getIcon();
     myHost.setIcon(icon);
-    // Store a reference to this component.
-    String id = myComponentToIdMap.get(component);
-    if (id == null) {
-      id = String.valueOf(myComponentToIdMap.size());
-      myComponentToIdMap.put(component, id);
-      myContentPanel.add(component, id);
-    }
-    ((CardLayout)myContentPanel.getLayout()).show(myContentPanel, id);
+    ((CardLayout)myContentPanel.getLayout()).show(myContentPanel, myComponentToIdMap.get(component));
 
     JComponent focusedComponent = step.getPreferredFocusedComponent();
     if (focusedComponent != null) {
@@ -415,9 +411,8 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   }
 
   /**
-   * Complete the wizard, doing any finishing actions that have been queued up during the wizard flow
-   * inside a write action and a command. Subclasses should rarely need to override
-   * this method.
+   * Complete the wizard, doing any finishing actions that have been queued up during the wizard flow,
+   * with a progress indicator. Subclasses should rarely need to override this method.
    */
   public void doFinishAction() {
     if (myCurrentPath != null && !myCurrentPath.readyToLeavePath()) {
@@ -425,8 +420,35 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
       return;
     }
     myHost.close(DynamicWizardHost.CloseAction.FINISH);
-    new WizardCompletionAction().execute();
+
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          ProgressManager.getInstance().getProgressIndicator().setIndeterminate(true);
+          doFinish();
+        }
+        catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+
+    }, getProgressTitle(), false, getProject(), getProgressParentComponent());
   }
+
+  /**
+   * The component that should be the parent of the progress window created on wizard
+   * completion. Null by default: the main window will be used.
+   * Subclasses should override this if the wizard is kicked off from a window other than the main
+   * Studio window; otherwise the progress bar will be beneath that window.
+   */
+  @Nullable
+  public JComponent getProgressParentComponent() {
+    return null;
+  }
+
+  @NotNull
+  protected abstract String getProgressTitle();
 
   /**
    * Cancel the wizard
@@ -459,7 +481,29 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     return myState;
   }
 
+  private void prepareForShow() {
+    // All steps must be included so the window can be sized correctly
+    for (AndroidStudioWizardPath path : myPaths) {
+      for (Step step : path.getAllSteps()) {
+        addStepIfNecessary(step);
+      }
+    }
+
+    SwingUtilities.getWindowAncestor(myContentPanel).pack();
+  }
+
+  private void addStepIfNecessary(Step step) {
+    JComponent component = step.getComponent();
+    String id = myComponentToIdMap.get(component);
+    if (id == null) {
+      id = String.valueOf(myComponentToIdMap.size());
+      myComponentToIdMap.put(component, id);
+      myContentPanel.add(component, id);
+    }
+  }
+
   public final void show() {
+    prepareForShow();
     myHost.show();
   }
 
@@ -469,6 +513,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   }
 
   public boolean showAndGet() {
+    prepareForShow();
     return myHost.showAndGet();
   }
 
@@ -609,25 +654,13 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     }
   }
 
-  protected final class WizardCompletionAction extends WriteCommandAction<Void> {
-    public WizardCompletionAction() {
-      super(DynamicWizard.this.getProject(), DynamicWizard.this.getWizardActionDescription());
-    }
-
-    @Override
-    protected void run(@NotNull Result<Void> result) throws Throwable {
-      for (AndroidStudioWizardPath path : myPaths) {
-        if (path.isPathVisible()) {
-          path.performFinishingActions();
-        }
+  protected void doFinish() throws IOException {
+    for (AndroidStudioWizardPath path : myPaths) {
+      if (path.isPathVisible()) {
+        path.performFinishingActions();
       }
-      performFinishingActions();
     }
-
-    @Override
-    protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
-      return DynamicWizard.this.getUndoConfirmationPolicy();
-    }
+    performFinishingActions();
   }
 
   private class WizardUpdate extends Update {

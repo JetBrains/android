@@ -16,29 +16,42 @@
 package com.android.tools.idea.rendering;
 
 import com.android.io.FileWrapper;
+import com.android.tools.idea.gradle.project.GradleBuildListener;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.xml.AndroidManifest;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.util.containers.HashSet;
+import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Map;
 
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.DOT_AAR;
+import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC;
 import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 
 /**
  * A registry for class lookup of resource classes (R classes) in AAR libraries.
  */
-public class AarResourceClassRegistry {
-  /** TODO: Turn this into an ApplicationComponent */
-  private static AarResourceClassRegistry ourInstance = new AarResourceClassRegistry();
+public class AarResourceClassRegistry implements ProjectComponent {
 
-  private final Map<String,AarResourceClassGenerator> myGeneratorMap = Maps.newHashMap();
+  private final Map<AppResourceRepository, AarResourceClassGenerator> myGeneratorMap = Maps.newHashMap();
+  private final Project myProject;
+  private GradleBuildListener myBuildCompleteListener;
+  private Collection<String> myPackages;
 
-  public static AarResourceClassRegistry get() {
-    return ourInstance;
+  @SuppressWarnings("WeakerAccess")  // Accessed via reflection.
+  public AarResourceClassRegistry(Project project) {
+    myProject = project;
   }
 
   public void addLibrary(AppResourceRepository appResources, File aarDir) {
@@ -48,10 +61,14 @@ public class AarResourceClassRegistry {
       if (repository != null) {
         String pkg = getAarPackage(aarDir);
         if (pkg != null) {
-          AarResourceClassGenerator generator = AarResourceClassGenerator.create(appResources, repository);
-          if (generator != null) {
-            myGeneratorMap.put(pkg, generator);
+          if (myPackages == null) {
+            myPackages = new HashSet<String>();
           }
+          myPackages.add(pkg);
+        }
+        if (!myGeneratorMap.containsKey(appResources)) {
+          AarResourceClassGenerator generator = AarResourceClassGenerator.create(appResources);
+          myGeneratorMap.put(appResources, generator);
         }
       }
     }
@@ -76,16 +93,99 @@ public class AarResourceClassRegistry {
 
   /** Looks up a class definition for the given name, if possible */
   @Nullable
-  public byte[] findClassDefinition(@NotNull String name) {
+  public byte[] findClassDefinition(@NotNull String name, @NotNull AppResourceRepository appRepo) {
     int index = name.lastIndexOf('.');
     if (index != -1 && name.charAt(index + 1) == 'R' && (index == name.length() - 2 || name.charAt(index + 2) == '$') && index > 1) {
+      // If this is an R class or one of its inner classes.
       String pkg = name.substring(0, index);
-      AarResourceClassGenerator generator = myGeneratorMap.get(pkg);
-      if (generator != null) {
-        return generator.generate(name);
+      if (myPackages != null && myPackages.contains(pkg)) {
+        AarResourceClassGenerator generator = myGeneratorMap.get(appRepo);
+        if (generator != null) {
+          registerSyncListenerIfNecessary();
+          return generator.generate(name);
+        }
       }
     }
-
     return null;
+  }
+
+  /**
+   * There's a bug in the ModuleClassLoader's cache implementation, which results in crashes during preview rendering. The workaround is
+   * to clear the cache on each build. This registers a build complete listener to trigger the cache refresh.
+   */
+  private void registerSyncListenerIfNecessary() {
+    if (myBuildCompleteListener != null) {
+      return;
+    }
+    myBuildCompleteListener = new GradleBuildListener() {
+      @Override
+      public void buildFinished(@NotNull Project builtProject, @Nullable BuildMode mode) {
+        if (mode == null || builtProject != myProject) {
+          return;
+        }
+        switch (mode) {
+          case CLEAN:
+          case ASSEMBLE:
+          case COMPILE_JAVA:
+          case REBUILD:
+            ModuleClassLoader.clearCache();
+            clearCache();
+          case SOURCE_GEN:
+          case ASSEMBLE_TRANSLATE:
+        }
+      }
+    };
+    MessageBusConnection connection = myProject.getMessageBus().connect(myProject);
+    connection.subscribe(GRADLE_BUILD_TOPIC, myBuildCompleteListener);
+  }
+
+  /**
+   * Ideally, this method will not exist. But there are potential bugs in the caching mechanism.
+   * So, the method should be called when rendering fails due to hard to explain causes: like
+   * NoSuchFieldError. The method also resets the dynamic ids generated in {@link AppResourceRepository}.
+   */
+  public void clearCache() {
+    myGeneratorMap.clear();
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      AppResourceRepository appResources = AppResourceRepository.getAppResources(module, false);
+      if (appResources != null) {
+        appResources.resetDynamicIds(false);
+      }
+    }
+  }
+
+  void clearCache(AppResourceRepository appResources) {
+    myGeneratorMap.remove(appResources);
+  }
+
+  /**
+   * Lazily instantiate a registry with the target project.
+   */
+  public static AarResourceClassRegistry get(@NotNull Project project) {
+    return project.getComponent(AarResourceClassRegistry.class);
+  }
+
+  // ProjectComponent methods.
+
+  @Override
+  public void projectOpened() {
+  }
+
+  @Override
+  public void projectClosed() {
+  }
+
+  @Override
+  public void initComponent() {
+  }
+
+  @Override
+  public void disposeComponent() {
+  }
+
+  @NotNull
+  @Override
+  public String getComponentName() {
+    return AarResourceClassRegistry.class.getName();
   }
 }

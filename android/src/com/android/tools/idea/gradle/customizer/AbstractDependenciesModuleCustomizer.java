@@ -15,62 +15,51 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.module.Module;
+import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.vfs.StandardFileSystems;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.util.io.URLUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
-import static com.android.SdkConstants.FD_RES;
-import static com.android.SdkConstants.FN_ANNOTATIONS_ZIP;
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.Projects.getDependencySetupErrors;
+import static com.android.tools.idea.gradle.util.Projects.setDependencySetupErrors;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
+import static com.intellij.openapi.vfs.StandardFileSystems.FILE_PROTOCOL;
+import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL;
+import static com.intellij.openapi.vfs.VirtualFileManager.constructUrl;
+import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 import static java.io.File.separatorChar;
 
 public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleCustomizer<T> {
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable T model) {
-    if (model == null) {
+  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel ideaModuleModel, @Nullable T externalProjectModel) {
+    if (externalProjectModel == null) {
       return;
     }
-    List<Message> errorsFound = Lists.newArrayList();
 
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
-    try {
-      removeExistingDependencies(rootModel);
-      setUpDependencies(rootModel, model, errorsFound);
-    }
-    finally {
-      rootModel.commit();
-    }
-    notifyUser(errorsFound, module);
+    removeExistingDependencies(ideaModuleModel);
+    setUpDependencies(ideaModuleModel, externalProjectModel);
   }
 
-  protected abstract void setUpDependencies(@NotNull ModifiableRootModel rootModel, @NotNull T model, @NotNull List<Message> errorsFound);
+  protected abstract void setUpDependencies(@NotNull ModifiableRootModel rootModel, @NotNull T model);
 
-  private static void notifyUser(@NotNull List<Message> errorsFound, @NotNull Module module) {
-    if (!errorsFound.isEmpty()) {
-      ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
-      for (Message error : errorsFound) {
-        messages.add(error);
-      }
+  @NotNull
+  protected DependencySetupErrors getSetupErrors(@NotNull Project project) {
+    DependencySetupErrors setupErrors = getDependencySetupErrors(project);
+    if (setupErrors == null) {
+      setupErrors = new DependencySetupErrors();
+      setDependencySetupErrors(project, setupErrors);
     }
+    return setupErrors;
   }
 
   private static void removeExistingDependencies(@NotNull ModifiableRootModel model) {
@@ -80,20 +69,20 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     }
   }
 
-  protected void setUpLibraryDependency(@NotNull ModifiableRootModel model,
-                                        @NotNull String libraryName,
-                                        @NotNull DependencyScope scope,
-                                        @NotNull Collection<String> binaryPaths) {
+  protected static void setUpLibraryDependency(@NotNull ModifiableRootModel model,
+                                               @NotNull String libraryName,
+                                               @NotNull DependencyScope scope,
+                                               @NotNull Collection<String> binaryPaths) {
     Collection<String> empty = Collections.emptyList();
     setUpLibraryDependency(model, libraryName, scope, binaryPaths, empty, empty);
   }
 
-  protected void setUpLibraryDependency(@NotNull ModifiableRootModel model,
-                                        @NotNull String libraryName,
-                                        @NotNull DependencyScope scope,
-                                        @NotNull Collection<String> binaryPaths,
-                                        @NotNull Collection<String> sourcePaths,
-                                        @NotNull Collection<String> documentationPaths) {
+  protected static void setUpLibraryDependency(@NotNull ModifiableRootModel model,
+                                               @NotNull String libraryName,
+                                               @NotNull DependencyScope scope,
+                                               @NotNull Collection<String> binaryPaths,
+                                               @NotNull Collection<String> sourcePaths,
+                                               @NotNull Collection<String> documentationPaths) {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(model.getProject());
     Library library = libraryTable.getLibraryByName(libraryName);
     if (library == null) {
@@ -126,8 +115,7 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     for (String binaryPath : binaryPaths) {
       if (binaryPath.endsWith(FD_RES) && binaryPath.length() > FD_RES.length() &&
         binaryPath.charAt(binaryPath.length() - FD_RES.length() - 1) == separatorChar) {
-        File annotations = new File(binaryPath.substring(0, binaryPath.length() - FD_RES.length()),
-                                    FN_ANNOTATIONS_ZIP);
+        File annotations = new File(binaryPath.substring(0, binaryPath.length() - FD_RES.length()), FN_ANNOTATIONS_ZIP);
         if (annotations.isFile()) {
           updateLibrarySourcesIfAbsent(library, Collections.singletonList(annotations.getPath()), AnnotationOrderRootType.getInstance());
         }
@@ -175,14 +163,12 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     File file = new File(path);
 
     String name = file.getName();
-    boolean isJarFile = FileUtilRt.extensionEquals(name, SdkConstants.EXT_JAR) ||
-                        FileUtilRt.extensionEquals(name, SdkConstants.EXT_ZIP);
+    boolean isJarFile = extensionEquals(name, EXT_JAR) || extensionEquals(name, EXT_ZIP);
     // .jar files require an URL with "jar" protocol.
-    String protocol = isJarFile ? StandardFileSystems.JAR_PROTOCOL : StandardFileSystems.FILE_PROTOCOL;
-    String filePath = FileUtil.toSystemIndependentName(file.getPath());
-    String url = VirtualFileManager.constructUrl(protocol, filePath);
+    String protocol = isJarFile ? JAR_PROTOCOL : FILE_PROTOCOL;
+    String url = constructUrl(protocol, toSystemIndependentName(file.getPath()));
     if (isJarFile) {
-      url += URLUtil.JAR_SEPARATOR;
+      url += JAR_SEPARATOR;
     }
     return url;
   }

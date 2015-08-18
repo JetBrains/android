@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.folding;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.intellij.lang.folding.FoldingDescriptor;
@@ -91,7 +90,7 @@ class InlinedResource implements ModificationTracker {
       if (myResourceRepository.hasResourceItem(myType, myKey)) {
         FolderConfiguration referenceConfig = new FolderConfiguration();
         // Nonexistent language qualifier: trick it to fall back to the default locale
-        referenceConfig.setLanguageQualifier(new LanguageQualifier("xx"));
+        referenceConfig.setLocaleQualifier(new LocaleQualifier("xx"));
         ResourceValue value = myResourceRepository.getConfiguredValue(myType, myKey, referenceConfig);
         if (value != null) {
           String text = value.getValue();

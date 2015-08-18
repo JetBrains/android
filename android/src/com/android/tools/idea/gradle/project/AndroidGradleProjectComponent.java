@@ -22,13 +22,10 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.Notification
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.sdk.CheckAndroidSdkUpdates;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.stats.BuildRecord;
-import com.android.tools.idea.stats.StatsKeys;
-import com.android.tools.idea.stats.StudioBuildStatsPersistenceComponent;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
+import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
@@ -36,7 +33,6 @@ import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
-import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -44,20 +40,23 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.Function;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
+import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
+import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
+import static com.intellij.openapi.util.text.StringUtil.join;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   @NonNls private static final String SHOW_MIGRATE_TO_GRADLE_POPUP = "show.migrate.to.gradle.popup";
@@ -108,15 +107,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
     boolean isGradleProject = isBuildWithGradle(myProject);
     if (isGradleProject) {
-      configureGradleProject(true);
-    }
-
-    CheckAndroidSdkUpdates.checkNow(myProject);
-
-    StudioBuildStatsPersistenceComponent stats = StudioBuildStatsPersistenceComponent.getInstance();
-    if (stats != null) {
-      BuildRecord record = new BuildRecord(StatsKeys.PROJECT_OPENED, isGradleProject ? "gradle" : "not-gradle");
-      stats.addBuildRecord(record);
+      configureGradleProject();
     }
   }
 
@@ -138,7 +129,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     notification.showBalloon("Migrate Project to Gradle?", errMsg, NotificationType.WARNING, moreInfoHyperlink, doNotShowAgainHyperlink);
   }
 
-  public void configureGradleProject(boolean reImportProject) {
+  public void configureGradleProject() {
     if (myDisposable != null) {
       return;
     }
@@ -148,15 +139,19 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       }
     };
 
+    // Prevent IDEA from refreshing project. We will do it ourselves in AndroidGradleProjectStartupActivity.
+    myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
+
     listenForProjectChanges(myProject, myDisposable);
 
     Projects.enforceExternalBuild(myProject);
 
-    if (reImportProject && !AndroidGradleProjectData.loadFromDisk(myProject)) {
-      // Prevent IDEA from refreshing project. We want to do it ourselves.
-      myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
-    }
+    // Make sure the gradle test configurations are ignored in this project, since they don't work in Android gradle projects. This
+    // will modify .idea/runConfigurations.xml
+    RunConfigurationProducerService runConfigurationProducerManager = RunConfigurationProducerService.getInstance(myProject);
+    runConfigurationProducerManager.addIgnoredProducer(AllInPackageGradleConfigurationProducer.class);
+    runConfigurationProducerManager.addIgnoredProducer(TestMethodGradleConfigurationProducer.class);
+    runConfigurationProducerManager.addIgnoredProducer(TestClassGradleConfigurationProducer.class);
   }
 
   private static void listenForProjectChanges(@NotNull Project project, @NotNull Disposable disposable) {
@@ -172,18 +167,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
   @Override
   public void projectClosed() {
-    if (isBuildWithGradle(myProject)) {
-      if (lastGradleSyncFailed(myProject)) {
-        // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
-        // last sync failed because the SDK being used by the project was accidentally removed in the SDK Manager. The state of the
-        // project did not change, and if we don't force a sync, the project will use the cached state and it would look like there are
-        // no errors.
-        AndroidGradleProjectData.removeFrom(myProject);
-      }
-      else {
-        AndroidGradleProjectData.save(myProject);
-      }
-    }
     if (myDisposable != null) {
       Disposer.dispose(myDisposable);
     }
@@ -206,9 +189,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       final ModuleType moduleType = ModuleType.get(module);
 
       if (moduleType instanceof JavaModuleType) {
-        final String externalSystemId = module.getOptionValue(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY);
+        final String externalSystemId = module.getOptionValue(EXTERNAL_SYSTEM_ID_KEY);
 
-        if (!GradleConstants.SYSTEM_ID.getId().equals(externalSystemId)) {
+        if (!GRADLE_SYSTEM_ID.getId().equals(externalSystemId)) {
           unsupportedModules.add(module);
         }
       }
@@ -217,7 +200,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     if (unsupportedModules.size() == 0) {
       return;
     }
-    final String s = StringUtil.join(unsupportedModules, new Function<Module, String>() {
+    final String s = join(unsupportedModules, new Function<Module, String>() {
       @Override
       public String fun(Module module) {
         return module.getName();

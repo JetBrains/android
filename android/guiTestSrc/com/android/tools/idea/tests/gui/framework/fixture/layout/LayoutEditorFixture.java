@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.tools.idea.configurations.ConfigurationToolBar;
+import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.google.common.collect.Lists;
 import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
@@ -32,12 +33,8 @@ import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleColoredRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.fest.swing.core.Robot;
-import org.fest.swing.driver.ComponentDriver;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,44 +46,51 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 /**
  * Fixture wrapping the the layout editor for a particular file
  */
-public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorPanel> implements LayoutFixture {
+public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, Component> implements LayoutFixture {
   private final AndroidDesignerEditorPanel myPanel;
 
   public LayoutEditorFixture(@NotNull Robot robot, @NotNull AndroidDesignerEditor editor) {
-    super(robot, (AndroidDesignerEditorPanel)editor.getDesignerPanel());
-    myPanel = (AndroidDesignerEditorPanel)editor.getDesignerPanel();
+    super(LayoutEditorFixture.class, robot, (getDesignerPanel(editor)).getComponent());
+    myPanel = getDesignerPanel(editor);
+  }
+
+  @NotNull
+  private static AndroidDesignerEditorPanel getDesignerPanel(@NotNull AndroidDesignerEditor editor) {
+    return (AndroidDesignerEditorPanel)editor.getDesignerPanel();
   }
 
   @Override
   @NotNull
   public RenderErrorPanelFixture getRenderErrors() {
-    return new RenderErrorPanelFixture(robot, this, myPanel);
+    return new RenderErrorPanelFixture(robot(), this, myPanel);
   }
 
   @Override
   @NotNull
   public ConfigurationToolbarFixture getToolbar() {
     AndroidDesignerEditorPanel panel = myPanel;
-    ConfigurationToolBar toolbar = robot.finder().findByType(panel, ConfigurationToolBar.class, true);
+    ConfigurationToolBar toolbar = robot().finder().findByType(panel, ConfigurationToolBar.class, true);
     assertNotNull(toolbar);
-    return new ConfigurationToolbarFixture(robot, this, panel, toolbar);
+    return new ConfigurationToolbarFixture(robot(), this, panel, toolbar);
   }
 
   /** Returns the palette associated with this layout editor */
   @NotNull
   public LayoutPaletteFixture getPaletteFixture() {
-    return new LayoutPaletteFixture(robot, this, myPanel);
+    return new LayoutPaletteFixture(robot(), this, myPanel);
   }
 
   /** Returns the property sheet associated with this layout editor */
   @NotNull
   public PropertySheetFixture getPropertySheetFixture() {
-    return new PropertySheetFixture(robot, this, myPanel);
+    return new PropertySheetFixture(robot(), this, myPanel);
   }
 
   @NotNull
@@ -106,19 +110,19 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
   @NotNull
   @Override
   public Object waitForNextRenderToFinish(@Nullable final Object previous) {
-    robot.waitForIdle();
+    robot().waitForIdle();
 
-    Pause.pause(new Condition("Render is pending") {
+    pause(new Condition("Render is pending") {
       @Override
       public boolean test() {
         return !myPanel.isRenderPending() && myPanel.getLastResult() != null && myPanel.getLastResult() != previous;
       }
     }, SHORT_TIMEOUT);
 
-    robot.waitForIdle();
+    robot().waitForIdle();
 
     Object token = myPanel.getLastResult();
-    assert token != null;
+    assertNotNull(token);
     return token;
   }
 
@@ -142,7 +146,7 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
    * @occurrence the index of the occurrence of the tag, e.g. 0 for the first TextView in the layout
    */
   @NotNull
-  public LayoutEditorComponentFixture findView(final String tag, int occurrence) {
+  public LayoutEditorComponentFixture findView(@NotNull final String tag, int occurrence) {
     waitForRenderToFinish();
     AndroidDesignerEditorPanel panel = myPanel;
     final List<RadViewComponent> components = Lists.newArrayList();
@@ -218,8 +222,8 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
     return createComponentFixture(component);
   }
 
-  private LayoutEditorComponentFixture createComponentFixture(RadViewComponent component) {
-    return new LayoutEditorComponentFixture(robot, component, this, myPanel);
+  private LayoutEditorComponentFixture createComponentFixture(@NotNull RadViewComponent component) {
+    return new LayoutEditorComponentFixture(robot(), component, this, myPanel);
   }
 
   /** Requires the selection to have the given number of selected widgets */
@@ -229,7 +233,7 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
   }
 
   /** Requires the selection to have the given number of selected widgets */
-  public LayoutEditorFixture requireSelection(List<LayoutEditorComponentFixture> components) {
+  public LayoutEditorFixture requireSelection(@NotNull List<LayoutEditorComponentFixture> components) {
     assertEquals(components, getSelection());
     return this;
   }
@@ -318,10 +322,9 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
   }
 
   /**
-   * Describes the current state of the component tree. Like {@link #describeComponents(boolean)},
-   * but queries the actual UI tree widget rather than the internal component hierarchy. This
-   * means it won't include UI nodes that have not been created yet, such as nodes in unexpanded
-   * part of the tree.
+   * Describes the current state of the component tree. Like {@link #describeComponents(boolean)}, but queries the actual UI tree widget
+   * rather than the internal component hierarchy. This means it won't include UI nodes that have not been created yet, such as nodes in
+   * unexpanded part of the tree.
    *
    * @param showSelected if true, mark selected items in the description
    * @return a description of the component tree
@@ -334,7 +337,7 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
       final TreeModel model = componentTree.getModel();
       final Object root = model.getRoot();
       if (root != null) {
-        GuiActionRunner.execute(new GuiTask() {
+        execute(new GuiTask() {
           @Override
           protected void executeInEDT() throws Throwable {
             SimpleColoredRenderer renderer = new SimpleColoredRenderer();
@@ -346,7 +349,8 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
             };
             if (componentTree.isRootVisible()) {
               describe(renderer, wrapper, componentTree, model, root, showSelected, 0);
-            } else {
+            }
+            else {
               for (int i = 0, n = model.getChildCount(root); i < n; i++) {
                 Object child = model.getChild(root, i);
                 describe(renderer, wrapper, componentTree, model, child, showSelected, 0);
@@ -364,8 +368,13 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
     return sb.toString();
   }
 
-  private void describe(SimpleColoredRenderer renderer, AttributeWrapper wrapper, ComponentTree componentTree, TreeModel model,
-                        Object node, boolean showSelected, int depth) {
+  private void describe(@NotNull SimpleColoredRenderer renderer,
+                        @NotNull AttributeWrapper wrapper,
+                        @NotNull ComponentTree componentTree,
+                        @NotNull TreeModel model,
+                        @NotNull Object node,
+                        boolean showSelected,
+                        int depth) {
     SimpleTextAttributes style = wrapper.getAttribute(SimpleTextAttributes.REGULAR_ATTRIBUTES);
     for (int i = 0; i < depth; i++) {
       renderer.append("    ", style);
@@ -399,7 +408,10 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
     }
   }
 
-  private void describe(SimpleColoredRenderer renderer, AttributeWrapper wrapper, @NotNull RadComponent component, boolean showSelected,
+  private void describe(@NotNull SimpleColoredRenderer renderer,
+                        @NotNull AttributeWrapper wrapper,
+                        @NotNull RadComponent component,
+                        boolean showSelected,
                         int depth) {
     SimpleTextAttributes style = wrapper.getAttribute(SimpleTextAttributes.REGULAR_ATTRIBUTES);
     for (int i = 0; i < depth; i++) {
@@ -418,21 +430,12 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
   }
 
   /**
-   * Action-clicks the mouse at the current position, assumed to have already been positioned in
-   * the right place with {@link #moveMouse(java.awt.Point)}
-   */
-  public void click() {
-    new ComponentDriver(robot).click(myPanel.getComponent());
-    robot.waitForIdle();
-  }
-
-  /**
    * Move the mouse to the given panel coordinates
    *
    * @param point the point to move to
    */
-  public void moveMouse(Point point) {
-    robot.moveMouse(myPanel.getComponent(), point.x, point.y);
-    robot.waitForIdle();
+  public void moveMouse(@NotNull Point point) {
+    robot().moveMouse(myPanel.getComponent(), point.x, point.y);
+    robot().waitForIdle();
   }
 }

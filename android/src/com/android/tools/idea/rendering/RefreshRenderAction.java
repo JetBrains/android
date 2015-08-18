@@ -25,7 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.uipreview.ProjectClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class RefreshRenderAction extends AnAction {
@@ -38,17 +38,24 @@ public class RefreshRenderAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    ProjectClassLoader.clearCache();
-    Configuration configuration = myContext.getConfiguration();
+    clearCache(myContext);
+  }
+
+  public static void clearCache(RenderContext context) {
+    ModuleClassLoader.clearCache();
+    Configuration configuration = context.getConfiguration();
 
     if (configuration != null) {
       // Clear layoutlib bitmap cache (in case files have been modified externally)
       IAndroidTarget target = configuration.getTarget();
       Module module = configuration.getModule();
-      if (target != null && module != null) {
-        AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
-        if (targetData != null) {
-          targetData.clearLayoutBitmapCache(module);
+      if (module != null) {
+        AarResourceClassRegistry.get(module.getProject()).clearCache();
+        if (target != null) {
+          AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
+          if (targetData != null) {
+            targetData.clearLayoutBitmapCache(module);
+          }
         }
       }
 
@@ -60,6 +67,6 @@ public class RefreshRenderAction extends AnAction {
       configuration.updated(ConfigurationListener.MASK_RENDERING);
     }
 
-    myContext.requestRender();
+    context.requestRender();
   }
 }
