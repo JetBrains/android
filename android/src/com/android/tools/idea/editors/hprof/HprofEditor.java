@@ -82,10 +82,6 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
     };
 
     final InlineProgressIndicator indicator = new InlineProgressIndicator(true, taskInfo) {
-      @Override
-      protected void queueProgressUpdate(Runnable update) {
-        ApplicationManager.getApplication().invokeLater(update);
-      }
 
       @Override
       protected void queueRunningUpdate(Runnable update) {

@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.properties.collections;
 
 import com.android.tools.idea.ui.properties.AbstractObservable;
-import com.google.common.base.Objects;
 import com.google.common.collect.ForwardingIterator;
 import com.google.common.collect.ForwardingListIterator;
 import com.google.common.collect.Lists;
