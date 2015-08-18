@@ -919,6 +919,7 @@
   <project-components>
     <component>
       <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
+      <loadForDefaultProject/>
     </component>
   </project-components>
 
