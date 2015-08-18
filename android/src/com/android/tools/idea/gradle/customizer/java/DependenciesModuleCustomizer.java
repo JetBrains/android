@@ -93,6 +93,8 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     if (found != null) {
       ModuleOrderEntry orderEntry = moduleModel.addModuleOrderEntry(found);
       orderEntry.setExported(true);
+      DependencyScope scope = parseScope(dependency.getScope());
+      orderEntry.setScope(scope);
       return;
     }
     setupErrors.addMissingModule(moduleName, moduleModel.getModule().getName(), null);
