@@ -82,27 +82,20 @@ public class AddGradleLibraryDependencyFix extends GradleDependencyFix {
     if (myLibraryGradleEntry == null) {
       return;
     }
-    final Dependency dependency = new Dependency(getDependencyScope(myCurrentModule, false), Dependency.Type.EXTERNAL,
-                                                 myLibraryGradleEntry);
+    final Dependency dependency = new Dependency(getDependencyScope(myCurrentModule, false), Dependency.Type.EXTERNAL, myLibraryGradleEntry);
 
-    final Application application = ApplicationManager.getApplication();
-    application.invokeAndWait(new Runnable() {
+    invokeAction(new Runnable() {
       @Override
       public void run() {
-        application.runWriteAction(new Runnable() {
+        addDependencyUndoable(myCurrentModule, dependency);
+        gradleSyncAndImportClass(myCurrentModule, editor, myReference, new Function<Void, List<PsiClass>>() {
           @Override
-          public void run() {
-            addDependency(myCurrentModule, dependency);
-            gradleSyncAndImportClass(myCurrentModule, editor, myReference, new Function<Void, List<PsiClass>>() {
-              @Override
-              public List<PsiClass> apply(@Nullable Void input) {
-                return ImmutableList.of(myClass);
-              }
-            });
+          public List<PsiClass> apply(@Nullable Void input) {
+            return ImmutableList.of(myClass);
           }
         });
       }
-    }, application.getDefaultModalityState());
+    });
   }
 
   /**
