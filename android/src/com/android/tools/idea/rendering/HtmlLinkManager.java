@@ -56,7 +56,6 @@ import com.intellij.util.PsiNavigateUtil;
 import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
-import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -628,11 +627,11 @@ public class HtmlLinkManager {
   private static void handleAssignFragmentUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
     assert url.startsWith(URL_ASSIGN_FRAGMENT_URL) : url;
 
-    ChooseClassDialog dialog = new ChooseClassDialog(module, "Fragments", true, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
-    if (!dialog.showAndGet()) {
+    final String className = ChooseClassDialog.openDialog(module, "Fragments", true, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
+    if (className == null) {
       return;
     }
-    final String fragmentClass = getFragmentClass(module, dialog.getClassName());
+    final String fragmentClass = getFragmentClass(module, className);
 
     int start = URL_ASSIGN_FRAGMENT_URL.length();
     final String id;
