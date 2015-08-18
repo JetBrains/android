@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.JavaArtifact;
 import com.android.sdklib.IAndroidTarget;
@@ -37,6 +36,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
@@ -48,27 +49,19 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 public class AndroidJunitPatcher extends JUnitPatcher {
   @Override
   public void patchJavaParameters(@Nullable Module module, @NotNull JavaParameters javaParameters) {
-    if (module == null) {
+    // Only patch if the project is a Gradle project.
+    if (module == null || !isBuildWithGradle(module.getProject())) {
       return;
     }
 
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet == null) {
-      return;
-    }
-
-    AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
+    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
     if (androidModel == null) {
       return;
     }
 
     BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
-    if (testArtifact == null) {
-      return;
-    }
-
     // Modify the class path only if we're dealing with the unit test artifact.
-    if (!AndroidProject.ARTIFACT_UNIT_TEST.equals(testArtifact.getName()) || !(testArtifact instanceof JavaArtifact)) {
+    if (testArtifact == null || !(testArtifact instanceof JavaArtifact) || !ARTIFACT_UNIT_TEST.equals(testArtifact.getName())) {
       return;
     }
 
@@ -84,9 +77,8 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       handlePlatformJar(classPath, platform, (JavaArtifact)testArtifact);
       handleJavaResources(module, androidModel, classPath);
     }
-    catch (Exception e) {
-      throw new RuntimeException(String.format("Error patching the JUnit class path. Original class path:%n%s", originalClassPath),
-                                 e);
+    catch (RuntimeException e) {
+      throw new RuntimeException(String.format("Error patching the JUnit class path. Original class path:%n%s", originalClassPath), e);
     }
   }
 
@@ -161,7 +153,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
   private static void handleJavaResources(@NotNull Module module,
                                           @NotNull AndroidGradleModel androidModel,
                                           @NotNull PathsList classPath) {
-    final CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
+    CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
     CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
 
     for (Module affectedModule : scope.getAffectedModules()) {
@@ -172,7 +164,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
           try {
             classPath.add(affectedAndroidModel.getMainArtifact().getJavaResourcesFolder());
           }
-          catch (UnsupportedMethodException e) {
+          catch (UnsupportedMethodException ignored) {
             // Java resources were not present in older versions of the gradle plugin.
           }
         }
@@ -185,7 +177,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       try {
         classPath.add(testArtifact.getJavaResourcesFolder());
       }
-      catch (UnsupportedMethodException e) {
+      catch (UnsupportedMethodException ignored) {
         // Java resources were not present in older versions of the gradle plugin.
       }
     }
