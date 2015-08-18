@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import java.awt.Color;
-import junit.framework.TestCase;
+import com.android.tools.idea.configurations.Configuration;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.AndroidTestCase;
 
-public class ColorUtilsTest extends TestCase {
+import java.awt.*;
+import java.util.Collection;
+
+import static org.fest.assertions.Assertions.assertThat;
+
+public class ColorUtilsTest extends AndroidTestCase {
   public void testCalculateContrastRatio() {
     assertEquals(21.0, ColorUtils.calculateContrastRatio(Color.BLACK, Color.WHITE), 0.01);
     assertEquals(1.87, ColorUtils.calculateContrastRatio(Color.decode("#80CBC4"), Color.WHITE), 0.01);
@@ -30,5 +36,43 @@ public class ColorUtilsTest extends TestCase {
     assertEquals(5.25, ColorUtils.calculateContrastRatio(Color.BLACK, Color.RED), 0.01);
     assertEquals(ColorUtils.calculateContrastRatio(Color.BLACK, Color.RED), ColorUtils.calculateContrastRatio(Color.BLACK, Color.RED));
     assertEquals(9.10, ColorUtils.calculateContrastRatio(Color.decode("#2E054A"), Color.decode("#80CBC4")), 0.01);
+  }
+
+  public void testContrastWarning() {
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_low_contrast.xml", "res/values/styles.xml");
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    ThemeEditorContext context = new ThemeEditorContext(configuration);
+    context.setCurrentTheme(context.getThemeResolver().getTheme("Theme.MyTheme"));
+
+    assertEquals("<html>Not enough contrast with <b>colorPrimary</b>", ColorUtils
+      .getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "textColor"), Color.WHITE));
+    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "textColor"), Color.BLACK));
+    assertEquals("<html>Not enough contrast with <b>textColorPrimary</b> and <b>textColor</b>",
+                 ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "colorPrimary"), Color.WHITE));
+    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "colorPrimary"), Color.BLACK));
+
+    // Test non existing attribute names
+    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, ""), Color.WHITE));
+    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "invented"), Color.WHITE));
+  }
+
+  public void testContrastColors() {
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_low_contrast.xml", "res/values/styles.xml");
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    ThemeEditorContext context = new ThemeEditorContext(configuration);
+    context.setCurrentTheme(context.getThemeResolver().getTheme("Theme.MyTheme"));
+
+    Collection<Color>
+      color = ColorUtils.getContrastColorsWithWarning(context, "colorPrimary").values();
+    assertThat(color)
+      .containsOnly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
+    color = ColorUtils.getContrastColorsWithWarning(context, "colorPrimary").values();
+    assertThat(color)
+      .containsOnly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
+
+    color = ColorUtils.getContrastColorsWithWarning(context, "").values();
+    assertThat(color).isEmpty();
+    color = ColorUtils.getContrastColorsWithWarning(context, "notExistent").values();
+    assertThat(color).isEmpty();
   }
 }
