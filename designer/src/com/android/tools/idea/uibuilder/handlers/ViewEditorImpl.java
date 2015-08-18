@@ -157,12 +157,7 @@ public class ViewEditorImpl extends ViewEditor {
     Module module = myScreen.getModel().getModule();
     String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
 
-    ChooseClassDialog dialog = new ChooseClassDialog(module, "Classes", true, superTypesArray);
-    if (dialog.showAndGet()) {
-      return dialog.getClassName();
-    }
-
-    return null;
+    return ChooseClassDialog.openDialog(module, "Classes", true, superTypesArray);
   }
 
   @NonNull

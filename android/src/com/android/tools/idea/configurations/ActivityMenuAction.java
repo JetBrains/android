@@ -228,11 +228,7 @@ public class ActivityMenuAction extends FlatComboAction {
         return;
       }
       if (myActivity == null) {
-        ChooseClassDialog dialog = new ChooseClassDialog(module, "Activities", false /*includeAll*/, CLASS_ACTIVITY);
-        if (!dialog.showAndGet()) {
-          return;
-        }
-        myActivity = dialog.getClassName();
+        myActivity = ChooseClassDialog.openDialog(module, "Activities", false /*includeAll*/, CLASS_ACTIVITY);
         if (myActivity == null) {
           return;
         }
