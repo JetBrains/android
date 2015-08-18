@@ -16,13 +16,12 @@
 package com.android.tools.idea.editors.navigation.macros;
 
 import com.android.tools.idea.editors.navigation.NavigationEditorUtils;
+import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiMethod;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.IdentityHashMap;
-import java.util.Map;
-
-public class Macros {
+public class Macros extends AbstractProjectComponent {
   private static final String CREATE_INTENT =
     "void macro(Context context, Class activityClass) { new android.content.Intent(context, activityClass); }";
 
@@ -94,15 +93,9 @@ public class Macros {
   public final MultiMatch findViewById1;
   public final MultiMatch findViewById2;
   public final MultiMatch findFragmentByTag;
-  private static Map<Project, Macros> ourProjectToMacros = new IdentityHashMap<Project, Macros>();
-  private final Project myProject;
 
   public static Macros getInstance(Project project) {
-    Macros result = ourProjectToMacros.get(project);
-    if (result == null) {
-      ourProjectToMacros.put(project, result = new Macros(project));
-    }
-    return result;
+    return project.getComponent(Macros.class);
   }
 
   public MultiMatch createMacro(String methodDefinition) {
@@ -113,8 +106,8 @@ public class Macros {
     return NavigationEditorUtils.createMethodFromText(myProject, definition, null);
   }
 
-  private Macros(Project project) {
-    myProject = project;
+  public Macros(@NotNull Project project) {
+    super(project);
 
     createIntent = createMacro(CREATE_INTENT);
     findMenuItem = createMacro(FIND_MENU_ITEM);
