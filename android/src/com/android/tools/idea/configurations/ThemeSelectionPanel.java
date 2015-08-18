@@ -15,16 +15,11 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.resources.ResourceRepository;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceType;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
@@ -51,7 +46,6 @@ import java.util.*;
 import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
 import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
-import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
 
 /**
  * Theme selection dialog.
@@ -87,11 +81,13 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   @Nullable private static Deque<String> ourRecent;
   @Nullable private ThemeCategory myCategory = ThemeCategory.ALL;
   @NotNull private Map<ThemeCategory, List<String>> myThemeMap = Maps.newEnumMap(ThemeCategory.class);
+  @NotNull private ThemeResolver myThemeResolver;
   private boolean myIgnore;
 
   public ThemeSelectionPanel(@NotNull ThemeSelectionDialog dialog, @NotNull Configuration configuration) {
     myDialog = dialog;
     myConfiguration = configuration;
+    myThemeResolver = new ThemeResolver(configuration);
     String currentTheme = configuration.getTheme();
     touchTheme(currentTheme);
 
@@ -377,16 +373,14 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   private List<String> getFrameworkThemes() {
     if (myFrameworkThemes == null) {
-      myFrameworkThemes = getThemes(myConfiguration.getFrameworkResources(), true);
+      myFrameworkThemes = getSortedNames(getPublicThemes(myThemeResolver.getFrameworkThemes()));
     }
     return myFrameworkThemes;
   }
 
   private List<String> getProjectThemes() {
     if (myProjectThemes == null) {
-      LocalResourceRepository repository = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
-      Map<ResourceType, Map<String, ResourceValue>> resources = repository.getConfiguredResources(myConfiguration.getFullConfig());
-      myProjectThemes = getThemes(myConfiguration, resources, false /*isFramework*/);
+      myProjectThemes = getSortedNames(getPublicThemes(myThemeResolver.getLocalThemes()));
     }
 
     return myProjectThemes;
@@ -540,54 +534,26 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     }
   }
 
-  private List<String> getThemes(@Nullable ResourceRepository repository, boolean isFramework) {
-    if (repository == null) {
-      return Collections.emptyList();
-    }
-
-    Map<ResourceType, Map<String, ResourceValue>> resources = repository.getConfiguredResources(myConfiguration.getFullConfig());
-    return getThemes(myConfiguration, resources, isFramework);
-  }
-
-  private static List<String> getThemes(Configuration configuration, Map<ResourceType, Map<String, ResourceValue>> resources, boolean isFramework) {
-    String prefix = isFramework ? ANDROID_STYLE_RESOURCE_PREFIX : STYLE_RESOURCE_PREFIX;
-    // get the styles.
-    Map<String, ResourceValue> styles = resources.get(ResourceType.STYLE);
-
-    // Collect the themes out of all the styles.
-    Collection<ResourceValue> values = styles.values();
-    List<String> themes = new ArrayList<String>(values.size());
-
-    if (!isFramework) {
-      // Try a little harder to see if the user has themes that don't have the normal naming convention
-      ResourceResolver resolver = configuration.getResourceResolver();
-      if (resolver != null) {
-        Map<ResourceValue, Boolean> cache = Maps.newHashMapWithExpectedSize(values.size());
-        for (ResourceValue value : values) {
-          if (value instanceof StyleResourceValue) {
-            StyleResourceValue styleValue = (StyleResourceValue)value;
-            boolean isTheme = resolver.isTheme(styleValue, cache);
-            if (isTheme) {
-              String name = value.getName();
-              themes.add(prefix + name);
-            }
-          }
-        }
-
-        Collections.sort(themes);
-        return themes;
-      }
-    }
-
-    // For the framework (and projects if resolver can't be computed) the computation is easier
-    for (ResourceValue value : values) {
-      String name = value.getName();
-      if (name.startsWith(THEME_NAME_DOT) || name.equals(THEME_NAME)) {
-        themes.add(prefix + name);
-      }
+  private static List<String> getSortedNames(Collection<ThemeEditorStyle> themesRaw) {
+    List<String> themes = new ArrayList<String>(themesRaw.size());
+    for (ThemeEditorStyle theme : themesRaw) {
+      themes.add(theme.getName());
     }
     Collections.sort(themes);
     return themes;
+  }
+
+  /**
+   * Filters a collection of themes to return a new collection with only the public ones.
+   */
+  private static Collection<ThemeEditorStyle> getPublicThemes(Collection<ThemeEditorStyle> themes) {
+    HashSet<ThemeEditorStyle> publicThemes = new HashSet<ThemeEditorStyle>();
+    for (ThemeEditorStyle theme : themes) {
+      if (theme.isPublic()) {
+        publicThemes.add(theme);
+      }
+    }
+    return publicThemes;
   }
 
   private enum ThemeCategory {

@@ -20,14 +20,15 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractCompileOutputModuleCustomizer;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
-import com.google.common.base.Strings;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
  * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
@@ -35,12 +36,14 @@ import java.io.File;
 public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleCustomizer<IdeaAndroidProject>
   implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject androidProject) {
+  public void customizeModule(@NotNull Project project,
+                              @NotNull ModifiableRootModel ideaModuleModel,
+                              @Nullable IdeaAndroidProject androidProject) {
     if (androidProject == null) {
       return;
     }
     String modelVersion = androidProject.getDelegate().getModelVersion();
-    if (Strings.isNullOrEmpty(modelVersion)) {
+    if (isEmpty(modelVersion)) {
       // We are dealing with old model that does not have 'class' folder.
       return;
     }
@@ -49,7 +52,7 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
     BaseArtifact testArtifact = androidProject.findSelectedTestArtifact(selectedVariant);
     File testClassesFolder = testArtifact == null ? null : testArtifact.getClassesFolder();
 
-    setOutputPaths(module, mainClassesFolder, testClassesFolder);
+    setOutputPaths(ideaModuleModel, mainClassesFolder, testClassesFolder);
   }
 
   @Override

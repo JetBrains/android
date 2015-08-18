@@ -319,7 +319,7 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
       for (RadViewComponent component : components.subList(1, components.size())) {
         String height = component.getTag().getAttributeValue("layout_height", SdkConstants.NS_RESOURCES);
         if ("fill_parent".equals(height) || "match_parent".equals(height)) {
-          layoutHeight = "fill_parent";
+          layoutHeight = "match_parent";
           layoutGravity = null;
         }
         if (layoutGravity != null &&

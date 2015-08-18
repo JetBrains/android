@@ -18,8 +18,9 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.internal.repository.MockAddonTarget;
-import com.android.sdklib.internal.repository.MockPlatformTarget;
+import com.android.sdklib.internal.androidTarget.MockAddonTarget;
+import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
+import com.google.common.collect.ImmutableList;
 import com.intellij.util.ThreeState;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.Nullable;
@@ -85,8 +86,8 @@ public class LaunchCompatibilityTest extends TestCase {
       LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, false), null);
     assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);
 
-    IAndroidTarget.IOptionalLibrary optionalLibrary = mock(IAndroidTarget.IOptionalLibrary.class);
-    projectTarget.setOptionalLibraries(new IAndroidTarget.IOptionalLibrary[] {optionalLibrary});
+    IAndroidTarget.OptionalLibrary optionalLibrary = mock(IAndroidTarget.OptionalLibrary.class);
+    projectTarget.setOptionalLibraries(ImmutableList.of(optionalLibrary));
 
     // add-on targets with optional libraries should still be allowed to run on real devices (no avdinfo)
     compatibility =
@@ -95,7 +96,7 @@ public class LaunchCompatibilityTest extends TestCase {
 
     // Google APIs add on should be treated as a special case and should always be allowed to run on a real device
     MockAddonTarget googleApiTarget = new MockAddonTarget("Google APIs", baseTarget, 1);
-    googleApiTarget.setOptionalLibraries(new IAndroidTarget.IOptionalLibrary[] {optionalLibrary});
+    googleApiTarget.setOptionalLibraries(ImmutableList.of(optionalLibrary));
     compatibility =
       LaunchCompatibility.canRunOnDevice(minSdkVersion, googleApiTarget, requiredFeatures, createMockDevice(8, null, false), null);
     assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);

@@ -16,27 +16,30 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class ChooseOptionsForNewFileStepFixture extends AbstractWizardStepFixture {
+import static org.fest.swing.edt.GuiActionRunner.execute;
+
+public class ChooseOptionsForNewFileStepFixture extends AbstractWizardStepFixture<ChooseOptionsForNewFileStepFixture> {
   protected ChooseOptionsForNewFileStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(robot, target);
+    super(ChooseOptionsForNewFileStepFixture.class, robot, target);
   }
 
+  @NotNull
   public ChooseOptionsForNewFileStepFixture enterActivityName(@NotNull String name) {
-    JTextField textField = robot.finder().findByLabel(target, "Activity Name:", JTextField.class, true);
+    JTextField textField = robot().finder().findByLabel(target(), "Activity Name:", JTextField.class, true);
     replaceText(textField, name);
     return this;
   }
 
   @NotNull
   public String getLayoutName() {
-    final JTextField textField = robot.finder().findByLabel("Layout Name:", JTextField.class, true);
-    return GuiActionRunner.execute(new GuiQuery<String>() {
+    final JTextField textField = robot().finder().findByLabel("Layout Name:", JTextField.class, true);
+    //noinspection ConstantConditions
+    return execute(new GuiQuery<String>() {
       @Override
       protected String executeInEDT() throws Throwable {
         return textField.getText();

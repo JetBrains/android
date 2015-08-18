@@ -165,7 +165,7 @@ abstract class AndroidDomTest extends AndroidTestCase {
     final List<String> urls = provider.getUrlFor(docTargetElement, originalElement);
     final String doc = ((ExternalDocumentationProvider)provider).fetchExternalDocumentation(myFixture.getProject(), docTargetElement, urls);
     assertNotNull(doc);
-    assertTrue(doc, doc.contains(expectedPart));
+    assertTrue("Can't find " + expectedPart + " in " + doc, doc.contains(expectedPart));
   }
 
   protected List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {

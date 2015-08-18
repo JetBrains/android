@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -38,6 +39,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.RecentsManager;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -48,7 +50,10 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -214,16 +219,15 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
                                                           @NotNull String packageName) {
     Map<String, Object> paths = Maps.newHashMap();
     // Look up the resource directories inside this source set
-    VirtualFile moduleDir = gradleProject.getRootDir();
-    File ioModuleDir = VfsUtilCore.virtualToIoFile(moduleDir);
+    File moduleDirPath = gradleProject.getRootDirPath();
     File javaDir = findSrcDirectory(sourceProvider);
     File testDir = findTestDirectory(module);
-    String javaPath = getJavaPath(ioModuleDir, javaDir);
+    String javaPath = getJavaPath(moduleDirPath, javaDir);
     paths.put(ATTR_SRC_DIR, javaPath);
 
     File resDir = findResDirectory(sourceProvider);
     if (resDir != null) {
-      String resPath = FileUtil.getRelativePath(ioModuleDir, resDir);
+      String resPath = FileUtil.getRelativePath(moduleDirPath, resDir);
       if (resPath != null) {
         resPath = FileUtil.toSystemIndependentName(resPath);
       }
@@ -232,18 +236,18 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     }
     File manifestDir = findManifestDirectory(sourceProvider);
     if (manifestDir != null) {
-      String manifestPath = FileUtil.getRelativePath(ioModuleDir, manifestDir);
+      String manifestPath = FileUtil.getRelativePath(moduleDirPath, manifestDir);
       paths.put(ATTR_MANIFEST_DIR, manifestPath);
       paths.put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(manifestDir.getPath()));
     }
     File aidlDir = findAidlDir(sourceProvider);
     if (aidlDir != null) {
-      String aidlPath = FileUtil.getRelativePath(ioModuleDir, aidlDir);
+      String aidlPath = FileUtil.getRelativePath(moduleDirPath, aidlDir);
       paths.put(ATTR_AIDL_DIR, aidlPath);
       paths.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
     if (testDir == null) {
-      String absolutePath = Joiner.on('/').join(moduleDir.getPath(), TemplateWizard.TEST_SOURCE_PATH,
+      String absolutePath = Joiner.on('/').join(gradleProject.getRootDir().getPath(), TemplateWizard.TEST_SOURCE_PATH,
                                                 TemplateWizard.JAVA_SOURCE_PATH);
       testDir = new File(FileUtil.toSystemDependentName(absolutePath));
     }
@@ -376,11 +380,11 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   @Override
   public boolean performFinishingActions() {
     TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
-    Project project = getProject();
+    final Project project = getProject();
     Module module = getModule();
     assert templateEntry != null;
     assert project != null && module != null;
-    Template template = templateEntry.getTemplate();
+    final Template template = templateEntry.getTemplate();
     File moduleRoot = getModuleRoot(module);
     if (moduleRoot == null) {
       return false;
@@ -390,7 +394,12 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     template.render(VfsUtilCore.virtualToIoFile(project.getBaseDir()), moduleRoot, parameterMap, project);
     myAssetStudioStep.createAssets();
     if (Boolean.TRUE.equals(myState.get(KEY_OPEN_EDITORS))) {
-      TemplateUtils.openEditors(project, template.getFilesToOpen(), true);
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          TemplateUtils.openEditors(project, template.getFilesToOpen(), true);
+        }
+      });
     }
     return true;
   }

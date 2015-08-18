@@ -16,37 +16,37 @@
 
 package org.jetbrains.android.sdk;
 
-import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.google.common.collect.Sets;
+import com.android.sdklib.IAndroidTarget.OptionalLibrary;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.PathUtil;
-import com.intellij.util.containers.HashSet;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
+import static com.android.SdkConstants.FD_PLATFORMS;
+import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
+import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.util.PathUtil.getCanonicalPath;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 15, 2009
- * Time: 6:54:34 PM
- * To change this template use File | Settings | File Templates.
+ * @author Eugene.Kudelevsky
  */
 public class AndroidPlatform {
-  private final AndroidSdkData mySdkData;
-  private final IAndroidTarget myTarget;
+  @NotNull private final AndroidSdkData mySdkData;
+  @NotNull private final IAndroidTarget myTarget;
 
   public AndroidPlatform(@NotNull AndroidSdkData sdkData, @NotNull IAndroidTarget target) {
     mySdkData = sdkData;
@@ -55,21 +55,14 @@ public class AndroidPlatform {
 
   @Nullable
   public static AndroidPlatform getInstance(@NotNull Module module) {
-    final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
     return sdk != null ? getInstance(sdk) : null;
   }
 
   @Nullable
   public static AndroidPlatform getInstance(@NotNull Sdk sdk) {
-    if (!(sdk.getSdkType() instanceof AndroidSdkType)) {
-      return null;
-    }
-
-    final AndroidSdkAdditionalData sdkAdditionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    if (sdkAdditionalData == null) {
-      return null;
-    }
-    return sdkAdditionalData.getAndroidPlatform();
+    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
+    return data != null ? data.getAndroidPlatform() : null;
   }
 
   @NotNull
@@ -87,12 +80,11 @@ public class AndroidPlatform {
     if (!isAndroidSdk(sdk)) {
       return null;
     }
-    String sdkPath = sdk.getHomePath();
-    if (sdkPath != null) {
-      AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
-      if (sdkData != null) {
-        AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-        IAndroidTarget target = data != null ? data.getBuildTarget(sdkData) : null;
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+    if (sdkData != null) {
+      SdkAdditionalData data = sdk.getSdkAdditionalData();
+      if (data instanceof AndroidSdkAdditionalData) {
+        IAndroidTarget target = ((AndroidSdkAdditionalData)data).getBuildTarget(sdkData);
         if (target != null) {
           return new AndroidPlatform(sdkData, target);
         }
@@ -101,19 +93,19 @@ public class AndroidPlatform {
     return null;
   }
 
-  // deprecated, use only for converting
-  @Nullable
+  /** @deprecated Use only for converting. */
   @Deprecated
+  @Nullable
   public static AndroidPlatform parse(@NotNull Library library,
                                       @Nullable Library.ModifiableModel model,
                                       @Nullable Map<String, AndroidSdkData> parsedSdks) {
-    VirtualFile[] files = model != null ? model.getFiles(OrderRootType.CLASSES) : library.getFiles(OrderRootType.CLASSES);
-    Set<String> jarPaths = new HashSet<String>();
+    VirtualFile[] files = model != null ? model.getFiles(CLASSES) : library.getFiles(CLASSES);
+    Set<String> jarPaths = Sets.newHashSet();
     VirtualFile frameworkLibrary = null;
     for (VirtualFile file : files) {
       VirtualFile vFile = JarFileSystem.getInstance().getVirtualFileForJar(file);
       if (vFile != null) {
-        if (vFile.getName().equals(SdkConstants.FN_FRAMEWORK_LIBRARY)) {
+        if (vFile.getName().equals(FN_FRAMEWORK_LIBRARY)) {
           frameworkLibrary = vFile;
         }
         jarPaths.add(vFile.getPath());
@@ -123,7 +115,7 @@ public class AndroidPlatform {
       VirtualFile sdkDir = frameworkLibrary.getParent();
       if (sdkDir != null) {
         VirtualFile platformsDir = sdkDir.getParent();
-        if (platformsDir != null && platformsDir.getName().equals(SdkConstants.FD_PLATFORMS)) {
+        if (platformsDir != null && platformsDir.getName().equals(FD_PLATFORMS)) {
           sdkDir = platformsDir.getParent();
           if (sdkDir == null) return null;
         }
@@ -138,26 +130,28 @@ public class AndroidPlatform {
         }
         IAndroidTarget resultTarget = null;
         for (IAndroidTarget target : sdkData.getTargets()) {
-          String targetsFrameworkLibPath = PathUtil.getCanonicalPath(target.getPath(IAndroidTarget.ANDROID_JAR));
+          String targetsFrameworkLibPath = getCanonicalPath(target.getPath(ANDROID_JAR));
           if (frameworkLibrary.getPath().equals(targetsFrameworkLibPath)) {
             if (target.isPlatform()) {
               if (resultTarget == null) resultTarget = target;
             }
             else {
               boolean ok = true;
-              IAndroidTarget.IOptionalLibrary[] libraries = target.getOptionalLibraries();
-              if (libraries == null) {
+              List<OptionalLibrary> libraries = target.getAdditionalLibraries();
+              if (libraries.isEmpty()) {
                 // we cannot identify add-on target without optional libraries by classpath
                 ok = false;
               }
               else {
-                for (IAndroidTarget.IOptionalLibrary optionalLibrary : libraries) {
-                  if (!jarPaths.contains(PathUtil.getCanonicalPath(optionalLibrary.getJarPath()))) {
+                for (OptionalLibrary optionalLibrary : libraries) {
+                  if (!jarPaths.contains(getCanonicalPath(optionalLibrary.getJar().getAbsolutePath()))) {
                     ok = false;
                   }
                 }
               }
-              if (ok) resultTarget = target;
+              if (ok) {
+                resultTarget = target;
+              }
             }
           }
         }
@@ -190,30 +184,15 @@ public class AndroidPlatform {
   }
 
   public boolean needToAddAnnotationsJarToClasspath() {
-    // todo: check if we really don't need to add this
-    return AndroidSdkUtils.needsAnnotationsJarInClasspath(myTarget);
+    return needsAnnotationsJarInClasspath(myTarget);
   }
 
   public int getApiLevel() {
     return myTarget.getVersion().getApiLevel();
   }
 
+  @NotNull
   public AndroidVersion getApiVersion() {
     return myTarget.getVersion();
-  }
-
-  /** Looks up the platform for a given module */
-  @Nullable
-  public static AndroidPlatform getPlatform(Module module) {
-    if (AndroidFacet.getInstance(module) != null) {
-      Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-      if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
-        final AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-        if (additionalData != null) {
-          return additionalData.getAndroidPlatform();
-        }
-      }
-    }
-    return null;
   }
 }

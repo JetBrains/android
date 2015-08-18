@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.wizard.WizardUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -73,7 +73,7 @@ public class ShowLicensesUsedAction extends AnAction {
       StringBuilder sb = new StringBuilder(5000);
       File licenseDir = new File(PathManager.getHomePath(), "license");
       assert licenseDir.exists() : licenseDir;
-      for (File file : TemplateUtils.listFiles(licenseDir)) {
+      for (File file : WizardUtils.listFiles(licenseDir)) {
         sb.append("<br><br>");
         sb.append(getLicenseText(file));
       }

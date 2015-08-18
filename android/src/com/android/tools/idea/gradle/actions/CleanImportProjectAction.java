@@ -16,10 +16,8 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
-import com.intellij.ide.RecentProjectsManagerImpl;
-import com.intellij.ide.impl.ProjectUtil;
+import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.diagnostic.Logger;
@@ -33,8 +31,6 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +39,12 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
+import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
+import static com.intellij.openapi.util.io.FileUtil.delete;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
  * Closes, removes all IDEA-related files (.idea folder and .iml files) and imports a project.
@@ -65,18 +67,18 @@ public class CleanImportProjectAction extends DumbAwareAction {
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null && isGradleProject(project)) {
+    if (project != null && isGradleProjectIfNotNull(project)) {
       String projectName = project.getName();
       int answer = Messages.showYesNoDialog(project, String.format(MESSAGE_FORMAT, projectName), TITLE, null);
       if (answer == Messages.YES) {
         LOG.info(String.format("Closing, cleaning and re-importing project '%1$s'...", projectName));
         List<File> filesToDelete = collectFilesToDelete(project);
-        File projectDir = new File(project.getBasePath());
+        File projectDirPath = getBaseDirPath(project);
         close(project);
-        delete(filesToDelete, projectName);
+        deleteFiles(filesToDelete, projectName);
         try {
           LOG.info(String.format("About to import project '%1$s'.", projectName));
-          GradleProjectImporter.getInstance().importNewlyCreatedProject(projectName, projectDir, null, null, null);
+          GradleProjectImporter.getInstance().importNewlyCreatedProject(projectName, projectDirPath, null, null, null);
           LOG.info(String.format("Done importing project '%1$s'.", projectName));
         }
         catch (Exception error) {
@@ -95,12 +97,12 @@ public class CleanImportProjectAction extends DumbAwareAction {
       return Collections.emptyList();
     }
     List<File> filesToDelete = Lists.newArrayList();
-    filesToDelete.add(VfsUtilCore.virtualToIoFile(projectFile.getParent()));
+    filesToDelete.add(virtualToIoFile(projectFile.getParent()));
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
       VirtualFile moduleFile = module.getModuleFile();
       if (moduleFile != null) {
-        filesToDelete.add(VfsUtilCore.virtualToIoFile(moduleFile));
+        filesToDelete.add(virtualToIoFile(moduleFile));
       }
     }
     return filesToDelete;
@@ -108,13 +110,13 @@ public class CleanImportProjectAction extends DumbAwareAction {
 
   private static void close(@NotNull Project project) {
     String projectName = project.getName();
-    ProjectUtil.closeAndDispose(project);
-    RecentProjectsManagerImpl.getInstance().updateLastProjectPath();
+    closeAndDispose(project);
+    RecentProjectsManager.getInstance().updateLastProjectPath();
     WelcomeFrame.showIfNoProjectOpened();
     LOG.info(String.format("Closed project '%1$s'.", projectName));
   }
 
-  private static void delete(@NotNull final List<File> files, @NotNull String projectName) {
+  private static void deleteFiles(@NotNull final List<File> files, @NotNull String projectName) {
     Project project = ProjectManager.getInstance().getDefaultProject();
     String title = String.format("Cleaning up project '%1$s", projectName);
     ProgressManager.getInstance().run(new Task.Modal(project, title, false) {
@@ -126,7 +128,7 @@ public class CleanImportProjectAction extends DumbAwareAction {
           File file = files.get(i);
           String path = file.getPath();
           LOG.info(String.format("About to delete file '%1$s'", path));
-          if (!FileUtil.delete(file)) {
+          if (!delete(file)) {
             LOG.info(String.format("Failed to delete file '%1$s'", path));
           }
           indicator.setFraction(i / fileCount);
@@ -146,13 +148,13 @@ public class CleanImportProjectAction extends DumbAwareAction {
 
   @Override
   public void update(AnActionEvent e) {
-    boolean isGradleProject = isGradleProject(e.getProject());
+    boolean isGradleProject = isGradleProjectIfNotNull(e.getProject());
     Presentation presentation = e.getPresentation();
     presentation.setVisible(isGradleProject);
     presentation.setEnabled(isGradleProject);
   }
 
-  private static boolean isGradleProject(@Nullable Project project) {
-    return project != null && Projects.isGradleProject(project);
+  private static boolean isGradleProjectIfNotNull(@Nullable Project project) {
+    return project != null && isGradleProject(project);
   }
 }

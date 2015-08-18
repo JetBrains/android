@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -82,7 +83,10 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    */
   @Override
   public final void attachToWizard(@NotNull DynamicWizard wizard) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    Application application = ApplicationManager.getApplication();
+    if (application != null && !application.isUnitTestMode()) {
+      application.assertIsDispatchThread();
+    }
     myWizard = wizard;
     myUpdateQueue = wizard.getUpdateQueue();
     Map<String, Object> myCurrentValues = myState.flatten();
@@ -143,6 +147,11 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
     return myCurrentStep;
   }
 
+  @Override
+  public List<DynamicWizardStep> getAllSteps() {
+    return mySteps;
+  }
+
   /**
    * Initialize the path, including setting the iterator to the correct location (just before the beginning, or just after the end).
    * Any additional state setup should be done here.
@@ -188,11 +197,14 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    */
   private void update() {
     if (myIsInitialized && !myUpdateInProgress) {
-      myUpdateInProgress = true;
-      deriveValues(myState.getRecentUpdates());
-      myIsValid = validate();
-      myUpdateInProgress = false;
-      updateButtons();
+      try {
+        myUpdateInProgress = true;
+        deriveValues(myState.getRecentUpdates());
+        myIsValid = validate();
+      } finally {
+        myUpdateInProgress = false;
+        updateButtons();
+      }
     }
   }
 

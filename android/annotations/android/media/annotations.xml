@@ -1,0 +1,797 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.media.AsyncPlayer void play(android.content.Context, android.net.Uri, boolean, android.media.AudioAttributes) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AsyncPlayer void play(android.content.Context, android.net.Uri, boolean, android.media.AudioAttributes) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AsyncPlayer void play(android.content.Context, android.net.Uri, boolean, android.media.AudioAttributes) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioAttributes.Builder android.media.AudioAttributes.Builder setContentType(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioAttributes.CONTENT_TYPE_UNKNOWN, android.media.AudioAttributes.CONTENT_TYPE_SPEECH, android.media.AudioAttributes.CONTENT_TYPE_MUSIC, android.media.AudioAttributes.CONTENT_TYPE_MOVIE, android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION}" />
+    </annotation>
+  </item>
+  <item name="android.media.AudioAttributes.Builder android.media.AudioAttributes.Builder setUsage(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioAttributes.USAGE_UNKNOWN, android.media.AudioAttributes.USAGE_MEDIA, android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION, android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING, android.media.AudioAttributes.USAGE_ALARM, android.media.AudioAttributes.USAGE_NOTIFICATION, android.media.AudioAttributes.USAGE_NOTIFICATION_RINGTONE, android.media.AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_REQUEST, android.media.AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_INSTANT, android.media.AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_DELAYED, android.media.AudioAttributes.USAGE_NOTIFICATION_EVENT, android.media.AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY, android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE, android.media.AudioAttributes.USAGE_ASSISTANCE_SONIFICATION, android.media.AudioAttributes.USAGE_GAME}" />
+    </annotation>
+  </item>
+  <item name="android.media.AudioDeviceInfo int[] getChannelCounts()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioDeviceInfo int[] getChannelIndexMasks()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioDeviceInfo int[] getChannelMasks()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioDeviceInfo int[] getSampleRates()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFormat.Builder android.media.AudioFormat.Builder setChannelIndexMask(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFormat.Builder android.media.AudioFormat.Builder setChannelMask(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFormat.Builder android.media.AudioFormat.Builder setEncoding(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioFormat.ENCODING_DEFAULT, android.media.AudioFormat.ENCODING_PCM_8BIT, android.media.AudioFormat.ENCODING_PCM_16BIT, android.media.AudioFormat.ENCODING_PCM_FLOAT, android.media.AudioFormat.ENCODING_AC3, android.media.AudioFormat.ENCODING_E_AC3, android.media.AudioFormat.ENCODING_DTS, android.media.AudioFormat.ENCODING_DTS_HD}" />
+    </annotation>
+  </item>
+  <item name="android.media.AudioRecord android.media.AudioFormat getFormat()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioRecord int read(byte[], int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioRecord int read(byte[], int, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioRecord int read(byte[], int, int, int) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioRecord.READ_BLOCKING, android.media.AudioRecord.READ_NON_BLOCKING}" />
+    </annotation>
+  </item>
+  <item name="android.media.AudioRecord int read(float[], int, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioRecord int read(float[], int, int, int) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioRecord.READ_BLOCKING, android.media.AudioRecord.READ_NON_BLOCKING}" />
+    </annotation>
+  </item>
+  <item name="android.media.AudioRecord int read(java.nio.ByteBuffer, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioRecord int read(java.nio.ByteBuffer, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioRecord int read(java.nio.ByteBuffer, int, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioRecord.READ_BLOCKING, android.media.AudioRecord.READ_NON_BLOCKING}" />
+    </annotation>
+  </item>
+  <item name="android.media.AudioRecord int read(short[], int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioRecord int read(short[], int, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioRecord int read(short[], int, int, int) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioRecord.READ_BLOCKING, android.media.AudioRecord.READ_NON_BLOCKING}" />
+    </annotation>
+  </item>
+  <item name="android.media.AudioRecord.Builder android.media.AudioRecord.Builder setAudioFormat(android.media.AudioFormat) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack android.media.AudioFormat getFormat()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack android.media.PlaybackParams getPlaybackParams()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack int write(byte[], int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack int write(byte[], int, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack int write(byte[], int, int, int) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioTrack.WRITE_BLOCKING, android.media.AudioTrack.WRITE_NON_BLOCKING}" />
+    </annotation>
+  </item>
+  <item name="android.media.AudioTrack int write(float[], int, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack int write(float[], int, int, int) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioTrack.WRITE_BLOCKING, android.media.AudioTrack.WRITE_NON_BLOCKING}" />
+    </annotation>
+  </item>
+  <item name="android.media.AudioTrack int write(java.nio.ByteBuffer, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack int write(java.nio.ByteBuffer, int, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioTrack.WRITE_BLOCKING, android.media.AudioTrack.WRITE_NON_BLOCKING}" />
+    </annotation>
+  </item>
+  <item name="android.media.AudioTrack int write(java.nio.ByteBuffer, int, int, long) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioTrack.WRITE_BLOCKING, android.media.AudioTrack.WRITE_NON_BLOCKING}" />
+    </annotation>
+  </item>
+  <item name="android.media.AudioTrack int write(short[], int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack int write(short[], int, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack int write(short[], int, int, int) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioTrack.WRITE_BLOCKING, android.media.AudioTrack.WRITE_NON_BLOCKING}" />
+    </annotation>
+  </item>
+  <item name="android.media.AudioTrack void setPlaybackParams(android.media.PlaybackParams) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack.Builder android.media.AudioTrack build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack.Builder android.media.AudioTrack.Builder setAudioAttributes(android.media.AudioAttributes)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack.Builder android.media.AudioTrack.Builder setAudioAttributes(android.media.AudioAttributes) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack.Builder android.media.AudioTrack.Builder setAudioFormat(android.media.AudioFormat)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack.Builder android.media.AudioTrack.Builder setAudioFormat(android.media.AudioFormat) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack.Builder android.media.AudioTrack.Builder setBufferSizeInBytes(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack.Builder android.media.AudioTrack.Builder setSessionId(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack.Builder android.media.AudioTrack.Builder setTransferMode(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack.Builder android.media.AudioTrack.Builder setTransferMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioTrack.MODE_STATIC, android.media.AudioTrack.MODE_STREAM}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaCodec android.media.Image getInputImage(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec android.media.Image getOutputImage(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec android.media.MediaCodec createByCodecName(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec android.media.MediaCodec createByCodecName(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec android.media.MediaCodec createDecoderByType(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec android.media.MediaCodec createDecoderByType(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec android.media.MediaCodec createEncoderByType(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec android.media.MediaCodec createEncoderByType(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec android.media.MediaCodecInfo getCodecInfo()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec android.media.MediaFormat getInputFormat()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec android.media.MediaFormat getOutputFormat()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec android.media.MediaFormat getOutputFormat(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec android.view.Surface createInputSurface()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec android.view.Surface createPersistentInputSurface()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec int dequeueOutputBuffer(android.media.MediaCodec.BufferInfo, long)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaCodec.INFO_TRY_AGAIN_LATER, android.media.MediaCodec.INFO_OUTPUT_FORMAT_CHANGED, android.media.MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaCodec int dequeueOutputBuffer(android.media.MediaCodec.BufferInfo, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec java.lang.String getName()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec java.nio.ByteBuffer getInputBuffer(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec java.nio.ByteBuffer getOutputBuffer(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec java.nio.ByteBuffer[] getInputBuffers()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec java.nio.ByteBuffer[] getOutputBuffers()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec void configure(android.media.MediaFormat, android.view.Surface, android.media.MediaCrypto, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec void configure(android.media.MediaFormat, android.view.Surface, android.media.MediaCrypto, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec void configure(android.media.MediaFormat, android.view.Surface, android.media.MediaCrypto, int) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec void configure(android.media.MediaFormat, android.view.Surface, android.media.MediaCrypto, int) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaCodec.CONFIGURE_FLAG_ENCODE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaCodec void queueSecureInputBuffer(int, int, android.media.MediaCodec.CryptoInfo, long, int) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec void setCallback(android.media.MediaCodec.Callback) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec void setCallback(android.media.MediaCodec.Callback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec void setCallback(android.media.MediaCodec.Callback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec void setInputSurface(android.view.Surface) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec void setOnFrameRenderedListener(android.media.MediaCodec.OnFrameRenderedListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec void setOnFrameRenderedListener(android.media.MediaCodec.OnFrameRenderedListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec void setOutputSurface(android.view.Surface) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec void setParameters(android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec void setVideoScalingMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, android.media.MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaCodec.BufferInfo flags">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaCodec.BUFFER_FLAG_SYNC_FRAME, android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME, android.media.MediaCodec.BUFFER_FLAG_CODEC_CONFIG, android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaCodec.BufferInfo void set(int, int, long, int) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaCodec.BUFFER_FLAG_SYNC_FRAME, android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME, android.media.MediaCodec.BUFFER_FLAG_CODEC_CONFIG, android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaCodec.Callback void onError(android.media.MediaCodec, android.media.MediaCodec.CodecException) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec.Callback void onError(android.media.MediaCodec, android.media.MediaCodec.CodecException) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec.Callback void onInputBufferAvailable(android.media.MediaCodec, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec.Callback void onOutputBufferAvailable(android.media.MediaCodec, int, android.media.MediaCodec.BufferInfo) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec.Callback void onOutputBufferAvailable(android.media.MediaCodec, int, android.media.MediaCodec.BufferInfo) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec.Callback void onOutputFormatChanged(android.media.MediaCodec, android.media.MediaFormat) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec.Callback void onOutputFormatChanged(android.media.MediaCodec, android.media.MediaFormat) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec.CodecException java.lang.String getDiagnosticInfo()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec.CryptoException CryptoException(int, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec.CryptoException int getErrorCode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaCodec.CryptoException.ERROR_NO_KEY, android.media.MediaCodec.CryptoException.ERROR_KEY_EXPIRED, android.media.MediaCodec.CryptoException.ERROR_RESOURCE_BUSY, android.media.MediaCodec.CryptoException.ERROR_INSUFFICIENT_OUTPUT_PROTECTION}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaCodec.CryptoInfo void set(int, int[], int[], byte[], byte[], int) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec.CryptoInfo void set(int, int[], int[], byte[], byte[], int) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec.CryptoInfo void set(int, int[], int[], byte[], byte[], int) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec.CryptoInfo void set(int, int[], int[], byte[], byte[], int) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodec.OnFrameRenderedListener void onFrameRendered(android.media.MediaCodec, long, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCrypto MediaCrypto(java.util.UUID, byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCrypto MediaCrypto(java.util.UUID, byte[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCrypto boolean isCryptoSchemeSupported(java.util.UUID) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCrypto boolean requiresSecureDecoderComponent(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCrypto void setMediaDrmSession(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCryptoException MediaCryptoException(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription android.graphics.Bitmap getIconBitmap()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription android.net.Uri getIconUri()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription android.net.Uri getMediaUri()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription android.os.Bundle getExtras()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription java.lang.CharSequence getDescription()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription java.lang.CharSequence getSubtitle()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription java.lang.CharSequence getTitle()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription java.lang.String getMediaId()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription.Builder android.media.MediaDescription.Builder setDescription(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription.Builder android.media.MediaDescription.Builder setExtras(android.os.Bundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription.Builder android.media.MediaDescription.Builder setIconBitmap(android.graphics.Bitmap) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription.Builder android.media.MediaDescription.Builder setIconUri(android.net.Uri) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription.Builder android.media.MediaDescription.Builder setMediaId(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription.Builder android.media.MediaDescription.Builder setMediaUri(android.net.Uri) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription.Builder android.media.MediaDescription.Builder setSubtitle(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescription.Builder android.media.MediaDescription.Builder setTitle(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDrm MediaDrm(java.util.UUID) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm android.media.MediaDrm.CryptoSession getCryptoSession(byte[], java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm android.media.MediaDrm.CryptoSession getCryptoSession(byte[], java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm android.media.MediaDrm.CryptoSession getCryptoSession(byte[], java.lang.String, java.lang.String) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm android.media.MediaDrm.KeyRequest getKeyRequest(byte[], byte[], java.lang.String, int, java.util.HashMap&lt;java.lang.String,java.lang.String&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm android.media.MediaDrm.KeyRequest getKeyRequest(byte[], byte[], java.lang.String, int, java.util.HashMap&lt;java.lang.String,java.lang.String&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm android.media.MediaDrm.KeyRequest getKeyRequest(byte[], byte[], java.lang.String, int, java.util.HashMap&lt;java.lang.String,java.lang.String&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDrm android.media.MediaDrm.KeyRequest getKeyRequest(byte[], byte[], java.lang.String, int, java.util.HashMap&lt;java.lang.String,java.lang.String&gt;) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDrm android.media.MediaDrm.KeyRequest getKeyRequest(byte[], byte[], java.lang.String, int, java.util.HashMap&lt;java.lang.String,java.lang.String&gt;) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaDrm.KEY_TYPE_STREAMING, android.media.MediaDrm.KEY_TYPE_OFFLINE, android.media.MediaDrm.KEY_TYPE_RELEASE}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaDrm android.media.MediaDrm.KeyRequest getKeyRequest(byte[], byte[], java.lang.String, int, java.util.HashMap&lt;java.lang.String,java.lang.String&gt;) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDrm android.media.MediaDrm.ProvisionRequest getProvisionRequest()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm boolean isCryptoSchemeSupported(java.util.UUID) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm boolean isCryptoSchemeSupported(java.util.UUID, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm boolean isCryptoSchemeSupported(java.util.UUID, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm byte[] getPropertyByteArray(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm byte[] getPropertyByteArray(java.lang.String) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.media.MediaDrm.PROPERTY_DEVICE_UNIQUE_ID}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaDrm byte[] getSecureStop(byte[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm byte[] getSecureStop(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm byte[] openSession()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm byte[] provideKeyResponse(byte[], byte[])">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDrm byte[] provideKeyResponse(byte[], byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm byte[] provideKeyResponse(byte[], byte[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm java.lang.String getPropertyString(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm java.lang.String getPropertyString(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.media.MediaDrm.PROPERTY_VENDOR, android.media.MediaDrm.PROPERTY_VERSION, android.media.MediaDrm.PROPERTY_DESCRIPTION, android.media.MediaDrm.PROPERTY_ALGORITHMS}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaDrm java.util.HashMap&lt;java.lang.String,java.lang.String&gt; queryKeyStatus(byte[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm java.util.HashMap&lt;java.lang.String,java.lang.String&gt; queryKeyStatus(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm java.util.List&lt;byte[]&gt; getSecureStops()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm void closeSession(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm void provideProvisionResponse(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm void releaseSecureStops(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm void removeKeys(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm void restoreKeys(byte[], byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm void restoreKeys(byte[], byte[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm void setOnEventListener(android.media.MediaDrm.OnEventListener) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDrm void setOnExpirationUpdateListener(android.media.MediaDrm.OnExpirationUpdateListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDrm void setOnExpirationUpdateListener(android.media.MediaDrm.OnExpirationUpdateListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDrm void setPropertyByteArray(java.lang.String, byte[]) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.media.MediaDrm.PROPERTY_DEVICE_UNIQUE_ID}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaDrm void setPropertyByteArray(java.lang.String, byte[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm void setPropertyString(java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.media.MediaDrm.PROPERTY_VENDOR, android.media.MediaDrm.PROPERTY_VERSION, android.media.MediaDrm.PROPERTY_DESCRIPTION, android.media.MediaDrm.PROPERTY_ALGORITHMS}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaDrm void setPropertyString(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession boolean verify(byte[], byte[], byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession boolean verify(byte[], byte[], byte[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession boolean verify(byte[], byte[], byte[]) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession byte[] decrypt(byte[], byte[], byte[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession byte[] decrypt(byte[], byte[], byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession byte[] decrypt(byte[], byte[], byte[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession byte[] decrypt(byte[], byte[], byte[]) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession byte[] encrypt(byte[], byte[], byte[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession byte[] encrypt(byte[], byte[], byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession byte[] encrypt(byte[], byte[], byte[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession byte[] encrypt(byte[], byte[], byte[]) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession byte[] sign(byte[], byte[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession byte[] sign(byte[], byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.CryptoSession byte[] sign(byte[], byte[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.KeyRequest byte[] getData()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.KeyRequest java.lang.String getDefaultUrl()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.KeyStatus byte[] getKeyId()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.MediaDrmStateException java.lang.String getDiagnosticInfo()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.OnEventListener void onEvent(android.media.MediaDrm, byte[], int, int, byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.OnEventListener void onEvent(android.media.MediaDrm, byte[], int, int, byte[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDrm.OnEventListener void onEvent(android.media.MediaDrm, byte[], int, int, byte[]) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaDrm.EVENT_PROVISION_REQUIRED, android.media.MediaDrm.EVENT_KEY_REQUIRED, android.media.MediaDrm.EVENT_KEY_EXPIRED, android.media.MediaDrm.EVENT_VENDOR_DEFINED, android.media.MediaDrm.EVENT_SESSION_RECLAIMED}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaDrm.OnEventListener void onEvent(android.media.MediaDrm, byte[], int, int, byte[]) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDrm.OnExpirationUpdateListener void onExpirationUpdate(android.media.MediaDrm, byte[], long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.OnExpirationUpdateListener void onExpirationUpdate(android.media.MediaDrm, byte[], long) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.ProvisionRequest byte[] getData()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.ProvisionRequest java.lang.String getDefaultUrl()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaExtractor android.media.MediaFormat getTrackFormat(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaExtractor boolean getSampleCryptoInfo(android.media.MediaCodec.CryptoInfo) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaExtractor int getSampleFlags()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaExtractor.SAMPLE_FLAG_SYNC, android.media.MediaExtractor.SAMPLE_FLAG_ENCRYPTED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaExtractor int readSampleData(java.nio.ByteBuffer, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaExtractor java.util.Map&lt;java.util.UUID,byte[]&gt; getPsshInfo()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaExtractor void seekTo(long, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaExtractor.SEEK_TO_PREVIOUS_SYNC, android.media.MediaExtractor.SEEK_TO_NEXT_SYNC, android.media.MediaExtractor.SEEK_TO_CLOSEST_SYNC}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaExtractor void setDataSource(android.content.Context, android.net.Uri, java.util.Map&lt;java.lang.String,java.lang.String&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaExtractor void setDataSource(android.content.Context, android.net.Uri, java.util.Map&lt;java.lang.String,java.lang.String&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaExtractor void setDataSource(android.content.Context, android.net.Uri, java.util.Map&lt;java.lang.String,java.lang.String&gt;) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaExtractor void setDataSource(android.media.MediaDataSource) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaExtractor void setDataSource(java.io.FileDescriptor) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaExtractor void setDataSource(java.io.FileDescriptor, long, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaExtractor void setDataSource(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaExtractor void setDataSource(java.lang.String, java.util.Map&lt;java.lang.String,java.lang.String&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaExtractor void setDataSource(java.lang.String, java.util.Map&lt;java.lang.String,java.lang.String&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaMetadata android.media.MediaDescription getDescription()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaMuxer MediaMuxer(java.lang.String, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaMuxer MediaMuxer(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4, android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaMuxer int addTrack(android.media.MediaFormat) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaMuxer void writeSampleData(int, java.nio.ByteBuffer, android.media.MediaCodec.BufferInfo) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaMuxer void writeSampleData(int, java.nio.ByteBuffer, android.media.MediaCodec.BufferInfo) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer android.media.MediaTimestamp getTimestamp()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaPlayer android.media.PlaybackParams getPlaybackParams()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer android.media.SyncParams getSyncParams()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer void setPlaybackParams(android.media.PlaybackParams) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer void setSyncParams(android.media.SyncParams) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaRecorder void setInputSurface(android.view.Surface) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaRouter void selectRoute(int, android.media.MediaRouter.RouteInfo) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaRouter.RouteGroup void setIconResource(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.media.MediaRouter.UserRouteInfo void setIconResource(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.media.MediaSync android.media.MediaTimestamp getTimestamp()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaSync android.media.PlaybackParams getPlaybackParams()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaSync android.media.SyncParams getSyncParams()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaSync android.view.Surface createInputSurface()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaSync void queueAudio(java.nio.ByteBuffer, int, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaSync void setAudioTrack(android.media.AudioTrack) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaSync void setCallback(android.media.MediaSync.Callback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaSync void setCallback(android.media.MediaSync.Callback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaSync void setOnErrorListener(android.media.MediaSync.OnErrorListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaSync void setOnErrorListener(android.media.MediaSync.OnErrorListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaSync void setPlaybackParams(android.media.PlaybackParams) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaSync void setSurface(android.view.Surface) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaSync void setSyncParams(android.media.SyncParams) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaSync.Callback void onAudioBufferConsumed(android.media.MediaSync, java.nio.ByteBuffer, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaSync.Callback void onAudioBufferConsumed(android.media.MediaSync, java.nio.ByteBuffer, int) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaSync.OnErrorListener void onError(android.media.MediaSync, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.PlaybackParams android.media.PlaybackParams setAudioFallbackMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.PlaybackParams.AUDIO_FALLBACK_MODE_DEFAULT, android.media.PlaybackParams.AUDIO_FALLBACK_MODE_MUTE, android.media.PlaybackParams.AUDIO_FALLBACK_MODE_FAIL}" />
+    </annotation>
+  </item>
+  <item name="android.media.PlaybackParams int getAudioFallbackMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.PlaybackParams.AUDIO_FALLBACK_MODE_DEFAULT, android.media.PlaybackParams.AUDIO_FALLBACK_MODE_MUTE, android.media.PlaybackParams.AUDIO_FALLBACK_MODE_FAIL}" />
+    </annotation>
+  </item>
+  <item name="android.media.SyncParams android.media.SyncParams setAudioAdjustMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.SyncParams.AUDIO_ADJUST_MODE_DEFAULT, android.media.SyncParams.AUDIO_ADJUST_MODE_STRETCH, android.media.SyncParams.AUDIO_ADJUST_MODE_RESAMPLE}" />
+    </annotation>
+  </item>
+  <item name="android.media.SyncParams android.media.SyncParams setSyncSource(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.SyncParams.SYNC_SOURCE_DEFAULT, android.media.SyncParams.SYNC_SOURCE_SYSTEM_CLOCK, android.media.SyncParams.SYNC_SOURCE_AUDIO, android.media.SyncParams.SYNC_SOURCE_VSYNC}" />
+    </annotation>
+  </item>
+  <item name="android.media.SyncParams int getAudioAdjustMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.SyncParams.AUDIO_ADJUST_MODE_DEFAULT, android.media.SyncParams.AUDIO_ADJUST_MODE_STRETCH, android.media.SyncParams.AUDIO_ADJUST_MODE_RESAMPLE}" />
+    </annotation>
+  </item>
+  <item name="android.media.SyncParams int getSyncSource()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.SyncParams.SYNC_SOURCE_DEFAULT, android.media.SyncParams.SYNC_SOURCE_SYSTEM_CLOCK, android.media.SyncParams.SYNC_SOURCE_AUDIO, android.media.SyncParams.SYNC_SOURCE_VSYNC}" />
+    </annotation>
+  </item>
+</root>
+

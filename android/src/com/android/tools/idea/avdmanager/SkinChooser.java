@@ -35,11 +35,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -112,7 +110,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
       ISystemImage[] systemImages = target.getSystemImages();
       if (systemImages != null) {
         for (ISystemImage image : systemImages) {
-          AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(target, image);
+          SystemImageDescription desc = new SystemImageDescription(target, image);
           for (File skin : desc.getSkins()) {
             if (skin.exists()) {
               result.add(skin);

@@ -20,7 +20,6 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.repo.ExternalRepository;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.google.common.base.Strings;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;

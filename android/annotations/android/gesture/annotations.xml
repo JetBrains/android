@@ -72,11 +72,23 @@
   <item name="android.gesture.GestureOverlayView boolean dispatchTouchEvent(android.view.MotionEvent) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.gesture.GestureOverlayView int getGestureColor()">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.gesture.GestureOverlayView int getUncertainGestureColor()">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.gesture.GestureOverlayView java.util.ArrayList&lt;android.gesture.GesturePoint&gt; getCurrentStroke()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.gesture.GestureOverlayView void draw(android.graphics.Canvas) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.gesture.GestureOverlayView void setGestureColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.gesture.GestureOverlayView void setUncertainGestureColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.gesture.GesturePoint java.lang.Object clone()">
     <annotation name="android.support.annotation.NonNull" />

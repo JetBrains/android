@@ -49,6 +49,7 @@ public class AndroidIcons {
   public static final Icon FlipPortrait = load("/icons/flip_portrait.png"); // 16x16
   public static final Icon Display = load("/icons/display.png"); // 16x16
   public static final Icon Themes = load("/icons/themes.png"); // 16x16
+  public static final Icon Sunburst = load("/icons/sunburst.png"); // 16x16
 
   public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
 
@@ -57,8 +58,9 @@ public class AndroidIcons {
   public static final Icon GradleConsoleToolWindow = load("/icons/gradle_console_tool_window.png"); // 13x13
   public static final Icon MavenLogo = load("/icons/mavenLogo.png"); // 16x16
 
+  public static final Icon CapturesToolWindow = load("/icons/captures.png"); // 13x13
   public static final Icon MemoryMonitor = load("/icons/memory_monitor.png"); // 16x16
-  public static final Icon MemoryMonitorToolWindow = load("/icons/memory_monitor_tool_window.png"); // 13x13
+  public static final Icon CpuMonitor = load("/icons/cpu_monitor.png"); // 16x16
 
   public static final Icon Variant = load("/icons/variant.png");
 
@@ -99,7 +101,6 @@ public class AndroidIcons {
     public static final Icon Dpi = load("/icons/dpi.png");
     public static final Icon Height = load("/icons/height.png");
     public static final Icon Keyboard = load("/icons/keyboard.png");
-    public static final Icon Language = load("/icons/language.png");
     public static final Icon Locale = load("/icons/locale.png");
     public static final Icon Mcc = load("/icons/mcc.png");
     public static final Icon Mnc = load("/icons/mnc.png");
@@ -107,13 +108,18 @@ public class AndroidIcons {
     public static final Icon NavpadMethod = load("/icons/navpad_method.png");
     public static final Icon Orientation = load("/icons/orientation.png");
     public static final Icon Ratio = load("/icons/ratio.png");
-    public static final Icon Region = load("/icons/region.png");
     public static final Icon Size = load("/icons/size.png");
     public static final Icon SmallestWidth = load("/icons/swidth.png");
     public static final Icon TextInput = load("/icons/text_input.png");
     public static final Icon Touch = load("/icons/touch.png");
     public static final Icon Width = load("/icons/width.png");
     public static final Icon LayoutDirection = load("/icons/direction.png");
+
+    // We might be able to remove these, but perhaps they're useful if we have individual
+    // buttons (for example in the translation editor) where you can independently add language
+    // or region?
+    public static final Icon Language = load("/icons/language.png");
+    public static final Icon Region = load("/icons/region.png");
   }
 
   public static class Ddms {
@@ -228,5 +234,16 @@ public class AndroidIcons {
     public static final Icon JellyBean = load("/icons/versions/Jelly Bean.png"); // 512x512
     public static final Icon KitKat = load("/icons/versions/KitKat.png"); // 512x512
     public static final Icon Lollipop = load("/icons/versions/Lollipop.png");
+  }
+
+  public static class ModuleTemplates {
+    public static final Icon Wear = load("/icons/module_templates/wear_module.png"); // 512x512
+    public static final Icon Car = load("/icons/module_templates/car_module.png"); // 512x512
+    public static final Icon Glass = load("/icons/module_templates/glass_module.png"); // 512x512
+    public static final Icon Mobile = load("/icons/module_templates/mobile_module.png"); // 512x512
+    public static final Icon Tv = load("/icons/module_templates/tv_module.png"); // 512x512
+    public static final Icon Android = load("/icons/module_templates/android_module.png"); // 512x512
+    public static final Icon EclipseModule = load("/icons/module_templates/eclipse_module.png"); // 512x512
+    public static final Icon GradleModule = load("/icons/module_templates/gradle_module.png"); // 512x512
   }
 }

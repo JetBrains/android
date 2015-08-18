@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.intellij.android.designer.propertyTable.*;
 import com.intellij.designer.model.*;
 import com.intellij.designer.propertyTable.PropertyTable;
@@ -30,7 +30,7 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.attrs.StyleableDefinition;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.uipreview.ProjectClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,17 +49,17 @@ public class PropertyParser {
 
   private MetaManager myMetaManager;
   private AttributeDefinitions myDefinitions;
-  private ProjectClassLoader myClassLoader;
+  private ModuleClassLoader myClassLoader;
   private Map<String, List<Property>> myCachedProperties;
 
   public PropertyParser(@NotNull RenderResult result)  {
     assert result.getSession() != null;
     assert result.getSession().getResult().isSuccess();
-    RenderService renderService = result.getRenderService();
-    assert renderService != null;
-    IAndroidTarget target = renderService.getConfiguration().getTarget();
+    RenderTask renderTask = result.getRenderTask();
+    assert renderTask != null;
+    IAndroidTarget target = renderTask.getConfiguration().getTarget();
     assert target != null;
-    Module module = renderService.getModule();
+    Module module = renderTask.getModule();
 
     myMetaManager = ViewsMetaManager.getInstance(module.getProject());
     myCachedProperties = myMetaManager.getCache(target.hashString());
@@ -70,10 +70,10 @@ public class PropertyParser {
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(module);
     assert androidPlatform != null;
     AndroidTargetData targetData = androidPlatform.getSdkData().getTargetData(target);
-    myDefinitions = targetData.getAttrDefs(module.getProject());
+    myDefinitions = targetData.getPublicAttrDefs(module.getProject());
 
-    LayoutLibrary library = renderService.getLayoutLib();
-    myClassLoader = ProjectClassLoader.get(library, module);
+    LayoutLibrary library = renderTask.getLayoutLib();
+    myClassLoader = ModuleClassLoader.get(library, module);
   }
 
   public void load(RadViewComponent component) throws Exception {

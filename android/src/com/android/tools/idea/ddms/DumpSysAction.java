@@ -15,24 +15,20 @@
  */
 package com.android.tools.idea.ddms;
 
-import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.editors.systeminfo.SystemInfoCaptureType;
+import com.android.tools.idea.profiling.capture.CaptureService;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
@@ -40,11 +36,11 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * {@link DumpSysAction} is a helper class that does the following when {@link #performAction()} is invoked:
- *  <ol>
- *    <li>Issues a <code>dumpsys [service] [package]</code> command on the device.</li>
- *    <li>Displays a progress bar that allows the user to cancel the shell command if necessary.</li>
- *    <li>On completion, saves the output of the command in a temporary file, and displays it in an editor.</li>
- *  </ol>
+ * <ol>
+ * <li>Issues a <code>dumpsys [service] [package]</code> command on the device.</li>
+ * <li>Displays a progress bar that allows the user to cancel the shell command if necessary.</li>
+ * <li>On completion, saves the output of the command in a temporary file, and displays it in an editor.</li>
+ * </ol>
  */
 public class DumpSysAction {
   private static final String TITLE = "Dump System Information";
@@ -54,9 +50,6 @@ public class DumpSysAction {
   private final String myService;
   private final Client myClient;
 
-  @GuardedBy("this")
-  private VirtualFile myOutputFile;
-
   public DumpSysAction(@NotNull Project p, @NotNull IDevice device, @NotNull String service, @Nullable Client client) {
     myProject = p;
     myDevice = device;
@@ -65,7 +58,7 @@ public class DumpSysAction {
   }
 
   public void performAction() {
-    final CountDownLatch latch = new CountDownLatch(1);
+    final CountDownLatch completionLatch = new CountDownLatch(1);
     final CollectingOutputReceiver receiver = new CollectingOutputReceiver();
 
     String description = myClient == null ? null : myClient.getClientData().getClientDescription();
@@ -79,47 +72,38 @@ public class DumpSysAction {
           @Override
           public void run() {
             try {
-              runShellCommand();
-            } finally {
-              latch.countDown();
-            }
-          }
-
-          private void runShellCommand() {
-            try {
               myDevice.executeShellCommand(command, receiver, 0, null);
+
+              ApplicationManager.getApplication().invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                  ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                    @Override
+                    public void run() {
+                      try {
+                        CaptureService service = CaptureService.getInstance(myProject);
+                        service.createCapture(SystemInfoCaptureType.class, receiver.getOutput().getBytes()).getFile().refresh(true, false);
+                      }
+                      catch (IOException e) {
+                        showError(myProject, "Unexpected error while saving system information", e);
+                      }
+                    }
+                  });
+                }
+              });
             }
             catch (Exception e) {
               showError(myProject, "Unexpected error while obtaining system information", e);
-              return;
             }
-
-            try {
-              String fileName = "dumpsys-" + pkgName;
-              File f = FileUtil.createTempFile(fileName, ".txt", true);
-              FileUtil.writeToFile(f, receiver.getOutput());
-              //noinspection ResultOfMethodCallIgnored
-              f.setReadOnly();
-              setOutputFile(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(f));
-            }
-            catch (IOException e) {
-              showError(myProject, "Unexpected error while saving system information", e);
-              return;
+            finally {
+              completionLatch.countDown();
             }
           }
         });
+
+        new ShellTask(myProject, completionLatch, receiver).queue();
       }
     }, ModalityState.defaultModalityState());
-
-    new ShellTask(myProject, latch, receiver).queue();
-  }
-
-  private synchronized void setOutputFile(@Nullable VirtualFile f) {
-    myOutputFile = f;
-  }
-
-  private synchronized VirtualFile getOutputFile() {
-    return myOutputFile;
   }
 
   private static void showError(@Nullable final Project project, @NotNull final String message, @Nullable final Throwable throwable) {
@@ -136,11 +120,11 @@ public class DumpSysAction {
     });
   }
 
-  private class ShellTask extends Task.Modal {
+  private static class ShellTask extends Task.Modal {
     private final CountDownLatch myCompletionLatch;
     private final CollectingOutputReceiver myReceiver;
 
-    public ShellTask(@NotNull Project project, CountDownLatch completionLatch, CollectingOutputReceiver receiver) {
+    public ShellTask(@NotNull Project project, @NotNull CountDownLatch completionLatch, @NotNull CollectingOutputReceiver receiver) {
       super(project, TITLE, true);
 
       myCompletionLatch = completionLatch;
@@ -159,18 +143,11 @@ public class DumpSysAction {
 
           if (indicator.isCanceled()) {
             myReceiver.cancel();
+            break;
           }
         }
         catch (InterruptedException ignored) {
         }
-      }
-    }
-
-    @Override
-    public void onSuccess() {
-      VirtualFile vf = getOutputFile();
-      if (vf != null && myProject != null) {
-        FileEditorManager.getInstance(myProject).openFile(vf, true);
       }
     }
   }

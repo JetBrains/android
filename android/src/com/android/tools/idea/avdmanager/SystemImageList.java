@@ -17,28 +17,22 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.*;
 import com.android.sdklib.devices.Abi;
-import com.android.sdklib.internal.repository.packages.SystemImagePackage;
-import com.android.sdklib.internal.repository.sources.SdkSource;
-import com.android.sdklib.internal.repository.sources.SdkSources;
 import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalSdk;
-import com.android.sdklib.repository.remote.RemotePkgInfo;
-import com.android.sdklib.repository.remote.RemoteSdk;
+import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.wizard.DialogWrapperHost;
-import com.android.utils.ILogger;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Comparing;
@@ -76,40 +70,29 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.WEAR_TAG;
  */
 public class SystemImageList extends JPanel implements ListSelectionListener {
   private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
-  private final JBCheckBox myShowRemoteCheckbox = new JBCheckBox("Show downloadable system images", true);
+  private final JBCheckBox myShowRemoteCheckbox = new JBCheckBox("Show downloadable system images", false);
   private final JButton myInstallLatestVersionButton = new JButton("Install Latest Version...");
-  private final LocalSdk mySdk;
-  private final RemoteSdk myRemoteSdk;
   private final Project myProject;
-  private final JPanel myRefreshPanel = new JPanel(new FlowLayout());
-  private TableView<AvdWizardConstants.SystemImageDescription> myTable = new TableView<AvdWizardConstants.SystemImageDescription>();
-  private ListTableModel<AvdWizardConstants.SystemImageDescription> myModel = new ListTableModel<AvdWizardConstants.SystemImageDescription>();
+  private final JPanel myRemoteStatusPanel = new JPanel(new CardLayout());
+  private final SdkState mySdkState;
+  private TableView<SystemImageDescription> myTable = new TableView<SystemImageDescription>();
+  private ListTableModel<SystemImageDescription> myModel = new ListTableModel<SystemImageDescription>();
   private Set<SystemImageSelectionListener> myListeners = Sets.newHashSet();
-  private Predicate<AvdWizardConstants.SystemImageDescription> myFilter;
-  private static final Logger LOG = Logger.getInstance(SystemImageList.class);
-  private static final ILogger ILOG = new LogWrapper(LOG) {
-    @Override
-    public void error(Throwable t, String errorFormat, Object... args) {
-      LOG.error(String.format(errorFormat, args), t);
-    }
-  };
+  private Predicate<SystemImageDescription> myFilter;
+  private static final String ERROR_KEY = "error";
+  private static final String LOADING_KEY = "loading";
 
   /**
    * Components which wish to receive a notification when the user has selected an AVD from this
    * table must implement this interface and register themselves through {@link #addSelectionListener(SystemImageSelectionListener)}
    */
   public interface SystemImageSelectionListener {
-    void onSystemImageSelected(@Nullable AvdWizardConstants.SystemImageDescription systemImage);
+    void onSystemImageSelected(@Nullable SystemImageDescription systemImage);
   }
 
   public SystemImageList(@Nullable Project project) {
     myProject = project;
-    AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (androidSdkData == null) {
-      throw new RuntimeException("No SDK Found");
-    }
-    mySdk = androidSdkData.getLocalSdk();
-    myRemoteSdk = androidSdkData.getRemoteSdk();
+    mySdkState = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
     myModel.setColumnInfos(ourColumnInfos);
     myModel.setSortable(true);
     myTable.setModelAndUpdateColumns(myModel);
@@ -139,10 +122,17 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     AsyncProcessIcon refreshIcon = new AsyncProcessIcon("refresh images");
     JLabel refreshingLabel = new JLabel("Refreshing...");
     refreshingLabel.setForeground(JBColor.GRAY);
-    myRefreshPanel.add(refreshIcon);
-    myRefreshPanel.add(refreshingLabel);
-    myRefreshPanel.setVisible(false);
-    refreshMessageAndButton.add(myRefreshPanel);
+    JPanel refreshPanel = new JPanel(new FlowLayout());
+    refreshPanel.add(refreshIcon);
+    refreshPanel.add(refreshingLabel);
+    refreshPanel.setVisible(false);
+    myRemoteStatusPanel.add(refreshPanel, LOADING_KEY);
+    JLabel errorLabel = new JLabel("Error loading remote images");
+    errorLabel.setForeground(JBColor.GRAY);
+    JPanel errorPanel = new JPanel(new FlowLayout());
+    errorPanel.add(errorLabel);
+    myRemoteStatusPanel.add(errorPanel, ERROR_KEY);
+    refreshMessageAndButton.add(myRemoteStatusPanel);
     refreshMessageAndButton.add(myRefreshButton);
     southPanel.add(refreshMessageAndButton, BorderLayout.EAST);
     southPanel.add(myShowRemoteCheckbox, BorderLayout.WEST);
@@ -159,7 +149,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         refreshImages(true);
       }
     });
-    myInstallLatestVersionButton.addActionListener(new ActionListener() {
+    myInstallLatestVersionButton.addActionListener(new ActionListener() {  // TODO(jbakermalone): actually show this button in the ui
       @Override
       public void actionPerformed(ActionEvent e) {
         installForDevice();
@@ -167,8 +157,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     });
     add(southPanel, BorderLayout.SOUTH);
     myTable.getSelectionModel().addListSelectionListener(this);
-    TableRowSorter<ListTableModel<AvdWizardConstants.SystemImageDescription>> sorter =
-      new TableRowSorter<ListTableModel<AvdWizardConstants.SystemImageDescription>>(myModel) {
+    TableRowSorter<ListTableModel<SystemImageDescription>> sorter =
+      new TableRowSorter<ListTableModel<SystemImageDescription>>(myModel) {
         @Override
         public Comparator<?> getComparator(int column) {
           if (column == 1) {
@@ -182,9 +172,9 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         }
       };
     sorter.setSortKeys(Collections.singletonList(new RowSorter.SortKey(1, SortOrder.DESCENDING)));
-    sorter.setRowFilter(new RowFilter<ListTableModel<AvdWizardConstants.SystemImageDescription>, Integer>() {
+    sorter.setRowFilter(new RowFilter<ListTableModel<SystemImageDescription>, Integer>() {
       @Override
-      public boolean include(Entry<? extends ListTableModel<AvdWizardConstants.SystemImageDescription>, ? extends Integer> entry) {
+      public boolean include(Entry<? extends ListTableModel<SystemImageDescription>, ? extends Integer> entry) {
         return !myModel.getRowValue(entry.getIdentifier()).isRemote() || myShowRemoteCheckbox.isSelected();
       }
     });
@@ -229,97 +219,81 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   }
 
   public void refreshImages(final boolean forceRefresh) {
-    ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Fetching available system image list") {
-      @Override
-      public void run(@NotNull ProgressIndicator progressIndicator) {
-        refreshImagesBackground(forceRefresh);
-      }
-    });
-  }
-
-  static class ImageFingerprint {
-    IdDisplay tag;
-    String abiType;
-    AndroidVersion version;
-
-    @Override
-    public int hashCode() {
-      return ((tag == null ? 0 : tag.hashCode()) * 37 + abiType.hashCode()) * 37 + version.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (!(obj instanceof ImageFingerprint)) {
-        return false;
-      }
-      ImageFingerprint other = (ImageFingerprint)obj;
-      return tag.equals(other.tag) && abiType.equals(other.abiType) && version.equals(other.version);
-    }
-  }
-
-  public void refreshImagesBackground(boolean forceRefresh) {
-    // Should not be run on the AWT thread
-    assert !ApplicationManager.getApplication().isDispatchThread();
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    ((CardLayout)myRemoteStatusPanel.getLayout()).show(myRemoteStatusPanel, LOADING_KEY);
+    myRemoteStatusPanel.setVisible(true);
+    myRefreshButton.setEnabled(false);
+    final List<SystemImageDescription> items = Lists.newArrayList();
+    Runnable localComplete = new Runnable() {
       @Override
       public void run() {
-        myRefreshPanel.setVisible(true);
-        myRefreshButton.setEnabled(false);
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+
+            items.addAll(getLocalImages());
+            // Update list in the UI immediately with the locally available system images
+            updateListModel(items);
+            if (items.isEmpty()) {
+              myShowRemoteCheckbox.setSelected(true);
+            }
+          }
+        });
       }
-    });
-    if (forceRefresh) {
-      mySdk.clearLocalPkg(PkgType.PKG_ALL);
-    }
-
-    List<AvdWizardConstants.SystemImageDescription> items = getLocalImages();
-    // Update list in the UI immediately with the locally available system images
-    updateListModel(items);
-
-    // Then perform the network call which may take a long time (e.g. 5 seconds or more);
-    // we'll merge in the results of the remotely-available images and update the UI a second
-    // time when this is done.
-    items.addAll(getRemoteImages(getLocalFingerprints(items)));
-    updateListModel(items);
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    };
+    Runnable remoteComplete = new Runnable() {
       @Override
       public void run() {
-        myRefreshPanel.setVisible(false);
-        myRefreshButton.setEnabled(true);
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            List<SystemImageDescription> remotes = getRemoteImages();
+            if (remotes != null) {
+              items.addAll(remotes);
+              updateListModel(items);
+              myRemoteStatusPanel.setVisible(false);
+              myRefreshButton.setEnabled(true);
+            }
+            else {
+              myShowRemoteCheckbox.setEnabled(false);
+              myShowRemoteCheckbox.setSelected(false);
+              myRemoteStatusPanel.setVisible(false);
+            }
+          }
+        });
       }
-    });
+    };
+    Runnable error = new Runnable() {
+      @Override
+      public void run() {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+
+            ((CardLayout)myRemoteStatusPanel.getLayout()).show(myRemoteStatusPanel, ERROR_KEY);
+            myRefreshButton.setEnabled(true);
+          }
+        });
+      }
+    };
+
+    mySdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false,
+                         localComplete, remoteComplete, error, forceRefresh);
   }
 
-  private List<AvdWizardConstants.SystemImageDescription> getRemoteImages(Set<ImageFingerprint> seen) {
-    List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
-    SdkSources sources = myRemoteSdk.fetchSources(RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS, ILOG);
-    Multimap<PkgType, RemotePkgInfo> packages = myRemoteSdk.fetch(sources, ILOG);
+  @Nullable
+  private List<SystemImageDescription> getRemoteImages() {
+    List<SystemImageDescription> items = Lists.newArrayList();
+    Set<RemotePkgInfo> infos = mySdkState.getPackages().getNewPkgs();
 
-    if (packages.isEmpty()) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-        public void run() {
-          myShowRemoteCheckbox.setEnabled(false);
-          myShowRemoteCheckbox.setSelected(false);
-        }
-      });
+    if (infos.isEmpty()) {
+      return null;
     }
     else {
-      for (SdkSource source : sources.getAllSources()) {
-        com.android.sdklib.internal.repository.packages.Package[] sourcePackages = source.getPackages();
-        if (sourcePackages == null) {
-          continue;
-        }
-        for (com.android.sdklib.internal.repository.packages.Package pack : sourcePackages) {
-          if (!(pack instanceof SystemImagePackage)) {
-            continue;
-          }
-          AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(pack);
-          ImageFingerprint probe = new ImageFingerprint();
-          probe.version = desc.getVersion();
-          probe.tag = desc.getTag();
-          probe.abiType = desc.getAbiType();
-          // If we don't have a filter or this image passes the filter
-          if (!seen.contains(probe) && (myFilter == null || myFilter.apply(desc))) {
+      for (RemotePkgInfo info : infos) {
+        if (info.getPkgDesc().getType().equals(PkgType.PKG_SYS_IMAGE)) {
+          IAndroidTarget target = findTarget(info);
+          SystemImageDescription desc = new SystemImageDescription(info.getPkgDesc(), target);
+          if (myFilter == null || myFilter.apply(desc)) {
             items.add(desc);
           }
         }
@@ -328,36 +302,36 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     return items;
   }
 
+  private IAndroidTarget findTarget(RemotePkgInfo info) {
+    AndroidSdkData data = mySdkState.getSdkData();
+    assert data != null; // we shouldn't be able to get here without local data being set
+    IAndroidTarget[] targets = data.getLocalSdk().getTargets();
+    for (IAndroidTarget target : targets) {
+      IdDisplay imageVendor = info.getPkgDesc().getVendor();
+      if ((imageVendor == null && target.isPlatform() || imageVendor != null && imageVendor.getId().equals(target.getVendor())) &&
+          info.getPkgDesc().getAndroidVersion().equals(target.getVersion())) {
+        return target;
+      }
+    }
+    return null;
+  }
+
   public void refreshLocalImagesSynchronously() {
     myModel.setItems(getLocalImages());
   }
 
-  private Set<ImageFingerprint> getLocalFingerprints(List<AvdWizardConstants.SystemImageDescription> images) {
-    Set<ImageFingerprint> fingerprints = Sets.newHashSet();
-    for (AvdWizardConstants.SystemImageDescription image : images) {
-      // If we don't have a filter or this image passes the filter
-      if (myFilter == null || myFilter.apply(image)) {
-        ImageFingerprint si = new ImageFingerprint();
-        si.tag = image.getTag();
-        si.abiType = image.getAbiType();
+  private List<SystemImageDescription> getLocalImages() {
+    List<SystemImageDescription> items = Lists.newArrayList();
 
-        si.version = image.getTarget().getVersion();
-        fingerprints.add(si);
-      }
-    }
-    return fingerprints;
-  }
+    AndroidSdkData data = mySdkState.getSdkData();
+    assert data != null; // we shouldn't be able to get here without local data being set
 
-  private List<AvdWizardConstants.SystemImageDescription> getLocalImages() {
-    List<AvdWizardConstants.SystemImageDescription> items = Lists.newArrayList();
-    List<IAndroidTarget> targets = Lists.newArrayList(mySdk.getTargets());
-
-    for (IAndroidTarget target : targets) {
+    for (IAndroidTarget target : data.getLocalSdk().getTargets(true)) {
       ISystemImage[] systemImages = target.getSystemImages();
       if (systemImages != null) {
         for (ISystemImage image : systemImages) {
           // If we don't have a filter or this image passes the filter
-          AvdWizardConstants.SystemImageDescription desc = new AvdWizardConstants.SystemImageDescription(target, image);
+          SystemImageDescription desc = new SystemImageDescription(target, image);
           if (myFilter == null || myFilter.apply(desc)) {
             items.add(desc);
           }
@@ -371,24 +345,18 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
    * Shows the given items. May be called from the background thread but will ensure
    * that the updates are applied in the UI thread.
    */
-  private void updateListModel(@NotNull final List<AvdWizardConstants.SystemImageDescription> items) {
-    Runnable r = new Runnable() {
-      @Override
-      public void run() {
-        AvdWizardConstants.SystemImageDescription selected = myTable.getSelectedObject();
-        myModel.setItems(items);
-        if (selected == null || !items.contains(selected)) {
-          selectDefaultImage();
-        }
-        else {
-          setSelectedImage(selected);
-        }
-      }
-    };
-    UIUtil.invokeLaterIfNeeded(r);
+  private void updateListModel(@NotNull final List<SystemImageDescription> items) {
+    SystemImageDescription selected = myTable.getSelectedObject();
+    myModel.setItems(items);
+    if (selected == null || !items.contains(selected)) {
+      selectDefaultImage();
+    }
+    else {
+      setSelectedImage(selected);
+    }
   }
 
-  public void setFilter(Predicate<AvdWizardConstants.SystemImageDescription> filter) {
+  public void setFilter(Predicate<SystemImageDescription> filter) {
     myFilter = filter;
   }
 
@@ -398,9 +366,13 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
   public void selectDefaultImage() {
     AndroidVersion maxVersion = null;
-    AvdWizardConstants.SystemImageDescription best = null;
-    for (AvdWizardConstants.SystemImageDescription desc : myModel.getItems()) {
-      if (!desc.isRemote() && ((maxVersion == null || desc.getVersion().compareTo(maxVersion) > 0) || (desc.getVersion().equals(maxVersion) && desc.getAbiType().equals(Abi.X86.getCpuArch())))) {
+    SystemImageDescription best = null;
+    for (SystemImageDescription desc : myModel.getItems()) {
+      AndroidVersion version = desc.getVersion();
+      if (!desc.isRemote() &&
+          (maxVersion == null ||
+           (version != null &&
+            (version.compareTo(maxVersion) > 0 || (version.equals(maxVersion) && desc.getAbiType().equals(Abi.X86.getCpuArch())))))) {
         best = desc;
         maxVersion = best.getVersion();
       }
@@ -408,9 +380,9 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     setSelectedImage(best);
   }
 
-  public void setSelectedImage(@Nullable AvdWizardConstants.SystemImageDescription selectedImage) {
+  public void setSelectedImage(@Nullable SystemImageDescription selectedImage) {
     if (selectedImage != null) {
-      for (AvdWizardConstants.SystemImageDescription listItem : myModel.getItems()) {
+      for (SystemImageDescription listItem : myModel.getItems()) {
         if (selectedImage.getVersion().equals(listItem.getVersion()) &&
             selectedImage.getAbiType().equals(listItem.getAbiType())) {
           myTable.setSelection(ImmutableSet.of(listItem));
@@ -443,10 +415,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
    */
   @Override
   public void valueChanged(ListSelectionEvent e) {
-    AvdWizardConstants.SystemImageDescription selected = myTable.getSelectedObject();
-    if (selected != null && selected.isRemote()) {
-      selected = null;
-    }
+    SystemImageDescription selected = myTable.getSelectedObject();
     for (SystemImageSelectionListener listener : myListeners) {
       listener.onSystemImageSelected(selected);
     }
@@ -460,26 +429,34 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     new SystemImageColumnInfo("Release Name") {
       @Nullable
       @Override
-      public String valueOf(AvdWizardConstants.SystemImageDescription systemImage) {
-        String codeName = SdkVersionInfo.getCodeName(systemImage.getVersion().getApiLevel());
-        String maybeDeprecated = systemImage.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ?
-                                 " (Deprecated)" : "";
-        return codeName == null ? "Unknown" : codeName + maybeDeprecated;
+      public String valueOf(SystemImageDescription systemImage) {
+        AndroidVersion version = systemImage.getVersion();
+        if (version == null) {
+          return "Unknown";
+        }
+        String codeName = version.isPreview() ? version.getCodename()
+                                              : SdkVersionInfo.getCodeName(version.getApiLevel());
+        String maybeDeprecated = version.getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ? " (Deprecated)" : "";
+        return codeName + maybeDeprecated;
       }
     },
     new SystemImageColumnInfo("API Level", 100) {
       @Nullable
       @Override
-      public String valueOf(AvdWizardConstants.SystemImageDescription systemImage) {
-        return systemImage.getVersion().getApiString();
+      public String valueOf(SystemImageDescription systemImage) {
+        AndroidVersion version = systemImage.getVersion();
+        if (version != null) {
+          return version.getApiString();
+        }
+        return "Unknown";
       }
 
       @Nullable
       @Override
-      public Comparator<AvdWizardConstants.SystemImageDescription> getComparator() {
-        return new Comparator<AvdWizardConstants.SystemImageDescription>() {
+      public Comparator<SystemImageDescription> getComparator() {
+        return new Comparator<SystemImageDescription>() {
           @Override
-          public int compare(AvdWizardConstants.SystemImageDescription o1, AvdWizardConstants.SystemImageDescription o2) {
+          public int compare(SystemImageDescription o1, SystemImageDescription o2) {
             return o1.getVersion().getApiLevel() - o2.getVersion().getApiLevel();
           }
         };
@@ -488,14 +465,14 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     new SystemImageColumnInfo("ABI", 100) {
       @Nullable
       @Override
-      public String valueOf(AvdWizardConstants.SystemImageDescription systemImage) {
+      public String valueOf(SystemImageDescription systemImage) {
         return systemImage.getAbiType();
       }
     },
     new SystemImageColumnInfo("Target") {
       @Nullable
       @Override
-      public String valueOf(AvdWizardConstants.SystemImageDescription systemImage) {
+      public String valueOf(SystemImageDescription systemImage) {
         IdDisplay tag = systemImage.getTag();
         String name = systemImage.getName();
         return tag == null || tag.equals(SystemImage.DEFAULT_TAG) ? name : String.format("%1$s - %2$s", name, tag);
@@ -504,13 +481,14 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   };
 
   /**
-   * This class extends {@link com.intellij.util.ui.ColumnInfo} in order to pull a string value from a given {@link com.android.sdklib.internal.avd.AvdInfo}.
+   * This class extends {@link com.intellij.util.ui.ColumnInfo} in order to pull a string value from a given
+   * {@link SystemImageDescription}.
    * This is the column info used for most of our table, including the Name, Resolution, and API level columns.
    * It uses the text field renderer ({@link #myRenderer}) and allows for sorting by the lexicographical value
    * of the string displayed by the {@link com.intellij.ui.components.JBLabel} rendered as the cell component. An explicit width may be used
    * by calling the overloaded constructor, otherwise the column will auto-scale to fill available space.
    */
-  public abstract class SystemImageColumnInfo extends ColumnInfo<AvdWizardConstants.SystemImageDescription, String> {
+  public abstract class SystemImageColumnInfo extends ColumnInfo<SystemImageDescription, String> {
     private final Border myBorder = IdeBorderFactory.createEmptyBorder(10, 10, 10, 10);
 
     private final int myWidth;
@@ -525,26 +503,26 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     }
 
     @Override
-    public boolean isCellEditable(AvdWizardConstants.SystemImageDescription systemImageDescription) {
+    public boolean isCellEditable(SystemImageDescription systemImageDescription) {
       return systemImageDescription.isRemote();
     }
 
     @Nullable
     @Override
-    public TableCellEditor getEditor(AvdWizardConstants.SystemImageDescription o) {
+    public TableCellEditor getEditor(SystemImageDescription o) {
       return new SystemImageDescriptionRenderer(o);
     }
 
     @Nullable
     @Override
-    public TableCellRenderer getRenderer(final AvdWizardConstants.SystemImageDescription o) {
+    public TableCellRenderer getRenderer(final SystemImageDescription o) {
       return new SystemImageDescriptionRenderer(o);
     }
 
     private class SystemImageDescriptionRenderer extends AbstractTableCellEditor implements TableCellRenderer {
-      private AvdWizardConstants.SystemImageDescription image;
+      private SystemImageDescription image;
 
-      SystemImageDescriptionRenderer(AvdWizardConstants.SystemImageDescription o) {
+      SystemImageDescriptionRenderer(SystemImageDescription o) {
         image = o;
       }
 
@@ -633,18 +611,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
     }
 
-    private void downloadImage(AvdWizardConstants.SystemImageDescription image) {
-      IPkgDesc remote = image.getRemotePackage().getPkgDesc();
-      IPkgDesc request = null;
-      if (remote.getType().equals(PkgType.PKG_SYS_IMAGE)) {
-        request =
-          PkgDesc.Builder.newSysImg(remote.getAndroidVersion(), remote.getTag(), remote.getPath(), remote.getMajorRevision())
-            .create();
-      }
-      else if (remote.getType().equals(PkgType.PKG_ADDON_SYS_IMAGE)) {
-        request = PkgDesc.Builder.newAddonSysImg(image.getVersion(), remote.getVendor(), image.getTag(), image.getAbiType(),
-                                                 (MajorRevision)image.getRemotePackage().getRevision()).create();
-      }
+    private void downloadImage(SystemImageDescription image) {
+      IPkgDesc request = image.getRemotePackage();
       List<IPkgDesc> requestedPackages = Lists.newArrayList(request);
       SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages,
                                                                   new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));
@@ -655,10 +623,10 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
     @Nullable
     @Override
-    public Comparator<AvdWizardConstants.SystemImageDescription> getComparator() {
-      return new Comparator<AvdWizardConstants.SystemImageDescription>() {
+    public Comparator<SystemImageDescription> getComparator() {
+      return new Comparator<SystemImageDescription>() {
         @Override
-        public int compare(AvdWizardConstants.SystemImageDescription o1, AvdWizardConstants.SystemImageDescription o2) {
+        public int compare(SystemImageDescription o1, SystemImageDescription o2) {
           String s1 = valueOf(o1);
           String s2 = valueOf(o2);
           return Comparing.compare(s1, s2);

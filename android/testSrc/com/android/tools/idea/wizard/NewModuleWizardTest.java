@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -148,7 +148,7 @@ public class NewModuleWizardTest extends AndroidTestCase {
       // On some systems JDK and Android SDK location might not be known - then the wizard will proceed to a page to set them up
       final int firstStepNewModulePath;
       final Class<?> firstStepNewModuleClass;
-      if (DefaultSdks.getDefaultJdk() != null && DefaultSdks.getDefaultAndroidHome() != null) {
+      if (IdeSdks.getJdk() != null && IdeSdks.getAndroidSdkPath() != null) {
         // Should proceed to Android module creation first step
         firstStepNewModulePath = 9;
         firstStepNewModuleClass = ConfigureAndroidModuleStep.class;

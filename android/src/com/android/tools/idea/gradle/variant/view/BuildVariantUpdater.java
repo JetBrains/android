@@ -19,19 +19,19 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -40,6 +40,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 
 /**
@@ -57,24 +59,20 @@ class BuildVariantUpdater {
    * @return the facets affected by the build variant selection, if the module update was successful; an empty list otherwise.
    */
   @NotNull
-  List<AndroidFacet> updateSelectedVariant(@NotNull final Project project, @NotNull final String moduleName, @NotNull final String buildVariantName) {
+  List<AndroidFacet> updateSelectedVariant(@NotNull final Project project,
+                                           @NotNull final String moduleName,
+                                           @NotNull final String buildVariantName) {
     final List<AndroidFacet> affectedFacets = Lists.newArrayList();
-    ExternalSystemApiUtil.executeProjectChangeAction(true /*synchronous*/, new DisposeAwareProjectChange(project) {
+    executeProjectChanges(project, new Runnable() {
       @Override
-      public void execute() {
+      public void run() {
         Module updatedModule = doUpdate(project, moduleName, buildVariantName, affectedFacets);
         if (updatedModule != null) {
           ConflictSet conflicts = findConflicts(project);
           conflicts.showSelectionConflicts();
         }
 
-        if (!affectedFacets.isEmpty()) {
-          // We build only the selected variant. If user changes variant, we need to re-generate sources since the generated sources may not
-          // be there.
-          if (!ApplicationManager.getApplication().isUnitTestMode()) {
-            ProjectBuilder.getInstance(project).generateSourcesOnly();
-          }
-        }
+        generateSourcesIfNeeded(affectedFacets);
       }
     });
     return affectedFacets;
@@ -83,18 +81,18 @@ class BuildVariantUpdater {
   /**
    * Updates the given modules to use the new test artifact name.
    *
-   * @param modules modules to be updated. All have to have a corresponding facet and android project.
+   * @param modules          modules to be updated. All have to have a corresponding facet and android project.
    * @param testArtifactName new test artifact name.
    * @return modules that were affected by the change.
    */
   @NotNull
-  List<Module> updateTestArtifactsNames(@NotNull Project project,
-                                        @NotNull final Iterable<Module> modules,
-                                        @NotNull final String testArtifactName) {
-    final List<Module> affectedModules = Lists.newArrayList();
-    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
+  List<AndroidFacet> updateTestArtifactsNames(@NotNull Project project,
+                                              @NotNull final Iterable<Module> modules,
+                                              @NotNull final String testArtifactName) {
+    final List<AndroidFacet> affectedFacets = Lists.newArrayList();
+    executeProjectChanges(project, new Runnable() {
       @Override
-      public void execute() {
+      public void run() {
         for (Module module : modules) {
           AndroidFacet androidFacet = AndroidFacet.getInstance(module);
           assert androidFacet != null;
@@ -105,13 +103,14 @@ class BuildVariantUpdater {
             ideaAndroidProject.setSelectedTestArtifactName(testArtifactName);
             androidFacet.syncSelectedVariantAndTestArtifact();
             invokeCustomizers(androidFacet.getModule(), ideaAndroidProject);
-            affectedModules.add(module);
+            affectedFacets.add(androidFacet);
           }
         }
+
+        generateSourcesIfNeeded(affectedFacets);
       }
     });
-
-    return affectedModules;
+    return affectedFacets;
   }
 
   @Nullable
@@ -172,10 +171,28 @@ class BuildVariantUpdater {
     return true;
   }
 
+  private static void generateSourcesIfNeeded(@NotNull List<AndroidFacet> affectedFacets) {
+    if (!affectedFacets.isEmpty()) {
+      // We build only the selected variant. If user changes variant, we need to re-generate sources since the generated sources may not
+      // be there.
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+        Project project = affectedFacets.get(0).getModule().getProject();
+        ProjectBuilder.getInstance(project).generateSourcesOnly();
+      }
+    }
+  }
+
   @NotNull
   private static Module invokeCustomizers(@NotNull Module module, @NotNull IdeaAndroidProject androidProject) {
-    for (ModuleCustomizer<IdeaAndroidProject> customizer : getCustomizers(androidProject.getProjectSystemId())) {
-      customizer.customizeModule(module, module.getProject(), androidProject);
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    try {
+      for (ModuleCustomizer<IdeaAndroidProject> customizer : getCustomizers(androidProject.getProjectSystemId())) {
+        customizer.customizeModule(module.getProject(), rootModel, androidProject);
+      }
+    }
+    finally {
+      rootModel.commit();
     }
     return module;
   }
@@ -195,7 +212,7 @@ class BuildVariantUpdater {
       if (IdeaAndroidProject.class.isAssignableFrom(customizer.getSupportedModelType())) {
         // Build system should be ProjectSystemId.IDE or match the build system sent as parameter.
         ProjectSystemId projectSystemId = customizer.getProjectSystemId();
-        if (projectSystemId == targetProjectSystemId || projectSystemId == ProjectSystemId.IDE) {
+        if (Objects.equal(projectSystemId, targetProjectSystemId) || Objects.equal(projectSystemId, ProjectSystemId.IDE)) {
           //noinspection unchecked
           customizers.add(customizer);
         }
@@ -208,7 +225,7 @@ class BuildVariantUpdater {
                                        @NotNull String moduleGradlePath,
                                        @NotNull String variant,
                                        @NotNull List<AndroidFacet> affectedFacets) {
-    Module module = GradleUtil.findModuleByGradlePath(project, moduleGradlePath);
+    Module module = findModuleByGradlePath(project, moduleGradlePath);
     if (module == null) {
       logAndShowUpdateFailure(variant, String.format("Cannot find module with Gradle path '%1$s'.", moduleGradlePath));
       return;

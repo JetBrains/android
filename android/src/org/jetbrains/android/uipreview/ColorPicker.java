@@ -97,8 +97,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
   };
 
-  public ColorPicker(@NotNull Disposable parent, @Nullable Color color, boolean enableOpacity) {
-    this(parent, color, true, enableOpacity, new ColorPickerListener[0], false);
+  public ColorPicker(@NotNull Disposable parent, @Nullable Color color, boolean enableOpacity, ColorPickerListener... listeners) {
+    this(parent, color, true, enableOpacity, listeners, false);
   }
 
   private ColorPicker(Disposable parent,

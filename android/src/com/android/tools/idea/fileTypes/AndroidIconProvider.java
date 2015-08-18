@@ -43,7 +43,7 @@ public class AndroidIconProvider extends IconProvider {
           int index = parentName.indexOf('-');
           if (index != -1) {
             FolderConfiguration config = FolderConfiguration.getConfigForFolder(parentName);
-            if (config != null && config.getEffectiveLanguage() != null && ResourceFolderType.getFolderType(parentName) != null) {
+            if (config != null && config.getLocaleQualifier() != null && ResourceFolderType.getFolderType(parentName) != null) {
               return FlagManager.get().getFlag(config);
             }
           }

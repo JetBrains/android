@@ -26,6 +26,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.tree.JavaElementType;
 import com.intellij.psi.tree.IElementType;
 import lombok.ast.*;
 
@@ -480,7 +481,7 @@ public class LombokPsiConverter {
       }
     }
     PsiEnumConstantInitializer initializer = enumConstant.getInitializingClass();
-    if (false && initializer != null) {
+    if (initializer != null) {
       NormalTypeBody body = toTypeBody(initializer);
       constant.astBody(body);
     }
@@ -1305,7 +1306,7 @@ public class LombokPsiConverter {
         if (initialization != null) {
           if (initialization instanceof PsiDeclarationStatement) {
             PsiDeclarationStatement pds = (PsiDeclarationStatement)initialization;
-            f.astVariableDeclaration(toVariableDefinition(pds));
+            f.astVariableDeclaration(toVariableDefinition(pds, pds.getDeclaredElements()));
           } else if (initialization instanceof PsiExpressionStatement) {
             PsiExpressionStatement expressionStatement = (PsiExpressionStatement)initialization;
             f.astExpressionInits().addToEnd(toExpression(expressionStatement.getExpression()));
@@ -1763,22 +1764,33 @@ public class LombokPsiConverter {
   }
 
   @NonNull
-  private static VariableDeclaration toVariableDeclaration(@NonNull PsiDeclarationStatement statement) {
+  private static Statement toVariableDeclaration(@NonNull PsiDeclarationStatement statement) {
+    PsiElement[] declaredElements = statement.getDeclaredElements();
+    if (declaredElements.length == 1 && declaredElements[0].getNode().getElementType() == JavaElementType.CLASS) {
+      // Class declaration inside method
+      TypeDeclaration typeDeclaration = toTypeDeclaration((PsiClass)declaredElements[0]);
+      if (typeDeclaration instanceof Statement) {
+        return (Statement)typeDeclaration;
+      }
+      throw new UnsupportedOperationException("Non-statement type declaration: " + statement);
+    }
+
     VariableDeclaration declaration = new VariableDeclaration();
     bind(declaration, statement);
-    VariableDefinition definition = toVariableDefinition(statement);
+    VariableDefinition definition = toVariableDefinition(statement, declaredElements);
     declaration.astDefinition(definition);
 
     return declaration;
   }
 
   @NonNull
-  private static VariableDefinition toVariableDefinition(@NonNull PsiDeclarationStatement statement) {
+  private static VariableDefinition toVariableDefinition(@NonNull PsiDeclarationStatement statement,
+                                                         @NonNull PsiElement[] declaredElements) {
     VariableDefinition definition = new VariableDefinition();
     bind(definition, statement);
 
     Modifiers modifiers = null;
-    for (PsiElement element : statement.getDeclaredElements()) {
+    for (PsiElement element : declaredElements) {
       if (element instanceof PsiVariable) {
         PsiVariable variable = (PsiVariable)element;
         if (modifiers == null) {

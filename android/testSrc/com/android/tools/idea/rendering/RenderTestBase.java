@@ -58,9 +58,9 @@ public abstract class RenderTestBase extends AndroidTestCase {
     return true;
   }
 
-  protected RenderService getRenderService(VirtualFile file) throws Exception {
+  protected RenderTask createRenderTask(VirtualFile file) throws Exception {
     Configuration configuration = getConfiguration(file, DEFAULT_DEVICE_ID, DEFAULT_THEME_STYLE);
-    return getRenderService(file, configuration);
+    return createRenderTask(file, configuration);
   }
 
   protected Configuration getConfiguration(VirtualFile file, String deviceId) {
@@ -80,21 +80,22 @@ public abstract class RenderTestBase extends AndroidTestCase {
     return configuration;
   }
 
-  protected RenderService getRenderService(VirtualFile file, Configuration configuration) throws IOException {
+  protected RenderTask createRenderTask(VirtualFile file, Configuration configuration) throws IOException {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);
     assertNotNull(facet);
-    RenderLogger logger = new RenderLogger("myLogger", myModule);
-    RenderService service = RenderService.create(facet, myModule, psiFile, configuration, logger, null);
-    assertNotNull(service);
-    return service;
+    RenderService renderService = RenderService.get(facet);
+    RenderLogger logger = renderService.createLogger();
+    final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
+    assertNotNull(task);
+    return task;
   }
 
-  protected void checkRendering(RenderService service, String thumbnailPath) throws IOException {
+  protected void checkRendering(RenderTask task, String thumbnailPath) throws IOException {
     // Next try a render
-    RenderResult result = service.render();
-    RenderResult render = renderOnSeparateThread(service);
+    RenderResult result = task.render();
+    RenderResult render = renderOnSeparateThread(task);
     assertNotNull(render);
 
     assertNotNull(result);
@@ -111,14 +112,14 @@ public abstract class RenderTestBase extends AndroidTestCase {
   }
 
   @Nullable
-  public static RenderResult renderOnSeparateThread(@NotNull final RenderService service) {
+  public static RenderResult renderOnSeparateThread(@NotNull final RenderTask task) {
     // Ensure that we don't render on the read lock (since we want to test that all parts of the
     // rendering system which needs a read lock asks for one!)
     final AtomicReference<RenderResult> holder = new AtomicReference<RenderResult>();
     Thread thread = new Thread("render test") {
       @Override
       public void run() {
-        holder.set(service.render());
+        holder.set(task.render());
       }
     };
     thread.start();

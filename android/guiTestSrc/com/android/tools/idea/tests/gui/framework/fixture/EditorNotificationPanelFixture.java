@@ -20,24 +20,22 @@ import com.intellij.ui.HyperlinkLabel;
 import org.fest.reflect.core.Reflection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.ComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
-public class EditorNotificationPanelFixture extends ComponentFixture<EditorNotificationPanel> {
-  public EditorNotificationPanelFixture(Robot robot, EditorNotificationPanel target) {
-    super(robot, target);
+public class EditorNotificationPanelFixture extends JComponentFixture<EditorNotificationPanelFixture, EditorNotificationPanel> {
+  public EditorNotificationPanelFixture(@NotNull Robot robot, @NotNull EditorNotificationPanel target) {
+    super(EditorNotificationPanelFixture.class, robot, target);
   }
 
   public void performAction(@NotNull final String label) {
-    final HyperlinkLabel link = robot.finder().find(target, new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
+    HyperlinkLabel link = robot().finder().find(target(), new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
       @Override
-      protected boolean isMatching(HyperlinkLabel hyperlinkLabel) {
+      protected boolean isMatching(@NotNull HyperlinkLabel hyperlinkLabel) {
         // IntelliJ's HyperLinkLabel class does not expose the getText method (it is package private)
         return hyperlinkLabel.isShowing() &&
                label.equals(Reflection.method("getText").withReturnType(String.class).in(hyperlinkLabel).invoke());
       }
     });
-
-    robot.click(link);
+    driver().click(link);
   }
 }

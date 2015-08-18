@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.sdklib.internal.repository.packages.License;
+import com.android.sdklib.repository.License;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
 import com.google.common.collect.Lists;
@@ -29,6 +29,8 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.treeStructure.Tree;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +43,7 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,6 +63,9 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   private Map<String, Boolean> myAcceptances = Maps.newHashMap();
   private Set<String> myVisibleLicenses = Sets.newHashSet();
   private String myCurrentLicense;
+  private Set<License> myLicenses = Sets.newHashSet();
+
+  private final File mySdkRoot;
 
   public LicenseAgreementStep(@NotNull Disposable disposable) {
     super(disposable);
@@ -88,6 +94,14 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
     mainPanel.add(optionsPanel, BorderLayout.SOUTH);
 
     setBodyComponent(mainPanel);
+
+    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (data != null) {
+      mySdkRoot = data.getLocalSdk().getLocation();
+    }
+    else {
+      mySdkRoot = null;
+    }
   }
 
   @Override
@@ -139,7 +153,8 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
         }
         if (myAcceptances.get(myCurrentLicense)) {
           myAcceptRadioButton.setSelected(true);
-        } else {
+        }
+        else {
           myDeclineRadioButton.setSelected(true);
         }
         myLicenseTextField.setCaretPosition(0);
@@ -163,10 +178,12 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
         if (!leaf) {
           License license = (License)node.getUserObject();
+
           if (license.getLicenseRef() != null) {
             appendLicenseText(license, license.getLicenseRef());
           }
-        } else {
+        }
+        else {
           Change change = (Change)node.getUserObject();
           if (change == null) {
             return;
@@ -181,7 +198,8 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
         if (notAccepted) {
           append("*", SimpleTextAttributes.ERROR_ATTRIBUTES);
           append(text, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-        } else {
+        }
+        else {
           append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
 
         }
@@ -193,7 +211,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
 
   @Override
   public boolean isStepVisible() {
-    return myState.listSize(INSTALL_REQUESTS_KEY) > 0;
+    return myState.listSize(INSTALL_REQUESTS_KEY) > 0 && !myLicenses.isEmpty();
   }
 
   @Override
@@ -245,7 +263,10 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
             license = AndroidSdkLicenseTemporaryData.HARDCODED_ANDROID_SDK_LICENSE;
           }
         }
-        toReturn.add(new Change(ChangeType.INSTALL, (IPkgDesc)o, license));
+        myLicenses.add(license);
+        if (!license.checkAccepted(mySdkRoot)) {
+          toReturn.add(new Change(ChangeType.INSTALL, (IPkgDesc)o, license));
+        }
       }
     }
     return toReturn;
@@ -280,14 +301,14 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   }
 
   @Override
-  public void onEnterStep() {
-    super.onEnterStep();
-    setChanges(createChangesList());
-  }
-
-  @Override
   public JComponent getPreferredFocusedComponent() {
     return myChangeTree;
+  }
+
+  public void performFinishingActions() {
+    for (License license : myLicenses) {
+      license.setAccepted(mySdkRoot);
+    }
   }
 
   protected enum ChangeType {

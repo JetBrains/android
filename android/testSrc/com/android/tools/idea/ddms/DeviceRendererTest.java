@@ -17,15 +17,9 @@ package com.android.tools.idea.ddms;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleColoredText;
-import com.intellij.ui.SimpleTextAttributes;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 import static com.android.ddmlib.IDevice.*;
 
@@ -52,6 +46,7 @@ public class DeviceRendererTest extends TestCase {
     EasyMock.expect(d.getProperty(PROP_BUILD_API_LEVEL)).andStubReturn(apiLevel);
     EasyMock.expect(d.getSerialNumber()).andStubReturn(serial);
     EasyMock.expect(d.getState()).andStubReturn(state);
+    EasyMock.expect(d.getName()).andStubReturn(manufacturer + model);
     EasyMock.replay(d);
     return d;
   }
@@ -63,12 +58,11 @@ public class DeviceRendererTest extends TestCase {
     DeviceRenderer.renderDeviceName(d, target);
 
     String name = target.toString();
-    assertTrue(StringUtil.containsIgnoreCase(name, "Nexus 4"));
+    assertTrue(StringUtil.containsIgnoreCase(name, "Nexus 4 Android 4.2 (API 17)"));
     // status should be shown only if !online
     assertFalse(StringUtil.containsIgnoreCase(name, IDevice.DeviceState.ONLINE.toString()));
     // serial should be shown only if !online
     assertFalse(StringUtil.containsIgnoreCase(name, serial));
-    assertTrue(StringUtil.containsIgnoreCase(name, "API 17"));
   }
 
   public void testDeviceNameRendering2() throws Exception {

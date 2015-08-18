@@ -145,14 +145,31 @@ public class AndroidLibraryStub implements AndroidLibrary {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
+  @NotNull
+  public File getExternalAnnotations() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public File getPublicResources() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isOptional() {
+    return false;
+  }
+
+  @Override
+  @Nullable
   public MavenCoordinates getRequestedCoordinates() {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public MavenCoordinates getResolvedCoordinates() {
     return null;
   }

@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.output.parser.javac;
 
 import com.android.SdkConstants;
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.Message;
+import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.ParsingFailedException;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
@@ -41,7 +43,7 @@ public class JavacOutputParser implements PatternAwareOutputParser {
   private static final String WARNING_PREFIX = "warning:"; // default value
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<Message> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     int colonIndex1 = line.indexOf(COLON);
     if (colonIndex1 == 1) { // drive letter (Windows)
@@ -53,17 +55,17 @@ public class JavacOutputParser implements PatternAwareOutputParser {
       if (part1.equalsIgnoreCase("error") /* jikes */ || part1.equalsIgnoreCase("Caused by")) {
         // +1 so we don't include the colon
         String text = line.substring(colonIndex1 + 1).trim();
-        addMessage(new GradleMessage(GradleMessage.Kind.ERROR, text), messages);
+        addMessage(new Message(Message.Kind.ERROR, text, SourceFilePosition.UNKNOWN), messages);
         return true;
       }
       if (part1.equalsIgnoreCase("warning")) {
         // +1 so we don't include the colon
         String text = line.substring(colonIndex1 + 1).trim();
-        addMessage(new GradleMessage(GradleMessage.Kind.WARNING, text), messages);
+        addMessage(new Message(Message.Kind.WARNING, text, SourceFilePosition.UNKNOWN), messages);
         return true;
       }
       if (part1.equalsIgnoreCase("javac")) {
-        addMessage(new GradleMessage(GradleMessage.Kind.ERROR, line), messages);
+        addMessage(new Message(Message.Kind.ERROR, line, SourceFilePosition.UNKNOWN), messages);
         return true;
       }
 
@@ -75,13 +77,13 @@ public class JavacOutputParser implements PatternAwareOutputParser {
           return false;
         }
         try {
-          int lineNumber = Integer.parseInt(line.substring(colonIndex1 + 1, colonIndex2).trim());
+          int lineNumber = Integer.parseInt(line.substring(colonIndex1 + 1, colonIndex2).trim()); // 1-based.
           String text = line.substring(colonIndex2 + 1).trim();
-          GradleMessage.Kind kind = GradleMessage.Kind.ERROR;
+          Message.Kind kind = Message.Kind.ERROR;
 
           if (text.startsWith(WARNING_PREFIX)) {
             text = text.substring(WARNING_PREFIX.length()).trim();
-            kind = GradleMessage.Kind.WARNING;
+            kind = Message.Kind.WARNING;
           }
 
           // Only slurp up line pointer (^) information if this is really javac
@@ -92,7 +94,7 @@ public class JavacOutputParser implements PatternAwareOutputParser {
 
           List<String> messageList = Lists.newArrayList();
           messageList.add(text);
-          int column;
+          int column; // 0-based.
           String prevLine = null;
           do {
             String nextLine = reader.readLine();
@@ -129,7 +131,7 @@ public class JavacOutputParser implements PatternAwareOutputParser {
                 }
                 buf.append(m);
               }
-              GradleMessage msg = new GradleMessage(kind, buf.toString(), file.getAbsolutePath(), lineNumber, column + 1);
+              Message msg = new Message(kind, buf.toString(), new SourceFilePosition(file, new SourcePosition(lineNumber - 1, column, -1)));
               addMessage(msg, messages);
             } finally {
               StringBuilderSpinAllocator.dispose(buf);
@@ -143,18 +145,18 @@ public class JavacOutputParser implements PatternAwareOutputParser {
     }
 
     if (line.endsWith("java.lang.OutOfMemoryError")) {
-      addMessage(new GradleMessage(GradleMessage.Kind.ERROR, "Out of memory."), messages);
+      addMessage(new Message(Message.Kind.ERROR, "Out of memory.", SourceFilePosition.UNKNOWN), messages);
       return true;
     }
 
     return false;
   }
 
-  private static void addMessage(@NotNull GradleMessage message, @NotNull List<GradleMessage> messages) {
+  private static void addMessage(@NotNull Message message, @NotNull List<Message> messages) {
     boolean duplicatesPrevious = false;
     int messageCount = messages.size();
     if (messageCount > 0) {
-      GradleMessage lastMessage = messages.get(messageCount - 1);
+      Message lastMessage = messages.get(messageCount - 1);
       duplicatesPrevious = lastMessage.equals(message);
     }
     if (!duplicatesPrevious) {

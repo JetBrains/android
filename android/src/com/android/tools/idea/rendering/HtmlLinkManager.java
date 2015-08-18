@@ -18,7 +18,9 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
@@ -54,6 +56,7 @@ import com.intellij.util.PsiNavigateUtil;
 import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,6 +72,7 @@ import static com.android.SdkConstants.*;
 public class HtmlLinkManager {
   private static final String URL_EDIT_CLASSPATH = "action:classpath";
   private static final String URL_BUILD = "action:build";
+  private static final String URL_SYNC = "action:sync";
   private static final String URL_SHOW_XML = "action:showXml";
   private static final String URL_ACTION_IGNORE_FRAGMENTS = "action:ignoreFragment";
   private static final String URL_RUNNABLE = "runnable:";
@@ -83,6 +87,7 @@ public class HtmlLinkManager {
   private static final String URL_EDIT_ATTRIBUTE = "editAttribute:";
   private static final String URL_REPLACE_ATTRIBUTE_VALUE = "replaceAttributeValue:";
   private static final String URL_DISABLE_SANDBOX = "disableSandbox:";
+  private static final String URL_REFRESH_RENDER = "refreshRender";
   static final String URL_ACTION_CLOSE = "action:close";
 
   private SparseArray<Runnable> myLinkRunnables;
@@ -110,6 +115,11 @@ public class HtmlLinkManager {
       assert dataContext != null;
       assert module != null;
       handleCompileModuleUrl(url, module);
+    }
+    else if (url.equals(URL_SYNC)) {
+      assert dataContext != null;
+      assert module != null;
+      handleSyncProjectUrl(url, module.getProject());
     }
     else if (url.equals(URL_EDIT_CLASSPATH)) {
       assert module != null;
@@ -174,6 +184,8 @@ public class HtmlLinkManager {
       if (command != null) {
         command.execute();
       }
+    } else if (url.startsWith(URL_REFRESH_RENDER)) {
+      handleRefreshRenderUrl(result);
     }
     else {
       assert false : "Unexpected URL: " + url;
@@ -304,6 +316,16 @@ public class HtmlLinkManager {
   private static void handleCompileModuleUrl(@NotNull String url, @NotNull Module module) {
     assert url.equals(URL_BUILD) : url;
     ProjectBuilder.getInstance(module.getProject()).compileJava();
+  }
+
+  public String createSyncProjectUrl() {
+    return URL_SYNC;
+  }
+
+  private static void handleSyncProjectUrl(@NotNull String url, @NotNull Project project) {
+    assert url.equals(URL_SYNC) : url;
+    BuildVariantView.getInstance(project).projectImportStarted();
+    GradleProjectImporter.getInstance().requestProjectSync(project, null);
   }
 
   public String createEditClassPathUrl() {
@@ -740,13 +762,7 @@ public class HtmlLinkManager {
   private static void handleIgnoreFragments(@NotNull String url, @NotNull RenderResult result) {
     assert url.equals(URL_ACTION_IGNORE_FRAGMENTS);
     RenderLogger.ignoreFragments();
-    RenderService renderService = result.getRenderService();
-    if (renderService != null) {
-      RenderContext renderContext = renderService.getRenderContext();
-      if (renderContext != null) {
-        renderContext.requestRender();
-      }
-    }
+    requestRender(result);
   }
 
   public String createEditAttributeUrl(String attribute, String value) {
@@ -832,15 +848,7 @@ public class HtmlLinkManager {
 
   private static void handleDisableSandboxUrl(@NotNull Module module, @Nullable RenderResult result) {
     RenderSecurityManager.sEnabled = false;
-    if (result != null) {
-      RenderService renderService = result.getRenderService();
-      if (renderService != null) {
-        RenderContext renderContext = renderService.getRenderContext();
-        if (renderContext != null) {
-          renderContext.requestRender();
-        }
-      }
-    }
+    requestRender(result);
 
     Messages.showInfoMessage(module.getProject(),
          "The custom view rendering sandbox was disabled for this session.\n\n" +
@@ -848,5 +856,33 @@ public class HtmlLinkManager {
          RenderSecurityManager.ENABLED_PROPERTY + "=" + VALUE_FALSE + "\n" +
          "to {install}/bin/idea.properties.",
          "Disabled Rendering Sandbox");
+  }
+
+  public String createRefreshRenderUrl() {
+    return URL_REFRESH_RENDER;
+  }
+
+  private static void handleRefreshRenderUrl(@Nullable RenderResult result) {
+    if (result != null) {
+      RenderTask renderTask = result.getRenderTask();
+      if (renderTask != null) {
+        RenderContext renderContext = renderTask.getRenderContext();
+        if (renderContext != null) {
+          RefreshRenderAction.clearCache(renderContext);
+        }
+      }
+    }
+  }
+
+  private static void requestRender(@Nullable RenderResult result) {
+    if (result != null) {
+      RenderTask renderTask = result.getRenderTask();
+      if (renderTask != null) {
+        RenderContext renderContext = renderTask.getRenderContext();
+        if (renderContext != null) {
+          renderContext.requestRender();
+        }
+      }
+    }
   }
 }

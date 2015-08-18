@@ -26,7 +26,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 
 public class OpenStringResourceEditorAction extends AnAction {
   public OpenStringResourceEditorAction() {
-    super("Open Translation Editor (Preview)", null, StringResourceEditor.ICON);
+    super("Open Translations Editor", null, StringResourceEditor.ICON);
   }
 
   @Override

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.navigation.model;
 
-import com.android.annotations.Property;
-import com.android.annotations.Transient;
+import com.android.tools.idea.editors.navigation.annotations.Property;
+import com.android.tools.idea.editors.navigation.annotations.Transient;
 import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
 
 import java.util.ArrayList;

@@ -98,16 +98,57 @@ class DomPsiConverter {
     assert node instanceof DomNode;
     DomNode domNode = (DomNode)node;
     XmlElement element = domNode.myElement;
-    TextRange textRange = element.getTextRange();
 
     // For elements, don't highlight the entire element range; instead, just
     // highlight the element name
     if (node.getNodeType() == Node.ELEMENT_NODE) {
+      return getTextNameRange(node);
+    }
+
+    return element.getTextRange();
+  }
+
+  /** Gets the {@link TextRange} for a {@link Node} created with this converter */
+  @NotNull
+  public static TextRange getTextNameRange(@NotNull Node node) {
+    assert node instanceof DomNode;
+    DomNode domNode = (DomNode)node;
+    XmlElement element = domNode.myElement;
+
+    // For elements and attributes, don't highlight the entire element range; instead, just
+    // highlight the element name
+    if (node.getNodeType() == Node.ELEMENT_NODE && element instanceof XmlTag) {
       String tag = node.getNodeName();
       int index = element.getText().indexOf(tag);
       if (index != -1) {
+        TextRange textRange = element.getTextRange();
         int start = textRange.getStartOffset() + index;
         return new TextRange(start, start + tag.length());
+      }
+    } else if (node.getNodeType() == Node.ATTRIBUTE_NODE && element instanceof XmlAttribute) {
+      XmlElement nameElement = ((XmlAttribute)element).getNameElement();
+      if (nameElement != null) {
+        return nameElement.getTextRange();
+      }
+    }
+
+    return element.getTextRange();
+  }
+
+  /** Gets the {@link TextRange} for the value region of a {@link Node} created with this converter */
+  @NotNull
+  public static TextRange getTextValueRange(@NotNull Node node) {
+    assert node instanceof DomNode;
+    DomNode domNode = (DomNode)node;
+    XmlElement element = domNode.myElement;
+    TextRange textRange = element.getTextRange();
+
+    // For attributes, don't highlight the entire element range; instead, just
+    // highlight the value range
+    if (node.getNodeType() == Node.ATTRIBUTE_NODE && element instanceof XmlAttribute) {
+      XmlAttributeValue valueElement = ((XmlAttribute)element).getValueElement();
+      if (valueElement != null) {
+        return valueElement.getValueTextRange();
       }
     }
 

@@ -32,7 +32,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -45,12 +44,14 @@ import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
 
 /**
  * Invokes Gradle tasks directly. Results of tasks execution are displayed in both the "Messages" tool window and the new "Gradle Console"
@@ -180,8 +181,7 @@ public class GradleInvoker {
   }
 
   public void executeTasks(@NotNull final List<String> gradleTasks, @NotNull final List<String> commandLineArguments) {
-    ExternalSystemTaskId id =
-      ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, myProject);
+    ExternalSystemTaskId id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, EXECUTE_TASK, myProject);
     executeTasks(gradleTasks, commandLineArguments, id, null, false);
   }
 
@@ -268,23 +268,20 @@ public class GradleInvoker {
       JpsAndroidModuleProperties properties = androidFacet.getProperties();
       switch (buildMode) {
         case SOURCE_GEN:
-          tasks.add(createBuildTask(gradlePath, properties.SOURCE_GEN_TASK_NAME));
-          if (StringUtil.isNotEmpty(properties.TEST_SOURCE_GEN_TASK_NAME)) {
-            tasks.add(createBuildTask(gradlePath, properties.TEST_SOURCE_GEN_TASK_NAME));
+          for (String taskName : properties.AFTER_SYNC_TASK_NAMES) {
+            addTaskIfSpecified(tasks, gradlePath, taskName);
           }
           break;
         case ASSEMBLE:
           tasks.add(createBuildTask(gradlePath, properties.ASSEMBLE_TASK_NAME));
+
+          if (testCompileType != TestCompileType.NONE) {
+            addTaskIfSpecified(tasks, gradlePath, properties.ASSEMBLE_TEST_TASK_NAME);
+          }
           break;
         default:
           tasks.add(createBuildTask(gradlePath, properties.COMPILE_JAVA_TASK_NAME));
-      }
-
-      if (testCompileType != TestCompileType.NONE) {
-        String gradleTaskName = properties.ASSEMBLE_TEST_TASK_NAME;
-        if (StringUtil.isNotEmpty(gradleTaskName)) {
-          tasks.add(createBuildTask(gradlePath, gradleTaskName));
-        }
+          addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TEST_TASK_NAME);
       }
     }
     else {
@@ -298,6 +295,14 @@ public class GradleInvoker {
           tasks.add(createBuildTask(gradlePath, JavaGradleFacet.TEST_CLASSES_TASK_NAME));
         }
       }
+    }
+  }
+
+  private static void addTaskIfSpecified(@NotNull List<String> tasks,
+                                         @NotNull String gradlePath,
+                                         @Nullable String gradleTaskName) {
+    if (StringUtil.isNotEmpty(gradleTaskName)) {
+      tasks.add(createBuildTask(gradlePath, gradleTaskName));
     }
   }
 

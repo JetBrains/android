@@ -16,10 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.utils.SdkUtils;
-import freemarker.template.SimpleScalar;
-import freemarker.template.TemplateMethodModel;
-import freemarker.template.TemplateModel;
-import freemarker.template.TemplateModelException;
+import freemarker.template.*;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -27,7 +24,7 @@ import java.util.List;
 import java.util.Properties;
 
 /** Escapes a property value (such that its syntax is valid in a Java properties file */
-public class FmEscapePropertyValueMethod implements TemplateMethodModel {
+public class FmEscapePropertyValueMethod implements TemplateMethodModelEx {
   @Override
   public TemplateModel exec(List args) throws TemplateModelException {
     if (args.size() != 1) {
@@ -36,7 +33,7 @@ public class FmEscapePropertyValueMethod implements TemplateMethodModel {
 
     // Slow, stupid implementation, but is 100% compatible with Java's property file implementation
     Properties properties = new Properties();
-    String value = args.get(0).toString();
+    String value = ((TemplateScalarModel)args.get(0)).getAsString();
     properties.setProperty("k", value); // key doesn't matter
     StringWriter writer = new StringWriter();
     String escaped;

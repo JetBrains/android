@@ -17,9 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.resources.Navigation;
 import com.android.resources.ScreenOrientation;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
@@ -28,10 +25,8 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.io.File;
@@ -87,7 +82,10 @@ public class AvdWizardConstants {
 
   public static final Key<Boolean> IS_IN_EDIT_MODE_KEY = createKey(WIZARD_ONLY + "isInEditMode", WIZARD, Boolean.class);
 
+  public static final Key<File> DISPLAY_SKIN_FILE_KEY = createKey("displaySkinPath", STEP, File.class);
   public static final Key<File> CUSTOM_SKIN_FILE_KEY = createKey(AvdManager.AVD_INI_SKIN_PATH, WIZARD, File.class);
+  public static final Key<File> BACKUP_SKIN_FILE_KEY = createKey(AvdManager.AVD_INI_BACKUP_SKIN_PATH, WIZARD, File.class);
+  public static final Key<Boolean> DEVICE_FRAME_KEY = createKey("showDeviceFrame", STEP, Boolean.class);
 
   public static final Key<String> DISPLAY_NAME_KEY = createKey(AvdManagerConnection.AVD_INI_DISPLAY_NAME, WIZARD, String.class);
   public static final String AVD_INI_AVD_ID = "AvdId";
@@ -145,102 +143,26 @@ public class AvdWizardConstants {
 
   public static final File NO_SKIN = new File("_no_skin");
 
-  public static final class SystemImageDescription {
-    private IAndroidTarget target;
-    private ISystemImage systemImage;
-    private com.android.sdklib.internal.repository.packages.Package remotePackage;
+  /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
+  private static final int MAX_RAM_MB = 1536;
 
-    public SystemImageDescription(IAndroidTarget target, ISystemImage systemImage) {
-      this.target = target;
-      this.systemImage = systemImage;
+  /**
+   * Get the default amount of ram to use for the given hardware in an AVD. This is typically
+   * the same RAM as is used in the hardware, but it is maxed out at {@link #MAX_RAM_MB} since more than that
+   * is usually detrimental to development system performance and most likely not needed by the
+   * emulated app (e.g. it's intended to let the hardware run smoothly with lots of services and
+   * apps running simultaneously)
+   *
+   * @param hardware the hardware to look up the default amount of RAM on
+   * @return the amount of RAM to default an AVD to for the given hardware
+   */
+  @NotNull
+  public static Storage getDefaultRam(@NotNull Hardware hardware) {
+    Storage ram = hardware.getRam();
+    if (ram.getSizeAsUnit(Storage.Unit.MiB) >= MAX_RAM_MB) {
+      return new Storage(MAX_RAM_MB, Storage.Unit.MiB);
     }
 
-    public SystemImageDescription(com.android.sdklib.internal.repository.packages.Package remotePackage) {
-      this.remotePackage = remotePackage;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(target, systemImage, remotePackage);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (!(obj instanceof SystemImageDescription)) {
-        return false;
-      }
-      SystemImageDescription other = (SystemImageDescription) obj;
-      return Objects.equal(target, other.target) && Objects.equal(systemImage, other.systemImage) &&
-             Objects.equal(remotePackage, other.remotePackage);
-    }
-
-    @Nullable
-    public AndroidVersion getVersion() {
-      if (target != null) {
-        return target.getVersion();
-      } else {
-        return remotePackage.getPkgDesc().getAndroidVersion();
-      }
-    }
-
-    public com.android.sdklib.internal.repository.packages.Package getRemotePackage() {
-      return remotePackage;
-    }
-
-    public boolean isRemote() {
-      return remotePackage != null;
-    }
-
-    @Nullable
-    public String getAbiType() {
-      if (systemImage != null) {
-        return systemImage.getAbiType();
-      } else if (remotePackage.getPkgDesc().getType() == PkgType.PKG_SYS_IMAGE
-              || remotePackage.getPkgDesc().getType() == PkgType.PKG_ADDON_SYS_IMAGE) {
-        return remotePackage.getPkgDesc().getPath();
-      } else {
-        return "";
-      }
-    }
-
-    @Nullable
-    public IdDisplay getTag() {
-      if (systemImage != null) {
-        return systemImage.getTag();
-      }
-      return remotePackage.getPkgDesc().getTag();
-    }
-
-    public String getName() {
-      if (target != null) {
-        return target.getFullName();
-      }
-      return remotePackage.getDescription();
-    }
-
-    public String getVendor() {
-      if (target != null) {
-        return target.getVendor();
-      }
-      return "";
-    }
-
-    public String getVersionName() {
-      if (target != null) {
-        return target.getVersionName();
-      }
-      return "";
-    }
-
-    public IAndroidTarget getTarget() {
-      return target;
-    }
-
-    public File[] getSkins() {
-      if (target != null) {
-        return target.getSkins();
-      }
-      return new File[0];
-    }
+    return ram;
   }
 }

@@ -55,16 +55,32 @@ public class TypedVariable {
     }
   }
 
+  /**
+   * Return the value if it could be parsed to the correct type, or null.
+   *
+   * Note: Passing in null for the value parameter will always return a null result, but this
+   * method allows it to make it easier to use with APIs that may return null strings.
+   */
   @Nullable
-  public static Object parseGlobal(@NotNull Attributes attributes) {
-    String value = attributes.getValue(Template.ATTR_VALUE);
-    Type type = Type.get(attributes.getValue(Template.ATTR_TYPE));
+  public static Object parse(@NotNull Type type, @Nullable String value) {
+    if (value == null) {
+      return null;
+    }
 
     switch (type) {
       case STRING:
         return value;
       case BOOLEAN:
-        return Boolean.parseBoolean(value);
+        // Do our own boolean parsing, as Boolean.parseBoolean doesn't fail on invalid match.
+        if (Boolean.TRUE.toString().equalsIgnoreCase(value)) {
+          return Boolean.TRUE;
+        }
+        else if (Boolean.FALSE.toString().equalsIgnoreCase(value)) {
+          return Boolean.FALSE;
+        }
+        else {
+          return null;
+        }
       case INTEGER:
         try {
           return Integer.parseInt(value);
@@ -72,10 +88,18 @@ public class TypedVariable {
           if (!ApplicationManager.getApplication().isUnitTestMode()) {
             LOG.error("NumberFormatException while evaluating " + value);
           }
-          return value;
+          return null;
         }
     }
 
-    return value;
+    return null;
+  }
+
+  @Nullable
+  public static Object parseGlobal(@NotNull Attributes attributes) {
+    String value = attributes.getValue(Template.ATTR_VALUE);
+    Type type = Type.get(attributes.getValue(Template.ATTR_TYPE));
+    Object result = parse(type, value);
+    return (result != null) ? result : value;
   }
 }

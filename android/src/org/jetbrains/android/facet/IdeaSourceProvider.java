@@ -23,6 +23,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
@@ -33,6 +34,9 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 
 /**
  * Like {@link SourceProvider}, but for IntelliJ, which means it provides
@@ -73,10 +77,7 @@ public abstract class IdeaSourceProvider {
   public abstract Collection<VirtualFile> getRenderscriptDirectories();
 
   @NotNull
-  public abstract Collection<VirtualFile> getCDirectories();
-
-  @NotNull
-  public abstract Collection<VirtualFile> getCppDirectories();
+  public abstract Collection<VirtualFile> getJniDirectories();
 
   @NotNull
   public abstract Collection<VirtualFile> getJniLibsDirectories();
@@ -109,7 +110,7 @@ public abstract class IdeaSourceProvider {
       File manifestFile = myProvider.getManifestFile();
       if (myManifestFile == null || !FileUtil.filesEqual(manifestFile, myManifestIoFile)) {
         myManifestIoFile = manifestFile;
-        myManifestFile = LocalFileSystem.getInstance().findFileByIoFile(manifestFile);
+        myManifestFile = VfsUtil.findFileByIoFile(manifestFile, true);
       }
 
       return myManifestFile;
@@ -154,14 +155,13 @@ public abstract class IdeaSourceProvider {
 
     @NotNull
     @Override
-    public Collection<VirtualFile> getCDirectories() {
-      return convertFileSet(myProvider.getCDirectories());
-    }
-
-    @NotNull
-    @Override
-    public Collection<VirtualFile> getCppDirectories() {
-      return convertFileSet(myProvider.getCppDirectories());
+    public Collection<VirtualFile> getJniDirectories() {
+      // Even though the model has separate methods to get the C and Cpp directories,
+      // they both return the same set of folders. So we combine them here.
+      Set<VirtualFile> jniDirectories = Sets.newHashSet();
+      jniDirectories.addAll(convertFileSet(myProvider.getCDirectories()));
+      jniDirectories.addAll(convertFileSet(myProvider.getCppDirectories()));
+      return jniDirectories;
     }
 
     @NotNull
@@ -226,7 +226,22 @@ public abstract class IdeaSourceProvider {
     @Nullable
     @Override
     public VirtualFile getManifestFile() {
-      return AndroidRootUtil.getFileByRelativeModulePath(myFacet.getModule(), myFacet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
+      Module module = myFacet.getModule();
+      VirtualFile file = AndroidRootUtil.getFileByRelativeModulePath(module, myFacet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
+      if (file != null) {
+        return file;
+      }
+
+      // Not calling AndroidRootUtil.getMainContentRoot(myFacet) because that method can
+      // recurse into this same method if it can't find a content root. (This scenario
+      // applies when we're looking for manifests in for example a temporary file system,
+      // as tested by ResourceTypeInspectionTest#testLibraryRevocablePermission)
+      VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
+      if (contentRoots.length == 1) {
+        return contentRoots[0].findChild(ANDROID_MANIFEST_XML);
+      }
+
+      return null;
     }
 
     @NotNull
@@ -262,14 +277,8 @@ public abstract class IdeaSourceProvider {
 
     @NotNull
     @Override
-    public Collection<VirtualFile> getCDirectories() {
+    public Collection<VirtualFile> getJniDirectories() {
      return Collections.emptySet();
-    }
-
-    @NotNull
-    @Override
-    public Collection<VirtualFile> getCppDirectories() {
-      return Collections.emptySet();
     }
 
     @NotNull
@@ -385,8 +394,7 @@ public abstract class IdeaSourceProvider {
     srcDirectories.addAll(getAidlDirectories());
     srcDirectories.addAll(getRenderscriptDirectories());
     srcDirectories.addAll(getAssetsDirectories());
-    srcDirectories.addAll(getCDirectories());
-    srcDirectories.addAll(getCppDirectories());
+    srcDirectories.addAll(getJniDirectories());
     srcDirectories.addAll(getJniLibsDirectories());
     return srcDirectories;
   }
@@ -566,6 +574,10 @@ public abstract class IdeaSourceProvider {
    */
   @NotNull
   public static List<IdeaSourceProvider> getAllIdeaSourceProviders(@NotNull AndroidFacet facet) {
+    if (!facet.isGradleProject() || facet.getIdeaAndroidProject() == null) {
+      return Collections.singletonList(facet.getMainIdeaSourceProvider());
+    }
+
     List<IdeaSourceProvider> ideaSourceProviders = Lists.newArrayList();
     for (SourceProvider sourceProvider : getAllSourceProviders(facet)) {
       ideaSourceProviders.add(create(sourceProvider));
@@ -727,17 +739,10 @@ public abstract class IdeaSourceProvider {
     }
   };
 
-  public static Function<IdeaSourceProvider, List<VirtualFile>> C_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+  public static Function<IdeaSourceProvider, List<VirtualFile>> JNI_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
     @Override
     public List<VirtualFile> apply(IdeaSourceProvider provider) {
-      return Lists.newArrayList(provider.getCDirectories());
-    }
-  };
-
-  public static Function<IdeaSourceProvider, List<VirtualFile>> CPP_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
-    @Override
-    public List<VirtualFile> apply(IdeaSourceProvider provider) {
-      return Lists.newArrayList(provider.getCppDirectories());
+      return Lists.newArrayList(provider.getJniDirectories());
     }
   };
 

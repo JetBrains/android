@@ -19,15 +19,12 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.base.Strings;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.util.containers.ContainerUtil;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,19 +33,26 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.Collection;
 
+import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
+import static com.intellij.openapi.util.io.FileUtilRt.getRelativePath;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+
 /**
- * Adds the Android facet to modules imported from {@link com.android.builder.model.AndroidProject}s.
+ * Adds the Android facet to modules imported from {@link AndroidProject}s.
  */
 public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroidProject> {
-  private static final String EMPTY_PATH = "";
 
   // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
   private static final String SEPARATOR = "/";
 
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull final Project project, @Nullable IdeaAndroidProject androidProject) {
+  public void customizeModule(@NotNull Project project,
+                              @NotNull ModifiableRootModel ideaModuleModel,
+                              @Nullable IdeaAndroidProject androidProject) {
+    Module module = ideaModuleModel.getModule();
     if (androidProject == null) {
-      Facets.removeAllFacetsOfType(module, AndroidFacet.ID);
+      removeAllFacetsOfType(module, AndroidFacet.ID);
     }
     else {
       AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -82,15 +86,15 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
     syncSelectedVariantAndTestArtifact(facetState, ideaAndroidProject);
 
     // This code needs to be modified soon. Read the TODO in getRelativePath
-    File moduleDir = VfsUtilCore.virtualToIoFile(ideaAndroidProject.getRootDir());
+    File moduleDirPath = ideaAndroidProject.getRootDirPath();
     File manifestFile = sourceProvider.getManifestFile();
-    facetState.MANIFEST_FILE_RELATIVE_PATH = getRelativePath(moduleDir, manifestFile);
+    facetState.MANIFEST_FILE_RELATIVE_PATH = relativePath(moduleDirPath, manifestFile);
 
     Collection<File> resDirs = sourceProvider.getResDirectories();
-    facetState.RES_FOLDER_RELATIVE_PATH = getRelativePath(moduleDir, resDirs);
+    facetState.RES_FOLDER_RELATIVE_PATH = relativePath(moduleDirPath, resDirs);
 
     Collection<File> assetsDirs = sourceProvider.getAssetsDirectories();
-    facetState.ASSETS_FOLDER_RELATIVE_PATH = getRelativePath(moduleDir, assetsDirs);
+    facetState.ASSETS_FOLDER_RELATIVE_PATH = relativePath(moduleDirPath, assetsDirs);
 
     facet.setIdeaAndroidProject(ideaAndroidProject);
     facet.syncSelectedVariantAndTestArtifact();
@@ -112,19 +116,19 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
   // We are only getting the relative path of the first file in the collection, because JpsAndroidModuleProperties only accepts one path.
   // TODO(alruiz): Change JpsAndroidModuleProperties (and callers) to use multiple paths.
   @NotNull
-  private static String getRelativePath(@NotNull File basePath, @NotNull Collection<File> dirs) {
-    return getRelativePath(basePath, ContainerUtil.getFirstItem(dirs));
+  private static String relativePath(@NotNull File basePath, @NotNull Collection<File> dirs) {
+    return relativePath(basePath, getFirstItem(dirs));
   }
 
   @NotNull
-  private static String getRelativePath(@NotNull File basePath, @Nullable File file) {
+  private static String relativePath(@NotNull File basePath, @Nullable File file) {
     String relativePath = null;
     if (file != null) {
-      relativePath = FileUtilRt.getRelativePath(basePath, file);
+      relativePath = getRelativePath(basePath, file);
     }
     if (relativePath != null && !relativePath.startsWith(SEPARATOR)) {
-      return SEPARATOR + FileUtilRt.toSystemIndependentName(relativePath);
+      return SEPARATOR + toSystemIndependentName(relativePath);
     }
-    return EMPTY_PATH;
+    return "";
   }
 }

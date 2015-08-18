@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.PreciseRevision;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.settings.LocationSettingType;
@@ -25,23 +25,26 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 import org.jetbrains.plugins.gradle.util.GradleBundle;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
-import org.jetbrains.plugins.gradle.util.GradleUtil;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.io.File;
 
+import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
+import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_CORRECT;
+import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_INCORRECT;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static org.jetbrains.plugins.gradle.util.GradleUtil.*;
 
 /**
  * Dialog where users select the path of the local Gradle installation to use when importing a project.
@@ -59,7 +62,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
   private JXLabel myDescriptionLabel;
 
   public ChooseGradleHomeDialog() {
-    this(SdkConstants.GRADLE_MINIMUM_VERSION);
+    this(GRADLE_MINIMUM_VERSION);
   }
 
   public ChooseGradleHomeDialog(@Nullable String minimumGradleVersion) {
@@ -70,8 +73,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
     initValidation();
     setTitle("Import Gradle Project");
 
-
-    FileChooserDescriptor fileChooserDescriptor = GradleUtil.getGradleHomeFileChooserDescriptor();
+    FileChooserDescriptor fileChooserDescriptor = getGradleHomeFileChooserDescriptor();
     myGradleHomePathField.addBrowseFolderListener("", GradleBundle.message("gradle.settings.text.home.path"), null, fileChooserDescriptor,
                                                   TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT, false);
 
@@ -79,7 +81,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
     // This prevents the weird sizing in Linux.
     getPeer().getWindow().pack();
 
-    myGradleHomePathField.setText(GradleUtil.getLastUsedGradleHome());
+    myGradleHomePathField.setText(getLastUsedGradleHome());
     myGradleHomePathField.getTextField().getDocument().addDocumentListener(new DocumentListener() {
       @Override
       public void insertUpdate(DocumentEvent e) {
@@ -119,7 +121,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
         }
         return super.doValidate();
       default:
-        return newPathIsInvalidInfo(locationSettingType.getDescription(GradleConstants.SYSTEM_ID));
+        return newPathIsInvalidInfo(locationSettingType.getDescription(GRADLE_SYSTEM_ID));
     }
   }
 
@@ -130,26 +132,24 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
       return LocationSettingType.UNKNOWN;
     }
     File gradleHomePath = getGradleHomePath(gradleHome);
-    return myInstallationManager.isGradleSdkHome(gradleHomePath)
-           ? LocationSettingType.EXPLICIT_CORRECT
-           : LocationSettingType.EXPLICIT_INCORRECT;
+    return myInstallationManager.isGradleSdkHome(gradleHomePath) ? EXPLICIT_CORRECT : EXPLICIT_INCORRECT;
   }
 
   @Nullable
   private ValidationInfo validateMinimumGradleVersion() {
-    if (!StringUtil.isEmpty(myMinimumGradleVersion)) {
+    if (isNotEmpty(myMinimumGradleVersion)) {
       // When we reach this point we know the path entered is a valid Gradle home path. Now we need to verify the version of Gradle at that
       // location is equal or greater than the one in myMinimumGradleVersion.
-      FullRevision minimum = FullRevision.parseRevision(myMinimumGradleVersion);
+      FullRevision minimum = PreciseRevision.parseRevision(myMinimumGradleVersion);
 
-      File gradleHomePath = getGradleHomePath(getEnteredGradleHomePath());
-      FullRevision current = getGradleVersion(gradleHomePath);
+      File enteredGradleHomePath = getGradleHomePath(getEnteredGradleHomePath());
+      FullRevision gradleVersion = getGradleVersion(enteredGradleHomePath);
 
-      if (current == null) {
+      if (gradleVersion == null) {
         return newPathIsInvalidInfo("Unable to detect Gradle version");
       }
 
-      if (minimum.compareTo(current) > 0) {
+      if (minimum.compareTo(gradleVersion) > 0) {
         return newPathIsInvalidInfo(String.format("Gradle %1$s or newer is required", myMinimumGradleVersion));
       }
     }
@@ -159,8 +159,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
   @NotNull
   private ValidationInfo newPathIsInvalidInfo(@NotNull String msg) {
     storeErrorMessage(msg);
-    JTextField textField = myGradleHomePathField.getTextField();
-    return new ValidationInfo(msg, textField);
+    return new ValidationInfo(msg, myGradleHomePathField.getTextField());
   }
 
   private void storeErrorMessage(@NotNull String msg) {
@@ -169,11 +168,11 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
 
   @NotNull
   private static File getGradleHomePath(@NotNull String gradleHome) {
-    return new File(FileUtil.toSystemDependentName(gradleHome));
+    return new File(toSystemDependentName(gradleHome));
   }
 
-  public void storeLastUsedGradleHome() {
-    GradleUtil.storeLastUsedGradleHome(getEnteredGradleHomePath());
+  public void storeLastUsedGradleHomePath() {
+    storeLastUsedGradleHome(getEnteredGradleHomePath());
   }
 
   @NotNull

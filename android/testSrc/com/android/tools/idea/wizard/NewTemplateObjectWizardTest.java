@@ -170,7 +170,7 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     NewTemplateObjectWizard wizard = new NewTemplateObjectWizard(myAppModule.getProject(), myAppModule, null,
                                                                  Template.CATEGORY_OTHER);
     Disposer.register(getTestRootDisposable(), wizard.getDisposable());
-    AssetSetStep mockAssetSetStep = mock(AssetSetStep.class);
+    RasterAssetSetStep mockAssetSetStep = mock(RasterAssetSetStep.class);
     wizard.myAssetSetStep = mockAssetSetStep;
     ChooseTemplateStep mockChooseTemplateStep = mock(ChooseTemplateStep.class);
     wizard.myChooseTemplateStep = mockChooseTemplateStep;

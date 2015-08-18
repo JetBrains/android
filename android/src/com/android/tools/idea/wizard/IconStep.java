@@ -76,6 +76,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     createKey(AssetStudioAssetGenerator.ATTR_SHAPE, PATH, GraphicGenerator.Shape.class);
   public static final Key<SourceType> ATTR_SOURCE_TYPE = createKey(AssetStudioAssetGenerator.ATTR_SOURCE_TYPE, PATH, SourceType.class);
   public static final Key<Boolean> ATTR_TRIM = createKey(AssetStudioAssetGenerator.ATTR_TRIM, PATH, Boolean.class);
+  public static final Key<Boolean> ATTR_DOGEAR = createKey(AssetStudioAssetGenerator.ATTR_DOGEAR, PATH, Boolean.class);
   public static final Key<Integer> ATTR_PADDING = createKey(AssetStudioAssetGenerator.ATTR_PADDING, PATH, Integer.class);
   public static final Key<Color> ATTR_FOREGROUND_COLOR = createKey(AssetStudioAssetGenerator.ATTR_FOREGROUND_COLOR, PATH, Color.class);
   public static final Key<Color> ATTR_BACKGROUND_COLOR = createKey(AssetStudioAssetGenerator.ATTR_BACKGROUND_COLOR, PATH, Color.class);
@@ -83,6 +84,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   public static final Key<String> ATTR_ICON_RESOURCE = createKey("icon_resource", PATH, String.class);
   public static final Key<Integer> ATTR_FONT_SIZE = createKey(AssetStudioAssetGenerator.ATTR_FONT_SIZE, PATH, Integer.class);
   public static final Key<File> ATTR_OUTPUT_FOLDER = createKey(ChooseOutputResDirStep.ATTR_OUTPUT_FOLDER, STEP, File.class);
+  public static final Key<String> ATTR_ERROR_LOG = createKey(AssetStudioAssetGenerator.ATTR_ERROR_LOG, PATH, String.class);
 
   private static final Logger LOG = Logger.getInstance(IconStep.class);
   private static final int CLIPART_ICON_SIZE = 32;

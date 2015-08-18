@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation.model;
 
-import com.android.annotations.Property;
+import com.android.tools.idea.editors.navigation.annotations.Property;
 
 public class StatePointEntry {
   public final State state;

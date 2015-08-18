@@ -27,6 +27,7 @@ import org.jetbrains.android.dom.resources.ResourceNameConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,5 +105,13 @@ public class ParentStyleConverter extends ResourceReferenceConverter {
       offset = offset - ids[i].length() - 1;
     }
     return result.toArray(new PsiReference[result.size()]);
+  }
+
+  @Override
+  public String toString(@Nullable ResourceValue element, ConvertContext context) {
+    if (element != null && element.getPrefix() == '@') {
+      return element.toString();
+    }
+    return super.toString(element, context);
   }
 }

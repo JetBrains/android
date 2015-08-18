@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.*;
@@ -25,6 +26,7 @@ import org.junit.Test;
 import java.awt.*;
 import java.util.Collections;
 
+import static com.android.tools.idea.tests.gui.framework.TestGroup.LAYOUT;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -44,16 +46,17 @@ import static org.junit.Assert.assertNotNull;
  *   <li>Component Tree</li>
  * </ul>
  */
+@BelongsToTestGroups({LAYOUT})
 public class LayoutEditorTest extends GuiTestCase {
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testSetProperty() throws Exception {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
     editor.selectEditorTab(EditorFixture.Tab.DESIGN);
+
     LayoutEditorFixture layout = editor.getLayoutEditor(false);
     assertNotNull(layout);
     layout.waitForNextRenderToFinish();
@@ -67,11 +70,14 @@ public class LayoutEditorTest extends GuiTestCase {
 
     // Let's check the property sheet
     PropertySheetFixture propertySheet = layout.getPropertySheetFixture();
+
     PropertyFixture property = propertySheet.findProperty("text");
     assertNotNull(property);
+
     property.requireDisplayName("text");
     property.requireValue("@string/hello_world");
     property.enterValue("New Label");
+
     layout.waitForNextRenderToFinish();
     property.requireValue("New Label");
 
@@ -85,7 +91,7 @@ public class LayoutEditorTest extends GuiTestCase {
     // Check id editing (has custom editor which strips out id prefixes
     PropertyFixture idProperty = propertySheet.findProperty("id");
     assertThat(idProperty).as("ID property").isNotNull();
-    assert idProperty != null; // for null analysis
+    assertNotNull(idProperty); // for null analysis
     idProperty.enterValue("tv1");
     idProperty.requireXmlValue("@+id/tv1");
 
@@ -113,9 +119,6 @@ public class LayoutEditorTest extends GuiTestCase {
     property.enterValue("@");
     property.requireValue("\\@");
     property.requireXmlValue("\\@");
-    property.enterValue("?");
-    property.requireValue("\\?");
-    property.requireXmlValue("\\?");
     property.enterValue("@string"); // Incomplete reference.
     property.requireValue("\\@string");
     property.requireXmlValue("\\@string");
@@ -128,8 +131,7 @@ public class LayoutEditorTest extends GuiTestCase {
     property.requireXmlValue("?android:attr");
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testDeletion() throws Exception {
     // Tests deletion: Opens a layout, finds the first TextView, deletes it,
     // checks that the component hierarchy shows it as removed. Then performs
@@ -137,7 +139,7 @@ public class LayoutEditorTest extends GuiTestCase {
     // cannot be deleted, by selecting it, attempting to delete it, and verifying
     // that it's still there.
 
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
@@ -182,15 +184,18 @@ public class LayoutEditorTest extends GuiTestCase {
                                 "        TextView - @string/hello_world\n", false);
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testIdManipulation() throws Exception {
+    if (true) {
+      System.out.println("Skipping testIdManipulation until http://b.android.com/173576 is fixed\n");
+      return;
+    }
     // Checks that when we insert new widgets, we assign appropriate id's (they should
     // be unique in the application), and also check that when we copy/paste a component
     // hierarchy, we reassign id's to keep them unique and also update all references within
     // the pasted component to the newly assigned id's.
 
-    IdeFrameFixture projectFrame = openProject("LayoutTest");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = projectFrame.getEditor();

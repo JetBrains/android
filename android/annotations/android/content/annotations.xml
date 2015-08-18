@@ -123,6 +123,12 @@
   <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.ContentProvider android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentProvider android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openPipeHelper(android.net.Uri, java.lang.String, android.os.Bundle, T, android.content.ContentProvider.PipeDataWriter&lt;T&gt;) 4">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -212,6 +218,12 @@
   </item>
   <item name="android.content.ContentResolver android.net.Uri insert(android.net.Uri, android.content.ContentValues) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.ContentResolver android.os.Bundle call(android.net.Uri, java.lang.String, java.lang.String, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.ContentResolver android.os.Bundle call(android.net.Uri, java.lang.String, java.lang.String, android.os.Bundle) 3">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.ContentResolver android.os.ParcelFileDescriptor openFileDescriptor(android.net.Uri, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -330,28 +342,44 @@
   <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, java.lang.String, android.os.Handler) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.Context android.content.res.ColorStateList getColorStateList(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[]) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[]) 1">
+    <annotation name="android.support.annotation.StyleableRes" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int) 1">
+    <annotation name="android.support.annotation.StyleableRes" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int) 2">
+    <annotation name="android.support.annotation.AttrRes" />
+  </item>
+  <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int) 3">
+    <annotation name="android.support.annotation.StyleRes" />
+  </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int, int[]) 0">
-    <annotation name="android.support.annotation.StyleableRes" />
+    <annotation name="android.support.annotation.StyleRes" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int, int[]) 1">
+    <annotation name="android.support.annotation.StyleableRes" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int[]) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.lang.String, int, android.database.sqlite.SQLiteDatabase.CursorFactory, android.database.DatabaseErrorHandler) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.Context android.graphics.drawable.Drawable getDrawable(int)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context boolean bindService(android.content.Intent, android.content.ServiceConnection, int) 1">
@@ -373,12 +401,20 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context int checkCallingOrSelfPermission(java.lang.String)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforceCallingOrSelfPermission(String,String)&quot;" />
+    </annotation>
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
     </annotation>
   </item>
   <item name="android.content.Context int checkCallingOrSelfPermission(java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Context int checkCallingOrSelfUriPermission(android.net.Uri, int)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforceCallingOrSelfUriPermission(Uri,int,String)&quot;" />
+    </annotation>
   </item>
   <item name="android.content.Context int checkCallingOrSelfUriPermission(android.net.Uri, int) 1">
     <annotation name="android.support.annotation.IntDef">
@@ -387,12 +423,20 @@
     </annotation>
   </item>
   <item name="android.content.Context int checkCallingPermission(java.lang.String)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforceCallingPermission(String,String)&quot;" />
+    </annotation>
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
     </annotation>
   </item>
   <item name="android.content.Context int checkCallingPermission(java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Context int checkCallingUriPermission(android.net.Uri, int)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforceCallingUriPermission(Uri,int,String)&quot;" />
+    </annotation>
   </item>
   <item name="android.content.Context int checkCallingUriPermission(android.net.Uri, int) 1">
     <annotation name="android.support.annotation.IntDef">
@@ -401,6 +445,9 @@
     </annotation>
   </item>
   <item name="android.content.Context int checkPermission(java.lang.String, int, int)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforcePermission(String,int,int,String)&quot;" />
+    </annotation>
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
     </annotation>
@@ -408,10 +455,28 @@
   <item name="android.content.Context int checkPermission(java.lang.String, int, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.Context int checkSelfPermission(java.lang.String)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
+    </annotation>
+  </item>
+  <item name="android.content.Context int checkSelfPermission(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Context int checkUriPermission(android.net.Uri, int, int, int)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforceUriPermission(Uri,int,int,String)&quot;" />
+    </annotation>
+  </item>
   <item name="android.content.Context int checkUriPermission(android.net.Uri, int, int, int) 3">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
       <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.Context int checkUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int)">
+    <annotation name="android.support.annotation.CheckResult">
+      <val name="suggest" val="&quot;#enforceUriPermission(Uri,String,String,int,int,int,String)&quot;" />
     </annotation>
   </item>
   <item name="android.content.Context int checkUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int) 0">
@@ -429,6 +494,9 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.content.Context int getColor(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.Context java.io.File getExternalCacheDir()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -443,12 +511,18 @@
   </item>
   <item name="android.content.Context java.lang.Object getSystemService(java.lang.String) 0">
     <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.TELECOM_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.APPWIDGET_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.LAUNCHER_APPS_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.CAMERA_SERVICE, android.content.Context.PRINT_SERVICE, android.content.Context.MEDIA_SESSION_SERVICE, android.content.Context.BATTERY_SERVICE, android.content.Context.JOB_SCHEDULER_SERVICE}" />
+      <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.NETWORK_STATS_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.FINGERPRINT_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.TELEPHONY_SUBSCRIPTION_SERVICE, android.content.Context.CARRIER_CONFIG_SERVICE, android.content.Context.TELECOM_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.APPWIDGET_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.LAUNCHER_APPS_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.RESTRICTIONS_SERVICE, android.content.Context.APP_OPS_SERVICE, android.content.Context.CAMERA_SERVICE, android.content.Context.PRINT_SERVICE, android.content.Context.CONSUMER_IR_SERVICE, android.content.Context.TV_INPUT_SERVICE, android.content.Context.USAGE_STATS_SERVICE, android.content.Context.MEDIA_SESSION_SERVICE, android.content.Context.BATTERY_SERVICE, android.content.Context.JOB_SCHEDULER_SERVICE, android.content.Context.MEDIA_PROJECTION_SERVICE, android.content.Context.MIDI_SERVICE}" />
     </annotation>
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Context java.lang.String getString(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context java.lang.String getString(int) 0">
     <annotation name="android.support.annotation.StringRes" />
+  </item>
+  <item name="android.content.Context java.lang.String getString(int, java.lang.Object...)">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context java.lang.String getString(int, java.lang.Object...) 0">
     <annotation name="android.support.annotation.StringRes" />
@@ -738,6 +812,9 @@
   <item name="android.content.Intent android.content.Intent putIntegerArrayListExtra(java.lang.String, java.util.ArrayList&lt;java.lang.Integer&gt;)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.Intent android.content.Intent putParcelableArrayListExtra(java.lang.String, java.util.ArrayList&lt;? extends android.os.Parcelable&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.Intent android.content.Intent putStringArrayListExtra(java.lang.String, java.util.ArrayList&lt;java.lang.String&gt;)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -848,6 +925,9 @@
   </item>
   <item name="android.content.Intent.ShortcutIconResource android.content.Intent.ShortcutIconResource fromContext(android.content.Context, int) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.Intent.ShortcutIconResource android.content.Intent.ShortcutIconResource fromContext(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.AnyRes" />
   </item>
   <item name="android.content.Intent.ShortcutIconResource void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -974,6 +1054,30 @@
   </item>
   <item name="android.content.SearchRecentSuggestionsProvider java.lang.String getType(android.net.Uri) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.SharedPreferences java.lang.String getString(java.lang.String, java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="&quot;_,!null-&gt;!null&quot;" />
+    </annotation>
+  </item>
+  <item name="android.content.SharedPreferences java.lang.String getString(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.SharedPreferences java.util.Set&lt;java.lang.String&gt; getStringSet(java.lang.String, java.util.Set&lt;java.lang.String&gt;)">
+    <annotation name="android.support.annotation.Nullable" />
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="&quot;_,!null-&gt;!null&quot;" />
+    </annotation>
+  </item>
+  <item name="android.content.SharedPreferences java.util.Set&lt;java.lang.String&gt; getStringSet(java.lang.String, java.util.Set&lt;java.lang.String&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.SharedPreferences.Editor android.content.SharedPreferences.Editor putString(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.SharedPreferences.Editor android.content.SharedPreferences.Editor putStringSet(java.lang.String, java.util.Set&lt;java.lang.String&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.SyncAdapterType SyncAdapterType(android.os.Parcel) 0">
     <annotation name="android.support.annotation.NonNull" />

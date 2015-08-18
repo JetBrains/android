@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import freemarker.template.SimpleScalar;
-import freemarker.template.TemplateMethodModel;
-import freemarker.template.TemplateModel;
-import freemarker.template.TemplateModelException;
+import freemarker.template.*;
 
 import java.util.List;
 
@@ -26,13 +23,13 @@ import java.util.List;
  * Method invoked by FreeMarker to extract letters from a string; this will remove
  * any whitespace, punctuation and digits.
  */
-public class FmExtractLettersMethod implements TemplateMethodModel {
+public class FmExtractLettersMethod implements TemplateMethodModelEx {
     @Override
     public TemplateModel exec(List args) throws TemplateModelException {
         if (args.size() != 1) {
             throw new TemplateModelException("Wrong arguments");
         }
-        String string = args.get(0).toString();
+        String string = ((TemplateScalarModel)args.get(0)).getAsString();
         StringBuilder sb = new StringBuilder(string.length());
         for (int i = 0, n = string.length(); i < n; i++) {
             char c = string.charAt(i);

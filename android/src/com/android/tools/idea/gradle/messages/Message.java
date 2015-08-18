@@ -29,7 +29,9 @@ public class Message {
   @NotNull private final Type myType;
   @NotNull private final String[] myText;
   @NotNull private final Navigatable myNavigatable;
+
   @Nullable private final VirtualFile myFile;
+
   private final int myLine;
   private final int myColumn;
 
@@ -105,10 +107,20 @@ public class Message {
     }
 
     /**
-     * @see com.intellij.util.ui.MessageCategory
+     * @see MessageCategory
      */
     public int getValue() {
       return myValue;
+    }
+
+    @Nullable
+    public static Type find(@NotNull String value) {
+      for (Type type : values()) {
+        if (type.name().equalsIgnoreCase(value)) {
+          return type;
+        }
+      }
+      return null;
     }
   }
 }

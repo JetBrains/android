@@ -91,7 +91,7 @@ public class AndroidEnableAdbServiceAction extends ToggleAction {
     boolean oldState = isAdbServiceEnabled();
     PropertiesComponent.getInstance().setValue(ENABLE_ADB_SERVICE_PROPERTY_NAME, Boolean.toString(state));
     if (oldState != state) {
-      AdbService.restartDdmlib(project);
+      AdbService.getInstance().restartDdmlib(project);
     }
   }
 

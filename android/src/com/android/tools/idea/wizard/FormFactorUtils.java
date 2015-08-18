@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.sdklib.repository.descriptors.IPkgDescAddon;
+import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.configurations.DeviceMenuAction;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,12 +35,12 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.WizardConstants.INVALID_FILENAME_CHARS;
+import static com.android.tools.idea.wizard.FormFactorApiComboBox.AndroidTargetComboBoxItem;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
-import static com.android.tools.idea.wizard.FormFactorApiComboBox.AndroidTargetComboBoxItem;
+import static com.android.tools.idea.wizard.WizardConstants.INVALID_FILENAME_CHARS;
 
 /**
  * Utility methods for dealing with Form Factors in Wizards.
@@ -47,38 +49,48 @@ public class FormFactorUtils {
   public static final String INCLUDE_FORM_FACTOR = "included";
   public static final String ATTR_MODULE_NAME = "projectName";
 
-  /** TODO: Turn into an enum and combine with {@link com.android.tools.idea.configurations.DeviceMenuAction.FormFactor} */
-  public static class FormFactor {
+  /** TODO: Turn into an enum and combine with {@link DeviceMenuAction.FormFactor} */
+  public static class FormFactor implements Comparable<FormFactor> {
     public static final FormFactor MOBILE = new FormFactor("Mobile", DeviceMenuAction.FormFactor.MOBILE, "Phone and Tablet", 15,
-                                                           Lists.newArrayList("20", "Glass", "Google APIs"), null);
+                                                           Lists.newArrayList("20", "Glass", "Google APIs"), null, 0, null);
+    // TODO: in the future instead of whitelisting maybe we could determine this by availability of system images.
     public static final FormFactor WEAR = new FormFactor("Wear", DeviceMenuAction.FormFactor.WEAR, "Wear", 21,
-                                                         null, Lists.newArrayList("20", "21"));
-    public static final FormFactor GLASS = new FormFactor("Glass", DeviceMenuAction.FormFactor.GLASS, "Glass", 19,
-                                                          null, Lists.newArrayList("Glass"));
+                                                         null, Lists.newArrayList("20", "21", "22"), 1, null);
     public static final FormFactor TV = new FormFactor("TV", DeviceMenuAction.FormFactor.TV, "TV", 21,
-                                                       Lists.newArrayList("20"), null);
+                                                       Lists.newArrayList("20"), null, 2, null);
+    public static final FormFactor CAR = new FormFactor("Car", DeviceMenuAction.FormFactor.CAR, "Android Auto", 21,
+            null, Lists.newArrayList("21", "22"), 3, MOBILE);
+
+    public static final FormFactor GLASS = new FormFactor("Glass", DeviceMenuAction.FormFactor.GLASS, "Glass", 19,
+                                                          null, Lists.newArrayList("Glass", "google_gdk"), 4, null);
 
     private static final Map<String, FormFactor> myFormFactors = new ImmutableMap.Builder<String, FormFactor>()
         .put(MOBILE.id, MOBILE)
         .put(WEAR.id, WEAR)
-        .put(GLASS.id, GLASS)
-        .put(TV.id, TV).build();
+        .put(TV.id, TV)
+        .put(CAR.id, CAR)
+        .put(GLASS.id, GLASS).build();
 
     public final String id;
-    @Nullable private String displayName;
+    @Nullable private String myDisplayName;
     public final int defaultApi;
     @NotNull private final List<String> myApiBlacklist;
     @NotNull private final List<String> myApiWhitelist;
     @NotNull private final DeviceMenuAction.FormFactor myEnumValue;
+    private final int relativeOrder;
+    @Nullable public final FormFactor baseFormFactor;
 
     FormFactor(@NotNull String id, @NotNull DeviceMenuAction.FormFactor enumValue, @Nullable String displayName,
-               int defaultApi, @Nullable List<String> apiBlacklist, @Nullable List<String> apiWhitelist) {
+               int defaultApi, @Nullable List<String> apiBlacklist, @Nullable List<String> apiWhitelist,
+               int relativeOrder, @Nullable FormFactor baseFormFactor) {
       this.id = id;
       myEnumValue = enumValue;
-      this.displayName = displayName;
+      myDisplayName = displayName;
       this.defaultApi = defaultApi;
+      this.relativeOrder = relativeOrder;
       myApiBlacklist = apiBlacklist != null ? apiBlacklist : Collections.<String>emptyList();
       myApiWhitelist = apiWhitelist != null ? apiWhitelist : Collections.<String>emptyList();
+      this.baseFormFactor = baseFormFactor;
     }
 
     @Nullable
@@ -86,12 +98,17 @@ public class FormFactorUtils {
       if (myFormFactors.containsKey(id)) {
         return myFormFactors.get(id);
       }
-      return new FormFactor(id, DeviceMenuAction.FormFactor.MOBILE, id, 1, null, null);
+      return new FormFactor(id, DeviceMenuAction.FormFactor.MOBILE, id, 1, null, null, myFormFactors.size(), null);
+    }
+
+    @NotNull
+    public DeviceMenuAction.FormFactor getEnumValue() {
+      return myEnumValue;
     }
 
     @Override
     public String toString() {
-      return displayName == null ? id : displayName;
+      return myDisplayName == null ? id : myDisplayName;
     }
 
     @NotNull
@@ -99,52 +116,67 @@ public class FormFactorUtils {
       return myEnumValue.getIcon64();
     }
 
-    @NotNull
-    public Icon getLargeIcon() {
-      return myEnumValue.getLargeIcon();
-    }
-
     public static Iterator<FormFactor> iterator() {
       return myFormFactors.values().iterator();
     }
+
+    @Override
+    public boolean equals(Object obj) {
+      return obj != null && obj instanceof FormFactor && ((FormFactor) obj).id.equals(id);
+    }
+
+    @Override
+    public int compareTo(FormFactor formFactor) {
+      return relativeOrder - formFactor.relativeOrder;
+    }
   }
 
+  @NotNull
   public static Key<AndroidTargetComboBoxItem> getTargetComboBoxKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_MIN_API + "combo", STEP, AndroidTargetComboBoxItem.class);
   }
 
+  @NotNull
   public static Key<Integer> getMinApiLevelKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_MIN_API_LEVEL, WIZARD, Integer.class);
   }
 
+  @NotNull
   public static Key<String> getMinApiKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_MIN_API, WIZARD, String.class);
   }
 
+  @NotNull
   public static Key<String> getBuildApiKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_BUILD_API_STRING, WIZARD, String.class);
   }
 
+  @NotNull
   public static Key<Integer> getTargetApiLevelKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_TARGET_API, WIZARD, Integer.class);
   }
 
+  @NotNull
   public static Key<String> getTargetApiStringKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_TARGET_API_STRING, WIZARD, String.class);
   }
 
+  @NotNull
   public static Key<Integer> getBuildApiLevelKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_BUILD_API, WIZARD, Integer.class);
   }
 
+  @NotNull
   public static Key<String> getLanguageLevelKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_JAVA_VERSION, WIZARD, String.class);
   }
 
+  @NotNull
   public static Key<Boolean> getInclusionKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + INCLUDE_FORM_FACTOR, WIZARD, Boolean.class);
   }
 
+  @NotNull
   public static Key<String> getModuleNameKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_MODULE_NAME, WIZARD, String.class);
   }
@@ -167,6 +199,10 @@ public class FormFactorUtils {
 
   @NotNull
   public static String getModuleName(@NotNull FormFactor formFactor) {
+    if (formFactor.baseFormFactor != null) {
+      // Form factors like Android Auto build upon another form factor
+      formFactor = formFactor.baseFormFactor;
+    }
     String name = formFactor.id.replaceAll(INVALID_FILENAME_CHARS, "");
     name = name.replaceAll("\\s", "_");
     return name.toLowerCase();
@@ -179,38 +215,62 @@ public class FormFactorUtils {
         if (input == null) {
           return false;
         }
-        if (!formFactor.myApiWhitelist.isEmpty()) {
-          // If a whitelist is present, only allow things on the whitelist
-          for (String filterItem : formFactor.myApiWhitelist) {
-            if (matches(filterItem, input)) {
-              return true;
-            }
-          }
-          return false;
-        }
 
-        // If we don't have a whitelist, let's check the blacklist
-        for (String filterItem : formFactor.myApiBlacklist) {
-          if (matches(filterItem, input)) {
-            return false;
-          }
-        }
-
-        // Finally, we'll check that the minSDK is honored
-        return input.apiLevel >= minSdkLevel || (input.target != null && input.target.getVersion().isPreview());
+        return doFilter(formFactor, minSdkLevel, input.target != null ? input.target.getName() : null, input.apiLevel) ||
+               (input.target != null && input.target.getVersion().isPreview());
       }
     };
   }
 
+  public static Predicate<RemotePkgInfo> getMinSdkPackageFilter(
+    @NotNull final FormFactor formFactor, final int minSdkLevel) {
+    return new Predicate<RemotePkgInfo>() {
+      @Override
+      public boolean apply(@Nullable RemotePkgInfo input) {
+        if (input == null) {
+          return false;
+        }
+        if (input.getPkgDesc().getType() == PkgType.PKG_ADDON) {
+          IPkgDescAddon addon = (IPkgDescAddon)input.getPkgDesc();
+          return doFilter(formFactor, minSdkLevel, addon.getName().getId(), addon.getAndroidVersion().getFeatureLevel());
+        }
+        // TODO: add other package types
+        return false;
+      }
+    };
+  }
+
+  private static boolean doFilter(@NotNull FormFactor formFactor, int minSdkLevel, @Nullable String inputName, int targetSdkLevel) {
+    if (!formFactor.myApiWhitelist.isEmpty()) {
+      // If a whitelist is present, only allow things on the whitelist
+      for (String filterItem : formFactor.myApiWhitelist) {
+        if (matches(filterItem, inputName, targetSdkLevel)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // If we don't have a whitelist, let's check the blacklist
+    for (String filterItem : formFactor.myApiBlacklist) {
+      if (matches(filterItem, inputName, targetSdkLevel)) {
+        return false;
+      }
+    }
+
+    // Finally, we'll check that the minSDK is honored
+    return targetSdkLevel >= minSdkLevel;
+  }
+
+
   /**
-   * @return true iff the filterItem is a string which matches the string representation of the box item apiLevel,
-   * or the target name contains the filterItem.
+   * @return true iff inputVersion is parsable as an int that matches filterItem, or if inputName contains filterItem.
    */
-  private static boolean matches(@NotNull String filterItem, @NotNull AndroidTargetComboBoxItem input) {
-    if (Integer.toString(input.apiLevel).equals(filterItem)) {
+  private static boolean matches(@NotNull String filterItem, @Nullable String inputName, int inputVersion) {
+    if (Integer.toString(inputVersion).equals(filterItem)) {
       return true;
     }
-    if (input.target != null && input.target.getName().contains(filterItem)) {
+    if (inputName != null && inputName.contains(filterItem)) {
       return true;
     }
     return false;

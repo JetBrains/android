@@ -3,6 +3,7 @@ package org.jetbrains.android.logcat;
 import com.android.ddmlib.Log;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +47,7 @@ class ConfiguredFilter {
       return false;
     }
 
-    if (myPkgNamePattern != null && (pkg == null || !myPkgNamePattern.matcher(pkg).find())) {
+    if (myPkgNamePattern != null && (pkg == null || !myPkgNamePattern.matcher(pkg).matches())) {
       return false;
     }
 
@@ -67,6 +68,7 @@ class ConfiguredFilter {
   }
 
   @Nullable
+  @Contract ("!null,_ -> !null")
   public static ConfiguredFilter compile(@Nullable AndroidConfiguredLogFilters.MyFilterEntry entry,
                                          @NotNull String name) {
     if (entry == null) {

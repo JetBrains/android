@@ -16,12 +16,15 @@
 
 package com.android.tools.idea.wizard;
 
+import com.android.SdkConstants;
 import com.android.assetstudiolib.*;
+import com.android.assetstudiolib.vectordrawable.Svg2Vector;
+import com.android.assetstudiolib.vectordrawable.VdPreview;
+import com.android.resources.Density;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -46,6 +49,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   public static final String ATTR_SHAPE = "shape";
   public static final String ATTR_PADDING = "padding";
   public static final String ATTR_TRIM = "trim";
+  public static final String ATTR_DOGEAR = "dogear";
   public static final String ATTR_FONT = "font";
   public static final String ATTR_FONT_SIZE = "fontSize";
   public static final String ATTR_SOURCE_TYPE = "sourceType";
@@ -56,6 +60,9 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   public static final String ATTR_ASSET_TYPE = "assetType";
   public static final String ATTR_ASSET_THEME = "assetTheme";
   public static final String ATTR_ASSET_NAME = "assetName";
+  public static final String ATTR_ERROR_LOG = "errorLog";
+
+  public static final String ERROR_MESSAGE_EMPTY_PREVIEW_IMAGE = "Empty preview image!";
 
   private static final Logger LOG = Logger.getInstance("#" + AssetStudioAssetGenerator.class.getName());
   private static final String OUTPUT_DIRECTORY = "src/main/";
@@ -67,6 +74,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
 
   private AssetStudioContext myContext;
 
+  public static final int SVG_PREVIEW_WIDTH = 256;
   /**
    * This is needed to migrate between "old" and "new" wizard frameworks
    */
@@ -87,6 +95,10 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     boolean isTrim();
 
     void setTrim(boolean trim);
+
+    boolean isDogear();
+
+    void setDogear(boolean dogEar);
 
     @Nullable
     String getImagePath();
@@ -131,6 +143,11 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
 
     @Nullable
     String getAssetTheme();
+
+    @Nullable
+    public String getErrorLog();
+
+    public void setErrorLog(String log);
   }
 
   public static class ImageGeneratorException extends Exception {
@@ -143,7 +160,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
    * Types of sources that the asset studio can use to generate icons from
    */
   public enum SourceType {
-    IMAGE, CLIPART, TEXT
+    IMAGE, CLIPART, TEXT, SVG
   }
 
 
@@ -281,6 +298,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     myContext.setForegroundColor(Color.BLUE);
     myContext.setBackgroundColor(Color.WHITE);
     myContext.setTrim(false);
+    myContext.setDogear(false);
     myContext.setPadding(0);
   }
 
@@ -333,6 +351,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
       return;
     }
     boolean trim = myContext.isTrim();
+    boolean dogEar = myContext.isDogear();
     int padding = myContext.getPadding();
 
     SourceType sourceType = myContext.getSourceType();
@@ -342,6 +361,20 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
 
     BufferedImage sourceImage = null;
     switch (sourceType) {
+      case SVG:  {
+        // So here we should only generate one dpi image.
+        String path = myContext.getImagePath();
+        if (path == null || path.isEmpty()) {
+          return;
+        }
+        // Get the parsing errors while generating the images.
+        // Save the error log into context to be later picked up by the step UI.
+        StringBuilder errorLog = new StringBuilder();
+        sourceImage = getSvgImage(path, errorLog);
+        myContext.setErrorLog(errorLog.toString());
+        break;
+      }
+
       case IMAGE: {
         String path = myContext.getImagePath();
         if (path == null || path.isEmpty()) {
@@ -401,13 +434,16 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     switch (type) {
       case LAUNCHER: {
         generator = myLauncherIconGenerator;
-          LauncherIconGenerator.LauncherOptions launcherOptions = new LauncherIconGenerator.LauncherOptions();
+        LauncherIconGenerator.LauncherOptions launcherOptions = new LauncherIconGenerator.LauncherOptions();
         launcherOptions.shape = myContext.getShape();
         launcherOptions.crop = Scaling.CROP.equals(myContext.getScaling());
-          launcherOptions.style = GraphicGenerator.Style.SIMPLE;
+        launcherOptions.style = GraphicGenerator.Style.SIMPLE;
         launcherOptions.backgroundColor = myContext.getBackgroundColor().getRGB();
-          launcherOptions.isWebGraphic = !previewOnly;
-          options = launcherOptions;
+        launcherOptions.isWebGraphic = !previewOnly;
+        if (dogEar) {
+          launcherOptions.isDogEar = true;
+        }
+        options = launcherOptions;
         }
         break;
       case ACTIONBAR: {
@@ -445,6 +481,9 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     }
 
     options.sourceImage = sourceImage;
+    if (sourceType == SourceType.SVG) {
+      options.density = Density.ANYDPI;
+    }
     generator.generate(null, categoryMap, this, options, baseName);
   }
 
@@ -493,7 +532,59 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   }
 
   @NotNull
-  protected static BufferedImage getImage(@NotNull String path, boolean isPluginRelative) throws IOException {
+  private static BufferedImage getSvgImage(@NotNull String path, StringBuilder errorLog) {
+    String xmlFileContent = generateVectorXml(new File(path), errorLog);
+    BufferedImage image = VdPreview.getPreviewFromVectorXml(SVG_PREVIEW_WIDTH, xmlFileContent,
+                                                            errorLog);
+
+    if (image == null) {
+      //noinspection UndesirableClassUsage
+      image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+      // This sentence is also used as a flag to turn on / off the next button in vector step.
+      errorLog.insert(0, ERROR_MESSAGE_EMPTY_PREVIEW_IMAGE + "\n");
+    }
+    return image;
+  }
+
+  public void outputXmlToRes(File targetResDir) {
+    String currentFilePath = myContext.getImagePath();
+    // At output step, we can ignore the errors since they have been exposed in the previous step.
+    String xmlFileContent = generateVectorXml(new File(currentFilePath), null);
+
+    String xmlFileName = myContext.getAssetName();
+    // Here get the XML file content, and write into targetResDir / drawable / ***.xml
+    File file = new File(targetResDir, SdkConstants.FD_RES_DRAWABLE + File.separator +
+                                       xmlFileName + SdkConstants.DOT_XML);
+    try {
+      VirtualFile directory = VfsUtil.createDirectories(file.getParentFile().getAbsolutePath());
+      VirtualFile xmlFile = directory.findChild(file.getName());
+      if (xmlFile == null || !xmlFile.exists()) {
+        xmlFile = directory.createChildData(this, file.getName());
+      }
+
+      VfsUtil.saveText(xmlFile, xmlFileContent);
+    }
+    catch (IOException e) {
+      LOG.error(e);
+    }
+  }
+
+  @Nullable
+  private static String generateVectorXml(@NotNull File inputSvgFile, StringBuilder error) {
+    OutputStream outStream = new ByteArrayOutputStream();
+    String parseError = Svg2Vector.parseSvgToXml(inputSvgFile, outStream);
+    if (error != null) {
+      error.append(Strings.nullToEmpty(parseError));
+    }
+    String vectorXmlContent = outStream.toString();
+    // Return null content to make sure the preview image will be gone!
+    return vectorXmlContent;
+  }
+
+
+  @NotNull
+  protected static BufferedImage getImage(@NotNull String path, boolean isPluginRelative)
+      throws IOException {
     BufferedImage image;
     if (isPluginRelative) {
       image = GraphicGenerator.getStencilImage(path);

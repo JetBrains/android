@@ -22,8 +22,6 @@ import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.application.ApplicationManager;
@@ -34,19 +32,13 @@ import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.containers.OrderedSet;
-import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.AndroidDexCompiler;
-import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +47,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getOutput;
+import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
+import static com.intellij.openapi.util.io.FileUtil.getRelativePath;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.*;
+import static org.jetbrains.android.compiler.AndroidCompileUtil.getOutputPackage;
+import static org.jetbrains.android.maven.AndroidMavenUtil.isMavenizedModule;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
+import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
+import static org.jetbrains.android.util.AndroidCommonUtils.CLASSES_JAR_FILE_NAME;
 
 /**
  * @author Eugene.Kudelevsky
@@ -71,10 +73,10 @@ public class AndroidRootUtil {
    * Returns the main manifest file of the module.
    *
    * @deprecated Modules can have multiple manifests. If you really want the main manifest
-   *   of the module, use {@link #getPrimaryManifestFile(AndroidFacet)}, but to test if
-   *   a given file is a manifest, or to process all of them, use
-   *   {@link IdeaSourceProvider#isManifestFile(AndroidFacet, VirtualFile)} or
-   *   {@link IdeaSourceProvider#getManifestFiles(AndroidFacet)}.
+   * of the module, use {@link #getPrimaryManifestFile(AndroidFacet)}, but to test if
+   * a given file is a manifest, or to process all of them, use
+   * {@link IdeaSourceProvider#isManifestFile(AndroidFacet, VirtualFile)} or
+   * {@link IdeaSourceProvider#getManifestFiles(AndroidFacet)}.
    */
   @Nullable
   @Deprecated
@@ -103,12 +105,12 @@ public class AndroidRootUtil {
   // DO NOT get PSI or DOM from this file, because it may be excluded (f.ex. it can be in /target/ directory)
   @Nullable
   public static VirtualFile getManifestFileForCompiler(@NotNull AndroidFacet facet) {
-    return facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST
-           ? getCustomManifestFileForCompiler(facet)
-           : getPrimaryManifestFile(facet);
+    return facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST ? getCustomManifestFileForCompiler(facet) : getPrimaryManifestFile(facet);
   }
 
-  /** @deprecated You must use {@link AndroidFacet#getAllResourceDirectories()} instead */
+  /**
+   * @deprecated You must use {@link AndroidFacet#getAllResourceDirectories()} instead
+   */
   @Deprecated
   @Nullable
   public static VirtualFile getResourceDir(@NotNull AndroidFacet facet) {
@@ -117,18 +119,18 @@ public class AndroidRootUtil {
 
   @Nullable
   private static String suggestResourceDirPath(@NotNull AndroidFacet facet) {
-    final Module module = facet.getModule();
-    
-    final VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
+    Module module = facet.getModule();
+
+    VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
     if (contentRoots.length == 0) {
       return null;
     }
-    
+
     VirtualFile root = contentRoots[0];
 
     if (contentRoots.length > 1) {
-      final String moduleFileParentDirPath = FileUtil.toSystemIndependentName(new File(module.getModuleFilePath()).getParent());
-      final VirtualFile moduleFileParentDir = LocalFileSystem.getInstance().findFileByPath(moduleFileParentDirPath);
+      String moduleFileParentDirPath = toSystemIndependentName(new File(module.getModuleFilePath()).getParent());
+      VirtualFile moduleFileParentDir = LocalFileSystem.getInstance().findFileByPath(moduleFileParentDirPath);
       if (moduleFileParentDir != null) {
         for (VirtualFile contentRoot : contentRoots) {
           if (Comparing.equal(contentRoot, moduleFileParentDir)) {
@@ -139,10 +141,10 @@ public class AndroidRootUtil {
     }
     return root.getPath() + facet.getProperties().RES_FOLDER_RELATIVE_PATH;
   }
-  
+
   @Nullable
   public static String getResourceDirPath(@NotNull AndroidFacet facet) {
-    final VirtualFile resourceDir = getResourceDir(facet);
+    VirtualFile resourceDir = getResourceDir(facet);
     return resourceDir != null ? resourceDir.getPath() : suggestResourceDirPath(facet);
   }
 
@@ -156,7 +158,7 @@ public class AndroidRootUtil {
 
     String moduleDirPath = new File(module.getModuleFilePath()).getParent();
     if (moduleDirPath != null) {
-      String absPath = FileUtil.toSystemIndependentName(moduleDirPath + relativePath);
+      String absPath = toSystemIndependentName(moduleDirPath + relativePath);
       VirtualFile file = LocalFileSystem.getInstance().findFileByPath(absPath);
       if (file != null) {
         return file;
@@ -165,7 +167,7 @@ public class AndroidRootUtil {
 
     if (lookInContentRoot) {
       for (VirtualFile contentRoot : contentRoots) {
-        String absPath = FileUtil.toSystemIndependentName(contentRoot.getPath() + relativePath);
+        String absPath = toSystemIndependentName(contentRoot.getPath() + relativePath);
         VirtualFile file = LocalFileSystem.getInstance().findFileByPath(absPath);
         if (file != null) {
           return file;
@@ -187,29 +189,25 @@ public class AndroidRootUtil {
 
   @Nullable
   public static VirtualFile getAidlGenDir(@NotNull AndroidFacet facet) {
-    final String genPath = getAidlGenSourceRootPath(facet);
-    return genPath != null
-           ? LocalFileSystem.getInstance().findFileByPath(genPath)
-           : null;
+    String genPath = getAidlGenSourceRootPath(facet);
+    return genPath != null ? LocalFileSystem.getInstance().findFileByPath(genPath) : null;
   }
 
   @Nullable
   public static VirtualFile getAaptGenDir(@NotNull AndroidFacet facet) {
-    final String genPath = getAptGenSourceRootPath(facet);
-    return genPath != null
-           ? LocalFileSystem.getInstance().findFileByPath(genPath)
-           : null;
+    String genPath = getAptGenSourceRootPath(facet);
+    return genPath != null ? LocalFileSystem.getInstance().findFileByPath(genPath) : null;
   }
 
   @Nullable
   public static VirtualFile getRenderscriptGenDir(@NotNull AndroidFacet facet) {
-    final String path = getRenderscriptGenSourceRootPath(facet);
+    String path = getRenderscriptGenSourceRootPath(facet);
     return path != null ? LocalFileSystem.getInstance().findFileByPath(path) : null;
   }
 
   @Nullable
   public static VirtualFile getBuildconfigGenDir(@NotNull AndroidFacet facet) {
-    final String path = getBuildconfigGenSourceRootPath(facet);
+    String path = getBuildconfigGenSourceRootPath(facet);
     return path != null ? LocalFileSystem.getInstance().findFileByPath(path) : null;
   }
 
@@ -233,7 +231,7 @@ public class AndroidRootUtil {
         }
         else if ("jar".equals(child.getExtension()) || "class".equals(child.getExtension())) {
           if (child.getFileSystem() instanceof JarFileSystem) {
-            final VirtualFile localFile = JarFileSystem.getInstance().getVirtualFileForJar(child);
+            VirtualFile localFile = JarFileSystem.getInstance().getVirtualFileForJar(child);
             if (localFile != null) {
               result.add(localFile);
             }
@@ -246,10 +244,10 @@ public class AndroidRootUtil {
     }
   }
 
-  private static void fillExternalLibrariesAndModules(final Module module,
-                                                      final Set<VirtualFile> outputDirs,
+  private static void fillExternalLibrariesAndModules(@NotNull final Module module,
+                                                      @NotNull final Set<VirtualFile> outputDirs,
+                                                      @NotNull final Set<Module> visited,
                                                       @Nullable final Set<VirtualFile> libraries,
-                                                      final Set<Module> visited,
                                                       final boolean exportedLibrariesOnly,
                                                       final boolean recursive) {
     if (!visited.add(module)) {
@@ -264,8 +262,8 @@ public class AndroidRootUtil {
             continue;
           }
           if (libraries != null && entry instanceof LibraryOrderEntry) {
-            final LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)entry;
-            final Library library = libraryOrderEntry.getLibrary();
+            LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)entry;
+            Library library = libraryOrderEntry.getLibrary();
             if (library != null && (!exportedLibrariesOnly || libraryOrderEntry.isExported())) {
               for (VirtualFile file : library.getFiles(OrderRootType.CLASSES)) {
                 if (!file.exists()) {
@@ -294,18 +292,18 @@ public class AndroidRootUtil {
             if (depModule == null) {
               continue;
             }
-            final AndroidFacet facet = AndroidFacet.getInstance(depModule);
-            final boolean libraryProject = facet != null && facet.isLibraryProject();
+            AndroidFacet facet = AndroidFacet.getInstance(depModule);
+            boolean libraryProject = facet != null && facet.isLibraryProject();
 
             CompilerModuleExtension extension = CompilerModuleExtension.getInstance(depModule);
             if (extension != null) {
               VirtualFile classDir = extension.getCompilerOutputPath();
 
               if (libraryProject) {
-                final VirtualFile tmpArtifactsDir = AndroidDexCompiler.getOutputDirectoryForDex(depModule);
+                VirtualFile tmpArtifactsDir = AndroidDexCompiler.getOutputDirectoryForDex(depModule);
 
                 if (tmpArtifactsDir != null) {
-                  final VirtualFile packedClassesJar = tmpArtifactsDir.findChild(AndroidCommonUtils.CLASSES_JAR_FILE_NAME);
+                  VirtualFile packedClassesJar = tmpArtifactsDir.findChild(CLASSES_JAR_FILE_NAME);
                   if (packedClassesJar != null) {
                     outputDirs.add(packedClassesJar);
                   }
@@ -317,8 +315,7 @@ public class AndroidRootUtil {
               }
             }
             if (recursive) {
-              fillExternalLibrariesAndModules(depModule, outputDirs, libraries, visited,
-                                              !libraryProject || exportedLibrariesOnly, recursive);
+              fillExternalLibrariesAndModules(depModule, outputDirs, visited, libraries, !libraryProject || exportedLibrariesOnly, true);
             }
           }
         }
@@ -333,33 +330,27 @@ public class AndroidRootUtil {
     // In a module imported from Maven dependencies are transitive, so we don't need to traverse all dependency tree
     // and compute all jars referred by library modules. Moreover it would be incorrect,
     // because Maven has dependency resolving algorithm based on versioning
-    final boolean recursive = !AndroidMavenUtil.isMavenizedModule(module);
-    fillExternalLibrariesAndModules(module, files, libs, new HashSet<Module>(), false, recursive);
+    boolean recursive = !isMavenizedModule(module);
+    fillExternalLibrariesAndModules(module, files, new HashSet<Module>(), libs, false, recursive);
 
     addAnnotationsJar(module, libs);
     return libs;
   }
 
-  private static void addAnnotationsJar(Module module, OrderedSet<VirtualFile> libs) {
-    final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+  private static void addAnnotationsJar(@NotNull Module module, @NotNull OrderedSet<VirtualFile> libs) {
+    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
     if (sdk == null || !isAndroidSdk(sdk)) {
       return;
     }
-
-    final String sdkHomePath = sdk.getHomePath();
+    String sdkHomePath = sdk.getHomePath();
     if (sdkHomePath == null) {
       return;
     }
-
-    final AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    if (data == null) {
-      return;
-    }
-    final AndroidPlatform platform = data.getAndroidPlatform();
+    AndroidPlatform platform = AndroidPlatform.getInstance(module);
 
     if (platform != null && platform.needToAddAnnotationsJarToClasspath()) {
-      final String annotationsJarPath = FileUtil.toSystemIndependentName(sdkHomePath) + AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
-      final VirtualFile annotationsJar = LocalFileSystem.getInstance().findFileByPath(annotationsJarPath);
+      String annotationsJarPath = toSystemIndependentName(sdkHomePath) + ANNOTATIONS_JAR_RELATIVE_PATH;
+      VirtualFile annotationsJar = LocalFileSystem.getInstance().findFileByPath(annotationsJarPath);
 
       if (annotationsJar != null) {
         libs.add(annotationsJar);
@@ -368,10 +359,9 @@ public class AndroidRootUtil {
   }
 
   @NotNull
-  public static Set<VirtualFile> getDependentModules(Module module,
-                                                     VirtualFile moduleOutputDir) {
+  public static Set<VirtualFile> getDependentModules(@NotNull Module module, @NotNull VirtualFile moduleOutputDir) {
     Set<VirtualFile> files = new HashSet<VirtualFile>();
-    fillExternalLibrariesAndModules(module, files, null, new HashSet<Module>(), false, true);
+    fillExternalLibrariesAndModules(module, files, new HashSet<Module>(), null, false, true);
     files.remove(moduleOutputDir);
     return files;
   }
@@ -386,7 +376,7 @@ public class AndroidRootUtil {
         result.add(overlayDir);
       }
     }
-    return VfsUtilCore.toVirtualFileArray(result);
+    return toVirtualFileArray(result);
   }
 
   @Nullable
@@ -394,7 +384,7 @@ public class AndroidRootUtil {
     String moduleFilePath = module.getModuleFilePath();
     String moduleDirPath = new File(moduleFilePath).getParent();
     if (moduleDirPath != null) {
-      moduleDirPath = FileUtil.toSystemIndependentName(moduleDirPath);
+      moduleDirPath = toSystemIndependentName(moduleDirPath);
     }
     return moduleDirPath;
   }
@@ -413,9 +403,9 @@ public class AndroidRootUtil {
 
   @Nullable
   public static VirtualFile getMainContentRoot(@NotNull AndroidFacet facet) {
-    final Module module = facet.getModule();
-    
-    final VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
+    Module module = facet.getModule();
+
+    VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
     if (contentRoots.length == 0) {
       return null;
     }
@@ -423,10 +413,10 @@ public class AndroidRootUtil {
     if (contentRoots.length == 1) {
       return contentRoots[0];
     }
-    final VirtualFile manifestFile = getPrimaryManifestFile(facet);
+    VirtualFile manifestFile = getPrimaryManifestFile(facet);
     if (manifestFile != null) {
       for (VirtualFile root : contentRoots) {
-        if (VfsUtilCore.isAncestor(root, manifestFile, true)) {
+        if (isAncestor(root, manifestFile, true)) {
           return root;
         }
       }
@@ -435,11 +425,11 @@ public class AndroidRootUtil {
   }
 
   @Nullable
-  public static Pair<PropertiesFile, VirtualFile> findPropertyFile(@NotNull final Module module, @NotNull String propertyFileName) {
+  public static Pair<PropertiesFile, VirtualFile> findPropertyFile(@NotNull Module module, @NotNull String propertyFileName) {
     for (VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
-      final VirtualFile vFile = contentRoot.findChild(propertyFileName);
+      VirtualFile vFile = contentRoot.findChild(propertyFileName);
       if (vFile != null) {
-        final PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(module.getProject(), vFile);
+        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(module.getProject(), vFile);
         if (psiFile instanceof PropertiesFile) {
           return Pair.create((PropertiesFile)psiFile, vFile);
         }
@@ -452,7 +442,7 @@ public class AndroidRootUtil {
   @Nullable
   public static Pair<Properties, VirtualFile> readPropertyFile(@NotNull Module module, @NotNull String propertyFileName) {
     for (VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
-      final Pair<Properties, VirtualFile> result = readPropertyFile(contentRoot, propertyFileName);
+      Pair<Properties, VirtualFile> result = readPropertyFile(contentRoot, propertyFileName);
       if (result != null) {
         return result;
       }
@@ -462,21 +452,19 @@ public class AndroidRootUtil {
 
   @Nullable
   public static Pair<Properties, VirtualFile> readProjectPropertyFile(@NotNull Module module) {
-    final Pair<Properties, VirtualFile> pair = readPropertyFile(module, SdkConstants.FN_PROJECT_PROPERTIES);
-    return pair != null
-           ? pair
-           : readPropertyFile(module, DEFAULT_PROPERTIES_FILE_NAME);
+    Pair<Properties, VirtualFile> pair = readPropertyFile(module, SdkConstants.FN_PROJECT_PROPERTIES);
+    return pair != null ? pair : readPropertyFile(module, DEFAULT_PROPERTIES_FILE_NAME);
   }
 
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   @Nullable
   private static Pair<Properties, VirtualFile> readPropertyFile(@NotNull VirtualFile contentRoot, @NotNull String propertyFileName) {
-    final VirtualFile vFile = contentRoot.findChild(propertyFileName);
+    VirtualFile vFile = contentRoot.findChild(propertyFileName);
     if (vFile != null) {
       try {
-        File file = VfsUtilCore.virtualToIoFile(vFile);
-        Properties properties = PropertiesUtil.getProperties(file);
-        return new Pair<Properties, VirtualFile>(properties, vFile);
+        File file = virtualToIoFile(vFile);
+        Properties properties = getProperties(file);
+        return Pair.create(properties, vFile);
       }
       catch (IOException e) {
         LOG.info(e);
@@ -487,10 +475,8 @@ public class AndroidRootUtil {
 
   @Nullable
   public static Pair<Properties, VirtualFile> readProjectPropertyFile(@NotNull VirtualFile contentRoot) {
-    final Pair<Properties, VirtualFile> pair = readPropertyFile(contentRoot, SdkConstants.FN_PROJECT_PROPERTIES);
-    return pair != null
-           ? pair
-           : readPropertyFile(contentRoot, DEFAULT_PROPERTIES_FILE_NAME);
+    Pair<Properties, VirtualFile> pair = readPropertyFile(contentRoot, SdkConstants.FN_PROJECT_PROPERTIES);
+    return pair != null ? pair : readPropertyFile(contentRoot, DEFAULT_PROPERTIES_FILE_NAME);
   }
 
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
@@ -498,9 +484,9 @@ public class AndroidRootUtil {
   public static Pair<String, VirtualFile> getPropertyValue(@NotNull Module module,
                                                            @NotNull String propertyFileName,
                                                            @NotNull String propertyKey) {
-    final Pair<Properties, VirtualFile> pair = readPropertyFile(module, propertyFileName);
+    Pair<Properties, VirtualFile> pair = readPropertyFile(module, propertyFileName);
     if (pair != null) {
-      final String value = pair.first.getProperty(propertyKey);
+      String value = pair.first.getProperty(propertyKey);
       if (value != null) {
         return Pair.create(value, pair.second);
       }
@@ -511,9 +497,7 @@ public class AndroidRootUtil {
   @Nullable
   public static Pair<String, VirtualFile> getProjectPropertyValue(@NotNull Module module, @NotNull String propertyName) {
     Pair<String, VirtualFile> result = getPropertyValue(module, SdkConstants.FN_PROJECT_PROPERTIES, propertyName);
-    return result != null
-           ? result
-           : getPropertyValue(module, DEFAULT_PROPERTIES_FILE_NAME, propertyName);
+    return result != null ? result : getPropertyValue(module, DEFAULT_PROPERTIES_FILE_NAME, propertyName);
   }
 
   @Nullable
@@ -539,16 +523,16 @@ public class AndroidRootUtil {
       // For Android-Gradle projects, IdeaAndroidProject is not null.
       Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
       AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
-      AndroidArtifactOutput output = GradleUtil.getOutput(mainArtifact);
+      AndroidArtifactOutput output = getOutput(mainArtifact);
       File outputFile = output.getMainOutputFile().getOutputFile();
       return outputFile.getAbsolutePath();
     }
     String path = facet.getProperties().APK_PATH;
     if (path.length() == 0) {
-      return AndroidCompileUtil.getOutputPackage(facet.getModule());
+      return getOutputPackage(facet.getModule());
     }
     String moduleDirPath = getModuleDirPath(facet.getModule());
-    return moduleDirPath != null ? FileUtil.toSystemDependentName(moduleDirPath + path) : null;
+    return moduleDirPath != null ? toSystemDependentName(moduleDirPath + path) : null;
   }
 
   @Nullable
@@ -560,6 +544,6 @@ public class AndroidRootUtil {
     if (moduleDirPath.equals(path)) {
       return "";
     }
-    return FileUtil.getRelativePath(moduleDirPath, path, '/');
+    return getRelativePath(moduleDirPath, path, '/');
   }
 }

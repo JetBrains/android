@@ -50,10 +50,7 @@ import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
-import org.jetbrains.android.run.AndroidApplicationLauncher;
-import org.jetbrains.android.run.AndroidRunConfigurationBase;
-import org.jetbrains.android.run.AndroidRunConfigurationEditor;
-import org.jetbrains.android.run.AndroidRunningState;
+import org.jetbrains.android.run.*;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -135,6 +132,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   public void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException {
+    if (getTargetSelectionMode() == TargetSelectionMode.CLOUD_MATRIX_TEST && !IS_VALID_CLOUD_MATRIX_SELECTION) {
+      throw new RuntimeConfigurationError(INVALID_CLOUD_MATRIX_SELECTION_ERROR);
+    }
+    if (getTargetSelectionMode() == TargetSelectionMode.CLOUD_DEVICE_LAUNCH && !IS_VALID_CLOUD_DEVICE_SELECTION) {
+      throw new RuntimeConfigurationError(INVALID_CLOUD_DEVICE_SELECTION_ERROR);
+    }
+
     Module module = facet.getModule();
     JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
     switch (TESTING_TYPE) {

@@ -18,7 +18,7 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.editors.navigation.NavigationEditor;
 import com.android.tools.idea.editors.navigation.NavigationEditorProvider;
-import com.android.tools.idea.editors.navigation.Utilities;
+import com.android.tools.idea.editors.navigation.NavigationEditorUtils;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -47,7 +47,7 @@ public class AndroidShowNavigationEditor extends AnAction {
     if (baseDir == null) { // this happens when we have the 'default' project; can't launch nav editor from here
       return;
     }
-    VirtualFile navFile = Utilities.getNavigationFile(baseDir, module.getName(), dir, file);
+    VirtualFile navFile = NavigationEditorUtils.getNavigationFile(baseDir, module.getName(), dir, file);
     OpenFileDescriptor descriptor = new OpenFileDescriptor(project, navFile, 0);
     FileEditorManager manager = FileEditorManager.getInstance(project);
     manager.openEditor(descriptor, true);
@@ -56,7 +56,7 @@ public class AndroidShowNavigationEditor extends AnAction {
 
   private void showNavigationEditor(@Nullable Project project, String dir, String file) {
     if (project != null) {
-      Module[] androidModules = Utilities.getAndroidModules(project);
+      Module[] androidModules = NavigationEditorUtils.getAndroidModules(project);
       if (androidModules.length > 0) {
         showNavigationEditor(project, androidModules[0], dir, file);
       }

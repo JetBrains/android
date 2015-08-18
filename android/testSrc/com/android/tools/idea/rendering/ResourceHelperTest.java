@@ -110,4 +110,21 @@ public class ResourceHelperTest extends AndroidTestCase {
     assert c != null;
     assertEquals(0x08123456, c.getRGB());
   }
+
+  public void testColorToString() {
+    Color c = new Color(0x0fff0000, true);
+    assertEquals("#0fff0000", ResourceHelper.colorToString(c));
+
+    c = new Color(0x00ff00);
+    assertEquals("#00ff00", ResourceHelper.colorToString(c));
+
+    c = new Color(0x00000000, true);
+    assertEquals("#00000000", ResourceHelper.colorToString(c));
+
+    Color color = new Color(0x11, 0x22, 0x33, 0xf0);
+    assertEquals("#f0112233", ResourceHelper.colorToString(color));
+
+    color = new Color(0xff, 0xff, 0xff, 0x00);
+    assertEquals("#00ffffff", ResourceHelper.colorToString(color));
+  }
 }

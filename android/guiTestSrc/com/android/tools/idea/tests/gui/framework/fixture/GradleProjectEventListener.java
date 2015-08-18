@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class GradleProjectEventListener extends GradleSyncListener.Adapter implements GradleBuildListener {
+  private boolean mySyncStarted;
   private boolean mySyncFinished;
   private boolean mySyncSkipped;
   @Nullable private RuntimeException mySyncError;
@@ -35,11 +36,13 @@ class GradleProjectEventListener extends GradleSyncListener.Adapter implements G
   @Override
   public void syncStarted(@NotNull Project project) {
     reset();
+    mySyncStarted = true;
   }
 
   @Override
   public void syncSucceeded(@NotNull Project project) {
     synchronized (lock) {
+      mySyncStarted = false;
       mySyncFinished = true;
     }
   }
@@ -47,6 +50,7 @@ class GradleProjectEventListener extends GradleSyncListener.Adapter implements G
   @Override
   public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
     synchronized (lock) {
+      mySyncStarted = false;
       mySyncFinished = true;
       mySyncError = new RuntimeException(errorMessage);
     }
@@ -55,6 +59,7 @@ class GradleProjectEventListener extends GradleSyncListener.Adapter implements G
   @Override
   public void syncSkipped(@NotNull Project project) {
     synchronized (lock) {
+      mySyncStarted = false;
       mySyncSkipped = mySyncFinished = true;
     }
   }
@@ -70,10 +75,14 @@ class GradleProjectEventListener extends GradleSyncListener.Adapter implements G
   void reset() {
     synchronized (lock) {
       mySyncError = null;
-      mySyncSkipped = mySyncFinished = false;
+      mySyncStarted = mySyncSkipped = mySyncFinished = false;
       myBuildMode = null;
       myBuildFinished = false;
     }
+  }
+
+  boolean isSyncStarted() {
+    return mySyncStarted;
   }
 
   boolean isSyncFinished() {

@@ -17,11 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.ide.common.resources.configuration.RegionQualifier;
-import com.android.utils.Pair;
-import com.google.common.base.Objects;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -30,8 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Comparator;
 
-import static com.android.ide.common.resources.configuration.LanguageQualifier.FAKE_LANG_VALUE;
-import static com.android.ide.common.resources.configuration.RegionQualifier.FAKE_REGION_VALUE;
+import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
 
 /**
  * A language,region pair
@@ -40,68 +35,37 @@ public class Locale {
   /**
    * A special marker region qualifier representing any region
    */
-  private static final RegionQualifier ANY_REGION = new RegionQualifier(FAKE_REGION_VALUE);
-
-  /**
-   * A special marker language qualifier representing any language
-   */
-  private static final LanguageQualifier ANY_LANGUAGE = new LanguageQualifier(FAKE_LANG_VALUE);
+  private static final LocaleQualifier ANY_QUALIFIER = new LocaleQualifier(FAKE_VALUE);
 
   /**
    * A locale which matches any language and region
    */
-  public static final Locale ANY = new Locale(ANY_LANGUAGE, ANY_REGION);
+  public static final Locale ANY = new Locale(ANY_QUALIFIER);
 
   /**
-   * The language qualifier, or {@link #ANY_LANGUAGE} if this locale matches any language
+   * The locale qualifier, or {@link #ANY_QUALIFIER} if this locale matches any locale
    */
   @NotNull
-  public final LanguageQualifier language;
-
-  /**
-   * The language qualifier, or {@link #ANY_REGION} if this locale matches any region
-   */
-  @NotNull
-  public final RegionQualifier region;
+  public final LocaleQualifier qualifier;
 
   /**
    * Constructs a new {@linkplain Locale} matching a given language in a given locale.
    *
-   * @param language the language
-   * @param region   the region
+   * @param locale the locale
    */
-  private Locale(@NotNull LanguageQualifier language, @NotNull RegionQualifier region) {
-    if (language.getValue().equals(FAKE_LANG_VALUE)) {
-      language = ANY_LANGUAGE;
-    }
-    if (region.getValue().equals(FAKE_REGION_VALUE)) {
-      region = ANY_REGION;
-    }
-    this.language = language;
-    this.region = region;
+  private Locale(@NotNull LocaleQualifier locale) {
+    qualifier = locale;
   }
 
   /**
    * Constructs a new {@linkplain Locale} matching a given language in a given specific locale.
    *
-   * @param language the language
-   * @param region   the region
-   * @return a locale with the given language and region
+   * @param locale the locale
+   * @return a locale with the given locale
    */
   @NotNull
-  public static Locale create(@NotNull LanguageQualifier language, @Nullable RegionQualifier region) {
-    return new Locale(language, region != null ? region : ANY_REGION);
-  }
-
-  /**
-   * Constructs a new {@linkplain Locale} for the given language, matching any regions.
-   *
-   * @param language the language
-   * @return a locale with the given language and region
-   */
-  @NotNull
-  public static Locale create(@NotNull LanguageQualifier language) {
-    return new Locale(language, ANY_REGION);
+  public static Locale create(@NotNull LocaleQualifier locale) {
+    return new Locale(locale);
   }
 
   /**
@@ -111,15 +75,11 @@ public class Locale {
    * @return a locale with the given language and region
    */
   public static Locale create(FolderConfiguration folder) {
-    LanguageQualifier language = folder.getEffectiveLanguage();
-    RegionQualifier region = folder.getEffectiveRegion();
-    if (language == null && region == null) {
+    LocaleQualifier locale = folder.getLocaleQualifier();
+    if (locale == null) {
       return ANY;
-    } else if (region == null) {
-      return create(language);
     } else {
-      assert language != null;
-      return create(language, region);
+      return new Locale(locale);
     }
   }
 
@@ -134,39 +94,12 @@ public class Locale {
     // Load locale. Note that this can get overwritten by the
     // project-wide settings read below.
 
-    LanguageQualifier language;
-    RegionQualifier region;
-
-    // BCP-47?
-    if (localeString.startsWith(LocaleQualifier.PREFIX)) {
-      Pair<String, String> pair = LocaleQualifier.parseBcp47(localeString);
-      if (pair != null) {
-        language = new LanguageQualifier(pair.getFirst());
-        String regionCode = pair.getSecond();
-        if (regionCode != null) {
-          region = new RegionQualifier(regionCode);
-        } else {
-          region = ANY_REGION;
-        }
-        return new Locale(language, region);
-      } else {
-        return ANY;
-      }
-    }
-
-    int index = localeString.indexOf('-');
-    if (index != -1) {
-      language = new LanguageQualifier(localeString.substring(0, index));
-      assert localeString.charAt(index + 1) == 'r' : localeString;
-      region = new RegionQualifier(localeString.substring(index + 2));
+    LocaleQualifier qualifier = LocaleQualifier.getQualifier(localeString);
+    if (qualifier != null) {
+      return new Locale(qualifier);
     } else {
-      assert localeString.length() == 2 : localeString;
-      assert !localeString.equals(LanguageQualifier.FAKE_LANG_VALUE);
-      language = new LanguageQualifier(localeString);
-      region = ANY_REGION;
+      return ANY;
     }
-
-    return new Locale(language, region);
   }
 
   /**
@@ -176,20 +109,18 @@ public class Locale {
    */
   @NotNull
   public Icon getFlagImage() {
-    String languageCode = hasLanguage() ? language.getValue() : null;
-    String regionCode = hasRegion() ? region.getValue() : null;
+    String languageCode = qualifier.hasLanguage() ? qualifier.getLanguage() : null;
+    if (languageCode == null) {
+      return AndroidIcons.EmptyFlag;
+    }
+    String regionCode = hasRegion() ? qualifier.getRegion() : null;
     FlagManager icons = FlagManager.get();
-    if (languageCode == null && regionCode == null) {
-      return AndroidIcons.Globe;
+    Icon image = icons.getFlag(languageCode, regionCode);
+    if (image == null) {
+      image = AndroidIcons.EmptyFlag;
     }
-    else {
-      Icon image = icons.getFlag(languageCode, regionCode);
-      if (image == null) {
-        image = AndroidIcons.EmptyFlag;
-      }
 
-      return image;
-    }
+    return image;
   }
 
   /**
@@ -199,7 +130,7 @@ public class Locale {
    * @return true if this locale specifies a specific language
    */
   public boolean hasLanguage() {
-    return language != ANY_LANGUAGE;
+    return !qualifier.hasFakeValue();
   }
 
   /**
@@ -208,7 +139,7 @@ public class Locale {
    * @return true if this locale specifies a region
    */
   public boolean hasRegion() {
-    return region != ANY_REGION;
+    return qualifier.getRegion() != null && !FAKE_VALUE.equals(qualifier.getRegion());
   }
 
   /**
@@ -216,33 +147,30 @@ public class Locale {
    * language is returned. If language is not set, empty string is returned.
    */
   public String toLocaleId() {
-    // Return lang-reg only if both lang and reg are present. Else return lang.
-    return hasLanguage() && hasRegion() ? language.getValue() + "-" + region.getValue() : hasLanguage() ? language.getValue() : "";
+    return qualifier == ANY_QUALIFIER ? "" : qualifier.getTag();
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + language.hashCode();
-    result = prime * result + region.hashCode();
+    result = prime * result + qualifier.hashCode();
     return result;
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(@Nullable Object obj) {
     if (this == obj) return true;
     if (obj == null) return false;
     if (getClass() != obj.getClass()) return false;
     Locale other = (Locale)obj;
-    if (!language.equals(other.language)) return false;
-    if (!region.equals(other.region)) return false;
+    if (!qualifier.equals(other.qualifier)) return false;
     return true;
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).omitNullValues().addValue(language.getValue()).addValue(region.getValue()).toString();
+    return qualifier.getTag();
   }
 
   /**
@@ -251,16 +179,16 @@ public class Locale {
   public static final Comparator<Locale> LANGUAGE_NAME_COMPARATOR = new Comparator<Locale>() {
     @Override
     public int compare(Locale locale1, Locale locale2) {
-      LanguageQualifier language1 = locale1.language;
-      LanguageQualifier language2 = locale2.language;
-      if (language1 == ANY_LANGUAGE) {
-        return language2 == ANY_LANGUAGE ? 0 : -1;
+      String language1 = locale1.qualifier.getLanguage();
+      String language2 = locale2.qualifier.getLanguage();
+      if (locale1.qualifier.hasFakeValue()) {
+        return locale2.qualifier.hasFakeValue() ? 0 : -1;
       }
-      else if (language2 == ANY_LANGUAGE) {
+      else if (locale2.qualifier.hasFakeValue()) {
         return 1;
       }
-      String name1 = LocaleManager.getLanguageName(language1.getValue());
-      String name2 = LocaleManager.getLanguageName(language2.getValue());
+      String name1 = LocaleManager.getLanguageName(language1);
+      String name2 = LocaleManager.getLanguageName(language2);
       int compare = StringUtil.compare(name1, name2, false);
       if (compare == 0) {
         return REGION_NAME_COMPARATOR.compare(locale1, locale2);
@@ -275,17 +203,15 @@ public class Locale {
   public static final Comparator<Locale> LANGUAGE_CODE_COMPARATOR = new Comparator<Locale>() {
     @Override
     public int compare(Locale locale1, Locale locale2) {
-      LanguageQualifier language1 = locale1.language;
-      LanguageQualifier language2 = locale2.language;
-      if (language1 == ANY_LANGUAGE) {
-        return language2 == ANY_LANGUAGE ? 0 : -1;
+      String language1 = locale1.qualifier.getLanguage();
+      String language2 = locale2.qualifier.getLanguage();
+      if (locale1.qualifier.hasFakeValue()) {
+        return locale2.qualifier.hasFakeValue() ? 0 : -1;
       }
-      else if (language2 == ANY_LANGUAGE) {
+      else if (locale2.qualifier.hasFakeValue()) {
         return 1;
       }
-      String code1 = language1.getValue();
-      String code2 = language2.getValue();
-      int compare = StringUtil.compare(code1, code2, false);
+      int compare = StringUtil.compare(language1, language2, false);
       if (compare == 0) {
         return REGION_CODE_COMPARATOR.compare(locale1, locale2);
       }
@@ -299,16 +225,16 @@ public class Locale {
   public static final Comparator<Locale> REGION_NAME_COMPARATOR = new Comparator<Locale>() {
     @Override
     public int compare(Locale locale1, Locale locale2) {
-      RegionQualifier region1 = locale1.region;
-      RegionQualifier region2 = locale2.region;
-      if (region1 == ANY_REGION) {
-        return region2 == ANY_REGION ? 0 : -1;
-      } else if (region2 == ANY_REGION) {
+      String region1 = locale1.qualifier.getRegion();
+      String region2 = locale2.qualifier.getRegion();
+      if (region1 == null) {
+        return region2 == null ? 0 : -1;
+      } else if (region2 == null) {
         return 1;
       }
-      String language1 = LocaleManager.getRegionName(region1.getValue());
-      String language2 = LocaleManager.getRegionName(region2.getValue());
-      return StringUtil.compare(language1, language2, false);
+      String regionName1 = LocaleManager.getRegionName(region1);
+      String regionName2 = LocaleManager.getRegionName(region2);
+      return StringUtil.compare(regionName1, regionName2, false);
     }
   };
 
@@ -318,16 +244,14 @@ public class Locale {
   public static final Comparator<Locale> REGION_CODE_COMPARATOR = new Comparator<Locale>() {
     @Override
     public int compare(Locale locale1, Locale locale2) {
-      RegionQualifier region1 = locale1.region;
-      RegionQualifier region2 = locale2.region;
-      if (region1 == ANY_REGION) {
-        return region2 == ANY_REGION ? 0 : -1;
-      } else if (region2 == ANY_REGION) {
+      String region1 = locale1.qualifier.getRegion();
+      String region2 = locale2.qualifier.getRegion();
+      if (region1 == null) {
+        return region2 == null ? 0 : -1;
+      } else if (region2 == null) {
         return 1;
       }
-      String code1 = region1.getValue();
-      String code2 = region2.getValue();
-      return StringUtil.compare(code1, code2, false);
+      return StringUtil.compare(region1, region2, false);
     }
   };
 }

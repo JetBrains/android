@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.stats.Distribution;
+import com.android.tools.idea.stats.DistributionService;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -49,7 +50,7 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
   private JBLabel myLearnMoreLinkLabel;
   private int mySelectedApiLevel = -1;
 
-  protected ChooseApiLevelDialog(@Nullable Project project, int selectedApiLevel) {
+  public ChooseApiLevelDialog(@Nullable Project project, int selectedApiLevel) {
     super(project);
     mySelectedApiLevel = selectedApiLevel;
 
@@ -99,6 +100,12 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
         }
       }
     });
+    if (mySelectedApiLevel >= 0) {
+      Distribution d = DistributionService.getInstance().getDistributionForApiLevel(mySelectedApiLevel);
+      if (d != null) {
+        myDistributionChart.selectDistribution(d);
+      }
+    }
     return myPanel;
   }
 

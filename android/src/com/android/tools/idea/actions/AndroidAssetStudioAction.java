@@ -27,6 +27,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 /**
  * Action to invoke the Asset Studio. This action is visible
@@ -39,12 +42,16 @@ public class AndroidAssetStudioAction extends AnAction {
     super("Image Asset", "Open Asset Studio to create an image asset", AndroidIcons.Android);
   }
 
+  public AndroidAssetStudioAction (@Nullable String text, @Nullable String description, @Nullable Icon icon) {
+    super(text, description, icon);
+  }
+
   @Override
   public void update(AnActionEvent e) {
     e.getPresentation().setVisible(isAvailable(e.getDataContext()));
   }
 
-  private static boolean isAvailable(DataContext dataContext) {
+  protected static boolean isAvailable(DataContext dataContext) {
     final Module module = LangDataKeys.MODULE.getData(dataContext);
     final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
 
@@ -56,6 +63,16 @@ public class AndroidAssetStudioAction extends AnAction {
     }
     return true;
   }
+
+  // AndroidVectorAssetStudioAction will override this and provide different wizard for vector assets.
+  protected void showWizardAndCreateAsset(Project project, Module module, VirtualFile targetFile) {
+    AssetStudioWizard dialog = new AssetStudioWizard(project, module, targetFile);
+    if (!dialog.showAndGet()) {
+      return;
+    }
+    dialog.createAssets();
+  }
+
 
   @Override
   public void actionPerformed(AnActionEvent e) {
@@ -101,11 +118,6 @@ public class AndroidAssetStudioAction extends AnAction {
     Project project = CommonDataKeys.PROJECT.getData(dataContext);
     VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
-    AssetStudioWizard dialog = new AssetStudioWizard(project, module, targetFile);
-
-    if (!dialog.showAndGet()) {
-      return;
-    }
-    dialog.createAssets();
+    showWizardAndCreateAsset(project, module, targetFile);
   }
 }

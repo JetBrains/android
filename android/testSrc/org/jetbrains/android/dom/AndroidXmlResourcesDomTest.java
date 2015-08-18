@@ -128,12 +128,12 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(copyFileToProject("pref_intent_doc.xml"));
     myFixture.complete(CompletionType.BASIC);
     myFixture.type("VIE");
-    doTestExternalDoc("Activity Action: Display the data to the user");
+    doTestExternalDoc("the \"standard\" action that is");
   }
 
   public void testPreferenceIntentDoc1() throws Throwable {
     myFixture.configureFromExistingVirtualFile(copyFileToProject("pref_intent_doc1.xml"));
-    doTestExternalDoc("Activity Action: Display the data to the user");
+    doTestExternalDoc("the \"standard\" action that is");
   }
 
   public void testPreferenceWidget() throws Throwable {

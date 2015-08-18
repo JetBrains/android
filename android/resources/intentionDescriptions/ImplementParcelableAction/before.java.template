@@ -1,0 +1,9 @@
+public class Simple implements Parcelable {
+    private final String name;
+    private final int age;
+
+    public Simple(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}

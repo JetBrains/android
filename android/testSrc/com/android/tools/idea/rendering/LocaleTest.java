@@ -16,76 +16,81 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
-import com.android.ide.common.resources.configuration.RegionQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
 import junit.framework.TestCase;
 
 public class LocaleTest extends TestCase {
   public void test1() {
     Locale locale = Locale.create("en-rUS");
-    assertEquals("en", locale.language.getValue());
-    assertEquals("US", locale.region.getValue());
+    assertEquals("en", locale.qualifier.getLanguage());
+    assertEquals("US", locale.qualifier.getRegion());
     assertTrue(locale.hasLanguage());
     assertTrue(locale.hasRegion());
   }
 
   public void test2() {
     Locale locale = Locale.create("zh");
-    assertEquals("zh", locale.language.getValue());
-    assertEquals(RegionQualifier.FAKE_REGION_VALUE, locale.region.getValue());
+    assertEquals("zh", locale.qualifier.getLanguage());
+    assertNull(locale.qualifier.getRegion());
     assertTrue(locale.hasLanguage());
     assertFalse(locale.hasRegion());
   }
 
   public void testEquals() {
     Locale locale = Locale.create("zh");
-    assertEquals("zh", locale.language.getValue());
-    assertEquals(RegionQualifier.FAKE_REGION_VALUE, locale.region.getValue());
+    assertEquals("zh", locale.qualifier.getLanguage());
+    assertNull(locale.qualifier.getRegion());
     assertTrue(locale.hasLanguage());
     assertFalse(locale.hasRegion());
   }
 
   public void test() {
-    LanguageQualifier language1 = new LanguageQualifier("nb");
-    LanguageQualifier language2 = new LanguageQualifier("no");
-    RegionQualifier region1 = new RegionQualifier("NO");
-    RegionQualifier region2 = new RegionQualifier("SE");
+    LocaleQualifier qualifier1 = LocaleQualifier.getQualifier("nb");
+    LocaleQualifier qualifier2 = LocaleQualifier.getQualifier("no");
+    LocaleQualifier qualifier3 = LocaleQualifier.getQualifier("nb-rNO");
+    LocaleQualifier qualifier4 = LocaleQualifier.getQualifier("nb-rSE");
+    LocaleQualifier qualifier5 = LocaleQualifier.getQualifier("no-rSE");
+    assertNotNull(qualifier1);
+    assertNotNull(qualifier2);
+    assertNotNull(qualifier3);
+    assertNotNull(qualifier4);
+    assertNotNull(qualifier5);
 
     assertEquals(Locale.ANY, Locale.ANY);
     assertFalse(Locale.ANY.hasLanguage());
     assertFalse(Locale.ANY.hasRegion());
-    assertFalse(Locale.create(new LanguageQualifier(LanguageQualifier.FAKE_LANG_VALUE),
-                              new RegionQualifier(RegionQualifier.FAKE_REGION_VALUE)).hasLanguage());
-    assertFalse(Locale.create(new LanguageQualifier(LanguageQualifier.FAKE_LANG_VALUE),
-                              new RegionQualifier(RegionQualifier.FAKE_REGION_VALUE)).hasRegion());
+    //noinspection ConstantConditions
+    assertFalse(Locale.create(new LocaleQualifier(LocaleQualifier.FAKE_VALUE)).hasLanguage());
+    //noinspection ConstantConditions
+    assertFalse(Locale.create(new LocaleQualifier(LocaleQualifier.FAKE_VALUE)).hasRegion());
 
-    assertEquals(Locale.create(language1), Locale.create(language1));
-    assertTrue(Locale.create(language1).hasLanguage());
-    assertFalse(Locale.create(language1).hasRegion());
-    assertTrue(Locale.create(language1, region1).hasLanguage());
-    assertTrue(Locale.create(language1, region1).hasRegion());
+    assertEquals(Locale.create(qualifier1), Locale.create(qualifier1));
+    assertTrue(Locale.create(qualifier1).hasLanguage());
+    assertFalse(Locale.create(qualifier1).hasRegion());
+    assertTrue(Locale.create(qualifier3).hasLanguage());
+    assertTrue(Locale.create(qualifier3).hasRegion());
 
-    assertEquals(Locale.create(language1, region1), Locale.create(language1, region1));
-    assertEquals(Locale.create(language1), Locale.create(language1));
-    assertTrue(Locale.create(language1).equals(Locale.create(language1)));
-    assertTrue(Locale.create(language1, region1).equals(Locale.create(language1, region1)));
-    assertFalse(Locale.create(language1, region1).equals(Locale.create(language1, region2)));
-    assertFalse(Locale.create(language1).equals(Locale.create(language1, region1)));
-    assertFalse(Locale.create(language1).equals(Locale.create(language2)));
-    assertFalse(Locale.create(language1, region1).equals(Locale.create(language2, region1)));
-    assertEquals("Locale{nb, __}", Locale.create(language1).toString());
-    assertEquals("Locale{nb, NO}", Locale.create(language1, region1).toString());
+    assertEquals(Locale.create(qualifier3), Locale.create(qualifier3));
+    assertEquals(Locale.create(qualifier1), Locale.create(qualifier1));
+    assertTrue(Locale.create(qualifier1).equals(Locale.create(qualifier1)));
+    assertTrue(Locale.create(qualifier3).equals(Locale.create(qualifier3)));
+    assertFalse(Locale.create(qualifier3).equals(Locale.create(qualifier4)));
+    assertFalse(Locale.create(qualifier1).equals(Locale.create(qualifier3)));
+    assertFalse(Locale.create(qualifier1).equals(Locale.create(qualifier2)));
+    assertFalse(Locale.create(qualifier3).equals(Locale.create(qualifier5)));
+    assertEquals("nb", Locale.create(qualifier1).toString());
+    assertEquals("nb-NO", Locale.create(qualifier3).toString());
 
-    assertEquals(Locale.create(language1), Locale.create("b+nb"));
-    assertEquals(Locale.create(language1, region1), Locale.create("b+nb+NO"));
+    assertEquals(Locale.create(qualifier1), Locale.create("b+nb"));
+    assertEquals(Locale.create(qualifier3), Locale.create("b+nb+NO"));
   }
 
   public void testFolderConfig() {
     FolderConfiguration config = new FolderConfiguration();
     assertEquals(Locale.ANY, Locale.create(config));
-    config.setLanguageQualifier(new LanguageQualifier("en"));
+    config.setLocaleQualifier(LocaleQualifier.getQualifier("en"));
     assertEquals(Locale.create("en"), Locale.create(config));
-    config.setRegionQualifier(new RegionQualifier("US"));
+    config.setLocaleQualifier(LocaleQualifier.getQualifier("en-rUS"));
     assertEquals(Locale.create("en-rUS"), Locale.create(config));
   }
 }

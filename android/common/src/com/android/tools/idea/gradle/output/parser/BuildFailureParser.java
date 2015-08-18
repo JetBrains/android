@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.output.parser;
 
-import com.android.ide.common.blame.output.GradleMessage;
+import com.android.ide.common.blame.Message;
+import com.android.ide.common.blame.SourceFile;
+import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.ParsingFailedException;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.aapt.AaptOutputParser;
@@ -82,14 +85,13 @@ public class BuildFailureParser implements PatternAwareOutputParser {
   private AaptOutputParser myAaptParser = new AaptOutputParser();
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages, @NotNull ILogger logger)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<Message> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
     State state = State.BEGINNING;
     int pos = 0;
     String currentLine = line;
-    String file = null;
-    int lineNum = -1;
-    int column = -1;
+    SourceFile file = SourceFile.UNKNOWN;
+    SourcePosition position = SourcePosition.UNKNOWN;
     String lastQuotedLine = null;
     StringBuilder errorMessage = new StringBuilder();
     Matcher matcher;
@@ -113,9 +115,8 @@ public class BuildFailureParser implements PatternAwareOutputParser {
           if (!matcher.matches()) {
             return false;
           }
-          file = matcher.group(1);
-          lineNum = Integer.parseInt(matcher.group(2));
-          column = 0;
+          file = new SourceFile(new File(matcher.group(1)));
+          position = new SourcePosition(Integer.parseInt(matcher.group(2))-1, 0, -1);
           state = State.BEGINNING;
           break;
         case MESSAGE:
@@ -143,27 +144,26 @@ public class BuildFailureParser implements PatternAwareOutputParser {
               if (currentLine.startsWith("> In DataSet ", quoted) && currentLine.contains("no data file for changedFile")) {
                 matcher = Pattern.compile("\\s*> In DataSet '.+', no data file for changedFile '(.+)'").matcher(currentLine);
                 if (matcher.find()) {
-                  file = matcher.group(1);
+                  file = new SourceFile(new File(matcher.group(1)));
                 }
               }
               else if (currentLine.startsWith("> Duplicate resources: ", quoted)) {
                 // For exact format, see com.android.ide.common.res2.DuplicateDataException
                 matcher = Pattern.compile("\\s*> Duplicate resources: (.+):(.+), (.+):(.+)\\s*").matcher(currentLine);
                 if (matcher.matches()) {
-                  file = matcher.group(1);
-                  lineNum = AbstractAaptOutputParser.findResourceLine(new File(file), matcher.group(2), logger);
-                  messages.add(new GradleMessage(GradleMessage.Kind.ERROR, currentLine, file, lineNum, -1));
-                  String other = matcher.group(3);
-                  int otherLine = AbstractAaptOutputParser.findResourceLine(new File(other), matcher.group(4), logger);
-                  messages.add(new GradleMessage(GradleMessage.Kind.ERROR, "Other duplicate occurrence here", other, otherLine, -1));
-                  // Skip appending to the errorMessage buffer; we've already manually added this line and a line pointing to
-                  // the second occurrence as separate errors
+                  file = new SourceFile(new File(matcher.group(1)));
+                  position = AbstractAaptOutputParser.findResourceLine(file.getSourceFile(), matcher.group(2), logger);
+                  File other =  new File(matcher.group(3));
+                  SourcePosition otherPos = AbstractAaptOutputParser.findResourceLine(other, matcher.group(4), logger);
+                  messages.add(new Message(
+                      Message.Kind.ERROR, currentLine, new SourceFilePosition(file, position), new SourceFilePosition(other, otherPos)));
+                  // Skip appending to the errorMessage buffer; we've already added both locations to the message
                   break;
                 }
               }
               else if (currentLine.startsWith("> Problems pinging owner of lock ", quoted)) {
                 String text = "Possibly unstable network connection: Failed to connect to lock owner. Try to rebuild.";
-                messages.add(new GradleMessage(GradleMessage.Kind.ERROR, text, null, -1, -1));
+                messages.add(new Message(Message.Kind.ERROR, text, SourceFilePosition.UNKNOWN));
               }
             }
             if (errorMessage.length() > 0) {
@@ -183,7 +183,7 @@ public class BuildFailureParser implements PatternAwareOutputParser {
           matcher = COMMAND_LINE_PARSER.matcher(currentLine);
           if (matcher.matches()) {
             String message = String.format("Error while executing %s command", matcher.group(2));
-            messages.add(new GradleMessage(GradleMessage.Kind.ERROR, message));
+            messages.add(new Message(Message.Kind.ERROR, message, SourceFilePosition.UNKNOWN));
           }
           else if (COMMAND_LINE_ERROR_OUTPUT.matcher(currentLine).matches()) {
             state = State.COMMAND_FAILURE_OUTPUT;
@@ -202,7 +202,7 @@ public class BuildFailureParser implements PatternAwareOutputParser {
             currentLine = currentLine.trim();
             if (!myAaptParser.parse(currentLine, reader, messages, logger)) {
               // The AAPT parser punted on it. Just create a message with the unparsed error.
-              messages.add(new GradleMessage(GradleMessage.Kind.ERROR, currentLine));
+              messages.add(new Message(Message.Kind.ERROR, currentLine, SourceFilePosition.UNKNOWN));
             }
           }
           break;
@@ -220,9 +220,9 @@ public class BuildFailureParser implements PatternAwareOutputParser {
               // messages, for example from the XML Validation parser, where the same error message is
               // provided along with an error message. See for example the parser unit test for
               // duplicate resources.
-              if (file == null && lastQuotedLine != null) {
+              if (SourceFile.UNKNOWN.equals(file) && lastQuotedLine != null) {
                 String msg = unquoteGradleLine(lastQuotedLine);
-                GradleMessage rootCause = findRootCause(msg, messages);
+                Message rootCause = findRootCause(msg, messages);
 
                 if (rootCause == null) {
                   // For AAPT execution errors, the real cause is the last line (the AAPT output).
@@ -239,21 +239,23 @@ public class BuildFailureParser implements PatternAwareOutputParser {
                 }
 
                 if (rootCause != null) {
-                  file = rootCause.getSourcePath();
-                  lineNum = rootCause.getLineNumber();
-                  column = rootCause.getColumn();
+                  if (!rootCause.getSourceFilePositions().isEmpty()) {
+                    SourceFilePosition sourceFilePosition = rootCause.getSourceFilePositions().get(0);
+                    file = sourceFilePosition.getFile();
+                    position = sourceFilePosition.getPosition();
+                  }
                 }
               }
-              if (file != null) {
-                messages.add(new GradleMessage(GradleMessage.Kind.ERROR, text, file, lineNum, column));
+              if (!SourceFile.UNKNOWN.equals(file)) {
+                messages.add(new Message(Message.Kind.ERROR, text, new SourceFilePosition(file, position)));
               }
               else if (text.contains("Build cancelled")) {
                 // Gradle throws an exception (BuildCancelledException) when we cancel task processing
                 // (org.gradle.tooling.CancellationTokenSource.cancel()). We don't want to report that as an error though.
-                messages.add(new GradleMessage(GradleMessage.Kind.INFO, text));
+                messages.add(new Message(Message.Kind.INFO, text, SourceFilePosition.UNKNOWN));
               }
               else {
-                messages.add(new GradleMessage(GradleMessage.Kind.ERROR, text));
+                messages.add(new Message(Message.Kind.ERROR, text, SourceFilePosition.UNKNOWN));
               }
             }
             return true;
@@ -276,11 +278,10 @@ public class BuildFailureParser implements PatternAwareOutputParser {
    * Looks through the existing errors and attempts to find one that has the same root cause
    */
   @Nullable
-  private static GradleMessage findRootCause(@NotNull String text, @NotNull Collection<GradleMessage> messages) {
-    for (GradleMessage message : messages) {
-      if (message.getKind() != GradleMessage.Kind.INFO && message.getText().contains(text)) {
-        String sourcePath = message.getSourcePath();
-        if (sourcePath != null) {
+  private static Message findRootCause(@NotNull String text, @NotNull Collection<Message> messages) {
+    for (Message message : messages) {
+      if (message.getKind() != Message.Kind.INFO && message.getText().contains(text)) {
+        if (message.getSourceFilePositions().isEmpty()) {
           return message;
         }
       }

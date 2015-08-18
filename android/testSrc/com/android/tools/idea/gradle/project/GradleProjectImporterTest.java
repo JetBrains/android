@@ -16,22 +16,35 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
+import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
+
+import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
+import static com.intellij.openapi.module.StdModuleTypes.JAVA;
+import static org.easymock.classextension.EasyMock.createMock;
 
 /**
  * Tests for {@link GradleProjectImporter}.
@@ -39,9 +52,10 @@ import java.io.File;
 public class GradleProjectImporterTest extends IdeaTestCase {
   private String myProjectName;
   private File myProjectRootDir;
-  private DataNode<ProjectData> myProjectInfo;
+  private DataNode<ProjectData> myCachedProject;
 
   private GradleProjectImporter myImporter;
+  private DataNode<ModuleData> myCachedModule;
 
   @Override
   public void setUp() throws Exception {
@@ -53,11 +67,11 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     final File projectFile = new File(myProjectRootDir, SdkConstants.FN_BUILD_GRADLE);
     final String configPath = projectFile.getPath();
     ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, myProjectName, projectRootDirPath, configPath);
-    myProjectInfo = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
+    myCachedProject = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
 
     ModuleData moduleData =
-      new ModuleData("", GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectName, projectRootDirPath, configPath);
-    myProjectInfo.createChild(ProjectKeys.MODULE, moduleData);
+      new ModuleData("", GradleConstants.SYSTEM_ID, JAVA.getId(), myModule.getName(), projectRootDirPath, configPath);
+    myCachedModule = myCachedProject.createChild(ProjectKeys.MODULE, moduleData);
 
     GradleProjectImporter.ImporterDelegate delegate = new GradleProjectImporter.ImporterDelegate() {
       @Override
@@ -66,8 +80,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
                          @NotNull final ProgressExecutionMode progressTaskMode) throws ConfigurationException {
         assertNotNull(project);
         assertEquals(myProjectName, project.getName());
-
-        callback.onSuccess(myProjectInfo);
+        callback.onSuccess(myCachedProject);
       }
     };
 
@@ -85,9 +98,74 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     super.tearDown();
   }
 
+  @NotNull
+  @Override
+  protected List<Throwable> checkForSettingsDamage() throws Exception {
+    // For this test we don't care for this check. This method does nothing.
+    return Collections.emptyList();
+  }
+
   public void testImportNewlyCreatedProject() throws Exception {
     MyGradleSyncListener callback = new MyGradleSyncListener();
     myImporter.importNewlyCreatedProject(myProjectName, myProjectRootDir, callback, null, null);
+  }
+
+  public void testIsCacheMissingModelsWhenCacheHasAndroidModel() {
+    FacetManager facetManager = FacetManager.getInstance(myModule);
+    ModifiableFacetModel model = facetManager.createModifiableModel();
+    try {
+      model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null));
+      model.addFacet(facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null));
+    } finally {
+      model.commit();
+    }
+
+    myCachedModule.createChild(IDE_GRADLE_PROJECT, createMock(IdeaGradleProject.class));
+    myCachedModule.createChild(IDE_ANDROID_PROJECT, createMock(IdeaAndroidProject.class));
+    assertFalse(GradleProjectImporter.isCacheMissingModels(myCachedProject, myProject));
+  }
+
+  public void testIsCacheMissingModelsWhenCacheHasJavaModel() {
+    FacetManager facetManager = FacetManager.getInstance(myModule);
+    ModifiableFacetModel model = facetManager.createModifiableModel();
+    try {
+      model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null));
+      model.addFacet(facetManager.createFacet(JavaGradleFacet.getFacetType(), JavaGradleFacet.NAME, null));
+    } finally {
+      model.commit();
+    }
+
+    myCachedModule.createChild(IDE_GRADLE_PROJECT, createMock(IdeaGradleProject.class));
+    myCachedModule.createChild(IDE_JAVA_PROJECT, createMock(IdeaJavaProject.class));
+    assertFalse(GradleProjectImporter.isCacheMissingModels(myCachedProject, myProject));
+  }
+
+  public void testIsCacheMissingModelsWhenCacheIsMissingAndroidModel() {
+    FacetManager facetManager = FacetManager.getInstance(myModule);
+    ModifiableFacetModel model = facetManager.createModifiableModel();
+    try {
+      model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null));
+      model.addFacet(facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null));
+    } finally {
+      model.commit();
+    }
+
+    myCachedModule.createChild(IDE_GRADLE_PROJECT, createMock(IdeaGradleProject.class));
+    assertTrue(GradleProjectImporter.isCacheMissingModels(myCachedProject, myProject));
+  }
+
+  public void testIsCacheMissingModelsWhenCacheIsMissingJavaModel() {
+    FacetManager facetManager = FacetManager.getInstance(myModule);
+    ModifiableFacetModel model = facetManager.createModifiableModel();
+    try {
+      model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null));
+      model.addFacet(facetManager.createFacet(JavaGradleFacet.getFacetType(), JavaGradleFacet.NAME, null));
+    } finally {
+      model.commit();
+    }
+
+    myCachedModule.createChild(IDE_GRADLE_PROJECT, createMock(IdeaGradleProject.class));
+    assertTrue(GradleProjectImporter.isCacheMissingModels(myCachedProject, myProject));
   }
 
   private class MyGradleSyncListener extends GradleSyncListener.Adapter {
@@ -106,7 +184,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       ModuleManager moduleManager = ModuleManager.getInstance(project);
       Module[] modules = moduleManager.getModules();
       assertEquals(1, modules.length);
-      assertEquals(myProjectName, modules[0].getName());
+      assertEquals(myModule.getName(), modules[0].getName());
     }
 
     @Override

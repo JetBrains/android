@@ -16,11 +16,12 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -35,10 +36,10 @@ public class LaunchAndroidApplicationTest extends GuiTestCase {
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*local path: (?:[^\\/]*[\\/])*SimpleApplication/app/build/outputs/apk/app-debug\\.apk.*", Pattern.DOTALL);
 
-  @Test
-  @IdeGuiTest
+  @Ignore
+  @Test @IdeGuiTest
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
 
     projectFrame.runApp(APP_NAME);
     projectFrame.findChooseDeviceDialog().selectEmulator("Nexus7")
@@ -52,10 +53,10 @@ public class LaunchAndroidApplicationTest extends GuiTestCase {
                                        .clickTerminateApplication();
   }
 
-  @Test
-  @IdeGuiTest
+  @Ignore
+  @Test @IdeGuiTest
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    IdeFrameFixture projectFrame = importSimpleApplication();
     final EditorFixture editor = projectFrame.getEditor();
     final int offset = editor.open("app/src/main/java/google/simpleapplication/MyActivity.java", EditorFixture.Tab.EDITOR).findOffset(
       "setContentView", "(R.layout.activity_my);", true);

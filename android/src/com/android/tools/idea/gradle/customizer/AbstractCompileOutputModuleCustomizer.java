@@ -15,37 +15,29 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
-import com.android.tools.idea.gradle.util.FilePaths;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+
 public abstract class AbstractCompileOutputModuleCustomizer<T> implements ModuleCustomizer<T> {
   private static final Logger LOG = Logger.getInstance(AbstractCompileOutputModuleCustomizer.class);
 
-  protected void setOutputPaths(@NotNull Module module, @NotNull File mainDirPath, @Nullable File testDirPath) {
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel moduleSettings = moduleRootManager.getModifiableModel();
-    CompilerModuleExtension compilerSettings = moduleSettings.getModuleExtension(CompilerModuleExtension.class);
+  protected void setOutputPaths(@NotNull ModifiableRootModel ideaModuleModel, @NotNull File mainDirPath, @Nullable File testDirPath) {
+    CompilerModuleExtension compilerSettings = ideaModuleModel.getModuleExtension(CompilerModuleExtension.class);
     if (compilerSettings == null) {
-      moduleSettings.dispose();
-      LOG.warn(String.format("No compiler extension is found for module '%1$s'", module.getName()));
+      LOG.warn(String.format("No compiler extension is found for module '%1$s'", ideaModuleModel.getModule().getName()));
       return;
     }
-    try {
-      compilerSettings.inheritCompilerOutputPath(false);
-      compilerSettings.setCompilerOutputPath(FilePaths.pathToIdeaUrl(mainDirPath));
-      if (testDirPath != null) {
-        compilerSettings.setCompilerOutputPathForTests(FilePaths.pathToIdeaUrl(testDirPath));
-      }
-    } finally {
-      moduleSettings.commit();
+    compilerSettings.inheritCompilerOutputPath(false);
+    compilerSettings.setCompilerOutputPath(pathToIdeaUrl(mainDirPath));
+    if (testDirPath != null) {
+      compilerSettings.setCompilerOutputPathForTests(pathToIdeaUrl(testDirPath));
     }
   }
 }

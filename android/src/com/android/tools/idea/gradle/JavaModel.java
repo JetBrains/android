@@ -23,6 +23,9 @@ import java.io.Serializable;
 import java.util.List;
 
 public class JavaModel implements Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final List<String> myUnresolvedDependencyNames;
   @Nullable private final File myBuildFolderPath;
 

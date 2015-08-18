@@ -18,21 +18,22 @@ package com.android.tools.idea.editors.strings;
 import com.android.SdkConstants;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LanguageQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.rendering.PsiResourceItem;
 import com.google.common.collect.*;
-import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-import java.util.concurrent.Future;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class StringResourceParser {
   public static StringResourceData parse(@NotNull final AndroidFacet facet, @NotNull final LocalResourceRepository repository) {
@@ -72,12 +73,12 @@ public class StringResourceParser {
         }
 
         FolderConfiguration config = item.getConfiguration();
-        LanguageQualifier languageQualifier = config == null ? null : config.getEffectiveLanguage();
-        if (languageQualifier == null) {
+        LocaleQualifier qualifier = config == null ? null : config.getLocaleQualifier();
+        if (qualifier == null) {
           defaultValues.put(key, item);
         }
         else {
-          Locale locale = Locale.create(languageQualifier, config.getEffectiveRegion());
+          Locale locale = Locale.create(qualifier);
           locales.add(locale);
           translations.put(key, locale, item);
         }

@@ -17,18 +17,19 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
-import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleVersionInWrapperHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleProperties;
+import com.intellij.CommonBundle;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper.DoNotAskOption;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.net.HttpConfigurable;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
@@ -37,7 +38,15 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.intellij.openapi.ui.Messages.*;
+import static com.intellij.openapi.util.io.FileUtil.delete;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.ExceptionUtil.getRootCause;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
@@ -45,6 +54,9 @@ final class PreSyncChecks {
   private static final Logger LOG = Logger.getInstance(PreSyncChecks.class);
   private static final String GRADLE_SYNC_MSG_TITLE = "Gradle Sync";
   private static final String PROJECT_SYNCING_ERROR_GROUP = "Project syncing error";
+
+  @NonNls private static final String SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME =
+    "show.do.not.copy.http.proxy.settings.to.gradle";
 
   private PreSyncChecks() {
   }
@@ -57,15 +69,21 @@ final class PreSyncChecks {
       return PreSyncCheckResult.success();
     }
 
+    if (isAndroidStudio()) {
+      // We only check proxy settings for Studio, because Studio does not pass the IDE's proxy settings to Gradle.
+      // See https://code.google.com/p/android/issues/detail?id=169743
+      checkHttpProxySettings(project);
+    }
+
     ProjectSyncMessages syncMessages = ProjectSyncMessages.getInstance(project);
     syncMessages.removeMessages(PROJECT_SYNCING_ERROR_GROUP);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      GradleUtil.attemptToUseEmbeddedGradle(project);
+      attemptToUseEmbeddedGradle(project);
     }
 
-    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
-    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
+    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
 
     DistributionType distributionType = gradleSettings != null ? gradleSettings.getDistributionType() : null;
     boolean usingWrapper = (distributionType == null || distributionType == DEFAULT_WRAPPED) && wrapperPropertiesFile != null;
@@ -74,91 +92,130 @@ final class PreSyncChecks {
       // completion (see BuildClasspathModuleGradleDataService, line 119).
       gradleSettings.setDistributionType(DEFAULT_WRAPPED);
     }
-    else if (wrapperPropertiesFile == null && gradleSettings != null) {
-      createWrapperIfNecessary(project, gradleSettings, distributionType);
+    else if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      if (wrapperPropertiesFile == null && gradleSettings != null) {
+        createWrapperIfNecessary(project, gradleSettings, distributionType);
+      }
     }
 
     return PreSyncCheckResult.success();
   }
 
-  @NotNull
-  private static PreSyncCheckResult ensureCorrectGradleSettings(@NotNull Project project, @Nullable FullRevision modelVersion) {
-    if (modelVersion == null || createWrapperIfNecessary(project)) {
-      // Continue with sync and let it fail.
-      return PreSyncCheckResult.success();
+  // If the IDE is configured to use proxies, we ask the user if she would like to have those settings copied to gradle.properties, if such
+  // files does not include them already.
+  // Gradle may need those settings to access the Internet to download dependencies.
+  // See https://code.google.com/p/android/issues/detail?id=65325
+  private static void checkHttpProxySettings(@NotNull Project project) {
+    boolean performCheck = PropertiesComponent.getInstance().getBoolean(SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME, true);
+    if (!performCheck) {
+      // User already checked the "do not ask me" option.
+      return;
     }
 
-    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
-    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
-
-    DistributionType distributionType = gradleSettings != null ? gradleSettings.getDistributionType() : null;
-
-    boolean usingWrapper = (distributionType == null || distributionType == DEFAULT_WRAPPED) && wrapperPropertiesFile != null;
-    if (usingWrapper) {
-      PreSyncCheckResult result = attemptToUpdateGradleVersionInWrapper(wrapperPropertiesFile, modelVersion, project);
-      if (!result.isSuccess()) {
-        return result;
+    HttpConfigurable ideProxySettings = HttpConfigurable.getInstance();
+    if (ideProxySettings.USE_HTTP_PROXY && isNotEmpty(ideProxySettings.PROXY_HOST)) {
+      GradleProperties properties;
+      try {
+        properties = new GradleProperties(project);
       }
-      if (gradleSettings != null) {
-        // Do this just to ensure that the right distribution type is set.
-        gradleSettings.setDistributionType(DEFAULT_WRAPPED);
+      catch (IOException e) {
+        LOG.info("Failed to read gradle.properties file", e);
+        // Let sync continue, even though it may fail.
+        return;
+      }
+      GradleProperties.ProxySettings proxySettings = properties.getProxySettings();
+      if (!ideProxySettings.PROXY_HOST.equals(proxySettings.getHost())) {
+        String msg = "Android Studio is configured to use a HTTP proxy. " +
+                     "Gradle may need these proxy settings to access the Internet (e.g. for downloading dependencies.)\n\n" +
+                     "Would you like to have the IDE's proxy configuration be set in the project's gradle.properties file?";
+        DoNotAskOption doNotAskOption = new PropertyDoNotAskOption(SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME);
+        int result = Messages.showYesNoDialog(project, msg, "Proxy Settings", Messages.getQuestionIcon(), doNotAskOption);
+        if (result == YES) {
+          proxySettings.copyFrom(ideProxySettings);
+          properties.setProxySettings(proxySettings);
+          try {
+            properties.save();
+          }
+          catch (IOException e) {
+            //noinspection ThrowableResultOfMethodCallIgnored
+            Throwable root = getRootCause(e);
+
+            String cause = root.getMessage();
+            String errMsg = "Failed to save changes to gradle.properties file.";
+            if (isNotEmpty(cause)) {
+              if (!cause.endsWith(".")) {
+                cause += ".";
+              }
+              errMsg += String.format("\nCause: %1$s", cause);
+            }
+            AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
+            notification.showBalloon("Proxy Settings", errMsg, NotificationType.ERROR);
+
+            LOG.info("Failed to save changes to gradle.properties file", e);
+          }
+        }
       }
     }
-    else if (distributionType == DistributionType.LOCAL) {
-      attemptToUseSupportedLocalGradle(modelVersion, gradleSettings, project);
-    }
-    return PreSyncCheckResult.success();
-  }
-
-  // Returns true if wrapper was created or sync should continue immediately after executing this method.
-  private static boolean createWrapperIfNecessary(@NotNull Project project) {
-    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
-    if (gradleSettings == null) {
-      // Unlikely to happen. When we get to this point we already created GradleProjectSettings.
-      return true;
-    }
-
-    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
-
-    if (wrapperPropertiesFile == null) {
-      DistributionType distributionType = gradleSettings.getDistributionType();
-      if (createWrapperIfNecessary(project, gradleSettings, distributionType)) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   private static boolean createWrapperIfNecessary(@NotNull Project project,
                                                   @NotNull GradleProjectSettings gradleSettings,
                                                   @Nullable DistributionType distributionType) {
     boolean createWrapper = false;
-    if (distributionType == null) {
-      String msg = "Gradle settings for this project are not configured yet.\n\n" +
-                   "Would you like the project to use the Gradle wrapper?\n" +
-                   "(The wrapper will automatically download the latest supported Gradle version).\n\n" +
-                   "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
-      int answer = Messages.showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getQuestionIcon());
-      createWrapper = answer == Messages.OK;
+    boolean chooseLocalGradleHome = false;
 
+    if (distributionType == null) {
+      String msg = createUseWrapperQuestion("Gradle settings for this project are not configured yet.");
+      int answer = showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, getQuestionIcon());
+      createWrapper = answer == Messages.OK;
     }
     else if (distributionType == DEFAULT_WRAPPED) {
       createWrapper = true;
     }
+    else if (distributionType == LOCAL) {
+      String gradleHome = gradleSettings.getGradleHome();
+      String msg = null;
+      if (isEmpty(gradleHome)) {
+        msg = createUseWrapperQuestion("The path of the local Gradle distribution to use is not set.");
+      }
+      else {
+        File gradleHomePath = new File(toSystemDependentName(gradleHome));
+        if (!gradleHomePath.isDirectory()) {
+          String reason = String.format("The path\n'%1$s'\n, set as a local Gradle distribution, does not belong to an existing directory.",
+                                        gradleHomePath.getPath());
+          msg = createUseWrapperQuestion(reason);
+        }
+        else {
+          FullRevision gradleVersion = getGradleVersion(gradleHomePath);
+          if (gradleVersion == null) {
+            String reason = String.format("The path\n'%1$s'\n, does not belong to a Gradle distribution.", gradleHomePath.getPath());
+            msg = createUseWrapperQuestion(reason);
+          }
+          else if (!isSupportedGradleVersion(gradleVersion)) {
+            String reason = String.format("Gradle version %1$s is not supported.", gradleHomePath.getPath());
+            msg = createUseWrapperQuestion(reason);
+          }
+        }
+      }
+      if (msg != null) {
+        int answer = showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, getQuestionIcon());
+        createWrapper = answer == Messages.OK;
+        chooseLocalGradleHome = !createWrapper;
+      }
+    }
 
     if (createWrapper) {
-      File projectDirPath = new File(project.getBasePath());
+      File projectDirPath = getBaseDirPath(project);
 
       // attempt to delete the whole gradle wrapper folder.
       File gradleDirPath = new File(projectDirPath, SdkConstants.FD_GRADLE);
-      if (!FileUtil.delete(gradleDirPath)) {
+      if (!delete(gradleDirPath)) {
         // deletion failed. Let sync continue.
         return true;
       }
 
       try {
-        GradleUtil.createGradleWrapper(projectDirPath);
+        createGradleWrapper(projectDirPath);
         if (distributionType == null) {
           gradleSettings.setDistributionType(DEFAULT_WRAPPED);
         }
@@ -168,12 +225,12 @@ final class PreSyncChecks {
         LOG.info("Failed to create Gradle wrapper for project '" + project.getName() + "'", e);
       }
     }
-    else if (distributionType == null) {
+    else if (distributionType == null || chooseLocalGradleHome) {
       ChooseGradleHomeDialog dialog = new ChooseGradleHomeDialog();
       if (dialog.showAndGet()) {
         String enteredGradleHomePath = dialog.getEnteredGradleHomePath();
         gradleSettings.setGradleHome(enteredGradleHomePath);
-        gradleSettings.setDistributionType(DistributionType.LOCAL);
+        gradleSettings.setDistributionType(LOCAL);
         return true;
       }
     }
@@ -181,106 +238,11 @@ final class PreSyncChecks {
   }
 
   @NotNull
-  private static PreSyncCheckResult attemptToUpdateGradleVersionInWrapper(@NotNull final File wrapperPropertiesFile,
-                                                                          @NotNull FullRevision modelVersion,
-                                                                          @NotNull Project project) {
-    FullRevision minimumPluginVersion = FullRevision.parseRevision(GRADLE_PLUGIN_MINIMUM_VERSION);
-    if (modelVersion.compareTo(minimumPluginVersion) < 0) {
-      // Do not perform this check for plug-in 0.14. It supports many versions of Gradle.
-      // Let sync fail if using an unsupported Gradle versions.
-      return PreSyncCheckResult.success();
-    }
-
-    String gradleVersion = null;
-    try {
-      gradleVersion = GradleUtil.getGradleWrapperVersion(wrapperPropertiesFile);
-    }
-    catch (IOException e) {
-      LOG.warn("Failed to read file " + wrapperPropertiesFile.getPath());
-    }
-
-    if (gradleVersion == null) {
-      // There is a wrapper, but the Gradle version could not be read. Continue with sync.
-      return PreSyncCheckResult.success();
-    }
-
-    FullRevision gradleRevision = null;
-    try {
-      gradleRevision = FullRevision.parseRevision(gradleVersion);
-    }
-    catch (NumberFormatException e) {
-      // ignored;
-    }
-
-    if (gradleRevision != null && !GradleUtil.isSupportedGradleVersion(gradleRevision)) {
-      String cause = getMinimumGradleVersionErrorPrefix(modelVersion);
-      NotificationHyperlink hyperlink = FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(project);
-
-      ProjectSyncMessages syncMessages = ProjectSyncMessages.getInstance(project);
-      syncMessages.add(new Message(PROJECT_SYNCING_ERROR_GROUP, Message.Type.ERROR, cause), hyperlink);
-
-      return PreSyncCheckResult.failure(cause);
-    }
-
-    return PreSyncCheckResult.success();
-  }
-
-  private static void attemptToUseSupportedLocalGradle(@NotNull FullRevision modelVersion,
-                                                       @NotNull GradleProjectSettings gradleSettings,
-                                                       @NotNull Project project) {
-    String gradleHome = gradleSettings.getGradleHome();
-
-    FullRevision gradleVersion = null;
-    boolean askToSwitchToWrapper = false;
-    if (StringUtil.isEmpty(gradleHome)) {
-      // Unable to obtain the path of the Gradle local installation. Continue with sync.
-      askToSwitchToWrapper = true;
-    }
-    else {
-      File gradleHomePath = new File(gradleHome);
-      gradleVersion = GradleUtil.getGradleVersion(gradleHomePath);
-
-      if (gradleVersion == null) {
-        askToSwitchToWrapper = true;
-      }
-    }
-
-    if (!askToSwitchToWrapper) {
-      askToSwitchToWrapper = !GradleUtil.isSupportedGradleVersion(gradleVersion);
-    }
-
-    if (askToSwitchToWrapper) {
-      String msg = getMinimumGradleVersionErrorPrefix(modelVersion) +
-                   "A local Gradle distribution was not found, or was not properly set in the IDE.\n\n" +
-                   "Would you like your project to use the Gradle wrapper instead?\n" +
-                   "(The wrapper will automatically download the latest supported Gradle version).\n\n" +
-                   "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
-      int answer = Messages.showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getQuestionIcon());
-
-      if (answer == Messages.OK) {
-        try {
-          File projectDirPath = new File(project.getBasePath());
-          GradleUtil.createGradleWrapper(projectDirPath);
-          gradleSettings.setDistributionType(DEFAULT_WRAPPED);
-        }
-        catch (IOException e) {
-          LOG.warn("Failed to update Gradle wrapper file to Gradle version " + GRADLE_LATEST_VERSION, e);
-        }
-        return;
-      }
-
-      ChooseGradleHomeDialog dialog = new ChooseGradleHomeDialog();
-      dialog.setTitle(String.format("Please select the location of a Gradle distribution version %1$s or newer", GRADLE_MINIMUM_VERSION));
-      if (dialog.showAndGet()) {
-        String enteredGradleHomePath = dialog.getEnteredGradleHomePath();
-        gradleSettings.setGradleHome(enteredGradleHomePath);
-      }
-    }
-  }
-
-  @NotNull
-  private static String getMinimumGradleVersionErrorPrefix(@NotNull FullRevision modelVersion) {
-    return "Version " + modelVersion + " of the Android Gradle plug-in requires Gradle " + GRADLE_MINIMUM_VERSION + " or newer.\n";
+  private static String createUseWrapperQuestion(@NotNull String reason) {
+    return reason + "\n\n" +
+           "Would you like the project to use the Gradle wrapper?\n" +
+           "(The wrapper will automatically download the latest supported Gradle version).\n\n" +
+           "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
   }
 
   static class PreSyncCheckResult {
@@ -309,6 +271,50 @@ final class PreSyncChecks {
     @Nullable
     public String getFailureCause() {
       return myFailureCause;
+    }
+  }
+
+  /**
+   * Implementation of "Do not show this dialog in the future" option. This option is displayed as a checkbox in a {@code Messages} dialog.
+   * The state of such checkbox is stored in the IDE's {@code PropertiesComponent} under the name passed in the constructor.
+   */
+  private static class PropertyDoNotAskOption implements DoNotAskOption {
+    /** The name of the property storing the value of the "Do not show this dialog in the future" option.  */
+    @NotNull private final String myProperty;
+
+    PropertyDoNotAskOption(@NotNull String property) {
+      myProperty = property;
+    }
+
+    @Override
+    public boolean isToBeShown() {
+      // Read the stored value. If none is found, return "true" to display the checkbox the first time.
+      return PropertiesComponent.getInstance().getBoolean(myProperty, true);
+    }
+
+    @Override
+    public void setToBeShown(boolean toBeShown, int exitCode) {
+      // Stores the state of the checkbox into the property.
+      PropertiesComponent.getInstance().setValue(myProperty, String.valueOf(toBeShown));
+    }
+
+    @Override
+    public boolean canBeHidden() {
+      // By returning "true", the Messages dialog can hide the checkbox if the user previously set the checkbox as "selected".
+      return true;
+    }
+
+    @Override
+    public boolean shouldSaveOptionsOnCancel() {
+      // We always want to save the value of the checkbox, regardless of the button pressed in the Messages dialog.
+      return true;
+    }
+
+    @NotNull
+    @Override
+    public String getDoNotShowMessage() {
+      // This is the text to set in the checkbox.
+      return CommonBundle.message("dialog.options.do.not.show");
     }
   }
 }

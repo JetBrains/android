@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- My Color Documentation -->
+  <attr name="myColor" format="reference"/>
+
+  <!-- My Style Documentation -->
+  <attr name="myStyle" format="reference"/>
+
+  <!-- My Drawable Documentation -->
+  <attr name="myDrawable" format="reference"/>
+
+  <!-- My Boolean Documentation -->
+  <attr name="myBoolean" format="reference"/>
+
+  <!-- My Integer Documentation -->
+  <attr name="myInteger" format="reference"/>
+
+  <!-- My Layout Documentation -->
+  <attr name="myLayout" format="reference"/>
+
+  <!-- DEPRECATED -->
+  <attr name="myDeprecated" format="reference" />
+</resources>

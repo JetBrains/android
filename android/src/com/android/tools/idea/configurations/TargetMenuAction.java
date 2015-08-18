@@ -18,7 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.icons.AllIcons;
@@ -150,7 +150,7 @@ public class TargetMenuAction extends FlatComboAction {
     PsiFile file = configuration.getPsiFile();
     return file == null ||
            target.getVersion().getFeatureLevel() >= PREFERENCES_MIN_API ||
-           !TAG_PREFERENCE_SCREEN.equals(RenderService.getRootTagName(file));
+           !TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(file));
   }
 
   /**
@@ -172,6 +172,9 @@ public class TargetMenuAction extends FlatComboAction {
       if (target.isPlatform()) {
         String codename = version.getCodename();
         if (codename != null && !codename.isEmpty()) {
+          if (codename.equals("MNC")) {
+            return "M";
+          }
           // The target menu brief label is deliberately short; typically it's just a 2 digit
           // API number. If this is a preview platform we should display the codename, but only
           // if it's a really short codename; if not, just display the first letter (since Android

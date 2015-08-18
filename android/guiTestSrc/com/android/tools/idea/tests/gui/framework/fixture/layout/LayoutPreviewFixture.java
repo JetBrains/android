@@ -24,10 +24,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowForm;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 /**
@@ -100,7 +100,7 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
   public Object waitForNextRenderToFinish(@Nullable final Object previous) {
     myRobot.waitForIdle();
 
-    Pause.pause(new Condition("Render is pending") {
+    pause(new Condition("Render is pending") {
       @Override
       public boolean test() {
         AndroidLayoutPreviewToolWindowManager manager = getManager();
@@ -114,7 +114,7 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
     myRobot.waitForIdle();
 
     Object token = getManager().getToolWindowForm().getLastResult();
-    assert token != null;
+    assertNotNull(token);
     return token;
   }
 
@@ -158,7 +158,7 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
     if (previews != null) {
       for (final RenderPreview renderPreview : previews) {
         if (displayName.equals(renderPreview.getDisplayName())) {
-          GuiActionRunner.execute(new GuiTask() {
+          execute(new GuiTask() {
             @Override
             public void executeInEDT() {
               previewManager.switchTo(renderPreview);

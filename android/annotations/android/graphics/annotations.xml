@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.graphics.Bitmap android.graphics.Bitmap extractAlpha()">
+    <annotation name="android.support.annotation.CheckResult" />
+  </item>
+  <item name="android.graphics.Bitmap android.graphics.Bitmap extractAlpha(android.graphics.Paint, int[])">
+    <annotation name="android.support.annotation.CheckResult" />
+  </item>
+  <item name="android.graphics.Bitmap int getPixel(int, int)">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Bitmap void eraseColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Bitmap void getPixels(int[], int, int, int, int, int, int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Bitmap void setPixel(int, int, int) 2">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Bitmap void setPixels(int[], int, int, int, int, int, int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Canvas Canvas(android.graphics.Bitmap) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas android.graphics.DrawFilter getDrawFilter()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas android.graphics.Matrix getMatrix()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas android.graphics.Rect getClipBounds()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean clipPath(android.graphics.Path) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean clipPath(android.graphics.Path, android.graphics.Region.Op) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean clipPath(android.graphics.Path, android.graphics.Region.Op) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean clipRect(android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean clipRect(android.graphics.Rect, android.graphics.Region.Op) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean clipRect(android.graphics.Rect, android.graphics.Region.Op) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean clipRect(android.graphics.RectF) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean clipRect(android.graphics.RectF, android.graphics.Region.Op) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean clipRect(android.graphics.RectF, android.graphics.Region.Op) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean clipRect(float, float, float, float, android.graphics.Region.Op) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean clipRegion(android.graphics.Region) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean clipRegion(android.graphics.Region, android.graphics.Region.Op) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean clipRegion(android.graphics.Region, android.graphics.Region.Op) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean getClipBounds(android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas boolean quickReject(android.graphics.Path, android.graphics.Canvas.EdgeType) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean quickReject(android.graphics.Path, android.graphics.Canvas.EdgeType) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean quickReject(android.graphics.RectF, android.graphics.Canvas.EdgeType) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean quickReject(android.graphics.RectF, android.graphics.Canvas.EdgeType) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas boolean quickReject(float, float, float, float, android.graphics.Canvas.EdgeType) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas int save(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.Canvas.MATRIX_SAVE_FLAG, android.graphics.Canvas.CLIP_SAVE_FLAG, android.graphics.Canvas.HAS_ALPHA_LAYER_SAVE_FLAG, android.graphics.Canvas.FULL_COLOR_LAYER_SAVE_FLAG, android.graphics.Canvas.CLIP_TO_LAYER_SAVE_FLAG, android.graphics.Canvas.ALL_SAVE_FLAG}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Canvas int saveLayer(android.graphics.RectF, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas int saveLayer(android.graphics.RectF, android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas int saveLayer(android.graphics.RectF, android.graphics.Paint, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas int saveLayer(android.graphics.RectF, android.graphics.Paint, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas int saveLayer(android.graphics.RectF, android.graphics.Paint, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.Canvas.MATRIX_SAVE_FLAG, android.graphics.Canvas.CLIP_SAVE_FLAG, android.graphics.Canvas.HAS_ALPHA_LAYER_SAVE_FLAG, android.graphics.Canvas.FULL_COLOR_LAYER_SAVE_FLAG, android.graphics.Canvas.CLIP_TO_LAYER_SAVE_FLAG, android.graphics.Canvas.ALL_SAVE_FLAG}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Canvas int saveLayer(float, float, float, float, android.graphics.Paint) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas int saveLayer(float, float, float, float, android.graphics.Paint, int) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas int saveLayer(float, float, float, float, android.graphics.Paint, int) 5">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.Canvas.MATRIX_SAVE_FLAG, android.graphics.Canvas.CLIP_SAVE_FLAG, android.graphics.Canvas.HAS_ALPHA_LAYER_SAVE_FLAG, android.graphics.Canvas.FULL_COLOR_LAYER_SAVE_FLAG, android.graphics.Canvas.CLIP_TO_LAYER_SAVE_FLAG, android.graphics.Canvas.ALL_SAVE_FLAG}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Canvas int saveLayerAlpha(android.graphics.RectF, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas int saveLayerAlpha(android.graphics.RectF, int, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas int saveLayerAlpha(android.graphics.RectF, int, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.Canvas.MATRIX_SAVE_FLAG, android.graphics.Canvas.CLIP_SAVE_FLAG, android.graphics.Canvas.HAS_ALPHA_LAYER_SAVE_FLAG, android.graphics.Canvas.FULL_COLOR_LAYER_SAVE_FLAG, android.graphics.Canvas.CLIP_TO_LAYER_SAVE_FLAG, android.graphics.Canvas.ALL_SAVE_FLAG}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Canvas int saveLayerAlpha(float, float, float, float, int, int) 5">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.Canvas.MATRIX_SAVE_FLAG, android.graphics.Canvas.CLIP_SAVE_FLAG, android.graphics.Canvas.HAS_ALPHA_LAYER_SAVE_FLAG, android.graphics.Canvas.FULL_COLOR_LAYER_SAVE_FLAG, android.graphics.Canvas.CLIP_TO_LAYER_SAVE_FLAG, android.graphics.Canvas.ALL_SAVE_FLAG}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Canvas void concat(android.graphics.Matrix) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void drawArc(android.graphics.RectF, float, float, boolean, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawArc(android.graphics.RectF, float, float, boolean, android.graphics.Paint) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawArc(float, float, float, float, float, float, boolean, android.graphics.Paint) 7">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(android.graphics.Bitmap, android.graphics.Matrix, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(android.graphics.Bitmap, android.graphics.Matrix, android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(android.graphics.Bitmap, android.graphics.Matrix, android.graphics.Paint) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(android.graphics.Bitmap, android.graphics.Rect, android.graphics.Rect, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(android.graphics.Bitmap, android.graphics.Rect, android.graphics.Rect, android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(android.graphics.Bitmap, android.graphics.Rect, android.graphics.Rect, android.graphics.Paint) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(android.graphics.Bitmap, android.graphics.Rect, android.graphics.Rect, android.graphics.Paint) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(android.graphics.Bitmap, android.graphics.Rect, android.graphics.RectF, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(android.graphics.Bitmap, android.graphics.Rect, android.graphics.RectF, android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(android.graphics.Bitmap, android.graphics.Rect, android.graphics.RectF, android.graphics.Paint) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(android.graphics.Bitmap, android.graphics.Rect, android.graphics.RectF, android.graphics.Paint) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(android.graphics.Bitmap, float, float, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(android.graphics.Bitmap, float, float, android.graphics.Paint) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(int[], int, int, float, float, int, int, boolean, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(int[], int, int, float, float, int, int, boolean, android.graphics.Paint) 8">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(int[], int, int, int, int, int, int, boolean, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmap(int[], int, int, int, int, int, int, boolean, android.graphics.Paint) 8">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmapMesh(android.graphics.Bitmap, int, int, float[], int, int[], int, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmapMesh(android.graphics.Bitmap, int, int, float[], int, int[], int, android.graphics.Paint) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmapMesh(android.graphics.Bitmap, int, int, float[], int, int[], int, android.graphics.Paint) 5">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void drawBitmapMesh(android.graphics.Bitmap, int, int, float[], int, int[], int, android.graphics.Paint) 7">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void drawCircle(float, float, float, android.graphics.Paint) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Canvas void drawColor(int, android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Canvas void drawColor(int, android.graphics.PorterDuff.Mode) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawLine(float, float, float, float, android.graphics.Paint) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawLines(float[], android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.Size">
+      <val name="min" val="4" />
+      <val name="multiple" val="2" />
+    </annotation>
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawLines(float[], android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawLines(float[], int, int, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.Size">
+      <val name="min" val="4" />
+      <val name="multiple" val="2" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Canvas void drawOval(android.graphics.RectF, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawOval(android.graphics.RectF, android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawOval(float, float, float, float, android.graphics.Paint) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPaint(android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPath(android.graphics.Path, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPath(android.graphics.Path, android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPicture(android.graphics.Picture) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPicture(android.graphics.Picture, android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPicture(android.graphics.Picture, android.graphics.Rect) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPicture(android.graphics.Picture, android.graphics.RectF) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPicture(android.graphics.Picture, android.graphics.RectF) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPoint(float, float, android.graphics.Paint) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPoints(float[], android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.Size">
+      <val name="multiple" val="2" />
+    </annotation>
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPoints(float[], android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPoints(float[], int, int, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.Size">
+      <val name="multiple" val="2" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Canvas void drawPoints(float[], int, int, android.graphics.Paint) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPosText(char[], int, int, float[], android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPosText(char[], int, int, float[], android.graphics.Paint) 3">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Size">
+      <val name="multiple" val="2" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Canvas void drawPosText(char[], int, int, float[], android.graphics.Paint) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPosText(java.lang.String, float[], android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawPosText(java.lang.String, float[], android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Size">
+      <val name="multiple" val="2" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Canvas void drawPosText(java.lang.String, float[], android.graphics.Paint) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawRect(android.graphics.Rect, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawRect(android.graphics.Rect, android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawRect(android.graphics.RectF, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawRect(android.graphics.RectF, android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawRect(float, float, float, float, android.graphics.Paint) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawRoundRect(android.graphics.RectF, float, float, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawRoundRect(android.graphics.RectF, float, float, android.graphics.Paint) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawRoundRect(float, float, float, float, float, float, android.graphics.Paint) 6">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawText(char[], int, int, float, float, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawText(char[], int, int, float, float, android.graphics.Paint) 5">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawText(java.lang.CharSequence, int, int, float, float, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawText(java.lang.CharSequence, int, int, float, float, android.graphics.Paint) 5">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawText(java.lang.String, float, float, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawText(java.lang.String, float, float, android.graphics.Paint) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawText(java.lang.String, int, int, float, float, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawText(java.lang.String, int, int, float, float, android.graphics.Paint) 5">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawTextOnPath(char[], int, int, android.graphics.Path, float, float, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawTextOnPath(char[], int, int, android.graphics.Path, float, float, android.graphics.Paint) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawTextOnPath(char[], int, int, android.graphics.Path, float, float, android.graphics.Paint) 6">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawTextOnPath(java.lang.String, android.graphics.Path, float, float, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawTextOnPath(java.lang.String, android.graphics.Path, float, float, android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawTextOnPath(java.lang.String, android.graphics.Path, float, float, android.graphics.Paint) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawTextRun(char[], int, int, int, int, float, float, boolean, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawTextRun(char[], int, int, int, int, float, float, boolean, android.graphics.Paint) 8">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawTextRun(java.lang.CharSequence, int, int, int, int, float, float, boolean, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawTextRun(java.lang.CharSequence, int, int, int, int, float, float, boolean, android.graphics.Paint) 8">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawVertices(android.graphics.Canvas.VertexMode, int, float[], int, float[], int, int[], int, short[], int, int, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawVertices(android.graphics.Canvas.VertexMode, int, float[], int, float[], int, int[], int, short[], int, int, android.graphics.Paint) 11">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawVertices(android.graphics.Canvas.VertexMode, int, float[], int, float[], int, int[], int, short[], int, int, android.graphics.Paint) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawVertices(android.graphics.Canvas.VertexMode, int, float[], int, float[], int, int[], int, short[], int, int, android.graphics.Paint) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void drawVertices(android.graphics.Canvas.VertexMode, int, float[], int, float[], int, int[], int, short[], int, int, android.graphics.Paint) 6">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void drawVertices(android.graphics.Canvas.VertexMode, int, float[], int, float[], int, int[], int, short[], int, int, android.graphics.Paint) 8">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void getMatrix(android.graphics.Matrix) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void setBitmap(android.graphics.Bitmap) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void setDrawFilter(android.graphics.DrawFilter) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Canvas void setMatrix(android.graphics.Matrix) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Color BLACK">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color BLUE">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color CYAN">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color DKGRAY">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color GRAY">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color GREEN">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color LTGRAY">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color MAGENTA">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color RED">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color TRANSPARENT">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color WHITE">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color YELLOW">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color int HSVToColor(float[]) 0">
+    <annotation name="android.support.annotation.Size">
+      <val name="value" val="3" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Color int HSVToColor(int, float[]) 1">
+    <annotation name="android.support.annotation.Size">
+      <val name="value" val="3" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Color int alpha(int)">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color int argb(int, int, int, int)">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color int blue(int)">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color int green(int)">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color int parseColor(java.lang.String)">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color int parseColor(java.lang.String) 0">
+    <annotation name="android.support.annotation.Size">
+      <val name="min" val="1" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Color int red(int)">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color int rgb(int, int, int)">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color void RGBToHSV(int, int, int, float[]) 3">
+    <annotation name="android.support.annotation.Size">
+      <val name="value" val="3" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Color void colorToHSV(int, float[]) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Color void colorToHSV(int, float[]) 1">
+    <annotation name="android.support.annotation.Size">
+      <val name="value" val="3" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Outline Outline(android.graphics.Outline) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Outline void set(android.graphics.Outline) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Outline void setAlpha(float) 0">
+    <annotation name="android.support.annotation.FloatRange">
+      <val name="from" val="0.0" />
+      <val name="to" val="1.0" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Outline void setConvexPath(android.graphics.Path) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Outline void setOval(android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Outline void setRect(android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Outline void setRoundRect(android.graphics.Rect, float) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Paint int getColor()">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Paint void setColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.PorterDuffColorFilter PorterDuffColorFilter(int, android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.PorterDuffColorFilter PorterDuffColorFilter(int, android.graphics.PorterDuff.Mode) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.RadialGradient RadialGradient(float, float, float, int, int, android.graphics.Shader.TileMode) 5">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.RadialGradient RadialGradient(float, float, float, int[], float[], android.graphics.Shader.TileMode) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.RadialGradient RadialGradient(float, float, float, int[], float[], android.graphics.Shader.TileMode) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.RadialGradient RadialGradient(float, float, float, int[], float[], android.graphics.Shader.TileMode) 5">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Rect boolean intersect(android.graphics.Rect)">
+    <annotation name="android.support.annotation.CheckResult" />
+  </item>
+  <item name="android.graphics.Rect boolean intersect(int, int, int, int)">
+    <annotation name="android.support.annotation.CheckResult" />
+  </item>
+  <item name="android.graphics.Rect boolean setIntersect(android.graphics.Rect, android.graphics.Rect)">
+    <annotation name="android.support.annotation.CheckResult" />
+  </item>
+  <item name="android.graphics.SurfaceTexture void setOnFrameAvailableListener(android.graphics.SurfaceTexture.OnFrameAvailableListener) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.SurfaceTexture void setOnFrameAvailableListener(android.graphics.SurfaceTexture.OnFrameAvailableListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.SurfaceTexture void setOnFrameAvailableListener(android.graphics.SurfaceTexture.OnFrameAvailableListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+</root>
+

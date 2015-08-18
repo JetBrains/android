@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.ProjectImportErrorHandler;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenGradleSettingsHyperlink;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -31,7 +28,6 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.codeInsight.actions.AddGradleDslPluginAction;
@@ -40,6 +36,12 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 import java.io.File;
 import java.util.List;
+
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX;
+import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandler {
   @Override
@@ -50,10 +52,10 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
     String firstLine = message.get(0);
 
 
-    if (firstLine != null && firstLine.startsWith(ProjectImportErrorHandler.GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX)) {
+    if (firstLine != null && firstLine.startsWith(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX)) {
       String filePath = notification.getFilePath();
       final VirtualFile virtualFile = filePath != null ? LocalFileSystem.getInstance().refreshAndFindFileByPath(filePath) : null;
-      if (virtualFile != null && SdkConstants.FN_BUILD_GRADLE.equals(virtualFile.getName())) {
+      if (virtualFile != null && FN_BUILD_GRADLE.equals(virtualFile.getName())) {
         NotificationHyperlink gradleSettingsHyperlink = getGradleSettingsHyperlink(project);
         NotificationHyperlink applyGradlePluginHyperlink = getApplyGradlePluginHyperlink(virtualFile, notification);
 
@@ -68,6 +70,11 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
 
         addNotificationListener(notification, project, gradleSettingsHyperlink, applyGradlePluginHyperlink);
       }
+      else if (virtualFile != null && notification.getLine() > 0 && notification.getNavigatable() == null) {
+        OpenFileDescriptor descriptor =
+          new OpenFileDescriptor(project, virtualFile, notification.getLine() - 1 /* lines are zero-based */, -1);
+        notification.setNavigatable(descriptor);
+      }
       else {
         updateNotification(notification, project, error.getMessage());
       }
@@ -79,9 +86,9 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
   @NotNull
   private static NotificationHyperlink getGradleSettingsHyperlink(@NotNull Project project) {
     if (isUsingWrapper(project)) {
-      File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+      File wrapperPropertiesFile = findWrapperPropertiesFile(project);
       if (wrapperPropertiesFile != null) {
-        final VirtualFile virtualFile = VfsUtil.findFileByIoFile(wrapperPropertiesFile, true);
+        final VirtualFile virtualFile = findFileByIoFile(wrapperPropertiesFile, true);
         if (virtualFile != null) {
           return new NotificationHyperlink("open.wrapper.file", "Open Gradle wrapper file") {
             @Override
@@ -97,8 +104,8 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
   }
 
   private static boolean isUsingWrapper(@NotNull Project project) {
-    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
-    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
+    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
 
     DistributionType distributionType = gradleSettings != null ? gradleSettings.getDistributionType() : null;
 

@@ -41,7 +41,6 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
@@ -49,8 +48,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -63,7 +61,7 @@ import org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry;
 import org.jetbrains.android.inspections.lint.IntellijLintRequest;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,11 +72,24 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
+import static com.intellij.openapi.util.SystemInfo.isWindows;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.setSdkData;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 
-/** Base class for unit tests that operate on Gradle projects */
+/**
+ * Base class for unit tests that operate on Gradle projects
+ */
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
+  /**
+   * The name of the gradle wrapper executable associated with the current OS.
+   */
+  @NonNls private static final String GRADLE_WRAPPER_EXECUTABLE_NAME = isWindows ? FN_GRADLE_WRAPPER_WIN : FN_GRADLE_WRAPPER_UNIX;
+
   /**
    * Flag to control whether gradle projects can be synced in tests. This was
    * disabled earlier since it resulted in _LastInSuiteTest.testProjectLeak
@@ -96,7 +107,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return true;
   }
 
-  /** Is the bundled (incomplete) SDK install adequate or do we need to find a valid install? */
+  /**
+   * Is the bundled (incomplete) SDK install adequate or do we need to find a valid install?
+   */
   @Override
   protected boolean requireRecentSdk() {
     return true;
@@ -158,7 +171,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
             if (!projectsStillOpen.isEmpty()) {
               Project project = projectsStillOpen.iterator().next();
               projectsStillOpen.clear();
-              throw new AssertionError("Test project is not disposed: " + project+";\n created in: " +
+              throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " +
                                        PlatformTestCase.getCreationPlace(project));
             }
           }
@@ -170,7 +183,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     // In case other test cases rely on the builtin (incomplete) SDK, restore
     if (ourPreviousSdkData != null) {
-      AndroidSdkUtils.setSdkData(ourPreviousSdkData);
+      setSdkData(ourPreviousSdkData);
       ourPreviousSdkData = null;
     }
   }
@@ -178,7 +191,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @Override
   protected void ensureSdkManagerAvailable() {
     if (requireRecentSdk() && ourPreviousSdkData == null) {
-      ourPreviousSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+      ourPreviousSdkData = tryToChooseAndroidSdk();
       if (ourPreviousSdkData != null) {
         VersionCheck.VersionCheckResult check = VersionCheck.checkVersion(ourPreviousSdkData.getLocation().getPath());
         // "The sdk1.5" version of the SDK stored in the test directory isn't really a 22.0.5 version of the SDK even
@@ -186,7 +199,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         if (!check.isCompatibleVersion() || ourPreviousSdkData.getLocation().getPath().endsWith(File.separator + "sdk1.5")) {
           AndroidSdkData sdkData = createTestSdkManager();
           assertNotNull(sdkData);
-          AndroidSdkUtils.setSdkData(sdkData);
+          setSdkData(sdkData);
         }
       }
     }
@@ -211,8 +224,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     // Sync the model
     Project project = myFixture.getProject();
-    File projectRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
-    FileUtil.copyDir(root, projectRoot);
+    File projectRoot = virtualToIoFile(project.getBaseDir());
+    copyDir(root, projectRoot);
 
     // We need the wrapper for import to succeed
     createGradleWrapper(projectRoot);
@@ -223,7 +236,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     if (buildProject) {
       try {
         assertBuildsCleanly(project, true);
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         throw new RuntimeException(e);
       }
     }
@@ -240,6 +254,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         break;
       }
     }
+
+    // With IJ14 code base, we run tests with NO_FS_ROOTS_ACCESS_CHECK turned on. I'm not sure if that
+    // is the cause of the issue, but not all files inside a project are seen while running unit tests.
+    // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).
+    LocalFileSystem.getInstance().refreshFiles(Collections.singletonList(project.getBaseDir()));
   }
 
   public static void updateGradleVersions(@NotNull File file) throws IOException {
@@ -250,7 +269,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
           updateGradleVersions(child);
         }
       }
-    } else if (file.getPath().endsWith(DOT_GRADLE) && file.isFile()) {
+    }
+    else if (file.getPath().endsWith(DOT_GRADLE) && file.isFile()) {
       String contents = Files.toString(file, Charsets.UTF_8);
 
       boolean changed = false;
@@ -305,16 +325,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   public void testCreateGradleWrapper() throws Exception {
-    File baseDir = new File(getProject().getBasePath());
+    File baseDir = getBaseDirPath(getProject());
     createGradleWrapper(baseDir);
 
-    assertFilesExist(baseDir,
-                     FN_GRADLE_WRAPPER_UNIX,
-                     FN_GRADLE_WRAPPER_WIN,
-                     FD_GRADLE,
-                     FD_GRADLE_WRAPPER,
-                     FileUtil.join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_JAR),
-                     FileUtil.join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES));
+    assertFilesExist(baseDir, FN_GRADLE_WRAPPER_UNIX, FN_GRADLE_WRAPPER_WIN, FD_GRADLE, FD_GRADLE_WRAPPER,
+                     join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_JAR), join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES));
   }
 
   public static void createGradleWrapper(File projectRoot) throws IOException {
@@ -323,7 +338,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected static void assertFilesExist(@Nullable File baseDir, @NotNull String... paths) {
     for (String path : paths) {
-      path = FileUtil.toSystemDependentName(path);
+      path = toSystemDependentName(path);
       File testFile = baseDir != null ? new File(baseDir, path) : new File(path);
       assertTrue("File doesn't exist: " + testFile.getPath(), testFile.exists());
     }
@@ -347,7 +362,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void configureProjectState(NewProjectWizardState projectWizardState) {
     final Project project = myFixture.getProject();
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdkData = tryToChooseAndroidSdk();
     assert sdkData != null;
 
     Template.convertApisToInt(projectWizardState.getParameters());
@@ -389,14 +404,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     if (syncModel) {
       String projectName = projectWizardState.getString(FormFactorUtils.ATTR_MODULE_NAME);
       File projectRoot = new File(projectWizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
-      assertEquals(projectRoot, VfsUtilCore.virtualToIoFile(myFixture.getProject().getBaseDir()));
+      assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
       importProject(myFixture.getProject(), projectName, projectRoot, null);
     }
   }
 
   public void assertBuildsCleanly(Project project, boolean allowWarnings) throws Exception {
-    File base = VfsUtilCore.virtualToIoFile(project.getBaseDir());
-    File gradlew = new File(base, GradleUtil.GRADLE_WRAPPER_EXECUTABLE_NAME);
+    File base = virtualToIoFile(project.getBaseDir());
+    File gradlew = new File(base, GRADLE_WRAPPER_EXECUTABLE_NAME);
     assertTrue(gradlew.exists());
     File pwd = base.getAbsoluteFile();
     // TODO: Add in --no-daemon, anything to suppress total time?
@@ -411,7 +426,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       // We ignore this assertion. We got here because we are using a version of the Android Gradle plug-in that is not available in Maven
       // Central yet.
       expectedExitCode = 1;
-    } else {
+    }
+    else {
       assertTrue(output + "\n" + errors, output.contains("BUILD SUCCESSFUL"));
       if (!allowWarnings) {
         assertEquals(output + "\n" + errors, "", errors);
@@ -461,7 +477,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  private static void importProject(Project project, String projectName, File projectRoot, @Nullable GradleSyncListener listener)
+  private static void importProject(Project project, @NotNull String projectName, File projectRoot, @Nullable GradleSyncListener listener)
     throws IOException, ConfigurationException {
     GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
     // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously. This

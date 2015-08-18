@@ -27,11 +27,9 @@ import javax.swing.*;
 import javax.swing.text.Document;
 import java.util.Set;
 
-import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.SELECTED_MODULE_TYPE_KEY;
 import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.PACKAGE_NAME_DERIVER;
 import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
+import static com.android.tools.idea.wizard.WizardConstants.*;
 
 /**
  * Configuration for a new Android module
@@ -56,9 +54,10 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     String projectLocation = myState.get(PROJECT_LOCATION_KEY);
     super.init();
     myState.put(PROJECT_LOCATION_KEY, projectLocation);
-    register(FormFactorUtils.getModuleNameKey(getModuleType().formFactor), myModuleName);
-    CreateModuleTemplate moduleType = getModuleType();
-    mySdkControls.init(moduleType.formFactor, moduleType.templateMetadata.getMinSdk());
+    CreateModuleTemplate template = getFormfactorModuleTemplate();
+    assert template != null;
+    register(FormFactorUtils.getModuleNameKey(template.getFormFactor()), myModuleName);
+    mySdkControls.init(template.getFormFactor(), template.getMetadata().getMinSdk());
     mySdkControls.register(this);
 
     register(WizardConstants.APPLICATION_NAME_KEY, myAppName);
@@ -99,10 +98,10 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   @Override
   public void onEnterStep() {
     super.onEnterStep();
-    CreateModuleTemplate moduleType = getModuleType();
-    if (moduleType != null && moduleType.formFactor != null && moduleType.templateMetadata != null) {
-      myModuleType = moduleType;
-      registerValueDeriver(FormFactorUtils.getModuleNameKey(moduleType.formFactor), ourModuleNameDeriver);
+    CreateModuleTemplate template = getFormfactorModuleTemplate();
+    if (template != null && template.getFormFactor() != null && template.getMetadata() != null) {
+      myModuleType = template;
+      registerValueDeriver(FormFactorUtils.getModuleNameKey(template.getFormFactor()), ourModuleNameDeriver);
     } else {
       LOG.error("init() Called on ConfigureAndroidModuleStepDynamic with an incorrect selected ModuleType");
     }
@@ -145,11 +144,11 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   }
 
   @Nullable
-  private CreateModuleTemplate getModuleType() {
+  private CreateModuleTemplate getFormfactorModuleTemplate() {
     ModuleTemplate moduleTemplate = myState.get(SELECTED_MODULE_TYPE_KEY);
     if (moduleTemplate instanceof CreateModuleTemplate) {
       CreateModuleTemplate type = (CreateModuleTemplate)moduleTemplate;
-      if (type.formFactor != null && type.templateMetadata != null) {
+      if (type.getFormFactor() != null && type.getMetadata() != null) {
         return type;
       }
     }
@@ -190,7 +189,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     public String deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable String currentValue) {
       String appName = state.get(APPLICATION_NAME_KEY);
       if (appName == null) {
-        appName = myModuleType.formFactor.toString();
+        appName = myModuleType.getFormFactor().toString();
       }
       return WizardUtils.computeModuleName(appName, getProject());
     }
@@ -224,7 +223,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
 
   @Override
   public boolean isStepVisible() {
-    return getModuleType() != null;
+    return getFormfactorModuleTemplate() != null;
   }
 
   @NotNull
@@ -236,9 +235,9 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   @NotNull
   @Override
   protected WizardStepHeaderSettings getStepHeader() {
-    return getModuleType() == null
+    return getFormfactorModuleTemplate() == null
            ? NewModuleWizardDynamic.buildHeader()
-           : WizardStepHeaderSettings.createTitleAndDescriptionHeader(getModuleType().getName(), "Configure your new module");
+           : WizardStepHeaderSettings.createTitleAndDescriptionHeader(getFormfactorModuleTemplate().getName(), "Configure your new module");
   }
 
   @Override

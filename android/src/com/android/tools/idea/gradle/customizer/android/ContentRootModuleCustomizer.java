@@ -22,28 +22,26 @@ import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.model.java.JavaResourceRootType;
-import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
-import static com.android.builder.model.AndroidProject.FD_OUTPUTS;
-import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.android.builder.model.AndroidProject.*;
+import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
+import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
+import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
+import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 
 /**
- * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
+ * Sets the content roots of an IDEA module imported from an {@link AndroidProject}.
  */
 public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaAndroidProject>
   implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
@@ -66,20 +64,17 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   @NotNull
   protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel model,
                                                                 @NotNull IdeaAndroidProject androidProject) {
-    VirtualFile rootDir = androidProject.getRootDir();
-    File rootDirPath = VfsUtilCore.virtualToIoFile(rootDir);
 
-    List<ContentEntry> contentEntries = Lists.newArrayList(model.addContentEntry(rootDir));
+    List<ContentEntry> contentEntries = Lists.newArrayList(model.addContentEntry(androidProject.getRootDir()));
     File buildFolderPath = androidProject.getDelegate().getBuildFolder();
-    if (!FileUtil.isAncestor(rootDirPath, buildFolderPath, false)) {
+    if (!isAncestor(androidProject.getRootDirPath(), buildFolderPath, false)) {
       contentEntries.add(model.addContentEntry(FilePaths.pathToIdeaUrl(buildFolderPath)));
     }
-
     return contentEntries;
   }
 
   @Override
-  protected void setUpContentEntries(@NotNull Module module,
+  protected void setUpContentEntries(@NotNull ModifiableRootModel ideaModuleModel,
                                      @NotNull Collection<ContentEntry> contentEntries,
                                      @NotNull IdeaAndroidProject androidProject,
                                      @NotNull List<RootSourceFolder> orphans) {
@@ -186,12 +181,12 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
   @NotNull
   private static JpsModuleSourceRootType getResourceSourceType(boolean isTest) {
-    return isTest ? JavaResourceRootType.TEST_RESOURCE : JavaResourceRootType.RESOURCE;
+    return isTest ? TEST_RESOURCE : RESOURCE;
   }
 
   @NotNull
   private static JpsModuleSourceRootType getSourceType(boolean isTest) {
-    return isTest ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE;
+    return isTest ? TEST_SOURCE : SOURCE;
   }
 
   private void addSourceFolders(@NotNull IdeaAndroidProject androidProject,
@@ -209,13 +204,13 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   private static boolean isGeneratedAtCorrectLocation(@NotNull File folderPath, @NotNull AndroidProject project) {
-    File generatedFolderPath = new File(project.getBuildFolder(), AndroidProject.FD_GENERATED);
-    return FileUtil.isAncestor(generatedFolderPath, folderPath, false);
+    File generatedFolderPath = new File(project.getBuildFolder(), FD_GENERATED);
+    return isAncestor(generatedFolderPath, folderPath, false);
   }
 
   private void addExcludedOutputFolders(@NotNull Collection<ContentEntry> contentEntries, @NotNull IdeaAndroidProject androidProject) {
     File buildFolderPath = androidProject.getDelegate().getBuildFolder();
-    ContentEntry parentContentEntry = FilePaths.findParentContentEntry(buildFolderPath, contentEntries);
+    ContentEntry parentContentEntry = findParentContentEntry(buildFolderPath, contentEntries);
     if (parentContentEntry == null) {
       return;
     }
@@ -227,7 +222,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     }
 
     // Iterate through the build folder's children, excluding any folders that are not "generated" and haven't been already excluded.
-    File[] children = FileUtil.notNullize(buildFolderPath.listFiles());
+    File[] children = notNullize(buildFolderPath.listFiles());
     for (File child : children) {
       if (androidProject.shouldManuallyExclude(child)) {
         addExcludedFolder(parentContentEntry, child);
@@ -238,7 +233,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   @Override
   @NotNull
   public ProjectSystemId getProjectSystemId() {
-    return GradleConstants.SYSTEM_ID;
+    return GRADLE_SYSTEM_ID;
   }
 
   @Override

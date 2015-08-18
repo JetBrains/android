@@ -39,9 +39,9 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
   public void testRenderDrawable() throws Exception {
     VirtualFile file = myFixture.copyFileToProject("drawables/progress_horizontal.xml", "res/drawable/progress_horizontal.xml");
     assertNotNull(file);
-    RenderService service = getRenderService(file);
-    assertNotNull(service);
-    ILayoutPullParser parser = LayoutPullParserFactory.create(service);
+    RenderTask task = createRenderTask(file);
+    assertNotNull(task);
+    ILayoutPullParser parser = LayoutPullParserFactory.create(task);
     assertTrue(parser instanceof DomPullParser);
     Element root = ((DomPullParser)parser).getRoot();
 
@@ -54,6 +54,6 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
       "src=\"@drawable/progress_horizontal\" />\n",
       layout);
 
-    checkRendering(service, "drawable/progress_horizontal.png");
+    checkRendering(task, "drawable/progress_horizontal.png");
   }
 }

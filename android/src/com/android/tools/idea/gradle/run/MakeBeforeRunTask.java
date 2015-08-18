@@ -30,7 +30,6 @@ public class MakeBeforeRunTask extends BeforeRunTask<MakeBeforeRunTask> {
 
   protected MakeBeforeRunTask() {
     super(MakeBeforeRunTaskProvider.ID);
-    setEnabled(true);
   }
 
   public void setGoal(String goal) {

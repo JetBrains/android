@@ -157,6 +157,13 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     assertEquals(1, classes.length);
   }
 
+  public void testNoDuplicateAndroidSdkClassesFound() throws Exception {
+    configureMockSdk();
+    PsiClass[] classes = myFixture.getJavaFacade().findClasses(
+      "android.app.Activity", GlobalSearchScope.allScope(myFixture.getProject()));
+    assertEquals(1, classes.length);
+  }
+
   private void doTestNavigationToResource(LogicalPosition position, int expectedCount, Class<?> aClass) {
     myFixture.allowTreeAccessForAllFiles();
     final String sdkSourcesPath = configureMockSdk();
@@ -206,7 +213,7 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     for (int i = 1; i < sdkSourcesPaths.length; i++) {
       myFixture.copyDirectoryToProject(sdkSourcesPaths[i], SDK_SOURCES_TARGET_PATH);
     }
-    assert sdkSourcesDir != null && sdkSourcesDir.isDirectory();
+    assert sdkSourcesDir.isDirectory();
     final Sdk sdk = ModuleRootManager.getInstance(myFixture.getModule()).getSdk();
     assert  sdk != null;
     final SdkModificator modificator = sdk.getSdkModificator();
