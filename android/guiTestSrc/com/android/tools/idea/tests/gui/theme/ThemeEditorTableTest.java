@@ -203,7 +203,12 @@ public class ThemeEditorTableTest extends GuiTestCase {
     assertNotNull(cellFont);
     assertEquals(Font.BOLD, cellFont.getStyle());
     assertEquals("android:colorBackground", themeEditorTable.attributeNameAt(cell));
-    assertEquals(ResourceHelper.colorToString(color), themeEditorTable.colorValueAt(cell));
     assertEquals("@color/background_holo_light", themeEditorTable.valueAt(cell));
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/values/colors.xml");
+    editor.moveTo(editor.findOffset(null, "background", true));
+    assertEquals("<color name=\"^background_holo_light\">" + ResourceHelper.colorToString(color) + "</color>",
+                 editor.getCurrentLineContents(true, true, 0));
   }
 }
