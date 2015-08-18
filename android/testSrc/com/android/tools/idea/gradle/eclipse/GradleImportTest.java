@@ -71,9 +71,9 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     new File("bin", "classes"),
                     Arrays.asList(src, gen),
                     Collections.<File>emptyList());
-    createProjectProperties(dir, "android-17", null, null, null,
+    createProjectProperties(dir, "android-22", null, null, null,
                             Collections.<File>emptyList());
-    createAndroidManifest(dir, pkg, 8, 16, null);
+    createAndroidManifest(dir, pkg, 8, 22, null);
 
     createDefaultStrings(dir);
     createDefaultIcon(dir);
@@ -851,13 +851,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -999,12 +999,12 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     new File("bin", "classes"),
                     Arrays.asList(appSrc, appGen),
                     Collections.<File>emptyList());
-    createProjectProperties(app, "android-17", null, null, null,
+    createProjectProperties(app, "android-22", null, null, null,
                             Arrays.asList(
                               new File(".." + separator + lib1Name),
                               new File(".." + separator + lib2Name),
                               new File(".." + separator + javaLibRelative)));
-    createAndroidManifest(app, appPkg, 8, 16, null);
+    createAndroidManifest(app, appPkg, 8, 22, null);
     createDefaultStrings(app);
     createDefaultIcon(app);
 
@@ -1028,9 +1028,9 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                                  ""
                                  + MSG_HEADER
                                  + MSG_REPLACED_JARS
-                                 + "android-support-v4.jar => com.android.support:support-v4:18.0.0\n"
-                                 + "android-support-v7-appcompat.jar => com.android.support:appcompat-v7:18.0.0\n"
-                                 + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:18.0.0\n"
+                                 + "android-support-v4.jar => com.android.support:support-v4:22.2.1\n"
+                                 + "android-support-v7-appcompat.jar => com.android.support:appcompat-v7:22.2.1\n"
+                                 + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:22.2.1\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
                                  + (getTestSdkPathLocal() == null ? MSG_MISSING_REPO_1 + "null\n" + MSG_MISSING_REPO_2 : "")
@@ -1078,13 +1078,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -1096,9 +1096,9 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "}\n"
                  + "\n"
                  + "dependencies {\n"
-                 + "    compile 'com.android.support:support-v4:18.0.0'\n"
-                 + "    compile 'com.android.support:appcompat-v7:18.0.0'\n"
-                 + "    compile 'com.android.support:gridlayout-v7:18.0.0'\n"
+                 + "    compile 'com.android.support:support-v4:22.2.1'\n"
+                 + "    compile 'com.android.support:appcompat-v7:22.2.1'\n"
+                 + "    compile 'com.android.support:gridlayout-v7:22.2.1'\n"
                  + "}\n",
                  Files.toString(new File(imported, "app" + separator + "build.gradle"), UTF_8)
                    .replace(NL, "\n"));
@@ -1184,13 +1184,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -1333,13 +1333,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + MIN_BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "\n"
                  + "        ndk {\n"
                  + "            moduleName \"hello-jni\"\n"
@@ -1546,13 +1546,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "\n"
                  + "        testApplicationId \"my.test.pkg.name\"\n"
                  + "        testInstrumentationRunner \"android.test.InstrumentationTestRunner\"\n"
@@ -1746,13 +1746,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -1792,7 +1792,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                                  ""
                                  + MSG_HEADER
                                  + MSG_REPLACED_JARS
-                                 + "android-support-v4.jar => com.android.support:support-v4:18.+\n"
+                                 + "android-support-v4.jar => com.android.support:support-v4:22.+\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
                                  + MSG_MISSING_REPO_1
@@ -2055,9 +2055,9 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     new File("bin", "classes"),
                     Arrays.asList(appSrc, appGen),
                     Collections.<File>emptyList());
-    createProjectProperties(app, "android-17", null, null, null,
+    createProjectProperties(app, "android-22", null, null, null,
                             Collections.singletonList(new File(".." + separator + androidLibName)));
-    createAndroidManifest(app, appPkg, 8, 16, null);
+    createAndroidManifest(app, appPkg, 8, 22, null);
     createDefaultStrings(app);
     createDefaultIcon(app);
 
@@ -2256,13 +2256,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -2972,7 +2972,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -3133,7 +3133,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -3899,7 +3899,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
         sb.append("        android:minSdkVersion=\"8\"\n");
       }
       if (targetSdkVersion >= 1) {
-        sb.append("        android:targetSdkVersion=\"16\"\n");
+        sb.append("        android:targetSdkVersion=\"22\"\n");
       }
       sb.append("     />\n");
       sb.append("\n");
