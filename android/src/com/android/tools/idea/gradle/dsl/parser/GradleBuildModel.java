@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -34,7 +35,9 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrM
 
 import java.util.List;
 
-public class GradleBuildFile {
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+
+public class GradleBuildModel {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
   @NotNull private final List<DependenciesElement> myDependenciesBlocks = Lists.newArrayList();
@@ -44,20 +47,26 @@ public class GradleBuildFile {
 
   @Nullable private PsiFile myPsiFile;
 
+  @Nullable
+  public static GradleBuildModel get(@NotNull Module module) {
+    VirtualFile file = getGradleBuildFile(module);
+    return file != null ? parseBuildFile(file, module.getProject()) : null;
+  }
+
   @NotNull
-  public static GradleBuildFile parseFile(@NotNull VirtualFile file, @NotNull Project project) {
-    GradleBuildFile buildFile = new GradleBuildFile(file, project);
+  public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project) {
+    GradleBuildModel buildFile = new GradleBuildModel(file, project);
     buildFile.reparse();
     return buildFile;
   }
 
-  private GradleBuildFile(@NotNull VirtualFile file, @NotNull Project project) {
+  private GradleBuildModel(@NotNull VirtualFile file, @NotNull Project project) {
     myFile = file;
     myProject = project;
   }
 
   /**
-   * Parses the build.gradle file again. This is a convenience method to avoid calling {@link #parseFile(VirtualFile, Project)} if
+   * Parses the build.gradle file again. This is a convenience method to avoid calling {@link #parseBuildFile(VirtualFile, Project)} if
    * an already parsed build.gradle file needs to be parsed again (for example, after making changes to the PSI elements.)
    */
   public void reparse() {
@@ -70,7 +79,7 @@ public class GradleBuildFile {
         public void visitMethodCallExpression(GrMethodCallExpression e) {
           for (GradleDslElementParser parser : myParsers) {
             // If a parser was able to parse the given PSI element, stop. Otherwise give another parser the chance to parse the PSI element.
-            if (parser.parse(e, GradleBuildFile.this)) {
+            if (parser.parse(e, GradleBuildModel.this)) {
               break;
             }
           }
@@ -101,7 +110,7 @@ public class GradleBuildFile {
    * <p>
    * Please note the new dependency will <b>not</b> be included in
    * {@link DependenciesElement#getExternalDependenciesView()} (obtained through {@link #getDependenciesBlocksView()}, unless you invoke
-   * {@link GradleBuildFile#reparse()}.
+   * {@link GradleBuildModel#reparse()}.
    * </p>
    *
    * @param configurationName the name of the configuration (e.g. "compile", "compileTest", "runtime", etc.)
