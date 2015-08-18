@@ -24,9 +24,7 @@ import com.android.tools.idea.editors.navigation.NavigationEditorUtils;
 import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.model.ManifestInfo;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
@@ -216,12 +214,12 @@ public class Analyser {
           PsiLiteral literal = (PsiLiteral)exp;
           return literal.getValue();
         }
-        MultiMatch.Bindings<PsiElement> match1 = myMacros.findViewById1.match(exp);
+        MultiMatch.Bindings<PsiElement> match1 = myMacros.getFindViewById1().match(exp);
         if (match1 != null) {
           String id = match1.bindings.get("$id").getText();
           return ids.contains(id) ? new Object() : null;
         }
-        MultiMatch.Bindings<PsiElement> match2 = myMacros.findFragmentByTag.match(exp);
+        MultiMatch.Bindings<PsiElement> match2 = myMacros.getFindFragmentByTag().match(exp);
         if (match2 != null) {
           String tag = unQuote(match2.bindings.get("$tag").getText());
           return tags.contains(tag) ? new Object() : null;
@@ -301,12 +299,12 @@ public class Analyser {
       public String locateIn(MultiMatch.Bindings<PsiElement> args) {
         PsiElement view = args.get("$view");
 
-        MultiMatch.Bindings<PsiElement> bindings1 = macros.findViewById1.match(view);
+        MultiMatch.Bindings<PsiElement> bindings1 = macros.getFindViewById1().match(view);
         if (bindings1 != null) {
           return bindings1.get("$id").getText();
         }
 
-        MultiMatch.Bindings<PsiElement> bindings2 = macros.findViewById2.match(view);
+        MultiMatch.Bindings<PsiElement> bindings2 = macros.getFindViewById2().match(view);
         if (bindings2 != null) {
           return bindings2.get("$id").getText();
         }
@@ -323,7 +321,7 @@ public class Analyser {
       public String locateIn(MultiMatch.Bindings<PsiElement> args) {
         PsiElement view = args.get("$menuItem");
 
-        MultiMatch.Bindings<PsiElement> bindings = macros.findMenuItem.match(view);
+        MultiMatch.Bindings<PsiElement> bindings = macros.getFindMenuItem().match(view);
         return (bindings == null) ? null : bindings.get("$id").getText();
       }
     };
@@ -411,11 +409,12 @@ public class Analyser {
               addTransition(model, new Transition(Transition.PRESS, Locator.of(activityState, FAKE_OVERFLOW_MENU_ID), Locator.of(menu)));
               for (PsiClass superClass = activityClass; superClass != null; superClass = superClass.getSuperClass()) {
                 // Search for menu item bindings in the style the Navigation Editor generates them
-                search(superClass, "boolean onPrepareOptionsMenu(Menu m)", myMacros.installMenuItemClickAndCallMacro,
-                       createProcessor(model, menu, fragmentClassName, evaluator, classNameToActivityState, "$f", myMacros.createIntent,
+                search(superClass, "boolean onPrepareOptionsMenu(Menu m)", myMacros.getInstallMenuItemClickAndCallMacro(),
+                       createProcessor(model, menu, fragmentClassName, evaluator, classNameToActivityState, "$f",
+                                       myMacros.getCreateIntent(),
                                        getFindMenuItem(myMacros), CLASS_NAME_1));
                 // Search for switch statement style menu item bindings
-                search(superClass, "boolean onOptionsItemSelected(MenuItem item)", myMacros.createIntent,
+                search(superClass, "boolean onOptionsItemSelected(MenuItem item)", myMacros.getCreateIntent(),
                        createProcessor(model, classNameToActivityState, menu, fragmentClassName, constant(null), CLASS_NAME_1));
               }
             }
@@ -428,17 +427,17 @@ public class Analyser {
     //    'OnItemClick' listeners in ListViews.
     String[] signatures = isActivity ? ACTIVITY_SIGNATURES : FRAGMENT_SIGNATURES;
     for (String signature : signatures) {
-      search(activityOrFragmentClass, signature, myMacros.installClickAndCallMacro,
-             createProcessor(model, activityState, fragmentClassName, evaluator, classNameToActivityState, "$f", myMacros.createIntent,
+      search(activityOrFragmentClass, signature, myMacros.getInstallClickAndCallMacro(),
+             createProcessor(model, activityState, fragmentClassName, evaluator, classNameToActivityState, "$f", myMacros.getCreateIntent(),
                              getGetTag(myMacros), CLASS_NAME_1));
-      search(activityOrFragmentClass, signature, myMacros.installItemClickAndCallMacro,
-             createProcessor(model, activityState, fragmentClassName, evaluator, classNameToActivityState, "$f", myMacros.createIntent,
+      search(activityOrFragmentClass, signature, myMacros.getInstallItemClickAndCallMacro(),
+             createProcessor(model, activityState, fragmentClassName, evaluator, classNameToActivityState, "$f", myMacros.getCreateIntent(),
                              constant(NavigationView.LIST_VIEW_ID), CLASS_NAME_1));
     }
 
     // Search for subclass style item click listeners in ListActivity and ListFragment derivatives
     if (isListInheritor(activityOrFragmentClass, isActivity)) {
-      search(activityOrFragmentClass, "void onListItemClick(ListView l, View v, int position, long id)", myMacros.createIntent,
+      search(activityOrFragmentClass, "void onListItemClick(ListView l, View v, int position, long id)", myMacros.getCreateIntent(),
              createProcessor(model, classNameToActivityState, activityState, fragmentClassName, constant(NavigationView.LIST_VIEW_ID),
                              CLASS_NAME_1));
     }
@@ -462,7 +461,7 @@ public class Analyser {
                        PsiMethod implementation = activityClass.findMethodBySignature(resolvedMethod, false);
                        if (implementation != null) {
                          Evaluator evaluator = getEvaluator(configuration, activityClass, activityClass, true);
-                         search(implementation.getBody(), evaluator, myMacros.createIntent,
+                         search(implementation.getBody(), evaluator, myMacros.getCreateIntent(),
                                 createProcessor(model, classNameToActivityState, activityState, fragmentClassName, constant(null),
                                                 CLASS_NAME_1));
                        }
