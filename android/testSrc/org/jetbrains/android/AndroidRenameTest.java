@@ -101,6 +101,17 @@ public class AndroidRenameTest extends AndroidTestCase {
     assertNotNull(myFixture.findFileInTempDir("res/drawable/pic1.9.png"));
   }
 
+  // Regression test for http://b.android.com/174014
+  // Bug: when mipmap resource was renamed, new reference contained ".png" file extension.
+  public void testXmlReferenceToFileResource2() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "pic.png", "res/mipmap/pic.png");
+    myFixture.configureFromExistingVirtualFile(
+      myFixture.copyFileToProject(BASE_PATH + "AndroidManifest_mipmap_before.xml", "AndroidManifest.xml"));
+    renameElementWithTextOccurences("app_icon.png");
+    myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + "AndroidManifest_mipmap_after.xml", true);
+    assertNotNull(myFixture.findFileInTempDir("res/mipmap/app_icon.png"));
+  }
+
   public void testMoveApplicationClass() throws Throwable {
     deleteManifest();
     myFixture.copyFileToProject(BASE_PATH + "MyApplication.java", "src/p1/p2/MyApplication.java");
