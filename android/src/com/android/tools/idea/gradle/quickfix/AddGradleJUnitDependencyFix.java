@@ -78,28 +78,22 @@ public class AddGradleJUnitDependencyFix extends GradleDependencyFix {
     VirtualFile location = PsiUtilCore.getVirtualFile(myReference.getElement());
     boolean inTests = location != null && ModuleRootManager.getInstance(myCurrentModule).getFileIndex().isInTestSourceContent(location);
 
-    final Dependency dependency = new Dependency(getDependencyScope(myCurrentModule, inTests), Dependency.Type.EXTERNAL,
-                                                 gradleDependencyEntry);
+    final Dependency dependency =
+      new Dependency(getDependencyScope(myCurrentModule, inTests), Dependency.Type.EXTERNAL, gradleDependencyEntry);
 
-    final Application application = ApplicationManager.getApplication();
-    application.invokeAndWait(new Runnable() {
+    invokeAction(new Runnable() {
       @Override
       public void run() {
-        application.runWriteAction(new Runnable() {
+        addDependencyUndoable(myCurrentModule, dependency);
+        gradleSyncAndImportClass(myCurrentModule, editor, myReference, new Function<Void, List<PsiClass>>() {
           @Override
-          public void run() {
-            addDependency(myCurrentModule, dependency);
-            gradleSyncAndImportClass(myCurrentModule, editor, myReference, new Function<Void, List<PsiClass>>() {
-               @Override
-               public List<PsiClass> apply(@Nullable Void input) {
-                 PsiClass aClass =
-                   JavaPsiFacade.getInstance(project).findClass(myClassName, GlobalSearchScope.moduleWithLibrariesScope(myCurrentModule));
-                 return aClass != null ? ImmutableList.of(aClass) : null;
-               }
-            });
+          public List<PsiClass> apply(@Nullable Void input) {
+            PsiClass aClass =
+              JavaPsiFacade.getInstance(project).findClass(myClassName, GlobalSearchScope.moduleWithLibrariesScope(myCurrentModule));
+            return aClass != null ? ImmutableList.of(aClass) : null;
           }
         });
       }
-    }, application.getDefaultModalityState());
+    });
   }
 }

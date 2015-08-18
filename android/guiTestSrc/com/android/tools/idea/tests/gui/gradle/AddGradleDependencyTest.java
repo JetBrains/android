@@ -75,14 +75,17 @@ public class AddGradleDependencyTest extends GuiTestCase {
     File buildFile = new File(projectFrame.getProjectPath(), join("library3", FN_BUILD_GRADLE));
     assertThat(buildFile).isFile();
     appendToFile(buildFile, "dependencies { compile 'com.google.guava:guava:18.0' }");
-    projectFrame.requestProjectSync();
+    projectFrame.requestProjectSync().waitForBackgroundTasksToFinish();
 
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/androidTest/java/com/android/multimodule/ApplicationTest.java");
-    typeImportAndInvokeAction(projectFrame, "com.android.multimodule;\n^","import com.google.common.base.Obje^cts;",
+    typeImportAndInvokeAction(projectFrame, "com.android.multimodule;\n^", "import com.google.common.base.Obje^cts;",
                               "Add library 'com.google.guava:guava:18.0' to classpath");
 
     assertBuildFileContains(projectFrame, "app/build.gradle", "compile 'com.google.guava:guava:18.0'");
+
+    undo(projectFrame);
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
   }
 
   @Test @IdeGuiTest
@@ -91,7 +94,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     File buildFile = new File(projectFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
     assertThat(buildFile).isFile();
     appendToFile(buildFile, "dependencies { compile 'com.google.guava:guava:18.0' }");
-    projectFrame.requestProjectSync();
+    projectFrame.requestProjectSync().waitForBackgroundTasksToFinish();
 
     EditorFixture editor = projectFrame.getEditor();
     editor.open("library3/src/main/java/com/example/MyLibrary.java");
@@ -99,6 +102,9 @@ public class AddGradleDependencyTest extends GuiTestCase {
                               "Add library 'com.google.guava:guava:18.0' to classpath");
 
     assertBuildFileContains(projectFrame, "app/build.gradle", "compile 'com.google.guava:guava:18.0'");
+
+    undo(projectFrame);
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
   }
 
   @Test @IdeGuiTest
@@ -140,7 +146,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/test/java/google/simpleapplication/UnitTest.java");
 
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 3);
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 6);
     editor.moveTo(editor.findOffset("@^Test"));
     editor.invokeIntentionAction("Add JUnit to classpath");
 
@@ -148,6 +154,9 @@ public class AddGradleDependencyTest extends GuiTestCase {
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
 
     assertBuildFileContains(projectFrame, "app/build.gradle", "testCompile 'junit:junit:4.12'");
+
+    undo(projectFrame);
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 6);
   }
 
   @Test @IdeGuiTest
@@ -159,6 +168,10 @@ public class AddGradleDependencyTest extends GuiTestCase {
     typeImportAndInvokeAction(projectFrame, "onCreate(^Bundle savedInstanceState) {", "@Not^Null ", "Add 'annotations.jar' to classpath");
 
     assertBuildFileContains(projectFrame, "app/build.gradle", "compile 'org.jetbrains:annotations:13.0'");
+
+    projectFrame.getEditor().invokeAction(EditorFixture.EditorAction.UNDO); // Undo the import statement first
+    undo(projectFrame);
+    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
   }
 
   private static void typeImportAndInvokeAction(@NotNull IdeFrameFixture projectFrame, @NotNull String lineToType,

@@ -30,6 +30,8 @@ import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.command.undo.BasicUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
@@ -73,6 +75,11 @@ abstract class GradleDependencyFix implements IntentionAction, LocalQuickFix, Hi
     dependencies.add(dependency);
 
     gradleBuildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+  }
+
+  protected static void addDependencyUndoable(@NotNull Module module, @NotNull Dependency dependency) {
+    addDependency(module, dependency);
+    registerUndoAction(module.getProject());
   }
 
   @NotNull
@@ -136,5 +143,15 @@ abstract class GradleDependencyFix implements IntentionAction, LocalQuickFix, Hi
         GradleProjectImporter.getInstance().requestProjectSync(project, false, null);
       }
     });
+  }
+
+  protected static void invokeAction(@NotNull final Runnable runnable) {
+    final Application application = ApplicationManager.getApplication();
+    application.invokeAndWait(new Runnable() {
+      @Override
+      public void run() {
+        application.runWriteAction(runnable);
+      }
+    }, application.getDefaultModalityState());
   }
 }
