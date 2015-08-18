@@ -47,11 +47,24 @@ final class GridDragHandler extends DragHandler {
     }
 
     NlComponent[][] children = info.getChildren();
-    int startRow = info.getRow(startY);
-    int startColumn = info.getColumn(startX);
+    NlComponent child = children[getStartRow()][getStartColumn()];
+    int row = info.getRowSkippingEqualLineLocations(y);
+    int column = info.getColumnSkippingEqualLineLocations(x);
 
-    children[startRow][startColumn].setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, Integer.toString(row));
-    children[startRow][startColumn].setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, Integer.toString(column));
+    child.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, Integer.toString(row));
+    child.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, Integer.toString(column));
+  }
+
+  GridInfo getInfo() {
+    return info;
+  }
+
+  int getStartRow() {
+    return info.getRow(startY);
+  }
+
+  int getStartColumn() {
+    return info.getColumn(startX);
   }
 
   @Override

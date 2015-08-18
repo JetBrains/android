@@ -69,8 +69,8 @@ final class GridInfo {
       Object view = layout.viewInfo.getViewObject();
       Class<?> c = view.getClass();
 
-      rowCount = (Integer)c.getMethod("getRowCount").invoke(view);
-      columnCount = (Integer)c.getMethod("getColumnCount").invoke(view);
+      rowCount = (Integer)c.getDeclaredMethod("getRowCount").invoke(view);
+      columnCount = (Integer)c.getDeclaredMethod("getColumnCount").invoke(view);
 
       initChildren();
     }
@@ -212,14 +212,22 @@ final class GridInfo {
   }
 
   int getRow(@AndroidCoordinate int y) {
-    return getIndex(horizontalLineLocations, y);
+    return getIndex(horizontalLineLocations, y, false);
+  }
+
+  int getRowSkippingEqualLineLocations(@AndroidCoordinate int y) {
+    return getIndex(horizontalLineLocations, y, true);
   }
 
   int getColumn(@AndroidCoordinate int x) {
-    return getIndex(verticalLineLocations, x);
+    return getIndex(verticalLineLocations, x, false);
   }
 
-  private static int getIndex(int[] lineLocations, int location) {
+  int getColumnSkippingEqualLineLocations(@AndroidCoordinate int x) {
+    return getIndex(verticalLineLocations, x, true);
+  }
+
+  static int getIndex(int[] lineLocations, int location, boolean skipEqualLineLocations) {
     if (lineLocations.length < 2) {
       throw new IllegalArgumentException(Arrays.toString(lineLocations));
     }
@@ -230,10 +238,16 @@ final class GridInfo {
       return lineLocations.length - 2;
     }
 
-    for (int i = 0; i < lineLocations.length - 1; i++) {
-      if (lineLocations[i] <= location && location < lineLocations[i + 1]) {
-        return i;
+    for (int i = 0, j = 0; i < lineLocations.length - 1; i++) {
+      if (skipEqualLineLocations && lineLocations[i] == lineLocations[i + 1]) {
+        continue;
       }
+
+      if (lineLocations[i] <= location && location < lineLocations[i + 1]) {
+        return j;
+      }
+
+      j++;
     }
 
     throw new AssertionError();
