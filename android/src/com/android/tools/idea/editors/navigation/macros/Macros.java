@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.navigation.macros;
 
 import com.android.tools.idea.editors.navigation.NavigationEditorUtils;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiMethod;
@@ -84,15 +85,15 @@ public class Macros extends AbstractProjectComponent {
     "    context.startActivity(new android.content.Intent(context, activityClass).putExtra(name, value));" +
     "}";
 
-  public final MultiMatch createIntent;
-  public final MultiMatch installClickAndCallMacro;
-  public final MultiMatch installItemClickAndCallMacro;
-  public final MultiMatch installMenuItemClickAndCallMacro;
-  public final MultiMatch defineInnerClassToLaunchActivityMacro;
-  public final MultiMatch findMenuItem;
-  public final MultiMatch findViewById1;
-  public final MultiMatch findViewById2;
-  public final MultiMatch findFragmentByTag;
+  private MultiMatch createIntent;
+  private MultiMatch installClickAndCallMacro;
+  private MultiMatch installItemClickAndCallMacro;
+  private MultiMatch installMenuItemClickAndCallMacro;
+  private MultiMatch defineInnerClassToLaunchActivityMacro;
+  private MultiMatch findMenuItem;
+  private MultiMatch findViewById1;
+  private MultiMatch findViewById2;
+  private MultiMatch findFragmentByTag;
 
   public static Macros getInstance(Project project) {
     return project.getComponent(Macros.class);
@@ -109,17 +110,58 @@ public class Macros extends AbstractProjectComponent {
   public Macros(@NotNull Project project) {
     super(project);
 
-    createIntent = createMacro(CREATE_INTENT);
-    findMenuItem = createMacro(FIND_MENU_ITEM);
-    findViewById1 = createMacro(FIND_VIEW_BY_ID_1);
-    findViewById2 = createMacro(FIND_VIEW_BY_ID_2);
-    findFragmentByTag = createMacro(FIND_FRAGMENT_BY_TAG);
+    ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
+      public void run() {
+        createIntent = createMacro(CREATE_INTENT);
+        findMenuItem = createMacro(FIND_MENU_ITEM);
+        findViewById1 = createMacro(FIND_VIEW_BY_ID_1);
+        findViewById2 = createMacro(FIND_VIEW_BY_ID_2);
+        findFragmentByTag = createMacro(FIND_FRAGMENT_BY_TAG);
 
-    installClickAndCallMacro = createMacro(INSTALL_CLICK_LISTENER);
-    installItemClickAndCallMacro = createMacro(INSTALL_ITEM_CLICK_LISTENER);
-    installMenuItemClickAndCallMacro = createMacro(INSTALL_MENU_ITEM_CLICK_LISTENER);
+        installClickAndCallMacro = createMacro(INSTALL_CLICK_LISTENER);
+        installItemClickAndCallMacro = createMacro(INSTALL_ITEM_CLICK_LISTENER);
+        installMenuItemClickAndCallMacro = createMacro(INSTALL_MENU_ITEM_CLICK_LISTENER);
 
-    defineInnerClassToLaunchActivityMacro = createMacro(DEFINE_INNER_CLASS);
-    defineInnerClassToLaunchActivityMacro.addSubMacro("$f", CodeTemplate.fromMethod(getMethodFromText(LAUNCH_ACTIVITY_WITH_ARG)));
+        defineInnerClassToLaunchActivityMacro = createMacro(DEFINE_INNER_CLASS);
+        getDefineInnerClassToLaunchActivityMacro().addSubMacro("$f", CodeTemplate.fromMethod(getMethodFromText(LAUNCH_ACTIVITY_WITH_ARG)));
+      }
+    });
+  }
+
+  public MultiMatch getCreateIntent() {
+    return createIntent;
+  }
+
+  public MultiMatch getInstallClickAndCallMacro() {
+    return installClickAndCallMacro;
+  }
+
+  public MultiMatch getInstallItemClickAndCallMacro() {
+    return installItemClickAndCallMacro;
+  }
+
+  public MultiMatch getInstallMenuItemClickAndCallMacro() {
+    return installMenuItemClickAndCallMacro;
+  }
+
+  public MultiMatch getDefineInnerClassToLaunchActivityMacro() {
+    return defineInnerClassToLaunchActivityMacro;
+  }
+
+  public MultiMatch getFindMenuItem() {
+    return findMenuItem;
+  }
+
+  public MultiMatch getFindViewById1() {
+    return findViewById1;
+  }
+
+  public MultiMatch getFindViewById2() {
+    return findViewById2;
+  }
+
+  public MultiMatch getFindFragmentByTag() {
+    return findFragmentByTag;
   }
 }
