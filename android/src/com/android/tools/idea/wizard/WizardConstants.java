@@ -21,6 +21,7 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 
 import java.awt.*;
 import java.io.File;
@@ -50,7 +51,7 @@ public class WizardConstants {
   public static final int STUDIO_WIZARD_TOP_INSET = 18;
   public static final Dimension DEFAULT_WIZARD_WINDOW_SIZE = new Dimension(1080, 650);
 
-  public static final Dimension DEFAULT_GALLERY_THUMBNAIL_SIZE = new Dimension(192, 192);
+  public static final Dimension DEFAULT_GALLERY_THUMBNAIL_SIZE = JBUI.size(192, 192);
 
   // State Store Keys
   public static final Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
