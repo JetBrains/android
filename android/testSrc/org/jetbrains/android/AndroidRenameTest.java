@@ -20,12 +20,9 @@ import com.android.SdkConstants;
 import com.intellij.codeInsight.TargetElementUtilBase;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
@@ -34,11 +31,11 @@ import com.intellij.refactoring.PackageWrapper;
 import com.intellij.refactoring.actions.RenameElementAction;
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor;
 import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination;
-import com.intellij.refactoring.rename.*;
+import com.intellij.refactoring.rename.RenameProcessor;
+import com.intellij.refactoring.rename.RenamePsiElementProcessor;
 import com.intellij.testFramework.TestActionEvent;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -63,6 +60,13 @@ public class AndroidRenameTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     AndroidResourceRenameResourceProcessor.ASK = false;
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    super.tearDown();
+    // Restore static flag to its default value.
+    AndroidResourceRenameResourceProcessor.ASK = true;
   }
 
   public void testXmlReferenceToFileResource() throws Throwable {
@@ -264,6 +268,18 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + "RefR3_after.java", true);
     myFixture.checkResultByFile("res/layout/layout3.xml", BASE_PATH + "layout_file_after.xml", true);
     assertNotNull(myFixture.findFileInTempDir("res/drawable/pic1.png"));
+  }
+
+  // Regression test for http://b.android.com/135180
+  public void testJavaReferenceToFileResourceWithUnderscores() throws Throwable {
+    createManifest();
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "RefR12.java", "src/p1/p2/RefR.java");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.copyFileToProject("R.java", R_JAVA_PATH);
+    myFixture.copyFileToProject(BASE_PATH + "pic.png", "res/drawable/pic.png");
+    checkAndRename("my_pic");
+    myFixture.checkResultByFile(BASE_PATH + "RefR12_after.java");
+    assertNotNull(myFixture.findFileInTempDir("res/drawable/my_pic.png"));
   }
 
   public void testJavaReferenceToValueResource() throws Throwable {
