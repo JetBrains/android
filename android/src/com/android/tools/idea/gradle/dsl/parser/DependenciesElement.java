@@ -54,7 +54,7 @@ public class DependenciesElement implements GradleDslElement {
 
   /**
    * Adds a new external dependency to the build.gradle file. Please note the new dependency will <b>not</b> be included in
-   * {@link #getExternalDependenciesView()}, unless you invoke {@link GradleBuildFile#reparse()}.
+   * {@link #getExternalDependenciesView()}, unless you invoke {@link GradleBuildModel#reparse()}.
    *
    * @param configurationName the name of the configuration (e.g. "compile", "compileTest", "runtime", etc.)
    * @param compactNotation the dependency in "compact" notation: "group:name:version:classifier@extension".
