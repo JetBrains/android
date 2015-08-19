@@ -549,31 +549,31 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "</body></html>", html);
     } else {
       assertHtmlEquals(
-        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
-        "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>\n" +
-        "<BR/>\n" +
-        "Read access not allowed during rendering (/)<BR/>\n" +
-        "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityException.create(RenderSecurityException.java:52)<BR/>\n" +
-        "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityManager.checkRead(RenderSecurityManager.java:204)<BR/>\n" +
-        "&nbsp;&nbsp;at java.io.File.list(File.java:971)<BR/>\n" +
-        "&nbsp;&nbsp;at java.io.File.listFiles(File.java:1051)<BR/>\n" +
-        "&nbsp;&nbsp;at com.example.app.MyButton.onDraw(<A HREF=\"open:com.example.app.MyButton#onDraw;MyButton.java:70\">MyButton.java:70</A>)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(View.java:14433)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(View.java:14318)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(View.java:14316)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(View.java:14316)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(View.java:14318)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>\n" +
-        "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>\n" +
-        "<A HREF=\"runnable:0\">Copy stack to clipboard</A><BR/>\n" +
+        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+        "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +
+        "<BR/>" +
+        "Read access not allowed during rendering (/)<BR/>" +
+        "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityException.create(RenderSecurityException.java:52)<BR/>" +
+        "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityManager.checkRead(RenderSecurityManager.java:204)<BR/>" +
+        "&nbsp;&nbsp;at java.io.File.list(File.java:971)<BR/>" +
+        "&nbsp;&nbsp;at java.io.File.listFiles(File.java:1051)<BR/>" +
+        "&nbsp;&nbsp;at com.example.app.MyButton.onDraw(<A HREF=\"open:com.example.app.MyButton#onDraw;MyButton.java:70\">MyButton.java:70</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(View.java:14433)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(View.java:14318)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(View.java:14316)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(View.java:14316)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(View.java:14318)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
+        "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>" +
+        "<A HREF=\"runnable:0\">Copy stack to clipboard</A><BR/>" +
         "</body></html>", html);
     }
   }
