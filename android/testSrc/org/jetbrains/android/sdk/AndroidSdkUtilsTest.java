@@ -26,6 +26,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,13 +60,18 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
     }
   }
 
+  @Override
+  protected CompositeException checkForSettingsDamage() throws Exception {
+    return new CompositeException();
+  }
+
   public void testFindSuitableAndroidSdkWhenNoSdkSet() {
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-17");
+    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-22");
     assertNull(sdk);
   }
 
   public void testFindSuitableAndroidSdkWithPathOfExistingModernSdk() {
-    String targetHashString = "android-17";
+    String targetHashString = "android-22";
     Sdk jdk = getTestProjectJdk();
     assertNotNull(jdk);
     createAndroidSdk(mySdkPath, targetHashString, jdk);
@@ -76,7 +82,7 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
   }
 
   public void DISABLEDtestTryToCreateAndSetAndroidSdkWithPathOfModernSdk() {
-    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, "android-17");
+    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, "android-22");
     System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
     assertTrue(sdkSet);
     Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
