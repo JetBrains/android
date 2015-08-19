@@ -138,7 +138,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     File baseDir = new File(myWizardState.getString(ATTR_PROJECT_LOCATION));
 
     // Do the project creation
-    myWizard.createProject();
+    myWizard.createProject(myFixture.getProject());
 
     // Make sure we created the project-level files
     assertFilesExist(baseDir,
@@ -230,7 +230,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
 
     verify(launcherIconStateMock).outputImagesIntoDefaultVariant(eq(moduleRoot));
     verify(activityTemplateMock).render(eq(moduleRoot), eq(moduleRoot), eq(myWizardState.myActivityTemplateState.myParameters),
-                                        (Project)isNull());
+                                        eq(myFixture.getProject()));
   }
 
   public void testCreateProjectNoActivityNoIcons() throws Exception {
