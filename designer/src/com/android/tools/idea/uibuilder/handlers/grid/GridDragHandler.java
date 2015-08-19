@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.annotations.VisibleForTesting;
 
 import java.awt.*;
 import java.util.List;
@@ -55,14 +56,19 @@ final class GridDragHandler extends DragHandler {
     child.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, Integer.toString(column));
   }
 
+  /**
+   * For testing.
+   */
   GridInfo getInfo() {
     return info;
   }
 
+  @VisibleForTesting
   int getStartRow() {
     return info.getRow(startY);
   }
 
+  @VisibleForTesting
   int getStartColumn() {
     return info.getColumn(startX);
   }

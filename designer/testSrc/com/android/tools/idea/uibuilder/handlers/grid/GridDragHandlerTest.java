@@ -23,36 +23,61 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.openapi.command.WriteCommandAction;
 
 public final class GridDragHandlerTest extends LayoutTestCase {
-  public void testCommit() {
-    GridLayout viewObject = new GridLayout();
+  private GridDragHandler handler;
 
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    GridLayout viewObject = new GridLayout();
     viewObject.setVerticalAxis(new Axis(new int[]{0, 1024}));
     viewObject.setHorizontalAxis(new Axis(new int[]{0, 248, 248, 248, 248, 248, 248, 248, 248, 520, 768}));
     viewObject.setRowCount(1);
     viewObject.setColumnCount(10);
 
     // @formatter:off
-
     ComponentDescriptor button1 = component(SdkConstants.BUTTON)
-        .withBounds(0, 160, 248, 96)
-        .layoutParamsObject(new LayoutParams(new Spec(new Interval(0, 1)), new Spec(new Interval(0, 1))));
+      .withBounds(0, 160, 248, 96)
+      .withAttribute("android:layout_row", "0")
+      .withAttribute("android:layout_column", "0")
+      .layoutParamsObject(new LayoutParams(new Spec(new Interval(0, 1)), new Spec(new Interval(0, 1))));
 
     ComponentDescriptor button2 = component(SdkConstants.BUTTON)
-        .withBounds(520, 160, 248, 96)
-        .layoutParamsObject(new LayoutParams(new Spec(new Interval(0, 1)), new Spec(new Interval(9, 10))));
+      .withBounds(520, 160, 248, 96)
+      .withAttribute("android:layout_row", "0")
+      .withAttribute("android:layout_column", "9")
+      .layoutParamsObject(new LayoutParams(new Spec(new Interval(0, 1)), new Spec(new Interval(9, 10))));
 
     ComponentDescriptor layout = component(SdkConstants.GRID_LAYOUT)
-        .withBounds(0, 160, 768, 1024)
-        .viewObject(viewObject)
-        .children(button1, button2);
+      .withBounds(0, 160, 768, 1024)
+      .viewObject(viewObject)
+      .children(button1, button2);
 
     NlModel model = model("grid_layout.xml", layout)
-        .build();
-
+      .build();
     // @formatter:on
 
-    final GridDragHandler handler = new GridDragHandler(null, null, model.getComponents().get(0), null, null);
+    handler = new GridDragHandler(null, null, model.getComponents().get(0), null, null);
+  }
 
+  public void testCommitCellHasChild() {
+    handler.start(630, 210, 0);
+
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+      @Override
+      public void run() {
+        handler.commit(630, 210, 0);
+      }
+    });
+
+    NlComponent[][] children = handler.getInfo().getChildren();
+    NlComponent child = children[handler.getStartRow()][handler.getStartColumn()];
+
+    assertEquals("0", child.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW));
+    assertEquals("9", child.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN));
+  }
+
+  public void testCommit() {
     handler.start(630, 210, 0);
     handler.update(470, 210, 0);
 
