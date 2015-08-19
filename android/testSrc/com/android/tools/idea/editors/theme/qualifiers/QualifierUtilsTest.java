@@ -134,14 +134,12 @@ public class QualifierUtilsTest extends AndroidTestCase {
    * the same qualifier, we don't override the one in the compatible one with portrait.
    */
   public void testContradictingQualifiers() {
-    ConfigurationManager manager = ConfigurationManager.create(myFixture.getModule());
-
     List<FolderConfiguration> incompatible = ImmutableList.of(
       FolderConfiguration.getConfigForQualifierString("land"));
 
     // default config
     FolderConfiguration compatible = FolderConfiguration.getConfigForQualifierString("land-hdpi");
 
-    assertEquals("-land-hdpi", QualifierUtils.restrictConfiguration(manager, compatible, incompatible).getUniqueKey());
+    assertEquals("-land-hdpi", QualifierUtils.restrictConfiguration(myConfigurationManager, compatible, incompatible).getUniqueKey());
   }
 }
