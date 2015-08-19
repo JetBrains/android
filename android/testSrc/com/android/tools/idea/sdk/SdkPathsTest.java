@@ -63,21 +63,6 @@ public class SdkPathsTest extends TestCase {
     assertEquals("The path\n'/dummy/path'\ndoes not belong to a directory.", result.message);
   }
 
-  public void testUnReadableSdkDirectory() throws Exception {
-    File mockFile = mock(File.class);
-    when(mockFile.getPath()).thenReturn("/dummy/path");
-    when(mockFile.isDirectory()).thenReturn(true);
-    when(mockFile.canRead()).thenReturn(false);
-
-    ValidationResult result = validateAndroidSdk(mockFile, false);
-    assertFalse(result.success);
-    assertEquals("The path is not readable.", result.message);
-
-    result = validateAndroidSdk(mockFile, true);
-    assertFalse(result.success);
-    assertEquals("The path\n'/dummy/path'\nis not readable.", result.message);
-  }
-
   public void testUnWritableSdkDirectory() throws Exception {
     File mockFile = mock(File.class);
     when(mockFile.getPath()).thenReturn("/dummy/path");

@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
-import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -36,11 +35,8 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ui.UIUtil;
 import org.gradle.tooling.CancellationTokenSource;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -51,7 +47,13 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+import static org.jetbrains.android.util.AndroidCommonUtils.isInstrumentationTestConfiguration;
+import static org.jetbrains.android.util.AndroidCommonUtils.isTestConfiguration;
 
 /**
  * Invokes Gradle tasks directly. Results of tasks execution are displayed in both the "Messages" tool window and the new "Gradle Console"
@@ -157,7 +159,7 @@ public class GradleInvoker {
 
     if (BuildMode.ASSEMBLE == buildMode) {
       Project project = modules[0].getProject();
-      if (Projects.lastGradleSyncFailed(project)) {
+      if (lastGradleSyncFailed(project)) {
         // If last Gradle sync failed, just call "assemble" at the top-level. Without a model there are no other tasks we can call.
         return Collections.singletonList(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME);
       }
@@ -222,7 +224,7 @@ public class GradleInvoker {
     GradleTaskExecutionContext context =
       new GradleTaskExecutionContext(this, myProject, gradleTasks, commandLineArguments, myCancellationMap, taskId, taskListener);
     final GradleTasksExecutor executor = new GradleTasksExecutor(context);
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+    invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         FileDocumentManager.getInstance().saveAllDocuments();
@@ -236,7 +238,7 @@ public class GradleInvoker {
       executor.queueAndWaitForCompletion();
     }
     else {
-      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+      invokeAndWaitIfNeeded(new Runnable() {
         @Override
         public void run() {
           executor.queue();
@@ -259,7 +261,7 @@ public class GradleInvoker {
       return;
     }
     String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
-    if (StringUtil.isEmpty(gradlePath)) {
+    if (isEmpty(gradlePath)) {
       // Gradle project path is never, ever null. If the path is empty, it shows as ":". We had reports of this happening. It is likely that
       // users manually added the Android-Gradle facet to a project. After all it is likely not to be a Gradle module. Better quit and not
       // build the module.
@@ -291,7 +293,10 @@ public class GradleInvoker {
           // Jack compiler is enabled in Gradle, COMPILE_JAVA_TASK_NAME will end up running e.g. compileDebugJavaWithJack, which produces
           // no *.class files and would be just a waste of time.
           if (testCompileType != TestCompileType.JAVA_TESTS) {
-            tasks.add(createBuildTask(gradlePath, properties.COMPILE_JAVA_TASK_NAME));
+            String taskName = properties.COMPILE_JAVA_TASK_NAME;
+            if (isNotEmpty(taskName)) {
+              tasks.add(createBuildTask(gradlePath, taskName));
+            }
           }
           addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TEST_TASK_NAME);
           break;
@@ -320,7 +325,7 @@ public class GradleInvoker {
   private static void addTaskIfSpecified(@NotNull List<String> tasks,
                                          @NotNull String gradlePath,
                                          @Nullable String gradleTaskName) {
-    if (StringUtil.isNotEmpty(gradleTaskName)) {
+    if (isNotEmpty(gradleTaskName)) {
       tasks.add(createBuildTask(gradlePath, gradleTaskName));
     }
   }
@@ -337,10 +342,10 @@ public class GradleInvoker {
   @NotNull
   public static TestCompileType getTestCompileType(@Nullable String runConfigurationId) {
     if (runConfigurationId != null) {
-      if (AndroidCommonUtils.isInstrumentationTestConfiguration(runConfigurationId)) {
+      if (isInstrumentationTestConfiguration(runConfigurationId)) {
         return TestCompileType.ANDROID_TESTS;
       }
-      if (AndroidCommonUtils.isTestConfiguration(runConfigurationId)) {
+      if (isTestConfiguration(runConfigurationId)) {
         return TestCompileType.JAVA_TESTS;
       }
     }
