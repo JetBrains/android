@@ -379,8 +379,8 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printMax(/*Length must be at most 8 (was 9)*/\"123456789\"/**/); // ERROR\n" +
             "        printAtMost(1 << 2); // OK\n" +
             "        printMax(\"123456\" + \"\"); //OK\n" +
-            "        printAtMost(/*Value must be ≤ 7 (was 8)*/1 << 2 + 1/**/); // ERROR\n" +
-            "        printAtMost(/*Value must be ≤ 7 (was 32)*/1 << 5/**/); // ERROR\n" +
+            "        printAtMost(/*Value must be \u2264 7 (was 8)*/1 << 2 + 1/**/); // ERROR\n" +
+            "        printAtMost(/*Value must be \u2264 7 (was 32)*/1 << 5/**/); // ERROR\n" +
             "        printMax(/*Length must be at most 8 (was 11)*/\"123456\" + \"45678\"/**/); //ERROR\n" +
             "\n" +
             "        printRange(/*Length must be at least 4 and at most 6 (was 3)*/\"123\"/**/); // ERROR\n" +
@@ -430,27 +430,27 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    }\n" +
             "\n" +
             "    public void testIntRange() {\n" +
-            "        printAtLeast(/*Value must be ≥ 4 (was 3)*/3/**/); // ERROR\n" +
+            "        printAtLeast(/*Value must be \u2265 4 (was 3)*/3/**/); // ERROR\n" +
             "        printAtLeast(4); // OK\n" +
             "        printAtLeast(5); // OK\n" +
             "\n" +
             "        printAtMost(5); // OK\n" +
             "        printAtMost(6); // OK\n" +
             "        printAtMost(7); // OK\n" +
-            "        printAtMost(/*Value must be ≤ 7 (was 8)*/8/**/); // ERROR\n" +
+            "        printAtMost(/*Value must be \u2264 7 (was 8)*/8/**/); // ERROR\n" +
             "\n" +
-            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 3)*/3/**/); // ERROR\n" +
+            "        printBetween(/*Value must be \u2265 4 and \u2264 7 (was 3)*/3/**/); // ERROR\n" +
             "        printBetween(4); // OK\n" +
             "        printBetween(5); // OK\n" +
             "        printBetween(6); // OK\n" +
             "        printBetween(7); // OK\n" +
-            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 8)*/8/**/); // ERROR\n" +
+            "        printBetween(/*Value must be \u2265 4 and \u2264 7 (was 8)*/8/**/); // ERROR\n" +
             "        int value = 8;\n" +
-            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 8)*/value/**/); // ERROR\n" +
+            "        printBetween(/*Value must be \u2265 4 and \u2264 7 (was 8)*/value/**/); // ERROR\n" +
             "    }\n" +
             "\n" +
             "    public void testFloatRange() {\n" +
-            "        printAtLeastInclusive(/*Value must be ≥ 2.5 (was 2.49f)*/2.49f/**/); // ERROR\n" +
+            "        printAtLeastInclusive(/*Value must be \u2265 2.5 (was 2.49f)*/2.49f/**/); // ERROR\n" +
             "        printAtLeastInclusive(2.5f); // OK\n" +
             "        printAtLeastInclusive(2.6f); // OK\n" +
             "\n" +
@@ -461,29 +461,29 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printAtMostInclusive(6.8f); // OK\n" +
             "        printAtMostInclusive(6.9f); // OK\n" +
             "        printAtMostInclusive(7.0f); // OK\n" +
-            "        printAtMostInclusive(/*Value must be ≤ 7.0 (was 7.1f)*/7.1f/**/); // ERROR\n" +
+            "        printAtMostInclusive(/*Value must be \u2264 7.0 (was 7.1f)*/7.1f/**/); // ERROR\n" +
             "\n" +
             "        printAtMostExclusive(6.9f); // OK\n" +
             "        printAtMostExclusive(6.99f); // OK\n" +
             "        printAtMostExclusive(/*Value must be < 7.0 (was 7.0f)*/7.0f/**/); // ERROR\n" +
             "        printAtMostExclusive(/*Value must be < 7.0 (was 7.1f)*/7.1f/**/); // ERROR\n" +
             "\n" +
-            "        printBetweenFromInclusiveToInclusive(/*Value must be ≥ 2.5 and ≤ 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToInclusive(/*Value must be \u2265 2.5 and \u2264 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
             "        printBetweenFromInclusiveToInclusive(2.5f); // OK\n" +
             "        printBetweenFromInclusiveToInclusive(3f); // OK\n" +
             "        printBetweenFromInclusiveToInclusive(5.0f); // OK\n" +
-            "        printBetweenFromInclusiveToInclusive(/*Value must be ≥ 2.5 and ≤ 5.0 (was 5.1f)*/5.1f/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToInclusive(/*Value must be \u2265 2.5 and \u2264 5.0 (was 5.1f)*/5.1f/**/); // ERROR\n" +
             "\n" +
-            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and ≤ 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
-            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and ≤ 5.0 (was 2.5f)*/2.5f/**/); // ERROR\n" +
+            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and \u2264 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
+            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and \u2264 5.0 (was 2.5f)*/2.5f/**/); // ERROR\n" +
             "        printBetweenFromExclusiveToInclusive(5.0f); // OK\n" +
-            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and ≤ 5.0 (was 5.1f)*/5.1f/**/); // ERROR\n" +
+            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and \u2264 5.0 (was 5.1f)*/5.1f/**/); // ERROR\n" +
             "\n" +
-            "        printBetweenFromInclusiveToExclusive(/*Value must be ≥ 2.5 and < 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToExclusive(/*Value must be \u2265 2.5 and < 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
             "        printBetweenFromInclusiveToExclusive(2.5f); // OK\n" +
             "        printBetweenFromInclusiveToExclusive(3f); // OK\n" +
             "        printBetweenFromInclusiveToExclusive(4.99f); // OK\n" +
-            "        printBetweenFromInclusiveToExclusive(/*Value must be ≥ 2.5 and < 5.0 (was 5.0f)*/5.0f/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToExclusive(/*Value must be \u2265 2.5 and < 5.0 (was 5.0f)*/5.0f/**/); // ERROR\n" +
             "\n" +
             "        printBetweenFromExclusiveToExclusive(/*Value must be > 2.5 and < 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
             "        printBetweenFromExclusiveToExclusive(/*Value must be > 2.5 and < 5.0 (was 2.5f)*/2.5f/**/); // ERROR\n" +
