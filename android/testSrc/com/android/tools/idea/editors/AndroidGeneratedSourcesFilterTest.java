@@ -16,11 +16,13 @@
 package com.android.tools.idea.editors;
 
 import com.android.tools.idea.templates.AndroidGradleTestCase;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class AndroidGeneratedSourcesFilterTest extends AndroidGradleTestCase {
 
@@ -33,21 +35,18 @@ public class AndroidGeneratedSourcesFilterTest extends AndroidGradleTestCase {
     loadProject("projects/sync/multiproject", true);
     AndroidGeneratedSourcesFilter filter = new AndroidGeneratedSourcesFilter();
 
-    assertTrue(filter.isGeneratedSource(
-      findFile("module1/build/generated/source/buildConfig/debug/com/example/test/multiproject/module1/BuildConfig.java"),
-      getProject()));
+    VirtualFile file = findFile("module1/build/generated/source/buildConfig/debug/com/example/test/multiproject/module1/BuildConfig.java");
+    assertTrue(filter.isGeneratedSource(file, getProject()));
 
-    assertTrue(filter.isGeneratedSource(
-      findFile("module2/build/intermediates/resources/resources-debug.ap_"), getProject()));
-
-    assertFalse(filter.isGeneratedSource(
-      findFile("module2/build.gradle"), getProject()));
+    file = findFile("module2/build.gradle");
+    assertFalse(filter.isGeneratedSource(file, getProject()));
   }
 
   @NotNull
   private VirtualFile findFile(@NotNull String path) {
-    VirtualFile vFile = VfsUtil.findFileByIoFile(new File(getProject().getBasePath(), path), true);
-    assertNotNull(vFile);
-    return vFile;
+    File filePath = new File(getProject().getBasePath(), FileUtil.toSystemDependentName(path));
+    VirtualFile file = findFileByIoFile(filePath, true);
+    assertNotNull("File '" + path + "' not found.", file);
+    return file;
   }
 }
