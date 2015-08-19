@@ -73,7 +73,10 @@ public class ColorUtils {
     }
     Color myItemColor = ResourceHelper.resolveColor(styleResourceResolver, item.getSelectedValue(), context.getProject());
 
-    assert myItemColor != null;
+    if (myItemColor == null) {
+      // The resolution of the item value into a color has failed
+      return Collections.emptySet();
+    }
 
     for (String contrastColor : contrastColorSet) {
       ItemResourceValue contrastItem = ThemeEditorUtils.resolveItemFromParents(currentTheme, contrastColor, false);
