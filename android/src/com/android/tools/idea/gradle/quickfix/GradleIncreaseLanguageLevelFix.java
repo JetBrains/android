@@ -20,36 +20,35 @@ import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.intellij.codeInsight.CodeInsightBundle;
 import com.intellij.codeInsight.daemon.impl.analysis.IncreaseLanguageLevelFix;
-import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.JdkVersionUtil;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiFile;
-import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
+import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 
 /**
  * The quickfix for increasing language level by modifying the build.gradle and sync the project.
  * Most of the code is duplicated from {@link IncreaseLanguageLevelFix} except
  * the {@link GradleIncreaseLanguageLevelFix#invoke} method.
  */
-public class GradleIncreaseLanguageLevelFix extends GradleDependencyFix {
+public class GradleIncreaseLanguageLevelFix extends AbstractGradleAwareFix {
   private static final Logger LOG = Logger.getInstance(GradleIncreaseLanguageLevelFix.class);
 
-  private final LanguageLevel myLevel;
-  private final GradleBuildFile myBuildFile;
+  @NotNull private final LanguageLevel myLevel;
+  @NotNull private final GradleBuildFile myBuildFile;
 
   public GradleIncreaseLanguageLevelFix(@NotNull LanguageLevel targetLevel, @NotNull GradleBuildFile buildFile) {
     myLevel = targetLevel;
@@ -69,7 +68,9 @@ public class GradleIncreaseLanguageLevelFix extends GradleDependencyFix {
   }
 
   private static boolean isJdkSupportsLevel(@Nullable final Sdk jdk, @NotNull LanguageLevel level) {
-    if (jdk == null) return true;
+    if (jdk == null) {
+      return true;
+    }
     String versionString = jdk.getVersionString();
     JavaSdkVersion version = versionString == null ? null : JdkVersionUtil.getVersion(versionString);
     return version != null && version.getMaxLanguageLevel().isAtLeast(level);
@@ -77,10 +78,15 @@ public class GradleIncreaseLanguageLevelFix extends GradleDependencyFix {
 
   @Override
   public boolean isAvailable(@NotNull final Project project, @Nullable final Editor editor, @Nullable final PsiFile file) {
-    if (file == null) return false;
-    final VirtualFile virtualFile = file.getVirtualFile();
-    if (virtualFile == null) return false;
-    final Module module = ModuleUtilCore.findModuleForFile(virtualFile, project);
+    if (file == null) {
+      return false;
+    }
+    VirtualFile virtualFile = file.getVirtualFile();
+    if (virtualFile == null) {
+      return false;
+    }
+
+    Module module = findModuleForFile(virtualFile, project);
     return module != null && isLanguageLevelAcceptable(project, module, myLevel);
   }
 
@@ -89,15 +95,19 @@ public class GradleIncreaseLanguageLevelFix extends GradleDependencyFix {
   }
 
   @Override
-  public void invoke(@NotNull final Project project, @Nullable final Editor editor, @Nullable final PsiFile file)
-    throws IncorrectOperationException {
-    if (file == null) return;
-    final VirtualFile virtualFile = file.getVirtualFile();
-    if (virtualFile == null) return;
-    final Module module = ModuleUtilCore.findModuleForFile(virtualFile, project);
+  public void invoke(@NotNull final Project project, @Nullable Editor editor, @Nullable PsiFile file) {
+    if (file == null) {
+      return;
+    }
+    VirtualFile virtualFile = file.getVirtualFile();
+    if (virtualFile == null) {
+      return;
+    }
+
+    final Module module = findModuleForFile(virtualFile, project);
     final LanguageLevel moduleLevel = module == null ? null : LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
 
-    invokeAction(new Runnable() {
+    runWriteCommandAction(project, new Runnable() {
       @Override
       public void run() {
         if (moduleLevel != null && isLanguageLevelAcceptable(project, module, myLevel)) {
@@ -105,7 +115,8 @@ public class GradleIncreaseLanguageLevelFix extends GradleDependencyFix {
           if (getAndroidProject(module) != null) {
             myBuildFile.setValue(BuildFileKey.SOURCE_COMPATIBILITY, gradleJavaVersion);
             myBuildFile.setValue(BuildFileKey.TARGET_COMPATIBILITY, gradleJavaVersion);
-          } else {
+          }
+          else {
             LOG.error("Setting language level on Java module is not supported");
           }
           registerUndoAction(project);

@@ -15,41 +15,33 @@
  */
 package com.android.tools.idea.gradle.quickfix;
 
-import com.android.tools.idea.gradle.parser.Dependency;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.daemon.QuickFixBundle;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.PsiUtilCore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.intellij.psi.search.GlobalSearchScope.moduleWithLibrariesScope;
+
 /**
  * Quickfix to add JUnit dependency to gradle.build file and sync the project.
  */
-public class AddGradleJUnitDependencyFix extends GradleDependencyFix {
-  private final Module myCurrentModule;
-  private final PsiReference myReference;
-  private final String myClassName;
+public class AddGradleJUnitDependencyFix extends AbstractGradleDependencyFix {
+  @NotNull private final String myClassName;
   private final boolean myIsJunit4;
 
-  public AddGradleJUnitDependencyFix(@NotNull Module currentModule, @NotNull PsiReference reference, @NotNull String className,
+  public AddGradleJUnitDependencyFix(@NotNull Module module, @NotNull PsiReference reference, @NotNull String className,
                                      boolean isJunit4) {
-    myCurrentModule = currentModule;
-    myReference = reference;
+    super(module, reference);
     myClassName = className;
     myIsJunit4 = isJunit4;
   }
@@ -61,35 +53,18 @@ public class AddGradleJUnitDependencyFix extends GradleDependencyFix {
   }
 
   @Override
-  @NotNull
-  public String getFamilyName() {
-    return getText();
-  }
-
-  @Override
-  public boolean isAvailable(@NotNull Project project, @Nullable Editor editor, @Nullable PsiFile file) {
-    return !project.isDisposed() && !myCurrentModule.isDisposed();
-  }
-
-  @Override
   public void invoke(@NotNull final Project project, @Nullable final Editor editor, @Nullable PsiFile file) {
-    String gradleDependencyEntry = myIsJunit4 ? "junit:junit:4.12" : "junit:junit:3.8.1";
-
-    VirtualFile location = PsiUtilCore.getVirtualFile(myReference.getElement());
-    boolean inTests = location != null && ModuleRootManager.getInstance(myCurrentModule).getFileIndex().isInTestSourceContent(location);
-
-    final Dependency dependency =
-      new Dependency(getDependencyScope(myCurrentModule, inTests), Dependency.Type.EXTERNAL, gradleDependencyEntry);
-
-    invokeAction(new Runnable() {
+    boolean testScope = isTestScope(myModule, myReference);
+    final String configurationName = getConfigurationName(myModule, testScope);
+    runWriteCommandAction(project, new Runnable() {
       @Override
       public void run() {
-        addDependencyUndoable(myCurrentModule, dependency);
-        gradleSyncAndImportClass(myCurrentModule, editor, myReference, new Function<Void, List<PsiClass>>() {
+        String dependency = myIsJunit4 ? "junit:junit:4.12" : "junit:junit:3.8.1";
+        addDependency(myModule, configurationName, dependency);
+        gradleSyncAndImportClass(project, editor, myReference, new Function<Void, List<PsiClass>>() {
           @Override
           public List<PsiClass> apply(@Nullable Void input) {
-            PsiClass aClass =
-              JavaPsiFacade.getInstance(project).findClass(myClassName, GlobalSearchScope.moduleWithLibrariesScope(myCurrentModule));
+            PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(myClassName, moduleWithLibrariesScope(myModule));
             return aClass != null ? ImmutableList.of(aClass) : null;
           }
         });

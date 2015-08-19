@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.quickfix;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar;
@@ -34,22 +35,20 @@ import com.intellij.packageDependencies.DependencyValidationManager;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForPsiElement;
+import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
 
 public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedReferenceQuickFixProvider<PsiJavaCodeReferenceElement> {
-
   @Override
-  public void registerFixes(final @NotNull PsiJavaCodeReferenceElement reference, @NotNull QuickFixActionRegistrar registrar) {
+  public void registerFixes(@NotNull PsiJavaCodeReferenceElement reference, @NotNull QuickFixActionRegistrar registrar) {
     Module contextModule = findModuleForPsiElement(reference);
     if (contextModule == null) {
       return;
@@ -68,7 +67,8 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
     if (contextFile == null) {
       return;
     }
-    final VirtualFile classVFile = contextFile.getVirtualFile();
+
+    VirtualFile classVFile = contextFile.getVirtualFile();
     if (classVFile == null) {
       return;
     }
@@ -97,10 +97,10 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
 
     // Check if it is a JUnit class reference.
     if ("TestCase".equals(referenceName) || isAnnotation(psiElement) && isJunitAnnotationName(referenceName, psiElement)) {
-      final boolean isJunit4 = !referenceName.equals("TestCase");
+      boolean isJunit4 = !referenceName.equals("TestCase");
       String className = isJunit4 ? "org.junit." + referenceName : "junit.framework.TestCase";
-      PsiClass found =
-        JavaPsiFacade.getInstance(project).findClass(className, contextModule.getModuleWithDependenciesAndLibrariesScope(true));
+      GlobalSearchScope scope = contextModule.getModuleWithDependenciesAndLibrariesScope(true);
+      PsiClass found = JavaPsiFacade.getInstance(project).findClass(className, scope);
       if (found == null) {
         registrar.register(new AddGradleJUnitDependencyFix(contextModule, reference, className, isJunit4));
       }
@@ -109,8 +109,8 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
     // Check if it is a JetBrains annotation class reference.
     if (isAnnotation(psiElement) && AnnotationUtil.isJetbrainsAnnotation(referenceName)) {
       String className = "org.jetbrains.annotations." + referenceName;
-      PsiClass found =
-        JavaPsiFacade.getInstance(project).findClass(className, contextModule.getModuleWithDependenciesAndLibrariesScope(true));
+      GlobalSearchScope scope = contextModule.getModuleWithDependenciesAndLibrariesScope(true);
+      PsiClass found = JavaPsiFacade.getInstance(project).findClass(className, scope);
       if (found == null) {
         registrar.register(new AddGradleJetbrainsAnnotationFix(contextModule, reference, className));
       }
@@ -154,22 +154,19 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
           if (files.length == 0) {
             continue;
           }
-          final VirtualFile jar = files[0];
-
+          VirtualFile jar = files[0];
           if (jar == null || libraryEntry.isModuleLevel() && !librariesToAdd.add(jar) || !librariesToAdd.add(library)) {
             continue;
           }
           OrderEntry entryForFile = moduleFileIndex.getOrderEntryForFile(virtualFile);
           if (entryForFile != null) {
-            if (entryForFile instanceof ExportableOrderEntry &&
-                ((ExportableOrderEntry)entryForFile).getScope() == DependencyScope.TEST &&
-                !ModuleRootManager.getInstance(contextModule).getFileIndex().isInTestSourceContent(classVFile)) {
-            }
-            else {
+            if (!(entryForFile instanceof ExportableOrderEntry) ||
+                ((ExportableOrderEntry)entryForFile).getScope() != DependencyScope.TEST ||
+                ModuleRootManager.getInstance(contextModule).getFileIndex().isInTestSourceContent(classVFile)) {
               continue;
             }
           }
-          registrar.register(new AddGradleLibraryDependencyFix(libraryEntry, contextModule, aClass, reference));
+          registrar.register(new AddGradleLibraryDependencyFix(libraryEntry, aClass, contextModule, reference));
         }
       }
     }
@@ -181,7 +178,8 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
   private static List<PsiClass> filterAllowedDependencies(@NotNull PsiElement element, @NotNull PsiClass[] classes) {
     DependencyValidationManager dependencyValidationManager = DependencyValidationManager.getInstance(element.getProject());
     PsiFile fromFile = element.getContainingFile();
-    List<PsiClass> result = new ArrayList<PsiClass>();
+
+    List<PsiClass> result = Lists.newArrayList();
     for (PsiClass psiClass : classes) {
       if (dependencyValidationManager.getViolatorDependencyRule(fromFile, psiClass.getContainingFile()) == null) {
         result.add(psiClass);
@@ -191,24 +189,24 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
   }
 
   // Duplicated from com.intellij.codeInsight.daemon.impl.quickfix.OrderEntryFix.isAnnotation
-  private static boolean isAnnotation(@NotNull final PsiElement psiElement) {
-    return PsiTreeUtil.getParentOfType(psiElement, PsiAnnotation.class) != null && PsiUtil.isLanguageLevel5OrHigher(psiElement);
+  private static boolean isAnnotation(@NotNull PsiElement psiElement) {
+    return getParentOfType(psiElement, PsiAnnotation.class) != null && PsiUtil.isLanguageLevel5OrHigher(psiElement);
   }
 
   // Duplicated from com.intellij.codeInsight.daemon.impl.quickfix.OrderEntryFix.isJunitAnnotationName
-  private static boolean isJunitAnnotationName(@NonNls final String referenceName, @NotNull final PsiElement psiElement) {
+  private static boolean isJunitAnnotationName(@NonNls String referenceName, @NotNull PsiElement psiElement) {
     if ("Test".equals(referenceName) || "Ignore".equals(referenceName) || "RunWith".equals(referenceName) ||
         "Before".equals(referenceName) || "BeforeClass".equals(referenceName) ||
         "After".equals(referenceName) || "AfterClass".equals(referenceName)) {
       return true;
     }
-    final PsiElement parent = psiElement.getParent();
+    PsiElement parent = psiElement.getParent();
     if (parent != null && !(parent instanceof PsiAnnotation)) {
-      final PsiReference reference = parent.getReference();
+      PsiReference reference = parent.getReference();
       if (reference != null) {
-        final String referenceText = parent.getText();
+        String referenceText = parent.getText();
         if (isJunitAnnotationName(reference.getRangeInElement().substring(referenceText), parent)) {
-          final int lastDot = referenceText.lastIndexOf('.');
+          int lastDot = referenceText.lastIndexOf('.');
           return lastDot > -1 && referenceText.substring(0, lastDot).equals("org.junit");
         }
       }
