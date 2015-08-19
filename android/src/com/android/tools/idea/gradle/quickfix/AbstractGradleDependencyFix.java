@@ -15,31 +15,20 @@
  */
 package com.android.tools.idea.gradle.quickfix;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.BuildFileStatement;
-import com.android.tools.idea.gradle.parser.Dependency;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.actions.AddImportAction;
-import com.intellij.codeInsight.intention.HighPriorityAction;
-import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.LocalQuickFix;
-import com.intellij.codeInspection.ProblemDescriptor;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.command.undo.BasicUndoableAction;
-import com.intellij.openapi.command.undo.UndoManager;
-import com.intellij.openapi.command.undo.UnexpectedUndoException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +36,19 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-abstract class GradleDependencyFix implements IntentionAction, LocalQuickFix, HighPriorityAction {
+import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
+import static com.android.tools.idea.gradle.dsl.parser.CommonConfigurationNames.*;
+import static com.intellij.psi.util.PsiUtilCore.getVirtualFile;
+
+abstract class AbstractGradleDependencyFix extends AbstractGradleAwareFix {
+  @NotNull final Module myModule;
+  @NotNull final PsiReference myReference;
+
+  AbstractGradleDependencyFix(@NotNull Module module, @NotNull PsiReference reference) {
+    myModule = module;
+    myReference = reference;
+  }
+
   @Override
   public boolean startInWriteAction() {
     return true;
@@ -55,61 +56,61 @@ abstract class GradleDependencyFix implements IntentionAction, LocalQuickFix, Hi
 
   @Override
   @NotNull
-  public String getName() {
+  public String getFamilyName() {
     return getText();
   }
 
   @Override
-  public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
-    invoke(project, null, descriptor.getPsiElement().getContainingFile());
+  public boolean isAvailable(@NotNull Project project,  @Nullable Editor editor,  @Nullable PsiFile file) {
+    return !project.isDisposed() && !myModule.isDisposed();
   }
 
-  protected static void addDependency(@NotNull Module module, @NotNull Dependency dependency) {
-    GradleBuildFile gradleBuildFile = GradleBuildFile.get(module);
+  static boolean isTestScope(@NotNull Module module, @NotNull PsiReference reference) {
+    VirtualFile location = getVirtualFile(reference.getElement());
+    return isTestScope(module, location);
+  }
 
-    if (gradleBuildFile == null) {
-      return;
+  static boolean isTestScope(@NotNull Module module, @Nullable VirtualFile location) {
+    return location != null && ModuleRootManager.getInstance(module).getFileIndex().isInTestSourceContent(location);
+  }
+
+  static void addDependency(@NotNull Module module, @NotNull String configurationName, @NotNull String compactNotation) {
+    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    if (buildModel != null) {
+      buildModel.addExternalDependency(configurationName, compactNotation);
+      registerUndoAction(module.getProject());
     }
-
-    List<BuildFileStatement> dependencies = Lists.newArrayList(gradleBuildFile.getDependencies());
-    dependencies.add(dependency);
-
-    gradleBuildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
-  }
-
-  protected static void addDependencyUndoable(@NotNull Module module, @NotNull Dependency dependency) {
-    addDependency(module, dependency);
-    registerUndoAction(module.getProject());
   }
 
   @NotNull
-  protected static Dependency.Scope getDependencyScope(@NotNull Module module, boolean test) {
-    Dependency.Scope testScope = Dependency.Scope.TEST_COMPILE;
-    if (test) {
+  static String getConfigurationName(@NotNull Module module, boolean testScope) {
+    if (testScope) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null) {
         AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
-        if (androidModel != null && AndroidProject.ARTIFACT_ANDROID_TEST.equals(androidModel.getSelectedTestArtifactName())) {
-          testScope = Dependency.Scope.ANDROID_TEST_COMPILE;
+        String configurationName = TEST_COMPILE;
+        if (androidModel != null && ARTIFACT_ANDROID_TEST.equals(androidModel.getSelectedTestArtifactName())) {
+          configurationName = ANDROID_TEST_COMPILE;
         }
+        return configurationName;
       }
     }
-    return test ? testScope : Dependency.Scope.COMPILE;
+    return COMPILE;
+
   }
 
   /**
    * After modifying the dependencies of the gradle file, trigger gradle sync and then try to add import statement to the source file.
    *
-   * @param module the module in which the quick fix is invoked.
+   * @param project the project in which the quick fix is invoked.
    * @param editor the editor in which the quick fix is invoked.
    * @param reference the PSI element that can't be resolved initially.
    * @param getTargetClasses the callback to find resolved classes for the reference after sync is done.
    */
-  protected static void gradleSyncAndImportClass(@NotNull final Module module,
+  protected static void gradleSyncAndImportClass(@NotNull final Project project,
                                                  @Nullable final Editor editor,
                                                  @Nullable final PsiReference reference,
                                                  @Nullable final Function<Void, List<PsiClass>> getTargetClasses) {
-    final Project project = module.getProject();
     GradleProjectImporter.getInstance().requestProjectSync(project, false /* Do not generate source */, new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull final Project project) {
@@ -129,29 +130,5 @@ abstract class GradleDependencyFix implements IntentionAction, LocalQuickFix, Hi
         }
       }
     });
-  }
-
-  protected static void registerUndoAction(@NotNull final Project project) {
-    UndoManager.getInstance(project).undoableActionPerformed(new BasicUndoableAction() {
-      @Override
-      public void undo() throws UnexpectedUndoException {
-        GradleProjectImporter.getInstance().requestProjectSync(project, false, null);
-      }
-
-      @Override
-      public void redo() throws UnexpectedUndoException {
-        GradleProjectImporter.getInstance().requestProjectSync(project, false, null);
-      }
-    });
-  }
-
-  protected static void invokeAction(@NotNull final Runnable runnable) {
-    final Application application = ApplicationManager.getApplication();
-    application.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        application.runWriteAction(runnable);
-      }
-    }, application.getDefaultModalityState());
   }
 }
