@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.templates.*;
@@ -68,6 +71,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
  */
 public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Key<Boolean> KEY_IS_LAUNCHER = createKey("is.launcher.activity", PATH, Boolean.class);
+  public static final Key<Boolean> KEY_APPCOMPAT_ACTIVITY = createKey("appCompatActivity", PATH, Boolean.class);
   public static final Key<TemplateEntry> KEY_SELECTED_TEMPLATE = createKey("selected.template", PATH, TemplateEntry.class);
   public static final Key<AndroidVersion> KEY_MIN_SDK = createKey(TemplateMetadata.ATTR_MIN_API, PATH, AndroidVersion.class);
   public static final Key<AndroidVersion> KEY_TARGET_API = createKey(TemplateMetadata.ATTR_TARGET_API, PATH, AndroidVersion.class);
@@ -79,6 +83,8 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Set<String> CLASS_NAME_PARAMETERS = ImmutableSet.of(TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS);
   public static final Key<Boolean> KEY_OPEN_EDITORS = createKey("open.editors", WIZARD, Boolean.class);
   public static final Set<Key<String>> IMPLICIT_PARAMETERS = ImmutableSet.of(KEY_PACKAGE_NAME, KEY_SOURCE_PROVIDER_NAME);
+
+  public static final int MIN_BUILD_VERSION_FOR_APPCOMPAT_ACTIVITY = 22;
 
   private static final Logger LOG = Logger.getInstance(AddAndroidActivityPath.class);
 
@@ -309,11 +315,18 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
 
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
+    AndroidVersion buildSdkVersion = moduleInfo.getBuildSdkVersion();
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
 
+    if (androidModel != null) {
+      myState.put(KEY_APPCOMPAT_ACTIVITY, GradleUtil.dependsOn(androidModel, SdkConstants.APPCOMPAT_LIB_ARTIFACT) && buildSdkVersion != null
+                                          && buildSdkVersion.isGreaterOrEqualThan(MIN_BUILD_VERSION_FOR_APPCOMPAT_ACTIVITY));
+    }
     myState.put(KEY_MIN_SDK, minSdkVersion);
     myState.put(KEY_TARGET_API, moduleInfo.getTargetSdkVersion());
     myState.put(KEY_PACKAGE_NAME, getInitialPackageName(module, facet));
     myState.put(KEY_OPEN_EDITORS, true);
+
     if (myGalleryStep != null) {
       addStep(myGalleryStep);
     }
