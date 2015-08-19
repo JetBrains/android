@@ -265,10 +265,9 @@ public class ThemeEditorComponent extends Splitter {
         @Override
         public void itemHovered(@NotNull String name) {
           if (!name.equals(myHoverPreviewTheme)) {
-            myHoverPreviewTheme = name;
             mySubStyleName = null;
             mySubStyleSourceAttribute = null;
-            loadStyleAttributes();
+            refreshPreviewPanel(name);
           }
         }
       }, myPanel.getThemeCombo()));
@@ -819,6 +818,24 @@ public class ThemeEditorComponent extends Splitter {
     myPreviewPanel.revalidate();
     myAttributesTable.repaint();
     myPanel.getThemeCombo().repaint();
+  }
+
+  /**
+   * Refreshes the preview panel for theme previews
+   */
+  private void refreshPreviewPanel(@NotNull String hoveredPreviewTheme) {
+    myHoverPreviewTheme = hoveredPreviewTheme;
+
+    ThemeEditorStyle hoveredTheme = myThemeEditorContext.getThemeResolver().getTheme(myHoverPreviewTheme);
+
+    assert hoveredTheme != null;
+
+    myThemeEditorContext.setCurrentTheme(hoveredTheme);
+    final Configuration configuration = myThemeEditorContext.getConfiguration();
+    configuration.setTheme(hoveredTheme.getQualifiedName());
+
+    myPreviewPanel.invalidateGraphicsRenderer();
+    myPreviewPanel.revalidate();
   }
 
   @Override
