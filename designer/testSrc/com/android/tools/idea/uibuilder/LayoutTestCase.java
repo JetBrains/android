@@ -30,12 +30,13 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   }
 
   @Override
-  public void setUp() throws Exception {
+  protected void setUp() throws Exception {
     super.setUp();
     myFixture.setTestDataPath(getTestDataPath());
 
   }
 
+  @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
   public static String getTestDataPath() {
     return getDesignerPluginHome() + "/testData";
   }
