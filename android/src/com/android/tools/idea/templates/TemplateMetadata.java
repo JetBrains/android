@@ -200,7 +200,6 @@ public class TemplateMetadata {
       return null;
     }
 
-
     int bestMatchCount = 0;
     Element bestMatch = null;
 
@@ -217,15 +216,10 @@ public class TemplateMetadata {
         boolean match = true;
         for (int j = 0, max = attributes.getLength(); j < max; j++) {
           Attr attribute = (Attr) attributes.item(j);
-          Parameter parameter = myParameterMap.get(attribute.getName());
-          if (parameter == null) {
-            LOG.warn("Unexpected parameter in template thumbnail: " +
-                          attribute.getName());
-            continue;
-          }
+          String variableName = attribute.getName();
           String thumbNailValue = attribute.getValue();
 
-          if (currentState == null || !thumbNailValue.equals(currentState.apply(parameter.id))) {
+          if (currentState == null || !thumbNailValue.equals(currentState.apply(variableName))) {
             match = false;
             break;
           }
