@@ -3,7 +3,6 @@ package org.jetbrains.android.logcat;
 import com.android.ddmlib.Log;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,24 +10,24 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * @author Eugene.Kudelevsky
+ * A filter which can reject lines of logcat output based on user configured patterns.
  */
-class ConfiguredFilter {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.logcat.ConfiguredFilter");
+final class ConfiguredFilter {
+  private static final Logger LOG = Logger.getInstance(ConfiguredFilter.class);
 
-  private final String myName;
-  private final Pattern myMessagePattern;
-  private final Pattern myTagPattern;
-  private final Pattern myPkgNamePattern;
-  private final String myPid;
-  private final Log.LogLevel myLogLevel;
+  @NotNull private final String myName;
+  @Nullable private final Pattern myMessagePattern;
+  @Nullable private final Pattern myTagPattern;
+  @Nullable private final Pattern myPkgNamePattern;
+  @Nullable private final String myPid;
+  @Nullable private final Log.LogLevel myLogLevel;
 
   private ConfiguredFilter(@NotNull String name,
-                          @Nullable Pattern messagePattern,
-                          @Nullable Pattern tagPattern,
-                          @Nullable Pattern pkgNamePattern,
-                          @Nullable String pid,
-                          @Nullable Log.LogLevel logLevel) {
+                           @Nullable Pattern messagePattern,
+                           @Nullable Pattern tagPattern,
+                           @Nullable Pattern pkgNamePattern,
+                           @Nullable String pid,
+                           @Nullable Log.LogLevel logLevel) {
     myName = name;
     myMessagePattern = messagePattern;
     myTagPattern = tagPattern;
@@ -36,9 +35,9 @@ class ConfiguredFilter {
     myPid = pid;
     myLogLevel = logLevel;
   }
-  
-  public boolean isApplicable(String message, String tag, String pkg,
-                              String pid, Log.LogLevel logLevel) {
+
+  public boolean isApplicable(String message, String tag, String pkg, String pid, Log.LogLevel logLevel) {
+
     if (myMessagePattern != null && (message == null || !myMessagePattern.matcher(message).find())) {
       return false;
     }
@@ -67,13 +66,8 @@ class ConfiguredFilter {
     return myName;
   }
 
-  @Nullable
-  @Contract ("!null,_ -> !null")
-  public static ConfiguredFilter compile(@Nullable AndroidConfiguredLogFilters.MyFilterEntry entry,
-                                         @NotNull String name) {
-    if (entry == null) {
-      return null;
-    }
+  @NotNull
+  public static ConfiguredFilter compile(@NotNull AndroidConfiguredLogFilters.FilterEntry entry, @NotNull String name) {
 
     Pattern logMessagePattern = compilePattern(entry.getLogMessagePattern());
     Pattern logTagPattern = compilePattern(entry.getLogTagPattern());
@@ -99,9 +93,8 @@ class ConfiguredFilter {
         p = Pattern.compile(pattern, AndroidConfiguredLogFilters.getPatternCompileFlags(pattern));
       }
       catch (PatternSyntaxException e) {
-        /** This shouldn't happen if the pattern was entered through the UI in which case
-         the {@link org.jetbrains.android.logcat.EditLogFilterDialog#doValidate()} captures
-         and reports the issue to the user. */
+        // This shouldn't happen if the pattern was entered through the UI in which case the
+        // {@link EditLogFilterDialog#doValidate()} captures and reports the issue to the user.
         LOG.info(e);
       }
     }

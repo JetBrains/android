@@ -31,13 +31,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 3, 2009
- * Time: 6:54:51 PM
- * To change this template use File | Settings | File Templates.
+ * An entry in the "Colors and Fonts" settings section for Android Logcat settings.
  */
-public class AndroidLogcatColorPage implements ColorSettingsPage {
+public final class AndroidLogcatColorPage implements ColorSettingsPage {
   private static final Map<String, TextAttributesKey> ADDITIONAL_HIGHLIGHT_DESCRIPTORS = new HashMap<String, TextAttributesKey>();
   private static final String DEMO_TEXT = "Logcat:\n" +
                                           "<verbose>02-02 18:52:57.132: VERBOSE/ProtocolEngine(24): DownloadRate 104166 bytes per sec. Downloaded Bytes 5643/34714</verbose>\n" +
