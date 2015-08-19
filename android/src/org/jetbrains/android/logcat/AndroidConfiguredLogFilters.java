@@ -22,7 +22,6 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.intellij.util.xmlb.annotations.AbstractCollection;
 import com.intellij.util.xmlb.annotations.Tag;
 import org.intellij.lang.annotations.JdkConstants;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +30,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * @author Eugene.Kudelevsky
+ * Persistent storage of logcat filters.
  */
 @State(
   name = "AndroidConfiguredLogFilters",
@@ -39,8 +38,8 @@ import java.util.regex.Pattern;
     @Storage(file = StoragePathMacros.WORKSPACE_FILE)
   }
 )
-public class AndroidConfiguredLogFilters implements PersistentStateComponent<AndroidConfiguredLogFilters> {
-  private List<MyFilterEntry> myFilterEntries = new ArrayList<MyFilterEntry>();
+public final class AndroidConfiguredLogFilters implements PersistentStateComponent<AndroidConfiguredLogFilters> {
+  private List<FilterEntry> myFilterEntries = new ArrayList<FilterEntry>();
 
   @Override
   public AndroidConfiguredLogFilters getState() {
@@ -58,13 +57,13 @@ public class AndroidConfiguredLogFilters implements PersistentStateComponent<And
 
   @Tag("filters")
   @AbstractCollection(surroundWithTag = false)
-  public List<MyFilterEntry> getFilterEntries() {
-    return new ArrayList<MyFilterEntry>(myFilterEntries);
+  public List<FilterEntry> getFilterEntries() {
+    return new ArrayList<FilterEntry>(myFilterEntries);
   }
   
   @Nullable
-  public MyFilterEntry findFilterEntryByName(@NotNull String name) {
-    for (MyFilterEntry entry : myFilterEntries) {
+  public FilterEntry findFilterEntryByName(@NotNull String name) {
+    for (FilterEntry entry : myFilterEntries) {
       if (name.equals(entry.getName())) {
         return entry;
       }
@@ -73,38 +72,15 @@ public class AndroidConfiguredLogFilters implements PersistentStateComponent<And
   }
 
   @NotNull
-  public MyFilterEntry createFilterForProcess(int pid) {
-    MyFilterEntry entry = new MyFilterEntry();
+  public FilterEntry createFilterForProcess(int pid) {
+    FilterEntry entry = new FilterEntry();
     final String pidString = Integer.toString(pid);
     entry.setName("Process id: " + pidString);
     entry.setPid(pidString);
     return entry;
   }
 
-  @Nullable
-  @Contract("!null, true -> !null")
-  public MyFilterEntry getFilterForPackage(@NotNull String packageName, boolean createIfNotExist) {
-    String filterName = "app: " + packageName;
-
-    // find any existing filters of that name
-    MyFilterEntry entry = findFilterEntryByName(filterName);
-    if (entry != null) {
-      return entry;
-    }
-
-    // create new one otherwise
-    if (createIfNotExist) {
-      entry = new MyFilterEntry();
-      entry.setName(filterName);
-      entry.setPackageNamePattern(packageName);
-
-      myFilterEntries.add(entry);
-    }
-
-    return entry;
-  }
-
-  public void setFilterEntries(List<MyFilterEntry> filterEntries) {
+  public void setFilterEntries(List<FilterEntry> filterEntries) {
     myFilterEntries = filterEntries;
   }
 
@@ -119,8 +95,11 @@ public class AndroidConfiguredLogFilters implements PersistentStateComponent<And
     return Pattern.CASE_INSENSITIVE;
   }
 
+  /**
+   * A version of {@link ConfiguredFilter} for serialization / deserialization.
+   */
   @Tag("filter")
-  public static class MyFilterEntry {
+  static final class FilterEntry {
     private String myName;
     private String myLogMessagePattern;
     private String myLogLevel;
