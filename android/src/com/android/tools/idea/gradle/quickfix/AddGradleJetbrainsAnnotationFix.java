@@ -15,75 +15,50 @@
  */
 package com.android.tools.idea.gradle.quickfix;
 
-import com.android.tools.idea.gradle.parser.Dependency;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.daemon.QuickFixBundle;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.PsiUtilCore;
-import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class AddGradleJetbrainsAnnotationFix extends GradleDependencyFix {
-  private final Module myCurrentModule;
-  private final PsiReference myReference;
-  private final String myClassName;
+import static com.intellij.psi.search.GlobalSearchScope.moduleWithLibrariesScope;
 
-  public AddGradleJetbrainsAnnotationFix(@NotNull Module currentModule, @NotNull PsiReference reference, @NotNull String className) {
-    myCurrentModule = currentModule;
-    myReference = reference;
+public class AddGradleJetbrainsAnnotationFix extends AbstractGradleDependencyFix {
+  @NotNull private final String myClassName;
+
+  public AddGradleJetbrainsAnnotationFix(@NotNull Module module, @NotNull PsiReference reference, @NotNull String className) {
+    super(module, reference);
     myClassName = className;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public String getText() {
     return QuickFixBundle.message("orderEntry.fix.add.annotations.jar.to.classpath");
   }
 
-  @NotNull
   @Override
-  public String getFamilyName() {
-    return getText();
-  }
+  public void invoke(@NotNull final Project project, @Nullable final Editor editor, @Nullable PsiFile file) {
+    boolean testScope = isTestScope(myModule, myReference);
+    final String configurationName = getConfigurationName(myModule, testScope);
 
-  @Override
-  public boolean isAvailable(@NotNull Project project,  @Nullable Editor editor,  @Nullable PsiFile file) {
-    return !project.isDisposed() && !myCurrentModule.isDisposed();
-  }
-
-  @Override
-  public void invoke(@NotNull final Project project, @Nullable final Editor editor, @Nullable PsiFile file)
-    throws IncorrectOperationException {
-    VirtualFile location = PsiUtilCore.getVirtualFile(myReference.getElement());
-    boolean inTests = location != null && ModuleRootManager.getInstance(myCurrentModule).getFileIndex().isInTestSourceContent(location);
-    final Dependency dependency =
-      new Dependency(getDependencyScope(myCurrentModule, inTests), Dependency.Type.EXTERNAL, "org.jetbrains:annotations:13.0");
-
-    invokeAction(new Runnable() {
+    runWriteCommandAction(project, new Runnable() {
       @Override
       public void run() {
-        addDependencyUndoable(myCurrentModule, dependency);
-        gradleSyncAndImportClass(myCurrentModule, editor, myReference, new Function<Void, List<PsiClass>>() {
+        addDependency(myModule, configurationName, "org.jetbrains:annotations:13.0");
+        gradleSyncAndImportClass(project, editor, myReference, new Function<Void, List<PsiClass>>() {
           @Override
           public List<PsiClass> apply(@Nullable Void input) {
-            PsiClass aClass =
-              JavaPsiFacade.getInstance(project).findClass(myClassName, GlobalSearchScope.moduleWithLibrariesScope(myCurrentModule));
+            PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(myClassName, moduleWithLibrariesScope(myModule));
             return aClass != null ? ImmutableList.of(aClass) : null;
           }
         });

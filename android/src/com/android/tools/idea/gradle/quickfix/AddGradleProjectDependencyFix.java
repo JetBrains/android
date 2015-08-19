@@ -16,18 +16,23 @@
 package com.android.tools.idea.gradle.quickfix;
 
 import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.parser.BuildFileKey;
+import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
+import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.application.options.ModuleListCellRenderer;
-import com.intellij.codeInsight.CodeInsightUtilBase;
 import com.intellij.codeInsight.daemon.QuickFixBundle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -35,40 +40,44 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.ui.components.JBList;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.intellij.codeInsight.CodeInsightUtilBase.prepareEditorForWrite;
 import static com.intellij.compiler.ModuleCompilerUtil.addingDependencyFormsCircularity;
+import static com.intellij.openapi.module.ModuleUtilCore.findModuleForPsiElement;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 /**
  * Quickfix to add dependency to another module in gradle.build file and sync the project.
  * Duplicated from {@link com.intellij.codeInsight.daemon.impl.quickfix.AddModuleDependencyFix} except the
  * {@link AddGradleProjectDependencyFix#addDependencyOnModule} method
  */
-public class AddGradleProjectDependencyFix extends GradleDependencyFix {
-  private final Set<Module> myModules = Sets.newHashSet();
-  private final Module myCurrentModule;
-  private final VirtualFile myClassVFile;
-  private final PsiClass[] myClasses;
-  private final PsiReference myReference;
+public class AddGradleProjectDependencyFix extends AbstractGradleDependencyFix {
+  @NotNull private final Set<Module> myModules = Sets.newHashSet();
+  @NotNull private final VirtualFile myClassVFile;
+  @NotNull private final PsiClass[] myClasses;
 
-  public AddGradleProjectDependencyFix(@NotNull Module currentModule,
+  public AddGradleProjectDependencyFix(@NotNull Module module,
                                        @NotNull VirtualFile classVFile,
                                        @NotNull PsiClass[] classes,
                                        @NotNull PsiReference reference) {
-    PsiElement psiElement = reference.getElement();
-    Project project = psiElement.getProject();
+    super(module, reference);
+
+    Project project = module.getProject();
     JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
     ProjectFileIndex fileIndex = ProjectRootManager.getInstance(project).getFileIndex();
-    ModuleType currentModuleType = getModuleType(currentModule);
+    ModuleType currentModuleType = getModuleType(module);
 
+    PsiElement psiElement = reference.getElement();
     for (PsiClass aClass : classes) {
       if (!facade.getResolveHelper().isAccessible(aClass, psiElement, aClass)) {
         continue;
@@ -82,7 +91,7 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
         continue;
       }
       Module classModule = fileIndex.getModuleForFile(virtualFile);
-      if (classModule != null && classModule != currentModule && !ModuleRootManager.getInstance(currentModule).isDependsOn(classModule)) {
+      if (classModule != null && classModule != module && !ModuleRootManager.getInstance(module).isDependsOn(classModule)) {
         ModuleType classModuleType = getModuleType(classModule);
         boolean legalDependency = false;
         switch (currentModuleType) {
@@ -102,10 +111,8 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
         }
       }
     }
-    myCurrentModule = currentModule;
     myClassVFile = classVFile;
     myClasses = classes;
-    myReference = reference;
   }
 
   @NotNull
@@ -130,16 +137,17 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
   @Override
   public boolean isAvailable(@NotNull Project project, @Nullable Editor editor, @Nullable PsiFile file) {
     for (Module module : myModules) {
-      if (module.isDisposed()) return false;
+      if (module.isDisposed()) {
+        return false;
+      }
     }
-    return !project.isDisposed() && !myModules.isEmpty() && !myCurrentModule.isDisposed();
+    return !project.isDisposed() && !myModules.isEmpty() && !myModule.isDisposed();
   }
-
 
   @Override
   public void invoke(@NotNull final Project project, @Nullable final Editor editor, @Nullable PsiFile file) {
-    if (editor != null) {
-      if (!CodeInsightUtilBase.prepareEditorForWrite(editor)) return;
+    if (editor != null && !prepareEditorForWrite(editor)) {
+      return;
     }
 
     if (myModules.size() == 1) {
@@ -150,20 +158,22 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
     else {
       final JBList list = new JBList(myModules);
       list.setCellRenderer(new ModuleListCellRenderer());
-      JBPopup popup = JBPopupFactory.getInstance().createListPopupBuilder(list)
-        .setTitle("Choose Module to Add Dependency on")
-        .setMovable(false)
-        .setResizable(false)
-        .setRequestFocus(true)
-        .setItemChoosenCallback(new Runnable() {
-          @Override
-          public void run() {
-            final Object value = list.getSelectedValue();
-            if (value instanceof Module) {
-              addDependencyOnModule(project, editor, (Module)value);
-            }
+      Runnable callback = new Runnable() {
+        @Override
+        public void run() {
+          Object value = list.getSelectedValue();
+          if (value instanceof Module) {
+            addDependencyOnModule(project, editor, (Module)value);
           }
-        }).createPopup();
+        }
+      };
+      JBPopup popup = JBPopupFactory.getInstance().createListPopupBuilder(list)
+                                                  .setTitle("Choose Module to Add Dependency on")
+                                                  .setMovable(false)
+                                                  .setResizable(false)
+                                                  .setRequestFocus(true)
+                                                  .setItemChoosenCallback(callback)
+                                                  .createPopup();
       if (editor != null) {
         popup.showInBestPositionFor(editor);
       } else {
@@ -176,18 +186,18 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
     Runnable doit = new Runnable() {
       @Override
       public void run() {
-        final boolean test = ModuleRootManager.getInstance(myCurrentModule).getFileIndex().isInTestSourceContent(myClassVFile);
+        final boolean testScope = ModuleRootManager.getInstance(myModule).getFileIndex().isInTestSourceContent(myClassVFile);
 
-        invokeAction(new Runnable() {
+        runWriteCommandAction(project, new Runnable() {
           @Override
           public void run() {
-            addDependencyUndoable(myCurrentModule, module, test);
-            gradleSyncAndImportClass(module, editor, myReference, new Function<Void, List<PsiClass>>() {
+            addDependencyUndoable(myModule, module, testScope);
+            gradleSyncAndImportClass(project, editor, myReference, new Function<Void, List<PsiClass>>() {
               @Override
               public List<PsiClass> apply(@Nullable Void input) {
-                final List<PsiClass> targetClasses = new ArrayList<PsiClass>();
+                List<PsiClass> targetClasses = Lists.newArrayList();
                 for (PsiClass psiClass : myClasses) {
-                  if (ModuleUtilCore.findModuleForPsiElement(psiClass) == module) {
+                  if (findModuleForPsiElement(psiClass) == module) {
                     targetClasses.add(psiClass);
                   }
                 }
@@ -199,7 +209,7 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
       }
     };
 
-    Pair<Module, Module> circularModules = addingDependencyFormsCircularity(myCurrentModule, module);
+    Pair<Module, Module> circularModules = addingDependencyFormsCircularity(myModule, module);
     if (circularModules == null) {
       doit.run();
     }
@@ -212,23 +222,22 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
                                                      @NotNull Module classModule, @NotNull final Runnable doit) {
     final String message = QuickFixBundle.message("orderEntry.fix.circular.dependency.warning", classModule.getName(),
                                                   circularModules.getFirst().getName(), circularModules.getSecond().getName());
-    if (ApplicationManager.getApplication().isUnitTestMode()) throw new RuntimeException(message);
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      throw new RuntimeException(message);
+    }
+    invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
-        if (!project.isOpen()) return;
-        int ret = Messages.showOkCancelDialog(project, message, QuickFixBundle.message("orderEntry.fix.title.circular.dependency.warning"),
-                                              Messages.getWarningIcon());
-        if (ret == Messages.OK) {
+        if (!project.isOpen()) {
+          return;
+        }
+        String title = QuickFixBundle.message("orderEntry.fix.title.circular.dependency.warning");
+        int answer = Messages.showOkCancelDialog(project, message, title, Messages.getWarningIcon());
+        if (answer == Messages.OK) {
           ApplicationManager.getApplication().runWriteAction(doit);
         }
       }
     });
-  }
-
-  @Override
-  public boolean startInWriteAction() {
-    return true;
   }
 
   // TODO use new gradle build file API to add dependencies.
@@ -238,6 +247,32 @@ public class AddGradleProjectDependencyFix extends GradleDependencyFix {
       Dependency dependency = new Dependency(getDependencyScope(from, test), Dependency.Type.MODULE, gradlePath);
       addDependencyUndoable(from, dependency);
     }
+  }
+
+  private static void addDependencyUndoable(@NotNull Module module, @NotNull Dependency dependency) {
+    GradleBuildFile gradleBuildFile = GradleBuildFile.get(module);
+    if (gradleBuildFile == null) {
+      return;
+    }
+    List<BuildFileStatement> dependencies = Lists.newArrayList(gradleBuildFile.getDependencies());
+    dependencies.add(dependency);
+    gradleBuildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+    registerUndoAction(module.getProject());
+  }
+
+  @NotNull
+  private static Dependency.Scope getDependencyScope(@NotNull Module module, boolean test) {
+    Dependency.Scope testScope = Dependency.Scope.TEST_COMPILE;
+    if (test) {
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      if (androidFacet != null) {
+        AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
+        if (androidModel != null && ARTIFACT_ANDROID_TEST.equals(androidModel.getSelectedTestArtifactName())) {
+          testScope = Dependency.Scope.ANDROID_TEST_COMPILE;
+        }
+      }
+    }
+    return test ? testScope : Dependency.Scope.COMPILE;
   }
 
   private enum ModuleType {
