@@ -17,13 +17,13 @@
 package org.jetbrains.android.logcat;
 
 import com.android.ddmlib.Log;
+import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogFilter;
 import com.intellij.diagnostic.logging.LogFilterListener;
 import com.intellij.diagnostic.logging.LogFilterModel;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.logcat.AndroidLogcatReceiver.LogMessageHeader;
@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Eugene.Kudelevsky
+ * A filter which plugs into {@link LogConsoleBase} for custom logcat filtering.
  */
 public abstract class AndroidLogFilterModel extends LogFilterModel {
   private final List<LogFilterListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
@@ -139,16 +139,14 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     String pid = null;
     String message = text;
 
-    Pair<LogMessageHeader, String> result = AndroidLogcatFormatter.parseMessage(text);
-    if (result.getFirst() != null) {
-      LogMessageHeader header = result.getFirst();
+    AndroidLogcatFormatter.Message result = AndroidLogcatFormatter.parseMessage(text);
+    if (result.getHeader() != null) {
+      LogMessageHeader header = result.getHeader();
       logLevel = header.myLogLevel;
       tag = header.myTag;
       pkg = header.myAppPackage;
       pid = Integer.toString(header.myPid);
-      if (result.getSecond() != null) {
-        message = result.getSecond();
-      }
+      message = result.getMessage();
     }
 
     if (tag == null) {
@@ -172,7 +170,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     return myLogFilters;
   }
 
-  private class AndroidLogFilter extends LogFilter {
+  private final class AndroidLogFilter extends LogFilter {
     final Log.LogLevel myLogLevel;
 
     private AndroidLogFilter(Log.LogLevel logLevel) {
@@ -184,9 +182,9 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     public boolean isAcceptable(String line) {
       Log.LogLevel logLevel = null;
 
-      Pair<LogMessageHeader, String> result = AndroidLogcatFormatter.parseMessage(line);
-      if (result.getFirst() != null) {
-        logLevel = result.getFirst().myLogLevel;
+      AndroidLogcatFormatter.Message result = AndroidLogcatFormatter.parseMessage(line);
+      if (result.getHeader() != null) {
+        logLevel = result.getHeader().myLogLevel;
       }
       if (logLevel == null) {
         logLevel = myPrevMessageLogLevel;
@@ -241,11 +239,11 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   @Override
   @NotNull
   public MyProcessingResult processLine(String line) {
-    Pair<LogMessageHeader, String> result = AndroidLogcatFormatter.parseMessage(line);
-    final boolean messageHeader = result.getFirst() != null;
+    AndroidLogcatFormatter.Message result = AndroidLogcatFormatter.parseMessage(line);
+    final boolean hasHeader = result.getHeader() != null;
 
-    if (messageHeader) {
-      LogMessageHeader header = result.getFirst();
+    if (hasHeader) {
+      LogMessageHeader header = result.getHeader();
       if (header.myLogLevel != null) {
         myPrevMessageLogLevel = header.myLogLevel;
       }
@@ -267,7 +265,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
     String messagePrefix;
     
-    if (messageHeader) {
+    if (hasHeader) {
       messagePrefix = null;
       myMessageBuilder = new StringBuilder(line);
       myMessageBuilder.append('\n');

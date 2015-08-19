@@ -19,22 +19,22 @@ import com.android.ddmlib.Log;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.editor.event.*;
 import com.intellij.openapi.editor.event.DocumentAdapter;
+import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.IconUtil;
 import com.intellij.util.containers.HashSet;
-import org.jetbrains.android.logcat.AndroidLogcatReceiver.LogMessageHeader;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -46,15 +46,17 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * @author Eugene.Kudelevsky
+ * A dialog which is shown to the user when they request to modify or add a new log filter.
  */
-class EditLogFilterDialog extends DialogWrapper {
+final class EditLogFilterDialog extends DialogWrapper {
   @NonNls private static final Key<JComponent> OWNER = new Key<JComponent>("Owner");
   private static final String NEW_FILTER_NAME_PREFIX = "Unnamed-";
   @NonNls private static final String EDIT_FILTER_DIALOG_DIMENSIONS_KEY =
@@ -84,8 +86,8 @@ class EditLogFilterDialog extends DialogWrapper {
   private JBList myFiltersList;
   private CollectionListModel<String> myFiltersListModel;
 
-  private AndroidConfiguredLogFilters.MyFilterEntry mySelectedEntry;
-  private final List<AndroidConfiguredLogFilters.MyFilterEntry> myFilterEntries;
+  private AndroidConfiguredLogFilters.FilterEntry mySelectedEntry;
+  private final List<AndroidConfiguredLogFilters.FilterEntry> myFilterEntries;
 
   private JPanel myFiltersToolbarPanel;
 
@@ -98,8 +100,7 @@ class EditLogFilterDialog extends DialogWrapper {
   private String[] myUsedPids;
   private String[] myUsedPackageNames;
 
-  protected EditLogFilterDialog(@NotNull final AndroidLogcatView view,
-                                @Nullable String selectedFilter) {
+  EditLogFilterDialog(@NotNull final AndroidLogcatView view, @Nullable String selectedFilter) {
     super(view.getProject(), false);
 
     myView = view;
@@ -112,7 +113,7 @@ class EditLogFilterDialog extends DialogWrapper {
     myFilterEntries = AndroidConfiguredLogFilters.getInstance(myProject).getFilterEntries();
 
     if (selectedFilter != null) {
-      for (AndroidConfiguredLogFilters.MyFilterEntry fe: myFilterEntries) {
+      for (AndroidConfiguredLogFilters.FilterEntry fe: myFilterEntries) {
         if (selectedFilter.equals(fe.getName())) {
           mySelectedEntry = fe;
         }
@@ -268,7 +269,7 @@ class EditLogFilterDialog extends DialogWrapper {
     });
 
     myFiltersListModel = new CollectionListModel<String>();
-    for (AndroidConfiguredLogFilters.MyFilterEntry entry : myFilterEntries) {
+    for (AndroidConfiguredLogFilters.FilterEntry entry : myFilterEntries) {
       myFiltersListModel.add(entry.getName());
     }
     myFiltersList.setModel(myFiltersListModel);
@@ -302,27 +303,27 @@ class EditLogFilterDialog extends DialogWrapper {
 
     final String[] lines = StringUtil.splitByLines(document.toString());
     for (String line : lines) {
-      Pair<LogMessageHeader,String> result = AndroidLogcatFormatter.parseMessage(line);
-      if (result.getFirst() == null) {
+      AndroidLogcatFormatter.Message result = AndroidLogcatFormatter.parseMessage(line);
+      if (result.getHeader() == null) {
         continue;
       }
 
-      final String tag = result.getFirst().myTag;
+      final String tag = result.getHeader().myTag;
       if (StringUtil.isNotEmpty(tag)) {
         tagSet.add(tag);
       }
 
-      final String pkg = result.getFirst().myAppPackage;
+      final String pkg = result.getHeader().myAppPackage;
       if (StringUtil.isNotEmpty(pkg)) {
         pkgSet.add(pkg);
       }
 
-      pidSet.add(Integer.toString(result.getFirst().myPid));
+      pidSet.add(Integer.toString(result.getHeader().myPid));
     }
 
-    myUsedTags = tagSet.toArray(new String[tagSet.size()]);
-    myUsedPids = pidSet.toArray(new String[pidSet.size()]);
-    myUsedPackageNames = pkgSet.toArray(new String[pkgSet.size()]);
+    myUsedTags = ArrayUtil.toStringArray(tagSet);
+    myUsedPids = ArrayUtil.toStringArray(pidSet);
+    myUsedPackageNames = ArrayUtil.toStringArray(pkgSet);
   }
 
   private void resetFieldEditors() {
@@ -386,7 +387,7 @@ class EditLogFilterDialog extends DialogWrapper {
       return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.busy.error", name));
     }
 
-    final AndroidConfiguredLogFilters.MyFilterEntry entry =
+    final AndroidConfiguredLogFilters.FilterEntry entry =
       AndroidConfiguredLogFilters.getInstance(myView.getProject()).findFilterEntryByName(name);
     if (entry != null && entry != mySelectedEntry) {
       return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.busy.error", name));
@@ -431,9 +432,15 @@ class EditLogFilterDialog extends DialogWrapper {
     return null;
   }
 
+  /**
+   * Returns a validation error if there's a problem or {@ocde null} if no issues.
+   */
+  @Nullable
   private static ValidationInfo validatePattern(String pattern, String errorMessage) {
     try {
       if (!pattern.isEmpty()) {
+        // We don't care about the compile result, just that it can be compiled
+        //noinspection ResultOfMethodCallIgnored
         Pattern.compile(pattern, AndroidConfiguredLogFilters.getPatternCompileFlags(pattern));
       }
       return null;
@@ -445,7 +452,7 @@ class EditLogFilterDialog extends DialogWrapper {
   }
 
   @Nullable
-  public AndroidConfiguredLogFilters.MyFilterEntry getCustomLogFiltersEntry() {
+  public AndroidConfiguredLogFilters.FilterEntry getCustomLogFiltersEntry() {
     return mySelectedEntry;
   }
 
@@ -460,9 +467,9 @@ class EditLogFilterDialog extends DialogWrapper {
     resetFieldEditors();
   }
 
-  private AndroidConfiguredLogFilters.MyFilterEntry createNewFilterEntry() {
-    AndroidConfiguredLogFilters.MyFilterEntry entry =
-      new AndroidConfiguredLogFilters.MyFilterEntry();
+  private AndroidConfiguredLogFilters.FilterEntry createNewFilterEntry() {
+    AndroidConfiguredLogFilters.FilterEntry entry =
+      new AndroidConfiguredLogFilters.FilterEntry();
     myFilterEntries.add(entry);
     entry.setName(getUniqueName());
     return entry;
@@ -470,7 +477,7 @@ class EditLogFilterDialog extends DialogWrapper {
 
   private String getUniqueName() {
     Set<String> names = new HashSet<String>(myFilterEntries.size());
-    for (AndroidConfiguredLogFilters.MyFilterEntry fe : myFilterEntries) {
+    for (AndroidConfiguredLogFilters.FilterEntry fe : myFilterEntries) {
       names.add(fe.getName());
     }
 
@@ -482,7 +489,7 @@ class EditLogFilterDialog extends DialogWrapper {
     }
   }
 
-  private class MyAddFilterAction extends AnAction {
+  private final class MyAddFilterAction extends AnAction {
     private MyAddFilterAction() {
       super(CommonBundle.message("button.add"),
             AndroidBundle.message("android.logcat.add.logcat.filter.button"),
@@ -497,7 +504,7 @@ class EditLogFilterDialog extends DialogWrapper {
     }
   }
 
-  private class MyRemoveFilterAction extends AnAction {
+  private final class MyRemoveFilterAction extends AnAction {
     private MyRemoveFilterAction() {
       super(CommonBundle.message("button.delete"),
             AndroidBundle.message("android.logcat.remove.logcat.filter.button"),
