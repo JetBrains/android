@@ -139,16 +139,16 @@ public class NewProjectWizard extends TemplateWizard implements TemplateWizardSt
     super.update();
   }
 
-  public void createProject() {
+  public void createProject(@NotNull final Project project) {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        createProject(myWizardState, null, myAssetGenerator);
+        createProject(myWizardState, project, myAssetGenerator);
       }
     });
   }
 
-  public static void createProject(@NotNull final NewModuleWizardState wizardState, @Nullable Project project,
+  public static void createProject(@NotNull final NewModuleWizardState wizardState, @NotNull Project project,
                                    @Nullable AssetStudioAssetGenerator assetGenerator) {
     List<String> errors = Lists.newArrayList();
     try {
