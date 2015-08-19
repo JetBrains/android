@@ -50,5 +50,7 @@ public class NewStyleDialogTest extends AndroidTestCase {
     assertEquals(styleName, dialog.getStyleParentName());
     assertEquals("TextAppearance.Medium.textAppearance", dialog.getStyleName());
 
+    // Calling .doCancelAction to dispose dialog object and avoid memory leaks
+    dialog.doCancelAction();
   }
 }
