@@ -328,8 +328,13 @@ public class ThemeEditorStyle {
       ResourceResolver resolver = resolverCache.getResourceResolver(myConfiguration.getTarget(), getQualifiedName(), folderConfiguration);
       // Resolve the parent of the current theme, using that configuration
       StyleResourceValue parent = resolver.getParent(myStyleResourceValue);
-      assert parent != null;
-      parents.add(ConfiguredElement.create(item.getConfiguration(), ResolutionUtils.getQualifiedStyleName(parent), this));
+      if (parent != null) {
+        parents.add(ConfiguredElement.create(item.getConfiguration(), ResolutionUtils.getQualifiedStyleName(parent), this));
+      }
+      else {
+        // Further information on this condition is available at http://b.android.com/183268
+        LOG.warn(String.format("Parent of %s is null", myStyleResourceValue.getName()));
+      }
     }
     resolverCache.reset();
 
