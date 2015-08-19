@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.DumbAwareActionListener;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
@@ -28,34 +28,22 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.event.ActionEvent;
 
 /**
  * Class that implements a {@link javax.swing.JTable} renderer and editor for drawable attributes.
  */
 public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
   @Nullable
-  private RenderTask myRenderTask;
-  private final AndroidThemePreviewPanel myPreviewPanel;
+  private final RenderTask myRenderTask;
 
   public DrawableRendererEditor(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel, boolean isEditor) {
-    super(context, isEditor);
+    super(context, previewPanel, isEditor);
 
     myRenderTask = configureRenderTask(context.getCurrentContextModule(), context.getConfiguration());
-
-    final EditorClickListener editorClickListener = new EditorClickListener();
-    if (isEditor) {
-      myComponent.addActionListener(editorClickListener);
-    }
-    myPreviewPanel = previewPanel;
   }
 
   @Nullable
@@ -84,58 +72,9 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     component.setValueText(item.getValue());
   }
 
-  private class EditorClickListener extends DumbAwareActionListener {
-    public EditorClickListener() {
-      super(myContext.getProject());
-    }
-
-    @Override
-    public void dumbActionPerformed(ActionEvent e) {
-      DumbService.getInstance(myContext.getProject()).showDumbModeNotification(DUMB_MODE_MESSAGE);
-      DrawableRendererEditor.this.cancelCellEditing();
-    }
-
-    @Override
-    public void smartActionPerformed(ActionEvent e) {
-      ChooseResourceDialog dialog = ThemeEditorUtils.getResourceDialog(myItem, myContext, ColorRendererEditor.DRAWABLES_ONLY);
-      final String oldValue = myItem.getSelectedValue().getValue();
-
-      dialog.setResourcePickerListener(new ChooseResourceDialog.ResourcePickerListener() {
-        @Override
-        public void resourceChanged(final @Nullable String resource) {
-          myItem.getSelectedValue().setValue(resource == null ? oldValue : resource);
-          myPreviewPanel.invalidateGraphicsRenderer();
-        }
-      });
-
-      if (e.getSource() instanceof JBMenuItem) {
-        // This has been triggered from the "Add variations" menu option so display location settings
-        dialog.openLocationSettings();
-      }
-
-      dialog.show();
-
-      // Restore the old value in the properties model
-      myItem.getSelectedValue().setValue(oldValue);
-
-      myEditorValue = null;
-      if (dialog.isOK()) {
-        String value = dialog.getResourceName();
-        if (value != null) {
-          myEditorValue = dialog.getResourceName();
-        }
-      }
-      else {
-        // User cancelled, clean up the preview
-        myPreviewPanel.invalidateGraphicsRenderer();
-      }
-
-      if (myEditorValue == null) {
-        DrawableRendererEditor.this.cancelCellEditing();
-      }
-      else {
-        DrawableRendererEditor.this.stopCellEditing();
-      }
-    }
+  @NotNull
+  @Override
+  protected ResourceType[] getAllowedResourceTypes() {
+    return GraphicalResourceRendererEditor.DRAWABLES_ONLY;
   }
 }
