@@ -17,14 +17,15 @@
 package org.jetbrains.android.logcat;
 
 import com.android.ddmlib.Log;
-import com.intellij.openapi.util.Pair;
-import junit.framework.TestCase;
 import org.jetbrains.android.logcat.AndroidLogcatReceiver.LogMessageHeader;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.util.Locale;
 
-public class AndroidLogcatFormatterTest extends TestCase {
-  public void testDeserialize() {
+public class AndroidLogcatFormatterTest {
+  @Test
+  public void formatMessageToParseMessageKeepsAllInformation() {
     String message = "xyz";
 
     LogMessageHeader header = new LogMessageHeader();
@@ -35,51 +36,46 @@ public class AndroidLogcatFormatterTest extends TestCase {
     header.myAppPackage = "system_process";
     header.myTag = "ConnectivityService";
 
-    String output = AndroidLogcatFormatter.formatMessage(message, header);
-    Pair<LogMessageHeader, String> result = AndroidLogcatFormatter.parseMessage(output);
+    String output = AndroidLogcatFormatter.formatMessage(header, message);
+    AndroidLogcatFormatter.Message result = AndroidLogcatFormatter.parseMessage(output);
 
-    assertNotNull(result.getFirst());
-    assertNotNull(result.getSecond());
+    Assert.assertNotNull(result.getHeader());
 
-    LogMessageHeader header2 = result.getFirst();
+    LogMessageHeader header2 = result.getHeader();
 
-    assertEquals(header.myTime, header2.myTime);
-    assertEquals(header.myLogLevel, header2.myLogLevel);
-    assertEquals(header.myPid, header2.myPid);
-    assertEquals(header.myAppPackage, header2.myAppPackage);
-    assertEquals(header.myTag, header2.myTag);
+    Assert.assertEquals(header.myTime, header2.myTime);
+    Assert.assertEquals(header.myLogLevel, header2.myLogLevel);
+    Assert.assertEquals(header.myPid, header2.myPid);
+    Assert.assertEquals(header.myTid, header2.myTid);
+    Assert.assertEquals(header.myAppPackage, header2.myAppPackage);
+    Assert.assertEquals(header.myTag, header2.myTag);
 
-    assertEquals(message, result.getSecond());
+    Assert.assertEquals(message, result.getMessage());
   }
 
-  public void testLocale() {
+  @Test
+  public void formatMessageToParseMessageWorksInOtherLocales() {
     // make sure that encode and decode works together in other locales
     Locale defaultLocale = Locale.getDefault();
     Locale.setDefault(Locale.FRANCE);
     try {
-      testDeserialize();
-    } finally {
+      formatMessageToParseMessageKeepsAllInformation();
+    }
+    finally {
       Locale.setDefault(defaultLocale);
     }
   }
 
-  public void test1() {
+  @Test
+  public void parseMessageForTagAndLogLevel() {
     String message = "02-12 17:04:44.005   1282-12/com.google.android.apps" +
                      ".maps:GoogleLocationService D/dalvikvm" + AndroidLogcatFormatter.TAG_SEPARATOR + " Debugger has detached; object " +
                      "registry had 1 entries";
 
-    LogMessageHeader header = AndroidLogcatFormatter.parseMessage(message).getFirst();
-    assertNotNull(header);
+    LogMessageHeader header = AndroidLogcatFormatter.parseMessage(message).getHeader();
+    Assert.assertNotNull(header);
 
-    assertEquals(Log.LogLevel.DEBUG, header.myLogLevel);
-    assertEquals("dalvikvm", header.myTag);
-  }
-
-  public void testSpaces() {
-    String msg = String.format("08-23 14:30:59.370  32664-32664/com.timios.gfe I/Web Console%1$s pds: can you see this? at " +
-                                "file:///android_asset/www/scripts/loan_officer.js:429", AndroidLogcatFormatter.TAG_SEPARATOR);
-
-    LogMessageHeader header = AndroidLogcatFormatter.parseMessage(msg).getFirst();
-    assertEquals(Log.LogLevel.INFO, header.myLogLevel);
+    Assert.assertEquals(Log.LogLevel.DEBUG, header.myLogLevel);
+    Assert.assertEquals("dalvikvm", header.myTag);
   }
 }
