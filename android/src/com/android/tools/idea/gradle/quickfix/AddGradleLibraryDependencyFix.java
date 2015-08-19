@@ -17,18 +17,14 @@ package com.android.tools.idea.gradle.quickfix;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.parser.Dependency;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.daemon.QuickFixBundle;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -37,26 +33,31 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.io.FileUtil.splitPath;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
   * Quickfix to add dependency to another library in gradle.build file and sync the project.
   */
-public class AddGradleLibraryDependencyFix extends GradleDependencyFix {
+public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
   @NotNull private final LibraryOrderEntry myLibraryEntry;
-  @NotNull private final Module myCurrentModule;
   @NotNull private final PsiClass myClass;
-  @NotNull private final PsiReference myReference;
+
   @Nullable private final String myLibraryGradleEntry;
 
-  public AddGradleLibraryDependencyFix(@NotNull LibraryOrderEntry libraryEntry, @NotNull Module currentModule, @NotNull PsiClass aCLass,
+  public AddGradleLibraryDependencyFix(@NotNull LibraryOrderEntry libraryEntry,
+                                       @NotNull PsiClass aCLass,
+                                       @NotNull Module module,
                                        @NotNull PsiReference reference) {
+    super(module, reference);
     myLibraryEntry = libraryEntry;
-    myCurrentModule = currentModule;
     myClass = aCLass;
-    myReference = reference;
     myLibraryGradleEntry = getLibraryGradleEntry();
   }
 
@@ -74,21 +75,20 @@ public class AddGradleLibraryDependencyFix extends GradleDependencyFix {
 
   @Override
   public boolean isAvailable(@NotNull Project project, @Nullable Editor editor, @Nullable PsiFile file) {
-    return !project.isDisposed() && !myCurrentModule.isDisposed() && myLibraryEntry.isValid() && myLibraryGradleEntry != null;
+    return !project.isDisposed() && !myModule.isDisposed() && myLibraryEntry.isValid() && myLibraryGradleEntry != null;
   }
 
   @Override
   public void invoke(@NotNull final Project project, @Nullable final Editor editor, @Nullable PsiFile file) {
-    if (myLibraryGradleEntry == null) {
+    if (isEmpty(myLibraryGradleEntry)) {
       return;
     }
-    final Dependency dependency = new Dependency(getDependencyScope(myCurrentModule, false), Dependency.Type.EXTERNAL, myLibraryGradleEntry);
-
-    invokeAction(new Runnable() {
+    final String configurationName = getConfigurationName(myModule, false);
+    runWriteCommandAction(project, new Runnable() {
       @Override
       public void run() {
-        addDependencyUndoable(myCurrentModule, dependency);
-        gradleSyncAndImportClass(myCurrentModule, editor, myReference, new Function<Void, List<PsiClass>>() {
+        addDependency(myModule, configurationName, myLibraryGradleEntry);
+        gradleSyncAndImportClass(project, editor, myReference, new Function<Void, List<PsiClass>>() {
           @Override
           public List<PsiClass> apply(@Nullable Void input) {
             return ImmutableList.of(myClass);
@@ -141,7 +141,11 @@ public class AddGradleLibraryDependencyFix extends GradleDependencyFix {
     if (mavenCoordinates == null) {
       return null;
     }
-    return mavenCoordinates.getGroupId() + ":" + mavenCoordinates.getArtifactId() + ":" + mavenCoordinates.getVersion();
+    return mavenCoordinates.getGroupId() +
+           GRADLE_PATH_SEPARATOR +
+           mavenCoordinates.getArtifactId() +
+           GRADLE_PATH_SEPARATOR +
+           mavenCoordinates.getVersion();
   }
 
   @Nullable
@@ -161,20 +165,25 @@ public class AddGradleLibraryDependencyFix extends GradleDependencyFix {
    */
   @Nullable
   private String getLibraryGradleEntryByExaminingPath() {
-    VirtualFile file = myLibraryEntry.getFiles(OrderRootType.CLASSES)[0];
+    VirtualFile[] files = myLibraryEntry.getFiles(OrderRootType.CLASSES);
+    if (files.length > 0) {
+      return null;
+    }
+    File file = virtualToIoFile(files[0]);
     String libraryName = myLibraryEntry.getLibraryName();
     if (libraryName == null) {
       return null;
     }
-    List<String> splitPath = StringUtil.split(file.getPath(), System.getProperty("file.separator"));
 
-    for (int i = 1; i < splitPath.size() - 2; i++) {
-      if (libraryName.startsWith(splitPath.get(i))) {
-        String groupId = splitPath.get(i - 1);
-        String artifactId = splitPath.get(i);
-        String version = splitPath.get(i + 1);
+    List<String> pathSegments = splitPath(file.getPath());
+
+    for (int i = 1; i < pathSegments.size() - 2; i++) {
+      if (libraryName.startsWith(pathSegments.get(i))) {
+        String groupId = pathSegments.get(i - 1);
+        String artifactId = pathSegments.get(i);
+        String version = pathSegments.get(i + 1);
         if (libraryName.endsWith(version)) {
-          return groupId + ":" + artifactId + ":" + version;
+          return groupId + GRADLE_PATH_SEPARATOR + artifactId + GRADLE_PATH_SEPARATOR + version;
         }
       }
     }
