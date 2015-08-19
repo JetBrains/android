@@ -24,12 +24,15 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 
 /**
  * Tests for {@link GradleInvoker}.
@@ -42,7 +45,7 @@ public class GradleInvokerTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myModuleGradlePath = SdkConstants.GRADLE_PATH_SEPARATOR + myModule.getName();
+    myModuleGradlePath = GRADLE_PATH_SEPARATOR + myModule.getName();
 
     myInvoker = new GradleInvoker(myProject);
 
@@ -68,6 +71,11 @@ public class GradleInvokerTest extends IdeaTestCase {
     });
   }
 
+  @Override
+  protected CompositeException checkForSettingsDamage() throws Exception {
+    return new CompositeException();
+  }
+
   public void testCleanProject() throws Exception {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
@@ -89,7 +97,7 @@ public class GradleInvokerTest extends IdeaTestCase {
       public void execute(@NotNull List<String> tasks) {
         assertEquals(2, tasks.size());
         assertEquals("clean", tasks.get(0));
-        assertEquals(myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + taskName, tasks.get(1));
+        assertEquals(myModuleGradlePath + GRADLE_PATH_SEPARATOR + taskName, tasks.get(1));
         assertEquals(BuildMode.CLEAN, getBuildMode());
       }
     });
@@ -103,8 +111,8 @@ public class GradleInvokerTest extends IdeaTestCase {
       @Override
       public void execute(@NotNull List<String> tasks) {
         assertEquals(2, tasks.size());
-        assertContainsElements(tasks, myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + "sourceGen");
-        assertContainsElements(tasks, myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + "testSourceGen");
+        assertContainsElements(tasks, myModuleGradlePath + GRADLE_PATH_SEPARATOR + "sourceGen");
+        assertContainsElements(tasks, myModuleGradlePath + GRADLE_PATH_SEPARATOR + "testSourceGen");
         assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
     });
@@ -118,7 +126,7 @@ public class GradleInvokerTest extends IdeaTestCase {
       @Override
       public void execute(@NotNull List<String> tasks) {
         assertEquals(1, tasks.size());
-        assertEquals(myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + "sourceGen", tasks.get(0));
+        assertEquals(myModuleGradlePath + GRADLE_PATH_SEPARATOR + "sourceGen", tasks.get(0));
         assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
     });
@@ -181,6 +189,6 @@ public class GradleInvokerTest extends IdeaTestCase {
 
   @NotNull
   private String qualifiedTaskName(@NotNull String taskName) {
-    return myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + taskName;
+    return myModuleGradlePath + GRADLE_PATH_SEPARATOR + taskName;
   }
 }
