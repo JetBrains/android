@@ -219,7 +219,7 @@
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
     <console.folding implementation="com.android.tools.idea.logcat.ExceptionFolding"/>
-    <consoleActionsPostProcessor implementation="org.jetbrains.android.logcat.LogcatConsoleActionsPostProcessor" />
+    <consoleActionsPostProcessor implementation="com.android.tools.idea.logcat.LogcatConsoleActionsPostProcessor" />
     <applicationService serviceImplementation="com.android.tools.idea.ddms.adb.AdbService" />
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService"/>
     <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
@@ -595,7 +595,7 @@
     <codeInspection.InspectionExtension implementation="org.jetbrains.android.inspections.lint.AndroidInspectionExtensionsFactory"/>
     <codeInsight.linkHandler prefix="#lint/" handlerClass="org.jetbrains.android.inspections.lint.LintInspectionDescriptionLinkHandler"/>
 
-    <colorSettingsPage implementation="org.jetbrains.android.logcat.AndroidLogcatColorPage"/>
+    <colorSettingsPage implementation="com.android.tools.idea.logcat.AndroidLogcatColorPage"/>
     <findUsagesHandlerFactory implementation="org.jetbrains.android.AndroidFindUsagesHandlerFactory"/>
     <xml.schemaProvider implementation="org.jetbrains.android.AndroidXmlSchemaProvider"/>
     <project.converterProvider implementation="org.jetbrains.android.converter.AndroidModuleConverterProvider"/>
@@ -660,10 +660,10 @@
 
     <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
                     serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
-    <projectService serviceInterface="org.jetbrains.android.logcat.AndroidLogcatPreferences"
-                    serviceImplementation="org.jetbrains.android.logcat.AndroidLogcatPreferences"/>
-    <projectService serviceInterface="org.jetbrains.android.logcat.AndroidConfiguredLogFilters"
-                    serviceImplementation="org.jetbrains.android.logcat.AndroidConfiguredLogFilters"/>
+    <projectService serviceInterface="com.android.tools.idea.logcat.AndroidLogcatPreferences"
+                    serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatPreferences"/>
+    <projectService serviceInterface="com.android.tools.idea.logcat.AndroidConfiguredLogFilters"
+                    serviceImplementation="com.android.tools.idea.logcat.AndroidConfiguredLogFilters"/>
     <projectService serviceInterface="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"
                     serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
     <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
