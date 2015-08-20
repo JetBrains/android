@@ -123,8 +123,7 @@ public class LayoutTestUtilities {
   }
 
   public static NlModel createModel(DesignSurface surface, AndroidFacet facet, XmlFile xmlFile) {
-    NlModel model = NlModel.create(surface, null, facet, xmlFile);
-    model.setParentDisposable(model);
+    NlModel model = NlModel.create(surface, xmlFile.getProject(), facet, xmlFile);
     model.renderImmediately();
     return model;
   }
