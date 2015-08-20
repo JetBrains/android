@@ -58,8 +58,13 @@ public final class Recipe {
   }
 
   @NotNull
-  public List<File> getFilesToModify() {
-    return myFilesToModify;
+  public List<File> getSourceFiles() {
+    return mySourceFiles;
+  }
+
+  @NotNull
+  public List<File> getTargetFiles() {
+    return myTargetFiles;
   }
 
   @NotNull
@@ -68,7 +73,8 @@ public final class Recipe {
   }
 
   @NotNull private final List<String> myDependencies = Lists.newArrayList();
-  @NotNull private final List<File> myFilesToModify = Lists.newArrayList();
+  @NotNull private final List<File> mySourceFiles = Lists.newArrayList();
+  @NotNull private final List<File> myTargetFiles = Lists.newArrayList();
   @NotNull private final List<File> myFilesToOpen = Lists.newArrayList();
 
   /**
@@ -103,7 +109,8 @@ public final class Recipe {
 
     for (RecipeInstruction instruction : instructions) {
       instruction.addDependenciesInto(myDependencies);
-      instruction.addFilesToModifyInto(myFilesToModify);
+      instruction.addSourceFilesInto(mySourceFiles);
+      instruction.addTargetFilesInto(myTargetFiles);
       instruction.addFilesToOpenInto(myFilesToOpen);
     }
   }
@@ -115,7 +122,8 @@ public final class Recipe {
     public abstract void execute(RecipeContext context);
 
     public void addDependenciesInto(@NotNull List<String> dependencies) {}
-    public void addFilesToModifyInto(@NotNull List<File> files) {}
+    public void addSourceFilesInto(@NotNull List<File> files) {}
+    public void addTargetFilesInto(@NotNull List<File> files) {}
     public void addFilesToOpenInto(@NotNull List<File> files) {}
   }
 
@@ -133,12 +141,17 @@ public final class Recipe {
 
     @Override
     public void execute(RecipeContext context) {
-      assert to != null; // Should be non-null after unmarshalled
+      assert to != null; // Will be non-null after afterUnmarshal is called
       context.copy(from, to);
     }
 
     @Override
-    public void addFilesToModifyInto(@NotNull List<File> files) {
+    public void addSourceFilesInto(@NotNull List<File> files) {
+      files.add(from);
+    }
+
+    @Override
+    public void addTargetFilesInto(@NotNull List<File> files) {
       files.add(to);
     }
 
@@ -164,12 +177,17 @@ public final class Recipe {
 
     @Override
     public void execute(RecipeContext context) {
-      assert to != null; // Should be non-null after unmarshalled
+      assert to != null; // Will be non-null after afterUnmarshal is called
       context.instantiate(from, to);
     }
 
     @Override
-    public void addFilesToModifyInto(@NotNull List<File> files) {
+    public void addSourceFilesInto(@NotNull List<File> files) {
+      files.add(from);
+    }
+
+    @Override
+    public void addTargetFilesInto(@NotNull List<File> files) {
       files.add(to);
     }
 
@@ -196,12 +214,17 @@ public final class Recipe {
 
     @Override
     public void execute(RecipeContext context) {
-      assert to != null; // Should be non-null after unmarshalled
+      assert to != null; // Will be non-null after afterUnmarshal is called
       context.merge(from, to);
     }
 
     @Override
-    public void addFilesToModifyInto(@NotNull List<File> files) {
+    public void addSourceFilesInto(@NotNull List<File> files) {
+      files.add(from);
+    }
+
+    @Override
+    public void addTargetFilesInto(@NotNull List<File> files) {
       files.add(to);
     }
 
