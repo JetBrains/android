@@ -25,6 +25,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.util.ArrayUtil;
 import com.siyeh.ig.LightInspectionTestCase;
 import org.intellij.lang.annotations.Language;
@@ -38,6 +39,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class ResourceTypeInspectionTest extends LightInspectionTestCase {
+
+  private String myOldCharset;
 
   @Override
   protected void setUp() throws Exception {
@@ -83,6 +86,14 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                                "    <uses-permission android:name=\"my.dangerous.P2\" />\n" +
                                "\n" +
                                "</manifest>\n");
+    myOldCharset = EncodingProjectManager.getInstance(getProject()).getDefaultCharsetName();
+    EncodingProjectManager.getInstance(getProject()).setDefaultCharsetName("UTF-8");
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    EncodingProjectManager.getInstance(getProject()).setDefaultCharsetName(myOldCharset);
+    super.tearDown();
   }
 
   public void testTypes() {
