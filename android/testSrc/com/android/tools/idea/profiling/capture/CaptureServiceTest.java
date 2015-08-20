@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profiling.capture;
 
+import com.android.tools.idea.editors.hprof.HprofCaptureType;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.extensions.DefaultPluginDescriptor;
 import com.intellij.openapi.extensions.Extensions;
@@ -27,10 +28,15 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.io.StringReader;
+import java.io.*;
+import java.util.Arrays;
+
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class CaptureServiceTest extends IdeaTestCase {
 
@@ -41,7 +47,6 @@ public class CaptureServiceTest extends IdeaTestCase {
   public void testUpdate() throws Exception {
     CaptureService service = CaptureService.getInstance(myProject);
     assertNull(service.getCapturesDirectory());
-
 
     VirtualFile projectDir = LocalFileSystem.getInstance().findFileByPath(myProject.getBasePath());
     assertNotNull(projectDir);
@@ -63,6 +68,71 @@ public class CaptureServiceTest extends IdeaTestCase {
     service.update();
     assertEquals(1, service.getCaptures().size());
     assertEquals(type, service.getCaptures().iterator().next().getType());
+  }
+
+  public void testSynchronousFileSaving() throws Exception {
+    CaptureService service = CaptureService.getInstance(myProject);
+    String testDataPath = toCanonicalPath(toSystemDependentName(AndroidTestBase.getTestDataPath()));
+
+    File testHprofFile = new File(testDataPath, toSystemDependentName("guiTests/CapturesApplication/captures/snapshot.hprof"));
+    byte[] testFileBytes = readFully(testHprofFile);
+
+    Capture capture = service.createCapture(HprofCaptureType.class, testFileBytes);
+    capture.getFile().refresh(false, false);
+
+    String capturePath = capture.getFile().getCanonicalPath();
+    assertNotNull(capturePath);
+
+    File captureFile = new File(capturePath);
+    assertEquals(captureFile.length(), testFileBytes.length);
+
+    byte[] captureFileBytes = readFully(captureFile);
+    assertTrue(Arrays.equals(captureFileBytes, testFileBytes));
+  }
+
+  public void testAsynchronousFileSaving() throws Exception {
+    CaptureService service = CaptureService.getInstance(myProject);
+    String testDataPath = toCanonicalPath(toSystemDependentName(AndroidTestBase.getTestDataPath()));
+
+    File testHprofFile = new File(testDataPath, toSystemDependentName("guiTests/CapturesApplication/captures/snapshot.hprof"));
+    byte[] testFileBytes = readFully(testHprofFile);
+
+    CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class);
+    for (int i = 0; i < testFileBytes.length; i += 1024 * 1024) {
+      service.appendData(handle, Arrays.copyOfRange(testFileBytes, i, i + Math.min(1024 * 1024, testFileBytes.length - i)));
+    }
+    Capture capture = service.finalizeCaptureFileSynchronous(handle);
+    capture.getFile().refresh(false, false);
+
+    String capturePath = capture.getFile().getCanonicalPath();
+    assertNotNull(capturePath);
+
+    File captureFile = new File(capturePath);
+    assertEquals(captureFile.length(), testFileBytes.length);
+
+    byte[] captureFileBytes = readFully(captureFile);
+    assertTrue(Arrays.equals(captureFileBytes, testFileBytes));
+  }
+
+  private static byte[] readFully(@NotNull File file) throws IOException {
+    FileInputStream inputStream = new FileInputStream(file);
+    try {
+      int fileLength = (int)file.length();
+
+      byte[] bytes = new byte[fileLength];
+      int bytesRead = 0;
+      while (bytesRead < bytes.length) {
+        int lengthRead = inputStream.read(bytes, bytesRead, bytes.length - bytesRead);
+        if (lengthRead == -1) {
+          break;
+        }
+        bytesRead += lengthRead;
+      }
+      return bytes;
+    }
+    finally {
+      inputStream.close();
+    }
   }
 
   private static class MyCaptureType extends CaptureType {

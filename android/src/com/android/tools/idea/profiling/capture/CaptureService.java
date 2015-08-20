@@ -15,40 +15,57 @@
  */
 package com.android.tools.idea.profiling.capture;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFutureTask;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.*;
 
+/**
+ * A service responsible for writing data to "capture" files and opening them with a suitable editor after the files are done writing to.
+ * <p/>
+ * This service operates in two modes, synchronous or asynchronous.
+ * To use this service synchronously, call {@link #createCapture(Class, byte[])}.
+ * To use this service asynchronously, do the following in order:
+ * 1) Call {@link #startCaptureFile(Class)} on the EDT thread.
+ * 2) Call {@link #appendData(CaptureHandle, byte[])} as many times as needed in any other thread (you're responsible for synchronizing the writes between your own threads), passing in the return value from {@link #startCaptureFile(Class)}.
+ * 3) Call {@link #cancelCaptureFile(CaptureHandle)} if an error occurs on the caller end and wish to cancel the capture.
+ * 4) Call {@link #finalizeCaptureFileAsynchronous(CaptureHandle, FutureCallback, Executor)} when done with writing.
+ */
 public class CaptureService {
-
   public static final String FD_CAPTURES = "captures";
 
   @NotNull private final Project myProject;
   @NotNull private Multimap<CaptureType, Capture> myCaptures;
   private List<CaptureListener> myListeners;
+  @Nullable private AsyncWriterDelegate myAsyncWriterDelegate;
+  @NotNull private Set<CaptureHandle> myOpenCaptureHandles;
 
   public CaptureService(@NotNull Project project) {
     myProject = project;
     myCaptures = LinkedListMultimap.create();
     myListeners = new LinkedList<CaptureListener>();
+    myOpenCaptureHandles = new HashSet<CaptureHandle>();
 
     update();
   }
@@ -92,6 +109,7 @@ public class CaptureService {
 
   @NotNull
   public VirtualFile createCapturesDirectory() throws IOException {
+    assert myProject.getBasePath() != null;
     VirtualFile projectDir = LocalFileSystem.getInstance().findFileByPath(myProject.getBasePath());
     if (projectDir != null) {
       VirtualFile dir = projectDir.findChild(FD_CAPTURES);
@@ -107,6 +125,7 @@ public class CaptureService {
 
   @Nullable
   public VirtualFile getCapturesDirectory() {
+    assert myProject.getBasePath() != null;
     VirtualFile projectDir = LocalFileSystem.getInstance().findFileByPath(myProject.getBasePath());
     return projectDir != null ? projectDir.findChild(FD_CAPTURES) : null;
   }
@@ -126,38 +145,240 @@ public class CaptureService {
     return myCaptures.keySet();
   }
 
-  public Capture createCapture(Class<? extends CaptureType> clazz, byte[] data) throws IOException {
+  /**
+   * Opens a capture file for asynchronous writing. Use {@link #appendData(CaptureHandle, byte[]) appendData},
+   * {@link #cancelCaptureFile(CaptureHandle) finalizeCaptureOnError},
+   * and {@link #finalizeCaptureFile(CaptureHandle, FutureCallback, Executor) finalizeCapture} to work with this handle.
+   * <p/>
+   * MUST be called on event dispatch thread.
+   *
+   * @param clazz the type of file file to create
+   * @return the handle for working with this file asynchronously
+   * @throws IOException when there is an error opening the file
+   */
+  public CaptureHandle startCaptureFile(@NotNull Class<? extends CaptureType> clazz) throws IOException {
+    ApplicationManager.getApplication().assertIsDispatchThread();
 
-    CaptureType type = CaptureTypeService.getInstance().getType(clazz);
+    if (myAsyncWriterDelegate == null) {
+      myAsyncWriterDelegate = new AsyncWriterDelegate();
+      ApplicationManager.getApplication().executeOnPooledThread(myAsyncWriterDelegate);
+    }
+
+    CaptureHandle handle = startCaptureFileSynchronous(clazz);
+    myOpenCaptureHandles.add(handle);
+    return handle;
+  }
+
+  /**
+   * Appends data to the backing file represented by {@code captureHandle}.
+   *
+   * @param captureHandle the handle returned by {@link #startCaptureFile(Class)}
+   * @param data          the data to be appended to the file
+   * @throws IOException when there is an error writing to the file
+   */
+  public void appendData(@NotNull CaptureHandle captureHandle, @NotNull byte[] data) throws IOException {
+    try {
+      assert myAsyncWriterDelegate != null;
+      myAsyncWriterDelegate.queueWrite(captureHandle, Arrays.copyOf(data, data.length));
+    }
+    catch (InterruptedException ignored) {}
+  }
+
+  /**
+   * Cleans up and closes the file when there is an unrecoverable error on the caller side.
+   * <p/>
+   * MUST be called on EDT.
+   *
+   * @param captureHandle is the handle returned by {@link #startCaptureFile(Class)}
+   */
+  public void cancelCaptureFile(@NotNull final CaptureHandle captureHandle) {
+    finalizeCaptureFileAsynchronous(captureHandle, null, null);
+  }
+
+  /**
+   * ONLY VISIBLE FOR TESTS. Closes the file and synchronously returns the generate {@code Capture}.
+   *
+   * @param captureHandle is the handle returned by {@link #startCaptureFile(Class)}
+   * @return the generated {@code Capture} for the given {@code CaptureHandle}
+   * @throws InterruptedException if something interrupts this thread when waiting for the close to finish on the async thread
+   * @throws IOException if there is a problem generating the Capture
+   */
+  @VisibleForTesting
+  Capture finalizeCaptureFileSynchronous(@NotNull CaptureHandle captureHandle) throws InterruptedException, IOException {
+    final CountDownLatch latch = new CountDownLatch(1);
+    closeCaptureFileInternal(captureHandle, new Runnable() {
+      @Override
+      public void run() {
+        latch.countDown();
+      }
+    });
+
+    latch.await();
+    return createCapture(captureHandle);
+  }
+
+  /**
+   * Closes the file and asynchronously returns the generated {@code Capture} on the EDT within the given {@code onCompletion} callback.
+   *
+   * @param captureHandle is the handle returned by {@link #startCaptureFile(Class)}
+   * @param onCompletion  will be called when the asynchronous closing of the file and generating the {@code Capture} is completed or error'ed
+   * @param executor is the executor to run the onCompletion callbacks
+   */
+  public void finalizeCaptureFileAsynchronous(@NotNull final CaptureHandle captureHandle,
+                                              @Nullable FutureCallback<Capture> onCompletion,
+                                              @Nullable Executor executor) {
+    final ListenableFutureTask<Capture> task = ListenableFutureTask.create(new Callable<Capture>() {
+      @Override
+      public Capture call() throws Exception {
+        ApplicationManager.getApplication().assertIsDispatchThread();
+        return createCapture(captureHandle);
+      }
+    });
+
+    if (onCompletion != null) {
+      assert executor != null;
+      Futures.addCallback(task, onCompletion, executor);
+    }
+
+    closeCaptureFileInternal(captureHandle, new Runnable() {
+      @Override
+      public void run() {
+        ApplicationManager.getApplication().invokeLater(task);
+      }
+    });
+  }
+
+  /**
+   * Queues closing the file and perform post-close task on the async writer thread.
+   * <p/>
+   * MUST be called on EDT.
+   *
+   * @param captureHandle the handle returned by {@link #startCaptureFile(Class)}
+   * @param onCompletion  the callback when this method completes both successfully and unsuccessfully, or null when no callbacks are needed
+   * @param executor      the thread to execute the completion callback on, or null if and only if no callbacks are needed
+   */
+  private void closeCaptureFileInternal(@NotNull final CaptureHandle captureHandle, @NotNull Runnable postCloseTask) {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
+    assert myOpenCaptureHandles.contains(captureHandle);
+    assert captureHandle.isWritable();
+    assert myAsyncWriterDelegate != null;
+
+    try {
+      myAsyncWriterDelegate.closeFileAndRunTaskAsynchronously(captureHandle, postCloseTask);
+    }
+    catch (InterruptedException ignored) {}
+
+    myOpenCaptureHandles.remove(captureHandle);
+    if (myOpenCaptureHandles.isEmpty()) {
+      // Opportunistically shut down the asynchronous writer delegate.
+      try {
+        assert myAsyncWriterDelegate != null;
+        myAsyncWriterDelegate.queueExit();
+        myAsyncWriterDelegate = null;
+      }
+      catch (InterruptedException ignored) {}
+    }
+  }
+
+  /**
+   * Synchronous creation, writing, and closing of a capture file.
+   *
+   * @param clazz the type of file to create
+   * @param data  the data to write to the file
+   * @return the {@link Capture} to work with
+   * @throws IOException when there is an error with opening, writing, or closing the file
+   */
+  @NotNull
+  public Capture createCapture(Class<? extends CaptureType> clazz, byte[] data) throws IOException {
+    CaptureHandle captureHandle = startCaptureFileSynchronous(clazz);
+    try {
+      appendDataSynchronous(captureHandle, data);
+    }
+    finally {
+      captureHandle.closeFileOutputStream();
+    }
+    return createCapture(captureHandle);
+  }
+
+  public void addListener(@NotNull CaptureListener listener) {
+    myListeners.add(listener);
+  }
+
+  /**
+   * Notifies listeners of the {@link Capture} being ready, and opens the file with the appropriate editor.
+   *
+   * @param capture the {@link Capture} to notify listeners of and to open
+   */
+  public void notifyCaptureReady(@NotNull final Capture capture) {
+    for (CaptureListener listener : myListeners) {
+      listener.onReady(capture);
+    }
+
+    OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, capture.getFile());
+    FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
+  }
+
+  /**
+   * Synchronously opens a new file associated with the {@link CaptureType} for writing.
+   */
+  @NotNull
+  private CaptureHandle startCaptureFileSynchronous(@NotNull Class<? extends CaptureType> clazz) throws IOException {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
+    final CaptureType type = CaptureTypeService.getInstance().getType(clazz);
     assert type != null;
 
     UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_PROFILING, UsageTracker.ACTION_PROFILING_CAPTURE, type.getName(), null);
 
-    VirtualFile dir = createCapturesDirectory();
-    File file = new File(dir.createChildData(null, type.createCaptureFileName()).getPath());
-    FileUtil.writeToFile(file, data);
-    final VirtualFile vf = VfsUtil.findFileByIoFile(file, true);
+    File file = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<File, IOException>() {
+      @Override
+      public File compute() throws IOException {
+        VirtualFile dir = createCapturesDirectory();
+        return new File(dir.createChildData(null, type.createCaptureFileName()).getPath());
+      }
+    });
+
+    return new CaptureHandle(file, type);
+  }
+
+  /**
+   * Synchronously appends to the file referenced by {@code captureHandle}.
+   */
+  static void appendDataSynchronous(@NotNull CaptureHandle captureHandle, @NotNull byte[] data) throws IOException {
+    FileOutputStream localFileOutputStream = captureHandle.getFileOutputStream();
+    assert localFileOutputStream != null;
+    localFileOutputStream.write(data, 0, data.length);
+  }
+
+  /**
+   * Synchronously generates the {@code Capture} from the {@code captureHandle}.
+   */
+  @NotNull
+  private Capture createCapture(@NotNull CaptureHandle captureHandle) throws IOException {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+    assert !captureHandle.isWritable();
+
+    final File file = captureHandle.getFile();
+    final VirtualFile vf = ApplicationManager.getApplication().runWriteAction(new Computable<VirtualFile>() {
+      @Override
+      public VirtualFile compute() {
+        return VfsUtil.findFileByIoFile(file, true);
+      }
+    });
     if (vf == null) {
-      throw new IOException("Cannot find virtual file for capture file " + file.getPath());
+      throw new IOException("Cannot find virtual file for capture file \"" + file.getPath() + "\"");
     }
+
+    CaptureType type = captureHandle.getCaptureType();
     Capture capture = type.createCapture(vf);
     myCaptures.put(type, capture);
 
-    OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, capture.getFile());
-    FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
-
-    for (CaptureListener listener : myListeners) {
-      listener.onCreate(capture);
-    }
     return capture;
   }
 
   public interface CaptureListener {
-    void onCreate(Capture capture);
-  }
-
-  public void addListener(CaptureListener listener) {
-    myListeners.add(listener);
+    void onReady(Capture capture);
   }
 }
 
