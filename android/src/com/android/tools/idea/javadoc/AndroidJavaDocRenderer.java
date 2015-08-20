@@ -105,10 +105,16 @@ public class AndroidJavaDocRenderer {
     String doc = (def == null) ? null : def.getDocValue(null);
     HtmlBuilder builder = new HtmlBuilder();
     builder.beginBold();
-    builder.add(ResolutionUtils.getQualifiedItemName(resValue));
+    String name = ResolutionUtils.getQualifiedItemName(resValue);
+    builder.add(name);
     builder.endBold();
+    int api = ResolutionUtils.getOriginalApiLevel(name, configuration.getModule().getProject());
+    if (api >= 0) {
+      builder.add(" (Added in API level ");
+      builder.add(String.valueOf(api));
+      builder.add(")");
+    }
     builder.addHtml("<br/>");
-
     if (!StringUtil.isEmpty(doc)) {
       builder.addHtml(doc);
       builder.addHtml("<br/>");
