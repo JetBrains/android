@@ -19,6 +19,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.editors.systeminfo.SystemInfoCaptureType;
+import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -73,22 +74,18 @@ public class DumpSysAction {
           public void run() {
             try {
               myDevice.executeShellCommand(command, receiver, 0, null);
-
               ApplicationManager.getApplication().invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                  ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                    @Override
-                    public void run() {
-                      try {
-                        CaptureService service = CaptureService.getInstance(myProject);
-                        service.createCapture(SystemInfoCaptureType.class, receiver.getOutput().getBytes()).getFile().refresh(true, false);
-                      }
-                      catch (IOException e) {
-                        showError(myProject, "Unexpected error while saving system information", e);
-                      }
-                    }
-                  });
+                  try {
+                    CaptureService service = CaptureService.getInstance(myProject);
+                    Capture capture = service.createCapture(SystemInfoCaptureType.class, receiver.getOutput().getBytes());
+                    capture.getFile().refresh(true, false);
+                    service.notifyCaptureReady(capture);
+                  }
+                  catch (IOException e) {
+                    showError(myProject, "Unexpected error while saving system information", e);
+                  }
                 }
               });
             }

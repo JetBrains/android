@@ -177,7 +177,7 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
   }
 
   @Override
-  public void onCreate(final Capture capture) {
+  public void onReady(final Capture capture) {
     myStructure.update();
     myBuilder.updateFromRoot();
     myTree.setSelectedNode(myBuilder, myStructure.getNode(capture), true);
