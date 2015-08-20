@@ -645,6 +645,7 @@ public class InstancesTreeView implements DataProvider, Disposable {
 
   @Override
   public void dispose() {
+    myDebugProcess.stop(true);
     myDebugProcess.dispose();
   }
 }

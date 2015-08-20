@@ -18,13 +18,14 @@ package com.android.tools.idea.editors.hprof.views;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
+import com.intellij.openapi.Disposable;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EventListener;
 
-public class SelectionModel {
+public class SelectionModel implements Disposable {
   public interface SelectionListener extends EventListener {
     void onHeapChanged(@NotNull Heap heap);
 
@@ -34,13 +35,20 @@ public class SelectionModel {
   }
 
   private final EventDispatcher<SelectionListener> myDispatcher = EventDispatcher.create(SelectionListener.class);
-  @NotNull private Heap myHeap;
+  private Heap myHeap;
   @Nullable private ClassObj myClassObj;
   @Nullable private Instance myInstance;
   private boolean mySelectionLocked;
 
   public SelectionModel(@NotNull Heap heap) {
     myHeap = heap;
+  }
+
+  @Override
+  public void dispose() {
+    myHeap = null;
+    myClassObj = null;
+    myInstance = null;
   }
 
   @NotNull
