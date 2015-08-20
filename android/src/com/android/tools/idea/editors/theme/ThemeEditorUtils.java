@@ -521,7 +521,7 @@ public class ThemeEditorUtils {
   /**
    * Returns the Api level at which was defined the attribute or value with the name passed as argument.
    * Returns -1 if the name argument is null or not the name of a framework attribute or resource,
-   * or if it is the name of a framework attribute or resource defined in API 1.
+   * or if it is the name of a framework attribute or resource defined in API 1, or if no Lint client found.
    */
   public static int getOriginalApiLevel(@Nullable String name, @NotNull Project project) {
     if (name == null) {
@@ -540,7 +540,11 @@ public class ThemeEditorUtils {
     }
 
     ApiLookup apiLookup = IntellijLintClient.getApiLookup(project);
-    assert apiLookup != null;
+    if (apiLookup == null) {
+      // There is no Lint API database for this project
+      LOG.warn("Could not find Lint client for project " + project.getName());
+      return -1;
+    }
 
     if (isAttribute) {
       return apiLookup.getFieldVersion("android/R$attr", name.substring(SdkConstants.ANDROID_NS_NAME_PREFIX_LEN));
