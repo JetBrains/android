@@ -16,6 +16,7 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.tools.idea.editors.theme.MaterialColorUtils;
+import com.android.tools.swing.ui.ClickableLabel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.icons.AllIcons;
@@ -32,6 +33,7 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.Alarm;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -64,6 +66,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
   private Color myColor;
   private ColorPreviewComponent myPreviewComponent;
+  private JLabel previewColorName;
+  private ClickableLabel colorSuggestionPreview;
   private final ColorSelectionPanel myColorSelectionPanel;
   private final JTextField myAlpha;
   private final JTextField myRed;
@@ -307,6 +311,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       myPreviewComponent.setColor(color);
       myColorSelectionPanel.setColor(color, fromHex ? myHex : null);
 
+      setNameTag(color);
+
       if (fromHex) {
         applyColor(color);
       } else {
@@ -329,8 +335,33 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       }
       myPreviewComponent.setColor(color);
       myColorSelectionPanel.setOpacityComponentColor(color);
+
+      setNameTag(color);
+
       fireColorChanged(color);
     }
+  }
+
+  private void setNameTag(@NotNull Color color) {
+    String name = MaterialColorUtils.getMaterialName(color);
+    if (name == null) {
+      name = "Custom color";
+      final Color closestColor = MaterialColorUtils.getClosestMaterialColor(color);
+      colorSuggestionPreview.setVisible(true);
+      String toolTip = "<html>Change to <b>" + MaterialColorUtils.getMaterialName(closestColor);
+      colorSuggestionPreview.setToolTipText(toolTip);
+      colorSuggestionPreview.setIcon(new ColorIcon(JBUI.scale(12), closestColor));
+      colorSuggestionPreview.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent mouseEvent) {
+          myColorSelectionPanel.setColor(closestColor, this);
+        }
+      });
+    }
+    else {
+      colorSuggestionPreview.setVisible(false);
+    }
+    previewColorName.setText(name);
   }
 
   private void fireColorChanged(Color color) {
@@ -421,8 +452,21 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     return null;
   }
 
+  @NotNull
   private JComponent buildTopPanel(boolean enablePipette) throws ParseException {
     final JComponent result = new Box(BoxLayout.PAGE_AXIS);
+
+    JComponent namePanel = new Box(BoxLayout.LINE_AXIS);
+    previewColorName = new JLabel("");
+    Font f = previewColorName.getFont();
+    previewColorName.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
+    colorSuggestionPreview = new ClickableLabel("CLOSEST MATERIAL COLOR");
+    colorSuggestionPreview.setFont(f.deriveFont(JBUI.scale(8.0f)));
+    namePanel.add(previewColorName);
+    namePanel.add(Box.createRigidArea(new Dimension(JBUI.scale(5), 0)));
+    namePanel.add(colorSuggestionPreview);
+    namePanel.add(Box.createHorizontalGlue());
+    result.add(namePanel);
 
     final JComponent previewPanel = new Box(BoxLayout.LINE_AXIS);
     if (enablePipette && ColorPipette.isAvailable()) {
@@ -557,10 +601,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       mySaturationBrightnessComponent.dropImage();
       if (myOpacityComponent != null) {
         setOpacityComponentColor(color);
-        if (source instanceof ColorPicker || source instanceof RecommendedColorsComponent) {
-          myOpacityComponent.setValue(color.getAlpha());
-          myOpacityComponent.repaint();
-        }
+        myOpacityComponent.setValue(color.getAlpha());
+        myOpacityComponent.repaint();
       }
       mySaturationBrightnessComponent.setColor(color, source);
     }
