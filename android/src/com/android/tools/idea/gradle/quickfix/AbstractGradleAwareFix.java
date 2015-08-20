@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.quickfix;
 
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -26,6 +27,7 @@ import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.command.undo.UnexpectedUndoException;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
@@ -55,15 +57,18 @@ abstract class AbstractGradleAwareFix implements IntentionAction, LocalQuickFix,
     });
   }
 
-  static void requestProjectSync(@NotNull Project project) {
+  private static void requestProjectSync(@NotNull Project project) {
     GradleProjectImporter.getInstance().requestProjectSync(project, false, null);
   }
 
-  static void runWriteCommandAction(@NotNull final Project project, @NotNull final Runnable action) {
+  protected static void runWriteCommandActionAndSync(@NotNull final Project project,
+                                           @NotNull final Runnable action,
+                                           @Nullable final GradleSyncListener syncListener) {
     invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         WriteCommandAction.runWriteCommandAction(project, action);
+        GradleProjectImporter.getInstance().requestProjectSync(project, false, syncListener);
       }
     });
   }
