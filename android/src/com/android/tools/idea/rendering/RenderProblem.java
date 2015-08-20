@@ -43,6 +43,7 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
   @Nullable private Throwable myThrowable;
   @Nullable private Object myClientData;
   @Nullable private String myTag;
+  protected boolean myIsDefaultHtml;
 
   private static int ourNextOrdinal;
 
@@ -70,6 +71,10 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
     if (throwable != null) {
       String url = linkManager.createRunnableLink(new ShowExceptionFix(project, throwable));
       builder.add(" (").addLink("Details", url).add(")");
+      problem.throwable(throwable);
+      if (throwable.getMessage().equals(message)) {
+        problem.myIsDefaultHtml = true;
+      }
     }
     return problem;
   }
@@ -134,6 +139,10 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
 
   @NotNull
   public abstract String getHtml();
+
+  public boolean isDefaultHtml(){
+    return myIsDefaultHtml;
+  }
 
   public void appendHtml(@NotNull StringBuilder stringBuilder) {
     stringBuilder.append(getHtml());
@@ -212,6 +221,8 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
 
     @NotNull
     public HtmlBuilder getHtmlBuilder() {
+      // If something is accessing the builder directly, it's likely putting something important in there.
+      myIsDefaultHtml = false;
       return myBuilder;
     }
   }

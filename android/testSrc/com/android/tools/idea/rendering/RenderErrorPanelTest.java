@@ -221,7 +221,6 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "&lt;CalendarView> and &lt;DatePicker> are broken in this version of the rendering library. " +
       "Try updating your SDK in the SDK Manager when issue 59732 is fixed. " +
       "(<A HREF=\"http://b.android.com/59732\">Open Issue 59732</A>, <A HREF=\"runnable:0\">Show Exception</A>)<BR/>" +
-      "<BR/>" +
       "</body></html>", html);
   }
 
@@ -315,7 +314,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(LayoutInflater.java:727)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
-        "<A HREF=\"runnable:0\">Copy stack to clipboard</A><BR/>" +
+        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
         "</body></html>", html);
     }
   }
@@ -424,26 +423,24 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     String current = ClassConverter.getCurrentJdkVersion();
 
-    try {
-      assertHtmlEquals(
-        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
-        "Preview might be incorrect: unsupported class version.<BR/>\n" +
-        "Tip: You need to run the IDE with the highest JDK version that you are compiling custom views with. " +
-        "One or more views have been compiled with JDK 1.8, but you are running the IDE on JDK " + current + ". Running on a higher " +
-        "JDK is necessary such that these classes can be run in the layout renderer. (Or, extract your custom views into a " +
-        "library which you compile with a lower JDK version.)<BR/>\n" +
-        "<BR/>\n" +
-        "If you have just accidentally built your code with a later JDK, try to <A HREF=\"action:build\">build</A> the project.<BR/>\n" +
-        "<BR/>\n" +
-        "Classes with incompatible format:<DL>\n" +
-        "<DD>-&NBSP;com.example.unit.test.MyButton (Compiled with 1.8)\n" +
-        "<DD>-&NBSP;com.example.unit.test.R (Compiled with 1.7)\n" +
-        "</DL><A HREF=\"runnable:0\">Rebuild project with '-target 1.6'</A><BR/>\n" +
-        "</body></html>", html);
-    } catch (AssertionFailedError e) {
-      System.out.println(getName() + " failed. Test temporarily disabled since it seems to work locally and I cannot figure out " +
-                         "why it fails on the build server. Original failure output: " + e.getMessage());
-    }
+    assertHtmlEquals(
+      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "Preview might be incorrect: unsupported class version.<BR/>" +
+      "Tip: You need to run the IDE with the highest JDK version that you are compiling custom views with. " +
+      "One or more views have been compiled with JDK 1.8, but you are running the IDE on JDK " + current + ". Running on a higher " +
+      "JDK is necessary such that these classes can be run in the layout renderer. (Or, extract your custom views into a " +
+      "library which you compile with a lower JDK version.)<BR/>" +
+      "<BR/>" +
+      "If you have just accidentally built your code with a later JDK, try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "<BR/>" +
+      "Classes with incompatible format:<DL>" +
+      "<DD>-&NBSP;com.example.unit.test.MyButton (Compiled with 1.8)" +
+      "<DD>-&NBSP;com.example.unit.test.R (Compiled with 1.7)" +
+      "</DL>The following modules are built with incompatible JDK:<BR/>" +
+      "4<BR/>" +
+      "<A HREF=\"runnable:0\">Rebuild project with '-target 1.6'</A><BR/>" +
+      "<A HREF=\"runnable:1\">Change Java SDK to 1.5/1.6</A><BR/>" +
+      "</body></html>", html);
   }
 
   public void testSecurity() throws Exception {
@@ -573,7 +570,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
         "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>" +
-        "<A HREF=\"runnable:0\">Copy stack to clipboard</A><BR/>" +
+        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
         "</body></html>", html);
     }
   }
