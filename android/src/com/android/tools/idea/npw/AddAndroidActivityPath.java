@@ -71,7 +71,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
  */
 public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Key<Boolean> KEY_IS_LAUNCHER = createKey("is.launcher.activity", PATH, Boolean.class);
-  public static final Key<Boolean> KEY_APPCOMPAT_ACTIVITY = createKey("appCompatActivity", PATH, Boolean.class);
+  public static final Key<Boolean> KEY_APPCOMPAT_ACTIVITY = createKey("appCompatActivity", WIZARD, Boolean.class);
   public static final Key<TemplateEntry> KEY_SELECTED_TEMPLATE = createKey("selected.template", PATH, TemplateEntry.class);
   public static final Key<AndroidVersion> KEY_MIN_SDK = createKey(TemplateMetadata.ATTR_MIN_API, PATH, AndroidVersion.class);
   public static final Key<AndroidVersion> KEY_TARGET_API = createKey(TemplateMetadata.ATTR_TARGET_API, PATH, AndroidVersion.class);
