@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.structure.services;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
@@ -50,6 +51,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import javax.swing.*;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -280,7 +282,12 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     for (String d : recipe.getDependencies()) {
       myDeveloperServiceMetadata.addDependency(d);
     }
-    for (File f : recipe.getFilesToModify()) {
+    for (File f : recipe.getSourceFiles()) {
+      if (f.getName().equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
+        parseManifestForPermissions(new File(myRootPath, f.toString()));
+      }
+    }
+    for (File f : recipe.getTargetFiles()) {
       myDeveloperServiceMetadata.addModifiedFile(f);
     }
 
@@ -328,6 +335,30 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
     myContext.installed().set(allDependenciesFound);
     myContext.snapshot();
+  }
+
+  private void parseManifestForPermissions(@NotNull File f) {
+    try {
+      SAXParserFactory factory = SAXParserFactory.newInstance();
+      SAXParser saxParser = factory.newSAXParser();
+      saxParser.parse(f, new DefaultHandler() {
+        @Override
+        public void startElement(String uri, String localName, String tagName, Attributes attributes) throws SAXException {
+          if (tagName.equals(SdkConstants.TAG_USES_PERMISSION)) {
+            String permission = attributes.getValue(SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_NAME);
+            // Most permissions are "android.permission.XXX", so for readability, just remove the prefix if present
+            permission = permission.replace(SdkConstants.ANDROID_PKG_PREFIX + SdkConstants.ATTR_PERMISSION + ".", "");
+            myDeveloperServiceMetadata.addPermission(permission);
+          }
+        }
+      });
+    }
+    catch (Exception e) {
+      // This method shouldn't crash the user for any reason, as showing permissions is just
+      // informational, but log a warning so developers can see if they make a mistake when
+      // creating their service.
+      LOG.warn("Failed to read permissions from AndroidManifest.xml", e);
+    }
   }
 
   private void parseUiGridTag(@NotNull Attributes attributes) {
