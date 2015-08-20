@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.quickfix;
 
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.intellij.codeInsight.CodeInsightBundle;
 import com.intellij.codeInsight.daemon.impl.analysis.IncreaseLanguageLevelFix;
 import com.intellij.openapi.diagnostic.Logger;
@@ -107,7 +106,7 @@ public class GradleIncreaseLanguageLevelFix extends AbstractGradleAwareFix {
     final Module module = findModuleForFile(virtualFile, project);
     final LanguageLevel moduleLevel = module == null ? null : LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
 
-    runWriteCommandAction(project, new Runnable() {
+    runWriteCommandActionAndSync(project, new Runnable() {
       @Override
       public void run() {
         if (moduleLevel != null && isLanguageLevelAcceptable(project, module, myLevel)) {
@@ -120,13 +119,12 @@ public class GradleIncreaseLanguageLevelFix extends AbstractGradleAwareFix {
             LOG.error("Setting language level on Java module is not supported");
           }
           registerUndoAction(project);
-          GradleProjectImporter.getInstance().requestProjectSync(project, null);
         }
         else {
           LOG.error("Tried to set language level without specify a module");
         }
       }
-    });
+    }, null);
   }
 
   @Nullable

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.quickfix;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.daemon.QuickFixBundle;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
@@ -28,7 +26,7 @@ import com.intellij.psi.PsiReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.concurrent.Callable;
 
 import static com.intellij.psi.search.GlobalSearchScope.moduleWithLibrariesScope;
 
@@ -51,17 +49,16 @@ public class AddGradleJetbrainsAnnotationFix extends AbstractGradleDependencyFix
     boolean testScope = isTestScope(myModule, myReference);
     final String configurationName = getConfigurationName(myModule, testScope);
 
-    runWriteCommandAction(project, new Runnable() {
+    runWriteCommandActionAndSync(project, new Runnable() {
       @Override
       public void run() {
         addDependency(myModule, configurationName, "org.jetbrains:annotations:13.0");
-        gradleSyncAndImportClass(project, editor, myReference, new Function<Void, List<PsiClass>>() {
-          @Override
-          public List<PsiClass> apply(@Nullable Void input) {
-            PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(myClassName, moduleWithLibrariesScope(myModule));
-            return aClass != null ? ImmutableList.of(aClass) : null;
-          }
-        });
+      }
+    }, editor, new Callable<PsiClass[]>() {
+      @Override
+      public PsiClass[] call() {
+        PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(myClassName, moduleWithLibrariesScope(myModule));
+        return aClass != null ? new PsiClass[]{aClass} : null;
       }
     });
   }
