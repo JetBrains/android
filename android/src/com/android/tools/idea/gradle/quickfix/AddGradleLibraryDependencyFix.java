@@ -166,7 +166,7 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
   @Nullable
   private String getLibraryGradleEntryByExaminingPath() {
     VirtualFile[] files = myLibraryEntry.getFiles(OrderRootType.CLASSES);
-    if (files.length > 0) {
+    if (files.length == 0) {
       return null;
     }
     File file = virtualToIoFile(files[0]);
