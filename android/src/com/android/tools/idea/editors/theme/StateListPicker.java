@@ -265,11 +265,11 @@ public class StateListPicker extends JPanel {
   @Nullable
   public ValidationInfo getApiError(int minApi) {
     for (StateComponent component : myStateComponents) {
-      int resourceApi = ThemeEditorUtils.getOriginalApiLevel(component.getResourceValue(), myModule.getProject());
+      int resourceApi = ResolutionUtils.getOriginalApiLevel(component.getResourceValue(), myModule.getProject());
       if (resourceApi > minApi) {
         return component.getResourceComponent().createSwatchValidationInfo(String.format(API_ERROR_TEXT, resourceApi));
       }
-      int alphaApi = ThemeEditorUtils.getOriginalApiLevel(component.getAlphaValue(), myModule.getProject());
+      int alphaApi = ResolutionUtils.getOriginalApiLevel(component.getAlphaValue(), myModule.getProject());
       if (alphaApi > minApi) {
         return new ValidationInfo(String.format(API_ERROR_TEXT, alphaApi), component.getAlphaComponent());
       }
