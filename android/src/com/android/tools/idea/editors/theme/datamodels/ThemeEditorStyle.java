@@ -182,9 +182,10 @@ public class ThemeEditorStyle {
     return getStyleResourceValue().getName();
   }
 
-  private static Collection<FolderConfiguration> getFolderConfigurationsFromResourceItems(@NotNull Collection<ResourceItem> items) {
+  private static ImmutableCollection<FolderConfiguration> getFolderConfigurationsFromResourceItems(@NotNull Collection<ResourceItem> items) {
     ImmutableList.Builder<FolderConfiguration> listBuilder = ImmutableList.builder();
     for (ResourceItem item : items) {
+      assert item != null;
       listBuilder.add(item.getConfiguration());
     }
 
@@ -292,15 +293,7 @@ public class ThemeEditorStyle {
     ResourceResolverCache resolverCache = ResourceResolverCache.create(manager);
     List<ResourceItem> allStyleDefinitions = getStyleResourceItems();
     // Get the configuration associated to each version of the style
-    Collection<FolderConfiguration> allConfigurations =
-      Collections2.transform(allStyleDefinitions, new Function<ResourceItem, FolderConfiguration>() {
-        @Nullable
-        @Override
-        public FolderConfiguration apply(ResourceItem input) {
-          assert input != null;
-          return input.getConfiguration();
-        }
-      });
+    Collection<FolderConfiguration> allConfigurations = getFolderConfigurationsFromResourceItems(allStyleDefinitions);
 
     ImmutableList.Builder<ConfiguredElement<String>> parents = ImmutableList.builder();
     // For every version of the style, get the parent
