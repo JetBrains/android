@@ -27,7 +27,9 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -46,6 +48,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
@@ -182,6 +185,39 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     if (myParents != null) {
       for (MultiResourceRepository parent : myParents) {
         parent.invalidateCache(this, types);
+      }
+    }
+  }
+
+  /** If this repository has not already been visited, merge its items of the given type into result. */
+  protected final void merge(@NotNull Set<LocalResourceRepository> visited,
+                             @NotNull ResourceType type,
+                             @NotNull SetMultimap<String, String> seenQualifiers,
+                             @NotNull ListMultimap<String, ResourceItem> result) {
+    if (visited.contains(this)) {
+      return;
+    }
+    visited.add(this);
+    doMerge(visited, type, seenQualifiers, result);
+  }
+
+  protected void doMerge(@NotNull Set<LocalResourceRepository> visited,
+                         @NotNull ResourceType type,
+                         @NotNull SetMultimap<String, String> seenQualifiers,
+                         @NotNull ListMultimap<String, ResourceItem> result) {
+    ListMultimap<String, ResourceItem> items = getMap(type, false);
+    if (items == null) {
+      return;
+    }
+    for (ResourceItem item : items.values()) {
+      String name = item.getName();
+      String qualifiers = item.getQualifiers();
+      if (!result.containsKey(name) || type == ResourceType.ID || !seenQualifiers.containsEntry(name, qualifiers)) {
+        // We only add a duplicate item if there isn't an item with the same qualifiers (and it's
+        // not an id; id's are allowed to be defined in multiple places even with the same
+        // qualifiers)
+        result.put(name, item);
+        seenQualifiers.put(name, qualifiers);
       }
     }
   }
