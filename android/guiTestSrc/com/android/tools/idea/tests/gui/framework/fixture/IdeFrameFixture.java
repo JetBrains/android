@@ -989,8 +989,17 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     }
   }
 
-  private void selectApp(@NotNull String appName) throws ClassNotFoundException {
-    ComboBoxActionFixture comboBoxActionFixture = new ComboBoxActionFixture(robot(), this);
-    comboBoxActionFixture.selectApp(appName);
+  private void selectApp(@NotNull String appName) {
+    final ActionButtonFixture runButton = findRunApplicationButton();
+    Container actionToolbarContainer = execute(new GuiQuery<Container>() {
+      @Override
+      protected Container executeInEDT() throws Throwable {
+        return runButton.target().getParent();
+      }
+    });
+    assertNotNull(actionToolbarContainer);
+
+    ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBox(robot(), actionToolbarContainer);
+    comboBoxActionFixture.selectItem(appName);
   }
 }

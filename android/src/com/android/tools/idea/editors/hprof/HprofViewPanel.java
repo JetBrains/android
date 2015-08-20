@@ -35,6 +35,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class HprofViewPanel implements Disposable {
+  public static final String TOOLBAR_NAME = "HprofActionToolbar";
+
   private static final int DIVIDER_WIDTH = 4;
   @SuppressWarnings("NullableProblems") @NotNull private JPanel myContainer;
   @SuppressWarnings("NullableProblems") @NotNull private SelectionModel mySelectionModel;
@@ -99,7 +101,7 @@ public class HprofViewPanel implements Disposable {
     classPanel.add(splitter, BorderLayout.CENTER);
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
-    toolbar.getComponent().setName("HprofActionToolbar");
+    toolbar.getComponent().setName(TOOLBAR_NAME);
     classPanel.add(toolbar.getComponent(), BorderLayout.NORTH);
 
     JBSplitter mainSplitter = new JBSplitter(true);

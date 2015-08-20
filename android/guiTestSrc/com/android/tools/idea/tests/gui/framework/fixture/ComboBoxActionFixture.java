@@ -23,6 +23,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
@@ -31,47 +32,67 @@ import javax.swing.*;
 import java.awt.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ComboBoxActionFixture {
-  @NotNull private Robot robot;
-  @NotNull private IdeFrameFixture projectFrame;
-
-  public ComboBoxActionFixture(@NotNull Robot robot, @NotNull IdeFrameFixture projectFrame) {
-    this.robot = robot;
-    this.projectFrame = projectFrame;
+  @NotNull private Robot myRobot;
+  @NotNull private JButton myTarget;
+  private static final Class<?> ourComboBoxButtonClass;
+  static {
+    Class<?> temp = null;
+    try {
+      temp = ComboBoxActionFixture.class.getClassLoader().loadClass(ComboBoxAction.class.getCanonicalName() + "$ComboBoxButton");
+    }
+    catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    }
+    ourComboBoxButtonClass = temp;
   }
 
-  public void selectApp(@NotNull String appName) throws ClassNotFoundException {
-    click();
-    selectItemByText(getRunConfigList(), appName);
-  }
-
-  private void click() throws ClassNotFoundException {
-    final Class<?> comboBoxButtonClass = getClass().getClassLoader().loadClass(ComboBoxAction.class.getCanonicalName() + "$ComboBoxButton");
-    final ActionButtonFixture runButton = projectFrame.findRunApplicationButton();
-
-    Container actionToolbarContainer = execute(new GuiQuery<Container>() {
-      @Override
-      protected Container executeInEDT() throws Throwable {
-        return runButton.target().getParent();
-      }
-    });
-    assertNotNull(actionToolbarContainer);
-
-    JButton comboBoxButton = robot.finder().find(actionToolbarContainer, new GenericTypeMatcher<JButton>(JButton.class) {
+  public static ComboBoxActionFixture findComboBox(@NotNull Robot robot, @NotNull Container root) {
+    JButton comboBoxButton = robot.finder().find(root, new GenericTypeMatcher<JButton>(JButton.class) {
       @Override
       protected boolean isMatching(@NotNull JButton component) {
-        return comboBoxButtonClass.isInstance(component);
+        return ourComboBoxButtonClass.isInstance(component);
       }
     });
+    return new ComboBoxActionFixture(robot, comboBoxButton);
+  }
 
-    final JButtonFixture comboBoxButtonFixture = new JButtonFixture(robot, comboBoxButton);
+  public static ComboBoxActionFixture findComboBoxByText(@NotNull Robot robot, @NotNull Container root, @NotNull final String text) {
+    JButton comboBoxButton = robot.finder().find(root, new GenericTypeMatcher<JButton>(JButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull JButton component) {
+        return ourComboBoxButtonClass.isInstance(component) && component.getText().equals(text);
+      }
+    });
+    return new ComboBoxActionFixture(robot, comboBoxButton);
+  }
+
+  public ComboBoxActionFixture(@NotNull Robot robot, @NotNull JButton target) {
+    myRobot = robot;
+    myTarget = target;
+  }
+
+  public void selectItem(@NotNull String itemName) {
+    click();
+    selectItemByText(getPopupList(), itemName);
+  }
+
+  public String getSelectedItemText() {
+    return execute(new GuiQuery<String>() {
+      @javax.annotation.Nullable
+      @Override
+      protected String executeInEDT() throws Throwable {
+        return myTarget.getText();
+      }
+    });
+  }
+
+  private void click() {
+    final JButtonFixture comboBoxButtonFixture = new JButtonFixture(myRobot, myTarget);
     pause(new Condition("Wait until comboBoxButton is enabled") {
       @Override
       public boolean test() {
@@ -88,34 +109,26 @@ public class ComboBoxActionFixture {
   }
 
   @NotNull
-  private JList getRunConfigList() {
-    final JList runConfigList = robot.finder().findByType(JBListWithHintProvider.class);
-
-    pause(new Condition("Wait until the list is populated.") {
-      @Override
-      public boolean test() {
-        //noinspection ConstantConditions
-        return execute(new GuiQuery<Boolean>() {
-          @Override
-          protected Boolean executeInEDT() throws Throwable {
-            return runConfigList.getComponentCount() >= 2; // At least 2, since there is always one option present (the option to edit).
-          }
-        });
-      }
-    }, SHORT_TIMEOUT);
-
-    Object selectedValue = execute(new GuiQuery<Object>() {
-      @Override
-      protected Object executeInEDT() throws Throwable {
-        return runConfigList.getSelectedValue();
-      }
-    });
-    assertThat(selectedValue).isInstanceOf(PopupFactoryImpl.ActionItem.class);
-
-    return runConfigList;
+  private JList getPopupList() {
+    return myRobot.finder().findByType(JBListWithHintProvider.class);
   }
 
   private static void selectItemByText(@NotNull final JList list, @NotNull final String text) {
+    pause(new Condition("Wait until the list is populated.") {
+      @Override
+      public boolean test() {
+        ListPopupModel popupModel = (ListPopupModel)list.getModel();
+        for (int i = 0; i < popupModel.getSize(); ++i) {
+          PopupFactoryImpl.ActionItem actionItem = (PopupFactoryImpl.ActionItem)popupModel.get(i);
+          assertNotNull(actionItem);
+          if (text.equals(actionItem.getText())) {
+            return true;
+          }
+        }
+        return false;
+      }
+    }, SHORT_TIMEOUT);
+
     final Integer appIndex = execute(new GuiQuery<Integer>() {
       @Override
       protected Integer executeInEDT() throws Throwable {
