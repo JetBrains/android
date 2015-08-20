@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
-import com.android.SdkConstants;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
@@ -25,30 +24,32 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class GfxTraceFileType implements FileType {
+  public static final String DEFAULT_EXTENSION = "gfxtrace";
   public static final GfxTraceFileType INSTANCE = new GfxTraceFileType();
 
   @NotNull
   @Override
   public String getName() {
-    return "GfxTrace";
+    return "GFX Trace";
   }
 
   @NotNull
   @Override
   public String getDescription() {
-    return "Graphics trace files";
+    return "Graphics rendering trace capture file";
   }
 
   @NotNull
   @Override
   public String getDefaultExtension() {
-    return SdkConstants.EXT_GFXTRACE;
+    return DEFAULT_EXTENSION;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Ddms.DumpHprof;
+    // TODO replace with proper icon
+    return AndroidIcons.Ddms.ScreenCapture;
   }
 
   @Override
