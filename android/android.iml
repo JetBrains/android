@@ -79,11 +79,13 @@
           <root url="jar://$MODULE_DIR$/lib/spantable.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/lib/src/spantable-src.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library>
+      <library name="Jsr305">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/jsr305-1.3.9.jar!/" />
         </CLASSES>
