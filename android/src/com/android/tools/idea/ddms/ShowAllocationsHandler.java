@@ -22,17 +22,12 @@ import com.android.tools.idea.editors.allocations.AllocationCaptureType;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
 public class ShowAllocationsHandler implements ClientData.IAllocationTrackingHandler {
-  private static final Logger LOG = Logger.getInstance(ShowAllocationsHandler.class);
-
   private final Project myProject;
 
   public ShowAllocationsHandler(@NotNull Project project) {
@@ -44,18 +39,14 @@ public class ShowAllocationsHandler implements ClientData.IAllocationTrackingHan
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              CaptureService service = CaptureService.getInstance(myProject);
-              service.createCapture(AllocationCaptureType.class, data);
-            }
-            catch (IOException e) {
-              throw new RuntimeException(e);
-            }
-          }
-        });
+        try {
+          CaptureService service = CaptureService.getInstance(myProject);
+          Capture capture = service.createCapture(AllocationCaptureType.class, data);
+          service.notifyCaptureReady(capture);
+        }
+        catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       }
     });
   }
