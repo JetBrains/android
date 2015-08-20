@@ -422,11 +422,12 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
             LOG.info("cannot start debugging");
             return;
           }
+
+          AndroidProcessText.attach(newProcessHandler);
           final AndroidProcessText oldText = AndroidProcessText.get(processHandler);
           if (oldText != null) {
             oldText.printTo(newProcessHandler);
           }
-          AndroidProcessText.attach(newProcessHandler);
 
           myRunningState.getProcessHandler().putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(
             debugDescriptor, st, myExecutor.getId()));
