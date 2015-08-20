@@ -80,7 +80,7 @@ public class ModelBuilder {
         infos.add(myRoot.createViewInfo(null, rootTag));
         XmlDocument document = xmlFile.getDocument();
         TestCase.assertNotNull(document);
-        NlModel model = new NlModel(createSurface(), null, myFacet, xmlFile) {
+        NlModel model = new NlModel(createSurface(), myFixture.getProject(), myFacet, xmlFile) {
           @Override
           public void requestRender() {
             // Never do async rendering from these tests
