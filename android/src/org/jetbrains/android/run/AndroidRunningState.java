@@ -168,6 +168,11 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     myDebugMode = debugMode;
   }
 
+  @Nullable
+  public DebugLauncher getDebugLauncher() {
+    return myDebugLauncher;
+  }
+
   public void setDebugLauncher(@NotNull DebugLauncher debugLauncher) {
     myDebugLauncher = debugLauncher;
   }
