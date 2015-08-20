@@ -25,6 +25,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.JavaPsiFacadeImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.augment.ResourceTypeClass;
@@ -62,10 +63,12 @@ public class AndroidInMemoryRUtil {
 
     myRFinder = new AndroidResourceClassFinder(myFacet.getModule().getProject());
     myPsiElementFinderExtensionPoint.registerExtension(myRFinder);
+    ((JavaPsiFacadeImpl)JavaPsiFacade.getInstance(myFacet.getModule().getProject())).clearFindersCache();
   }
 
   public void tearDown() throws Exception {
     myPsiElementFinderExtensionPoint.unregisterExtension(myRFinder);
+    ((JavaPsiFacadeImpl)JavaPsiFacade.getInstance(myFacet.getModule().getProject())).clearFindersCache();
   }
 
   public class AndroidPackageRClass extends AndroidLightClassBase {
