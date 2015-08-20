@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 public class GfxTraceCaptureType extends FileCaptureType {
   protected GfxTraceCaptureType() {
-    super("Graphics trace", AndroidIcons.Ddms.DumpHprof, "Trace_", SdkConstants.DOT_GFXTRACE);
+    // TODO get an icon for GPU traces
+    super(GfxTraceFileType.INSTANCE.getName(), GfxTraceFileType.INSTANCE.getIcon(), "GfxTraces_",
+          "." + GfxTraceFileType.INSTANCE.getDefaultExtension());
   }
 
   @NotNull
