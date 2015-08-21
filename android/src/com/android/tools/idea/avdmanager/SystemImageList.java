@@ -583,7 +583,13 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       IPkgDesc request = image.getRemotePackage();
       List<IPkgDesc> requestedPackages = Lists.newArrayList(request);
       SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages,
-                                                                  new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));
+                                                                  new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT)) {
+        @Nullable
+        @Override
+        public JComponent getProgressParentComponent() {
+          return SystemImageList.this;
+        }
+      };
       sdkQuickfixWizard.init();
       sdkQuickfixWizard.show();
       refreshImages(true);
