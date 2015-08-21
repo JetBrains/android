@@ -30,9 +30,6 @@ import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidS
  * Base class for actions that perform Gradle-specific tasks in Android Studio.
  */
 public abstract class AndroidStudioGradleAction extends AnAction {
-  public AndroidStudioGradleAction() {
-  }
-
   public AndroidStudioGradleAction(@Nullable String text) {
     super(text);
   }
@@ -47,6 +44,10 @@ public abstract class AndroidStudioGradleAction extends AnAction {
       e.getPresentation().setEnabledAndVisible(false);
       return;
     }
+
+    // Make it visible and enabled for Gradle projects, and let subclasses decide whether the action should be enabled or not.
+    e.getPresentation().setEnabledAndVisible(true);
+
     Project project = e.getProject();
     assert project != null;
     doUpdate(e, project);
