@@ -27,81 +27,25 @@ import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.WindowManager;
-import com.intellij.ui.ColorPickerListener;
-import com.intellij.ui.ColorUtil;
-import com.intellij.ui.HintHint;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.LightweightHint;
+import com.intellij.ui.*;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.Alarm;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import java.awt.AWTException;
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dialog;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Frame;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Insets;
-import java.awt.KeyboardFocusManager;
-import java.awt.LinearGradientPaint;
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.PointerInfo;
-import java.awt.Polygon;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Robot;
-import java.awt.Toolkit;
-import java.awt.Transparency;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRootPane;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-import javax.swing.UIManager;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.border.LineBorder;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
+import java.awt.*;
+import java.awt.event.*;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -256,14 +200,24 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     myFormat.setSelectedIndex(2);
   }
 
-  private JTextField createColorField(boolean hex) {
+  private int getLargestDigitWidth(boolean hex) {
+    FontMetrics metrics = getFontMetrics(getFont());
+    int largestWidth = metrics.charWidth('0');
+    int maxDigit = hex ? 16 : 10;
+    for (int i = 1; i < maxDigit; i++) {
+      largestWidth = Math.max(largestWidth, metrics.charWidth(Character.toUpperCase(Character.forDigit(i, maxDigit))));
+    }
+    return largestWidth;
+  }
+
+  private JTextField createColorField(final boolean hex) {
     final NumberDocument doc = new NumberDocument(hex);
-    int lafFix = UIUtil.isUnderWindowsLookAndFeel() || UIUtil.isUnderDarcula() ? 1 : 0;
-    UIManager.LookAndFeelInfo info = LafManager.getInstance().getCurrentLookAndFeel();
-    if (info != null && (info.getName().startsWith("IDEA") || info.getName().equals("Windows Classic")))
-      lafFix = 1;
-    final JTextField field = new JTextField(doc, "", (hex ? 6 : 3) + lafFix);
-    field.setSize(JBUI.size(50, -1));
+    final JTextField field = new JTextField(doc, "", hex ? 8 : 3) {
+      @Override
+      protected int getColumnWidth() {
+        return getLargestDigitWidth(hex);
+      }
+    };
     doc.setSource(field);
     field.getDocument().addDocumentListener(this);
     field.addFocusListener(new FocusAdapter() {
