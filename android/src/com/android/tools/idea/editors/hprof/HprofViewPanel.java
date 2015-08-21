@@ -31,7 +31,6 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.plugin.dom.exception.InvalidStateException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -65,7 +64,7 @@ public class HprofViewPanel implements Disposable {
     if (currentHeap == null) {
       editor.setInvalid();
       // TODO: Add a simple panel to show that the hprof file is invalid.
-      throw new InvalidStateException("Invalid heap given to HprofViewPanel.");
+      throw new IllegalStateException("Invalid heap given to HprofViewPanel.");
     }
     mySelectionModel = new SelectionModel(currentHeap);
     Disposer.register(this, mySelectionModel);
