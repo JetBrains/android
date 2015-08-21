@@ -22,6 +22,7 @@ import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
 import com.intellij.ide.DataManager;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.android.tools.idea.editors.hprof.views.nodedata.HeapNode;
 import com.android.tools.idea.editors.hprof.views.nodedata.HeapClassObjNode;
@@ -55,7 +56,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class ClassesTreeView implements DataProvider {
+public class ClassesTreeView implements DataProvider, Disposable {
   public static final String TREE_NAME = "HprofClassesTree";
 
   @NotNull private Project myProject;
@@ -571,6 +572,12 @@ public class ClassesTreeView implements DataProvider {
     return null;
   }
 
+  @Override
+  public void dispose() {
+    myListIndex.clear();
+    myTreeIndex.clear();
+  }
+
   private static class ListIndex implements SelectionModel.SelectionListener {
     ArrayList<HeapClassObjNode> myClasses = new ArrayList<HeapClassObjNode>();
     private int myHeapId = -1;
@@ -606,12 +613,16 @@ public class ClassesTreeView implements DataProvider {
 
     }
 
-    public void buildList(@NotNull HeapNode root) {
+    private void buildList(@NotNull HeapNode root) {
       root.removeAllChildren();
       for (HeapClassObjNode heapClassObjNode : myClasses) {
         heapClassObjNode.removeFromParent();
         root.add(heapClassObjNode);
       }
+    }
+
+    private void clear() {
+      myClasses.clear();
     }
   }
 
@@ -637,7 +648,7 @@ public class ClassesTreeView implements DataProvider {
 
     }
 
-    public void buildTree(int heapId) {
+    private void buildTree(int heapId) {
       if (myHeapId != heapId) {
         myHeapId = heapId;
         myRoot.clear();
@@ -650,6 +661,10 @@ public class ClassesTreeView implements DataProvider {
       }
 
       myRoot.buildTree();
+    }
+
+    private void clear() {
+      myRoot.clear();
     }
   }
 
