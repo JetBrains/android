@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.HprofEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Test;
-import sun.plugin.dom.exception.InvalidStateException;
 
 import java.io.IOException;
 
