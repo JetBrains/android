@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.google.common.base.Strings;
 import org.fest.swing.image.ScreenshotTaker;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -48,14 +49,20 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     super(testClass);
 
     myScreenshotTaker = canRunGuiTests() ? new ScreenshotTaker() : null;
-    try {
-      // A random class which is reachable from module community-main's classpath but not
-      // module android's classpath
-      Class.forName("git4idea.repo.GitConfig", false, testClass.getClassLoader());
-    }
-    catch (ClassNotFoundException e) {
-      throw new InitializationError("Invalid test run configuration. Edit your test configuration and make sure that " +
-                                    "\"Use classpath of module\" is set to \"community-main\", *NOT* \"android\"!");
+
+    // UI_TEST_MODE is set whenever we run UI tests on top of a Studio build. In that case, we
+    // assume the classpath has been properly configured. Otherwise, if we're running from the
+    // IDE or an Ant build, we need to check we have access to the classpath of community-main.
+    if (Strings.isNullOrEmpty(System.getenv("UI_TEST_MODE"))) {
+      try {
+        // A random class which is reachable from module community-main's classpath but not
+        // module android's classpath.
+        Class.forName("git4idea.repo.GitConfig", false, testClass.getClassLoader());
+      }
+      catch (ClassNotFoundException e) {
+        throw new InitializationError("Invalid test run configuration. Edit your test configuration and make sure that " +
+                                      "\"Use classpath of module\" is set to \"community-main\", *NOT* \"android\"!");
+      }
     }
   }
 
