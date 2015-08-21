@@ -40,7 +40,6 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
-import com.android.tools.lint.checks.ApiLookup;
 import com.google.common.base.Predicate;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -73,7 +72,6 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.inspections.lint.IntellijLintClient;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -496,7 +494,7 @@ public class ThemeEditorUtils {
     }
 
     int minModuleApi = getMinApiLevel(themeEditorContext.getCurrentContextModule());
-    int minAcceptableApi = getOriginalApiLevel(dialog.getStyleParentName(), themeEditorContext.getProject());
+    int minAcceptableApi = ResolutionUtils.getOriginalApiLevel(dialog.getStyleParentName(), themeEditorContext.getProject());
 
     final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STYLE);
     FolderConfiguration config = new FolderConfiguration();
@@ -516,46 +514,6 @@ public class ThemeEditorUtils {
       themeEditorContext.getCurrentContextModule(), dialog.getStyleName(), parentStyleName, fileName, dirNames);
 
     return isCreated ? SdkConstants.STYLE_RESOURCE_PREFIX + dialog.getStyleName() : null;
-  }
-
-  /**
-   * Returns the Api level at which was defined the attribute or value with the name passed as argument.
-   * Returns -1 if the name argument is null or not the name of a framework attribute or resource,
-   * or if it is the name of a framework attribute or resource defined in API 1, or if no Lint client found.
-   */
-  public static int getOriginalApiLevel(@Nullable String name, @NotNull Project project) {
-    if (name == null) {
-      return -1;
-    }
-    boolean isAttribute;
-    if (name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
-      isAttribute = true;
-    }
-    else if (name.startsWith(SdkConstants.ANDROID_PREFIX)) {
-      isAttribute = false;
-    }
-    else {
-      // Not a framework attribute or resource
-      return -1;
-    }
-
-    ApiLookup apiLookup = IntellijLintClient.getApiLookup(project);
-    if (apiLookup == null) {
-      // There is no Lint API database for this project
-      LOG.warn("Could not find Lint client for project " + project.getName());
-      return -1;
-    }
-
-    if (isAttribute) {
-      return apiLookup.getFieldVersion("android/R$attr", name.substring(SdkConstants.ANDROID_NS_NAME_PREFIX_LEN));
-    }
-
-    String[] namePieces = name.substring(SdkConstants.ANDROID_PREFIX.length()).split("/");
-    if (namePieces.length == 2) {
-      // If dealing with a value, it should be of the form "type/value"
-      return apiLookup.getFieldVersion("android/R$" + namePieces[0], AndroidResourceUtil.getFieldNameByResourceName(namePieces[1]));
-    }
-    return -1;
   }
 
   /**
