@@ -15,21 +15,23 @@
  */
 package com.android.tools.idea.monitor.gpu.gfxinfohandlers;
 
-import com.android.ddmlib.Client;
-import com.android.ddmlib.ClientData;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.MultiLineReceiver;
+import com.android.ddmlib.*;
 import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
 import com.android.tools.idea.monitor.gpu.GpuSampler;
+import com.intellij.util.ThreeState;
 import gnu.trove.TFloatArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Sampler for Jellybean API or higher.
@@ -98,8 +100,21 @@ public final class JHandler implements GfxinfoHandler {
   }
 
   @Override
-  public boolean getIsEnabledOnDevice() {
-    return myReceiver.getDetectedDeveloperOptionEnabled();
+  public ThreeState getIsEnabledOnDevice(@NotNull IDevice device) {
+    return parseIsEnabledOnDevice(device);
+  }
+
+  public static ThreeState parseIsEnabledOnDevice(@NotNull IDevice device) {
+    Future<String> result = device.getSystemProperty("debug.hwui.profile");
+    try {
+      String resultString = result.get(100, TimeUnit.MILLISECONDS); // Just a short timeout that is reasonable.
+      return ThreeState.fromBoolean("true".equals(resultString) || "visual_bars".equals(resultString));
+    }
+    catch (InterruptedException ignored) {}
+    catch (ExecutionException ignored) {}
+    catch (TimeoutException ignored) {}
+
+    return ThreeState.UNSURE;
   }
 
   /**
@@ -112,22 +127,15 @@ public final class JHandler implements GfxinfoHandler {
     private TFloatArrayList myPrepareTimes = new TFloatArrayList();
     private TFloatArrayList myExecuteTimes = new TFloatArrayList();
 
-    private boolean myDetectedDeveloperOptionEnabled; // Indicates whether or not GPU developer options are enabled.
-
     public void reset() {
       resetSamples();
     }
 
     public void resetSamples() {
-      myDetectedDeveloperOptionEnabled = false;
       myOutput.clear();
       myDrawTimes.resetQuick();
       myPrepareTimes.resetQuick();
       myExecuteTimes.resetQuick();
-    }
-
-    public boolean getDetectedDeveloperOptionEnabled() {
-      return myDetectedDeveloperOptionEnabled;
     }
 
     /*
@@ -186,7 +194,6 @@ public final class JHandler implements GfxinfoHandler {
                 "Draw".equals(tokens[0]) &&
                 "Process".equals(tokens[1]) &&
                 "Execute".equals(tokens[2])) {
-              myDetectedDeveloperOptionEnabled = true;
               profileSectionIndex += 1;
               break;
             }
