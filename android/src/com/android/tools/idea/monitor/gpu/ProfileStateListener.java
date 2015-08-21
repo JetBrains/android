@@ -19,5 +19,5 @@ import com.android.ddmlib.Client;
 import org.jetbrains.annotations.NotNull;
 
 public interface ProfileStateListener {
-  void onGpuProfileStateChanged(@NotNull Client client, boolean enabled);
+  void notifyGpuProfileStateChanged(@NotNull Client client, boolean enabled);
 }

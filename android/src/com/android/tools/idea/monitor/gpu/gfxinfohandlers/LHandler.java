@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.monitor.gpu.gfxinfohandlers;
 
-import com.android.ddmlib.Client;
-import com.android.ddmlib.ClientData;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.MultiLineReceiver;
+import com.android.ddmlib.*;
 import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
 import com.android.tools.idea.monitor.gpu.GpuSampler;
+import com.intellij.util.ThreeState;
 import gnu.trove.TFloatArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Sampler for Lollipop API or higher.
@@ -98,8 +99,8 @@ public final class LHandler implements GfxinfoHandler {
   }
 
   @Override
-  public boolean getIsEnabledOnDevice() {
-    return myReceiver.getDetectedDeveloperOptionEnabled();
+  public ThreeState getIsEnabledOnDevice(@NotNull IDevice device) {
+    return JHandler.parseIsEnabledOnDevice(device);
   }
 
   /**
