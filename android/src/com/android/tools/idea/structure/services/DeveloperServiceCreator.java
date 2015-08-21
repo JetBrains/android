@@ -213,5 +213,5 @@ public abstract class DeveloperServiceCreator {
   /**
    * Given a fresh context, initialize it with values used by this service.
    */
-  protected abstract void initializeContext(@NotNull ServiceContext serviceContext);
+  protected void initializeContext(@NotNull ServiceContext serviceContext) {}
 }
