@@ -25,11 +25,13 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.plugin.dom.exception.InvalidStateException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,16 +40,19 @@ public class HprofViewPanel implements Disposable {
   public static final String TOOLBAR_NAME = "HprofActionToolbar";
 
   private static final int DIVIDER_WIDTH = 4;
-  @SuppressWarnings("NullableProblems") @NotNull private JPanel myContainer;
+  @NotNull private JPanel myContainer;
+  private Snapshot mySnapshot;
   @SuppressWarnings("NullableProblems") @NotNull private SelectionModel mySelectionModel;
 
-  public HprofViewPanel(@NotNull final Project project, @NotNull HprofEditor editor, @NotNull final Snapshot snapshot) {
+  public HprofViewPanel(@NotNull final Project project, @NotNull HprofEditor editor, @NotNull Snapshot snapshot) {
     JBPanel treePanel = new JBPanel(new BorderLayout());
     treePanel.setBackground(JBColor.background());
 
-    assert (snapshot.getHeaps().size() > 0);
+    mySnapshot = snapshot;
+
+    assert (mySnapshot.getHeaps().size() > 0);
     Heap currentHeap = null;
-    for (Heap heap : snapshot.getHeaps()) {
+    for (Heap heap : mySnapshot.getHeaps()) {
       if ("app".equals(heap.getName())) {
         currentHeap = heap;
         break;
@@ -59,16 +64,19 @@ public class HprofViewPanel implements Disposable {
 
     if (currentHeap == null) {
       editor.setInvalid();
-      return;
+      // TODO: Add a simple panel to show that the hprof file is invalid.
+      throw new InvalidStateException("Invalid heap given to HprofViewPanel.");
     }
     mySelectionModel = new SelectionModel(currentHeap);
+    Disposer.register(this, mySelectionModel);
 
     DefaultActionGroup group = new DefaultActionGroup(new ComboBoxAction() {
       @NotNull
       @Override
       protected DefaultActionGroup createPopupActionGroup(JComponent button) {
         DefaultActionGroup group = new DefaultActionGroup();
-        for (final Heap heap : snapshot.getHeaps()) {
+        assert mySnapshot != null;
+        for (final Heap heap : mySnapshot.getHeaps()) {
           if ("default".equals(heap.getName()) && heap.getClasses().isEmpty() && heap.getInstances().isEmpty()) {
             continue;
           }
@@ -94,8 +102,11 @@ public class HprofViewPanel implements Disposable {
     treePanel.add(referenceTree.getComponent(), BorderLayout.CENTER);
 
     final InstancesTreeView instancesTreeView = new InstancesTreeView(project, mySelectionModel);
+    Disposer.register(this, instancesTreeView);
+
     final ClassesTreeView classesTreeView = new ClassesTreeView(project, group, mySelectionModel);
     JBSplitter splitter = createNavigationSplitter(classesTreeView.getComponent(), instancesTreeView.getComponent());
+    Disposer.register(this, classesTreeView);
 
     JBPanel classPanel = new JBPanel(new BorderLayout());
     classPanel.add(splitter, BorderLayout.CENTER);
@@ -142,6 +153,7 @@ public class HprofViewPanel implements Disposable {
 
   @Override
   public void dispose() {
-
+    myContainer.removeAll();
+    mySnapshot = null;
   }
 }
