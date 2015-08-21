@@ -45,8 +45,6 @@ import org.jdom.xpath.XPath;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.idea.maven.model.MavenArtifactInfo;
-import org.jetbrains.idea.maven.utils.MavenLog;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -113,15 +111,17 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
 
   private final List<String> myAndroidSdkLibraries = Lists.newArrayList();
 
-  /**
-   * Wraps the MavenArtifactInfo and supplies extra descriptive information we can display.
-   */
-  private static class Artifact extends MavenArtifactInfo {
-    private final String myDescription;
+  private static class Artifact {
+    @NotNull private final String myGroupId;
+    @NotNull private final String myArtifactId;
+    @NotNull private final String myVersion;
+
+    @Nullable private final String myDescription;
 
     public Artifact(@NotNull String groupId, @NotNull String artifactId, @NotNull String version, @Nullable String description) {
-      //noinspection ConstantConditions
-      super(groupId, artifactId, version, null, null, null, null);
+      myGroupId = groupId;
+      myArtifactId = artifactId;
+      myVersion = version;
       myDescription = description;
     }
 
@@ -151,8 +151,8 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
 
     @NotNull
     public String getCoordinates() {
-      String version = REVISION_ANY.equals(getVersion()) ? "" : ':' + getVersion();
-      return getGroupId() + ":" + getArtifactId() + version;
+      String version = REVISION_ANY.equals(myVersion) ? "" : ':' + myVersion;
+      return myGroupId + ":" + myArtifactId + version;
     }
   }
 
@@ -173,19 +173,19 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
         return score;
       }
       else {
-        return artifact2.getVersion().compareTo(artifact1.getVersion());
+        return artifact2.myVersion.compareTo(artifact1.myVersion);
       }
     }
 
-    private static int calculateScore(@NotNull String searchText, @NotNull MavenArtifactInfo artifact) {
+    private static int calculateScore(@NotNull String searchText, @NotNull Artifact artifact) {
       int score = 0;
-      if (artifact.getArtifactId().equals(searchText)) {
+      if (artifact.myArtifactId.equals(searchText)) {
         score++;
       }
-      if (artifact.getArtifactId().contains(searchText)) {
+      if (artifact.myArtifactId.contains(searchText)) {
         score++;
       }
-      if (artifact.getGroupId().contains(searchText)) {
+      if (artifact.myArtifactId.contains(searchText)) {
         score++;
       }
       return score;
@@ -393,7 +393,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
         }
       });
     } catch (Exception e) {
-      MavenLog.LOG.error(e);
+      LOG.error(e);
     }
     finally {
       myProgressIcon.suspend();
