@@ -75,6 +75,7 @@ public class ColorUtils {
 
     if (myItemColor == null) {
       // The resolution of the item value into a color has failed
+      // e.g. if the value is not a valid color such as #00000
       return Collections.emptySet();
     }
 
