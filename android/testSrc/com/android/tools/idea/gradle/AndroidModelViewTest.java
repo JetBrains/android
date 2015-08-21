@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle;
 
 import com.android.builder.model.*;
+import com.android.tools.idea.gradle.AndroidModelView.ModuleNodeBuilder;
 import com.android.tools.idea.gradle.util.ProxyUtil;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import junit.framework.TestCase;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,22 +38,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.android.builder.model.AndroidProject.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link AndroidModelView}.
  */
-public class AndroidModelViewTest extends AndroidGradleTestCase {
+public class AndroidModelViewTest extends TestCase {
+  private static final String projectBasePath = "/p/b/p";
 
   public void testCreateTreeNode() throws Exception {
-    AndroidModelView view = AndroidModelView.getInstance(getProject());
     DefaultMutableTreeNode node = new DefaultMutableTreeNode("test");
     assertEquals(0, node.getChildCount());
 
     MyInterface proxyObject = ProxyUtil.reproxy(MyInterface.class, createProxyInstance(true));
     assertNotNull(proxyObject);
-    view.addProxyObject(node, proxyObject);
+
+    ModuleNodeBuilder mockNodeBuilder = new ModuleNodeBuilder("", mock(AndroidGradleModel.class), projectBasePath);
+    mockNodeBuilder.addProxyObject(node, proxyObject);
     assertEquals(11, node.getChildCount());
 
     DefaultMutableTreeNode childAtZero = (DefaultMutableTreeNode)node.getChildAt(0);
@@ -179,11 +183,10 @@ public class AndroidModelViewTest extends AndroidGradleTestCase {
     AndroidProject reproxyProject = ProxyUtil.reproxy(AndroidProject.class, createProxyInstance(AndroidProject.class, androidProject));
     assertNotNull(reproxyProject);
 
-    AndroidModelView view = AndroidModelView.getInstance(getProject());
-    DefaultMutableTreeNode node = new DefaultMutableTreeNode("test");
-    assertEquals(0, node.getChildCount());
-
-    view.addProxyObject(node, reproxyProject);
+    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+    when(androidModel.getProxyAndroidProject()).thenReturn(reproxyProject);
+    ModuleNodeBuilder nodeBuilder = new ModuleNodeBuilder("test", androidModel, projectBasePath);
+    DefaultMutableTreeNode node = nodeBuilder.getNode();
     assertTrue(node.getChildCount() > 0);
 
     DefaultMutableTreeNode defaultConfigNode = (DefaultMutableTreeNode)node.getChildAt(node.getChildCount() - 1);
@@ -244,11 +247,10 @@ public class AndroidModelViewTest extends AndroidGradleTestCase {
     AndroidProject reproxyProject = ProxyUtil.reproxy(AndroidProject.class, createProxyInstance(AndroidProject.class, androidProject));
     assertNotNull(reproxyProject);
 
-    AndroidModelView view = AndroidModelView.getInstance(getProject());
-    DefaultMutableTreeNode node = new DefaultMutableTreeNode("test");
-    assertEquals(0, node.getChildCount());
-
-    view.addProxyObject(node, reproxyProject);
+    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+    when(androidModel.getProxyAndroidProject()).thenReturn(reproxyProject);
+    ModuleNodeBuilder nodeBuilder = new ModuleNodeBuilder("test", androidModel, projectBasePath);
+    DefaultMutableTreeNode node = nodeBuilder.getNode();
     assertTrue(node.getChildCount() > 0);
 
     DefaultMutableTreeNode buildTypesNode = (DefaultMutableTreeNode)node.getChildAt(node.getChildCount() - 1);
@@ -297,11 +299,10 @@ public class AndroidModelViewTest extends AndroidGradleTestCase {
     AndroidProject reproxyProject = ProxyUtil.reproxy(AndroidProject.class, createProxyInstance(AndroidProject.class, androidProject));
     assertNotNull(reproxyProject);
 
-    AndroidModelView view = AndroidModelView.getInstance(getProject());
-    DefaultMutableTreeNode node = new DefaultMutableTreeNode("test");
-    assertEquals(0, node.getChildCount());
-
-    view.addProxyObject(node, reproxyProject);
+    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+    when(androidModel.getProxyAndroidProject()).thenReturn(reproxyProject);
+    ModuleNodeBuilder nodeBuilder = new ModuleNodeBuilder("test", androidModel, projectBasePath);
+    DefaultMutableTreeNode node = nodeBuilder.getNode();
     assertTrue(node.getChildCount() > 0);
 
     DefaultMutableTreeNode productFlavorsNode = (DefaultMutableTreeNode)node.getChildAt(node.getChildCount() - 1);
@@ -333,32 +334,31 @@ public class AndroidModelViewTest extends AndroidGradleTestCase {
     when(androidProject.getVariants()).thenReturn(ImmutableList.of(createProxyInstance(Variant.class, variant)));
 
     AndroidArtifact mainArtifact = mock(AndroidArtifact.class);
-    when(mainArtifact.getName()).thenReturn("dummyMainArtifact");
+    when(mainArtifact.getName()).thenReturn(ARTIFACT_MAIN);
     when(variant.getMainArtifact()).thenReturn(createProxyInstance(AndroidArtifact.class, mainArtifact));
 
-    AndroidArtifact extraAndroidArtifact1 = mock(AndroidArtifact.class);
-    when(extraAndroidArtifact1.getName()).thenReturn("extraAndroidArtifact1");
-    AndroidArtifact extraAndroidArtifact2 = mock(AndroidArtifact.class);
-    when(extraAndroidArtifact2.getName()).thenReturn("extraAndroidArtifact2");
-    when(variant.getExtraAndroidArtifacts()).thenReturn(ImmutableList.of(createProxyInstance(AndroidArtifact.class, extraAndroidArtifact1),
-                                                                         createProxyInstance(AndroidArtifact.class,
-                                                                                             extraAndroidArtifact2)));
+    AndroidArtifact extraAndroidArtifact = mock(AndroidArtifact.class);
+    when(extraAndroidArtifact.getName()).thenReturn(ARTIFACT_ANDROID_TEST);
+    when(variant.getExtraAndroidArtifacts()).thenReturn(ImmutableList.of(createProxyInstance(AndroidArtifact.class, extraAndroidArtifact)));
 
-    JavaArtifact extraJavaArtifact1 = mock(JavaArtifact.class);
-    when(extraJavaArtifact1.getName()).thenReturn("extraJavaArtifact1");
-    JavaArtifact extraJavaArtifact2 = mock(JavaArtifact.class);
-    when(extraJavaArtifact2.getName()).thenReturn("extraJavaArtifact2");
-    when(variant.getExtraJavaArtifacts()).thenReturn(ImmutableList.of(createProxyInstance(JavaArtifact.class, extraJavaArtifact1),
-                                                                      createProxyInstance(JavaArtifact.class, extraJavaArtifact2)));
+    JavaArtifact extraJavaArtifact = mock(JavaArtifact.class);
+    when(extraJavaArtifact.getName()).thenReturn(ARTIFACT_UNIT_TEST);
+    when(variant.getExtraJavaArtifacts()).thenReturn(ImmutableList.of(createProxyInstance(JavaArtifact.class, extraJavaArtifact)));
 
     AndroidProject reproxyProject = ProxyUtil.reproxy(AndroidProject.class, createProxyInstance(AndroidProject.class, androidProject));
     assertNotNull(reproxyProject);
 
-    AndroidModelView view = AndroidModelView.getInstance(getProject());
-    DefaultMutableTreeNode node = new DefaultMutableTreeNode("test");
-    assertEquals(0, node.getChildCount());
+    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+    when(androidModel.getProxyAndroidProject()).thenReturn(reproxyProject);
+    when(androidModel.getVariantNames()).thenReturn(ImmutableList.of("dummyVariant"));
+    List<SourceProvider> mockSourceProviders =
+      ImmutableList.of(createMockSourceProvider("src1"), createMockSourceProvider("src2"), createMockSourceProvider("src3"));
+    when(androidModel.getMainSourceProviders("dummyVariant")).thenReturn(mockSourceProviders);
+    when(androidModel.getTestSourceProviders("dummyVariant", ARTIFACT_ANDROID_TEST)).thenReturn(mockSourceProviders);
+    when(androidModel.getTestSourceProviders("dummyVariant", ARTIFACT_UNIT_TEST)).thenReturn(mockSourceProviders);
 
-    view.addProxyObject(node, reproxyProject);
+    ModuleNodeBuilder nodeBuilder = new ModuleNodeBuilder("test", androidModel, projectBasePath);
+    DefaultMutableTreeNode node = nodeBuilder.getNode();
     assertTrue(node.getChildCount() > 0);
 
     DefaultMutableTreeNode variantsNode = (DefaultMutableTreeNode)node.getChildAt(node.getChildCount() - 1);
@@ -371,17 +371,84 @@ public class AndroidModelViewTest extends AndroidGradleTestCase {
 
     DefaultMutableTreeNode artifactsNode = (DefaultMutableTreeNode)variantNode.getChildAt(variantNode.getChildCount() - 1);
     assertEquals("Artifacts", artifactsNode.getUserObject().toString());
-    assertEquals(5, artifactsNode.getChildCount());
-    assertEquals("dummyMainArtifact", ((DefaultMutableTreeNode)artifactsNode.getChildAt(0)).getUserObject().toString());
-    assertEquals("extraAndroidArtifact1", ((DefaultMutableTreeNode)artifactsNode.getChildAt(1)).getUserObject().toString());
-    assertEquals("extraAndroidArtifact2", ((DefaultMutableTreeNode)artifactsNode.getChildAt(2)).getUserObject().toString());
-    assertEquals("extraJavaArtifact1", ((DefaultMutableTreeNode)artifactsNode.getChildAt(3)).getUserObject().toString());
-    assertEquals("extraJavaArtifact2", ((DefaultMutableTreeNode)artifactsNode.getChildAt(4)).getUserObject().toString());
+    assertEquals(3, artifactsNode.getChildCount());
+
+    DefaultMutableTreeNode androidTestNode = (DefaultMutableTreeNode)artifactsNode.getChildAt(0);
+    assertEquals(ARTIFACT_ANDROID_TEST, androidTestNode.getUserObject().toString());
+    DefaultMutableTreeNode sourcesNode = (DefaultMutableTreeNode)androidTestNode.getChildAt(androidTestNode.getChildCount() - 1);
+    verifySourcesNode(sourcesNode);
+
+
+    DefaultMutableTreeNode mainNode = (DefaultMutableTreeNode)artifactsNode.getChildAt(1);
+    assertEquals(ARTIFACT_MAIN, mainNode.getUserObject().toString());
+    sourcesNode = (DefaultMutableTreeNode)mainNode.getChildAt(mainNode.getChildCount() - 1);
+    verifySourcesNode(sourcesNode);
+
+    DefaultMutableTreeNode unitTestNode = (DefaultMutableTreeNode)artifactsNode.getChildAt(2);
+    assertEquals(ARTIFACT_UNIT_TEST, unitTestNode.getUserObject().toString());
+    sourcesNode = (DefaultMutableTreeNode)unitTestNode.getChildAt(unitTestNode.getChildCount() - 1);
+    verifySourcesNode(sourcesNode);
   }
 
-  private MyInterface createProxyInstance(boolean recurse) {
-    final MyInterfaceImpl delegate = new MyInterfaceImpl(recurse);
-    return createProxyInstance(MyInterface.class, delegate);
+  private static SourceProvider createMockSourceProvider(@NotNull String srcDirName) {
+    SourceProvider provider = mock(SourceProvider.class);
+    when(provider.getManifestFile()).thenReturn(new File(projectBasePath + "/" + srcDirName + "/ManifestFile.xml"));
+    when(provider.getJavaDirectories()).thenReturn(ImmutableList.of(new File(projectBasePath + "/" + srcDirName + "/java")));
+    when(provider.getCDirectories()).thenReturn(ImmutableList.of(new File(projectBasePath + "/" + srcDirName + "/jni")));
+    when(provider.getJniLibsDirectories()).thenReturn(ImmutableList.of(new File(projectBasePath + "/" + srcDirName + "/jniLib")));
+    when(provider.getResDirectories()).thenReturn(ImmutableList.of(new File(projectBasePath + "/" + srcDirName + "/res")));
+    when(provider.getAidlDirectories()).thenReturn(ImmutableList.of(new File(projectBasePath + "/" + srcDirName + "/aidl")));
+    when(provider.getResourcesDirectories()).thenReturn(ImmutableList.of(new File(projectBasePath + "/" + srcDirName + "/resources")));
+    when(provider.getAssetsDirectories()).thenReturn(ImmutableList.of(new File(projectBasePath + "/" + srcDirName + "/assets")));
+    when(provider.getRenderscriptDirectories()).thenReturn(ImmutableList.of(new File(projectBasePath + "/" + srcDirName + "/rs")));
+    return provider;
+  }
+
+  private static void verifySourcesNode(@NotNull DefaultMutableTreeNode sourcesNode) {
+    assertEquals("Sources", sourcesNode.getUserObject().toString());
+    assertEquals(9, sourcesNode.getChildCount());
+    DefaultMutableTreeNode manifestFilesNode = (DefaultMutableTreeNode)sourcesNode.getChildAt(0);
+    assertEquals("ManifestFiles", manifestFilesNode.getUserObject().toString());
+    verifySourceDirectoryPaths(manifestFilesNode, "ManifestFile.xml");
+
+    DefaultMutableTreeNode javaDirectoriesNode = (DefaultMutableTreeNode)sourcesNode.getChildAt(1);
+    assertEquals("JavaDirectories", javaDirectoriesNode.getUserObject().toString());
+    verifySourceDirectoryPaths(javaDirectoriesNode, "java");
+
+    DefaultMutableTreeNode jniDirectoriesNode = (DefaultMutableTreeNode)sourcesNode.getChildAt(2);
+    assertEquals("JniDirectories", jniDirectoriesNode.getUserObject().toString());
+    verifySourceDirectoryPaths(jniDirectoriesNode, "jni");
+
+    DefaultMutableTreeNode jniLibsDirectoriesNode = (DefaultMutableTreeNode)sourcesNode.getChildAt(3);
+    assertEquals("JniLibsDirectories", jniLibsDirectoriesNode.getUserObject().toString());
+    verifySourceDirectoryPaths(jniLibsDirectoriesNode, "jniLib");
+
+    DefaultMutableTreeNode resDirectoriesNode = (DefaultMutableTreeNode)sourcesNode.getChildAt(4);
+    assertEquals("ResDirectories", resDirectoriesNode.getUserObject().toString());
+    verifySourceDirectoryPaths(resDirectoriesNode, "res");
+
+    DefaultMutableTreeNode aidlDirectoriesNode = (DefaultMutableTreeNode)sourcesNode.getChildAt(5);
+    assertEquals("AidlDirectories", aidlDirectoriesNode.getUserObject().toString());
+    verifySourceDirectoryPaths(aidlDirectoriesNode, "aidl");
+
+    DefaultMutableTreeNode resourcesDirectoriesNode = (DefaultMutableTreeNode)sourcesNode.getChildAt(6);
+    assertEquals("ResourcesDirectories", resourcesDirectoriesNode.getUserObject().toString());
+    verifySourceDirectoryPaths(resourcesDirectoriesNode, "resources");
+
+    DefaultMutableTreeNode assetsDirectoriesNode = (DefaultMutableTreeNode)sourcesNode.getChildAt(7);
+    assertEquals("AssetsDirectories", assetsDirectoriesNode.getUserObject().toString());
+    verifySourceDirectoryPaths(assetsDirectoriesNode, "assets");
+
+    DefaultMutableTreeNode renderscriptDirectoriesNode = (DefaultMutableTreeNode)sourcesNode.getChildAt(8);
+    assertEquals("RenderscriptDirectories", renderscriptDirectoriesNode.getUserObject().toString());
+    verifySourceDirectoryPaths(renderscriptDirectoriesNode, "rs");
+  }
+
+  private static void verifySourceDirectoryPaths(@NotNull DefaultMutableTreeNode dirNode, @NotNull String dirType) {
+    assertEquals(3, dirNode.getChildCount());
+    assertEquals("src1/" + dirType, ((DefaultMutableTreeNode)dirNode.getChildAt(0)).getUserObject().toString());
+    assertEquals("src2/" + dirType, ((DefaultMutableTreeNode)dirNode.getChildAt(1)).getUserObject().toString());
+    assertEquals("src3/" + dirType, ((DefaultMutableTreeNode)dirNode.getChildAt(2)).getUserObject().toString());
   }
 
   @SuppressWarnings("unchecked")
@@ -398,6 +465,11 @@ public class AndroidModelViewTest extends AndroidGradleTestCase {
         }
       }
     });
+  }
+
+  private MyInterface createProxyInstance(boolean recurse) {
+    final MyInterfaceImpl delegate = new MyInterfaceImpl(recurse);
+    return createProxyInstance(MyInterface.class, delegate);
   }
 
   @SuppressWarnings("unused") // accessed via reflection
@@ -451,7 +523,7 @@ public class AndroidModelViewTest extends AndroidGradleTestCase {
 
     @Override
     public File getFileUnderProject() {
-      return new File(getProject().getBasePath() + "/b/sample/file");
+      return new File(projectBasePath + "/b/sample/file");
     }
 
     @Override
