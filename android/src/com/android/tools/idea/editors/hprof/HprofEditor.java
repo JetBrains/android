@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.hprof;
 
-import com.android.tools.perflib.heap.HprofParser;
 import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.perflib.heap.io.MemoryMappedFileBuffer;
 import com.google.common.base.Throwables;
@@ -30,6 +29,7 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -44,7 +44,8 @@ import java.io.File;
 
 public class HprofEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private static final Logger LOG = Logger.getInstance(HprofEditor.class);
-  private final JPanel myPanel;
+  private Snapshot mySnapshot;
+  private JPanel myPanel;
   private boolean myIsValid = true;
 
   public HprofEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
@@ -99,15 +100,13 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
     myPanel.add(indicatorWrapper);
 
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      private Snapshot mySnapshot;
-
       @Override
       public void run() {
         final File hprofFile = VfsUtilCore.virtualToIoFile(file);
         try {
           indicator.setFraction(0.0);
           indicator.setText("Parsing hprof file...");
-          mySnapshot = new HprofParser(new MemoryMappedFileBuffer(hprofFile)).parse();
+          mySnapshot = Snapshot.createSnapshot(new MemoryMappedFileBuffer(hprofFile));
 
           indicator.setFraction(0.5);
           indicator.setText("Computing dominators...");
@@ -132,7 +131,9 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
               myPanel.removeAll();
               myPanel.setLayout(new BorderLayout());
               if (mySnapshot != null) {
-                myPanel.add(new HprofViewPanel(project, HprofEditor.this, mySnapshot).getComponent(), BorderLayout.CENTER);
+                HprofViewPanel view = new HprofViewPanel(project, HprofEditor.this, mySnapshot);
+                Disposer.register(HprofEditor.this, view);
+                myPanel.add(view.getComponent(), BorderLayout.CENTER);
               }
             }
           });
@@ -220,5 +221,9 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public void dispose() {
+    mySnapshot.dispose();
+    mySnapshot = null;
+    myPanel = null;
+    myIsValid = false;
   }
 }
