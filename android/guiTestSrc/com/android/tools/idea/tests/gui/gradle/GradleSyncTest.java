@@ -167,6 +167,32 @@ public class GradleSyncTest extends GuiTestCase {
   }
 
   @Test @IdeGuiTest
+  // See https://code.google.com/p/android/issues/detail?id=183368
+  public void testTestOnlyInterModuleDependencies() throws IOException {
+    final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/build.gradle")
+      .moveTo(editor.findOffset("^compile fileTree"))
+      .enterText("androidTestCompile project(':library3')\n");
+
+    projectFrame.requestProjectSync();
+    projectFrame.waitForBackgroundTasksToFinish();
+    Module appModule = projectFrame.getModule("app");
+
+    for (OrderEntry entry : ModuleRootManager.getInstance(appModule).getOrderEntries()) {
+      if (entry instanceof ModuleOrderEntry) {
+        ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)entry;
+        if ("library3".equals(moduleOrderEntry.getModuleName())) {
+          assertEquals(DependencyScope.TEST, moduleOrderEntry.getScope());
+          return;
+        }
+      }
+    }
+    fail("No dependency for library3 found");
+  }
+
+  @Test @IdeGuiTest
   public void testNonExistingInterModuleDependencies() throws IOException {
     final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
