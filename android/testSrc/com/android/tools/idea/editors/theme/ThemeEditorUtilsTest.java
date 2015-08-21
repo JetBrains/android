@@ -128,7 +128,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
    * in which a particular framework attribute or value was defined
    */
   private void assertOriginalApiLevel(@Nullable String name, int expectedApiLevel) {
-    assertEquals(expectedApiLevel, ThemeEditorUtils.getOriginalApiLevel(name, getProject()));
+    assertEquals(expectedApiLevel, ResolutionUtils.getOriginalApiLevel(name, getProject()));
   }
 
   public void testOriginalApi() {
