@@ -518,8 +518,8 @@ public class ThemeEditorStyle {
     }
 
     // The API level where the attribute was defined
-    int attributeDefinitionApi = Math.max(ThemeEditorUtils.getOriginalApiLevel(attribute, myProject),
-                                          ThemeEditorUtils.getOriginalApiLevel(value, myProject));
+    int attributeDefinitionApi = Math.max(ResolutionUtils.getOriginalApiLevel(attribute, myProject),
+                                          ResolutionUtils.getOriginalApiLevel(value, myProject));
 
     final int minProjectApi = ThemeEditorUtils.getMinApiLevel(myConfiguration.getModule());
     final int minAcceptableApi = attributeDefinitionApi != -1 ? attributeDefinitionApi : 1;
@@ -642,7 +642,7 @@ public class ThemeEditorStyle {
       throw new UnsupportedOperationException("Non project styles can not be modified");
     }
     final int minProjectApi = ThemeEditorUtils.getMinApiLevel(myConfiguration.getModule());
-    final int minAcceptableApi = ThemeEditorUtils.getOriginalApiLevel(newParent, myProject);
+    final int minAcceptableApi = ResolutionUtils.getOriginalApiLevel(newParent, myProject);
     final FolderConfiguration sourceConfiguration = findAcceptableSourceFolderConfiguration(myConfiguration.getModule(), minAcceptableApi,
                                                                                             getFolderConfigurations());
     List<ResourceItem> styleResourceItems = getStyleResourceItems();
