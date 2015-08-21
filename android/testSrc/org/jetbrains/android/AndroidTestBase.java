@@ -94,7 +94,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     if (new File(adtPath).exists()) {
       return adtPath;
     }
-    return PathManagerEx.findFileUnderCommunityHome("android/android").getPath();
+    return PathManagerEx.findFileUnderCommunityHome("plugins/android").getPath();
   }
 
   public static String getDefaultTestSdkPath() {
