@@ -49,10 +49,7 @@ import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.*;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.slicer.DuplicateMap;
-import com.intellij.slicer.SliceAnalysisParams;
-import com.intellij.slicer.SliceRootNode;
-import com.intellij.slicer.SliceUsage;
+import com.intellij.slicer.*;
 import com.intellij.util.Function;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
@@ -1845,7 +1842,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     params.dataFlowToThis = true;
     params.scope = new AnalysisScope(new LocalSearchScope(scope), manager.getProject());
 
-    SliceRootNode rootNode = new SliceRootNode(manager.getProject(), new DuplicateMap(), SliceUsage.createRootUsage(argument, params));
+    SliceRootNode rootNode = new SliceRootNode(manager.getProject(), new DuplicateMap(),
+                                               LanguageSlicing.getProvider(argument).createRootUsage(argument, params));
 
     @SuppressWarnings("unchecked")
     Collection<? extends AbstractTreeNode> children = rootNode.getChildren().iterator().next().getChildren();
