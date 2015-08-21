@@ -25,6 +25,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -179,6 +180,11 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       myConnection.disconnect();
       myConnection = null;
     }
+  }
+
+  public static boolean isInstantRunEnabled(@NotNull Project project) {
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+    return buildConfiguration.INSTANT_RUN;
   }
 
   // ---- Implements BulkFileListener ----
