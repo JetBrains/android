@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -155,28 +156,36 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @NotNull
   @Override
   public List<SourceProvider> getActiveSourceProviders() {
+    return getMainSourceProviders(mySelectedVariantName);
+  }
+
+  @NotNull
+  public List<SourceProvider> getMainSourceProviders(@NotNull String variantName) {
+    Variant variant = myVariantsByName.get(variantName);
+    if (variant == null) {
+      LOG.error("Unknown variant name '" + variantName + "' found in the module '" + myModuleName + "'");
+      return ImmutableList.of();
+    }
+
     List<SourceProvider> providers = Lists.newArrayList();
     // Main source provider.
     providers.add(getDefaultSourceProvider());
-
-    Variant selectedVariant = getSelectedVariant();
-
     // Flavor source providers.
-    for (String flavor : selectedVariant.getProductFlavors()) {
+    for (String flavor : variant.getProductFlavors()) {
       ProductFlavorContainer productFlavor = findProductFlavor(flavor);
       assert productFlavor != null;
       providers.add(productFlavor.getSourceProvider());
     }
 
     // Multi-flavor source provider.
-    AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+    AndroidArtifact mainArtifact = variant.getMainArtifact();
     SourceProvider multiFlavorProvider = mainArtifact.getMultiFlavorSourceProvider();
     if (multiFlavorProvider != null) {
       providers.add(multiFlavorProvider);
     }
 
     // Build type source provider.
-    BuildTypeContainer buildType = findBuildType(selectedVariant.getBuildType());
+    BuildTypeContainer buildType = findBuildType(variant.getBuildType());
     assert buildType != null;
     providers.add(buildType.getSourceProvider());
 
@@ -191,29 +200,43 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @NotNull
   @Override
   public List<SourceProvider> getTestSourceProviders() {
-    List<SourceProvider> providers = Lists.newArrayList();
+    return getTestSourceProviders(mySelectedVariantName, mySelectedTestArtifactName);
+  }
 
+  @NotNull
+  public List<SourceProvider> getTestSourceProviders(@NotNull String variantName, @NotNull String testArtifactName) {
+    if (!testArtifactName.equals(ARTIFACT_ANDROID_TEST) && !testArtifactName.equals(ARTIFACT_UNIT_TEST)) {
+      LOG.error("Unknown artifact name '" + testArtifactName + "' found in the module '" + myModuleName + "'");
+      return ImmutableList.of();
+    }
+
+    Variant variant = myVariantsByName.get(variantName);
+    if (variant == null) {
+      LOG.error("Unknown variant name '" + variantName + "' found in the module '" + myModuleName + "'");
+      return ImmutableList.of();
+    }
+
+    List<SourceProvider> providers = Lists.newArrayList();
     // Collect the default config test source providers.
     Collection<SourceProviderContainer> extraSourceProviders =
       getAndroidProject().getDefaultConfig().getExtraSourceProviders();
-    providers.addAll(getSourceProvidersForSelectedTestArtifact(extraSourceProviders));
+    providers.addAll(getSourceProvidersForTestArtifact(extraSourceProviders, testArtifactName));
 
     // Collect the product flavor test source providers.
-    Variant selectedVariant = getSelectedVariant();
-    for (String flavor : selectedVariant.getProductFlavors()) {
+    for (String flavor : variant.getProductFlavors()) {
       ProductFlavorContainer productFlavor = findProductFlavor(flavor);
       assert productFlavor != null;
       providers.addAll(
-        getSourceProvidersForSelectedTestArtifact(productFlavor.getExtraSourceProviders()));
+        getSourceProvidersForTestArtifact(productFlavor.getExtraSourceProviders(), testArtifactName));
     }
 
     // TODO: Does it make sense to add multi-flavor test source providers?
 
     // Collect the build type test source providers.
-    BuildTypeContainer buildType = findBuildType(selectedVariant.getBuildType());
+    BuildTypeContainer buildType = findBuildType(variant.getBuildType());
     assert buildType != null;
     providers.addAll(
-      getSourceProvidersForSelectedTestArtifact(buildType.getExtraSourceProviders()));
+      getSourceProvidersForTestArtifact(buildType.getExtraSourceProviders(), testArtifactName));
 
     // TODO: Does it make sense to add variant test source providers?
 
@@ -522,10 +545,16 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   @NotNull
   public Collection<SourceProvider> getSourceProvidersForSelectedTestArtifact(@NotNull Iterable<SourceProviderContainer> containers) {
+    return getSourceProvidersForTestArtifact(containers, mySelectedTestArtifactName);
+  }
+
+  @NotNull
+  public Collection<SourceProvider> getSourceProvidersForTestArtifact(@NotNull Iterable<SourceProviderContainer> containers,
+                                                                      @NotNull String testArtifactName) {
     Set<SourceProvider> providers = Sets.newHashSet();
 
     for (SourceProviderContainer container : containers) {
-      if (mySelectedTestArtifactName.equals(container.getArtifactName())) {
+      if (testArtifactName.equals(container.getArtifactName())) {
         providers.add(container.getSourceProvider());
       }
     }
