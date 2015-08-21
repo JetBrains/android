@@ -19,8 +19,10 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.android.tools.idea.editors.theme.StateListPicker;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.MaterialColors;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
@@ -213,7 +215,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
                               @NotNull ResourceHelper.StateList stateList,
                               ResourceNameVisibility resourceNameVisibility,
                               @Nullable String resourceName) {
-    this(module, configuration, types, null, null,resourceNameVisibility, resourceName, stateList);
+    this(module, configuration, types, null, null, resourceNameVisibility, resourceName, stateList);
   }
 
   private ChooseResourceDialog(@NotNull Module module,
@@ -423,6 +425,22 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   protected void notifyResourcePickerListeners(String resource) {
     if (myResourcePickerListener != null) {
       myResourcePickerListener.resourceChanged(resource);
+    }
+  }
+
+  public void generateColorSuggestions(@NotNull Color primaryColor, @NotNull String attributeName) {
+    List<Color> suggestedColors = null;
+    if (MaterialColors.PRIMARY_MATERIAL_ATTR.equals(attributeName)) {
+      suggestedColors = MaterialColorUtils.suggestPrimaryColors();
+    }
+    else if (MaterialColors.PRIMARY_DARK_MATERIAL_ATTR.equals(attributeName)) {
+      suggestedColors = MaterialColorUtils.suggestPrimaryDarkColors(primaryColor);
+    }
+    else if (MaterialColors.ACCENT_MATERIAL_ATTR.equals(attributeName)) {
+      suggestedColors = MaterialColorUtils.suggestAccentColors(primaryColor);
+    }
+    if (suggestedColors != null) {
+      myColorPicker.setRecommendedColors(suggestedColors);
     }
   }
 

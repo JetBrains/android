@@ -16,15 +16,14 @@
 package com.android.tools.idea.editors.theme.attributes;
 
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.TreeMultimap;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -88,7 +87,8 @@ public class AttributesGrouper {
 
   @NotNull
   private static List<TableLabel> generateLabelsForType(@NotNull final List<EditedStyleItem> source, @NotNull final List<EditedStyleItem> sink) {
-    final Multimap<Group, EditedStyleItem> classes = HashMultimap.create();
+    // ArrayListMultimap is used to ensure the elements stay sorted
+    final Multimap<Group, EditedStyleItem> classes = ArrayListMultimap.create();
 
     for (final EditedStyleItem item : source) {
       final String name = item.getName();
@@ -119,7 +119,8 @@ public class AttributesGrouper {
   }
 
   static List<TableLabel> generateLabelsForGroup(final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
-    TreeMultimap<String, EditedStyleItem> classes = TreeMultimap.create();
+    // ArrayListMultimap is used to ensure the elements stay sorted
+    Multimap<String, EditedStyleItem> classes = ArrayListMultimap.create();
     for (EditedStyleItem item : source){
       String group = item.getAttrGroup();
       classes.put(group, item);

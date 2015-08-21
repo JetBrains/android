@@ -739,7 +739,8 @@ public class ThemeEditorUtils {
   }
 
   @NotNull
-  public static ChooseResourceDialog getResourceDialog(@NotNull EditedStyleItem item, @NotNull ThemeEditorContext context,
+  public static ChooseResourceDialog getResourceDialog(@NotNull EditedStyleItem item,
+                                                       @NotNull ThemeEditorContext context,
                                                        ResourceType[] allowedTypes) {
     String itemValue = item.getValue();
     String resourceName;

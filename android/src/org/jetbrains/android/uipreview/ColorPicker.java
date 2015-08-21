@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.icons.AllIcons;
@@ -23,7 +24,6 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.popup.Balloon;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.WindowManager;
@@ -36,11 +36,10 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.Alarm;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-
 import java.awt.AWTException;
 import java.awt.AlphaComposite;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dialog;
@@ -96,6 +95,7 @@ import javax.swing.UIManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.basic.BasicButtonUI;
@@ -112,15 +112,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This is just a copy of {@link com.intellij.ui.ColorPicker}, but with support
- * for ARGB. There is nothing Android specific about this, so these changes
- * have been submitted as a patch for the base ColorPicker in
- * https://youtrack.jetbrains.com/issue/IDEA-123498
- * and if that's applied we can get rid of this class and use the base platform
- * one instead.
+ * Color picker with support for Material suggestions and ARGB.
+ * Unlike Intellij color picker, it uses a saturation and brightness matrix and a hue slider instead of a colour wheel
  */
 public class ColorPicker extends JPanel implements ColorListener, DocumentListener {
-  private static final String COLOR_CHOOSER_COLORS_KEY = "ColorChooser.RecentColors";
   private static final String HSB_PROPERTY = "color.picker.is.hsb";
 
   private Color myColor;
@@ -134,9 +129,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   private final Alarm myUpdateQueue;
   private final ColorPickerListener[] myExternalListeners;
 
-  private final boolean myOpacityInPercent;
-
-  private RecentColorsComponent myRecentColorsComponent;
+  private RecommendedColorsComponent myRecommendedColorsComponent;
   private final ColorPipette myPicker;
   private final JLabel myA = new JLabel("A:");
   private final JLabel myR = new JLabel("R:");
@@ -158,12 +151,11 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   };
 
   public ColorPicker(@NotNull Disposable parent, @Nullable Color color, boolean enableOpacity, ColorPickerListener... listeners) {
-    this(parent, color, true, enableOpacity, listeners, false);
+    this(parent, color, enableOpacity, listeners, false);
   }
 
   private ColorPicker(Disposable parent,
-                      @Nullable Color color,
-                      boolean restoreColors, boolean enableOpacity,
+                      @Nullable Color color, boolean enableOpacity,
                       ColorPickerListener[] listeners, boolean opacityInPercent) {
     myUpdateQueue = new Alarm(Alarm.ThreadToUse.SWING_THREAD, parent);
     myAlpha = createColorField(false);
@@ -171,14 +163,13 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     myGreen = createColorField(false);
     myBlue = createColorField(false);
     myHex = createColorField(true);
-    myOpacityInPercent = opacityInPercent;
     myA.setLabelFor(myAlpha);
     myR.setLabelFor(myRed);
     myG.setLabelFor(myGreen);
     myB.setLabelFor(myBlue);
     myHexLabel.setLabelFor(myHex);
-    setLayout(new BorderLayout());
-    setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
+    setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+    setBorder(JBUI.Borders.empty(5, 5, 0, 5));
 
     DefaultComboBoxModel model = new DefaultComboBoxModel(new String[]{"RGB", "HSB"});
     if (enableOpacity) {
@@ -186,7 +177,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
     myFormat.setModel(model);
 
-    myColorSelectionPanel = new ColorSelectionPanel(this, enableOpacity, myOpacityInPercent);
+    myColorSelectionPanel = new ColorSelectionPanel(this, enableOpacity, opacityInPercent);
 
     myExternalListeners = listeners;
     myFormat.addActionListener(new ActionListener() {
@@ -198,9 +189,12 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         myR.setText(isRGBMode() ? "R:" : "H:");
         myG.setText(isRGBMode() ? "G:" : "S:");
         myR_after.setText(isRGBMode() ? "" : "\u00B0");
+        myR_after.setVisible(!isRGBMode());
         myG.setText(isRGBMode() ? "G:" : "S:");
         myG_after.setText(isRGBMode() ? "" : "%");
+        myG_after.setVisible(!isRGBMode());
         myB_after.setText(isRGBMode() ? "" : "%");
+        myB_after.setVisible(!isRGBMode());
         applyColor(myColor);
         applyColorToHEX(myColor);
       }
@@ -214,28 +208,23 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       }
     });
     try {
-      add(buildTopPanel(true), BorderLayout.NORTH);
-      add(myColorSelectionPanel, BorderLayout.CENTER);
-
-      myRecentColorsComponent = new RecentColorsComponent(new ColorListener() {
+      myRecommendedColorsComponent = new RecommendedColorsComponent(new ColorListener() {
         @Override
         public void colorChanged(Color color, Object source) {
           setColor(color, source);
         }
-      }, restoreColors);
+      });
 
-      add(myRecentColorsComponent, BorderLayout.SOUTH);
+      JComponent topPanel = buildTopPanel(true);
+      add(topPanel);
+      add(myColorSelectionPanel);
+      add(myRecommendedColorsComponent);
     }
     catch (ParseException ignore) {
     }
 
-    Color c = color == null ? myRecentColorsComponent.getMostRecentColor() : color;
-    if (c == null) {
-      c = Color.WHITE;
-    }
-    setColor(c, this);
-
-    setSize(300, 350);
+    setColor(color == null ? Color.WHITE : color, this);
+    setSize(JBUI.size(300, 350));
 
     final boolean hsb = PropertiesComponent.getInstance().getBoolean(HSB_PROPERTY, false);
     if (hsb) {
@@ -273,8 +262,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     UIManager.LookAndFeelInfo info = LafManager.getInstance().getCurrentLookAndFeel();
     if (info != null && (info.getName().startsWith("IDEA") || info.getName().equals("Windows Classic")))
       lafFix = 1;
-    final JTextField field = new JTextField(doc, "", (hex ? 5:2) + lafFix);
-    field.setSize(50, -1);
+    final JTextField field = new JTextField(doc, "", (hex ? 6 : 3) + lafFix);
+    field.setSize(JBUI.size(50, -1));
     doc.setSource(field);
     field.getDocument().addDocumentListener(this);
     field.addFocusListener(new FocusAdapter() {
@@ -293,14 +282,6 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   private void setColor(Color color, Object src) {
     colorChanged(color, src);
     myColorSelectionPanel.setColor(color, src);
-  }
-
-  public void appendRecentColor() {
-    myRecentColorsComponent.appendColor(myColor);
-  }
-
-  public void saveRecentColors() {
-    myRecentColorsComponent.saveColors();
   }
 
   public Color getColor() {
@@ -369,7 +350,6 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       myPreviewComponent.setColor(color);
       myColorSelectionPanel.setColor(color, fromHex ? myHex : null);
 
-
       if (fromHex) {
         applyColor(color);
       } else {
@@ -391,6 +371,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         applyColorToHEX(color);
       }
       myPreviewComponent.setColor(color);
+      myColorSelectionPanel.setOpacityComponentColor(color);
       fireColorChanged(color);
     }
   }
@@ -409,6 +390,10 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
   }
 
+  public void setRecommendedColors(@NotNull List<Color> colorList) {
+    myRecommendedColorsComponent.setColors(colorList);
+  }
+
   @SuppressWarnings("UseJBColor")
   @Nullable
   private Color gatherRGB() {
@@ -418,7 +403,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       final int b = Integer.parseInt(myBlue.getText());
       final int a = Integer.parseInt(myAlpha.getText());
 
-      return isRGBMode() ? new Color(r, g, b, a) : new Color(Color.HSBtoRGB(((float)r) / 360f, ((float)g) / 100f, ((float)b) / 100f));
+      return isRGBMode() ? new Color(r, g, b, a) : Color.getHSBColor(((float)r) / 360f, ((float)g) / 100f, ((float)b) / 100f);
     } catch (Exception ignore) {
     }
     return null;
@@ -442,9 +427,9 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   private void applyColorToHSB(final Color c) {
     myAlpha.setText(String.valueOf(c.getAlpha()));
     final float[] hbs = Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), null);
-    myRed.setText(String.valueOf(((int)(360f * hbs[0]))));
-    myGreen.setText(String.valueOf(((int)(100f * hbs[1]))));
-    myBlue.setText(String.valueOf(((int)(100f * hbs[2]))));
+    myRed.setText(String.valueOf((Math.round(360f * hbs[0]))));
+    myGreen.setText(String.valueOf((Math.round(100f * hbs[1]))));
+    myBlue.setText(String.valueOf((Math.round(100f * hbs[2]))));
   }
 
   private void applyColor(final Color color) {
@@ -472,9 +457,9 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   }
 
   private JComponent buildTopPanel(boolean enablePipette) throws ParseException {
-    final JPanel result = new JPanel(new BorderLayout());
+    final JComponent result = new Box(BoxLayout.PAGE_AXIS);
 
-    final JPanel previewPanel = new JPanel(new BorderLayout());
+    final JComponent previewPanel = new Box(BoxLayout.LINE_AXIS);
     if (enablePipette && ColorPipette.isAvailable()) {
       final JButton pipette = new JButton();
       pipette.setUI(new BasicButtonUI());
@@ -494,51 +479,57 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
           //  .createBalloon().show(new RelativePoint(pipette, new Point(pipette.getWidth() / 2, 0)), Balloon.Position.above);
         }
       });
-      previewPanel.add(pipette, BorderLayout.WEST);
+      previewPanel.add(pipette);
     }
 
     myPreviewComponent = new ColorPreviewComponent();
-    previewPanel.add(myPreviewComponent, BorderLayout.CENTER);
+    previewPanel.add(myPreviewComponent);
 
-    result.add(previewPanel, BorderLayout.NORTH);
+    result.add(previewPanel);
 
-    final JPanel rgbPanel = new JPanel();
-    rgbPanel.setLayout(new BoxLayout(rgbPanel, BoxLayout.X_AXIS));
+    final JComponent rgbPanel = new Box(BoxLayout.LINE_AXIS);
     if (!UIUtil.isUnderAquaLookAndFeel()) {
-      myR_after.setPreferredSize(new Dimension(14, -1));
-      myG_after.setPreferredSize(new Dimension(14, -1));
-      myB_after.setPreferredSize(new Dimension(14, -1));
+      myR_after.setPreferredSize(JBUI.size(14, -1));
+      myG_after.setPreferredSize(JBUI.size(14, -1));
+      myB_after.setPreferredSize(JBUI.size(14, -1));
     }
     rgbPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
     rgbPanel.add(myA);
     rgbPanel.add(myAlpha);
     myA.setVisible(isARGBMode());
     myAlpha.setVisible(isARGBMode());
-    if (!UIUtil.isUnderAquaLookAndFeel()) rgbPanel.add(myR_after);
-    rgbPanel.add(Box.createHorizontalStrut(2));
+    rgbPanel.add(Box.createHorizontalStrut(JBUI.scale(3)));
     rgbPanel.add(myR);
     rgbPanel.add(myRed);
     if (!UIUtil.isUnderAquaLookAndFeel()) rgbPanel.add(myR_after);
-    rgbPanel.add(Box.createHorizontalStrut(2));
+    myR_after.setVisible(false);
+    rgbPanel.add(Box.createHorizontalStrut(JBUI.scale(3)));
     rgbPanel.add(myG);
     rgbPanel.add(myGreen);
     if (!UIUtil.isUnderAquaLookAndFeel()) rgbPanel.add(myG_after);
-    rgbPanel.add(Box.createHorizontalStrut(2));
+    myG_after.setVisible(false);
+    rgbPanel.add(Box.createHorizontalStrut(JBUI.scale(3)));
     rgbPanel.add(myB);
     rgbPanel.add(myBlue);
     if (!UIUtil.isUnderAquaLookAndFeel()) rgbPanel.add(myB_after);
-    rgbPanel.add(Box.createHorizontalStrut(2));
+    myB_after.setVisible(false);
+    rgbPanel.add(Box.createHorizontalStrut(JBUI.scale(3)));
     rgbPanel.add(myFormat);
 
-    result.add(rgbPanel, BorderLayout.WEST);
+    JComponent valuesPanel = new Box(BoxLayout.LINE_AXIS);
 
-    final JPanel hexPanel = new JPanel();
-    hexPanel.setLayout(new BoxLayout(hexPanel, BoxLayout.X_AXIS));
+    rgbPanel.setMaximumSize(JBUI.size(-1, 35));
+    valuesPanel.add(rgbPanel);
+
+    final JComponent hexPanel = new Box(BoxLayout.X_AXIS);
     hexPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
     hexPanel.add(myHexLabel);
     hexPanel.add(myHex);
+    myHex.setMaximumSize(JBUI.size(120, 25));
 
-    result.add(hexPanel, BorderLayout.EAST);
+    valuesPanel.add(Box.createHorizontalGlue());
+    valuesPanel.add(hexPanel);
+    result.add(valuesPanel);
 
     return result;
   }
@@ -562,7 +553,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       myHueComponent.addListener(new Consumer<Integer>() {
         @Override
         public void consume(Integer value) {
-          mySaturationBrightnessComponent.setHue(value.intValue() / 255.0f);
+          mySaturationBrightnessComponent.setHue(value.intValue() / 360.0f);
+          myOpacityComponent.setHue(value.intValue() / 360.0f);
           mySaturationBrightnessComponent.repaint();
         }
       });
@@ -585,17 +577,22 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       }
     }
 
+    public void setOpacityComponentColor(Color color) {
+      myOpacityComponent.setColor(color);
+      myOpacityComponent.repaint();
+    }
+
     public void setColor(Color color, Object source) {
       float[] hsb = new float[3];
       Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), hsb);
 
-      myHueComponent.setValue((int)(hsb[0] * 255));
+      myHueComponent.setValue(Math.round(hsb[0] * 360));
       myHueComponent.repaint();
 
       mySaturationBrightnessComponent.dropImage();
       if (myOpacityComponent != null) {
-        myOpacityComponent.setColor(color);
-        if (source instanceof ColorPicker) {
+        setOpacityComponentColor(color);
+        if (source instanceof ColorPicker || source instanceof RecommendedColorsComponent) {
           myOpacityComponent.setValue(color.getAlpha());
           myOpacityComponent.repaint();
         }
@@ -605,7 +602,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   }
 
   static class SaturationBrightnessComponent extends JComponent {
-    private static final int BORDER_SIZE = 5;
+    private static final int BORDER_SIZE = JBUI.scale(5);
     private float myBrightness = 1f;
     private float myHue = 1f;
     private float mySaturation = 0f;
@@ -639,8 +636,9 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         @Override
         public void mousePressed(MouseEvent e) {
           final Dimension size = getSize();
-          final int x = e.getX() - BORDER_SIZE;
-          final int y = e.getY() - BORDER_SIZE;
+          final int x = Math.max(Math.min(e.getX(), size.width - BORDER_SIZE), BORDER_SIZE) - BORDER_SIZE;
+          final int y = Math.max(Math.min(e.getY(), size.height - BORDER_SIZE), BORDER_SIZE) - BORDER_SIZE;
+
 
           float saturation = ((float)x) / (size.width - 2 * BORDER_SIZE);
           float brightness = 1.0f - ((float)y) / (size.height - 2 * BORDER_SIZE);
@@ -700,17 +698,12 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     @Override
     public Dimension getPreferredSize() {
-      return new Dimension(250, 170);
+      return JBUI.size(200, 150);
     }
 
     @Override
     public Dimension getMinimumSize() {
-      return new Dimension(150, 170);
-    }
-
-    @Override
-    public Dimension getMaximumSize() {
-      return new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
+      return JBUI.size(200, 150);
     }
 
     @Override
@@ -730,15 +723,14 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
       g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 1.0f));
 
-      final int x = (int)(mySaturation * (myComponent.width - 2 * BORDER_SIZE));
-      final int y = (int)((myComponent.height - 2 * BORDER_SIZE) * (1.0f - myBrightness));
+      final int x = Math.round(mySaturation * (myComponent.width - 2 * BORDER_SIZE));
+      final int y = Math.round((myComponent.height - 2 * BORDER_SIZE) * (1.0f - myBrightness));
 
-      g.setColor(Color.WHITE);
       int knobX = BORDER_SIZE + x;
       int knobY = BORDER_SIZE + y;
-      g.fillRect(knobX - 2, knobY - 2, 4, 4);
-      g.setColor(Color.BLACK);
-      g.drawRect(knobX - 2, knobY - 2, 4, 4);
+      g.setColor(Color.WHITE);
+      g.drawOval(knobX - JBUI.scale(4), knobY - JBUI.scale(4), JBUI.scale(8), JBUI.scale(8));
+      g.drawOval(knobX - JBUI.scale(3), knobY - JBUI.scale(3), JBUI.scale(6), JBUI.scale(6));
     }
 
     public void dropImage() {
@@ -746,7 +738,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
 
     @VisibleForTesting
-    protected Color getColor(){
+    protected Color getColor() {
       return myColor;
     }
   }
@@ -755,12 +747,22 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     private Color myColor;
 
     private ColorPreviewComponent() {
-      setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
+      setBorder(JBUI.Borders.empty(0, 2));
+    }
+
+    @Override
+    public Dimension getMaximumSize() {
+      return new Dimension(Integer.MAX_VALUE, JBUI.scale(32));
     }
 
     @Override
     public Dimension getPreferredSize() {
-      return new Dimension(100, 32);
+      return new Dimension(super.getPreferredSize().width, JBUI.scale(32));
+    }
+
+    @Override
+    public Dimension getMinimumSize() {
+      return JBUI.size(100, 32);
     }
 
     public void setColor(Color c) {
@@ -776,17 +778,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       final int width = r.width - i.left - i.right;
       final int height = r.height - i.top - i.bottom;
 
-      g.setColor(Color.WHITE);
-      g.fillRect(i.left, i.top, width, height);
-
       g.setColor(myColor);
       g.fillRect(i.left, i.top, width, height);
-
-      g.setColor(Color.BLACK);
-      g.drawRect(i.left, i.top, width - 1, height - 1);
-
-      g.setColor(Color.WHITE);
-      g.drawRect(i.left + 1, i.top + 1, width - 3, height - 3);
     }
   }
 
@@ -850,60 +843,34 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
   }
 
-  private class RecentColorsComponent extends JComponent {
-    private static final int WIDTH = 10 * 30 + 13;
-    private static final int HEIGHT = 62 + 3;
+  private class RecommendedColorsComponent extends JComponent {
+    private final int SPACE = JBUI.scale(3);
+    private final int CELL_SIZE = JBUI.scale(40);
+    private final int COLUMN_COUNT = 10;
 
-    private List<Color> myRecentColors = new ArrayList<Color>();
+    private List<Color> myRecommendedColors = new ArrayList<Color>();
 
-    private RecentColorsComponent(final ColorListener listener, boolean restoreColors) {
+    private RecommendedColorsComponent(final ColorListener listener) {
       addMouseListener(new MouseAdapter() {
         @Override
         public void mousePressed(MouseEvent e) {
           Color color = getColor(e);
           if (color != null) {
-            listener.colorChanged(color, RecentColorsComponent.this);
+            listener.colorChanged(color, RecommendedColorsComponent.this);
           }
         }
       });
-
-      if (restoreColors) {
-        restoreColors();
-      }
-    }
-
-    @Nullable
-    public Color getMostRecentColor() {
-      return myRecentColors.isEmpty() ? null : myRecentColors.get(myRecentColors.size() - 1);
-    }
-
-    private void restoreColors() {
-      final String value = PropertiesComponent.getInstance().getValue(COLOR_CHOOSER_COLORS_KEY);
-      if (value != null) {
-        final List<String> colors = StringUtil.split(value, ",,,");
-        for (String color : colors) {
-          if (color.contains("-")) {
-            List<String> components = StringUtil.split(color, "-");
-            if (components.size() == 4) {
-              myRecentColors.add(new Color(Integer.parseInt(components.get(0)),
-                                           Integer.parseInt(components.get(1)),
-                                           Integer.parseInt(components.get(2)),
-                                           Integer.parseInt(components.get(3))));
-            }
-          }
-          else {
-            myRecentColors.add(new Color(Integer.parseInt(color)));
-          }
-        }
-      }
     }
 
     @Override
     public String getToolTipText(MouseEvent event) {
       Color color = getColor(event);
       if (color != null) {
-        return String.format("R: %d G: %d B: %d A: %s", color.getRed(), color.getGreen(), color.getBlue(),
-                             String.format("%.2f", (float)(color.getAlpha() / 255.0)));
+        String name = MaterialColorUtils.getMaterialName(color);
+        if (name != null) {
+          return name;
+        }
+        return String.format("R: %d G: %d B: %d", color.getRed(), color.getGreen(), color.getBlue());
       }
 
       return super.getToolTipText(event);
@@ -911,55 +878,41 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     @Nullable
     private Color getColor(MouseEvent event) {
-      Pair<Integer, Integer> pair = pointToCellCoords(event.getPoint());
-      if (pair != null) {
-        int ndx = pair.second + pair.first * 10;
-        if (myRecentColors.size() > ndx) {
-          return myRecentColors.get(ndx);
-        }
+      int ndx = pointToColorPosition(event.getPoint());
+      if (ndx >= 0 && ndx < myRecommendedColors.size()) {
+        return myRecommendedColors.get(ndx);
       }
-
       return null;
     }
 
-    public void saveColors() {
-      final List<String> values = new ArrayList<String>();
-      for (Color recentColor : myRecentColors) {
-        if (recentColor == null) break;
-        values
-          .add(String.format("%d-%d-%d-%d", recentColor.getRed(), recentColor.getGreen(), recentColor.getBlue(), recentColor.getAlpha()));
-      }
-
-      PropertiesComponent.getInstance().setValue(COLOR_CHOOSER_COLORS_KEY, StringUtil.join(values, ",,,"));
+    public void setColors(@NotNull List<Color> colorList) {
+      myRecommendedColors.clear();
+      myRecommendedColors.addAll(colorList);
     }
 
-    public void appendColor(Color c) {
-      if (!myRecentColors.contains(c)) {
-        myRecentColors.add(c);
-      }
-
-      if (myRecentColors.size() > 20) {
-        myRecentColors = new ArrayList<Color>(myRecentColors.subList(myRecentColors.size() - 20, myRecentColors.size()));
-      }
-    }
-
-    @Nullable
-    private Pair<Integer, Integer> pointToCellCoords(Point p) {
+    private int pointToColorPosition(Point p) {
       int x = p.x;
       int y = p.y;
 
-      final Insets i = getInsets();
-      final Dimension d = getSize();
+      int leftPadding = getLeftPadding();
+      int topPadding = getTopPadding();
 
-      final int left = i.left + (d.width - i.left - i.right - WIDTH) / 2;
-      final int top = i.top + (d.height - i.top - i.bottom - HEIGHT) / 2;
+      int col = x - leftPadding >= 0 ? (x - leftPadding) / CELL_SIZE : -1;
+      int row = y - topPadding >=0 ? (y - topPadding) / CELL_SIZE : -1;
 
-      int col = (x - left - 2) / 31;
-      col = col > 9 ? 9 : col;
-      int row = (y - top - 2) / 31;
-      row = row > 1 ? 1 : row;
+      return row >= 0 && col >= 0 && row < getRowCount() && col < COLUMN_COUNT ?  col + row * COLUMN_COUNT: -1;
+    }
 
-      return row >= 0 && col >= 0 ? Pair.create(row, col) : null;
+    private int getLeftPadding() {
+      return (getSize().width - (COLUMN_COUNT * CELL_SIZE - SPACE)) / 2;
+    }
+
+    private int getTopPadding() {
+      return (getSize().height - (getRowCount() * CELL_SIZE - SPACE)) / 2;
+    }
+
+    private int getRowCount() {
+      return myRecommendedColors.isEmpty() ? 0 : (int)Math.ceil(myRecommendedColors.size() / new Double(COLUMN_COUNT));
     }
 
     @Override
@@ -969,36 +922,27 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     @Override
     public Dimension getMinimumSize() {
-      return new Dimension(WIDTH, HEIGHT);
+      final Insets i = getInsets();
+      // The dimension is not scaled since CELL_SIZE and PADDING are already scaled
+      return new Dimension(COLUMN_COUNT * CELL_SIZE - SPACE + i.left + i.right, getRowCount() * CELL_SIZE - SPACE + i.top + i.bottom);
+    }
+
+    @Override
+    public Dimension getMaximumSize() {
+      return new Dimension(Integer.MAX_VALUE, -1);
     }
 
     @Override
     protected void paintComponent(Graphics g) {
-      final Insets i = getInsets();
+      final int leftPadding = getLeftPadding();
+      final int topPadding = getTopPadding();
 
-      final Dimension d = getSize();
-
-      final int left = i.left + (d.width - i.left - i.right - WIDTH) / 2;
-      final int top = i.top + (d.height - i.top - i.bottom - HEIGHT) / 2;
-
-      g.setColor(Color.WHITE);
-      g.fillRect(left, top, WIDTH, HEIGHT);
-
-      g.setColor(Color.GRAY);
-      g.drawLine(left + 1, i.top + HEIGHT / 2, left + WIDTH - 3, i.top + HEIGHT / 2);
-      g.drawRect(left + 1, top + 1, WIDTH - 3, HEIGHT - 3);
-
-
-      for (int k = 1; k < 10; k++) {
-        g.drawLine(left + 1 + k * 31, top + 1, left + 1 + k * 31, top + HEIGHT - 3);
-      }
-
-      for (int r = 0; r < myRecentColors.size(); r++) {
-        int row = r / 10;
-        int col = r % 10;
-        Color color = myRecentColors.get(r);
+      for (int r = 0; r < myRecommendedColors.size(); r++) {
+        int row = r / COLUMN_COUNT;
+        int col = r % COLUMN_COUNT;
+        Color color = myRecommendedColors.get(r);
         g.setColor(color);
-        g.fillRect(left + 2 + col * 30 + col + 1, top + 2 + row * 30 + row + 1, 28, 28);
+        g.fillRect(leftPadding + col * CELL_SIZE, topPadding + row * CELL_SIZE, CELL_SIZE - SPACE, CELL_SIZE - SPACE);
       }
     }
   }
@@ -1044,7 +988,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     @Override
     protected JComponent createCenterPanel() {
       if (myColorPicker == null) {
-        myColorPicker = new ColorPicker(myDisposable, myPreselectedColor, true, myEnableOpacity, myListeners, myOpacityInPercent);
+        myColorPicker = new ColorPicker(myDisposable, myPreselectedColor, myEnableOpacity, myListeners, myOpacityInPercent);
         myColorPicker.pickARGB();
       }
 
@@ -1058,14 +1002,6 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     @Override
     public JComponent getPreferredFocusedComponent() {
       return myColorPicker.getPreferredFocusedComponent();
-    }
-
-    @Override
-    protected void doOKAction() {
-      myColorPicker.appendRecentColor();
-      myColorPicker.saveRecentColors();
-
-      super.doOKAction();
     }
 
     @Override
@@ -1399,7 +1335,7 @@ interface ColorListener {
 }
 
 class SlideComponent extends JComponent {
-  private static final int OFFSET = 11;
+  protected static final int MARGIN = JBUI.scale(5);
   protected int myPointerValue = 0;
   private int myValue = 0;
   private final boolean myVertical;
@@ -1480,9 +1416,9 @@ class SlideComponent extends JComponent {
         final int amount = e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL ? e.getUnitsToScroll() * e.getScrollAmount() :
                            e.getWheelRotation() < 0 ? -e.getScrollAmount() : e.getScrollAmount();
         int pointerValue = myPointerValue + amount;
-        pointerValue = pointerValue < OFFSET ? OFFSET : pointerValue;
+        pointerValue = pointerValue < MARGIN ? MARGIN : pointerValue;
         int size = myVertical ? getHeight() : getWidth();
-        pointerValue = pointerValue > (size - 12) ? size - 12 : pointerValue;
+        pointerValue = pointerValue > (size - MARGIN) ? size - MARGIN : pointerValue;
 
         myPointerValue = pointerValue;
         myValue = pointerValueToValue(myPointerValue);
@@ -1505,6 +1441,12 @@ class SlideComponent extends JComponent {
   public void setColor(Color color) {
     myColor = color;
   }
+
+  public void setHue(float hue) {
+    float[] hsv = Color.RGBtoHSB(myColor.getRed(), myColor.getGreen(), myColor.getBlue(), null);
+    setColor(Color.getHSBColor(hue, hsv[1], hsv[2]));
+  }
+
 
   private void updateBalloonText() {
     final Point point = myVertical ? new Point(0, myPointerValue) : new Point(myPointerValue, 0);
@@ -1538,9 +1480,9 @@ class SlideComponent extends JComponent {
 
   private void processMouse(MouseEvent e) {
     int pointerValue = myVertical ? e.getY() : e.getX();
-    pointerValue = pointerValue < OFFSET ? OFFSET : pointerValue;
+    pointerValue = pointerValue < MARGIN ? MARGIN : pointerValue;
     int size = myVertical ? getHeight() : getWidth();
-    pointerValue = pointerValue > (size - 12) ? size - 12 : pointerValue;
+    pointerValue = pointerValue > (size - MARGIN) ? size - MARGIN : pointerValue;
 
     myPointerValue = pointerValue;
 
@@ -1570,32 +1512,34 @@ class SlideComponent extends JComponent {
     return myValue;
   }
 
-  private int pointerValueToValue(int pointerValue) {
-    pointerValue -= OFFSET;
+  protected int pointerValueToValue(int pointerValue) {
+    pointerValue -= MARGIN;
     final int size = myVertical ? getHeight() : getWidth();
-    float proportion = (size - 23) / 255f;
+    float proportion = (size - 2 * MARGIN) / 255f;
     return (int)(pointerValue / proportion);
   }
 
-  private int valueToPointerValue(int value) {
+  protected int valueToPointerValue(int value) {
     final int size = myVertical ? getHeight() : getWidth();
-    float proportion = (size - 23) / 255f;
-    return OFFSET + (int)(value * proportion);
+    float proportion = (size - 2 * MARGIN) / 255f;
+    return MARGIN + (int)(value * proportion);
   }
 
   @Override
   public Dimension getPreferredSize() {
-    return myVertical ? new Dimension(22, 100) : new Dimension(100, 22);
+    return myVertical ? JBUI.size(22, 100) : JBUI.size(100, 22);
   }
 
   @Override
   public Dimension getMinimumSize() {
-    return myVertical ? new Dimension(22, 50) : new Dimension(50, 22);
+    return myVertical ? JBUI.size(22, 50) : JBUI.size(50, 22);
   }
 
   @Override
   public Dimension getMaximumSize() {
-    return myVertical ? new Dimension(getPreferredSize().width, Integer.MAX_VALUE) : new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+    return myVertical
+           ? new Dimension(getPreferredSize().width, Integer.MAX_VALUE)
+           : new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
   }
 
   @Override
@@ -1611,53 +1555,53 @@ class SlideComponent extends JComponent {
 
     if (myVertical) {
       g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, transparent, 0f, getHeight(), color));
-      g.fillRect(7, 10, 12, getHeight() - 20);
+      g.fillRect(JBUI.scale(7), MARGIN, JBUI.scale(12), getHeight() - 2 * MARGIN);
     }
     else {
       g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, transparent, getWidth(), 0f, color));
-      g.fillRect(10, 7, getWidth() - 20, 12);
+      g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
     }
 
-    drawKnob(g2d, myVertical ? 7 : myPointerValue, myVertical ? myPointerValue : 7, myVertical);
+    drawKnob(g2d, myVertical ? JBUI.scale(7) : myPointerValue, myVertical ? myPointerValue : 7, myVertical);
   }
 
   protected static void drawKnob(Graphics2D g2d, int x, int y, boolean vertical) {
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     if (vertical) {
-      y -= 6;
+      y -= JBUI.scale(6);
 
       Polygon arrowShadow = new Polygon();
-      arrowShadow.addPoint(x - 5, y + 1);
-      arrowShadow.addPoint(x + 7, y + 7);
-      arrowShadow.addPoint(x - 5, y + 13);
+      arrowShadow.addPoint(x - JBUI.scale(5), y + JBUI.scale(1));
+      arrowShadow.addPoint(x + JBUI.scale(7), y + JBUI.scale(7));
+      arrowShadow.addPoint(x - JBUI.scale(5), y + JBUI.scale(13));
 
       g2d.setColor(new Color(0, 0, 0, 70));
       g2d.fill(arrowShadow);
 
       Polygon arrowHead = new Polygon();
-      arrowHead.addPoint(x - 6, y);
-      arrowHead.addPoint(x + 6, y + 6);
-      arrowHead.addPoint(x - 6, y + 12);
+      arrowHead.addPoint(x - JBUI.scale(6), y);
+      arrowHead.addPoint(x + JBUI.scale(6), y + JBUI.scale(6));
+      arrowHead.addPoint(x - JBUI.scale(6), y + JBUI.scale(12));
 
       g2d.setColor(new Color(153, 51, 0));
       g2d.fill(arrowHead);
     }
     else {
-      x -= 6;
+      x -= JBUI.scale(6);
 
       Polygon arrowShadow = new Polygon();
-      arrowShadow.addPoint(x + 1, y - 5);
-      arrowShadow.addPoint(x + 13, y - 5);
-      arrowShadow.addPoint(x + 7, y + 7);
+      arrowShadow.addPoint(x + JBUI.scale(1), y - JBUI.scale(5));
+      arrowShadow.addPoint(x + JBUI.scale(13), y - JBUI.scale(5));
+      arrowShadow.addPoint(x + JBUI.scale(7), y + JBUI.scale(7));
 
       g2d.setColor(new Color(0, 0, 0, 70));
       g2d.fill(arrowShadow);
 
       Polygon arrowHead = new Polygon();
-      arrowHead.addPoint(x, y - 6);
-      arrowHead.addPoint(x + 12, y - 6);
-      arrowHead.addPoint(x + 6, y + 6);
+      arrowHead.addPoint(x, y - JBUI.scale(6));
+      arrowHead.addPoint(x + JBUI.scale(12), y - JBUI.scale(6));
+      arrowHead.addPoint(x + JBUI.scale(6), y + JBUI.scale(6));
 
       g2d.setColor(new Color(153, 51, 0));
       g2d.fill(arrowHead);
@@ -1683,12 +1627,24 @@ class HueSlideComponent extends SlideComponent {
   }
 
   @Override
+  protected int pointerValueToValue(int pointerValue) {
+    pointerValue -= MARGIN;
+    float proportion = (getWidth() - 2 * MARGIN) / 360f;
+    return (int)(pointerValue / proportion);
+  }
+
+  @Override
+   protected int valueToPointerValue(int value) {
+    float proportion = (getWidth() - 2 * MARGIN) / 360f;
+    return MARGIN + (int)(value * proportion);
+  }
+
+  @Override
   protected void paintComponent(Graphics g) {
     final Graphics2D g2d = (Graphics2D)g;
 
-    g2d.setPaint(new LinearGradientPaint(new Point2D.Double(0, 0), new Point2D.Double(getWidth() - 30, 0), myPoints, myColors));
-    g.fillRect(10, 7, getWidth() - 20, 12);
-    drawKnob(g2d, myPointerValue, 7, false);
+    g2d.setPaint(new LinearGradientPaint(new Point2D.Double(0, 0), new Point2D.Double(getWidth() - JBUI.scale(30), 0), myPoints, myColors));
+    g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
+    drawKnob(g2d, myPointerValue, JBUI.scale(7), false);
   }
 }
-
