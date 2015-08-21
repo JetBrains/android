@@ -185,7 +185,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       if (artifact.myArtifactId.contains(searchText)) {
         score++;
       }
-      if (artifact.myArtifactId.contains(searchText)) {
+      if (artifact.myGroupId.contains(searchText)) {
         score++;
       }
       return score;
