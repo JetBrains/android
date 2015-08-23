@@ -47,7 +47,9 @@ public class GpuMonitorView extends BaseMonitorView
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
 
   private static final String NEEDS_NEWER_API_LABEL = "This device does not support the minimum API level (16) for GPU monitor.";
-  private static final String NEEDS_PROFILING_ENABLED_LABEL = "GPU Profiling needs to be enabled in the device's developer options.";
+  private static final String NEEDS_PROFILING_ENABLED_LABEL =
+    "GPU Profiling needs to be enabled in the device's developer options. " +
+    "<a href='https://developer.android.com/preview/testing/performance.html#timing-dump'>Learn more</a>.";
 
   @NotNull private final JPanel myPanel;
   @NotNull private final GpuSampler myGpuSampler;
