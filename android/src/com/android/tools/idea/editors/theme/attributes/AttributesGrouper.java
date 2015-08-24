@@ -16,16 +16,16 @@
 package com.android.tools.idea.editors.theme.attributes;
 
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.intellij.openapi.util.text.StringUtil;
-import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+
+import org.jetbrains.annotations.NotNull;
 
 public class AttributesGrouper {
   private AttributesGrouper() { }
@@ -118,9 +118,17 @@ public class AttributesGrouper {
     return labels;
   }
 
-  static List<TableLabel> generateLabelsForGroup(final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
-    // ArrayListMultimap is used to ensure the elements stay sorted
-    Multimap<String, EditedStyleItem> classes = ArrayListMultimap.create();
+  @NotNull
+  private static List<TableLabel> generateLabelsForGroup(final List<EditedStyleItem> source, final List<EditedStyleItem> sink) {
+    // A TreeMap is used to ensure the keys are sorted in alphabetical order
+    // ArrayLists are used for values to ensure that they stay in the same order they came in
+    Multimap<String, EditedStyleItem> classes =
+      Multimaps.newListMultimap(new TreeMap<String, Collection<EditedStyleItem>>(), new Supplier<List<EditedStyleItem>>() {
+        @Override
+        public List<EditedStyleItem> get() {
+          return new ArrayList<EditedStyleItem>();
+        }
+      });
     for (EditedStyleItem item : source){
       String group = item.getAttrGroup();
       classes.put(group, item);
