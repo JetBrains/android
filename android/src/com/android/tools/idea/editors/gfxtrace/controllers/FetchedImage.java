@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.editors.gfxtrace.service.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.image.FmtFloat32;
 import com.android.tools.idea.editors.gfxtrace.service.image.FmtRGBA;
+import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

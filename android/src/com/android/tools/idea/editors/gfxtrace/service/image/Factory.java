@@ -20,6 +20,9 @@ package com.android.tools.idea.editors.gfxtrace.service.image;
 public final class Factory {
   public static void register() {
     //<<<Start:Java.FactoryBody:2>>>
+    Image.register();
+    ImageInfo.register();
+    LazyConverter.register();
     FmtATCRGBAEXPLICITALPHAAMD.register();
     FmtATCRGBAMD.register();
     FmtAlpha.register();
