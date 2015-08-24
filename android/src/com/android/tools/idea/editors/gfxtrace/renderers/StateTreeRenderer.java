@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.editors.gfxtrace.renderers;
 
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.StateTreeNode;
+import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.StateNodeData;
+import com.android.tools.rpclib.schema.Field;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 public class StateTreeRenderer extends ColoredTreeCellRenderer {
   @Override
@@ -31,19 +33,25 @@ public class StateTreeRenderer extends ColoredTreeCellRenderer {
                                     boolean leaf,
                                     int row,
                                     boolean hasFocus) {
-    assert (value instanceof StateTreeNode);
-    StateTreeNode node = (StateTreeNode)value;
-    if (node.getValue() != null) {
-      append(node.getName() + ": ", SimpleTextAttributes.REGULAR_ATTRIBUTES);
-      append(node.getValueString(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+    assert (value != null && value instanceof DefaultMutableTreeNode);
+    DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)value;
+    assert (treeNode.getUserObject() instanceof StateNodeData);
+    StateNodeData data = (StateNodeData)treeNode.getUserObject();
+    if (data.getKey() != null) {
+      render(data.getKey());
     }
-    else {
-      if (node.hasChildren()) {
-        append(node.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-      }
-      else {
-        append(node.getName(), SimpleTextAttributes.GRAYED_ATTRIBUTES);
-      }
+    if (data.getValue() != null) {
+      append(" = ", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      render(data.getValue());
+    }
+  }
+
+  public void render(@NotNull Object value) {
+    if (value instanceof Field) {
+      Field field = (Field)value;
+      append(field.getDeclared(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    } else {
+      append(value.toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
   }
 }
