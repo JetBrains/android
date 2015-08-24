@@ -46,6 +46,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.*;
 import java.util.List;
@@ -112,10 +113,17 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     myTable.addMouseMotionListener(myEditingListener);
     LaunchListener launchListener = new LaunchListener();
     myTable.addMouseListener(launchListener);
-    myTable.addKeyListener(launchListener);
     ActionMap am = myTable.getActionMap();
     am.put("selectPreviousColumnCell", new CycleAction(true));
     am.put("selectNextColumnCell", new CycleAction(false));
+    myTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
+    myTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "enter");
+    am.put("enter", new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        doAction();
+      }
+    });
     refreshAvds();
   }
 
@@ -611,40 +619,27 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     }
   }
 
-  private class LaunchListener extends MouseAdapter implements KeyListener {
+  private class LaunchListener extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent e) {
       if (e.getClickCount() == 2) {
         doAction();
       }
     }
-
-    private void doAction() {
-      notifyRun();
-      AvdInfo info = getAvdInfo();
-      if (info != null) {
-        if (info.getStatus() == AvdInfo.AvdStatus.OK) {
-          new RunAvdAction(AvdDisplayList.this).actionPerformed(null);
-        } else {
-          new EditAvdAction(AvdDisplayList.this).actionPerformed(null);
-        }
-      }
-    }
-
-    @Override
-
-    public void keyTyped(KeyEvent e) {
-      if (e.getKeyChar() == KeyEvent.VK_ENTER || e.getKeyChar() == KeyEvent.VK_SPACE) {
-        doAction();
-      }
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {}
-
-    @Override
-    public void keyReleased(KeyEvent e) {}
   }
+
+  private void doAction() {
+    notifyRun();
+    AvdInfo info = getAvdInfo();
+    if (info != null) {
+      if (info.getStatus() == AvdInfo.AvdStatus.OK) {
+        new RunAvdAction(this).actionPerformed(null);
+      } else {
+        new EditAvdAction(this).actionPerformed(null);
+      }
+    }
+  }
+
 
   private class CycleAction extends AbstractAction {
     boolean myBackward;
