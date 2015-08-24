@@ -16,7 +16,6 @@
 package com.android.tools.idea.templates;
 
 import com.android.ide.common.signing.KeystoreHelper;
-import com.android.ide.common.signing.KeytoolException;
 import com.android.prefs.AndroidLocation;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
@@ -26,7 +25,8 @@ import com.android.utils.ILogger;
 import com.android.utils.StdLogger;
 import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
-import com.intellij.openapi.module.Module;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +38,6 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.cert.Certificate;
-import java.util.List;
 
 /**
  * Functions for dealing with singing configurations and keystore files.
@@ -76,7 +75,7 @@ public class KeystoreUtils {
         // Keystore password: "android"
         // Keystore alias: "androiddebugkey"
         // Key password: "android"
-        KeystoreHelper.createDebugStore(null, debugLocation, "android", "android", "AndroidDebugKey",logger);
+        KeystoreHelper.createDebugStore(null, debugLocation, "android", "android", "AndroidDebugKey", logger);
       }
       if (!debugLocation.exists()) {
         throw new AndroidLocation.AndroidLocationException("Could not create debug keystore");
@@ -106,13 +105,20 @@ public class KeystoreUtils {
       return null;
     }
 
-    GradleBuildFile moduleBuildFile = gradleSettingsFile.getModuleBuildFile(modulePath);
+    final GradleBuildFile moduleBuildFile = gradleSettingsFile.getModuleBuildFile(modulePath);
+
     if (moduleBuildFile == null) {
       return null;
     }
 
-    @SuppressWarnings("unchecked") List<NamedObject> signingConfigs =
-      (List<NamedObject>)moduleBuildFile.getValue(BuildFileKey.SIGNING_CONFIGS);
+    Iterable<NamedObject> signingConfigs = ApplicationManager.getApplication().runReadAction(new Computable<Iterable<NamedObject>>() {
+      @Override
+      @SuppressWarnings("unchecked")
+      public Iterable<NamedObject> compute() {
+        return (Iterable<NamedObject>)moduleBuildFile.getValue(BuildFileKey.SIGNING_CONFIGS);
+      }
+    });
+
     if (signingConfigs == null) {
       return null;
     }
