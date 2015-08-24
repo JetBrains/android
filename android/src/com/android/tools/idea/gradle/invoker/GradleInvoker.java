@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.invoker;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
@@ -41,10 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
@@ -205,11 +203,17 @@ public class GradleInvoker {
    * @param waitForCompletion     a flag which hints whether current method should return control flow before target tasks are executed
    */
   public void executeTasks(@NotNull final List<String> gradleTasks,
-                           @NotNull final List<String> commandLineArguments,
+                           @NotNull List<String> commandLineArguments,
                            @NotNull final ExternalSystemTaskId taskId,
                            @Nullable final ExternalSystemTaskNotificationListener taskListener,
-                           final boolean waitForCompletion)
-  {
+                           final boolean waitForCompletion) {
+    if (FastDeployManager.isInstantRunEnabled(myProject)) {
+      List<String> merged = Lists.newArrayListWithExpectedSize(commandLineArguments.size() + 1);
+      merged.addAll(commandLineArguments);
+      merged.add("-Pandroid.optional.compilation=INSTANT_DEV");
+      commandLineArguments = merged;
+    }
+
     LOG.info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
       return;
