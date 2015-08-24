@@ -157,7 +157,8 @@ public class LibUnitTest {
         byte[] line = new byte[1024];
         assertTrue("Expected >0 bytes read from input stream", stream.read(line) > 0);
         String s = new String(line, "UTF-8").trim();
-        assertEquals("success", s);
+        // Make sure test resources shadow prod resources with the same name.
+        assertEquals("from test", s);
     }
 
     @Test
