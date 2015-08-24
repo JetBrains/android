@@ -19,6 +19,7 @@ package com.android.tools.idea.editors.gfxtrace.service;
 
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
+import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.any.Box;
 import com.android.tools.rpclib.binary.BinaryID;
