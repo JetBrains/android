@@ -20,6 +20,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.ProxyUtil;
 import com.android.tools.idea.gradle.util.ui.ToolWindowAlikePanel;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -122,6 +123,8 @@ public class InternalAndroidModelView {
           @Override
           public void run() {
             DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
+            renderer.setOpenIcon(AllIcons.Nodes.NewFolder);
+            renderer.setClosedIcon(AllIcons.Nodes.NewFolder);
             renderer.setLeafIcon(AndroidIcons.AndroidToolWindow);
             myTree.setCellRenderer(renderer);
 
