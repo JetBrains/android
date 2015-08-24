@@ -200,14 +200,24 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     myFormat.setSelectedIndex(2);
   }
 
-  private JTextField createColorField(boolean hex) {
+  private int getLargestDigitWidth(boolean hex) {
+    FontMetrics metrics = getFontMetrics(getFont());
+    int largestWidth = metrics.charWidth('0');
+    int maxDigit = hex ? 16 : 10;
+    for (int i = 1; i < maxDigit; i++) {
+      largestWidth = Math.max(largestWidth, metrics.charWidth(Character.toUpperCase(Character.forDigit(i, maxDigit))));
+    }
+    return largestWidth;
+  }
+
+  private JTextField createColorField(final boolean hex) {
     final NumberDocument doc = new NumberDocument(hex);
-    int lafFix = UIUtil.isUnderWindowsLookAndFeel() || UIUtil.isUnderDarcula() ? 1 : 0;
-    UIManager.LookAndFeelInfo info = LafManager.getInstance().getCurrentLookAndFeel();
-    if (info != null && (info.getName().startsWith("IDEA") || info.getName().equals("Windows Classic")))
-      lafFix = 1;
-    final JTextField field = new JTextField(doc, "", (hex ? 6 : 3) + lafFix);
-    field.setSize(JBUI.size(50, -1));
+    final JTextField field = new JTextField(doc, "", hex ? 8 : 3) {
+      @Override
+      protected int getColumnWidth() {
+        return getLargestDigitWidth(hex);
+      }
+    };
     doc.setSource(field);
     field.getDocument().addDocumentListener(this);
     field.addFocusListener(new FocusAdapter() {
