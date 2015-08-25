@@ -20,9 +20,11 @@ import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.AndroidTestCase;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("ConstantConditions")
@@ -129,17 +131,39 @@ public class QualifierUtilsTest extends AndroidTestCase {
     assertEquals("-square", QualifierUtils.restrictConfiguration(myConfigurationManager, compatible, incompatible).getUniqueKey());
   }
 
+  private void checkRestrictConfigurationFor(String compatibleQualifier, String answerQualifier, String... incompatibleQualifiers) {
+    ArrayList<FolderConfiguration> incompatibles = Lists.newArrayList();
+    for (int i = 0; i < incompatibleQualifiers.length; ++i) {
+      incompatibles.add(FolderConfiguration.getConfigForQualifierString(incompatibleQualifiers[i]));
+      assertNotNull(incompatibles.get(i));
+    }
+    final FolderConfiguration compatible = FolderConfiguration.getConfigForQualifierString(compatibleQualifier);
+    assertNotNull(compatible);
+    FolderConfiguration folderConfiguration = QualifierUtils.restrictConfiguration(myConfigurationManager, compatible, incompatibles);
+    assertNotNull(folderConfiguration);
+
+    // folderConfiguration.getUniqueKey() returns with a "-"
+    if (!answerQualifier.isEmpty()) {
+      answerQualifier = "-" + answerQualifier;
+    }
+    assertEquals(answerQualifier, folderConfiguration.getUniqueKey());
+  }
+
   /**
-   * Tests that if the compatible configuration has a qualifier (ex. "landscape") and one of the incompatible ones contains
-   * the same qualifier, we don't override the one in the compatible one with portrait.
+   * Tests restrictConfiguration method, which should work backward to algorithm from the following link
+   * See: http://developer.android.com/guide/topics/resources/providing-resources.html
    */
-  public void testContradictingQualifiers() {
-    List<FolderConfiguration> incompatible = ImmutableList.of(
-      FolderConfiguration.getConfigForQualifierString("land"));
-
-    // default config
-    FolderConfiguration compatible = FolderConfiguration.getConfigForQualifierString("land-hdpi");
-
-    assertEquals("-land-hdpi", QualifierUtils.restrictConfiguration(myConfigurationManager, compatible, incompatible).getUniqueKey());
+  public void testRestrictConfiguration() {
+    checkRestrictConfigurationFor("en-v21", "en-v21", "ldrtl", "ldltr");
+    checkRestrictConfigurationFor("en", "en", "fr-v23", "fr-v19");
+    // "__" - is a fake language qualifier, see: LocaleQualifier.FAKE_VALUE
+    checkRestrictConfigurationFor("v11", "__-v11", "v7", "en");
+    checkRestrictConfigurationFor("en", "en", "v9");
+    checkRestrictConfigurationFor("fr", "fr", "en-v7", "en-v11");
+    checkRestrictConfigurationFor("land-hdpi", "land-hdpi", "land");
+    checkRestrictConfigurationFor("en", "en-port", "en-land", "port");
+    checkRestrictConfigurationFor("en", "en-night-v19", "en-notnight-v21", "en-notnight-v21", "en-v20",  "fr-night-v18");
+    // TODO (Madiyar): find an answer
+    // checkRestrictConfigurationFor("", "", "v21", "de", "sw600dp", "ar", "v15", "pt-rPT", "pt-rBR", "v16");
   }
 }
