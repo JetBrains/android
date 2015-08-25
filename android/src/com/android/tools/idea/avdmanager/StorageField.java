@@ -117,7 +117,10 @@ public class StorageField extends JPanel {
     public void setValue(@Nullable Storage newValue, @NotNull StorageField component) {
       if (newValue != null) {
         Unit unit = newValue.getAppropriateUnits();
-        component.myValueField.setText(Long.toString(newValue.getSizeAsUnit(unit)));
+        String newText = Long.toString(newValue.getSizeAsUnit(unit));
+        if (!component.myValueField.getText().equals(newText)) {
+          component.myValueField.setText(newText);
+        }
         component.myUnitsCombo.setSelectedItem(unit);
         myBytes = newValue.getSize();
         myCurrentUnit = unit;
