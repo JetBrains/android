@@ -32,7 +32,6 @@ import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,7 +124,7 @@ public class InternalAndroidModelView {
             DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
             renderer.setOpenIcon(AllIcons.Nodes.NewFolder);
             renderer.setClosedIcon(AllIcons.Nodes.NewFolder);
-            renderer.setLeafIcon(AndroidIcons.AndroidToolWindow);
+            renderer.setLeafIcon(AllIcons.ObjectBrowser.ShowModules);
             myTree.setCellRenderer(renderer);
 
             DefaultTreeModel model = new DefaultTreeModel(rootNode);
