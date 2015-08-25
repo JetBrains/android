@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android;
 
-import com.android.tools.idea.startup.profile.IdeConfigurationProfileService;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +39,6 @@ public class AndroidPlugin implements ApplicationComponent {
 
   @Override
   public void initComponent() {
-    IdeConfigurationProfileService.getInstance().configureIde();
   }
 
   @Override
