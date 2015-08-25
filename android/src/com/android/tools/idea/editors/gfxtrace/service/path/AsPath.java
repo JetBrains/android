@@ -36,8 +36,8 @@ public final class AsPath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  Path myObject;
-  Object myType;
+  private Path myObject;
+  private Object myType;
 
   // Constructs a default-initialized {@link AsPath}.
   public AsPath() {}

@@ -29,7 +29,7 @@ public final class TimingInfoPath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  BinaryID myID;
+  private BinaryID myID;
 
   // Constructs a default-initialized {@link TimingInfoPath}.
   public TimingInfoPath() {}

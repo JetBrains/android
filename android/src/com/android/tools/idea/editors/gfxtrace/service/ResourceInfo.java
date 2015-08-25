@@ -30,9 +30,9 @@ import java.io.IOException;
 
 public final class ResourceInfo implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  BinaryID myID;
-  String myName;
-  long[] myAccesses;
+  private BinaryID myID;
+  private String myName;
+  private long[] myAccesses;
 
   // Constructs a default-initialized {@link ResourceInfo}.
   public ResourceInfo() {}

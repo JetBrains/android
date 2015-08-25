@@ -31,10 +31,10 @@ import java.io.IOException;
 
 public final class ImageInfo implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Format myFormat;
-  int myWidth;
-  int myHeight;
-  BlobPath myData;
+  private Format myFormat;
+  private int myWidth;
+  private int myHeight;
+  private BlobPath myData;
 
   // Constructs a default-initialized {@link ImageInfo}.
   public ImageInfo() {}

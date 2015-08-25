@@ -24,8 +24,8 @@ import java.io.IOException;
 
 final class CallImportCapture implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  String myName;
-  byte[] myData;
+  private String myName;
+  private byte[] myData;
 
   // Constructs a default-initialized {@link CallImportCapture}.
   public CallImportCapture() {}

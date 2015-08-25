@@ -34,8 +34,8 @@ public final class Pointer implements BinaryObject, Type.Renderable {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  long myAddress;
-  PoolID myPool;
+  private long myAddress;
+  private PoolID myPool;
 
   // Constructs a default-initialized {@link Pointer}.
   public Pointer() {}

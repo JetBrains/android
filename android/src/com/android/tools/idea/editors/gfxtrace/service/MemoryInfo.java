@@ -25,10 +25,10 @@ import java.io.IOException;
 
 public final class MemoryInfo implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  byte[] myData;
-  Range[] myReads;
-  Range[] myWrites;
-  Range[] myObserved;
+  private byte[] myData;
+  private Range[] myReads;
+  private Range[] myWrites;
+  private Range[] myObserved;
 
   // Constructs a default-initialized {@link MemoryInfo}.
   public MemoryInfo() {}

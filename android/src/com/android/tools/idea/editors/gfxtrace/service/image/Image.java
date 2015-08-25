@@ -30,10 +30,10 @@ import java.io.IOException;
 
 public final class Image implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Format myFormat;
-  int myWidth;
-  int myHeight;
-  byte[] myData;
+  private Format myFormat;
+  private int myWidth;
+  private int myHeight;
+  private byte[] myData;
 
   // Constructs a default-initialized {@link Image}.
   public Image() {}
