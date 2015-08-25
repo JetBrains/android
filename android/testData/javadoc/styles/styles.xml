@@ -36,4 +36,6 @@
         <item name="android:textStyle">normal</item>
     </style>
 
+    <style name="MyOtherTheme" parent="android:Theme.Framework<caret>Theme" />
+
 </resources>
