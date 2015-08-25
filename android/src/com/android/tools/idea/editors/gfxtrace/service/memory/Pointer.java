@@ -30,7 +30,7 @@ public final class Pointer implements BinaryObject, Type.Renderable {
   public void render(@NotNull SimpleColoredComponent component) {
     component.append("0x" + Long.toHexString((Long)myAddress), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
     component.append("@", SimpleTextAttributes.GRAY_ATTRIBUTES);
-    component.append(Integer.toString(myPool.getValue()), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+    component.append(myPool.toString(), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
   }
 
   //<<<Start:Java.ClassBody:1>>>

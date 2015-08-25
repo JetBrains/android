@@ -79,7 +79,7 @@ public class ScrubberCellRenderer implements ListCellRenderer {
     myRenderSettings = new RenderSettings();
     myRenderSettings.setMaxWidth(MAX_WIDTH);
     myRenderSettings.setMaxHeight(MAX_HEIGHT);
-    myRenderSettings.setWireframeMode(WireframeMode.NoWireframe);
+    myRenderSettings.setWireframeMode(WireframeMode.noWireframe());
 
     myBlankIcon = new ImageIcon(createBlankImage(DEFAULT_IMAGE_SIZE));
   }
