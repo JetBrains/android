@@ -66,7 +66,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static com.android.SdkConstants.SUPPORT_ANNOTATIONS_PREFIX;
+import static com.android.SdkConstants.*;
 import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 /**
@@ -77,8 +77,6 @@ import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
  * To change this template use File | Settings | File Templates.
  */
 public class AndroidAddStringResourceAction extends AbstractIntentionAction implements HighPriorityAction {
-  private static final String CONTEXT = "android.content.Context";
-  private static final String RESOURCES = "android.content.res.Resources";
 
   @Override
   @NotNull
@@ -328,7 +326,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
                                                   final String aPackage,
                                                   final String resName,
                                                   final ResourceType resType) {
-    final boolean extendsContext = getContainingInheritorOf(element, CONTEXT) != null;
+    final boolean extendsContext = getContainingInheritorOf(element, CLASS_CONTEXT) != null;
     final String rJavaFieldName = AndroidResourceUtil.getRJavaFieldName(resName);
     final String field = aPackage + ".R." + resType + '.' + rJavaFieldName;
     final String methodName = getGetterNameForResourceType(resType, element);
@@ -348,7 +346,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       else {
         template = new TemplateImpl("", "$resources$." + methodName + "(" + field + ")", "");
         MacroCallNode node = new MacroCallNode(new MyVarOfTypeExpression("getResources()"));
-        node.addParameter(new ConstantNode(RESOURCES));
+        node.addParameter(new ConstantNode(CLASS_RESOURCES));
         template.addVariable("resources", node, new ConstantNode(""), true);
       }
     }
@@ -368,7 +366,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       if (addContextVariable) {
         final boolean extendsView = getContainingInheritorOf(element, VIEW_CLASS_NAME) != null;
         MacroCallNode node = new MacroCallNode(extendsView && !inStaticContext ? new MyVarOfTypeExpression("getContext()") : new VariableOfTypeMacro());
-        node.addParameter(new ConstantNode(CONTEXT));
+        node.addParameter(new ConstantNode(CLASS_CONTEXT));
         template.addVariable("context", node, new ConstantNode(""), true);
       }
     }
