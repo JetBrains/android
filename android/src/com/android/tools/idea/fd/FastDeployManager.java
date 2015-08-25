@@ -53,6 +53,7 @@ import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -284,7 +285,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
 
     final String variantName = getVariantName(facet);
 // TODO: Add in task for resources too!
-    String taskName = "incrementalSupportDex" + variantName; // TODO: Add task name to model
+    String taskName = "incremental" + StringUtil.capitalize(variantName) + "SourceCodeSupport"; // TODO: Add task name to model
 
     final Project project = facet.getModule().getProject();
     final GradleInvoker invoker = GradleInvoker.getInstance(project);
