@@ -13,33 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.actions;
+package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.structure.AndroidProjectStructureConfigurable;
-import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 
 /**
  * Displays the "Project Structure" dialog.
  */
-public class AndroidShowStructureSettingsAction extends AnAction {
+public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAction {
+  @Override
+  public void update(AnActionEvent e) {
+    Project project = e.getProject();
+    if (project != null && requiresAndroidModel(project)) {
+      e.getPresentation().setEnabledAndVisible(isBuildWithGradle(project));
+    }
+    super.update(e);
+  }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
-    if (project == null || Projects.requiresAndroidModel(project)) {
-      if (project == null) {
-        project = ProjectManager.getInstance().getDefaultProject();
-      }
+    Project project = e.getProject();
+    if (project == null && isAndroidStudio()) {
+      project = ProjectManager.getInstance().getDefaultProject();
       AndroidProjectStructureConfigurable.getInstance(project).showDialog();
+      return;
     }
-    else {
-      new ShowStructureSettingsAction().actionPerformed(e);
+
+    if (project != null && isBuildWithGradle(project)) {
+      AndroidProjectStructureConfigurable.getInstance(project).showDialog();
+      return;
     }
+
+    super.actionPerformed(e);
   }
 }

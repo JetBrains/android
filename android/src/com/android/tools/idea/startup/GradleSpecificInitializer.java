@@ -18,6 +18,8 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
+import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
+import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
@@ -61,6 +63,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemons
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
+import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -93,7 +96,6 @@ public class GradleSpecificInitializer implements Runnable {
   public void run() {
     setUpNewProjectActions();
     setUpWelcomeScreenActions();
-    setUpProjectStructureActions();
     replaceProjectPopupActions();
 
     ActionManager actionManager = ActionManager.getInstance();
@@ -143,37 +145,29 @@ public class GradleSpecificInitializer implements Runnable {
 
   private static void setUpWelcomeScreenActions() {
     // Update the Welcome Screen actions
+    replaceAction("WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an existing Android Studio project"));
+    replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Start a new Android Studio project"));
+    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import project (Eclipse ADT, Gradle, etc.)"));
+    replaceAction("TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
+
+    moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
+               "WelcomeScreen.QuickStart", new Constraints(AFTER, "WelcomeScreen.GetFromVcs"));
+
     ActionManager actionManager = ActionManager.getInstance();
+    AnAction getFromVcsAction = actionManager.getAction("WelcomeScreen.GetFromVcs");
+    if (getFromVcsAction != null) {
+      getFromVcsAction.getTemplatePresentation().setText("Check out project from Version Control");
+    }
 
-    AndroidOpenFileAction openFileAction = new AndroidOpenFileAction();
-    openFileAction.getTemplatePresentation().setText("Open an existing Android Studio project");
-    replaceAction("WelcomeScreen.OpenProject", openFileAction);
-
-    AndroidNewProjectAction newProjectAction = new AndroidNewProjectAction();
-    newProjectAction.getTemplatePresentation().setText("Start a new Android Studio project");
-    replaceAction("WelcomeScreen.CreateNewProject", newProjectAction);
-
-    AndroidImportProjectAction importProjectAction = new AndroidImportProjectAction();
-    importProjectAction.getTemplatePresentation().setText("Import project (Eclipse ADT, Gradle, etc.)");
-    replaceAction("WelcomeScreen.ImportProject", importProjectAction);
-    moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA", "WelcomeScreen.QuickStart",
-               new Constraints(Anchor.AFTER, "WelcomeScreen.GetFromVcs"));
-
-    actionManager.getAction("WelcomeScreen.GetFromVcs").getTemplatePresentation().setText("Check out project from Version Control");
-  }
-
-  private static void setUpProjectStructureActions() {
-    AndroidTemplateProjectStructureAction showDefaultProjectStructureAction = new AndroidTemplateProjectStructureAction();
-    showDefaultProjectStructureAction.getTemplatePresentation().setText("Default Project Structure...");
-    replaceAction("TemplateProjectStructure", showDefaultProjectStructureAction);
-
-    ActionManager am = ActionManager.getInstance();
-    AnAction action = am.getAction("WelcomeScreen.Configure.IDEA");
-    if (action instanceof DefaultActionGroup) {
-      DefaultActionGroup projectSettingsGroup = (DefaultActionGroup)action;
-      AnAction[] children = projectSettingsGroup.getChildren(null);
-      if (children.length == 1 && children[0] instanceof TemplateProjectSettingsGroup) {
-        projectSettingsGroup.replaceAction(children[0], new AndroidTemplateProjectSettingsGroup());
+    AnAction configureIdeaAction = actionManager.getAction("WelcomeScreen.Configure.IDEA");
+    if (configureIdeaAction instanceof DefaultActionGroup) {
+      DefaultActionGroup settingsGroup = (DefaultActionGroup)configureIdeaAction;
+      AnAction[] children = settingsGroup.getChildren(null);
+      if (children.length == 1) {
+        AnAction child = children[0];
+        if (child instanceof TemplateProjectSettingsGroup) {
+          settingsGroup.replaceAction(child, new AndroidTemplateProjectSettingsGroup());
+        }
       }
     }
   }
@@ -195,11 +189,11 @@ public class GradleSpecificInitializer implements Runnable {
       if (action instanceof MoveModuleToGroupTopLevel) {
         parent.remove(action);
         parent.add(new AndroidActionGroupRemover((ActionGroup)action, "Move Module to Group"),
-                   new Constraints(Anchor.AFTER, "OpenModuleSettings"));
+                   new Constraints(AFTER, "OpenModuleSettings"));
       } else if (action instanceof MarkRootGroup) {
         parent.remove(action);
         parent.add(new AndroidActionGroupRemover((ActionGroup)action, "Mark Directory As"),
-                   new Constraints(Anchor.AFTER, "OpenModuleSettings"));
+                   new Constraints(AFTER, "OpenModuleSettings"));
       }
     }
   }

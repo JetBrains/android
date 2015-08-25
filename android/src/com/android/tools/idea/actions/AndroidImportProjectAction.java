@@ -78,7 +78,11 @@ public class AndroidImportProjectAction extends AnAction {
   private static final String WIZARD_DESCRIPTION = "Select your Eclipse project folder, build.gradle or settings.gradle";
 
   public AndroidImportProjectAction() {
-    super("Import Project...");
+    this("Import Project...");
+  }
+
+  public AndroidImportProjectAction(@NotNull String text) {
+    super(text);
   }
 
   @Override
@@ -103,10 +107,10 @@ public class AndroidImportProjectAction extends AnAction {
     }
   }
 
-  private static void handleImportException(@Nullable Project project, @NotNull Exception e1) {
-    String message = String.format("Project import failed: %s", e1.getMessage());
+  private static void handleImportException(@Nullable Project project, @NotNull Exception e) {
+    String message = String.format("Project import failed: %s", e.getMessage());
     Messages.showErrorDialog(project, message, "Import Project");
-    LOG.error(e1);
+    LOG.error(e);
   }
 
   @NotNull
