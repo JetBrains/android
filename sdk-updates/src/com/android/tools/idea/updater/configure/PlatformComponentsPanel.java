@@ -127,7 +127,10 @@ public class PlatformComponentsPanel {
         }
       }
       if (!obsolete) {
-        myPlatformSummaryRootNode.add(new SummaryTreeNode(version, versionNodes, androidVersion));
+        SummaryTreeNode node = SummaryTreeNode.createNode(version, versionNodes, androidVersion);
+        if (node != null) {
+          myPlatformSummaryRootNode.add(node);
+        }
       }
     }
     refreshModified();
