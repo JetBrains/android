@@ -736,7 +736,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
           return ORIENTATIONS.get(input).myName;
         }
       }, new Dimension(50, 50));
-    myOrientationToggle.setCellMargin(new Insets(3, 5, 3, 5));
+    myOrientationToggle.setCellMargin(new Insets(5, 20, 4, 20));
     myOrientationToggle.setBackground(JBColor.background());
     myOrientationToggle.setForeground(JBColor.foreground());
     myScalingComboBox = new ComboBox(new EnumComboBoxModel<AvdScaleFactor>(AvdScaleFactor.class));
