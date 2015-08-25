@@ -62,8 +62,7 @@ public class GradleIdeConfigurationProfile implements IdeConfigurationProfile {
 
   private static final Logger LOG = Logger.getInstance(GradleIdeConfigurationProfile.class);
 
-  private static Set<String> unwantedIntentions = Sets.newHashSet("Add testng.jar to classpath", /* TestNGOrderEntryFix */
-                                                                  "Add jcip-annotations.jar to classpath" /* JCiPOrderEntryFix */);
+  private static Set<String> unwantedIntentions = Sets.newHashSet("TestNGOrderEntryFix", "JCiPOrderEntryFix");
 
   @Override
   @NotNull
@@ -235,7 +234,7 @@ public class GradleIdeConfigurationProfile implements IdeConfigurationProfile {
     }
 
     for (IntentionAction intentionAction : intentionManager.getIntentionActions()) {
-      if (unwantedIntentions.contains(intentionAction.getFamilyName())) {
+      if (unwantedIntentions.contains(intentionAction.getClass().getSimpleName())) {
         intentionManager.unregisterIntention(intentionAction);
       }
     }
