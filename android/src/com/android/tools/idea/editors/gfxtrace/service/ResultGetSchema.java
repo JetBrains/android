@@ -24,7 +24,7 @@ import java.io.IOException;
 
 final class ResultGetSchema implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Schema myValue;
+  private Schema myValue;
 
   // Constructs a default-initialized {@link ResultGetSchema}.
   public ResultGetSchema() {}

@@ -26,8 +26,8 @@ import java.io.IOException;
 
 final class CallSet implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Path myP;
-  Object myV;
+  private Path myP;
+  private Object myV;
 
   // Constructs a default-initialized {@link CallSet}.
   public CallSet() {}

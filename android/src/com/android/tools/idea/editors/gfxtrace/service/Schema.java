@@ -26,8 +26,8 @@ import java.io.IOException;
 
 public final class Schema implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  SchemaClass[] myClasses;
-  ConstantSet[] myConstants;
+  private SchemaClass[] myClasses;
+  private ConstantSet[] myConstants;
 
   // Constructs a default-initialized {@link Schema}.
   public Schema() {}

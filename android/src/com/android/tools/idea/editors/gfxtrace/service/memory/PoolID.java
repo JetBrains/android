@@ -22,25 +22,42 @@ import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
 import java.io.IOException;
 
-public enum PoolID {
-  ApplicationPool(0);
+public final class PoolID {
+  public static final int ApplicationPool = 0;
+  public static PoolID applicationPool() { return new PoolID(ApplicationPool); }
 
-  private final int myValue;
-  PoolID(int value) {
-    myValue = value;
+  public final int value;
+
+  public PoolID(int value) {
+    this.value = value;
   }
-  public int getValue() { return myValue; }
 
   public void encode(@NotNull Encoder e) throws IOException {
-    e.uint32(myValue);
+    e.uint32(value);
   }
 
   public static PoolID decode(@NotNull Decoder d) throws IOException {
     int value = d.uint32();
-    switch (value) {
-    case 0:
-      return ApplicationPool;
+    return new PoolID(value);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || !(o instanceof PoolID)) return false;
+    return value != ((PoolID)o).value;
+  }
+
+  @Override
+  public int hashCode() {
+    return value;
+  }
+
+  @Override
+  public String toString() {
+    switch(value) {
+      case ApplicationPool: return "ApplicationPool";
+      default: return "PoolID(" + value + ")";
     }
-    throw new IOException("Invalid value for PoolID");
   }
 }

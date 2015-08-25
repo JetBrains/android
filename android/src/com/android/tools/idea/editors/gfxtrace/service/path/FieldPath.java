@@ -29,8 +29,8 @@ public final class FieldPath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  Path myStruct;
-  String myName;
+  private Path myStruct;
+  private String myName;
 
   // Constructs a default-initialized {@link FieldPath}.
   public FieldPath() {}

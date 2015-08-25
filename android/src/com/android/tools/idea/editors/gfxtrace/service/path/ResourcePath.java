@@ -17,37 +17,53 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
-import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
+
+import com.android.tools.rpclib.binary.BinaryClass;
+import com.android.tools.rpclib.binary.BinaryID;
+import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.tools.rpclib.binary.Decoder;
+import com.android.tools.rpclib.binary.Encoder;
+import com.android.tools.rpclib.binary.Namespace;
 
 import java.io.IOException;
 
-public final class TimingInfoPath extends Path {
+public final class ResourcePath extends Path {
   @Override
   public StringBuilder stringPath(StringBuilder builder) {
-    return builder.append("TimingInfo(").append(myID).append(")");
+    return myAfter.stringPath(builder).append(".Resource<").append(myID).append(">");
   }
 
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;
+  private AtomPath myAfter;
 
-  // Constructs a default-initialized {@link TimingInfoPath}.
-  public TimingInfoPath() {}
+  // Constructs a default-initialized {@link ResourcePath}.
+  public ResourcePath() {}
 
 
   public BinaryID getID() {
     return myID;
   }
 
-  public TimingInfoPath setID(BinaryID v) {
+  public ResourcePath setID(BinaryID v) {
     myID = v;
+    return this;
+  }
+
+  public AtomPath getAfter() {
+    return myAfter;
+  }
+
+  public ResourcePath setAfter(AtomPath v) {
+    myAfter = v;
     return this;
   }
 
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-83, -57, -71, 27, -86, -100, -104, -62, 40, -80, -36, 58, 111, -37, -88, -1, -100, -74, -102, -119, };
+  private static final byte[] IDBytes = {-80, -63, 118, 17, -83, -63, 12, 39, 16, -23, 68, -119, -21, 3, 24, -6, -100, -35, 47, -42, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
@@ -63,18 +79,20 @@ public final class TimingInfoPath extends Path {
     public BinaryID id() { return ID; }
 
     @Override @NotNull
-    public BinaryObject create() { return new TimingInfoPath(); }
+    public BinaryObject create() { return new ResourcePath(); }
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      TimingInfoPath o = (TimingInfoPath)obj;
+      ResourcePath o = (ResourcePath)obj;
       e.id(o.myID);
+      e.object(o.myAfter);
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      TimingInfoPath o = (TimingInfoPath)obj;
+      ResourcePath o = (ResourcePath)obj;
       o.myID = d.id();
+      o.myAfter = (AtomPath)d.object();
     }
     //<<<End:Java.KlassBody:2>>>
   }

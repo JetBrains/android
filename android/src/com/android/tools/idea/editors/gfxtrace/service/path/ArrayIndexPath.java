@@ -29,8 +29,8 @@ public final class ArrayIndexPath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  Path myArray;
-  long myIndex;
+  private Path myArray;
+  private long myIndex;
 
   // Constructs a default-initialized {@link ArrayIndexPath}.
   public ArrayIndexPath() {}

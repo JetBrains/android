@@ -109,7 +109,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
             }
             LOG.warn("Schema with " + atoms + " atoms");
             for (ConstantSet set : schema.getConstants()) {
-              LOG.warn("register " + set.getType().toString());
               ConstantSet.register(set);
             }
           }

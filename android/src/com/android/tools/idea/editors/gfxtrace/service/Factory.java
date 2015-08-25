@@ -29,11 +29,12 @@ public final class Factory {
     AtomTimer.register();
     Capture.register();
     Device.register();
-    ImageInfo.register();
     MemoryInfo.register();
     RenderSettings.register();
     ReportItem.register();
     Report.register();
+    ResourceInfo.register();
+    Resources.register();
     Schema.register();
     TimingInfo.register();
     CallFollow.register();

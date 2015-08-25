@@ -36,8 +36,8 @@ public final class Range implements BinaryObject {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  long myStart;
-  long myEnd;
+  private long myStart;
+  private long myEnd;
 
   // Constructs a default-initialized {@link Range}.
   public Range() {}

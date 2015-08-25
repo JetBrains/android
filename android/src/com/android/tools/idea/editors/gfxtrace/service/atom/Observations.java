@@ -24,8 +24,8 @@ import java.io.IOException;
 
 public final class Observations implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Observation[] myReads;
-  Observation[] myWrites;
+  private Observation[] myReads;
+  private Observation[] myWrites;
 
   // Constructs a default-initialized {@link Observations}.
   public Observations() {}

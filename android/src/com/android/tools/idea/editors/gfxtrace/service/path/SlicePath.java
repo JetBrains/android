@@ -29,9 +29,9 @@ public final class SlicePath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  Path myArray;
-  long myStart;
-  long myEnd;
+  private Path myArray;
+  private long myStart;
+  private long myEnd;
 
   // Constructs a default-initialized {@link SlicePath}.
   public SlicePath() {}

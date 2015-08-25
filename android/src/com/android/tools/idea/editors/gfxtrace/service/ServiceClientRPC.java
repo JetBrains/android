@@ -95,7 +95,7 @@ public final class ServiceClientRPC extends ServiceClient {
     @Override
     public Path call() throws Exception {
       ResultFollow result = (ResultFollow)myBroadcaster.Send(myCall);
-      return result.myValue;
+      return result.getValue();
     }
   }
   private class GetCallable implements Callable<Object> {
@@ -108,7 +108,7 @@ public final class ServiceClientRPC extends ServiceClient {
     @Override
     public Object call() throws Exception {
       ResultGet result = (ResultGet)myBroadcaster.Send(myCall);
-      return result.myValue;
+      return result.getValue();
     }
   }
   private class GetCapturesCallable implements Callable<CapturePath[]> {
@@ -120,7 +120,7 @@ public final class ServiceClientRPC extends ServiceClient {
     @Override
     public CapturePath[] call() throws Exception {
       ResultGetCaptures result = (ResultGetCaptures)myBroadcaster.Send(myCall);
-      return result.myValue;
+      return result.getValue();
     }
   }
   private class GetDevicesCallable implements Callable<DevicePath[]> {
@@ -132,7 +132,7 @@ public final class ServiceClientRPC extends ServiceClient {
     @Override
     public DevicePath[] call() throws Exception {
       ResultGetDevices result = (ResultGetDevices)myBroadcaster.Send(myCall);
-      return result.myValue;
+      return result.getValue();
     }
   }
   private class GetFramebufferColorCallable implements Callable<ImageInfoPath> {
@@ -147,7 +147,7 @@ public final class ServiceClientRPC extends ServiceClient {
     @Override
     public ImageInfoPath call() throws Exception {
       ResultGetFramebufferColor result = (ResultGetFramebufferColor)myBroadcaster.Send(myCall);
-      return result.myValue;
+      return result.getValue();
     }
   }
   private class GetFramebufferDepthCallable implements Callable<ImageInfoPath> {
@@ -161,7 +161,7 @@ public final class ServiceClientRPC extends ServiceClient {
     @Override
     public ImageInfoPath call() throws Exception {
       ResultGetFramebufferDepth result = (ResultGetFramebufferDepth)myBroadcaster.Send(myCall);
-      return result.myValue;
+      return result.getValue();
     }
   }
   private class GetSchemaCallable implements Callable<Schema> {
@@ -173,7 +173,7 @@ public final class ServiceClientRPC extends ServiceClient {
     @Override
     public Schema call() throws Exception {
       ResultGetSchema result = (ResultGetSchema)myBroadcaster.Send(myCall);
-      return result.myValue;
+      return result.getValue();
     }
   }
   private class GetTimingInfoCallable implements Callable<TimingInfoPath> {
@@ -188,7 +188,7 @@ public final class ServiceClientRPC extends ServiceClient {
     @Override
     public TimingInfoPath call() throws Exception {
       ResultGetTimingInfo result = (ResultGetTimingInfo)myBroadcaster.Send(myCall);
-      return result.myValue;
+      return result.getValue();
     }
   }
   private class ImportCaptureCallable implements Callable<CapturePath> {
@@ -202,7 +202,7 @@ public final class ServiceClientRPC extends ServiceClient {
     @Override
     public CapturePath call() throws Exception {
       ResultImportCapture result = (ResultImportCapture)myBroadcaster.Send(myCall);
-      return result.myValue;
+      return result.getValue();
     }
   }
   private class PrerenderFramebuffersCallable implements Callable<Void> {
@@ -234,7 +234,7 @@ public final class ServiceClientRPC extends ServiceClient {
     @Override
     public Path call() throws Exception {
       ResultSet result = (ResultSet)myBroadcaster.Send(myCall);
-      return result.myValue;
+      return result.getValue();
     }
   }
 }

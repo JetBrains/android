@@ -24,9 +24,9 @@ import java.io.IOException;
 
 public final class Capture implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  String myName;
-  BinaryID myAtoms;
-  BinaryID[] myApis;
+  private String myName;
+  private BinaryID myAtoms;
+  private BinaryID[] myApis;
 
   // Constructs a default-initialized {@link Capture}.
   public Capture() {}

@@ -37,7 +37,7 @@ public final class CapturePath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  BinaryID myID;
+  private BinaryID myID;
 
   // Constructs a default-initialized {@link CapturePath}.
   public CapturePath() {}

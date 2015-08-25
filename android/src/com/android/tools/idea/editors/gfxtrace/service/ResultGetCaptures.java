@@ -25,7 +25,7 @@ import java.io.IOException;
 
 final class ResultGetCaptures implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  CapturePath[] myValue;
+  private CapturePath[] myValue;
 
   // Constructs a default-initialized {@link ResultGetCaptures}.
   public ResultGetCaptures() {}
