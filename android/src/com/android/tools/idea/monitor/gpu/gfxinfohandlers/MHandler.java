@@ -35,7 +35,6 @@ import java.util.regex.Pattern;
  * Sampler for M API or higher.
  */
 public final class MHandler implements GfxinfoHandler {
-  public static final int SAMPLE_BUFFER_SIZE = 8192;
   public static final int MIN_API_LEVEL = 23;
 
   private static final float NS_TO_MS = 0.000001f;

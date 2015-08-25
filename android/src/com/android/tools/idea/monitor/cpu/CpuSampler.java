@@ -55,12 +55,6 @@ public class CpuSampler extends DeviceSampler {
     return "CPU Sampler";
   }
 
-  @NotNull
-  @Override
-  public String getDescription() {
-    return "cpu usage information";
-  }
-
   @Override
   protected void sample(boolean forced) throws InterruptedException {
     if (myClient == null) {

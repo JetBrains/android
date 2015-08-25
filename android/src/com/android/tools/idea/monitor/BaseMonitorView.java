@@ -15,21 +15,91 @@
  */
 package com.android.tools.idea.monitor;
 
+import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComponentWithActions;
+import com.intellij.ui.ColorUtil;
+import com.intellij.ui.components.JBLayeredPane;
+import com.intellij.util.ui.UIUtil;
+import gnu.trove.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.PriorityQueue;
 
 public abstract class BaseMonitorView implements HierarchyListener, TimelineEventListener {
+  @NotNull protected static final String PAUSED_LABEL = "This monitor is disabled.";
+  @NotNull private static final Integer OVERLAY_LAYER = JLayeredPane.DEFAULT_LAYER + 10;
+  @NotNull private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
+
   @NotNull protected Project myProject;
-  @NotNull protected JPanel myContentPane;
+  @NotNull protected JLayeredPane myContentPane;
+  @NotNull private TranslucentLabel myOverlayLabel;
+  @NotNull private HashMap<String, ZOrderedOverlayText> myOverlayLookup;
+  @NotNull private PriorityQueue<ZOrderedOverlayText> myVisibleOverlays;
+
+  private static class TranslucentLabel extends JLabel {
+    public TranslucentLabel() {
+      super();
+    }
+
+    @Override
+    public void paintComponent(@NotNull Graphics g) {
+      g.setColor(getBackground());
+      g.fillRect(0, 0, getWidth(), getHeight());
+      super.paintComponent(g);
+    }
+  }
+
+  private static class ZOrderedOverlayText {
+    @NotNull private String myText;
+    private int myZ;
+
+    private ZOrderedOverlayText(@NotNull String text, int z) {
+      myText = text;
+      myZ = z;
+    }
+  }
 
   protected BaseMonitorView(@NotNull Project project) {
     myProject = project;
-    myContentPane = new JPanel(new BorderLayout());
+    myContentPane = new JBLayeredPane() {
+      @Override
+      public void doLayout() {
+        final Component[] components = getComponents();
+        final Rectangle r = getBounds();
+        for (Component c : components) {
+          c.setBounds(0, 0, r.width, r.height);
+        }
+      }
+
+      @Override
+      public Dimension getPreferredSize() {
+        return getBounds().getSize();
+      }
+    };
+
+    myOverlayLabel = new TranslucentLabel();
+    //noinspection UseJBColor
+    Color translucentBackgroundColor = ColorUtil.toAlpha(BACKGROUND_COLOR, 192);
+    myOverlayLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    myOverlayLabel.setBackground(translucentBackgroundColor);
+
+    myOverlayLookup = new HashMap<String, ZOrderedOverlayText>();
+    myVisibleOverlays = new PriorityQueue<ZOrderedOverlayText>(5, new Comparator<ZOrderedOverlayText>() {
+      @Override
+      public int compare(ZOrderedOverlayText a, ZOrderedOverlayText b) {
+        return a.myZ - b.myZ;
+      }
+    });
+
+    myOverlayLabel.setVisible(false);
+    myContentPane.add(myOverlayLabel, OVERLAY_LAYER, 0);
     myContentPane.addHierarchyListener(this);
   }
 
@@ -42,24 +112,72 @@ public abstract class BaseMonitorView implements HierarchyListener, TimelineEven
     }
   }
 
-  @Override
-  public void onStart() {
-
+  @NotNull
+  public ComponentWithActions createComponent() {
+    JPanel wrapper = new JPanel(new BorderLayout());
+    wrapper.add(myContentPane, BorderLayout.CENTER);
+    return new ComponentWithActions.Impl(getToolbarActions(), null, null, null, wrapper);
   }
 
-  @Override
-  public void onStop() {
+  public abstract ActionGroup getToolbarActions();
 
-  }
+  public abstract void setPaused(boolean paused);
+
+  public abstract boolean isPaused();
+
+  @Override
+  public void onStart() {}
+
+  @Override
+  public void onStop() {}
+
+  @NotNull
+  public abstract String getDescription();
 
   protected abstract DeviceSampler getSampler();
 
-  protected boolean isShowing() {
-    return myContentPane.isShowing();
+  /**
+   * Registers the given text in the list of possible strings usable in the overlay.
+   *
+   * @param text   is the unique text reference representing the text to be displayed in the overlay
+   * @param index  is the priority of the text, in the range of [0, Integer.MAX_VALUE]
+   */
+  protected final void addOverlayText(@NotNull String text, int index) {
+    assert !myOverlayLookup.containsKey(text) && index >= 0 && index < Integer.MAX_VALUE;
+    myOverlayLookup.put(text, new ZOrderedOverlayText(text, index));
   }
 
-  protected void setComponent(@NotNull JComponent component) {
-    myContentPane.removeAll();
-    myContentPane.add(component, BorderLayout.CENTER);
+  /**
+   * Enables and, if lowest {@code index} in all calls to {@link #addOverlayText(String, int)}, displays the text over this view.
+   *
+   * @param text     is the unique text reference given to {@link #addOverlayText(String, int)}
+   * @param enabled  true to enable, false to disable
+   */
+  protected final void setOverlayEnabled(@NotNull String text, boolean enabled) {
+    assert myOverlayLookup.containsKey(text);
+
+    ZOrderedOverlayText orderedText = myOverlayLookup.get(text);
+
+    if (enabled) {
+      if (!myVisibleOverlays.contains(orderedText)) {
+        myVisibleOverlays.add(orderedText);
+        myOverlayLabel.setText(myVisibleOverlays.peek().myText);
+        myOverlayLabel.setVisible(true);
+      }
+    }
+    else {
+      myVisibleOverlays.remove(orderedText);
+      if (myVisibleOverlays.size() > 0) {
+        myOverlayLabel.setText(myVisibleOverlays.peek().myText);
+      }
+      else {
+        myOverlayLabel.setText("");
+        myOverlayLabel.setVisible(false);
+      }
+    }
+  }
+
+  protected final void setViewComponent(@NotNull JComponent component) {
+    myContentPane.add(component, JLayeredPane.DEFAULT_LAYER, 0);
   }
 }

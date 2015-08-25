@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface GfxinfoHandler {
+  int SAMPLE_BUFFER_SIZE = 8192;
+
   /**
    * Tests if this sampler can process the given client.
    *
