@@ -65,6 +65,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String XLIFF = "resourceRepository/xliff.xml";
   private static final String STRINGS = "resourceRepository/strings.xml";
   private static final String DRAWABLE = "resourceRepository/logo.png";
+  private static final String COLOR_STATELIST = "resourceRepository/statelist.xml";
 
   @Override
   public void tearDown() throws Exception {
@@ -2207,6 +2208,67 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     validateViewWithId(facet, viewsWithIds.get(3), "android.widget.TextView", "textView1");
     validateViewWithId(facet, viewsWithIds.get(4), "android.view.ViewGroup", "viewTag");
     validateViewWithId(facet, viewsWithIds.get(5), "android.webkit.WebView", "webView1");
+  }
+
+  public void testEditColorStateList() throws Exception {
+    resetScanCounter();
+
+    VirtualFile file1 = myFixture.copyFileToProject(COLOR_STATELIST, "res/color/my_state_list.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+
+    assertTrue(resources.hasResourceItem(ResourceType.COLOR, "my_state_list"));
+
+    // Edit comment
+    long generation = resources.getModificationCount();
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFile1);
+    assertNotNull(document);
+
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        final int offset = document.getText().indexOf(" -->");
+        document.replaceString(offset, offset, "more comment");
+        documentManager.commitDocument(document);
+      }
+    });
+
+    // Shouldn't have caused any change
+    assertTrue(generation == resources.getModificationCount());
+    ensureIncremental();
+
+    // Edit processing instruction
+    generation = resources.getModificationCount();
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        final int offset = document.getText().indexOf("utf-8");
+        document.replaceString(offset, offset + 5, "other encoding");
+        documentManager.commitDocument(document);
+      }
+    });
+
+    // Shouldn't have caused any change
+    assertTrue(generation == resources.getModificationCount());
+    ensureIncremental();
+
+    // Edit state list
+    generation = resources.getModificationCount();
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        final int offset = document.getText().indexOf("myColor");
+        document.replaceString(offset, offset + 7, "myNewColor");
+        documentManager.commitDocument(document);
+      }
+    });
+
+    // Should have caused a modification but not a rescan
+    assertTrue(generation < resources.getModificationCount());
+    ensureIncremental();
   }
 
   private void validateViewWithId(AndroidFacet facet, DataBindingInfo.ViewWithId viewWithId, String qualified, String variableName) {
