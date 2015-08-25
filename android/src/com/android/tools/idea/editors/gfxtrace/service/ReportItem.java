@@ -25,9 +25,9 @@ import java.io.IOException;
 
 public final class ReportItem implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Severity mySeverity;
-  String myMessage;
-  long myAtom;
+  private Severity mySeverity;
+  private String myMessage;
+  private long myAtom;
 
   // Constructs a default-initialized {@link ReportItem}.
   public ReportItem() {}

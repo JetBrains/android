@@ -24,9 +24,9 @@ import java.io.IOException;
 
 public final class RenderSettings implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  int myMaxWidth;
-  int myMaxHeight;
-  WireframeMode myWireframeMode;
+  private int myMaxWidth;
+  private int myMaxHeight;
+  private WireframeMode myWireframeMode;
 
   // Constructs a default-initialized {@link RenderSettings}.
   public RenderSettings() {}

@@ -22,31 +22,48 @@ import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
 import java.io.IOException;
 
-public enum WireframeMode {
-  NoWireframe(0),
-  WireframeOverlay(1),
-  AllWireframe(2);
+public final class WireframeMode {
+  public static final int NoWireframe = 0;
+  public static WireframeMode noWireframe() { return new WireframeMode(NoWireframe); }
+  public static final int WireframeOverlay = 1;
+  public static WireframeMode wireframeOverlay() { return new WireframeMode(WireframeOverlay); }
+  public static final int AllWireframe = 2;
+  public static WireframeMode allWireframe() { return new WireframeMode(AllWireframe); }
 
-  private final int myValue;
-  WireframeMode(int value) {
-    myValue = value;
+  public final int value;
+
+  public WireframeMode(int value) {
+    this.value = value;
   }
-  public int getValue() { return myValue; }
 
   public void encode(@NotNull Encoder e) throws IOException {
-    e.int32(myValue);
+    e.int32(value);
   }
 
   public static WireframeMode decode(@NotNull Decoder d) throws IOException {
     int value = d.int32();
-    switch (value) {
-    case 0:
-      return NoWireframe;
-    case 1:
-      return WireframeOverlay;
-    case 2:
-      return AllWireframe;
+    return new WireframeMode(value);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || !(o instanceof WireframeMode)) return false;
+    return value != ((WireframeMode)o).value;
+  }
+
+  @Override
+  public int hashCode() {
+    return value;
+  }
+
+  @Override
+  public String toString() {
+    switch(value) {
+      case NoWireframe: return "NoWireframe";
+      case WireframeOverlay: return "WireframeOverlay";
+      case AllWireframe: return "AllWireframe";
+      default: return "WireframeMode(" + value + ")";
     }
-    throw new IOException("Invalid value for WireframeMode");
   }
 }

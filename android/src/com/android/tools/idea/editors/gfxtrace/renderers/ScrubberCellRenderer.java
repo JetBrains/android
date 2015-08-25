@@ -22,10 +22,10 @@ import com.android.tools.idea.editors.gfxtrace.controllers.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.controllers.ScrubberController;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.ScrubberLabelData;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.RoundedLineBorder;
-import com.android.tools.idea.editors.gfxtrace.service.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
+import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
 import com.google.common.util.concurrent.Futures;
@@ -79,7 +79,7 @@ public class ScrubberCellRenderer implements ListCellRenderer {
     myRenderSettings = new RenderSettings();
     myRenderSettings.setMaxWidth(MAX_WIDTH);
     myRenderSettings.setMaxHeight(MAX_HEIGHT);
-    myRenderSettings.setWireframeMode(WireframeMode.NoWireframe);
+    myRenderSettings.setWireframeMode(WireframeMode.noWireframe());
 
     myBlankIcon = new ImageIcon(createBlankImage(DEFAULT_IMAGE_SIZE));
   }

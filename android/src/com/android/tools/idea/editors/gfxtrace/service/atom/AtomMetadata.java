@@ -67,11 +67,11 @@ public final class AtomMetadata implements BinaryObject {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  BinaryID myAPI;
-  String myDisplayName;
-  boolean myEndOfFrame;
-  boolean myDrawCall;
-  String myDocumentationUrl;
+  private BinaryID myAPI;
+  private String myDisplayName;
+  private boolean myEndOfFrame;
+  private boolean myDrawCall;
+  private String myDocumentationUrl;
 
   // Constructs a default-initialized {@link AtomMetadata}.
   public AtomMetadata() {}

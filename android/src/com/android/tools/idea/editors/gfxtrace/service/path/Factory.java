@@ -21,6 +21,7 @@ public final class Factory {
   public static void register() {
     //<<<Start:Java.FactoryBody:2>>>
     ArrayIndexPath.register();
+    AsPath.register();
     CapturePath.register();
     AtomsPath.register();
     AtomPath.register();
@@ -32,8 +33,11 @@ public final class Factory {
     MapIndexPath.register();
     MemoryRangePath.register();
     ReportPath.register();
+    ResourcePath.register();
+    ResourcesPath.register();
     SlicePath.register();
     StatePath.register();
+    ThumbnailPath.register();
     TimingInfoPath.register();
     //<<<End:Java.FactoryBody:2>>>
   }

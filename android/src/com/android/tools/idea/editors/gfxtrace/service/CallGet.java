@@ -25,7 +25,7 @@ import java.io.IOException;
 
 final class CallGet implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Path myP;
+  private Path myP;
 
   // Constructs a default-initialized {@link CallGet}.
   public CallGet() {}

@@ -26,9 +26,9 @@ import java.io.IOException;
 
 final class CallGetTimingInfo implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  DevicePath myDevice;
-  CapturePath myCapture;
-  TimingFlags myFlags;
+  private DevicePath myDevice;
+  private CapturePath myCapture;
+  private TimingFlags myFlags;
 
   // Constructs a default-initialized {@link CallGetTimingInfo}.
   public CallGetTimingInfo() {}

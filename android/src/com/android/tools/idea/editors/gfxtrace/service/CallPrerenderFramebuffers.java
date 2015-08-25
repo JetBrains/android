@@ -26,12 +26,12 @@ import java.io.IOException;
 
 final class CallPrerenderFramebuffers implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  DevicePath myDevice;
-  CapturePath myCapture;
-  BinaryID myApi;
-  int myWidth;
-  int myHeight;
-  long[] myAtomIndicies;
+  private DevicePath myDevice;
+  private CapturePath myCapture;
+  private BinaryID myApi;
+  private int myWidth;
+  private int myHeight;
+  private long[] myAtomIndicies;
 
   // Constructs a default-initialized {@link CallPrerenderFramebuffers}.
   public CallPrerenderFramebuffers() {}
