@@ -24,9 +24,9 @@ import java.io.IOException;
 
 public final class TimingInfo implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  AtomTimer[] myPerCommand;
-  AtomRangeTimer[] myPerDrawCall;
-  AtomRangeTimer[] myPerFrame;
+  private AtomTimer[] myPerCommand;
+  private AtomRangeTimer[] myPerDrawCall;
+  private AtomRangeTimer[] myPerFrame;
 
   // Constructs a default-initialized {@link TimingInfo}.
   public TimingInfo() {}

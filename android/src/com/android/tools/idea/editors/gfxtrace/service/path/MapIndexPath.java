@@ -30,8 +30,8 @@ public final class MapIndexPath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  Path myMap;
-  Object myKey;
+  private Path myMap;
+  private Object myKey;
 
   // Constructs a default-initialized {@link MapIndexPath}.
   public MapIndexPath() {}

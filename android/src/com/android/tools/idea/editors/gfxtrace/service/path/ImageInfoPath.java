@@ -29,7 +29,7 @@ public final class ImageInfoPath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  BinaryID myID;
+  private BinaryID myID;
 
   // Constructs a default-initialized {@link ImageInfoPath}.
   public ImageInfoPath() {}

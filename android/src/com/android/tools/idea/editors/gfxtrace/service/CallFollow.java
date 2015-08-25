@@ -25,7 +25,7 @@ import java.io.IOException;
 
 final class CallFollow implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Path myP;
+  private Path myP;
 
   // Constructs a default-initialized {@link CallFollow}.
   public CallFollow() {}

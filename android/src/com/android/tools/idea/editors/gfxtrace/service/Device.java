@@ -24,16 +24,16 @@ import java.io.IOException;
 
 public final class Device implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  String myName;
-  String myModel;
-  String myOS;
-  byte myPointerSize;
-  byte myPointerAlignment;
-  long myMaxMemorySize;
-  String myExtensions;
-  String myRenderer;
-  String myVendor;
-  String myVersion;
+  private String myName;
+  private String myModel;
+  private String myOS;
+  private byte myPointerSize;
+  private byte myPointerAlignment;
+  private long myMaxMemorySize;
+  private String myExtensions;
+  private String myRenderer;
+  private String myVendor;
+  private String myVersion;
 
   // Constructs a default-initialized {@link Device}.
   public Device() {}

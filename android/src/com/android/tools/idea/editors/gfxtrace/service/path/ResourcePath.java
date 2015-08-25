@@ -35,8 +35,8 @@ public final class ResourcePath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  BinaryID myID;
-  AtomPath myAfter;
+  private BinaryID myID;
+  private AtomPath myAfter;
 
   // Constructs a default-initialized {@link ResourcePath}.
   public ResourcePath() {}

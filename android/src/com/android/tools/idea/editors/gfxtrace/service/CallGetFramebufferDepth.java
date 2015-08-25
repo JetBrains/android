@@ -26,8 +26,8 @@ import java.io.IOException;
 
 final class CallGetFramebufferDepth implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  DevicePath myDevice;
-  AtomPath myAfter;
+  private DevicePath myDevice;
+  private AtomPath myAfter;
 
   // Constructs a default-initialized {@link CallGetFramebufferDepth}.
   public CallGetFramebufferDepth() {}

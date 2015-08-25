@@ -33,8 +33,8 @@ public final class AtomPath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  AtomsPath myAtoms;
-  long myIndex;
+  private AtomsPath myAtoms;
+  private long myIndex;
 
   // Constructs a default-initialized {@link AtomPath}.
   public AtomPath() {}

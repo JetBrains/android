@@ -30,7 +30,7 @@ import java.io.IOException;
 
 public final class Resources implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  ResourceInfo[] myTextures;
+  private ResourceInfo[] myTextures;
 
   // Constructs a default-initialized {@link Resources}.
   public Resources() {}

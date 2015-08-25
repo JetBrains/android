@@ -35,9 +35,9 @@ public final class ThumbnailPath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  Path myObject;
-  int myDesiredWidth;
-  int myDesiredHeight;
+  private Path myObject;
+  private int myDesiredWidth;
+  private int myDesiredHeight;
 
   // Constructs a default-initialized {@link ThumbnailPath}.
   public ThumbnailPath() {}

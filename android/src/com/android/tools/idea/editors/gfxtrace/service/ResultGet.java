@@ -25,7 +25,7 @@ import java.io.IOException;
 
 final class ResultGet implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Object myValue;
+  private Object myValue;
 
   // Constructs a default-initialized {@link ResultGet}.
   public ResultGet() {}

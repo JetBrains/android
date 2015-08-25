@@ -24,7 +24,7 @@ import java.io.IOException;
 
 public final class Report implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  ReportItem[] myItems;
+  private ReportItem[] myItems;
 
   // Constructs a default-initialized {@link Report}.
   public Report() {}

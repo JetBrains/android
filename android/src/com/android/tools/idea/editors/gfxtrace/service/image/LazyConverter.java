@@ -30,11 +30,11 @@ import java.io.IOException;
 
 public final class LazyConverter implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  BinaryID myData;
-  int myWidth;
-  int myHeight;
-  Format myFormatFrom;
-  Format myFormatTo;
+  private BinaryID myData;
+  private int myWidth;
+  private int myHeight;
+  private Format myFormatFrom;
+  private Format myFormatTo;
 
   // Constructs a default-initialized {@link LazyConverter}.
   public LazyConverter() {}
