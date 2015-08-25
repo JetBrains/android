@@ -17,9 +17,7 @@ package com.android.tools.idea.gradle.quickfix;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.google.common.base.Function;
 import com.intellij.codeInsight.daemon.impl.actions.AddImportAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
@@ -34,7 +32,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.concurrent.Callable;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.tools.idea.gradle.dsl.parser.CommonConfigurationNames.*;
@@ -61,7 +59,7 @@ abstract class AbstractGradleDependencyFix extends AbstractGradleAwareFix {
   }
 
   @Override
-  public boolean isAvailable(@NotNull Project project,  @Nullable Editor editor,  @Nullable PsiFile file) {
+  public boolean isAvailable(@NotNull Project project, @Nullable Editor editor, @Nullable PsiFile file) {
     return !project.isDisposed() && !myModule.isDisposed();
   }
 
@@ -96,39 +94,57 @@ abstract class AbstractGradleDependencyFix extends AbstractGradleAwareFix {
       }
     }
     return COMPILE;
-
   }
 
   /**
-   * After modifying the dependencies of the gradle file, trigger gradle sync and then try to add import statement to the source file.
+   * Run gradle sync and add import statement to the source file after modifying gradle build file and trigger gradle
+   * sync.
    *
-   * @param project the project in which the quick fix is invoked.
-   * @param editor the editor in which the quick fix is invoked.
-   * @param reference the PSI element that can't be resolved initially.
+   * @param project          current project.
+   * @param action           the action to be run inside write command
+   * @param editor           the editor in which the quick fix is invoked.
    * @param getTargetClasses the callback to find resolved classes for the reference after sync is done.
    */
-  protected static void gradleSyncAndImportClass(@NotNull final Project project,
-                                                 @Nullable final Editor editor,
-                                                 @Nullable final PsiReference reference,
-                                                 @Nullable final Function<Void, List<PsiClass>> getTargetClasses) {
-    GradleProjectImporter.getInstance().requestProjectSync(project, false /* Do not generate source */, new GradleSyncListener.Adapter() {
+  protected void runWriteCommandActionAndSync(@NotNull final Project project,
+                                              @NotNull final Runnable action,
+                                              @Nullable final Editor editor,
+                                              @Nullable final Callable<PsiClass[]> getTargetClasses) {
+    GradleSyncListener listener = new GradleSyncListener.Adapter() {
       @Override
-      public void syncSucceeded(@NotNull final Project project) {
-        if (editor != null && reference != null) {
-          DumbService.getInstance(project).withAlternativeResolveEnabled(new Runnable() {
-            @Override
-            public void run() {
-              List<PsiClass> targetClasses = null;
-              if (getTargetClasses != null) {
-                targetClasses = getTargetClasses.apply(null);
-              }
-              if (targetClasses != null) {
-                new AddImportAction(project, reference, editor, targetClasses.toArray(new PsiClass[targetClasses.size()])).execute();
-              }
-            }
-          });
-        }
+      public void syncSucceeded(@NotNull Project project) {
+        runImportAction(project, editor, getTargetClasses);
       }
-    });
+
+      @Override
+      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+        runImportAction(project, editor, getTargetClasses);
+      }
+    };
+
+    runWriteCommandActionAndSync(project, action, listener);
   }
+
+  private void runImportAction(@NotNull final Project project,
+                               @Nullable final Editor editor,
+                               @Nullable final Callable<PsiClass[]> getTargetClasses) {
+    if (editor != null) {
+      DumbService.getInstance(project).withAlternativeResolveEnabled(new Runnable() {
+        @Override
+        public void run() {
+          PsiClass[] targetClasses = null;
+          if (getTargetClasses != null) {
+            try {
+              targetClasses = getTargetClasses.call();
+            }
+            catch (Exception ignored) {
+            }
+          }
+          if (targetClasses != null) {
+            new AddImportAction(project, myReference, editor, targetClasses).execute();
+          }
+        }
+      });
+    }
+  }
+
 }
