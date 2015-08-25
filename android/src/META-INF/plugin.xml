@@ -776,7 +776,8 @@
     <generatedSourcesFilter implementation="com.android.tools.idea.editors.AndroidGeneratedSourcesFilter"/>
     <codeInsight.unresolvedReferenceQuickFixProvider
         implementation="com.android.tools.idea.gradle.quickfix.AndroidUnresolvedReferenceQuickFixProvider" order="last"/>
-    <highlightVisitor implementation="com.android.tools.idea.gradle.highlight.GradleHighlightQuickfixReplacementVisitor" order="last"/>
+    <!-- Temporarily disabled due to https://code.google.com/p/android/issues/detail?id=183801 -->
+    <!--<highlightVisitor implementation="com.android.tools.idea.gradle.highlight.GradleHighlightQuickfixReplacementVisitor" order="last"/>-->
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
