@@ -77,7 +77,7 @@ public class ScrubberController implements PathListener {
         Object selectedValue = myList.getSelectedValue();
         if (selectedValue == null) return;
         ScrubberLabelData labelData = (ScrubberLabelData)selectedValue;
-        AtomPath atomPath = myAtomsPath.getPath().index(labelData.getRange().getLast());
+        AtomPath atomPath = myAtomsPath.getPath().index(labelData.range.getLast());
         myEditor.activatePath(atomPath);
       }
     });
@@ -128,7 +128,7 @@ public class ScrubberController implements PathListener {
   public void selectFrame(long atomIndex) {
     if (myFrameData == null) return;
     for (int i = 0; i < myFrameData.size(); ++i) {
-      if (myFrameData.get(i).getRange().contains(atomIndex)) {
+      if (myFrameData.get(i).range.contains(atomIndex)) {
         try {
           mDisableActivation = true;
           myList.setSelectedIndex(i);

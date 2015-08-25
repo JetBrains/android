@@ -130,7 +130,7 @@ public class ScrubberCellRenderer implements ListCellRenderer {
         };
         myTicker.run();
       }
-      ListenableFuture<ImageInfoPath> imagePathF = client.getFramebufferColor(devicePath, labelData.getAtomPath(), myRenderSettings);
+      ListenableFuture<ImageInfoPath> imagePathF = client.getFramebufferColor(devicePath, labelData.atomPath, myRenderSettings);
       Futures.addCallback(imagePathF, new LoadingCallback<ImageInfoPath>(LOG, labelData) {
         @Override
         public void onSuccess(@Nullable final ImageInfoPath imagePath) {

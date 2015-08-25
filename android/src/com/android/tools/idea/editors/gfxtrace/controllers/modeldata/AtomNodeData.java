@@ -15,12 +15,24 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers.modeldata;
 
-import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
+import com.android.tools.rpclib.schema.Render;
 import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
-public interface AtomTreeNode {
-  void render(@NotNull AtomList atoms, @NotNull SimpleColoredComponent component);
-  long getRepresentativeAtomIndex();
-  boolean contains(long atomImdex);
+public class AtomNodeData implements Render.ToComponent {
+  public final long index;
+  public final Atom atom;
+
+  public AtomNodeData(long index, Atom atom) {
+    this.index = index;
+    this.atom = atom;
+  }
+
+  @Override
+  public void render(@NotNull SimpleColoredComponent component, SimpleTextAttributes defaultAttributes) {
+    component.append(Long.toString(index) + "   ", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    atom.render(component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+  }
 }
