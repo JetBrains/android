@@ -87,6 +87,10 @@ public class IdeTestApplication implements Disposable {
       Class<?> clazz = ideClassLoader.loadClass(GuiTests.class.getCanonicalName());
       method("waitForIdeToStart").in(clazz).invoke();
       method("setUpDefaultGeneralSettings").in(clazz).invoke();
+
+      for(Object prop : System.getProperties().keySet()) {
+        System.out.println(prop + "=" + System.getProperty((String)prop));
+      }
     }
 
     return ourInstance;
