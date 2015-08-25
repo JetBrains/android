@@ -202,10 +202,6 @@ public class AndroidStudioInitializer implements Runnable {
   }
 
   private static void setUpSdksIfApplicable() {
-    if (isManagedSdkSetup()) {
-      return;
-    }
-
     // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
     if (AndroidPlugin.isGuiTestingMode()) {
       // This is good enough. Later on in the GUI test we'll validate the given SDK path.
@@ -224,13 +220,6 @@ public class AndroidStudioInitializer implements Runnable {
     } catch (Exception e) {
       LOG.error("Unexpected error while setting up SDKs: ", e);
     }
-  }
-
-  /**
-   * Indicates whether setup of the Android SDK and the JDK is automatically managed (no user intervention needed.)
-   */
-  public static boolean isManagedSdkSetup() {
-    return SystemProperties.getBooleanProperty("android.studio.managed.sdk.setup", false);
   }
 
   private static void setUpSdks() {

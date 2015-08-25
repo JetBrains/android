@@ -38,10 +38,6 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.io.File;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isManagedSdkSetup;
-import static com.intellij.openapi.actionSystem.ActionPlaces.WELCOME_SCREEN;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkAvailable;
-
 /**
  * @author Eugene.Kudelevsky
  */
@@ -49,10 +45,6 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.actions.RunAndroidSdkManagerAction");
 
   public static void updateInWelcomePage(@Nullable Component component) {
-    if (isManagedSdkSetup()) {
-      // The action is not visible, no need to do anything.
-      return;
-    }
     if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectManager.getInstance().getOpenProjects().length == 0) {
       // If there are no open projects, the "SDK Manager" configurable was invoked from the "Welcome Page". We need to update the
       // "SDK Manager" action to enable it.
@@ -69,7 +61,7 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
         DataContext dataContext = DataManager.getInstance().getDataContext(c);
 
         //noinspection ConstantConditions
-        AnActionEvent event = new AnActionEvent(null, dataContext, WELCOME_SCREEN, presentation, actionManager, 0);
+        AnActionEvent event = new AnActionEvent(null, dataContext, ActionPlaces.WELCOME_SCREEN, presentation, actionManager, 0);
         sdkManagerAction.update(event);
       }
     }
@@ -85,14 +77,9 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
 
   @Override
   public void update(AnActionEvent e) {
-    if (isManagedSdkSetup()) {
-      // This action is replace by RunSdkConfigAction. Adding check for consistency.
-      e.getPresentation().setEnabledAndVisible(false);
-      return;
-    }
-    if (isWelcomeScreen(e)) {
+    if (ActionPlaces.WELCOME_SCREEN.equals(e.getPlace())) {
       // Don't need a project when invoking SDK Manager from Welcome Screen
-      e.getPresentation().setEnabled(isAndroidSdkAvailable());
+      e.getPresentation().setEnabled(AndroidSdkUtils.isAndroidSdkAvailable());
       return;
     }
     super.update(e);
@@ -100,7 +87,7 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    if (isWelcomeScreen(e)) {
+    if (ActionPlaces.WELCOME_SCREEN.equals(e.getPlace())) {
       // Invoked from Welcome Screen, might not have an SDK setup yet
       AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
       if (sdkData != null) {
@@ -111,10 +98,6 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
       // Invoked from a project context
       super.actionPerformed(e);
     }
-  }
-
-  private static boolean isWelcomeScreen(@NotNull AnActionEvent e) {
-    return WELCOME_SCREEN.equals(e.getPlace());
   }
 
   public static void runSpecificSdkManager(@Nullable Project project, @NotNull File sdkHome) {
