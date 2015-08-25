@@ -169,7 +169,8 @@ public class UnitTest {
         byte[] line = new byte[1024];
         assertTrue("Expected >0 bytes read from input stream", stream.read(line) > 0);
         String s = new String(line, "UTF-8").trim();
-        assertEquals("success", s);
+        // Make sure test resources shadow prod resources with the same name.
+        assertEquals("from test", s);
     }
 
     @Test
@@ -200,10 +201,10 @@ public class UnitTest {
 
     @Test
     public void libTestJavaResourcesNotOnClasspath() throws Exception {
-        URL url = UnitTest.class.getClassLoader().getResource("lib_resource_file.txt");
+        URL url = UnitTest.class.getClassLoader().getResource("lib_test_resource_file.txt");
         assertNull(url);
 
-        InputStream stream = UnitTest.class.getClassLoader().getResourceAsStream("lib_resource_file.txt");
+        InputStream stream = UnitTest.class.getClassLoader().getResourceAsStream("lib_test_resource_file.txt");
         assertNull(stream);
     }
 

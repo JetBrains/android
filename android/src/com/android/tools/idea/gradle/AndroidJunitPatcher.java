@@ -156,6 +156,17 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
     CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
 
+    // The only test resources we want to use, are the ones from the module where the test is. They should go first, before main resources.
+    BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
+    if (testArtifact != null) {
+      try {
+        classPath.add(testArtifact.getJavaResourcesFolder());
+      }
+      catch (UnsupportedMethodException ignored) {
+        // Java resources were not present in older versions of the gradle plugin.
+      }
+    }
+
     for (Module affectedModule : scope.getAffectedModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(affectedModule);
       if (facet != null) {
@@ -168,17 +179,6 @@ public class AndroidJunitPatcher extends JUnitPatcher {
             // Java resources were not present in older versions of the gradle plugin.
           }
         }
-      }
-    }
-
-    // The only test resources we want to use, are the ones from the module where the test is.
-    BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
-    if (testArtifact != null) {
-      try {
-        classPath.add(testArtifact.getJavaResourcesFolder());
-      }
-      catch (UnsupportedMethodException ignored) {
-        // Java resources were not present in older versions of the gradle plugin.
       }
     }
   }
