@@ -39,17 +39,38 @@ class SummaryTreeNode extends UpdaterTreeNode {
   private UpdaterTreeNode myPrimaryChild;
   private final String myVersionName;
 
-  public SummaryTreeNode(AndroidVersion version, Set<UpdaterTreeNode> children, @Nullable String versionName) {
-    myVersion = version;
-    myAllChildren = children;
+  /**
+   * Factory method to create SummaryTreeNodes.
+   *
+   * @param version The AndroidVersion of this node
+   * @param children The nodes represented by this summary node.
+   * @param versionName The version name to be shown in the UI.
+   * @return A new SummaryTreeNode, or null if none of the children are actually included.
+   */
+  public static SummaryTreeNode createNode(AndroidVersion version, Set<UpdaterTreeNode> children, @Nullable String versionName) {
+    Set<UpdaterTreeNode> includedChildren = Sets.newHashSet();
+    UpdaterTreeNode primaryChild = null;
     for (UpdaterTreeNode child : children) {
       if (child.includeInSummary()) {
-        myIncludedChildren.add(child);
+        includedChildren.add(child);
       }
       if (child.isPrimary()) {
-        myPrimaryChild = child;
+        primaryChild = child;
       }
     }
+
+    if (!includedChildren.isEmpty()) {
+      return new SummaryTreeNode(version, children, includedChildren, primaryChild, versionName);
+    }
+    return null;
+  }
+
+  protected SummaryTreeNode(AndroidVersion version, Set<UpdaterTreeNode> children, Set<UpdaterTreeNode> includedChildren,
+                            UpdaterTreeNode primaryChild, @Nullable String versionName) {
+    myVersion = version;
+    myAllChildren = children;
+    myIncludedChildren = includedChildren;
+    myPrimaryChild = primaryChild;
     myVersionName = versionName;
   }
 
