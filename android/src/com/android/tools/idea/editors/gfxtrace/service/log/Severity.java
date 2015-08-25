@@ -22,46 +22,63 @@ import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
 import java.io.IOException;
 
-public enum Severity {
-  Emergency(0),
-  Alert(1),
-  Critical(2),
-  Error(3),
-  Warning(4),
-  Notice(5),
-  Info(6),
-  Debug(7);
+public final class Severity {
+  public static final int Emergency = 0;
+  public static Severity emergency() { return new Severity(Emergency); }
+  public static final int Alert = 1;
+  public static Severity alert() { return new Severity(Alert); }
+  public static final int Critical = 2;
+  public static Severity critical() { return new Severity(Critical); }
+  public static final int Error = 3;
+  public static Severity error() { return new Severity(Error); }
+  public static final int Warning = 4;
+  public static Severity warning() { return new Severity(Warning); }
+  public static final int Notice = 5;
+  public static Severity notice() { return new Severity(Notice); }
+  public static final int Info = 6;
+  public static Severity info() { return new Severity(Info); }
+  public static final int Debug = 7;
+  public static Severity debug() { return new Severity(Debug); }
 
-  private final int myValue;
-  Severity(int value) {
-    myValue = value;
+  public final int value;
+
+  public Severity(int value) {
+    this.value = value;
   }
-  public int getValue() { return myValue; }
 
   public void encode(@NotNull Encoder e) throws IOException {
-    e.int32(myValue);
+    e.int32(value);
   }
 
   public static Severity decode(@NotNull Decoder d) throws IOException {
     int value = d.int32();
-    switch (value) {
-    case 0:
-      return Emergency;
-    case 1:
-      return Alert;
-    case 2:
-      return Critical;
-    case 3:
-      return Error;
-    case 4:
-      return Warning;
-    case 5:
-      return Notice;
-    case 6:
-      return Info;
-    case 7:
-      return Debug;
+    return new Severity(value);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || !(o instanceof Severity)) return false;
+    return value != ((Severity)o).value;
+  }
+
+  @Override
+  public int hashCode() {
+    return value;
+  }
+
+  @Override
+  public String toString() {
+    switch(value) {
+      case Emergency: return "Emergency";
+      case Alert: return "Alert";
+      case Critical: return "Critical";
+      case Error: return "Error";
+      case Warning: return "Warning";
+      case Notice: return "Notice";
+      case Info: return "Info";
+      case Debug: return "Debug";
+      default: return "Severity(" + value + ")";
     }
-    throw new IOException("Invalid value for Severity");
   }
 }

@@ -77,7 +77,7 @@ public class FrameBufferController implements PathListener {
 
     initTab(colorTab, colorScrollPane);
     initTab(wireframeTab, wireframePane);
-    wireframeTab.mySettings.setWireframeMode(WireframeMode.AllWireframe);
+    wireframeTab.mySettings.setWireframeMode(WireframeMode.allWireframe());
     initTab(depthTab, depthScrollPane);
     depthTab.myIsDepth = true;
   }
@@ -92,7 +92,7 @@ public class FrameBufferController implements PathListener {
 
     tab.mySettings.setMaxHeight(MAX_SIZE);
     tab.mySettings.setMaxWidth(MAX_SIZE);
-    tab.mySettings.setWireframeMode(WireframeMode.NoWireframe);
+    tab.mySettings.setWireframeMode(WireframeMode.noWireframe());
     // TODO: Add a way to pan the viewport with the keyboard.
   }
 
