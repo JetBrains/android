@@ -179,6 +179,10 @@ public class MaterialColorUtils {
     }
     else {
       float[] hsv = Color.RGBtoHSB(primaryColor.getRed(), primaryColor.getGreen(), primaryColor.getBlue(), null);
+
+      // If the primaryColor's brightness is too low, we set it to a higher value (0.6) to have a bright accent color
+      hsv[2] = Math.max(0.6f, hsv[2]);
+
       // Monochromatic
       builder.add(Color.getHSBColor(hsv[0], 0.75f, 1));
       builder.add(Color.getHSBColor(hsv[0], 1, hsv[2]));
@@ -191,7 +195,7 @@ public class MaterialColorUtils {
       builder.add(Color.getHSBColor(associatedHue2, 1, hsv[2]));
       // Complementary
       float complementaryHue = (hsv[0] + 0.5f) % 1;
-      builder.add(Color.getHSBColor(complementaryHue, 0.75f, hsv[2]));
+      builder.add(Color.getHSBColor(complementaryHue, 0.75f, 1));
       builder.add(Color.getHSBColor(complementaryHue, 1, hsv[2]));
       // Triad
       float triadHue1 = (hsv[0] + 0.625f) % 1;
