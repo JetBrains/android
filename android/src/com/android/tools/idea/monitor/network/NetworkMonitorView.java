@@ -22,9 +22,10 @@ import com.android.tools.chartlib.TimelineComponent;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.DeviceSampler;
+import com.android.tools.idea.monitor.actions.RecordingAction;
+import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComponentWithActions;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -34,19 +35,15 @@ import javax.swing.*;
 import java.awt.*;
 
 public class NetworkMonitorView extends BaseMonitorView implements DeviceContext.DeviceSelectionListener {
-
   private static final int SAMPLE_FREQUENCY_MS = 500;
   private static final float TIMELINE_BUFFER_TIME = SAMPLE_FREQUENCY_MS * 1.5f / 1000;
   private static final float TIMELINE_INITIAL_MAX = 5.f;
   private static final float TIMELINE_INITIAL_MARKER_SEPARATION = 1.f;
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
-  private static final String TIMELINE_COMPONENT_CARD = "timeline";
-  private static final String MISSING_LABEL_CARD = "missing";
+  private static final String MISSING_LABEL = "Network monitoring is not available on your device.";
 
   @NotNull private final NetworkSampler myNetworkSampler;
-  @NotNull private final DeviceContext myDeviceContext;
   @NotNull private final TimelineComponent myTimelineComponent;
-  @NotNull private final JPanel myCardPanel;
 
   public NetworkMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
     super(project);
@@ -55,30 +52,28 @@ public class NetworkMonitorView extends BaseMonitorView implements DeviceContext
     myNetworkSampler.addListener(this);
 
     myTimelineComponent =
-      new TimelineComponent(myNetworkSampler.getTimelineData(), new EventData(), TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, Float.MAX_VALUE,
-                            TIMELINE_INITIAL_MARKER_SEPARATION);
+      new TimelineComponent(myNetworkSampler.getTimelineData(), new EventData(), TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX,
+                            Float.MAX_VALUE, TIMELINE_INITIAL_MARKER_SEPARATION);
     // TODO: Change the initial unit to B/s after fixing the window frozen problem.
     myTimelineComponent.configureUnits("KB/s");
     myTimelineComponent.configureStream(0, "Rx", new JBColor(0xff8000, 0xff8000));
     myTimelineComponent.configureStream(1, "Tx", new JBColor(0xffcc99, 0xffcc99));
+    myTimelineComponent.setBackground(BACKGROUND_COLOR);
 
     // Some system images do not have the network stats file, it is a bug; we show a label before the bug is fixed.
-    JLabel fileMissingLabel = new JLabel("Network monitoring is not available on your device.");
-    fileMissingLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    addOverlayText(MISSING_LABEL, 0);
+    addOverlayText(PAUSED_LABEL, 1);
 
-    myCardPanel = new JPanel(new CardLayout());
-    myCardPanel.add(myTimelineComponent, TIMELINE_COMPONENT_CARD);
-    myCardPanel.add(fileMissingLabel, MISSING_LABEL_CARD);
-    myCardPanel.setBackground(BACKGROUND_COLOR);
-    setComponent(myCardPanel);
-
-    myDeviceContext = deviceContext;
-    myDeviceContext.addListener(this, project);
+    setViewComponent(myTimelineComponent);
+    deviceContext.addListener(this, project);
   }
 
+  @Override
   @NotNull
-  public ComponentWithActions createComponent() {
-    return new ComponentWithActions.Impl(new DefaultActionGroup(), null, null, null, myContentPane);
+  public ActionGroup getToolbarActions() {
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new RecordingAction(this));
+    return group;
   }
 
   @Override
@@ -92,9 +87,26 @@ public class NetworkMonitorView extends BaseMonitorView implements DeviceContext
   @Override
   public void clientSelected(@Nullable Client c) {
     myNetworkSampler.setClient(c);
-    CardLayout layout = (CardLayout)myCardPanel.getLayout();
     // TODO: Need to move canReadNetworkStatistics to a separate thread. This is causing a hiccup in the UI.
-    layout.show(myCardPanel, myNetworkSampler.canReadNetworkStatistics() ? TIMELINE_COMPONENT_CARD : MISSING_LABEL_CARD);
+    setOverlayEnabled(MISSING_LABEL, c != null && !myNetworkSampler.canReadNetworkStatistics());
+  }
+
+  @Override
+  public void setPaused(boolean paused) {
+    myNetworkSampler.setIsPaused(paused);
+    setOverlayEnabled(PAUSED_LABEL, paused);
+    myTimelineComponent.setUpdateData(!paused);
+  }
+
+  @Override
+  public boolean isPaused() {
+    return myNetworkSampler.getIsPaused();
+  }
+
+  @NotNull
+  @Override
+  public String getDescription() {
+    return "network data usage";
   }
 
   @Override
