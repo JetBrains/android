@@ -1035,16 +1035,22 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
         }
         final JComponent component = frame.getRootPane();
         if (component == null) {
+          LOG.warn(e);
           return;
         }
-        final Rectangle rect = component.getVisibleRect();
-        final Point p = new Point(rect.x + rect.width - 10, rect.y + 10);
-        final RelativePoint point = new RelativePoint(component, p);
-        JBPopupFactory.getInstance().createHtmlTextBalloonBuilder("No connection to app; cannot sync resource changes",
-                                                                  MessageType.WARNING.getDefaultIcon(),
-                                                                  MessageType.WARNING.getPopupBackground(), null)
-          .setShowCallout(false).setCloseButtonEnabled(true)
-          .createBalloon().show(point, Balloon.Position.atLeft);
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            Rectangle rect = component.getVisibleRect();
+            Point p = new Point(rect.x + rect.width - 10, rect.y + 10);
+            RelativePoint point = new RelativePoint(component, p);
+            JBPopupFactory.getInstance().createHtmlTextBalloonBuilder("No connection to app; cannot sync resource changes",
+                                                                      MessageType.WARNING.getDefaultIcon(),
+                                                                      MessageType.WARNING.getPopupBackground(), null)
+              .setShowCallout(false).setCloseButtonEnabled(true)
+              .createBalloon().show(point, Balloon.Position.atLeft);
+          }
+        });
         return;
       }
       LOG.warn(e);
