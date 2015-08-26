@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors;
+package com.android.tools.idea.gradle.notification;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.startup.AndroidStudioInitializer;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -28,6 +24,13 @@ import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static com.intellij.ide.BrowserUtil.browse;
 
 /**
  * Notifies users that Gradle "auto-import" feature is enabled, explains the issues with this feature and offers a way to disable it. This
@@ -44,19 +47,22 @@ public class AutoImportNotificationProvider extends EditorNotifications.Provider
     myNotifications = notifications;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Key<EditorNotificationPanel> getKey() {
     return KEY;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
+    if (!isBuildWithGradle(myProject)) {
+      return null;
+    }
     String name = file.getName();
-    if (SdkConstants.FN_BUILD_GRADLE.equals(name) || SdkConstants.FN_SETTINGS_GRADLE.equals(name)) {
-      GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(myProject);
-      if (AndroidStudioInitializer.isAndroidStudio() && settings != null && settings.isUseAutoImport()) {
+    if (FN_BUILD_GRADLE.equals(name) || FN_SETTINGS_GRADLE.equals(name)) {
+      GradleProjectSettings settings = getGradleProjectSettings(myProject);
+      if (isAndroidStudio() && settings != null && settings.isUseAutoImport()) {
         return new DisableAutoImportNotificationPanel(settings);
       }
     }
@@ -70,7 +76,7 @@ public class AutoImportNotificationProvider extends EditorNotifications.Provider
       createActionLabel("Open bug report", new Runnable() {
         @Override
         public void run() {
-          BrowserUtil.browse("https://code.google.com/p/android/issues/detail?id=59965");
+          browse("https://code.google.com/p/android/issues/detail?id=59965");
         }
       });
 
