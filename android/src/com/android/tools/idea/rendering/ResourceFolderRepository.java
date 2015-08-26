@@ -957,6 +957,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 return;
               } else if (child instanceof XmlAttributeValue) {
                 assert parent instanceof XmlAttribute : parent;
+                @SuppressWarnings("CastConflictsWithInstanceof") // IDE bug? Cast is valid.
                 XmlAttribute attribute = (XmlAttribute)parent;
                 // warning for separate if branches suppressed because to do.
                 //noinspection IfStatementWithIdenticalBranches
@@ -1445,6 +1446,26 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             // the edit, so re-scan the whole value file instead
             rescan(psiFile, folderType);
 
+          } else if (folderType == COLOR) {
+            PsiElement parent = event.getParent();
+            if (parent instanceof XmlElement) {
+              if (parent instanceof XmlComment) {
+                // Nothing to do
+                return;
+              }
+
+              if (parent instanceof XmlAttributeValue) {
+                PsiElement attribute = parent.getParent();
+                if (attribute instanceof XmlProcessingInstruction) {
+                  // Don't care about edits in the processing instructions, e.g. editing the encoding attribute in
+                  // <?xml version="1.0" encoding="utf-8"?>
+                  return;
+                }
+              }
+
+              myGeneration++;
+              return;
+            }
           } // else: can ignore this edit
         }
       } else {
