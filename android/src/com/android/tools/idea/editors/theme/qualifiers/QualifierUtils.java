@@ -174,10 +174,18 @@ public class QualifierUtils {
   /**
    * Returns a ResourceQualifier that doesn't match any of the passed qualifiers. If there are no incompatible qualifiers, then this method
    * returns null.
+   * Note: qualifiers shouldn't be empty and all elements from qualifiers should have same qualifier type, f.e all should be LocaleQualifier
    */
   public static ResourceQualifier getIncompatibleQualifier(@NotNull ConfigurationManager configurationManager,
-                                                           @NotNull Class<? extends ResourceQualifier> type,
                                                            @NotNull Collection<ResourceQualifier> qualifiers) {
+
+    assert !qualifiers.isEmpty();
+    Class type = qualifiers.iterator().next().getClass();
+    // Check all qualifiers are the same type inside the collection
+    for (ResourceQualifier qualifier : qualifiers) {
+      assert type == qualifier.getClass();
+    }
+
     if (type == VersionQualifier.class) {
       if (configurationManager.getHighestApiTarget() == null) {
         return null;
@@ -232,7 +240,7 @@ public class QualifierUtils {
     }
 
     for (Class<? extends ResourceQualifier> qualifier : qualifiers.keySet()) {
-      ResourceQualifier incompatibleQualifier = getIncompatibleQualifier(configurationManager, qualifier, qualifiers.get(qualifier));
+      ResourceQualifier incompatibleQualifier = getIncompatibleQualifier(configurationManager, qualifiers.get(qualifier));
 
       if (incompatibleQualifier == null) {
         return null;
