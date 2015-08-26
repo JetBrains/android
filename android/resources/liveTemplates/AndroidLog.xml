@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templateSet group="AndroidLog">
-  <template name="logd" value="Log.d(TAG, &quot;$METHOD_NAME$: $content$&quot;);" description="Log.d(TAG, String)" toReformat="true" toShortenFQNames="true">
+  <template name="logd" value="android.util.Log.d(TAG, &quot;$METHOD_NAME$: $content$&quot;);" description="Log.d(TAG, String)" toReformat="true" toShortenFQNames="true">
     <variable name="METHOD_NAME" expression="methodName()" defaultValue="" alwaysStopAt="false" />
     <variable name="content" expression="" defaultValue="" alwaysStopAt="true" />
     <context>
@@ -23,10 +23,10 @@
       <option name="OTHER" value="false" />
     </context>
   </template>
-  <template name="loge" value="Log.e(TAG, &quot;$METHOD_NAME$: $content$&quot;, $exception$);" description="Log.e(TAG, String, Exception)" toReformat="true" toShortenFQNames="true">
+  <template name="loge" value="android.util.Log.e(TAG, &quot;$METHOD_NAME$: $content$&quot;, $exception$);" description="Log.e(TAG, String, Exception)" toReformat="true" toShortenFQNames="true">
     <variable name="METHOD_NAME" expression="methodName()" defaultValue="" alwaysStopAt="false" />
     <variable name="content" expression="" defaultValue="" alwaysStopAt="true" />
-    <variable name="exception" expression="expectedType()" defaultValue="e" alwaysStopAt="false" />
+    <variable name="exception" expression="" defaultValue="e" alwaysStopAt="false" />
     <context>
       <option name="HTML_TEXT" value="false" />
       <option name="HTML" value="false" />
@@ -47,7 +47,7 @@
       <option name="OTHER" value="false" />
     </context>
   </template>
-  <template name="logi" value="Log.i(TAG, &quot;$METHOD_NAME$: $content$&quot;);" description="Log.i(TAG, String)" toReformat="true" toShortenFQNames="true">
+  <template name="logi" value="android.util.Log.i(TAG, &quot;$METHOD_NAME$: $content$&quot;);" description="Log.i(TAG, String)" toReformat="true" toShortenFQNames="true">
     <variable name="METHOD_NAME" expression="methodName()" defaultValue="" alwaysStopAt="false" />
     <variable name="content" expression="" defaultValue="" alwaysStopAt="true" />
     <context>
@@ -70,9 +70,34 @@
       <option name="OTHER" value="false" />
     </context>
   </template>
-  <template name="wtf" value="Log.wtf(TAG, &quot;$METHOD_NAME$: $content$&quot;, e);" description="Log.wtf(TAG, String, Exception)" toReformat="true" toShortenFQNames="true">
+  <template name="logw" value="android.util.Log.w(TAG, &quot;$METHOD_NAME$: $content$&quot;, $exception$);" description="Log.w(TAG, String, Exception)" toReformat="true" toShortenFQNames="true">
     <variable name="METHOD_NAME" expression="methodName()" defaultValue="" alwaysStopAt="false" />
     <variable name="content" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="exception" expression="" defaultValue="e" alwaysStopAt="false" />
+    <context>
+      <option name="HTML_TEXT" value="false" />
+      <option name="HTML" value="false" />
+      <option name="XSL_TEXT" value="false" />
+      <option name="XML" value="false" />
+      <option name="JAVA_CODE" value="false" />
+      <option name="JAVA_STATEMENT" value="false" />
+      <option name="JAVA_EXPRESSION" value="false" />
+      <option name="JAVA_DECLARATION" value="true" />
+      <option name="JAVA_COMMENT" value="false" />
+      <option name="JAVA_STRING" value="false" />
+      <option name="COMPLETION" value="false" />
+      <option name="GROOVY" value="false" />
+      <option name="GROOVY_EXPRESSION" value="false" />
+      <option name="GROOVY_STATEMENT" value="false" />
+      <option name="GROOVY_DECLARATION" value="false" />
+      <option name="MAVEN" value="false" />
+      <option name="OTHER" value="false" />
+    </context>
+  </template>
+  <template name="wtf" value="android.util.Log.wtf(TAG, &quot;$METHOD_NAME$: $content$&quot;, $exception$);" description="Log.wtf(TAG, String, Exception)" toReformat="true" toShortenFQNames="true">
+    <variable name="METHOD_NAME" expression="methodName()" defaultValue="" alwaysStopAt="false" />
+    <variable name="content" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="exception" expression="" defaultValue="e" alwaysStopAt="false" />
     <context>
       <option name="HTML_TEXT" value="false" />
       <option name="HTML" value="false" />
@@ -115,7 +140,7 @@
       <option name="OTHER" value="false" />
     </context>
   </template>
-  <template name="logm" value="Log.d(TAG, &quot;$METHOD_NAME$() called with: &quot; +  $args$);" description="Log method name and its arguments" toReformat="true" toShortenFQNames="true">
+  <template name="logm" value="android.util.Log.d(TAG, &quot;$METHOD_NAME$() called with: &quot; +  $args$);" description="Log method name and its arguments" toReformat="true" toShortenFQNames="true">
     <variable name="METHOD_NAME" expression="methodName()" defaultValue="" alwaysStopAt="false" />
     <variable name="args" expression="groovyScript(&quot;'\&quot;' + _1.collect { it + ' = [\&quot; + ' + it + ' + \&quot;]'}.join(', ') + '\&quot;'&quot;, methodParameters())" defaultValue="" alwaysStopAt="false" />
     <context>
@@ -138,7 +163,7 @@
       <option name="OTHER" value="false" />
     </context>
   </template>
-  <template name="logr" value="Log.d(TAG, &quot;$METHOD_NAME$() returned: &quot; +  $result$);" description="Log result of this method" toReformat="true" toShortenFQNames="true">
+  <template name="logr" value="android.util.Log.d(TAG, &quot;$METHOD_NAME$() returned: &quot; +  $result$);" description="Log result of this method" toReformat="true" toShortenFQNames="true">
     <variable name="METHOD_NAME" expression="methodName()" defaultValue="" alwaysStopAt="false" />
     <variable name="result" expression="variableOfType(methodReturnType())" defaultValue="" alwaysStopAt="true" />
     <context>
