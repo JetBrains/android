@@ -28,19 +28,18 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 
-import java.awt.*;
-import java.io.File;
-import java.net.URL;
-import java.util.*;
-import java.util.List;
-
 import javax.swing.*;
-
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
+import java.awt.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Generate a dialog to pick one pre-configured material icons in vector format.
@@ -241,7 +240,7 @@ public class IconPicker extends JPanel {
     for (int i = 1; i < mIconCategories.length; i++) {
       String categoryName = mIconCategories[i];
       String categoryNameLowerCase = categoryName.toLowerCase(Locale.ENGLISH);
-      String fullDirName = MATERIAL_DESIGN_ICONS_PATH + categoryNameLowerCase + File.separator;
+      String fullDirName = MATERIAL_DESIGN_ICONS_PATH + categoryNameLowerCase + '/';
       for (Iterator<String> iter = GraphicGenerator.getResourcesNames(fullDirName, SdkConstants.DOT_XML); iter.hasNext(); ) {
         final String iconName = iter.next();
         URL url = GraphicGenerator.class.getClassLoader().getResource(fullDirName + iconName);
