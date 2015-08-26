@@ -19,7 +19,6 @@ package com.android.tools.idea.actions;
 import com.android.tools.idea.npw.NewModuleWizardDynamic;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class AndroidNewModuleAction extends AnAction implements DumbAware {
-
   public AndroidNewModuleAction() {
     super("New Module...", "Adds a new module to the project", null);
   }
@@ -38,10 +36,7 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    createModule(CommonDataKeys.PROJECT.getData(e.getDataContext()), true);
-  }
-
-  public static void createModule(@Nullable Project project, boolean performGradleSyncAfter) {
+    Project project = e.getProject();
     if (project != null) {
       NewModuleWizardDynamic dialog = new NewModuleWizardDynamic(project, null);
       dialog.init();

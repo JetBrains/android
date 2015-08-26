@@ -18,8 +18,11 @@ package com.android.tools.idea.actions;
 
 import com.intellij.ide.projectView.impl.ModuleGroup;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
+import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.ide.projectView.impl.ModuleGroup.ARRAY_DATA_KEY;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 
 public class AndroidNewModuleInGroupAction extends AndroidNewModuleAction {
   public AndroidNewModuleInGroupAction() {
@@ -27,11 +30,15 @@ public class AndroidNewModuleInGroupAction extends AndroidNewModuleAction {
   }
 
   @Override
-  public void update(final AnActionEvent e) {
+  public void update(AnActionEvent e) {
     super.update(e);
-    final ModuleGroup[] moduleGroups = ModuleGroup.ARRAY_DATA_KEY.getData(e.getDataContext());
-    final Module[] modules = e.getData(LangDataKeys.MODULE_CONTEXT_ARRAY);
-    e.getPresentation().setVisible((moduleGroups != null && moduleGroups.length > 0) ||
-                                   (modules != null && modules.length > 0));
+
+    ModuleGroup[] moduleGroups = e.getData(ARRAY_DATA_KEY);
+    Module[] modules = e.getData(MODULE_CONTEXT_ARRAY);
+    e.getPresentation().setVisible(isNotEmpty(moduleGroups) || isNotEmpty(modules));
+  }
+
+  private static boolean isNotEmpty(@Nullable Object[] array) {
+    return array != null && array.length > 0;
   }
 }
