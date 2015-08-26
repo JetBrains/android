@@ -71,8 +71,7 @@ public class GradleSyncState {
     "com.intellij.compiler.options.CompilerConfigurable"
   );
 
-  public static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC =
-    new Topic<GradleSyncListener>("Project sync with Gradle", GradleSyncListener.class);
+  public static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<GradleSyncListener>("Project sync with Gradle", GradleSyncListener.class);
 
   private static final Key<Long> PROJECT_LAST_SYNC_TIMESTAMP_KEY = Key.create("android.gradle.project.last.sync.timestamp");
 
