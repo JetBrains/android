@@ -285,7 +285,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
 
     final String variantName = getVariantName(facet);
 // TODO: Add in task for resources too!
-    String taskName = "incremental" + StringUtil.capitalize(variantName) + "SourceCodeSupport"; // TODO: Add task name to model
+    String taskName = "incremental" + StringUtil.capitalize(variantName) + "SupportDex"; // TODO: Add task name to model
 
     final Project project = facet.getModule().getProject();
     final GradleInvoker invoker = GradleInvoker.getInstance(project);
