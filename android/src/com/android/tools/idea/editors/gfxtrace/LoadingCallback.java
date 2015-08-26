@@ -18,29 +18,30 @@ package com.android.tools.idea.editors.gfxtrace;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBLoadingPanel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class LoadingCallback<T> implements FutureCallback<T> {
   @Nullable private final Logger myLogger;
-  @Nullable private final Done myLoading;
+  @Nullable private final LoadingDone myLoading;
 
-  public LoadingCallback(Logger logger) {
+  public LoadingCallback(@Nullable Logger logger) {
     myLogger = logger;
     myLoading = null;
   }
 
-  public LoadingCallback(Logger logger, JBLoadingPanel loading) {
+  public LoadingCallback(@Nullable Logger logger, JBLoadingPanel loading) {
     myLogger = logger;
-    myLoading = new LoadingPanelDone(loading);
+    myLoading = new LoadingDonePanel(loading);
   }
 
-  public LoadingCallback(Logger logger, Done loading) {
+  public LoadingCallback(@Nullable Logger logger, @Nullable LoadingDone loading) {
     myLogger = logger;
     myLoading = loading;
   }
 
   @Override
-  public void onFailure(Throwable t) {
+  public void onFailure(@NotNull Throwable t) {
     if (myLogger != null) {
       myLogger.error(t);
     }
@@ -49,20 +50,22 @@ public abstract class LoadingCallback<T> implements FutureCallback<T> {
     }
   }
 
-  public interface Done {
+  public interface LoadingDone {
     void stopLoading();
   }
 
-  private class LoadingPanelDone implements Done {
-    @Nullable private final JBLoadingPanel myLoading;
+  private static class LoadingDonePanel implements LoadingDone {
+    @Nullable private final JBLoadingPanel myLoadingPanel;
 
-    private LoadingPanelDone(JBLoadingPanel loading) {
-      myLoading = loading;
+    private LoadingDonePanel(@Nullable JBLoadingPanel loadingPanel) {
+      myLoadingPanel = loadingPanel;
     }
 
     @Override
     public void stopLoading() {
-      myLoading.stopLoading();
+      if (myLoadingPanel != null) {
+        myLoadingPanel.stopLoading();
+      }
     }
   }
 }
