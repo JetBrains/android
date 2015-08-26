@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class ScrubberLabelData implements LoadingCallback.Done {
+public class ScrubberLabelData implements LoadingCallback.LoadingDone {
   private AtomPath myAtomPath;
   private Range myRange;
   @NotNull private String myLabel;
