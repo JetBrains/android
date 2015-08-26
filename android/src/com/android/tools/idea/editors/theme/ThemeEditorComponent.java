@@ -359,6 +359,12 @@ public class ThemeEditorComponent extends Splitter {
     // Avoid search box stretching more than 1 line.
     textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, textField.getPreferredSize().height));
     textField.setBackground(PREVIEW_BACKGROUND);
+    // If the text field has icons outside of the search field, their background needs to be set correctly
+    for (Component component : textField.getComponents()) {
+      if (component instanceof JLabel) {
+        component.setBackground(PREVIEW_BACKGROUND);
+      }
+    }
 
     final ScheduledExecutorService searchUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
     textField.addDocumentListener(new DocumentAdapter() {
