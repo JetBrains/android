@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.util;
+package com.android.tools.idea.gradle.project.build;
 
-import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.compiler.CompileTask;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -37,15 +35,15 @@ import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 /**
  * Builds a project, regardless of the compiler strategy being used (JPS or "direct Gradle invocation.")
  */
-public class ProjectBuilder {
+public class GradleProjectBuilder {
   @NotNull private final Project myProject;
 
   @NotNull
-  public static ProjectBuilder getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, ProjectBuilder.class);
+  public static GradleProjectBuilder getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, GradleProjectBuilder.class);
   }
 
-  public ProjectBuilder(@NotNull Project project) {
+  public GradleProjectBuilder(@NotNull Project project) {
     myProject = project;
   }
 
@@ -116,39 +114,5 @@ public class ProjectBuilder {
   private void buildProjectWithJps(@NotNull BuildMode buildMode) {
     BuildSettings.getInstance(myProject).setBuildMode(buildMode);
     CompilerManager.getInstance(myProject).make(null);
-  }
-
-  public void addAfterProjectBuildTask(@NotNull AfterProjectBuildTask task) {
-    CompilerManager.getInstance(myProject).addAfterTask(task);
-    GradleInvoker.getInstance(myProject).addAfterGradleInvocationTask(task);
-  }
-
-  public void removeAfterProjectBuildTask(@NotNull AfterProjectBuildTask task) {
-    // CompilerManager does not yet allow for listeners to be removed:
-    //    https://youtrack.jetbrains.com/issue/IDEA-139893
-    //CompilerManager.getInstance(myProject).removeAfterTask(task);
-
-    GradleInvoker.getInstance(myProject).removeAfterGradleInvocationTask(task);
-  }
-
-  /**
-   * Convenient implementation of {@link AfterProjectBuildTask} meant for listeners that do not care of the build result.
-   */
-  public abstract static class AfterProjectBuildListener implements AfterProjectBuildTask {
-    @Override
-    public void execute(@NotNull GradleInvocationResult result) {
-      buildFinished();
-    }
-
-    @Override
-    public boolean execute(CompileContext context) {
-      buildFinished();
-      return true;
-    }
-
-    protected abstract void buildFinished();
-  }
-
-  public interface AfterProjectBuildTask extends CompileTask, GradleInvoker.AfterGradleInvocationTask {
   }
 }

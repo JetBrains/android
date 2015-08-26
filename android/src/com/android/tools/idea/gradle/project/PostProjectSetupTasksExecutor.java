@@ -36,7 +36,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatf
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
@@ -173,7 +173,7 @@ public class PostProjectSetupTasksExecutor {
     updateGradleSyncState();
 
     if (myGenerateSourcesAfterSync) {
-      ProjectBuilder.getInstance(myProject).generateSourcesOnly();
+      GradleProjectBuilder.getInstance(myProject).generateSourcesOnly();
     }
 
     // set default value back.
