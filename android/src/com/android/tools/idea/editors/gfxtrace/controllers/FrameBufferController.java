@@ -18,11 +18,11 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
-import com.android.tools.idea.editors.gfxtrace.service.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
+import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.google.common.util.concurrent.Futures;
@@ -77,7 +77,7 @@ public class FrameBufferController implements PathListener {
 
     initTab(colorTab, colorScrollPane);
     initTab(wireframeTab, wireframePane);
-    wireframeTab.mySettings.setWireframeMode(WireframeMode.AllWireframe);
+    wireframeTab.mySettings.setWireframeMode(WireframeMode.allWireframe());
     initTab(depthTab, depthScrollPane);
     depthTab.myIsDepth = true;
   }
@@ -92,7 +92,7 @@ public class FrameBufferController implements PathListener {
 
     tab.mySettings.setMaxHeight(MAX_SIZE);
     tab.mySettings.setMaxWidth(MAX_SIZE);
-    tab.mySettings.setWireframeMode(WireframeMode.NoWireframe);
+    tab.mySettings.setWireframeMode(WireframeMode.noWireframe());
     // TODO: Add a way to pan the viewport with the keyboard.
   }
 

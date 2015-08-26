@@ -26,9 +26,9 @@ import java.io.IOException;
 
 final class CallGetFramebufferColor implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  DevicePath myDevice;
-  AtomPath myAfter;
-  RenderSettings mySettings;
+  private DevicePath myDevice;
+  private AtomPath myAfter;
+  private RenderSettings mySettings;
 
   // Constructs a default-initialized {@link CallGetFramebufferColor}.
   public CallGetFramebufferColor() {}

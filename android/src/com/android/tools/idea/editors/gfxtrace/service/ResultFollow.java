@@ -25,7 +25,7 @@ import java.io.IOException;
 
 final class ResultFollow implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Path myValue;
+  private Path myValue;
 
   // Constructs a default-initialized {@link ResultFollow}.
   public ResultFollow() {}

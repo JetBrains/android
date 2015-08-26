@@ -29,7 +29,7 @@ public final class ReportPath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  CapturePath myCapture;
+  private CapturePath myCapture;
 
   // Constructs a default-initialized {@link ReportPath}.
   public ReportPath() {}

@@ -33,7 +33,7 @@ public final class AtomsPath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  CapturePath myCapture;
+  private CapturePath myCapture;
 
   // Constructs a default-initialized {@link AtomsPath}.
   public AtomsPath() {}

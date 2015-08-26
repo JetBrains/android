@@ -28,9 +28,9 @@ public final class AtomGroup implements BinaryObject {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  String myName;
-  Range myRange;
-  AtomGroup[] mySubGroups;
+  private String myName;
+  private Range myRange;
+  private AtomGroup[] mySubGroups;
 
   // Constructs a default-initialized {@link AtomGroup}.
   public AtomGroup() {}

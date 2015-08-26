@@ -25,7 +25,7 @@ import java.io.IOException;
 
 final class ResultGetFramebufferColor implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  ImageInfoPath myValue;
+  private ImageInfoPath myValue;
 
   // Constructs a default-initialized {@link ResultGetFramebufferColor}.
   public ResultGetFramebufferColor() {}

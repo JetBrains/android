@@ -24,8 +24,8 @@ import java.io.IOException;
 
 public final class Range implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  long myBase;
-  long mySize;
+  private long myBase;
+  private long mySize;
 
   // Constructs a default-initialized {@link Range}.
   public Range() {}

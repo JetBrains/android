@@ -28,7 +28,7 @@ public final class AtomList implements BinaryObject {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  Atom[] myAtoms;
+  private Atom[] myAtoms;
 
   // Constructs a default-initialized {@link AtomList}.
   public AtomList() {}

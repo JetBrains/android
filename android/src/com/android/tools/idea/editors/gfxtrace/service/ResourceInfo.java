@@ -17,64 +17,58 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
-import com.android.tools.idea.editors.gfxtrace.service.image.Format;
-import com.android.tools.idea.editors.gfxtrace.service.path.BlobPath;
-import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
+
+import com.android.tools.rpclib.binary.BinaryClass;
+import com.android.tools.rpclib.binary.BinaryID;
+import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.tools.rpclib.binary.Decoder;
+import com.android.tools.rpclib.binary.Encoder;
+import com.android.tools.rpclib.binary.Namespace;
 
 import java.io.IOException;
 
-public final class ImageInfo implements BinaryObject {
+public final class ResourceInfo implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Format myFormat;
-  int myWidth;
-  int myHeight;
-  BlobPath myData;
+  private BinaryID myID;
+  private String myName;
+  private long[] myAccesses;
 
-  // Constructs a default-initialized {@link ImageInfo}.
-  public ImageInfo() {}
+  // Constructs a default-initialized {@link ResourceInfo}.
+  public ResourceInfo() {}
 
 
-  public Format getFormat() {
-    return myFormat;
+  public BinaryID getID() {
+    return myID;
   }
 
-  public ImageInfo setFormat(Format v) {
-    myFormat = v;
+  public ResourceInfo setID(BinaryID v) {
+    myID = v;
     return this;
   }
 
-  public int getWidth() {
-    return myWidth;
+  public String getName() {
+    return myName;
   }
 
-  public ImageInfo setWidth(int v) {
-    myWidth = v;
+  public ResourceInfo setName(String v) {
+    myName = v;
     return this;
   }
 
-  public int getHeight() {
-    return myHeight;
+  public long[] getAccesses() {
+    return myAccesses;
   }
 
-  public ImageInfo setHeight(int v) {
-    myHeight = v;
-    return this;
-  }
-
-  public BlobPath getData() {
-    return myData;
-  }
-
-  public ImageInfo setData(BlobPath v) {
-    myData = v;
+  public ResourceInfo setAccesses(long[] v) {
+    myAccesses = v;
     return this;
   }
 
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {45, -86, 92, 127, 54, -110, -83, -14, -115, -4, -64, 71, 105, 89, 96, -52, -35, 6, -15, -90, };
+  private static final byte[] IDBytes = {-15, 58, 71, 50, 86, 117, 121, -94, 122, -70, -126, 5, -76, 35, 49, 109, -26, 14, 80, -50, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
@@ -90,24 +84,28 @@ public final class ImageInfo implements BinaryObject {
     public BinaryID id() { return ID; }
 
     @Override @NotNull
-    public BinaryObject create() { return new ImageInfo(); }
+    public BinaryObject create() { return new ResourceInfo(); }
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      ImageInfo o = (ImageInfo)obj;
-      e.object(o.myFormat.unwrap());
-      e.uint32(o.myWidth);
-      e.uint32(o.myHeight);
-      e.object(o.myData);
+      ResourceInfo o = (ResourceInfo)obj;
+      e.id(o.myID);
+      e.string(o.myName);
+      e.uint32(o.myAccesses.length);
+      for (int i = 0; i < o.myAccesses.length; i++) {
+        e.uint64(o.myAccesses[i]);
+      }
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      ImageInfo o = (ImageInfo)obj;
-      o.myFormat = Format.wrap(d.object());
-      o.myWidth = d.uint32();
-      o.myHeight = d.uint32();
-      o.myData = (BlobPath)d.object();
+      ResourceInfo o = (ResourceInfo)obj;
+      o.myID = d.id();
+      o.myName = d.string();
+      o.myAccesses = new long[d.uint32()];
+      for (int i = 0; i <o.myAccesses.length; i++) {
+        o.myAccesses[i] = d.uint64();
+      }
     }
     //<<<End:Java.KlassBody:2>>>
   }

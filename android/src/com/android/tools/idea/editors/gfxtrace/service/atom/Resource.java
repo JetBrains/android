@@ -24,8 +24,8 @@ import java.io.IOException;
 
 public final class Resource implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  BinaryID myID;
-  byte[] myData;
+  private BinaryID myID;
+  private byte[] myData;
 
   // Constructs a default-initialized {@link Resource}.
   public Resource() {}
