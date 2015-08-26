@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.monitor.actions;
 
+import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.DeviceSampler;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -23,16 +24,17 @@ import com.intellij.openapi.actionSystem.ToggleAction;
 import org.jetbrains.annotations.NotNull;
 
 public class RecordingAction extends ToggleAction {
-  @NotNull private final DeviceSampler myDeviceSampler;
+  @NotNull private final BaseMonitorView myMonitorView;
 
-  public RecordingAction(@NotNull DeviceSampler deviceSampler) {
+  public RecordingAction(@NotNull BaseMonitorView monitorView) {
+    // TODO Perhaps use a different icon? Something like "disabled" with an X?
     super(null, null, AllIcons.Actions.Pause);
-    myDeviceSampler = deviceSampler;
+    myMonitorView = monitorView;
   }
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    return !myDeviceSampler.isRunning();
+    return myMonitorView.isPaused();
   }
 
   @Override
@@ -40,22 +42,17 @@ public class RecordingAction extends ToggleAction {
     super.update(e);
     Presentation presentation = e.getPresentation();
     if (isSelected(e)) {
-      presentation.setText("Pause");
-      presentation.setDescription("Pauses " + myDeviceSampler.getDescription() + " recording.");
+      presentation.setText("Disabled");
+      presentation.setDescription("Click to enable " + myMonitorView.getDescription() + " recording.");
     }
     else {
-      presentation.setText("Resume");
-      presentation.setDescription("Resumes " + myDeviceSampler.getDescription() + " recording.");
+      presentation.setText("Enabled");
+      presentation.setDescription("Click to disable " + myMonitorView.getDescription() + " recording.");
     }
   }
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
-    if (state) {
-      myDeviceSampler.stop();
-    }
-    else {
-      myDeviceSampler.start();
-    }
+    myMonitorView.setPaused(state);
   }
 }

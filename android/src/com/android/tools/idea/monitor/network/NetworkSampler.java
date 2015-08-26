@@ -46,12 +46,6 @@ public class NetworkSampler extends DeviceSampler {
 
   @NotNull
   @Override
-  public String getDescription() {
-    return "Network data usage sampler that approximates the bytes received and transmitted";
-  }
-
-  @NotNull
-  @Override
   public String getName() {
     return "Network Sampler";
   }
