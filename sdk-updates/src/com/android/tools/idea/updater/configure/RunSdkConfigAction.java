@@ -21,19 +21,12 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.android.util.AndroidBundle;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isManagedSdkSetup;
-
 /**
  * Action to open the Android SDK pane in Settings.
  */
 public class RunSdkConfigAction extends DumbAwareAction {
   protected RunSdkConfigAction() {
     super(AndroidBundle.message("android.run.sdk.manager.action.text"));
-  }
-
-  @Override
-  public void update(AnActionEvent e) {
-    e.getPresentation().setEnabledAndVisible(!isManagedSdkSetup());
   }
 
   @Override
