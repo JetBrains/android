@@ -50,7 +50,6 @@ public class FrameBufferController implements PathListener {
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   @NotNull private final GfxTraceEditor myEditor;
-  @NotNull private final JBRunnerTabs myBufferTabs;
 
   @NotNull private final BufferTab colorTab = new BufferTab();
   @NotNull private final BufferTab wireframeTab = new BufferTab();
@@ -67,13 +66,11 @@ public class FrameBufferController implements PathListener {
   }
 
   public FrameBufferController(@NotNull GfxTraceEditor editor,
-                               @NotNull JBRunnerTabs bufferTabs,
                                @NotNull JBScrollPane colorScrollPane,
                                @NotNull JBScrollPane wireframePane,
                                @NotNull JBScrollPane depthScrollPane) {
     myEditor = editor;
     myEditor.addPathListener(this);
-    myBufferTabs = bufferTabs;
 
     initTab(colorTab, colorScrollPane);
     initTab(wireframeTab, wireframePane);

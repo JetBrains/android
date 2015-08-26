@@ -32,15 +32,17 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PluginPathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,21 +86,33 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
     myProject = project;
-
     myView = new GfxTraceViewPanel();
-    myView.setupViewHierarchy(myProject);
 
-    try {
-      if (connectToServer()) {
-        ServiceClient rpcClient = new ServiceClientRPC(myExecutor, myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
-        myClient = new ServiceClientCache(rpcClient);
+    // Attempt to start/connect to the server on a separate thread to reduce the IDE from stalling.
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+      @Override
+      public void run() {
+        if (!connectToServer()) {
+          setLoadingErrorTextOnEdt("Unable to connect to server");
+          return;
+        }
 
-        // prefetch the schema
+        try {
+          ServiceClient rpcClient =
+            new ServiceClientRPC(myExecutor, myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
+          myClient = new ServiceClientCache(rpcClient);
+        }
+        catch (IOException e) {
+          setLoadingErrorTextOnEdt("Unable to talk to server");
+          return;
+        }
+
+        // Prefetch the schema
         final ListenableFuture<Schema> schemaF = myClient.getSchema();
         Futures.addCallback(schemaF, new LoadingCallback<Schema>(LOG) {
           @Override
           public void onSuccess(@Nullable final Schema schema) {
-            LOG.warn("Schema with " + schema.getClasses().length + " classes, " + schema.getConstants().length + " constant sets");
+            LOG.info("Schema with " + schema.getClasses().length + " classes, " + schema.getConstants().length + " constant sets");
             int atoms = 0;
             for (SchemaClass type : schema.getClasses()) {
               // Find the atom metadata, if present
@@ -107,47 +121,58 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
               }
               Dynamic.register(type);
             }
-            LOG.warn("Schema with " + atoms + " atoms");
+            LOG.info("Schema with " + atoms + " atoms");
             for (ConstantSet set : schema.getConstants()) {
               ConstantSet.register(set);
             }
           }
         });
-        // Upload the trace file
-        byte[] data = file.contentsToByteArray();
-        LOG.warn("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
-        final ListenableFuture<CapturePath> captureF = myClient.importCapture(file.getPresentableName(), data);
-        // When both steps are complete, activate the capture path
-        Futures.addCallback(Futures.allAsList(schemaF, captureF), new LoadingCallback<List<BinaryObject>>(LOG) {
+
+        try {
+          byte[] data = file.contentsToByteArray();
+
+          // Upload the trace file
+          LOG.info("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
+          final ListenableFuture<CapturePath> captureF = myClient.importCapture(file.getPresentableName(), data);
+
+          // When both steps are complete, activate the capture path
+          Futures.addCallback(Futures.allAsList(schemaF, captureF), new LoadingCallback<List<BinaryObject>>(LOG) {
+            @Override
+            public void onSuccess(@Nullable final List<BinaryObject> all) {
+              CapturePath path = (CapturePath)all.get(1);
+              LOG.info("Capture uploaded");
+              if (path != null) {
+                activatePath(path);
+              }
+              else {
+                LOG.error("Invalid capture file " + file.getPresentableName());
+              }
+            }
+          });
+        }
+        catch (IOException e) {
+          setLoadingErrorTextOnEdt("Error reading gfxtrace file");
+          return;
+        }
+
+        myContextController = new ContextController(GfxTraceEditor.this);
+        myAtomController = new AtomController(GfxTraceEditor.this, project, myView.getAtomScrollPane());
+        myScrubberController = new ScrubberController(GfxTraceEditor.this, myView.getScrubberScrollPane(), myView.getScrubberList());
+        myFrameBufferController =
+          new FrameBufferController(GfxTraceEditor.this, myView.getColorScrollPane(), myView.getWireframeScrollPane(),
+                                    myView.getDepthScrollPane());
+        myStateController = new StateController(GfxTraceEditor.this, myView.getStateScrollPane());
+        // TODO: Rewrite to use IntelliJ documentation view.
+        myDocumentationController = new DocumentationController(GfxTraceEditor.this, myView.getDocsTextPane());
+
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
-          public void onSuccess(@Nullable final List<BinaryObject> all) {
-            CapturePath path = (CapturePath)all.get(1);
-            LOG.warn("Capture uploaded");
-            if (path != null) {
-              activatePath(path);
-            }
-            else {
-              LOG.error("Invalid capture file " + file.getPresentableName());
-            }
+          public void run() {
+            myView.finalizeUi(myProject, myContextController.getContextAction());
           }
         });
-
-        myContextController = new ContextController(this, myView.getDeviceList());
-
-        myAtomController = new AtomController(this, project, myView.getAtomScrollPane());
-        myScrubberController = new ScrubberController(this, myView.getScrubberScrollPane(), myView.getScrubberList());
-        myFrameBufferController =
-          new FrameBufferController(this, myView.getBufferTabs(), myView.getColorScrollPane(), myView.getWireframeScrollPane(),
-                                    myView.getDepthScrollPane());
-        myStateController = new StateController(this, myView.getStateScrollPane());
-
-        // TODO: Rewrite to use IntelliJ documentation view.
-        myDocumentationController = new DocumentationController(this, myView.getDocsPane());
       }
-    }
-    catch (IOException e) {
-      LOG.error(e);
-    }
+    });
   }
 
   @NotNull
@@ -171,6 +196,27 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @Override
   public String getName() {
     return "GfxTraceView";
+  }
+
+  public void activatePath(@NotNull final Path path) {
+    // All path notifications are executed in the editor thread
+    EdtExecutor.INSTANCE.execute(new Runnable() {
+      @Override
+      public void run() {
+        LOG.warn("Activate path " + path);
+        for (PathListener listener : myPathListeners) {
+          listener.notifyPath(path);
+        }
+      }
+    });
+  }
+
+  public void addPathListener(@NotNull PathListener listener) {
+    myPathListeners.add(listener);
+  }
+
+  public void notifyDimensionChanged(@NotNull Dimension newDimension) {
+    myView.resize();
   }
 
   @NotNull
@@ -244,6 +290,98 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public void dispose() {
+    shutdown();
+  }
+
+  /**
+   * Attempts to connect to a gapis server.
+   * <p/>
+   * If the first attempt to connect fails, will launch a new server process and attempt to connect again.
+   * <p/>
+   * TODO: Implement more robust process management.  For example:
+   * TODO: - Better handling of shutdown so that the replayd process does not continue running.
+   * TODO: - Better way to detect when server has started in order to avoid polling for the socket.
+   *
+   * @return true if a connection to the server was established.
+   */
+  private boolean connectToServer() {
+    assert !ApplicationManager.getApplication().isDispatchThread();
+
+    Factory.register();
+
+    myServerSocket = null;
+    try {
+      // Try to connect to an existing server.
+      myServerSocket = new Socket(SERVER_HOST, SERVER_PORT);
+    }
+    catch (IOException ignored) {
+    }
+
+    if (myServerSocket != null) {
+      return true;
+    }
+
+    // The connection failed, so try to start a new instance of the server.
+    try {
+      File androidPluginDirectory = PluginPathManager.getPluginHome("android");
+      File serverDirectory = new File(androidPluginDirectory, SERVER_RELATIVE_PATH);
+      File serverExecutable = new File(serverDirectory, SERVER_EXECUTABLE_NAME);
+      LOG.info("launch gapis: \"" + serverExecutable.getAbsolutePath() + "\"");
+      ProcessBuilder pb = new ProcessBuilder(serverExecutable.getAbsolutePath());
+
+      // Add the server's directory to the path.  This allows the server to find and launch the replayd.
+      Map<String, String> env = pb.environment();
+      String path = env.get("PATH");
+      path = serverDirectory.getAbsolutePath() + File.pathSeparator + path;
+      env.put("PATH", path);
+
+      // Use the plugin directory as the working directory for the server.
+      pb.directory(androidPluginDirectory);
+
+      // This will throw IOException if the server executable is not found.
+      myServerProcess = pb.start();
+    }
+    catch (IOException e) {
+      LOG.warn(e);
+      return false;
+    }
+
+    // After starting, the server requires a little time before it will be ready to accept connections.
+    // This loop polls the server to establish a connection.
+    for (int waitTime = 0; waitTime < SERVER_LAUNCH_TIMEOUT_MS; waitTime += SERVER_LAUNCH_SLEEP_INCREMENT_MS) {
+      try {
+        myServerSocket = new Socket(SERVER_HOST, SERVER_PORT);
+        return true;
+      }
+      catch (IOException e1) {
+        myServerSocket = null;
+      }
+
+      try {
+        // Wait before trying again.
+        Thread.sleep(SERVER_LAUNCH_SLEEP_INCREMENT_MS);
+      }
+      catch (InterruptedException e) {
+        Thread.interrupted(); // reset interrupted status
+        shutdown();
+        return false; // Some external factor cancelled our busy-wait, so exit immediately.
+      }
+    }
+
+    shutdown();
+    return false;
+  }
+
+  private void setLoadingErrorTextOnEdt(@NotNull final String error) {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        myView.setLoadingError(error);
+      }
+    });
+  }
+
+  private void shutdown() {
     if (myServerSocket != null) {
       try {
         myServerSocket.close();
@@ -259,111 +397,5 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     }
 
     myExecutor.shutdown();
-  }
-
-  private static void sleepThread(int milliseconds) {
-    try {
-      Thread.sleep(milliseconds);
-    }
-    catch (InterruptedException ignored) {
-    }
-  }
-
-  /**
-   * Attempts to connect to a gapis server.
-   * <p/>
-   * If the first attempt to connect fails, will launch a new server process and attempt to connect again.
-   * <p/>
-   * TODO: Implement more robust process management.  For example:
-   * TODO: - Launch the new process in a separate thread so the GUI doesn't hang while the process is starting.
-   * TODO: - Better handling of shutdown so that the replayd process does not continue running.
-   * TODO: - Better way to detect when server has started in order to avoid polling for the socket.
-   *
-   * @return true if a connection to the server was established.
-   */
-  private boolean connectToServer() {
-    Factory.register();
-    myServerSocket = null;
-    try {
-      // Try to connect to an existing server.
-      myServerSocket = new Socket(SERVER_HOST, SERVER_PORT);
-    }
-    catch (IOException e) {
-      myServerSocket = null;
-    }
-
-    if (myServerSocket == null) {
-      // The connection failed, so try to start a new instance of the server.
-      try {
-        // Look for the server binary in a subdirectory of the plugin.
-        File baseDirectory = new File(PathUtil.getJarPathForClass(getClass()));
-        if (baseDirectory.isFile()) {
-          // We got a .jar file, so use the directory containing the .jar file.
-          baseDirectory = baseDirectory.getParentFile();
-        }
-        if (baseDirectory.isDirectory()) {
-          File serverDirectory = new File(baseDirectory, SERVER_RELATIVE_PATH);
-          File serverExecutable = new File(serverDirectory, SERVER_EXECUTABLE_NAME);
-          LOG.info("launch gapis: \"" + serverExecutable.getAbsolutePath() + "\"");
-          ProcessBuilder pb = new ProcessBuilder(serverExecutable.getAbsolutePath());
-
-          // Add the server's directory to the path.  This allows the server to find and launch the replayd.
-          Map<String, String> env = pb.environment();
-          String path = env.get("PATH");
-          path = serverDirectory.getAbsolutePath() + File.pathSeparator + path;
-          env.put("PATH", path);
-
-          // Use the plugin directory as the working directory for the server.
-          pb.directory(baseDirectory);
-
-          // This will throw IOException if the server executable is not found.
-          myServerProcess = pb.start();
-        }
-        else {
-          LOG.error("baseDirectory is not a directory: \"" + baseDirectory.getAbsolutePath() + "\"");
-        }
-      }
-      catch (IOException e) {
-        LOG.warn(e);
-      }
-      if (myServerProcess != null) {
-        // After starting, the server requires a little time before it will be ready to accept connections.
-        // This loop polls the server to establish a connection.
-        for (int waitTime = 0;
-             myServerSocket == null && waitTime < SERVER_LAUNCH_TIMEOUT_MS;
-             waitTime += SERVER_LAUNCH_SLEEP_INCREMENT_MS) {
-          try {
-            myServerSocket = new Socket(SERVER_HOST, SERVER_PORT);
-          }
-          catch (IOException e1) {
-            myServerSocket = null;
-            // Wait before trying again.
-            sleepThread(SERVER_LAUNCH_SLEEP_INCREMENT_MS);
-          }
-        }
-      }
-    }
-    return myServerSocket != null;
-  }
-
-  public void activatePath(@NotNull final Path path) {
-    // All path notifications are executed in the editor thread
-    EdtExecutor.INSTANCE.execute(new Runnable() {
-      @Override
-      public void run() {
-        LOG.warn("Activate path " + path);
-        for (PathListener listener : myPathListeners) {
-          listener.notifyPath(path);
-        }
-      }
-    });
-  }
-
-  public void addPathListener(@NotNull PathListener listener) {
-    myPathListeners.add(listener);
-  }
-
-  public void notifyDimensionChanged(@NotNull Dimension newDimension) {
-    myView.resize();
   }
 }
