@@ -110,6 +110,14 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testSuppressArray() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=183724
+    // Ensure that when a lint error is suppressed from a @SuppressLint annotation,
+    // the suppress id works whether it's the first element in the array or not
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
   public void testVersionUtility() throws Exception {
     // Regression test for https://code.google.com/p/android/issues/detail?id=178686
     // Makes sure the version conditional lookup peeks into surrounding method calls to see
