@@ -91,7 +91,7 @@ public class QualifierUtilsTest extends AndroidTestCase {
 
     FolderConfiguration compatible = FolderConfiguration.getConfigForQualifierString("land");
 
-    assertEquals("-land-v18", QualifierUtils.restrictConfiguration(myConfigurationManager, compatible, incompatible).getUniqueKey());
+    assertEquals("-land", QualifierUtils.restrictConfiguration(myConfigurationManager, compatible, incompatible).getUniqueKey());
   }
 
   /**
