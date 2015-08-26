@@ -29,13 +29,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.SdkConstants.CLASS_RESOURCES;
+
 /**
  * {@link DynamicResourceIdResolver} can resolve a resource id to its name by invoking Resources.getResourceName()
  * on all the Resources objects inside the target VM.
  */
 public class DynamicResourceIdResolver implements ResourceIdResolver {
   private static final Logger LOG = Logger.getInstance(DynamicResourceIdResolver.class);
-  public static final String ANDROID_CONTENT_RES_RESOURCES = "android.content.res.Resources";
 
   private final EvaluationContext myContext;
   private final ResourceIdResolver myDelegate;
@@ -55,9 +56,9 @@ public class DynamicResourceIdResolver implements ResourceIdResolver {
 
     DebugProcess debugProcess = myContext.getDebugProcess();
     VirtualMachineProxyImpl vmProxy = (VirtualMachineProxyImpl)debugProcess.getVirtualMachineProxy();
-    List<ReferenceType> classes = vmProxy.classesByName(ANDROID_CONTENT_RES_RESOURCES);
+    List<ReferenceType> classes = vmProxy.classesByName(CLASS_RESOURCES);
     if (classes.isEmpty()) {
-      LOG.warn(ANDROID_CONTENT_RES_RESOURCES + " class not loaded?");
+      LOG.warn(CLASS_RESOURCES + " class not loaded?");
       return null;
     }
 

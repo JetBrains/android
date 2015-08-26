@@ -301,6 +301,16 @@ public class LombokPsiParser extends JavaParser {
     }
 
     @Override
+    public boolean isPrimitive() {
+      return myType.getDeepComponentType() instanceof PsiPrimitiveType;
+    }
+
+    @Override
+    public boolean isArray() {
+      return myType instanceof PsiArrayType;
+    }
+
+    @Override
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
