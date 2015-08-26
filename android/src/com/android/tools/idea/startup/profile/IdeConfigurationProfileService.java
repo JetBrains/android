@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup.profile;
 
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import org.jetbrains.annotations.NonNls;
