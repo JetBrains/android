@@ -350,9 +350,16 @@ public class ThemeEditorComponent extends Splitter {
 
     final JComponent actionToolbarComponent = actionToolbar.getComponent();
     actionToolbarComponent.setBackground(PREVIEW_BACKGROUND);
-    for (Component component : actionToolbarComponent.getComponents()) {
-      component.setBackground(PREVIEW_BACKGROUND);
-    }
+    // The action toolbar is not always populated immediately.
+    // Wait to make sure the components exist before setting their background.
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        for (Component component : actionToolbarComponent.getComponents()) {
+          component.setBackground(PREVIEW_BACKGROUND);
+        }
+      }
+    });
     toolbar.add(actionToolbarComponent);
 
     final SearchTextField textField = new SearchTextField(true);
