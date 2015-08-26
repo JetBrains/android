@@ -1292,7 +1292,7 @@ public class RenderErrorPanel extends JPanel {
         builder.newline();
 
         if (!problemModules.isEmpty()) {
-          builder.addLink("Change Java SDK to 1.5/1.6", myLinkManager.createRunnableLink(new SwitchTo16Fix(project, problemModules)));
+          builder.addLink("Change Java SDK to 1.6", myLinkManager.createRunnableLink(new SwitchTo16Fix(project, problemModules)));
           builder.newline();
         }
       }
@@ -1343,7 +1343,7 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  private static boolean isBuiltByJdk7OrHigher(@NotNull Module module) {
+  static boolean isBuiltByJdk7OrHigher(@NotNull Module module) {
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
     if (sdk == null) {
       return false;
