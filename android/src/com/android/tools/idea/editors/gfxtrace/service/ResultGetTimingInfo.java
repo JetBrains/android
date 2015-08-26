@@ -25,7 +25,7 @@ import java.io.IOException;
 
 final class ResultGetTimingInfo implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  TimingInfoPath myValue;
+  private TimingInfoPath myValue;
 
   // Constructs a default-initialized {@link ResultGetTimingInfo}.
   public ResultGetTimingInfo() {}

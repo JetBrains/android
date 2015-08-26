@@ -17,37 +17,63 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
-import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
+
+import com.android.tools.rpclib.binary.BinaryClass;
+import com.android.tools.rpclib.binary.BinaryID;
+import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.tools.rpclib.binary.Decoder;
+import com.android.tools.rpclib.binary.Encoder;
+import com.android.tools.rpclib.binary.Namespace;
 
 import java.io.IOException;
 
-public final class TimingInfoPath extends Path {
+public final class ThumbnailPath extends Path {
   @Override
   public StringBuilder stringPath(StringBuilder builder) {
-    return builder.append("TimingInfo(").append(myID).append(")");
+    return myObject.stringPath(builder).append(".Thumbnail<").append(myDesiredWidth).append("x").append(myDesiredHeight).append("x");
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  private BinaryID myID;
+  private Path myObject;
+  private int myDesiredWidth;
+  private int myDesiredHeight;
 
-  // Constructs a default-initialized {@link TimingInfoPath}.
-  public TimingInfoPath() {}
+  // Constructs a default-initialized {@link ThumbnailPath}.
+  public ThumbnailPath() {}
 
 
-  public BinaryID getID() {
-    return myID;
+  public Path getObject() {
+    return myObject;
   }
 
-  public TimingInfoPath setID(BinaryID v) {
-    myID = v;
+  public ThumbnailPath setObject(Path v) {
+    myObject = v;
+    return this;
+  }
+
+  public int getDesiredWidth() {
+    return myDesiredWidth;
+  }
+
+  public ThumbnailPath setDesiredWidth(int v) {
+    myDesiredWidth = v;
+    return this;
+  }
+
+  public int getDesiredHeight() {
+    return myDesiredHeight;
+  }
+
+  public ThumbnailPath setDesiredHeight(int v) {
+    myDesiredHeight = v;
     return this;
   }
 
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-83, -57, -71, 27, -86, -100, -104, -62, 40, -80, -36, 58, 111, -37, -88, -1, -100, -74, -102, -119, };
+  private static final byte[] IDBytes = {-43, 89, -25, 113, -85, -51, 2, 106, -36, 89, -9, 122, 118, 114, -68, 24, 98, -124, -97, 47, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
@@ -63,18 +89,22 @@ public final class TimingInfoPath extends Path {
     public BinaryID id() { return ID; }
 
     @Override @NotNull
-    public BinaryObject create() { return new TimingInfoPath(); }
+    public BinaryObject create() { return new ThumbnailPath(); }
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      TimingInfoPath o = (TimingInfoPath)obj;
-      e.id(o.myID);
+      ThumbnailPath o = (ThumbnailPath)obj;
+      e.object(o.myObject.unwrap());
+      e.uint32(o.myDesiredWidth);
+      e.uint32(o.myDesiredHeight);
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      TimingInfoPath o = (TimingInfoPath)obj;
-      o.myID = d.id();
+      ThumbnailPath o = (ThumbnailPath)obj;
+      o.myObject = Path.wrap(d.object());
+      o.myDesiredWidth = d.uint32();
+      o.myDesiredHeight = d.uint32();
     }
     //<<<End:Java.KlassBody:2>>>
   }

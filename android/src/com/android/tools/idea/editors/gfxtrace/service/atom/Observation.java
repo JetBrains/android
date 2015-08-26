@@ -25,8 +25,8 @@ import java.io.IOException;
 
 public final class Observation implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Range myRange;
-  BinaryID myID;
+  private Range myRange;
+  private BinaryID myID;
 
   // Constructs a default-initialized {@link Observation}.
   public Observation() {}

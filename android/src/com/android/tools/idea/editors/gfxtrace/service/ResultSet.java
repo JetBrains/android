@@ -25,7 +25,7 @@ import java.io.IOException;
 
 final class ResultSet implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  Path myValue;
+  private Path myValue;
 
   // Constructs a default-initialized {@link ResultSet}.
   public ResultSet() {}

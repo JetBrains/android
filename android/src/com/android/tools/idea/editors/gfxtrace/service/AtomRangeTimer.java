@@ -24,9 +24,9 @@ import java.io.IOException;
 
 public final class AtomRangeTimer implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  long myFromAtomIndex;
-  long myToAtomIndex;
-  long myNanoseconds;
+  private long myFromAtomIndex;
+  private long myToAtomIndex;
+  private long myNanoseconds;
 
   // Constructs a default-initialized {@link AtomRangeTimer}.
   public AtomRangeTimer() {}

@@ -25,7 +25,7 @@ import java.io.IOException;
 
 final class ResultGetDevices implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  DevicePath[] myValue;
+  private DevicePath[] myValue;
 
   // Constructs a default-initialized {@link ResultGetDevices}.
   public ResultGetDevices() {}

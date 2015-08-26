@@ -29,7 +29,7 @@ public final class StatePath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  AtomPath myAfter;
+  private AtomPath myAfter;
 
   // Constructs a default-initialized {@link StatePath}.
   public StatePath() {}

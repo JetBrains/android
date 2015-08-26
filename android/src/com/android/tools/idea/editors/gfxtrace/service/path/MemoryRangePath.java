@@ -34,10 +34,10 @@ public final class MemoryRangePath extends Path {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  AtomPath myAfter;
-  long myPool;
-  long myAddress;
-  long mySize;
+  private AtomPath myAfter;
+  private long myPool;
+  private long myAddress;
+  private long mySize;
 
   // Constructs a default-initialized {@link MemoryRangePath}.
   public MemoryRangePath() {}
