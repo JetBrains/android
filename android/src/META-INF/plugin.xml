@@ -724,8 +724,8 @@
     <packaging.artifactType implementation="org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType"/>
 
     <editorNotificationProvider implementation="com.android.tools.idea.editors.GeneratedFileNotificationProvider"/>
-    <editorNotificationProvider implementation="com.android.tools.idea.editors.AutoImportNotificationProvider"/>
-    <editorNotificationProvider implementation="com.android.tools.idea.editors.ProjectSyncStatusNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.AutoImportNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider"/>
