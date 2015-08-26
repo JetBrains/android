@@ -18,10 +18,13 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.GradleBuildContext;
+import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
@@ -30,6 +33,8 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.compiler.CompileContext;
+import com.intellij.openapi.compiler.CompileTask;
+import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
@@ -70,17 +75,29 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
   public AndroidGradleProjectComponent(@NotNull final Project project) {
     super(project);
-    // Register a task that will be executed after project build (e.g. make, rebuild, generate sources) with JPS.
-    ProjectBuilder.getInstance(project).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildTask() {
+
+    // Register a task that gets notified when a Gradle-based Android project is compiled via JPS.
+    CompilerManager.getInstance(myProject).addAfterTask(new CompileTask() {
+      @Override
+      public boolean execute(CompileContext context) {
+        if (isBuildWithGradle(myProject)) {
+          PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(context);
+
+          JpsBuildContext newContext = new JpsBuildContext(context);
+          AndroidProjectBuildNotifications.getInstance(myProject).notifyBuildComplete(newContext);
+        }
+        return true;
+      }
+    });
+
+    // Register a task that gets notified when a Gradle-based Android project is compiled via direct Gradle invocation.
+    GradleInvoker.getInstance(myProject).addAfterGradleInvocationTask(new GradleInvoker.AfterGradleInvocationTask() {
       @Override
       public void execute(@NotNull GradleInvocationResult result) {
         PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(result);
-      }
 
-      @Override
-      public boolean execute(CompileContext context) {
-        PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(context);
-        return true;
+        GradleBuildContext newContext = new GradleBuildContext(result);
+        AndroidProjectBuildNotifications.getInstance(myProject).notifyBuildComplete(newContext);
       }
     });
   }

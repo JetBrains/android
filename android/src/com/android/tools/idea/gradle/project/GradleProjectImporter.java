@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -181,7 +182,7 @@ public class GradleProjectImporter {
 
   /**
    * Requests a project sync with Gradle. If the project import is successful,
-   * {@link com.android.tools.idea.gradle.util.ProjectBuilder#generateSourcesOnly()} will be invoked at the end.
+   * {@link GradleProjectBuilder#generateSourcesOnly()} will be invoked at the end.
    *
    * @param project  the given project. This method does nothing if the project is not an Android-Gradle project.
    * @param listener called after the project has been imported.
