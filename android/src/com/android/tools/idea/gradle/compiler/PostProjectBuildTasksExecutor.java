@@ -19,12 +19,10 @@ import com.android.ide.common.blame.Message;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.project.GradleBuildListener;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.*;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
@@ -46,6 +44,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.ui.AppUIUtil;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -79,13 +78,24 @@ import static com.intellij.util.ThreeState.YES;
  * Both JPS and the "direct Gradle invocation" build strategies ares supported.
  */
 public class PostProjectBuildTasksExecutor {
-  public static final Topic<GradleBuildListener> GRADLE_BUILD_TOPIC =
+  private static final Topic<GradleBuildListener> GRADLE_BUILD_TOPIC =
     new Topic<GradleBuildListener>("Gradle project build", GradleBuildListener.class);
 
   private static final Key<Boolean> UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD = Key.create("android.gradle.project.update.java.lang");
   private static final Key<Long> PROJECT_LAST_BUILD_TIMESTAMP_KEY = Key.create("android.gradle.project.last.build.timestamp");
 
   @NotNull private final Project myProject;
+
+  /**
+   * This method is used for testing only. For production code, please use
+   * {@link AndroidProjectBuildNotifications#subscribe(Project, AndroidProjectBuildNotifications.AndroidProjectBuildListener)}.
+   */
+  @VisibleForTesting
+  public static void subscribe(@NotNull Project project, @NotNull GradleBuildListener listener) {
+    MessageBusConnection connection = project.getMessageBus().connect(project);
+    connection.subscribe(GRADLE_BUILD_TOPIC, listener);
+  }
+
 
   @NotNull
   public static PostProjectBuildTasksExecutor getInstance(@NotNull Project project) {

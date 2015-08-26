@@ -30,7 +30,6 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,8 +58,7 @@ public class InternalAndroidModelView {
   public InternalAndroidModelView(@NotNull Project project) {
     myProject = project;
     myTree = new Tree();
-    MessageBusConnection connection = myProject.getMessageBus().connect();
-    connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, new GradleSyncListener.Adapter() {
+    GradleSyncState.subscribe(myProject, new GradleSyncListener.Adapter() {
       @Override
       public void syncStarted(@NotNull Project project) {
         updateContents();

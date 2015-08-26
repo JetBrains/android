@@ -39,6 +39,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
@@ -71,8 +72,8 @@ public class GradleSyncState {
     "com.intellij.compiler.options.CompilerConfigurable"
   );
 
-  public static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<GradleSyncListener>("Project sync with Gradle", GradleSyncListener.class);
-
+  private static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC =
+    new Topic<GradleSyncListener>("Project sync with Gradle", GradleSyncListener.class);
   private static final Key<Long> PROJECT_LAST_SYNC_TIMESTAMP_KEY = Key.create("android.gradle.project.last.sync.timestamp");
 
   @NotNull private final Project myProject;
@@ -85,6 +86,11 @@ public class GradleSyncState {
 
   @GuardedBy("myLock")
   private boolean mySyncInProgress;
+
+  public static void subscribe(@NotNull Project project, @NotNull GradleSyncListener listener) {
+    MessageBusConnection connection = project.getMessageBus().connect(project);
+    connection.subscribe(GRADLE_SYNC_TOPIC, listener);
+  }
 
   @NotNull
   public static GradleSyncState getInstance(@NotNull Project project) {

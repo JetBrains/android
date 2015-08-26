@@ -75,7 +75,6 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.Processor;
 import com.intellij.util.ThreeState;
-import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -1030,8 +1029,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public void addListener(@NotNull GradleSyncListener listener) {
     Module module = getModule();
-    MessageBusConnection connection = module.getProject().getMessageBus().connect(module);
-    connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, listener);
+    GradleSyncState.subscribe(module.getProject(), listener);
   }
 
   public void syncSelectedVariantAndTestArtifact() {

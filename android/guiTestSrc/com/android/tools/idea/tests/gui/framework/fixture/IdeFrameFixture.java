@@ -21,9 +21,9 @@ import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.google.common.base.Charsets;
@@ -67,7 +67,6 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.util.ThreeState;
-import com.intellij.util.messages.MessageBusConnection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
@@ -97,8 +96,6 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.GradleSyncState.GRADLE_SYNC_TOPIC;
-import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
@@ -160,9 +157,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     myGradleProjectEventListener = new GradleProjectEventListener();
 
-    MessageBusConnection connection = project.getMessageBus().connect(disposable);
-    connection.subscribe(GRADLE_SYNC_TOPIC, myGradleProjectEventListener);
-    connection.subscribe(GRADLE_BUILD_TOPIC, myGradleProjectEventListener);
+    GradleSyncState.subscribe(project, myGradleProjectEventListener);
+    PostProjectBuildTasksExecutor.subscribe(project, myGradleProjectEventListener);
   }
 
   @NotNull
