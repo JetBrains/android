@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.application.options.ModuleListCellRenderer;
@@ -46,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
@@ -167,16 +167,13 @@ public class AddGradleProjectDependencyFix extends AbstractGradleDependencyFix {
           }
         }
       };
-      JBPopup popup = JBPopupFactory.getInstance().createListPopupBuilder(list)
-                                                  .setTitle("Choose Module to Add Dependency on")
-                                                  .setMovable(false)
-                                                  .setResizable(false)
-                                                  .setRequestFocus(true)
-                                                  .setItemChoosenCallback(callback)
-                                                  .createPopup();
+      JBPopup popup =
+        JBPopupFactory.getInstance().createListPopupBuilder(list).setTitle("Choose Module to Add Dependency on").setMovable(false)
+          .setResizable(false).setRequestFocus(true).setItemChoosenCallback(callback).createPopup();
       if (editor != null) {
         popup.showInBestPositionFor(editor);
-      } else {
+      }
+      else {
         popup.showCenteredInCurrentWindow(project);
       }
     }
@@ -188,22 +185,21 @@ public class AddGradleProjectDependencyFix extends AbstractGradleDependencyFix {
       public void run() {
         final boolean testScope = ModuleRootManager.getInstance(myModule).getFileIndex().isInTestSourceContent(myClassVFile);
 
-        runWriteCommandAction(project, new Runnable() {
+        runWriteCommandActionAndSync(project, new Runnable() {
           @Override
           public void run() {
             addDependencyUndoable(myModule, module, testScope);
-            gradleSyncAndImportClass(project, editor, myReference, new Function<Void, List<PsiClass>>() {
-              @Override
-              public List<PsiClass> apply(@Nullable Void input) {
-                List<PsiClass> targetClasses = Lists.newArrayList();
-                for (PsiClass psiClass : myClasses) {
-                  if (findModuleForPsiElement(psiClass) == module) {
-                    targetClasses.add(psiClass);
-                  }
-                }
-                return targetClasses;
+          }
+        }, editor, new Callable<PsiClass[]>() {
+          @Override
+          public PsiClass[] call() {
+            List<PsiClass> targetClasses = Lists.newArrayList();
+            for (PsiClass psiClass : myClasses) {
+              if (findModuleForPsiElement(psiClass) == module) {
+                targetClasses.add(psiClass);
               }
-            });
+            }
+            return targetClasses.toArray(new PsiClass[targetClasses.size()]);
           }
         });
       }
@@ -218,10 +214,13 @@ public class AddGradleProjectDependencyFix extends AbstractGradleDependencyFix {
     }
   }
 
-  private static void showCircularWarningAndContinue(@NotNull final Project project, @NotNull Pair<Module, Module> circularModules,
-                                                     @NotNull Module classModule, @NotNull final Runnable doit) {
-    final String message = QuickFixBundle.message("orderEntry.fix.circular.dependency.warning", classModule.getName(),
-                                                  circularModules.getFirst().getName(), circularModules.getSecond().getName());
+  private static void showCircularWarningAndContinue(@NotNull final Project project,
+                                                     @NotNull Pair<Module, Module> circularModules,
+                                                     @NotNull Module classModule,
+                                                     @NotNull final Runnable doit) {
+    final String message = QuickFixBundle
+      .message("orderEntry.fix.circular.dependency.warning", classModule.getName(), circularModules.getFirst().getName(),
+               circularModules.getSecond().getName());
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       throw new RuntimeException(message);
     }
@@ -286,7 +285,8 @@ public class AddGradleProjectDependencyFix extends AbstractGradleDependencyFix {
     AndroidProject androidProject = getAndroidProject(module);
     if (androidProject == null) {
       return ModuleType.JAVA;
-    } else {
+    }
+    else {
       return androidProject.isLibrary() ? ModuleType.ANDROID_LIBRARY : ModuleType.ANDROID_APPLICATION;
     }
   }

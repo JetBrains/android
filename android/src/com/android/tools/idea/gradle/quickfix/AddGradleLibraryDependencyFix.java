@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.quickfix;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.daemon.QuickFixBundle;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
@@ -35,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
@@ -43,8 +42,8 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
-  * Quickfix to add dependency to another library in gradle.build file and sync the project.
-  */
+ * Quickfix to add dependency to another library in gradle.build file and sync the project.
+ */
 public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
   @NotNull private final LibraryOrderEntry myLibraryEntry;
   @NotNull private final PsiClass myClass;
@@ -84,16 +83,15 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
       return;
     }
     final String configurationName = getConfigurationName(myModule, false);
-    runWriteCommandAction(project, new Runnable() {
+    runWriteCommandActionAndSync(project, new Runnable() {
       @Override
       public void run() {
         addDependency(myModule, configurationName, myLibraryGradleEntry);
-        gradleSyncAndImportClass(project, editor, myReference, new Function<Void, List<PsiClass>>() {
-          @Override
-          public List<PsiClass> apply(@Nullable Void input) {
-            return ImmutableList.of(myClass);
-          }
-        });
+      }
+    }, editor, new Callable<PsiClass[]>() {
+      @Override
+      public PsiClass[] call() {
+        return new PsiClass[]{myClass};
       }
     });
   }
@@ -107,7 +105,7 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
 
     String result = null;
     if (androidFacet != null) {
-      result = getLibraryGradleEntryByAndroidFacet(androidFacet);
+      result = getLibraryGradleEntry(androidFacet);
     }
     if (result == null) {
       result = getLibraryGradleEntryByExaminingPath();
@@ -116,7 +114,7 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
   }
 
   @Nullable
-  private String getLibraryGradleEntryByAndroidFacet(@NotNull AndroidFacet androidFacet) {
+  private String getLibraryGradleEntry(@NotNull AndroidFacet androidFacet) {
     AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
     if (androidModel == null) {
       return null;
