@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui;
 
-import com.android.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Objects;
@@ -23,36 +22,33 @@ import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ui.GraphicsUtil;
+import com.intellij.ui.TreeUIHelper;
+import com.intellij.ui.components.JBList;
+import com.intellij.util.containers.Convertor;
+import com.intellij.util.ui.JBDimension;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.accessibility.*;
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.*;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.font.LineMetrics;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.image.ImageObserver;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
 
 /**
  * A gallery widget for displaying a collection of images.
  * <p/>
- * This widget obtains its model from {@link javax.swing.ListModel} and
- * relies on two functions to obtain image and lable for model object.
- * It does not support notions of "renderer" or "editor"
+ * This widget obtains its model from {@link ListModel} and
+ * relies on two functions to obtain image and label for model object.
  */
-public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
+public class ASGallery<E> extends JBList {
   /**
    * Default insets around the cell contents.
    */
@@ -62,162 +58,184 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
    */
   @NotNull private Insets myCellMargin = DEFAULT_CELL_MARGIN;
   /**
-   * Timeout in ms when incremental search is reset
-   */
-  private static final int INCSEARCH_TIMEOUT_MS = 500; // ms
-  /**
-   * Listeners for events other then property event
-   */
-  private final EventListenerList myListeners = new EventListenerList();
-  /**
-   * Listens to changes in the model data
-   */
-  private final ListDataListener myListDataListener = new InternalListDataListener();
-  /**
    * Size of the image. Currently all images will be scaled to this size, this
    * may change as we get more requirements.
    */
-  @NotNull private Dimension myThumbnailSize = new Dimension(128, 128);
-  /**
-   * Index of the selected item or -1 if none
-   */
-  private int mySelectedIndex = -1;
-  /**
-   * Data shown in this component
-   */
-  private ListModel myModel;
-  /**
-   * Filter string for the incremental search
-   */
-  private String myFilterString = "";
-  /**
-   * Timestamp of the last keypress used for incremental search.
-   */
-  private long myPreviousKeypressTimestamp = 0;
-  /**
-   * Caches item images, is reset if different image provider is supplied.
-   */
-  @NotNull private LoadingCache<E, Optional<Image>> myImagesCache;
+  @NotNull private JBDimension myThumbnailSize;
   /**
    * Obtains string label for the model object.
    */
-  @NotNull private Function<? super E, String> myLabelProvider = Functions.toStringFunction();
+  @NotNull private Function<? super E, String> myLabelProvider;
+  /**
+   * Caches item images, is reset if different image provider is supplied.
+   */
+  @Nullable private LoadingCache<E, Optional<Image>> myImagesCache;
+  /**
+   * Caches item images, is reset if different image provider is supplied.
+   */
+  @NotNull private Map<E, CellRenderer> myCellRenderers = Maps.newHashMap();
 
   public ASGallery() {
     this(new DefaultListModel(), Functions.<Image>constant(null), Functions.toStringFunction(), new Dimension(0, 0));
   }
-
   public ASGallery(@NotNull ListModel model,
                    @NotNull Function<? super E, Image> imageProvider,
                    @NotNull Function<? super E, String> labelProvider,
                    @NotNull Dimension thumbnailSize) {
+    myThumbnailSize = JBDimension.create(thumbnailSize);
+    myLabelProvider = labelProvider;
+
     Font listFont = UIUtil.getListFont();
     if (listFont != null) {
       setFont(listFont);
     }
 
-    setThumbnailSize(thumbnailSize);
     setImageProvider(imageProvider);
     setLabelProvider(labelProvider);
     setModel(model);
+    setThumbnailSize(thumbnailSize);
 
+    setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    setLayoutOrientation(JList.HORIZONTAL_WRAP);
+    setVisibleRowCount(-1);
     setOpaque(true);
     setFocusable(true);
+    setCellRenderer(new GalleryCellRenderer());
+    setBackground(UIUtil.getListBackground());
+
+    installListeners();
+    installKeyboardActions();
+    TreeUIHelper.getInstance().installListSpeedSearch(this, new Convertor<Object, String>() {
+      @Override
+      public String convert(Object o) {
+        return myLabelProvider.apply((E)o);
+      }
+    });
+  }
+
+  private void installListeners() {
+    addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        // When the list is resized, we re-compute the width of the elements to avoid a gap between
+        // the last column on the right and the list border.
+        Dimension cellSize = computeCellSize();
+        setFixedCellWidth(cellSize.width);
+      }
+    });
     addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
-        requestFocusInWindow();
-        int cell = getCellAt(e.getPoint());
-        if (cell >= 0) {
-          setSelectedIndex(cell);
-        }
+        int index = getSelectedIndex();
+        if (index < 0) return;
+        ensureIndexIsVisible(index);
       }
     });
-    addFocusListener(new FocusListener() {
-      @Override
-      public void focusGained(FocusEvent e) {
-        reveal();
-        updateFocusRectangle();
-      }
-
-      @Override
-      public void focusLost(FocusEvent e) {
-        updateFocusRectangle();
-      }
-    });
-    addKeyListener(new KeyAdapter() {
-      @Override
-      public void keyTyped(KeyEvent e) {
-        char keyChar = e.getKeyChar();
-        if (keyChar != KeyEvent.CHAR_UNDEFINED) {
-          incrementalSearch(keyChar);
-        }
-      }
-    });
-    setBackground(UIUtil.getListBackground());
-    InputMap inputMap = getInputMap(JComponent.WHEN_FOCUSED);
-    ActionMap actionMap = getActionMap();
-
-    ImmutableMap<Integer, Action> keysToActions = ImmutableMap.<Integer, Action>builder().
-      put(KeyEvent.VK_DOWN, new MoveSelectionAction(1, 0)).
-      put(KeyEvent.VK_UP, new MoveSelectionAction(-1, 0)).
-      put(KeyEvent.VK_LEFT, new MoveSelectionAction(0, -1)).
-      put(KeyEvent.VK_RIGHT, new MoveSelectionAction(0, 1)).
-      put(KeyEvent.VK_HOME, new JumpSelection() {
-        @Override
-        public int getIndex() {
-          return 0;
-        }
-      }).
-      put(KeyEvent.VK_END, new JumpSelection() {
-        @Override
-        public int getIndex() {
-          return myModel.getSize() - 1;
-        }
-      }).
-      build();
-    for (Map.Entry<Integer, Action> entry : keysToActions.entrySet()) {
-      String key = "selection_move_" + entry.getKey();
-      inputMap.put(KeyStroke.getKeyStroke(entry.getKey(), 0), key);
-      actionMap.put(key, entry.getValue());
-    }
   }
 
+  private void installKeyboardActions() {
+    getActionMap().put("nextListElement", new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        int index = getSelectedIndex();
+        if (index < 0)
+          return;
+        index++;
+        if (index >= getModel().getSize())
+          return;
+
+        setSelectedIndex(index);
+        ensureIndexIsVisible(index);
+      }
+    });
+
+    getActionMap().put("previousListElement", new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        int index = getSelectedIndex();
+        if (index <= 0)
+          return;
+        index--;
+
+        setSelectedIndex(index);
+        ensureIndexIsVisible(index);
+      }
+    });
+
+    // BasicListUI does not handle wrapping to next/previous line by default, so we
+    // customize arrow key actions to implement the wrapping behavior.
+    final String nextListElementKey;
+    final String previousListElementKey;
+    if (getComponentOrientation().isLeftToRight()) {
+      nextListElementKey = "RIGHT";
+      previousListElementKey = "LEFT";
+    } else {
+      nextListElementKey = "LEFT";
+      previousListElementKey = "RIGHT";
+    }
+
+    getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(nextListElementKey), "nextListElement");
+    getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("KP_" + nextListElementKey), "nextListElement");
+    getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(previousListElementKey), "previousListElement");
+    getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("KP_" + previousListElementKey), "previousListElement");
+  }
+
+  /**
+   * We override setModel to try to keep the selection across model changes, as we get multiple setModel calls.
+   */
   @Override
-  public Dimension getMinimumSize() {
-    Dimension size = new Dimension(computeCellSize());
-    Insets insets = getInsets();
-    size.setSize(size.getWidth() + insets.left + insets.right, size.getHeight() + insets.top + insets.bottom);
-    return computeCellSize();
-  }
-
-  private static int intDivideRoundUp(int divident, int divisor) {
-    return (divident + divisor - 1) / divisor;
-  }
-
-  private static int getElementIndex(@NotNull ListModel model, @Nullable Object element) {
-    if (element == null) {
-      return -1;
+  public void setModel(ListModel model) {
+    final int oldSelectIndex  = getSelectedIndex();
+    super.setModel(model);
+    if (myImagesCache != null)
+      myImagesCache.invalidateAll();
+    myCellRenderers.clear();
+    if (oldSelectIndex >= 0) {
+      setSelectedIndex(oldSelectIndex);
+      ensureIndexIsVisible(oldSelectIndex);
     }
-    for (int i = 0; i < model.getSize(); i++) {
-      Object modelElement = model.getElementAt(i);
-      if (Objects.equal(element, modelElement)) {
-        return i;
-      }
-    }
-    return -1;
   }
 
-  public void setLabelProvider(@NotNull Function<? super E, String> labelProvider) {
-    myLabelProvider = labelProvider;
-    repaint(getVisibleRect());
+  /**
+   * Update the size of thumbnails and redraw/relayout the list if necessary.
+   */
+  public void setThumbnailSize(Dimension thumbnailSize) {
+    // JBDimension supports HiDPI
+    myThumbnailSize = JBDimension.create(thumbnailSize);
+    recomputeCellSize();
   }
 
-  public void setThumbnailSize(@NotNull Dimension thumbnailSize) {
-    if (!Objects.equal(thumbnailSize, myThumbnailSize)) {
-      myThumbnailSize = thumbnailSize;
-      invalidate();
-      repaint(getVisibleRect());
+  private void recomputeCellSize() {
+    Dimension cellSize = computeCellSize();
+    setFixedCellWidth(cellSize.width);
+    setFixedCellHeight(cellSize.height);
+    invalidate();
+    repaint();
+  }
+
+  /**
+   * Compute the fixed size of each cell given the thumbnail size and the font size.
+   */
+  protected Dimension computeCellSize() {
+    int preferredWidth = myThumbnailSize.width + myCellMargin.left + myCellMargin.right;
+    int listWidth = getSize().width;
+    int columnCount = listWidth / preferredWidth;
+    int width = (columnCount == 0 ? preferredWidth : (listWidth / columnCount) - 1);
+    int textHeight = getFont().getSize();
+    int height = myThumbnailSize.height + myCellMargin.top + myCellMargin.bottom + 2 * textHeight;
+    return new Dimension(width, height);
+  }
+
+  /**
+   * Set cell margin value.
+   */
+  public void setCellMargin(@Nullable Insets cellMargin) {
+    cellMargin = (cellMargin == null ? DEFAULT_CELL_MARGIN : cellMargin);
+    if (!Objects.equal(cellMargin, myCellMargin)) {
+      Insets oldCellMargin = myCellMargin;
+      myCellMargin = cellMargin;
+      recomputeCellSize();
+      firePropertyChange("cellMargin", oldCellMargin, cellMargin);
     }
   }
 
@@ -230,469 +248,46 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
    * use {@link Object#equals(Object)}. Please do not rely on this behaviour
    * as it may change without prior notice.
    */
-  public void setImageProvider(@NotNull Function<? super E, Image> imageProvider) {
-    CacheLoader<? super E, Optional<Image>> cacheLoader = CacheLoader.from(ToOptionalFunction.wrap(imageProvider));
+  public void setImageProvider(@NotNull final Function<? super E, Image> imageProvider) {
+    Function<? super E, Image> scaledImageProvider = new Function<E, Image> () {
+      @Nullable
+      @Override
+      public Image apply(@Nullable E input) {
+        Image image = imageProvider.apply(input);
+        if (image == null)
+          return null;
+
+        // Determine image scaling option:
+        // * "default" if image has to be scaled up (so scaled image is not blurry)
+        // * "smooth" if image has to be scaled down
+        int scalingHints = Image.SCALE_SMOOTH;
+        ImageObserver observer = new ImageObserver() {
+          @Override
+          public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
+            return true;
+          }
+        };
+        int height = image.getHeight(observer);
+        int width =  image.getWidth(observer);
+        if (height >= 0 && width >= 0) {
+          if (height <= myThumbnailSize.height || width <= myThumbnailSize.width) {
+            scalingHints = Image.SCALE_DEFAULT;
+          }
+        }
+
+        // Return image scaled up/down to thumbnail size, so scaling occurs only once per image (i.e not
+        // for every paint).
+        return image.getScaledInstance(myThumbnailSize.width, myThumbnailSize.height, scalingHints);
+      }
+    };
+    CacheLoader<? super E, Optional<Image>> cacheLoader = CacheLoader.from(ToOptionalFunction.wrap(scaledImageProvider));
     myImagesCache = CacheBuilder.newBuilder().weakKeys().build(cacheLoader);
     repaint(getVisibleRect());
   }
 
-  private void incrementalSearch(char keyChar) {
-    final long timestamp = System.currentTimeMillis();
-    if (timestamp - myPreviousKeypressTimestamp > INCSEARCH_TIMEOUT_MS) {
-      myFilterString = String.valueOf(keyChar);
-    }
-    else {
-      myFilterString += keyChar;
-    }
-    final int ind = findMatchingItem();
-    myPreviousKeypressTimestamp = timestamp;
-    if (ind < 0) {
-      boolean resumedSearch = myFilterString.length() > 1;
-      myFilterString = "";
-      if (resumedSearch) {
-        incrementalSearch(keyChar);
-      }
-    }
-    else {
-      setSelectedIndex(ind);
-    }
-  }
-
-  private int findMatchingItem() {
-    int itemCount = myModel.getSize();
-    int startingIndex = Math.max(0, mySelectedIndex);
-    // Ideal match starts with the search string. Otherwise we try to match
-    // words (e.g. "maps" should match Google maps template)
-    int secondBest = -1;
-    final String normalizedFilterString = StringUtil.toLowerCase(myFilterString);
-
-    for (int i = startingIndex; i < itemCount + startingIndex; i++) {
-      // We only should to wrap search if there's no matches "under" the cursor
-      final int index = i % itemCount;
-      String title = getLabel(index);
-      if (!StringUtil.isEmpty(title)) {
-        String normalizedTitle = StringUtil.toLowerCase(title);
-        if (normalizedTitle.startsWith(normalizedFilterString)) {
-          return index;
-        }
-        else if (secondBest < 0 && normalizedTitle.contains(" " + normalizedFilterString)) {
-          secondBest = index;
-        }
-      }
-    }
-    return secondBest;
-  }
-
-  @Nullable
-  private String getLabel(int index) {
-    Object element = myModel.getElementAt(index);
-    if (element == null) {
-      return null;
-    }
-    else {
-      //noinspection unchecked
-      return myLabelProvider.apply((E)element);
-    }
-  }
-
-  @VisibleForTesting
-  protected int getCellAt(@NotNull Point point) {
-    Insets borderInsets = getInsets();
-    int columnCount = getColumnCount();
-    Dimension cellDimensions = computeCellSize();
-    int galleryWidth = getClientWidth(borderInsets);
-
-    int offsetX = point.x - borderInsets.left;
-    int offsetY = point.y - borderInsets.top;
-    if (offsetX >= galleryWidth || offsetX < 0) {
-      return -1;
-    }
-    int column = 0;
-    // We may have columns of (slightly) varied width due to rounding errors...
-    while (getColumnOffset(column + 1, columnCount, galleryWidth) <= offsetX) {
-      column++;
-    }
-
-    int row = offsetY / cellDimensions.height;
-    if (row < 0 || row > myModel.getSize() / columnCount) {
-      return -1;
-    }
-    int selection = column + row * columnCount;
-    return selection >= 0 && selection < myModel.getSize() ? selection : -1;
-  }
-
-  private int getClientWidth(Insets borderInsets) {
-    return getWidth() - borderInsets.left - borderInsets.right;
-  }
-
-  private int getNewSelectionIndex(int vdirection, int hdirection) {
-    if (mySelectedIndex < 0) {
-      return 0;
-    }
-    int columnCount = getColumnCount();
-    int column = mySelectedIndex % columnCount + hdirection;
-    int row = mySelectedIndex / columnCount + vdirection;
-    if (column >= 0 && column < columnCount) {
-      int newSelection = column + row * columnCount;
-      if (newSelection < 0) {
-        return 0;
-      }
-      else {
-        int itemCount = myModel.getSize();
-        if (newSelection >= itemCount) {
-          return itemCount - 1;
-        }
-        else {
-          return newSelection;
-        }
-      }
-    }
-    else {
-      return mySelectedIndex;
-    }
-  }
-
-  private void updateFocusRectangle() {
-    if (mySelectedIndex >= 0) {
-      repaint(getVisibleRect());
-    }
-  }
-
-  @NotNull
-  public Insets getCellMargin() {
-    return myCellMargin;
-  }
-
-  /**
-   * Set cell margin value.
-   */
-  public void setCellMargin(@Nullable Insets cellMargin) {
-    cellMargin = cellMargin == null ? DEFAULT_CELL_MARGIN : cellMargin;
-    if (!Objects.equal(cellMargin, myCellMargin)) {
-      Insets oldInsets = myCellMargin;
-      myCellMargin = cellMargin;
-      firePropertyChange("cellMargin", oldInsets, cellMargin);
-    }
-  }
-
-  @Nullable
-  public E getSelectedElement() {
-    if (mySelectedIndex < 0) {
-      return null;
-    }
-    //noinspection unchecked
-    return (E)myModel.getElementAt(mySelectedIndex);
-  }
-
-  public void setSelectedElement(@Nullable E element) {
-    final int index;
-    if (element == null) {
-      index = -1;
-    }
-    else {
-      index = getElementIndex(getModel(), element);
-      if (index < 0) {
-        throw new NoSuchElementException(element.toString());
-      }
-    }
-    setSelectedIndex(index);
-  }
-
-  public int getSelectedIndex() {
-    return mySelectedIndex;
-  }
-
-  public void setSelectedIndex(int selectedIndex) {
-    setSelectedIndex(selectedIndex, true);
-  }
-
-  private void setSelectedIndex(int selectedIndex, boolean notifyListeners) {
-    assert selectedIndex < myModel.getSize() && selectedIndex >= -1;
-    if (selectedIndex != mySelectedIndex) {
-      mySelectedIndex = selectedIndex;
-      repaint(getVisibleRect());
-      revealCell(mySelectedIndex);
-      if (notifyListeners) {
-        fireSelectionChanged(mySelectedIndex);
-      }
-    }
-  }
-
-  private void fireSelectionChanged(int newSelection) {
-    boolean isSelectionListener = false;
-    ListSelectionEvent event = new ListSelectionEvent(this, newSelection, newSelection, false);
-    for (Object object : myListeners.getListenerList()) {
-      if (isSelectionListener) {
-        ((ListSelectionListener)object).valueChanged(event);
-        isSelectionListener = false;
-      }
-      else {
-        isSelectionListener = object == ListSelectionListener.class;
-      }
-    }
-  }
-
-  /**
-   * @return data model
-   */
-  @NotNull
-  public ListModel getModel() {
-    return myModel;
-  }
-
-  public void setModel(@NotNull ListModel model) {
-    if (!Objects.equal(myModel, model)) {
-      final Object element;
-      //noinspection ConstantConditions
-      if (myModel != null) {
-        myModel.removeListDataListener(myListDataListener);
-        element = mySelectedIndex < 0 ? null : myModel.getElementAt(mySelectedIndex);
-      }
-      else {
-        element = null;
-      }
-      myModel = model;
-      myModel.addListDataListener(myListDataListener);
-      invalidate();
-      setSelectedIndex(getElementIndex(myModel, element));
-    }
-  }
-
-  @Override
-  public Dimension getPreferredSize() {
-    Dimension preferredSize = super.getPreferredSize();
-    int itemCount = myModel == null ? 0 : myModel.getSize();
-    if (isPreferredSizeSet() || itemCount == 0) {
-      return preferredSize;
-    }
-    Insets insets = getInsets();
-    int insetsWidth = insets.left + insets.right;
-    int insetsHeight = insets.top + insets.bottom;
-    Dimension cellSize = computeCellSize();
-    final int width = getWidth();
-    if (width == 0) {
-      return new Dimension(cellSize.width + insetsWidth, cellSize.height + insetsHeight);
-    }
-    else { // Avoid horizontal scroll
-      int rows = intDivideRoundUp(itemCount, getColumnCount());
-      int height = rows * cellSize.height + insetsHeight;
-      return new Dimension(Math.max(width, cellSize.width + insetsWidth), height);
-    }
-  }
-
-  @VisibleForTesting
-  protected int getColumnCount() {
-    Dimension cellSize = computeCellSize();
-    int width = getClientWidth(getInsets());
-    int columnCount = Math.max(width / cellSize.width, 1);
-    if (myModel != null) {
-      int entries = myModel.getSize();
-      // If one row, spread out the entries - but don't increase the entry width more then 2x, doesn't look right then
-      if (columnCount > entries && columnCount < entries * 2) {
-        return entries;
-      }
-    }
-    return columnCount;
-  }
-
-  protected Dimension computeCellSize() {
-    Dimension imageSize = myThumbnailSize;
-    int width = imageSize.width + myCellMargin.left + myCellMargin.right;
-    int textHeight = getFont().getSize();
-    int height = imageSize.height + myCellMargin.top + myCellMargin.bottom + 2 * textHeight;
-    return new Dimension(width, height);
-  }
-
-  @Override
-  protected void paintComponent(Graphics g) {
-    super.paintComponent(g);
-    Rectangle clipRectangle = g.getClipBounds();
-    if (isOpaque()) {
-      g.setColor(getBackground());
-      g.fillRect(clipRectangle.x, clipRectangle.y, clipRectangle.width, clipRectangle.height);
-    }
-
-    Dimension cellBounds = computeCellSize();
-    int firstColumn = clipRectangle.x / cellBounds.width;
-    int lastColumn = (clipRectangle.x + clipRectangle.width) / cellBounds.width;
-    int firstRow = clipRectangle.y / cellBounds.height;
-    int lastRow = intDivideRoundUp(clipRectangle.y + clipRectangle.height, cellBounds.height);
-    Insets borderInsets = getInsets();
-    int componentWidth = getClientWidth(borderInsets);
-    int columns = getColumnCount();
-
-    for (int row = firstRow; row <= lastRow; row++) {
-      for (int column = firstColumn; column <= lastColumn; column++) {
-        int cell = row * columns + column;
-        if (cell >= myModel.getSize()) {
-          break;
-        }
-        // Intermediate values like componentWidth/columns are not cached
-        // as we are doing integer math here and rounding errors might
-        // accumulate and cause "holes" in control we are painting.
-        final int cellX = getColumnOffset(column, columns, componentWidth);
-        final int width = getColumnOffset(column + 1, columns, componentWidth) - cellX;
-        int cellY = row * cellBounds.height + borderInsets.top;
-        int cellHeight = cellBounds.height - 1;
-        Rectangle bounds = new Rectangle(cellX + borderInsets.left, cellY, width, cellHeight);
-        paintCell(g, cell, bounds);
-      }
-    }
-  }
-
-  private void paintCell(Graphics g, int cell, Rectangle cellBounds) {
-    String label = getLabel(cell);
-    Image thumbnail = getImage(cell);
-    drawSelection(g, cell, cellBounds, !StringUtil.isEmpty(label) && thumbnail != null);
-    final int thumbnailHeight;
-    if (thumbnail != null) {
-      Dimension thumbnailSize = myThumbnailSize;
-      int imageX = cellBounds.x + (cellBounds.width - thumbnailSize.width) / 2;
-      int imageY = cellBounds.y + myCellMargin.top;
-      g.drawImage(thumbnail, imageX, imageY, thumbnailSize.width, thumbnailSize.height, null);
-      thumbnailHeight = thumbnailSize.height;
-    }
-    else {
-      thumbnailHeight = 0;
-    }
-    paintLabel(g, cell, cellBounds, label, thumbnailHeight);
-  }
-
-  private void paintLabel(Graphics g, int cell, Rectangle cellBounds, @Nullable String label, int thumbnailHeight) {
-    if (!StringUtil.isEmpty(label)) {
-      final Color fg;
-      if (hasFocus() && cell == mySelectedIndex && (getImage(cell) != null || UIUtil.isUnderDarcula())) {
-        fg = UIUtil.getTreeSelectionForeground();
-      }
-      else {
-        fg = UIUtil.getTreeForeground();
-      }
-      GraphicsUtil.setupAntialiasing(g);
-      g.setColor(fg);
-      FontMetrics fontMetrics = g.getFontMetrics();
-      LineMetrics metrics = fontMetrics.getLineMetrics(label, g);
-      int width = fontMetrics.stringWidth(label);
-
-      int textBoxTop = myCellMargin.top + thumbnailHeight;
-      int cellBottom = cellBounds.height - myCellMargin.bottom;
-
-      int textY = cellBounds.y + (cellBottom + textBoxTop + (int)(metrics.getHeight() - metrics.getDescent())) / 2 ;
-      int textX = (cellBounds.width - myCellMargin.left - myCellMargin.right - width) / 2 + cellBounds.x + myCellMargin.left;
-      g.drawString(label, textX, textY);
-    }
-  }
-
-  private void drawSelection(Graphics g, int cell, Rectangle cellBounds, boolean paintLabelBackground) {
-    if (cell == mySelectedIndex) {
-      Color currentColor = g.getColor();
-      Color bg = UIUtil.getTreeSelectionBackground(hasFocus());
-      g.setColor(bg);
-      g.drawRect(cellBounds.x, cellBounds.y, cellBounds.width - 1, cellBounds.height - 1);
-      if (paintLabelBackground) {
-        int textBoxTop = myThumbnailSize.height + myCellMargin.top;
-        g.fillRect(cellBounds.x, cellBounds.y + textBoxTop, cellBounds.width - 1, cellBounds.height - textBoxTop);
-      }
-      if (hasFocus()) {
-        Border border = UIUtil.getTableFocusCellHighlightBorder();
-        border.paintBorder(this, g, cellBounds.x, cellBounds.y, cellBounds.width, cellBounds.height);
-      }
-      g.setColor(currentColor);
-    }
-  }
-
-  @Nullable
-  private Image getImage(int cell) {
-    Object elementAt = myModel.getElementAt(cell);
-    if (elementAt == null) {
-      return null;
-    }
-    else {
-      try {
-        @SuppressWarnings("unchecked") Optional<Image> image = myImagesCache.get((E)elementAt);
-        return image.orNull();
-      }
-      catch (ExecutionException e) {
-        Logger.getInstance(getClass()).error(e);
-        return null;
-      }
-    }
-  }
-
-  @Override
-  public Dimension getPreferredScrollableViewportSize() {
-    return getPreferredSize();
-  }
-
-  @Override
-  public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
-    return 10;
-  }
-
-  @Override
-  public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
-    return computeCellSize().height;
-  }
-
-  @Override
-  public boolean getScrollableTracksViewportWidth() {
-    return true;
-  }
-
-  @Override
-  public boolean getScrollableTracksViewportHeight() {
-    return false;
-  }
-
-  public void addListSelectionListener(ListSelectionListener listener) {
-    myListeners.add(ListSelectionListener.class, listener);
-  }
-
-  public void removeListSelectionListener(ListSelectionListener listener) {
-    myListeners.remove(ListSelectionListener.class, listener);
-  }
-
-  private void reveal() {
-    int selectedIndex = getSelectedIndex();
-    if (selectedIndex > 0) {
-      revealCell(selectedIndex);
-    }
-  }
-
-  private void revealCell(int selectedIndex) {
-    int columnCount = getColumnCount();
-    Insets borderInsets = getInsets();
-
-    int width = getClientWidth(borderInsets);
-    int height = computeCellSize().height;
-
-    int column = selectedIndex % columnCount;
-    int x = getColumnOffset(column, columnCount, width) + borderInsets.left;
-    int y = (selectedIndex / columnCount) * height + borderInsets.top;
-
-    scrollRectToVisible(new Rectangle(x, y, width, height));
-  }
-
-  @VisibleForTesting
-  protected int getColumnOffset(int column, int columnCount, int galleryWidth) {
-    if (columnCount <= myModel.getSize()) {
-      return column * galleryWidth / columnCount;
-    }
-    else {
-      return column * computeCellSize().width;
-    }
-  }
-
-  @Override
-  public AccessibleContext getAccessibleContext() {
-    if (accessibleContext == null) {
-      accessibleContext = new AccessibleASGallery();
-    }
-    return accessibleContext;
-  }
-
   /**
    * Guava containers do not like <code>null</code> values. This function
-   * wraps such values into {@link com.google.common.base.Optional}.
+   * wraps such values into {@link Optional}.
    */
   private static final class ToOptionalFunction<P, R> implements Function<P, Optional<R>> {
     private final Function<P, R> myFunction;
@@ -712,171 +307,214 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
     }
   }
 
-  private class MoveSelectionAction extends AbstractAction {
-    private final int myVdirection;
-    private final int myHdirection;
+  public void setLabelProvider(@NotNull Function<? super E, String> labelProvider) {
+    myLabelProvider = labelProvider;
+  }
 
-    public MoveSelectionAction(int vdirection, int hdirection) {
-      myVdirection = vdirection;
-      myHdirection = hdirection;
+  public void setSelectedElement(E selectedElement) {
+    setSelectedValue(selectedElement, true);
+  }
+
+  @Nullable
+  public E getSelectedElement() {
+    return (E)getSelectedValue();
+  }
+
+  @Nullable
+  private Image getCellImage(E element) {
+    try {
+      Optional<Image> image = myImagesCache.get(element);
+      return image.orNull();
     }
-
-    @Override
-    public boolean isEnabled() {
-      return getNewSelectionIndex(myVdirection, myHdirection) != mySelectedIndex;
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      setSelectedIndex(getNewSelectionIndex(myVdirection, myHdirection));
+    catch (ExecutionException e) {
+      Logger.getInstance(getClass()).error(e);
+      return null;
     }
   }
 
-  private abstract class JumpSelection extends AbstractAction {
-    public abstract int getIndex();
+  @Nullable
+  private String getCellLabel(E element) {
+    return myLabelProvider.apply(element);
+  }
 
+  @Override
+  public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+    // 10 pixels, so that mouse wheel/track pad scrolling is smoother.
+    return JBUI.scale(10);
+  }
+
+  @Override
+  public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+    return computeCellSize().height;
+  }
+
+  class GalleryCellRenderer implements ListCellRenderer
+  {
+    /**
+     * From <a href="http://java.sun.com/javase/6/docs/api/javax/swing/ListCellRenderer.html">ListCellRenderer</a>
+     *
+     * Return a component that has been configured to display the specified value.
+     * That component's paint method is then called to "render" the cell.
+     * If it is necessary to compute the dimensions of a list because the list cells do not have a fixed size,
+     * this method is called to generate a component on which getPreferredSize can be invoked.
+     *
+     * jlist - the jlist we're painting
+     * value - the value returned by list.getModel().getElementAt(index).
+     * cellIndex - the cell index
+     * isSelected - true if the specified cell is currently selected
+     * cellHasFocus - true if the cell has focus
+     */
     @Override
-    public boolean isEnabled() {
-      return getIndex() >= 0;
+    public Component getListCellRendererComponent(JList jlist, Object value, int cellIndex, boolean isSelected, boolean cellHasFocus) {
+      final E element = (E)value;
+      CellRenderer renderer = myCellRenderers.get(element);
+      if (renderer == null) {
+        renderer = createCellRendererComponent(element);
+        myCellRenderers.put(element, renderer);
+      }
+      renderer.setAppearance(isSelected, cellHasFocus);
+      return renderer.getComponent();
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      setSelectedIndex(getIndex());
+    public CellRenderer createCellRendererComponent(E element) {
+      final Image image = ASGallery.this.getCellImage(element);
+      final String label = ASGallery.this.getCellLabel(element);
+
+      if (image == null) {
+        return new TextOnlyCellRenderer(label);
+      }
+      else {
+        return new TextAndImageCellRenderer(getFont(), label, image);
+      }
     }
   }
 
-  private class InternalListDataListener implements ListDataListener {
-    @Override
-    public void intervalAdded(ListDataEvent e) {
-      if (e.getIndex0() <= mySelectedIndex) {
-        final int newSelection = mySelectedIndex + e.getIndex1() - e.getIndex0() - 1;
-        setSelectedIndex(newSelection, false);
-      }
-      invalidate();
-    }
+  private interface CellRenderer {
+    void setAppearance(boolean isSelected, boolean cellHasFocus);
+    Component getComponent();
+  }
+
+  private static abstract class AbstractCellRenderer implements CellRenderer {
+    private boolean myIsInitialized;
+    protected boolean myIsSelected;
+    protected boolean myCellHasFocus;
 
     @Override
-    public void intervalRemoved(ListDataEvent e) {
-      int firstRemoved = e.getIndex0();
-      if (firstRemoved <= mySelectedIndex) {
-        final int lastRemoved = e.getIndex1();
-        // Retain selection if this element was not deleted.
-        // Move selection down if the element was deleted if there are elements after selected
-        // Move selection up otherwise
-        // Remove selection if the list is empty
-        final int index = mySelectedIndex - (lastRemoved - firstRemoved + 1);
-        final int newSelectionIndex = Math.min(Math.max(index, e.getIndex0()), myModel.getSize() - 1);
-        // Notify if selected element was deleted
-        setSelectedIndex(newSelectionIndex, mySelectedIndex <= lastRemoved);
-      }
-      invalidate();
-    }
+    public abstract Component getComponent();
 
     @Override
-    public void contentsChanged(ListDataEvent e) {
-      invalidate();
+    public void setAppearance(boolean isSelected, boolean cellHasFocus){
+      if (myIsInitialized && isSelected == myIsSelected && cellHasFocus == myCellHasFocus)
+        return;
+      myIsInitialized = true;
+      myIsSelected = isSelected;
+      myCellHasFocus = cellHasFocus;
+      updateAppearance();
+    }
+
+    protected abstract void updateAppearance();
+
+    protected void setSelectionBorder(JComponent component) {
+      if (myIsSelected) {
+        component.setBorder(new LineBorder(UIUtil.getTreeSelectionBackground(myCellHasFocus)));
+      } else {
+        component.setBorder(null);
+      }
     }
   }
 
-  private final class AccessibleASGallery extends AccessibleJComponent implements PropertyChangeListener, ListSelectionListener {
-    private Map<Integer, Accessible> children = Maps.newHashMap();
+  private static class TextOnlyCellRenderer extends AbstractCellRenderer {
+    private JLabel myLabel;
 
-    public AccessibleASGallery() {
-      setAccessibleName(ASGallery.this.getName());
-      ASGallery.this.addPropertyChangeListener(this);
-      ASGallery.this.addListSelectionListener(this);
+    public TextOnlyCellRenderer(String label) {
+      // If no image, create a single JLabel for the whole cell.
+      JLabel jlabel;
+      jlabel = new JLabel(label);
+      jlabel.setHorizontalAlignment(SwingConstants.CENTER);
+      jlabel.setForeground(UIUtil.getTreeForeground());
+      jlabel.setFocusable(true);
+      myLabel = jlabel;
     }
 
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-      if ("name".equals(evt.getPropertyName())) {
-        setAccessibleName((String)evt.getNewValue());
-      }
-      else if ("model".equals(evt.getPropertyName())) {
-        firePropertyChange(AccessibleContext.ACCESSIBLE_INVALIDATE_CHILDREN, null, ASGallery.this);
-      }
+    public void updateAppearance() {
+      setSelectionBorder(myLabel);
     }
 
     @Override
-    public int getAccessibleChildrenCount() {
-      return getModel().getSize();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Accessible getAccessibleChild(int i) {
-      if (!children.containsKey(i)) {
-        children.put(i, new AccessibleCell(i));
-      }
-      return children.get(i);
-    }
-
-    @Override
-    public AccessibleRole getAccessibleRole() {
-      return AccessibleRole.LIST;
-    }
-
-    @Override
-    public void valueChanged(ListSelectionEvent e) {
-      firePropertyChange(AccessibleContext.ACCESSIBLE_ACTIVE_DESCENDANT_PROPERTY, false, true);
-      firePropertyChange(AccessibleContext.ACCESSIBLE_SELECTION_PROPERTY, false, true);
+    public Component getComponent() {
+      return myLabel;
     }
   }
 
-  private final class AccessibleCell extends AccessibleJComponent implements Accessible, AccessibleComponent, AccessibleAction {
-    private final int myIndex;
+  private static class TextAndImageCellRenderer extends AbstractCellRenderer {
+    private JPanel myPanel;
+    private JLabel myLabel;
 
-    public AccessibleCell(int index) {
-      myIndex = index;
+    public TextAndImageCellRenderer(Font font, String label, Image image) {
+      // If there is an image, create a panel with the image at the top and
+      // the label at the bottom. Also take care of selection highlighting.
+      // +-Panel-------+
+      // |             |
+      // | (image,     |
+      // |   centered) |
+      // |             |
+      // | (label,     |
+      // |   bottom)   |
+      // +-------------+
+      ImageIcon icon = new ImageIcon(image, label);
+      JLabel imageLabel = new JLabel(icon);
+
+      JLabel textLabel = new JLabel(label, SwingConstants.CENTER);
+      textLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+      int hPadding = font.getSize() / 3;
+      Border padding = BorderFactory.createEmptyBorder(hPadding, 0, hPadding, 0);
+      textLabel.setBorder(padding);
+
+      JPanel panel = new JPanel();
+      panel.setFocusable(true);
+      panel.setOpaque(false); // so that background is from parent window
+      panel.setLayout(new BorderLayout());
+      panel.add(imageLabel);
+      panel.add(textLabel, BorderLayout.PAGE_END);
+      panel.getAccessibleContext().setAccessibleName(textLabel.getAccessibleContext().getAccessibleName());
+      panel.getAccessibleContext().setAccessibleDescription(textLabel.getAccessibleContext().getAccessibleDescription());
+
+      myPanel = panel;
+      myLabel = textLabel;
     }
 
     @Override
-    public AccessibleRole getAccessibleRole() {
-      return AccessibleRole.LABEL;
+    public void updateAppearance() {
+      setSelectionBorder(myPanel);
+      setLabelBackground(myLabel);
+      setLabelForeground(myLabel);
     }
 
     @Override
-    public AccessibleStateSet getAccessibleStateSet() {
-      final AccessibleState[] state = {AccessibleState.SELECTABLE, AccessibleState.SINGLE_LINE, AccessibleState.ACTIVE};
-      return new AccessibleStateSet(state);
+    public Component getComponent() {
+      return myPanel;
     }
 
-    @Override
-    public Accessible getAccessibleParent() {
-      return ASGallery.this;
+    public void setLabelBackground(JLabel label) {
+      if (myIsSelected) {
+        label.setBackground(UIUtil.getTreeSelectionBackground(myCellHasFocus));
+        label.setOpaque(true);
+      } else {
+        label.setBackground(null);
+        label.setOpaque(false);
+      }
     }
 
-    @Override
-    public String getAccessibleName() {
-      final String label = getLabel(myIndex);
-      return StringUtil.isEmpty(label) ? "No Label" : label;
-    }
-
-    @Override
-    public int getAccessibleIndexInParent() {
-      return myIndex;
-    }
-
-    @Override
-    public AccessibleContext getAccessibleContext() {
-      return this;
-    }
-
-    @Override
-    public int getAccessibleActionCount() {
-      return 1;
-    }
-
-    @Override
-    public String getAccessibleActionDescription(int i) {
-      return AccessibleAction.CLICK;
-    }
-
-    @Override
-    public boolean doAccessibleAction(int i) {
-      setSelectedIndex(myIndex);
-      return true;
+    public void setLabelForeground(JLabel label) {
+      final Color labelForeground;
+      if (myIsSelected && myCellHasFocus) {
+        labelForeground = UIUtil.getTreeSelectionForeground();
+      }
+      else {
+        labelForeground = UIUtil.getTreeForeground();
+      }
+      label.setForeground(labelForeground);
     }
   }
 }
