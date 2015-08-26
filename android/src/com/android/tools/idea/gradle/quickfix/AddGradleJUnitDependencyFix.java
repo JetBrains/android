@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.quickfix;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.daemon.QuickFixBundle;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
@@ -28,7 +26,7 @@ import com.intellij.psi.PsiReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.concurrent.Callable;
 
 import static com.intellij.psi.search.GlobalSearchScope.moduleWithLibrariesScope;
 
@@ -39,8 +37,7 @@ public class AddGradleJUnitDependencyFix extends AbstractGradleDependencyFix {
   @NotNull private final String myClassName;
   private final boolean myIsJunit4;
 
-  public AddGradleJUnitDependencyFix(@NotNull Module module, @NotNull PsiReference reference, @NotNull String className,
-                                     boolean isJunit4) {
+  public AddGradleJUnitDependencyFix(@NotNull Module module, @NotNull PsiReference reference, @NotNull String className, boolean isJunit4) {
     super(module, reference);
     myClassName = className;
     myIsJunit4 = isJunit4;
@@ -53,21 +50,20 @@ public class AddGradleJUnitDependencyFix extends AbstractGradleDependencyFix {
   }
 
   @Override
-  public void invoke(@NotNull final Project project, @Nullable final Editor editor, @Nullable PsiFile file) {
+  public void invoke(@NotNull final Project project, @Nullable Editor editor, @Nullable PsiFile file) {
     boolean testScope = isTestScope(myModule, myReference);
     final String configurationName = getConfigurationName(myModule, testScope);
-    runWriteCommandAction(project, new Runnable() {
+    runWriteCommandActionAndSync(project, new Runnable() {
       @Override
       public void run() {
         String dependency = myIsJunit4 ? "junit:junit:4.12" : "junit:junit:3.8.1";
         addDependency(myModule, configurationName, dependency);
-        gradleSyncAndImportClass(project, editor, myReference, new Function<Void, List<PsiClass>>() {
-          @Override
-          public List<PsiClass> apply(@Nullable Void input) {
-            PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(myClassName, moduleWithLibrariesScope(myModule));
-            return aClass != null ? ImmutableList.of(aClass) : null;
-          }
-        });
+      }
+    }, editor, new Callable<PsiClass[]>() {
+      @Override
+      public PsiClass[] call() {
+        PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(myClassName, moduleWithLibrariesScope(myModule));
+        return aClass != null ? new PsiClass[]{aClass} : null;
       }
     });
   }
