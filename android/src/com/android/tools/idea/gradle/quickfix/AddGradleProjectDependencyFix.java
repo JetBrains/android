@@ -35,6 +35,7 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -45,7 +46,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
@@ -190,9 +190,9 @@ public class AddGradleProjectDependencyFix extends AbstractGradleDependencyFix {
           public void run() {
             addDependencyUndoable(myModule, module, testScope);
           }
-        }, editor, new Callable<PsiClass[]>() {
+        }, new Computable<PsiClass[]>() {
           @Override
-          public PsiClass[] call() {
+          public PsiClass[] compute() {
             List<PsiClass> targetClasses = Lists.newArrayList();
             for (PsiClass psiClass : myClasses) {
               if (findModuleForPsiElement(psiClass) == module) {
@@ -201,7 +201,7 @@ public class AddGradleProjectDependencyFix extends AbstractGradleDependencyFix {
             }
             return targetClasses.toArray(new PsiClass[targetClasses.size()]);
           }
-        });
+        }, editor);
       }
     };
 
@@ -240,7 +240,7 @@ public class AddGradleProjectDependencyFix extends AbstractGradleDependencyFix {
   }
 
   // TODO use new gradle build file API to add dependencies.
-  private static void addDependencyUndoable(@NotNull Module from, @NotNull Module to, boolean test) {
+  private void addDependencyUndoable(@NotNull Module from, @NotNull Module to, boolean test) {
     String gradlePath = getGradlePath(to);
     if (gradlePath != null) {
       Dependency dependency = new Dependency(getDependencyScope(from, test), Dependency.Type.MODULE, gradlePath);
@@ -248,7 +248,7 @@ public class AddGradleProjectDependencyFix extends AbstractGradleDependencyFix {
     }
   }
 
-  private static void addDependencyUndoable(@NotNull Module module, @NotNull Dependency dependency) {
+  private void addDependencyUndoable(@NotNull Module module, @NotNull Dependency dependency) {
     GradleBuildFile gradleBuildFile = GradleBuildFile.get(module);
     if (gradleBuildFile == null) {
       return;
@@ -257,6 +257,8 @@ public class AddGradleProjectDependencyFix extends AbstractGradleDependencyFix {
     dependencies.add(dependency);
     gradleBuildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
     registerUndoAction(module.getProject());
+    myAddedDependency = dependency.getValueAsString();
+    myAddedDependency = dependency.scope.getGroovyMethodCall();
   }
 
   @NotNull

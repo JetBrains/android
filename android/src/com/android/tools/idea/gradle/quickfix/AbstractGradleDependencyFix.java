@@ -17,13 +17,21 @@ package com.android.tools.idea.gradle.quickfix;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
+import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.service.notification.hyperlink.CustomNotificationListener;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.intellij.codeInsight.daemon.impl.actions.AddImportAction;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -32,19 +40,24 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.Callable;
-
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.tools.idea.gradle.dsl.parser.CommonConfigurationNames.*;
 import static com.intellij.psi.util.PsiUtilCore.getVirtualFile;
 
 abstract class AbstractGradleDependencyFix extends AbstractGradleAwareFix {
-  @NotNull final Module myModule;
-  @NotNull final PsiReference myReference;
+  @NotNull protected final Module myModule;
+  @NotNull protected final PsiReference myReference;
+  @NotNull private VirtualFile myCurrentFile;
+  private static final Logger LOG = Logger.getInstance(AbstractGradleDependencyFix.class);
 
-  AbstractGradleDependencyFix(@NotNull Module module, @NotNull PsiReference reference) {
+  // TODO replace these two fields with com.android.tools.idea.gradle.dsl.parser.DependencyElement
+  @Nullable protected String myAddedDependency;
+  @Nullable protected String myAddedDependencyConfiguration;
+
+  protected AbstractGradleDependencyFix(@NotNull Module module, @NotNull PsiReference reference) {
     myModule = module;
     myReference = reference;
+    myCurrentFile = myReference.getElement().getContainingFile().getVirtualFile();
   }
 
   @Override
@@ -72,11 +85,13 @@ abstract class AbstractGradleDependencyFix extends AbstractGradleAwareFix {
     return location != null && ModuleRootManager.getInstance(module).getFileIndex().isInTestSourceContent(location);
   }
 
-  static void addDependency(@NotNull Module module, @NotNull String configurationName, @NotNull String compactNotation) {
+  void addDependency(@NotNull Module module, @NotNull String configurationName, @NotNull String compactNotation) {
     GradleBuildModel buildModel = GradleBuildModel.get(module);
     if (buildModel != null) {
       buildModel.addExternalDependency(configurationName, compactNotation);
       registerUndoAction(module.getProject());
+      myAddedDependency = compactNotation;
+      myAddedDependencyConfiguration = configurationName;
     }
   }
 
@@ -102,22 +117,22 @@ abstract class AbstractGradleDependencyFix extends AbstractGradleAwareFix {
    *
    * @param project          current project.
    * @param action           the action to be run inside write command
-   * @param editor           the editor in which the quick fix is invoked.
    * @param getTargetClasses the callback to find resolved classes for the reference after sync is done.
+   * @param editor           the editor in which the quick fix is invoked.
    */
   protected void runWriteCommandActionAndSync(@NotNull final Project project,
                                               @NotNull final Runnable action,
-                                              @Nullable final Editor editor,
-                                              @Nullable final Callable<PsiClass[]> getTargetClasses) {
+                                              @NotNull final Computable<PsiClass[]> getTargetClasses,
+                                              @Nullable final Editor editor) {
     GradleSyncListener listener = new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
-        runImportAction(project, editor, getTargetClasses);
+        runImportAction(project, getTargetClasses, editor);
       }
 
       @Override
       public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-        runImportAction(project, editor, getTargetClasses);
+        runImportAction(project, getTargetClasses, editor);
       }
     };
 
@@ -125,22 +140,39 @@ abstract class AbstractGradleDependencyFix extends AbstractGradleAwareFix {
   }
 
   private void runImportAction(@NotNull final Project project,
-                               @Nullable final Editor editor,
-                               @Nullable final Callable<PsiClass[]> getTargetClasses) {
+                               @NotNull final Computable<PsiClass[]> getTargetClasses,
+                               @Nullable final Editor editor) {
     if (editor != null) {
       DumbService.getInstance(project).withAlternativeResolveEnabled(new Runnable() {
         @Override
         public void run() {
-          PsiClass[] targetClasses = null;
-          if (getTargetClasses != null) {
-            try {
-              targetClasses = getTargetClasses.call();
-            }
-            catch (Exception ignored) {
-            }
-          }
+          PsiClass[] targetClasses = getTargetClasses.compute();
           if (targetClasses != null) {
             new AddImportAction(project, myReference, editor, targetClasses).execute();
+          }
+          else {
+            GradleBuildFile gradleBuildFile = GradleBuildFile.get(myModule);
+            // The quickfix won't get created if build file doesn't exist.
+            assert gradleBuildFile != null;
+
+            LOG.assertTrue(myAddedDependency != null && myAddedDependencyConfiguration != null,
+                           "Dependency is not recorded correctly by the quickfix: " + this.getClass().getName());
+
+            OpenFileHyperlink buildFileHyperlink = new OpenFileHyperlink(gradleBuildFile.getFile().getPath(),
+                                                                         gradleBuildFile.getFile().getName(), -1, -1);
+            OpenFileHyperlink javaFileHyperlink = new OpenFileHyperlink(myCurrentFile.getPath(), myCurrentFile.getName(), -1, -1);
+
+            String referenceName = myReference.getRangeInElement().substring(myReference.getElement().getText());
+
+            NotificationListener notificationListener = new CustomNotificationListener(project, buildFileHyperlink, javaFileHyperlink);
+
+            AndroidGradleNotification.getInstance(project).showBalloon(
+              "Quick Fix Error",
+              "Failed to add dependency. To manually fix this, please do the following:\n<ul>" +
+              "<li>Add dependency '" + myAddedDependency + "' for configuration '" + myAddedDependencyConfiguration + "' in '" +
+              buildFileHyperlink.toHtml() + "'.</li>\n" +
+              "<li>Import class '" + referenceName + "' to '" + javaFileHyperlink.toHtml() + "'. </li></ul>",
+              NotificationType.ERROR, notificationListener);
           }
         }
       });
