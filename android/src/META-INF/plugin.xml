@@ -219,7 +219,6 @@
     <consoleActionsPostProcessor implementation="org.jetbrains.android.logcat.LogcatConsoleActionsPostProcessor" />
     <applicationService serviceImplementation="com.android.tools.idea.ddms.adb.AdbService" />
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService"/>
-    <applicationService serviceImplementation="com.android.tools.idea.startup.profile.IdeConfigurationProfileService"/>
     <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledApks"/>
@@ -814,8 +813,6 @@
                     interface="com.android.tools.idea.structure.services.DeveloperServiceCreators"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
                     interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
-    <extensionPoint qualifiedName="com.android.ide.configurationProfile"
-                    interface="com.android.tools.idea.startup.profile.IdeConfigurationProfile"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
@@ -868,7 +865,6 @@
 
   <extensions defaultExtensionNs="com.android.ide">
     <sdkEventListener implementation="com.android.tools.idea.sdk.GradleAndroidSdkEventListener"/>
-    <configurationProfile implementation="com.android.tools.idea.startup.profile.GradleIdeConfigurationProfile"/>
   </extensions>
 
   <!-- Layout editor -->
