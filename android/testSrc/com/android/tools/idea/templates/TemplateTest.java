@@ -100,6 +100,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static final boolean CHECK_LINT = false; // Needs work on closing projects cleanly
   private static final boolean ALLOW_WARNINGS = true; // TODO: Provide finer granularity
 
+  /** Manual sdk version selections **/
+  private static final int MANUAL_BUILD_API = Integer.parseInt(System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_BUILD_API", "-1"));
+  private static final int MANUAL_MIN_API = Integer.parseInt(System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_MIN_API", "-1"));
+  private static final int MANUAL_TARGET_API = Integer.parseInt(System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_TARGET_API", "-1"));
+
   /**
    * The following templates are known to be broken! We need to work through these and fix them such that tests
    * on them can be re-enabled.
@@ -188,10 +193,20 @@ public class TemplateTest extends AndroidGradleTestCase {
    * be EXTRA comprehensive, occasionally try returning true unconditionally
    * here to test absolutely everything.
    */
-  private boolean isInterestingApiLevel(int api) {
-    // For templates that aren't API sensitive, only test with API = 16
+  private boolean isInterestingApiLevel(int api, int manualApi) {
+    // If a manual api version was specified then accept only that version:
+    if (manualApi > 0) {
+      return api == manualApi;
+    }
+
+    // For templates that aren't API sensitive, only test with latest API
     if (!myApiSensitiveTemplate) {
-      return api == 16;
+      return api == SdkVersionInfo.HIGHEST_KNOWN_API;
+    }
+
+    // Always accept the highest known version
+    if (api == SdkVersionInfo.HIGHEST_KNOWN_API) {
+      return true;
     }
 
     // Relevant versions, used to prune down the set of targets we need to
@@ -202,7 +217,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       case 7:
       case 11:
       case 14:
-      case 16:
+      case 21:
         return true;
       case 9:
       case 13:
@@ -557,7 +572,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       if (!target.isPlatform()) {
         continue;
       }
-      if (!isInterestingApiLevel(target.getVersion().getApiLevel())) {
+      if (!isInterestingApiLevel(target.getVersion().getApiLevel(), MANUAL_BUILD_API)) {
         continue;
       }
 
@@ -572,14 +587,14 @@ public class TemplateTest extends AndroidGradleTestCase {
            minSdk <= SdkVersionInfo.HIGHEST_KNOWN_API;
            minSdk++) {
         // Don't bother checking *every* single minSdk, just pick some interesting ones
-        if (!isInterestingApiLevel(minSdk)) {
+        if (!isInterestingApiLevel(minSdk, MANUAL_MIN_API)) {
           continue;
         }
 
         for (int targetSdk = minSdk;
              targetSdk <= SdkVersionInfo.HIGHEST_KNOWN_API;
              targetSdk++) {
-          if (!isInterestingApiLevel(targetSdk)) {
+          if (!isInterestingApiLevel(targetSdk, MANUAL_TARGET_API)) {
             continue;
           }
 
@@ -666,8 +681,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     projectValues.put(ATTR_MIN_API_LEVEL, minSdk);
     projectValues.put(ATTR_TARGET_API, targetSdk);
     projectValues.put(ATTR_TARGET_API_STRING, Integer.toString(targetSdk));
-    values.put(ATTR_BUILD_API, target.getVersion().getApiLevel());
-    values.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(target.getVersion()));
+    projectValues.put(ATTR_BUILD_API, target.getVersion().getApiLevel());
+    projectValues.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(target.getVersion()));
     assertNotNull(values);
 
     // Next check all other parameters, cycling through booleans and enums.
