@@ -220,7 +220,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "<BR/>" +
       "&lt;CalendarView> and &lt;DatePicker> are broken in this version of the rendering library. " +
       "Try updating your SDK in the SDK Manager when issue 59732 is fixed. " +
-      "(<A HREF=\"http://b.android.com/59732\">Open Issue 59732</A>, <A HREF=\"runnable:0\">Show Exception</A>)<BR/>" +
+      "(<A HREF=\"http://b.android.com/59732\">Open Issue 59732</A>, <A HREF=\"runnable:0\">Show Exception</A>)<BR/><BR/>" +
       "</body></html>", html);
   }
 
@@ -423,6 +423,15 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     String current = ClassConverter.getCurrentJdkVersion();
 
+    String incompatible = "";
+    String modules = "";
+    if (RenderErrorPanel.isBuiltByJdk7OrHigher(myModule)) {
+      incompatible = "" +
+                     "The following modules are built with incompatible JDK:<BR/>" +
+                     "4<BR/>";
+      modules = "<A HREF=\"runnable:1\">Change Java SDK to 1.6</A><BR/>";
+    }
+
     assertHtmlEquals(
       "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "Preview might be incorrect: unsupported class version.<BR/>" +
@@ -436,10 +445,10 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "Classes with incompatible format:<DL>" +
       "<DD>-&NBSP;com.example.unit.test.MyButton (Compiled with 1.8)" +
       "<DD>-&NBSP;com.example.unit.test.R (Compiled with 1.7)" +
-      "</DL>The following modules are built with incompatible JDK:<BR/>" +
-      "4<BR/>" +
+      "</DL>" +
+      incompatible +
       "<A HREF=\"runnable:0\">Rebuild project with '-target 1.6'</A><BR/>" +
-      "<A HREF=\"runnable:1\">Change Java SDK to 1.5/1.6</A><BR/>" +
+      modules +
       "</body></html>", html);
   }
 
