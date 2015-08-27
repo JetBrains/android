@@ -73,6 +73,7 @@ public class FrameBufferController implements PathListener {
     myEditor.addPathListener(this);
 
     initTab(colorTab, colorScrollPane);
+    colorTab.mySettings.setWireframeMode(WireframeMode.wireframeOverlay());
     initTab(wireframeTab, wireframePane);
     wireframeTab.mySettings.setWireframeMode(WireframeMode.allWireframe());
     initTab(depthTab, depthScrollPane);
