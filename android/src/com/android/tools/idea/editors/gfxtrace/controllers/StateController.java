@@ -44,26 +44,13 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class StateController implements PathListener {
+public class StateController extends TreeController {
   @NotNull private static final Logger LOG = Logger.getInstance(StateController.class);
-
-  @NotNull private final GfxTraceEditor myEditor;
-  @NotNull private final JBLoadingPanel myLoadingPanel;
-  @NotNull private final SimpleTree myTree;
 
   private final PathStore<StatePath> myStatePath = new PathStore<StatePath>();
 
   public StateController(@NotNull GfxTraceEditor editor, @NotNull JBScrollPane scrollPane) {
-    myEditor = editor;
-    myEditor.addPathListener(this);
-    myTree = new SimpleTree();
-    myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT);
-    myTree.setRootVisible(false);
-    myTree.setCellRenderer(new SchemaTreeRenderer());
-    myTree.getEmptyText().setText(GfxTraceEditor.SELECT_ATOM);
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), editor.getProject());
-    myLoadingPanel.add(myTree);
-    scrollPane.setViewportView(myLoadingPanel);
+    super(editor, scrollPane, GfxTraceEditor.SELECT_ATOM);
   }
 
   @Nullable
@@ -103,10 +90,7 @@ public class StateController implements PathListener {
           EdtExecutor.INSTANCE.execute(new Runnable() {
             @Override
             public void run() {
-              // Back in the UI thread here
-              myTree.setModel(new DefaultTreeModel(stateNode));
-              myTree.updateUI();
-              myLoadingPanel.stopLoading();
+              setRoot(stateNode);
             }
           });
         }
