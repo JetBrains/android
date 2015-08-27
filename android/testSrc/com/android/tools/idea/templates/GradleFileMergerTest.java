@@ -85,7 +85,7 @@ public class GradleFileMergerTest extends AndroidTestCase {
 
     // Strip comments from merged file
     assertEquals(golden.replaceAll("\\s+","\n"),
-                 GradleFileMerger.mergeGradleFiles(source, dest, getProject()).replaceAll("\\s+//.*", "").replaceAll("\\s+", "\n"));
+                 GradleFileMerger.mergeGradleFiles(source, dest, getProject(), null).replaceAll("\\s+//.*", "").replaceAll("\\s+", "\n"));
   }
 
   public void testRemapFlavorAssetDir() throws Exception {
@@ -128,6 +128,6 @@ public class GradleFileMergerTest extends AndroidTestCase {
     }
 
     assertEquals(golden.replaceAll("\\s+","\n"),
-                 GradleFileMerger.mergeGradleFiles(source, dest, project).replaceAll("\\s+", "\n"));
+                 GradleFileMerger.mergeGradleFiles(source, dest, project, null).replaceAll("\\s+", "\n"));
   }
 }
