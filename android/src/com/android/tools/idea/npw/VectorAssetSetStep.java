@@ -207,25 +207,11 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
    */
   private boolean isVectorPathEmpty() {
     SourceType sourceType = (SourceType) myTemplateState.get(ATTR_SOURCE_TYPE);
-    boolean isPathEmpty = false;
+    final boolean isPathEmpty;
     if (sourceType == SourceType.SVG) {
-      if (myTemplateState.hasAttr(ATTR_IMAGE_PATH)) {
-        String path = myTemplateState.getString(ATTR_IMAGE_PATH);
-        if (path == null || path.isEmpty()) {
-          isPathEmpty = true;
-        }
-      } else {
-        isPathEmpty = true;
-      }
+      isPathEmpty = !myTemplateState.hasAttr(ATTR_IMAGE_PATH) || myTemplateState.getString(ATTR_IMAGE_PATH).isEmpty();
     } else {
-      if (myTemplateState.hasAttr(ATTR_VECTOR_LIB_ICON_PATH)) {
-        URL url = (URL) myTemplateState.get(ATTR_VECTOR_LIB_ICON_PATH);
-        if (url == null) {
-          isPathEmpty = true;
-        }
-      } else {
-        isPathEmpty = true;
-      }
+      isPathEmpty = !myTemplateState.hasAttr(ATTR_VECTOR_LIB_ICON_PATH) || myTemplateState.get(ATTR_VECTOR_LIB_ICON_PATH) == null;
     }
     return isPathEmpty;
   }
@@ -240,18 +226,16 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
     if (sourceType == SourceType.SVG) {
       if (myTemplateState.hasAttr(ATTR_IMAGE_PATH)) {
         String path = myTemplateState.getString(ATTR_IMAGE_PATH);
-        if (path != null && !path.isEmpty()) {
+        if (!path.isEmpty()) {
           fileName = PathUtil.getFileName(path);
           fileName = FileUtil.getNameWithoutExtension(fileName);
         }
       }
-    } else {
-      if (myTemplateState.hasAttr(ATTR_VECTOR_LIB_ICON_PATH)) {
-        URL url = (URL) myTemplateState.get(ATTR_VECTOR_LIB_ICON_PATH);
-        if (url != null) {
-          fileName = PathUtil.getFileName(url.getPath());
-          fileName = FileUtil.getNameWithoutExtension(fileName);
-        }
+    } else if (myTemplateState.hasAttr(ATTR_VECTOR_LIB_ICON_PATH)) {
+      URL url = (URL) myTemplateState.get(ATTR_VECTOR_LIB_ICON_PATH);
+      if (url != null) {
+        fileName = PathUtil.getFileName(url.getPath());
+        fileName = FileUtil.getNameWithoutExtension(fileName);
       }
     }
     return fileName;
@@ -271,12 +255,7 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
 
     // If the path for the vector asset is empty, then reset and disable the controls
     // in the properties panel.
-    boolean isPathEmpty = isVectorPathEmpty();
-    if (isPathEmpty) {
-      togglePropertiesPanel(false);
-    } else {
-      togglePropertiesPanel(true);
-    }
+    togglePropertiesPanel(!isVectorPathEmpty());
 
     if (myMaterialIconsRadioButton.isSelected()) {
       ((CardLayout)myIconPickerAndFileBrowserPanel.getLayout()).show(myIconPickerAndFileBrowserPanel, "IconPicker");
@@ -289,7 +268,7 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
 
   private void togglePropertiesPanel(boolean enable) {
     if (!enable) {
-      // De-select the checkboxs and reset slider before disabling them.
+      // De-select the checkboxes and reset slider before disabling them.
       if (myUseManualSizeCheckBox.isSelected()) {
         myUseManualSizeCheckBox.setSelected(false);
       }
@@ -387,7 +366,7 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
   protected String computeResourceName() {
     String resourceName = getVectorFileNameWithoutExtension();
     if (resourceName == null) {
-      resourceName = String.format("ic_vector_name", "name");
+      resourceName = "ic_vector_name";
     }
 
     if (drawableExists(resourceName)) {
