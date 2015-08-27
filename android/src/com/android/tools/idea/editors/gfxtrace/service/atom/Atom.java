@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomNodeData;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
 import com.android.tools.rpclib.schema.Render;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.tree.DefaultMutableTreeNode;
 
 public abstract class Atom implements Render.ToComponent {
   public static Atom wrap(BinaryObject object) {
@@ -27,6 +30,11 @@ public abstract class Atom implements Render.ToComponent {
       return new DynamicAtom((Dynamic)object);
     }
     return (Atom)object;
+  }
+
+  public void buildTree(@NotNull DefaultMutableTreeNode parent, long index) {
+    DefaultMutableTreeNode atomNode = new DefaultMutableTreeNode(new AtomNodeData(index, this), false);
+    parent.add(atomNode);
   }
 
   @NotNull
