@@ -150,6 +150,15 @@ public class SdkQuickfixWizard extends DynamicWizard {
     return super.showAndGet();
   }
 
+  @Override
+  public void show() {
+    if (myIsExiting) {
+      Disposer.dispose(myHost.getDisposable());
+      return;
+    }
+    super.show();
+  }
+
   private void startSdkManagerAndExit() {
     // We know that the SDK exists since we already used it to look up the fact that a package is an upgrade.
     //noinspection ConstantConditions
