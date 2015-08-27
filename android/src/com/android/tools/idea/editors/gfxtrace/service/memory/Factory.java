@@ -20,8 +20,8 @@ package com.android.tools.idea.editors.gfxtrace.service.memory;
 public final class Factory {
   public static void register() {
     //<<<Start:Java.FactoryBody:2>>>
-    Pointer.register();
-    Range.register();
+    MemoryPointer.register();
+    MemoryRange.register();
     //<<<End:Java.FactoryBody:2>>>
   }
 }
