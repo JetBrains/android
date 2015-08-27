@@ -1675,6 +1675,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintSetTextI18nInspection extends AndroidLintInspectionBase {
+    public AndroidLintSetTextI18nInspection() {
+      super(AndroidBundle.message("android.lint.inspections.set.text.i18n"), SetTextDetector.SET_TEXT_I18N);
+    }
+  }
+
   public static class AndroidLintShiftFlagsInspection extends AndroidLintInspectionBase {
     public AndroidLintShiftFlagsInspection() {
       super(AndroidBundle.message("android.lint.inspections.shift.flags"), AnnotationDetector.FLAG_STYLE);
