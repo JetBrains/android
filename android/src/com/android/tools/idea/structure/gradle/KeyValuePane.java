@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.structure.gradle;
 
-import com.android.sdklib.AndroidTargetHash;
-import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.descriptors.PkgType;
@@ -60,6 +58,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.sdklib.AndroidTargetHash.getAddonHashString;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetLabel;
 
 public class KeyValuePane extends JPanel implements DocumentListener, ItemListener {
   /**
@@ -116,21 +117,15 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         buildToolsMapBuilder.put(buildToolVersion, buildToolVersion);
       }
       for (IAndroidTarget target : sdk.getTargets()) {
+        String label = getTargetLabel(target);
+        String apiString, platformString;
         if (target.isPlatform()) {
-          AndroidVersion version = target.getVersion();
-          String codename = version.getCodename();
-          String apiString, platformString;
-          if (codename != null) {
-            apiString = codename;
-            platformString = AndroidTargetHash.getPlatformHashString(version);
-          }
-          else {
-            platformString = apiString = Integer.toString(version.getApiLevel());
-          }
-          String label = AndroidSdkUtils.getTargetLabel(target);
+          platformString = apiString = target.getVersion().getApiString();
           apisMapBuilder.put(apiString, label);
-          compiledApisMapBuilder.put(platformString, label);
+        } else {
+          platformString = getAddonHashString(target.getVendor(), target.getName(), target.getVersion());
         }
+        compiledApisMapBuilder.put(platformString, label);
       }
     }
 
