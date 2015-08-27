@@ -71,7 +71,6 @@ import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ThreeState;
 import com.intellij.util.io.storage.HeavyProcessLatch;
-import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nls;
@@ -273,8 +272,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
     myUiInitialized = true;
 
-    MessageBusConnection connection = myProject.getMessageBus().connect(myDisposable);
-    connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, this);
+    GradleSyncState.subscribe(myProject, this);
 
     return component;
   }
