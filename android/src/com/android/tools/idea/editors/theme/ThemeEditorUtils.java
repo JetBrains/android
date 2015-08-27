@@ -669,8 +669,8 @@ public class ThemeEditorUtils {
     if (androidModel != null) {
       assert facet.requiresAndroidModel();
 
-      selectedProviders.add(facet.getBuildTypeSourceProvider());
-      selectedProviders.add(facet.getMultiFlavorSourceProvider());
+      selectedProviders.add(androidModel.getBuildTypeSourceProvider());
+      selectedProviders.add(androidModel.getMultiFlavorSourceProvider());
 
       // Add inactive SourceSets
       AndroidProject project = androidModel.getAndroidProject();
