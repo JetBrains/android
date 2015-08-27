@@ -18,86 +18,60 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
-import com.android.tools.idea.editors.gfxtrace.service.Capture;
 import com.android.tools.idea.editors.gfxtrace.service.Device;
-import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
-import com.android.tools.idea.editors.gfxtrace.service.path.*;
-import com.google.common.util.concurrent.*;
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ListCellRendererWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class ContextController implements PathListener {
   private static final String NO_DEVICE_AVAILABLE = "No Device Available";
   private static final String NO_DEVICE_SELECTED = "No Device Selected";
-
-  private static class DeviceEntry {
-    public DevicePath myPath;
-    public Device myDevice;
-
-    public DeviceEntry(DevicePath path, Device device) {
-      myPath = path;
-      myDevice = device;
-    }
-  }
+  private static final String RETRIEVING_DEVICES = "Retrieving Devices";
 
   @NotNull private static final Logger LOG = Logger.getInstance(ContextController.class);
   @NotNull private final GfxTraceEditor myEditor;
-  @NotNull private final ComboBox myDevicesView;
   @Nullable private DeviceEntry[] myDevices;
   private final PathStore<DevicePath> mySelectedDevice = new PathStore<DevicePath>();
 
-  public ContextController(@NotNull GfxTraceEditor editor,
-                           @NotNull ComboBox devicesView) {
+  public ContextController(@NotNull GfxTraceEditor editor) {
     myEditor = editor;
     myEditor.addPathListener(this);
-    myDevicesView = devicesView;
 
-    myDevicesView.setRenderer(new ListCellRendererWrapper<DeviceEntry>() {
-      @Override
-      public void customize(JList list, DeviceEntry value, int index, boolean selected, boolean hasFocus) {
-        if (list.getModel().getSize() == 0) {
-          setText(NO_DEVICE_AVAILABLE);
-        }
-        else if (index == -1) {
-          setText(NO_DEVICE_SELECTED);
-        }
-        else {
-          setText(value.myDevice.getName() + " (" + value.myDevice.getModel() + ", " + value.myDevice.getOS() + ")");
-        }
-      }
-    });
-    myDevicesView.addItemListener(new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent itemEvent) {
-        if (itemEvent.getStateChange() != ItemEvent.SELECTED) return;
-        assert (itemEvent.getItem() instanceof DeviceEntry);
-        if (mySelectedDevice.update(((DeviceEntry)itemEvent.getItem()).myPath)) {
-          myEditor.activatePath(mySelectedDevice.getPath());
-        }
-      }
-    });
+    // Populate the available device list.
     Futures.addCallback(myEditor.getClient().getDevices(), new LoadingCallback<DevicePath[]>(LOG) {
       @Override
       public void onSuccess(@Nullable final DevicePath[] paths) {
-        final ListenableFuture<Device>[] futures = new ListenableFuture[paths.length];
-        for (int i = 0; i < paths.length; i++) {
-          futures[i] = myEditor.getClient().get(paths[i]);
+        if (paths == null || paths.length == 0) {
+          myDevices = new DeviceEntry[0];
+          return;
         }
+
+        final ArrayList<ListenableFuture<Device>> futures = new ArrayList<ListenableFuture<Device>>(paths.length);
+        for (DevicePath path : paths) {
+          futures.add(myEditor.getClient().get(path));
+        }
+
         Futures.addCallback(Futures.allAsList(futures), new LoadingCallback<List<Device>>(LOG) {
           @Override
           public void onSuccess(@Nullable final List<Device> devices) {
+            if (devices == null || devices.size() == 0) {
+              return;
+            }
+
             EdtExecutor.INSTANCE.execute(new Runnable() {
               @Override
               public void run() {
@@ -106,11 +80,8 @@ public class ContextController implements PathListener {
                 for (int i = 0; i < paths.length; i++) {
                   myDevices[i] = new DeviceEntry(paths[i], devices.get(i));
                 }
-                myDevicesView.setModel(new DefaultComboBoxModel(myDevices));
-                if (paths.length > 0) {
-                  if (mySelectedDevice.update(paths[0])) {
-                    myEditor.activatePath(mySelectedDevice.getPath());
-                  }
+                if (paths.length > 0 && mySelectedDevice.update(paths[0]) && mySelectedDevice.getPath() != null) {
+                  myEditor.activatePath(mySelectedDevice.getPath());
                 }
               }
             });
@@ -120,24 +91,92 @@ public class ContextController implements PathListener {
     });
   }
 
+  @NotNull
+  public AnAction getContextAction() {
+    return new ComboBoxAction() {
+      @NotNull
+      @Override
+      protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+        DefaultActionGroup group = new DefaultActionGroup();
+        if (myDevices != null && myDevices.length > 0) {
+          for (final DeviceEntry device : myDevices) {
+            group.add(new AnAction(device.toString()) {
+              @Override
+              public void actionPerformed(AnActionEvent e) {
+                if (mySelectedDevice.update(device.myPath) && mySelectedDevice.getPath() != null) {
+                  myEditor.activatePath(mySelectedDevice.getPath());
+                }
+              }
+            });
+          }
+        }
+        return group;
+      }
+
+      @Override
+      public void update(AnActionEvent e) {
+        super.update(e);
+        if (mySelectedDevice.isValid() && myDevices != null) {
+          for (DeviceEntry device : myDevices) {
+            if (mySelectedDevice.is(device.myPath)) {
+              getTemplatePresentation().setText(device.toString());
+              e.getPresentation().setText(device.toString());
+              break;
+            }
+          }
+          getTemplatePresentation().setEnabled(true);
+          e.getPresentation().setEnabled(true);
+        }
+        else if (myDevices == null) {
+          getTemplatePresentation().setText(RETRIEVING_DEVICES);
+          getTemplatePresentation().setEnabled(false);
+          e.getPresentation().setText(RETRIEVING_DEVICES);
+          e.getPresentation().setEnabled(false);
+        }
+        else if (myDevices.length == 0) {
+          getTemplatePresentation().setText(NO_DEVICE_AVAILABLE);
+          getTemplatePresentation().setEnabled(false);
+          e.getPresentation().setText(NO_DEVICE_AVAILABLE);
+          e.getPresentation().setEnabled(false);
+        }
+        else {
+          getTemplatePresentation().setText(NO_DEVICE_SELECTED);
+          getTemplatePresentation().setEnabled(true);
+          e.getPresentation().setText(NO_DEVICE_SELECTED);
+          e.getPresentation().setEnabled(true);
+        }
+      }
+    };
+  }
+
   @Override
   public void notifyPath(Path path) {
     if (path instanceof DevicePath) {
       if (mySelectedDevice.update((DevicePath)path)) {
         if (myDevices != null) {
-          for (int i = 0; i < myDevices.length; i++) {
-            myDevicesView.setSelectedIndex(i);
-            return;
+          for (DeviceEntry myDevice : myDevices) {
+            if (mySelectedDevice.is(myDevice.myPath)) {
+              return;
+            }
           }
-          // device not found
-          myDevicesView.setSelectedIndex(-1);
+          mySelectedDevice.update(null);
         }
       }
     }
   }
 
-  @NotNull
-  private ComboBox getDevicesView() {
-    return myDevicesView;
+  private static class DeviceEntry {
+    public DevicePath myPath;
+    public Device myDevice;
+
+    public DeviceEntry(DevicePath path, Device device) {
+      myPath = path;
+      myDevice = device;
+    }
+
+    @Override
+    public String toString() {
+      return myDevice.getName() + " (" + myDevice.getModel() + ", " + myDevice.getOS() + ")";
+    }
   }
 }
