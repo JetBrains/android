@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.actions;
+package com.android.tools.idea.gradle.actions;
 
 import com.intellij.execution.actions.EditRunConfigurationsAction;
 import com.intellij.icons.AllIcons;
@@ -32,28 +32,24 @@ public class AndroidTemplateProjectSettingsGroup extends DefaultActionGroup {
     presentation.setText("Project Defaults");
     presentation.setIcon(AllIcons.General.TemplateProjectSettings);
 
-    add(new TemplateProjectPropertiesAction() {
-      {
-        Presentation p = getTemplatePresentation();
-        p.setText("Settings");
-        p.setIcon(AllIcons.General.TemplateProjectSettings);
-      }
-    });
+    add(new AndroidTemplateSettingsAction());
+    add(new AndroidTemplateProjectStructureAction());
+    add(new AndroidEditRunConfigurationsAction());
+  }
 
-    add(new AndroidTemplateProjectStructureAction() {
-      {
-        Presentation p = getTemplatePresentation();
-        p.setText("Project Structure");
-        p.setIcon(AllIcons.General.TemplateProjectStructure);
-      }
-    });
+  private static class AndroidTemplateSettingsAction extends TemplateProjectPropertiesAction {
+    AndroidTemplateSettingsAction() {
+      Presentation p = getTemplatePresentation();
+      p.setText("Settings");
+      p.setIcon(AllIcons.General.TemplateProjectSettings);
+    }
+  }
 
-    add(new EditRunConfigurationsAction() {
-      {
-        Presentation p = getTemplatePresentation();
-        p.setText("Run Configurations");
-        p.setIcon(AllIcons.General.CreateNewProjectfromExistingFiles);
-      }
-    });
+  private static class AndroidEditRunConfigurationsAction extends EditRunConfigurationsAction {
+    AndroidEditRunConfigurationsAction() {
+      Presentation p = getTemplatePresentation();
+      p.setText("Run Configurations");
+      p.setIcon(AllIcons.General.CreateNewProjectfromExistingFiles);
+    }
   }
 }

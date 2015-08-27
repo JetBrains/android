@@ -44,7 +44,7 @@
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
 
-    <action id="ShowProjectStructureSettings" class="com.android.tools.idea.actions.AndroidShowStructureSettingsAction"
+    <action id="ShowProjectStructureSettings" class="com.android.tools.idea.gradle.actions.AndroidShowStructureSettingsAction"
             project-type="Android" icon="AllIcons.General.ProjectStructure"/>
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
   </actions>
