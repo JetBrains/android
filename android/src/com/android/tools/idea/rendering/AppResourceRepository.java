@@ -337,6 +337,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @VisibleForTesting
   void updateRoots(List<LocalResourceRepository> resources, List<FileResourceRepository> libraries) {
     myResourceVisibility = null;
+    myResourceVisibilityProvider = null;
 
     if (resources.equals(myChildren)) {
       // Nothing changed (including order); nothing to do
