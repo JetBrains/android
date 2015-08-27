@@ -29,7 +29,6 @@ public final class Pointer implements BinaryObject, Render.ToComponent {
   @Override
   public void render(@NotNull SimpleColoredComponent component, SimpleTextAttributes defaultAttributes) {
     component.append("0x" + Long.toHexString((Long)myAddress), defaultAttributes);
-    component.append("0x" + Long.toHexString((Long)myAddress), defaultAttributes);
     if (myPool.value != PoolID.ApplicationPool) {
       component.append("@", SimpleTextAttributes.GRAY_ATTRIBUTES);
       component.append(myPool.toString(), defaultAttributes);
