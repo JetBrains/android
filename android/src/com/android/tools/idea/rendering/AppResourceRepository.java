@@ -26,8 +26,8 @@ import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.util.Pair;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -131,9 +131,10 @@ public class AppResourceRepository extends MultiResourceRepository {
     // this and create them if necessary.
     // TODO: When https://code.google.com/p/android/issues/detail?id=76744 is implemented we can
     // optimize this to only check changes in AAR files
-    ProjectBuilder.getInstance(facet.getModule().getProject()).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildListener() {
+    Project project = facet.getModule().getProject();
+    AndroidProjectBuildNotifications.subscribe(project, new AndroidProjectBuildNotifications.AndroidProjectBuildListener() {
       @Override
-      protected void buildFinished() {
+      public void buildComplete(@NotNull AndroidProjectBuildNotifications.BuildContext context) {
         repository.updateRoots();
       }
     });

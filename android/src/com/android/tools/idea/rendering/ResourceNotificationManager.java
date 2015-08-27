@@ -21,12 +21,10 @@ import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -413,7 +411,7 @@ public class ResourceNotificationManager implements ProjectComponent {
     }
   }
 
-  private class ProjectEventObserver implements PsiTreeChangeListener, ProjectBuilder.AfterProjectBuildTask {
+  private class ProjectEventObserver implements PsiTreeChangeListener, AndroidProjectBuildNotifications.AndroidProjectBuildListener {
     private boolean myAlreadyAddedBuildListener;
     private boolean myIgnoreBuildEvents;
 
@@ -423,7 +421,7 @@ public class ResourceNotificationManager implements ProjectComponent {
     private void registerListeners() {
       if (!myAlreadyAddedBuildListener) { // See comment in unregisterListeners
         myAlreadyAddedBuildListener = true;
-        ProjectBuilder.getInstance(myProject).addAfterProjectBuildTask(this);
+        AndroidProjectBuildNotifications.subscribe(myProject, this);
       }
       myIgnoreBuildEvents = false;
 
@@ -442,20 +440,9 @@ public class ResourceNotificationManager implements ProjectComponent {
       myIgnoreBuildEvents = true;
     }
 
-    // ---- Implements ProjectBuilder.AfterProjectBuildTask ----
-
+    // ---- Implements AndroidProjectBuildNotifications.AndroidProjectBuildListener ----
     @Override
-    public void execute(@NotNull GradleInvocationResult result) {
-      buildFinished();
-    }
-
-    @Override
-    public boolean execute(CompileContext context) {
-      buildFinished();
-      return true;
-    }
-
-    private void buildFinished() {
+    public void buildComplete(@NotNull AndroidProjectBuildNotifications.BuildContext context) {
       if (!myIgnoreBuildEvents) {
         myModificationCount++;
         notice(Reason.PROJECT_BUILD);

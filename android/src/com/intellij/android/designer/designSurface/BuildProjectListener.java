@@ -15,7 +15,7 @@
  */
 package com.intellij.android.designer.designSurface;
 
-import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.intellij.designer.DesignerEditor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
@@ -32,9 +32,9 @@ public class BuildProjectListener implements ProjectComponent {
 
   public BuildProjectListener(Project project, FileEditorManager fileEditorManager) {
     myFileEditorManager = fileEditorManager;
-    ProjectBuilder.getInstance(project).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildListener() {
+    AndroidProjectBuildNotifications.subscribe(project, new AndroidProjectBuildNotifications.AndroidProjectBuildListener() {
       @Override
-      protected void buildFinished() {
+      public void buildComplete(@NotNull AndroidProjectBuildNotifications.BuildContext context) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {

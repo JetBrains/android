@@ -20,9 +20,11 @@ import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ArrayListMultimap;
@@ -307,15 +309,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     myGradleProjectEventListener.reset();
 
     final AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<GradleInvocationResult>();
-    ProjectBuilder.getInstance(getProject()).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildTask() {
+    AndroidProjectBuildNotifications.subscribe(getProject(), new AndroidProjectBuildNotifications.AndroidProjectBuildListener() {
       @Override
-      public void execute(@NotNull GradleInvocationResult result) {
-        resultRef.set(result);
-      }
-
-      @Override
-      public boolean execute(CompileContext context) {
-        return false;
+      public void buildComplete(@NotNull AndroidProjectBuildNotifications.BuildContext context) {
+        if (context instanceof GradleBuildContext) {
+          resultRef.set(((GradleBuildContext)context).getBuildResult());
+        }
       }
     });
     selectProjectMakeAction();
@@ -480,7 +479,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public IdeFrameFixture waitForBuildToFinish(@NotNull final BuildMode buildMode) {
     final Project project = getProject();
-    if (buildMode == SOURCE_GEN && !ProjectBuilder.getInstance(project).isSourceGenerationEnabled()) {
+    if (buildMode == SOURCE_GEN && !GradleProjectBuilder.getInstance(project).isSourceGenerationEnabled()) {
       return this;
     }
 
