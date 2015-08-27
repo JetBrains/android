@@ -15,14 +15,28 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.ListenableFuture;
 
 public class ServiceClientCache extends ServiceClientWrapper {
   private ListenableFuture<Schema> mySchema;
   private final Object mySchemaLock = new Object();
+  private final LoadingCache<Path, ListenableFuture<Object>> myPathCache;
+  private static final int MAXIMUM_CACHE_COUNT = 1000;
 
   public ServiceClientCache(ServiceClient client) {
     super(client);
+    myPathCache = CacheBuilder.newBuilder()
+      .maximumSize(MAXIMUM_CACHE_COUNT)
+      .build(new CacheLoader<Path, ListenableFuture<Object>>() {
+        @Override
+        public ListenableFuture<Object> load(Path p) {
+          return myClient.get(p);
+        }
+      });
   }
 
   @Override
@@ -33,5 +47,10 @@ public class ServiceClientCache extends ServiceClientWrapper {
       }
     }
     return mySchema;
+  }
+
+  @Override
+  public ListenableFuture<Object> get(Path p) {
+    return myPathCache.getUnchecked(p);
   }
 }
