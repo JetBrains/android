@@ -18,7 +18,9 @@ package org.jetbrains.android.uipreview;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.project.AndroidProjectBuildNotifications;
+import com.android.tools.idea.project.AndroidProjectBuildNotifications.AndroidProjectBuildListener;
+import com.android.tools.idea.project.AndroidProjectBuildNotifications.BuildContext;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
@@ -70,9 +72,7 @@ import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.util.Map;
 
-import static com.android.SdkConstants.ANDROID_PREFIX;
-import static com.android.SdkConstants.PREFIX_BINDING_EXPR;
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -235,9 +235,9 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       }
     }, project);
 
-    ProjectBuilder.getInstance(project).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildListener() {
+    AndroidProjectBuildNotifications.subscribe(project, new AndroidProjectBuildListener() {
       @Override
-      protected void buildFinished() {
+      public void buildComplete(@NotNull BuildContext context) {
         if (myToolWindowForm != null && myToolWindowReady && !myToolWindowDisposed) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override

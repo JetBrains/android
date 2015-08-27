@@ -19,7 +19,7 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -177,7 +177,7 @@ class BuildVariantUpdater {
       // be there.
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
         Project project = affectedFacets.get(0).getModule().getProject();
-        ProjectBuilder.getInstance(project).generateSourcesOnly();
+        GradleProjectBuilder.getInstance(project).generateSourcesOnly();
       }
     }
   }

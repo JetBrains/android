@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.util;
+package com.android.tools.idea.gradle.project.build;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import junit.framework.TestCase;
 
 /**
- * Tests for {@link ProjectBuilder}.
+ * Tests for {@link GradleProjectBuilder}.
  */
-public class ProjectBuilderTest extends TestCase {
+public class GradleProjectBuilderTest extends TestCase {
   public void testIsSourceGenerationEnabled() throws Exception {
     GradleExperimentalSettings settings = new GradleExperimentalSettings();
 
     settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-    assertFalse(ProjectBuilder.isSourceGenerationEnabled(settings, 10));
+    assertFalse(GradleProjectBuilder.isSourceGenerationEnabled(settings, 10));
 
     settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 100;
-    assertFalse(ProjectBuilder.isSourceGenerationEnabled(settings, 10));
+    assertFalse(GradleProjectBuilder.isSourceGenerationEnabled(settings, 10));
 
     settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
     settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 2;
-    assertFalse(ProjectBuilder.isSourceGenerationEnabled(settings, 3));
-    assertTrue(ProjectBuilder.isSourceGenerationEnabled(settings, 1));
+    assertFalse(GradleProjectBuilder.isSourceGenerationEnabled(settings, 3));
+    assertTrue(GradleProjectBuilder.isSourceGenerationEnabled(settings, 1));
   }
 }
