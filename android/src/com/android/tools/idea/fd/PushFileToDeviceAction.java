@@ -32,7 +32,7 @@ import java.awt.event.InputEvent;
 
 public class PushFileToDeviceAction extends AnAction {
   public PushFileToDeviceAction() {
-    super("Fast Deployment: Push Changed Files To Running App Instantly", null, AndroidIcons.PushFileToDevice);
+    super("Instant Run: Push Changed Files To Running App Instantly", null, AndroidIcons.PushFileToDevice);
   }
 
   @Override
@@ -55,8 +55,6 @@ public class PushFileToDeviceAction extends AnAction {
 
         FastDeployManager manager = project.getComponent(FastDeployManager.class);
         boolean forceRestart = (e.getModifiers() & InputEvent.CTRL_MASK) != 0;
-        FastDeployManager.REBUILD_CODE_WITH_GRADLE = (e.getModifiers() & InputEvent.SHIFT_MASK) == 0;
-
         manager.computeDeltas(facet, file, forceRestart);
       }
     }
