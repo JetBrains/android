@@ -23,9 +23,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class ScrubberLabelData implements LoadingCallback.LoadingDone {
-  private AtomPath myAtomPath;
-  private Range myRange;
-  @NotNull private String myLabel;
+  @NotNull public final AtomPath atomPath;
+  @NotNull public final Range range;
+  @NotNull public final String label;
 
   @NotNull private ImageIcon myImageIcon;
   private long myLoadIconStartTime;
@@ -33,24 +33,11 @@ public class ScrubberLabelData implements LoadingCallback.LoadingDone {
   private boolean myIsSelected;
 
   public ScrubberLabelData(AtomPath atomPath, @NotNull Range range, @NotNull String label, @NotNull ImageIcon icon) {
-    myAtomPath = atomPath;
-    myRange = range;
-    myLabel = label;
+    this.atomPath = atomPath;
+    this.range = range;
+    this.label = label;
     myImageIcon = icon;
     myLoadIconStartTime = 0;
-  }
-
-  @NotNull
-  public String getLabel() {
-    return myLabel;
-  }
-
-  public AtomPath getAtomPath() {
-    return myAtomPath;
-  }
-
-  public Range getRange() {
-    return myRange;
   }
 
   @NotNull

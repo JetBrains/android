@@ -111,7 +111,7 @@ public class ScrubberLabel extends JBLabel {
     FontMetrics metrics = g.getFontMetrics();
     int fontHeight = metrics.getHeight();
 
-    String frameString = myData.getLabel();
+    String frameString = myData.label;
     int frameStringWidth = metrics.stringWidth(frameString);
 
     //noinspection UseJBColor

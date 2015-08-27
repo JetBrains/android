@@ -18,9 +18,10 @@ package com.android.tools.idea.editors.gfxtrace.service.atom;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
+import com.android.tools.rpclib.schema.Render;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class Atom {
+public abstract class Atom implements Render.ToComponent {
   public static Atom wrap(BinaryObject object) {
     if (object instanceof Dynamic) {
       return new DynamicAtom((Dynamic)object);
