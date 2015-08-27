@@ -324,7 +324,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     // The connection failed, so try to start a new instance of the server.
     try {
       File androidPluginDirectory = PluginPathManager.getPluginHome("android");
-      String pathOverride = System.getProperty(OVERRIDE_PATH_GAPIS);
+      String pathOverride = System.getProperty(OVERRIDE_PATH_GAPIS, "");
       if (pathOverride.length() > 0) {
         androidPluginDirectory = new File(pathOverride);
       }
