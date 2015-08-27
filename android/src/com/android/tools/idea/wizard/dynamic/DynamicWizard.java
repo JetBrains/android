@@ -514,7 +514,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     }
   }
 
-  public final void show() {
+  public void show() {
     prepareForShow();
     myHost.show();
   }
