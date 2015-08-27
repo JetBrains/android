@@ -20,9 +20,14 @@ import com.android.tools.rpclib.binary.BinaryObject;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class Path implements BinaryObject {
+  private String myString;
+
   @Override
   public String toString() {
-    return stringPath(new StringBuilder()).toString();
+    if (myString == null) {
+      myString = stringPath(new StringBuilder()).toString();
+    }
+    return myString;
   }
 
   @Override
@@ -30,7 +35,12 @@ public abstract class Path implements BinaryObject {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     // Default to string comparison if the implementations don't override
-    return toString() == ((Path)o).toString();
+    return toString().equals(((Path)o).toString());
+  }
+
+  @Override
+  public int hashCode() {
+    return toString().hashCode();
   }
 
   public abstract StringBuilder stringPath(StringBuilder builder);
