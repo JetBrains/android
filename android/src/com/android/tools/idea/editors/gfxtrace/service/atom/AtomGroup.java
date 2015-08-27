@@ -18,13 +18,21 @@
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
 import com.android.tools.rpclib.binary.*;
+import com.android.tools.rpclib.schema.Render;
+import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-public final class AtomGroup implements BinaryObject {
+public final class AtomGroup implements BinaryObject, Render.ToComponent {
   public boolean isValid() {
     return myRange.isValid();
+  }
+
+  @Override
+  public void render(@NotNull SimpleColoredComponent component, SimpleTextAttributes defaultAttributes) {
+    component.append(getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
 
   //<<<Start:Java.ClassBody:1>>>
@@ -73,6 +81,7 @@ public final class AtomGroup implements BinaryObject {
     Namespace.register(ID, Klass.INSTANCE);
   }
   public static void register() {}
+
   //<<<End:Java.ClassBody:1>>>
   public enum Klass implements BinaryClass {
     //<<<Start:Java.KlassBody:2>>>

@@ -19,7 +19,7 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.StateNodeData;
-import com.android.tools.idea.editors.gfxtrace.renderers.StateTreeRenderer;
+import com.android.tools.idea.editors.gfxtrace.renderers.SchemaTreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
@@ -59,7 +59,7 @@ public class StateController implements PathListener {
     myTree = new SimpleTree();
     myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT);
     myTree.setRootVisible(false);
-    myTree.setCellRenderer(new StateTreeRenderer());
+    myTree.setCellRenderer(new SchemaTreeRenderer());
     myTree.getEmptyText().setText(GfxTraceEditor.SELECT_ATOM);
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), editor.getProject());
     myLoadingPanel.add(myTree);

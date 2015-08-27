@@ -15,20 +15,28 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers.modeldata;
 
-public class StateNodeData {
-  private Object myKey;
-  private Object myValue;
+import com.android.tools.rpclib.schema.Render;
+import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.annotations.NotNull;
+
+public class StateNodeData implements Render.ToComponent {
+  public final Object key;
+  public final Object value;
 
   public StateNodeData(Object key, Object value) {
-    myKey = key;
-    myValue = value;
+    this.key = key;
+    this.value = value;
   }
 
-  public Object getKey() {
-    return myKey;
-  }
-
-  public Object getValue() {
-    return myValue;
+  @Override
+  public void render(@NotNull SimpleColoredComponent component, SimpleTextAttributes defaultAttributes) {
+    if (key != null) {
+      Render.object(key, component, defaultAttributes);
+    }
+    if (value != null) {
+      component.append(": ", defaultAttributes);
+      Render.object(value, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+    }
   }
 }
