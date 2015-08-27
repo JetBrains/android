@@ -23,7 +23,6 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.SystemImage;
-import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.IdDisplay;
@@ -99,9 +98,11 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
       descBuilder = PkgDesc.Builder.newAddonSysImg(version, vendor, tag, abi, new MajorRevision(getRevision()));
     }
     descBuilder
-      .setDescriptionShort(createShortDescription(getListDisplay(), abi, vendor, tag, version, getRevision(), isObsolete()));
+      .setDescriptionShort(LocalSysImgPkgInfo.createShortDescription(getListDisplay(), abi, vendor, tag, version, getRevision(),
+                                                                     isObsolete()));
     descBuilder.setDescriptionUrl(getDescUrl());
-    descBuilder.setListDisplay(createListDescription(mListDisplay, tag, getAbiDisplayNameInternal(abi), isObsolete()));
+    descBuilder.setListDisplay(
+      LocalSysImgPkgInfo.createListDescription(mListDisplay, tag, LocalSysImgPkgInfo.getAbiDisplayNameInternal(abi), isObsolete()));
     descBuilder.setIsObsolete(isObsolete());
     descBuilder.setLicense(getLicense());
 
@@ -140,15 +141,6 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
    */
   public String getAbi() {
     return getPkgDesc().getPath();
-  }
-
-  private static String getAbiDisplayNameInternal(String abi) {
-    return abi.replace("armeabi", "ARM EABI")          //$NON-NLS-1$  //$NON-NLS-2$
-      .replace("arm64", "ARM 64")            //$NON-NLS-1$  //$NON-NLS-2$
-      .replace("x86", "Intel x86 Atom")    //$NON-NLS-1$  //$NON-NLS-2$
-      .replace("x86_64", "Intel x86_64 Atom") //$NON-NLS-1$  //$NON-NLS-2$
-      .replace("mips", "MIPS")              //$NON-NLS-1$  //$NON-NLS-2$
-      .replace("-", " ");                      //$NON-NLS-1$  //$NON-NLS-2$
   }
 
   /**
@@ -206,34 +198,6 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
     s = s.toLowerCase(Locale.US).replaceAll("[^a-z0-9_.-]+", "_").replaceAll("_+", "_");
     return s;
 
-  }
-
-  private static String createListDescription(String listDisplay, IdDisplay tag, String abiDisplayName, boolean obsolete) {
-    if (!listDisplay.isEmpty()) {
-      return String.format("%1$s%2$s", listDisplay, obsolete ? " (Obsolete)" : "");
-    }
-
-    boolean isDefaultTag = SystemImage.DEFAULT_TAG.equals(tag);
-    return String.format("%1$s%2$s System Image%3$s", isDefaultTag ? "" : (tag.getDisplay() + " "), abiDisplayName,
-                         obsolete ? " (Obsolete)" : "");
-  }
-
-  private static String createShortDescription(String listDisplay,
-                                               String abi,
-                                               IdDisplay vendor,
-                                               IdDisplay tag,
-                                               AndroidVersion version,
-                                               FullRevision revision,
-                                               boolean obsolete) {
-    if (!listDisplay.isEmpty()) {
-      return String.format("%1$s, %2$s API %3$s, revision %4$s%5$s", listDisplay, vendor == null ? "Android" : vendor.getDisplay(),
-                           version.getApiString(), revision.toShortString(), obsolete ? " (Obsolete)" : "");
-    }
-
-    boolean isDefaultTag = SystemImage.DEFAULT_TAG.equals(tag);
-    return String.format("%1$s%2$s System Image, %3$s API %4$s, revision %5$s%6$s", isDefaultTag ? "" : (tag.getDisplay() + " "),
-                         getAbiDisplayNameInternal(abi), vendor == null ? "Android" : vendor.getDisplay(), version.getApiString(),
-                         revision.toShortString(), obsolete ? " (Obsolete)" : "");
   }
 
   /**
