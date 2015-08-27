@@ -46,7 +46,11 @@ import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 
 public class AndroidOpenFileAction extends DumbAwareAction {
   public AndroidOpenFileAction() {
-    super("Open...");
+    this("Open...");
+  }
+
+  public AndroidOpenFileAction(@NotNull String text) {
+    super(text);
   }
 
   @Override

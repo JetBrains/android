@@ -13,25 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.actions;
+package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.structure.AndroidProjectStructureConfigurable;
-import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.options.newEditor.OptionsEditorDialog;
-import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Displays the "Default Project Structure" dialog.
  */
-public class AndroidTemplateProjectStructureAction extends AnAction implements DumbAware {
+public class AndroidTemplateProjectStructureAction extends DumbAwareAction {
+  public AndroidTemplateProjectStructureAction() {
+    this("Project Structure");
+  }
+
+  public AndroidTemplateProjectStructureAction(@NotNull String text) {
+    super(text, null, AllIcons.General.TemplateProjectStructure);
+  }
+
   @Override
   public void actionPerformed(final AnActionEvent e) {
-    Project defaultProject = ProjectManagerEx.getInstanceEx().getDefaultProject();
-    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(defaultProject);
-    ShowSettingsUtil.getInstance().editConfigurable(defaultProject, OptionsEditorDialog.DIMENSION_KEY, configurable, true);
+    Project project = ProjectManagerEx.getInstanceEx().getDefaultProject();
+    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(project);
+
+    ShowSettingsUtil settings = ShowSettingsUtil.getInstance();
+    settings.editConfigurable(project, OptionsEditorDialog.DIMENSION_KEY, configurable, true);
   }
 }
