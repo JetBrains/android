@@ -48,9 +48,6 @@ public class AtomController implements PathListener {
   @NotNull private final GfxTraceEditor myEditor;
   @NotNull private final JBLoadingPanel myLoadingPanel;
   @NotNull private final SimpleTree myTree;
-  private DefaultMutableTreeNode myAtomTreeRoot;
-  private AtomGroup myAtomGroup;
-  private AtomList myAtomList;
   private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
   private boolean mDisableActivation = false;
 
@@ -64,6 +61,8 @@ public class AtomController implements PathListener {
     myTree.setRootVisible(false);
     myTree.setLineStyleAngled();
     myTree.getEmptyText().setText(GfxTraceEditor.SELECT_CAPTURE);
+    myTree.setLargeModel(true); // Set some performance optimizations for large models.
+    myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT); // Make sure our rows are constant height.
     myTree.setCellRenderer(new SchemaTreeRenderer());
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project);
     myLoadingPanel.add(myTree);
@@ -86,66 +85,15 @@ public class AtomController implements PathListener {
   }
 
   @NotNull
-  public static DefaultMutableTreeNode prepareData(@NotNull AtomGroup root, @NotNull AtomList atoms) {
-    assert (!ApplicationManager.getApplication().isDispatchThread());
-    return generateAtomTree(root, atoms);
-  }
-
-  @NotNull
-  private static DefaultMutableTreeNode generateAtomTree(@NotNull AtomGroup atomGroup, @NotNull AtomList atoms) {
-    assert (atomGroup.isValid());
-
-    DefaultMutableTreeNode currentNode = new DefaultMutableTreeNode();
-    currentNode.setUserObject(atomGroup);
-
-    long lastGroupIndex = atomGroup.getRange().getStart();
-    for (AtomGroup subGroup : atomGroup.getSubGroups()) {
-      long subGroupFirst = subGroup.getRange().getStart();
-      assert (subGroupFirst >= lastGroupIndex);
-      if (subGroupFirst > lastGroupIndex) {
-        addLeafNodes(currentNode, subGroupFirst, subGroupFirst - lastGroupIndex, atoms);
-      }
-      currentNode.add(generateAtomTree(subGroup, atoms));
-      lastGroupIndex = subGroup.getRange().getEnd();
-    }
-
-    long nextSiblingStartIndex = atomGroup.getRange().getEnd();
-    if (nextSiblingStartIndex > lastGroupIndex) {
-      addLeafNodes(currentNode, lastGroupIndex, nextSiblingStartIndex - lastGroupIndex, atoms);
-    }
-
-    return currentNode;
-  }
-
-  private static void addLeafNodes(@NotNull DefaultMutableTreeNode parentNode, long start, long count, @NotNull AtomList atoms) {
-    for (long i = 0, index = start; i < count; ++i, ++index) {
-      parentNode.add(new DefaultMutableTreeNode(new AtomNodeData(index, atoms.get(i)), false));
-    }
-  }
-
-  @NotNull
   public SimpleTree getTree() {
     return myTree;
   }
 
-  public void populateUi(@NotNull DefaultMutableTreeNode root, @NotNull AtomList atoms) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-    myAtomTreeRoot = root;
-
-    myTree.setModel(new DefaultTreeModel(myAtomTreeRoot));
-    myTree.setLargeModel(true); // Set some performance optimizations for large models.
-    myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT); // Make sure our rows are constant height.
-
-    if (myAtomTreeRoot.getChildCount() == 0) {
-      myTree.getEmptyText().setText(StatusText.DEFAULT_EMPTY_TEXT);
-    }
-
-    myLoadingPanel.stopLoading();
-    myLoadingPanel.revalidate();
-  }
-
   public void selectDeepestVisibleNode(long atomIndex) {
-    selectDeepestVisibleNode(myAtomTreeRoot, new TreePath(myAtomTreeRoot), atomIndex);
+    Object object = myTree.getModel().getRoot();
+    assert(object instanceof DefaultMutableTreeNode);
+    DefaultMutableTreeNode root = (DefaultMutableTreeNode)object;
+    selectDeepestVisibleNode(root, new TreePath(root), atomIndex);
   }
 
   public void selectDeepestVisibleNode(DefaultMutableTreeNode node, TreePath path, long atomIndex) {
@@ -181,7 +129,13 @@ public class AtomController implements PathListener {
 
   public void clear() {
     myTree.setModel(null);
-    myAtomTreeRoot = null;
+  }
+
+  public void setRoot(DefaultMutableTreeNode root) {
+    assert(ApplicationManager.getApplication().isDispatchThread());
+    myTree.setModel(new DefaultTreeModel(root));
+    myLoadingPanel.stopLoading();
+    myLoadingPanel.revalidate();
   }
 
   @Override
@@ -204,12 +158,13 @@ public class AtomController implements PathListener {
           myLoadingPanel.stopLoading();
           final AtomList atoms = (AtomList)all.get(0);
           final AtomGroup group = (AtomGroup)all.get(1);
-          final DefaultMutableTreeNode root = prepareData(group, atoms);
+          final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Stream", true);
+          group.addChildren(root, atoms);
           EdtExecutor.INSTANCE.execute(new Runnable() {
             @Override
             public void run() {
               // Back in the UI thread here
-              populateUi(root, atoms);
+              setRoot(root);
             }
           });
         }
