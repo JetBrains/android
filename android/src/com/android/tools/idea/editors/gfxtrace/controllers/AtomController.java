@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Observation;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.google.common.util.concurrent.Futures;
@@ -49,6 +50,16 @@ public class AtomController extends TreeController {
     public Node(long index, Atom atom) {
       this.index = index;
       this.atom = atom;
+    }
+  }
+
+  public static class Memory {
+    public final Observation observation;
+    public final boolean isRead;
+
+    public Memory(Observation observation, boolean isRead) {
+      this.observation = observation;
+      this.isRead = isRead;
     }
   }
 
@@ -97,12 +108,9 @@ public class AtomController extends TreeController {
       DefaultMutableTreeNode child = (DefaultMutableTreeNode)obj;
       Object object = child.getUserObject();
       boolean matches = false;
-      if((object instanceof AtomGroup) &&
-         (((AtomGroup)object).getRange().contains(atomIndex))) {
+      if((object instanceof AtomGroup) && (((AtomGroup)object).getRange().contains(atomIndex)) ||
+         (object instanceof Node) && ((((Node)object).index == atomIndex))) {
           matches = true;
-      } else if((object instanceof Node) &&
-                ((((Node)object).index == atomIndex))) {
-        matches = true;
       }
       if (matches) {
         selectDeepestVisibleNode(child, path.pathByAddingChild(child), atomIndex);

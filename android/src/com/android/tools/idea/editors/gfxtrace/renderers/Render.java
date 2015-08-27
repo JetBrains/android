@@ -31,13 +31,15 @@ public final class Render {
   // object rendering functions
 
   public static void render(@NotNull Object value, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
-    if (value instanceof Dynamic) {              render((Dynamic)value, component, attributes); return; }
-    if (value instanceof Field) {                render((Field)value, component, attributes); return; }
-    if (value instanceof StateController.Node) { render((StateController.Node)value, component, attributes); return; }
-    if (value instanceof AtomController.Node) {  render((AtomController.Node)value, component, attributes); return; }
-    if (value instanceof AtomGroup) {            render((AtomGroup)value, component, attributes); return; }
-    if (value instanceof DynamicAtom) {          render((DynamicAtom)value, component, attributes); return; }
-    if (value instanceof MemoryPointer) {        render((MemoryPointer)value, component, attributes); return; }
+    if (value instanceof Dynamic) {               render((Dynamic)value, component, attributes); return; }
+    if (value instanceof Field) {                 render((Field)value, component, attributes); return; }
+    if (value instanceof StateController.Node) {  render((StateController.Node)value, component, attributes); return; }
+    if (value instanceof AtomController.Node) {   render((AtomController.Node)value, component, attributes); return; }
+    if (value instanceof AtomController.Memory) { render((AtomController.Memory)value, component, attributes); return; }
+    if (value instanceof AtomGroup) {             render((AtomGroup)value, component, attributes); return; }
+    if (value instanceof DynamicAtom) {           render((DynamicAtom)value, component, attributes); return; }
+    if (value instanceof MemoryPointer) {         render((MemoryPointer)value, component, attributes); return; }
+    if (value instanceof MemoryRange) {           render((MemoryRange)value, component, attributes); return; }
     component.append(value.toString(), attributes);
   }
 
@@ -74,6 +76,11 @@ public final class Render {
     }
   }
 
+  public static void render(@NotNull AtomController.Memory memory, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+    render(memory.isRead?"read:":"write:", component, attributes);
+    render(memory.observation.getRange(), component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+  }
+
   public static void render(@NotNull AtomGroup group, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
     component.append(group.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
@@ -105,11 +112,17 @@ public final class Render {
   }
 
   public static void render(@NotNull MemoryPointer pointer, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
-    component.append("0x" + Long.toHexString((Long)pointer.getAddress()), attributes);
+    component.append("0x" + Long.toHexString(pointer.getAddress()), attributes);
     if (pointer.getPool().value != PoolID.ApplicationPool) {
       component.append("@", SimpleTextAttributes.GRAY_ATTRIBUTES);
       component.append(pointer.getPool().toString(), attributes);
     }
+  }
+
+  public static void render(@NotNull MemoryRange range, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+    component.append(Long.toString(range.getSize()), attributes);
+    component.append(" bytes at ", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    component.append("0x" + Long.toHexString(range.getBase()), attributes);
   }
 
 
