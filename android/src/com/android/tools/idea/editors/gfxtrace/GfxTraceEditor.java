@@ -40,7 +40,6 @@ import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +60,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull public static final String SELECT_CAPTURE = "Select a capture";
   @NotNull public static final String SELECT_ATOM = "Select an atom";
 
+  @NotNull private static final String OVERRIDE_PATH_GAPIS = "override.path.gapis";
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   @NotNull private static final String SERVER_HOST = "localhost";
   @NotNull private static final String SERVER_EXECUTABLE_NAME = "gapis";
@@ -324,6 +324,10 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     // The connection failed, so try to start a new instance of the server.
     try {
       File androidPluginDirectory = PluginPathManager.getPluginHome("android");
+      String pathOverride = System.getProperty(OVERRIDE_PATH_GAPIS);
+      if (pathOverride.length() > 0) {
+        androidPluginDirectory = new File(pathOverride);
+      }
       File serverDirectory = new File(androidPluginDirectory, SERVER_RELATIVE_PATH);
       File serverExecutable = new File(serverDirectory, SERVER_EXECUTABLE_NAME);
       LOG.info("launch gapis: \"" + serverExecutable.getAbsolutePath() + "\"");
