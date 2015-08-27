@@ -35,9 +35,13 @@ import icons.AndroidIcons;
 public class AndroidVectorAssetStudioAction extends AndroidAssetStudioAction {
 
   private static final String updateMessage =
-    "To support vector assets when minimal SDK version is less than 21, Android plugin for Gradle version\n" +
-    "must be 1.4 or above, such that Android Studio will convert vector assets into PNG images at build time.\n\n" +
-    "See 'Project Build File' section in https://developer.android.com/tools/building/plugin-for-gradle.html";
+    "<html><p>To support vector assets when minimal SDK version is less than 21,<br>" +
+    "Android plugin for Gradle version must be 1.4 or above,<br>" +
+    "such that Android Studio will convert vector assets into PNG images at build time.</p>" +
+    "<p>See <a href=\"https://developer.android.com/tools/building/plugin-for-gradle.html" +
+    "#projectBuildFile\">here</a> for how to update the version of Android plugin for Gradle." +
+    "</p></html>";
+
   private static final FullRevision VECTOR_ASSET_GENERATION_REVISION = new FullRevision(1, 4, 0);
   private static final int VECTOR_DRAWABLE_API_LEVEL = 21;
 
