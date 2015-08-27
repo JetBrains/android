@@ -83,6 +83,9 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   private final JLabel myG_after = new JLabel("");
   private final JLabel myB_after = new JLabel("");
   private final JLabel myHexLabel = new JLabel("#");
+
+  private float[] myHSB;
+
   private final JComboBox myFormat = new JComboBox() {
     @Override
     public Dimension getPreferredSize() {
@@ -284,7 +287,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         color = c != null ? ColorUtil.toAlpha(c, myColorSelectionPanel.mySaturationBrightnessComponent.myOpacity) : null;
       }
     } else {
-      color = gatherRGB();
+      color = gatherRGB(myRed.hasFocus() || myGreen.hasFocus() || myBlue.hasFocus());
     }
     if (color != null) {
       myColorSelectionPanel.myOpacityComponent.setColor(color);
@@ -350,15 +353,23 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
   @SuppressWarnings("UseJBColor")
   @Nullable
-  private Color gatherRGB() {
+  private Color gatherRGB(boolean fromTextFields) {
     try {
       final int r = Integer.parseInt(myRed.getText());
       final int g = Integer.parseInt(myGreen.getText());
       final int b = Integer.parseInt(myBlue.getText());
       final int a = Integer.parseInt(myAlpha.getText());
-
-      return isRGBMode() ? new Color(r, g, b, a) : Color.getHSBColor(((float)r) / 360f, ((float)g) / 100f, ((float)b) / 100f);
-    } catch (Exception ignore) {
+      if (isRGBMode()) {
+        return new Color(r, g, b, a);
+      }
+      else if (fromTextFields) {
+        return Color.getHSBColor(r / 360.0f, g / 100.0f, b / 100.0f);
+      }
+      else {
+        return Color.getHSBColor(myHSB[0], myHSB[1], myHSB[2]);
+      }
+    }
+    catch (Exception ignore) {
     }
     return null;
   }
@@ -380,10 +391,10 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
   private void applyColorToHSB(final Color c) {
     myAlpha.setText(String.valueOf(c.getAlpha()));
-    final float[] hbs = Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), null);
-    myRed.setText(String.valueOf((Math.round(360f * hbs[0]))));
-    myGreen.setText(String.valueOf((Math.round(100f * hbs[1]))));
-    myBlue.setText(String.valueOf((Math.round(100f * hbs[2]))));
+    myHSB = Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), null);
+    myRed.setText(String.valueOf((Math.round(360f * myHSB[0]))));
+    myGreen.setText(String.valueOf((Math.round(100f * myHSB[1]))));
+    myBlue.setText(String.valueOf((Math.round(100f * myHSB[2]))));
   }
 
   private void applyColor(final Color color) {
@@ -540,7 +551,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       float[] hsb = new float[3];
       Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), hsb);
 
-      myHueComponent.setValue(Math.round(hsb[0] * 360));
+      myHueComponent.setHueValue(hsb[0]);
       myHueComponent.repaint();
 
       mySaturationBrightnessComponent.dropImage();
@@ -645,7 +656,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
 
     public void setHue(float hue) {
-      if (hue != myHue) {
+      if (Math.abs(hue - myHue) > 0.01) {
         setHSBValue(hue, mySaturation, myBrightness, myOpacity);
       }
     }
@@ -1397,7 +1408,9 @@ class SlideComponent extends JComponent {
 
   public void setHue(float hue) {
     float[] hsv = Color.RGBtoHSB(myColor.getRed(), myColor.getGreen(), myColor.getBlue(), null);
-    setColor(Color.getHSBColor(hue, hsv[1], hsv[2]));
+    if (Math.abs(hue - hsv[0]) > 0.01) {
+      setColor(Color.getHSBColor(hue, hsv[1], hsv[2]));
+    }
   }
 
 
@@ -1437,9 +1450,7 @@ class SlideComponent extends JComponent {
     int size = myVertical ? getHeight() : getWidth();
     pointerValue = pointerValue > (size - MARGIN) ? size - MARGIN : pointerValue;
 
-    myPointerValue = pointerValue;
-
-    myValue = pointerValueToValue(myPointerValue);
+    setValue(pointerValueToValue(pointerValue));
 
     repaint();
     fireValueChanged();
@@ -1565,6 +1576,7 @@ class SlideComponent extends JComponent {
 class HueSlideComponent extends SlideComponent {
   private final Color[] myColors = {Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.RED};
   private final float[] myPoints = new float[myColors.length];
+  private float myHue;
 
   HueSlideComponent(String title) {
     super(title, false);
@@ -1592,12 +1604,26 @@ class HueSlideComponent extends SlideComponent {
     return MARGIN + (int)(value * proportion);
   }
 
+  public void setHueValue(float hue) {
+    if (Math.abs(hue - myHue) > 0.01) {
+      myHue = hue;
+      super.setValue(Math.round(360 * hue));
+    }
+  }
+
+  @Override
+  public void setValue(int value) {
+    super.setValue(value);
+    setHueValue(value / 360.0f);
+  }
+
+
   @Override
   protected void paintComponent(Graphics g) {
     final Graphics2D g2d = (Graphics2D)g;
 
     g2d.setPaint(new LinearGradientPaint(new Point2D.Double(0, 0), new Point2D.Double(getWidth() - 2 * MARGIN, 0), myPoints, myColors));
     g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
-    drawKnob(g2d, myPointerValue, JBUI.scale(7), false);
+    drawKnob(g2d, valueToPointerValue(Math.round(myHue * 360)), JBUI.scale(7), false);
   }
 }
