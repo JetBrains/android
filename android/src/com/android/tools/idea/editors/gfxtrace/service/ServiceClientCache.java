@@ -31,6 +31,7 @@ public class ServiceClientCache extends ServiceClientWrapper {
     super(client);
     myPathCache = CacheBuilder.newBuilder()
       .maximumSize(MAXIMUM_CACHE_COUNT)
+      .softValues()
       .build(new CacheLoader<Path, ListenableFuture<Object>>() {
         @Override
         public ListenableFuture<Object> load(Path p) {
