@@ -32,8 +32,17 @@ public abstract class Atom {
   }
 
   public void buildTree(@NotNull DefaultMutableTreeNode parent, long index) {
-    DefaultMutableTreeNode atomNode = new DefaultMutableTreeNode(new AtomController.Node(index, this), false);
+    DefaultMutableTreeNode atomNode = new DefaultMutableTreeNode(new AtomController.Node(index, this), true);
     parent.add(atomNode);
+    Observations observations = getObservations();
+    if (observations != null) {
+      for (Observation read: observations.getReads()) {
+        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(read, true), false));
+      }
+      for (Observation write: observations.getWrites()) {
+        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(write, false), false));
+      }
+    }
   }
 
   @NotNull
