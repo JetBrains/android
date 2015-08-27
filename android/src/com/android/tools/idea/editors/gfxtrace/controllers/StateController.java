@@ -18,31 +18,19 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.StateNodeData;
-import com.android.tools.idea.editors.gfxtrace.renderers.SchemaTreeRenderer;
-import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
-import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
-import com.android.tools.idea.editors.gfxtrace.service.path.*;
-import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
+import com.android.tools.idea.editors.gfxtrace.service.path.StatePath;
 import com.android.tools.rpclib.schema.Dynamic;
-import com.android.tools.rpclib.schema.Field;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.treeStructure.SimpleTree;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import java.awt.*;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class StateController extends TreeController {
   @NotNull private static final Logger LOG = Logger.getInstance(StateController.class);
@@ -53,26 +41,36 @@ public class StateController extends TreeController {
     super(editor, scrollPane, GfxTraceEditor.SELECT_ATOM);
   }
 
+  public static class Node {
+    public final Object key;
+    public final Object value;
+
+    public Node(Object key, Object value) {
+      this.key = key;
+      this.value = value;
+    }
+  }
+
   @Nullable
   private static DefaultMutableTreeNode constructStateNode(@Nullable Object key, @Nullable Object value) {
     DefaultMutableTreeNode node = new DefaultMutableTreeNode();
     Object render = value;
     if (value instanceof Dynamic) {
       render = null;
-      node.setUserObject(new StateNodeData(key, value));
+      node.setUserObject(new Node(key, value));
       Dynamic dynamic = (Dynamic)value;
       for (int index = 0; index < dynamic.getFieldCount(); ++index) {
         node.add(constructStateNode(dynamic.getFieldInfo(index), dynamic.getFieldValue(index)));
       }
     } else if (value instanceof Map) {
       render = null;
-      node.setUserObject(new StateNodeData(key, value));
+      node.setUserObject(new Node(key, value));
       Map<?,?> map = (Map)value;
       for (java.util.Map.Entry entry : map.entrySet()) {
         node.add(constructStateNode(entry.getKey(), entry.getValue()));
       }
     }
-    node.setUserObject(new StateNodeData(key, render));
+    node.setUserObject(new Node(key, render));
     return node;
   }
 

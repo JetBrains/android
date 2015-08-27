@@ -18,35 +18,39 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomNodeData;
-import com.android.tools.idea.editors.gfxtrace.renderers.SchemaTreeRenderer;
-import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.treeStructure.SimpleTree;
-import com.intellij.util.ui.StatusText;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.*;
-import java.awt.*;
-import java.util.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
+import java.util.Enumeration;
 
 public class AtomController extends TreeController {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
   private boolean mDisableActivation = false;
+
+  public static class Node {
+    public final long index;
+    public final Atom atom;
+
+    public Node(long index, Atom atom) {
+      this.index = index;
+      this.atom = atom;
+    }
+  }
 
   public AtomController(@NotNull GfxTraceEditor editor, @NotNull Project project, @NotNull JBScrollPane scrollPane) {
     super(editor, scrollPane, GfxTraceEditor.SELECT_CAPTURE);
@@ -60,8 +64,8 @@ public class AtomController extends TreeController {
         Object object = node.getUserObject();
         if (object instanceof AtomGroup) {
           myEditor.activatePath(myAtomsPath.getPath().index(((AtomGroup)object).getRange().getLast()));
-        } else if (object instanceof AtomNodeData) {
-          myEditor.activatePath(myAtomsPath.getPath().index(((AtomNodeData)object).index));
+        } else if (object instanceof Node) {
+          myEditor.activatePath(myAtomsPath.getPath().index(((Node)object).index));
         }
       }
     });
@@ -96,8 +100,8 @@ public class AtomController extends TreeController {
       if((object instanceof AtomGroup) &&
          (((AtomGroup)object).getRange().contains(atomIndex))) {
           matches = true;
-      } else if((object instanceof AtomNodeData) &&
-                ((((AtomNodeData)object).index == atomIndex))) {
+      } else if((object instanceof Node) &&
+                ((((Node)object).index == atomIndex))) {
         matches = true;
       }
       if (matches) {

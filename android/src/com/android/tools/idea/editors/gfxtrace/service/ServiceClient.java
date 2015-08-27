@@ -39,7 +39,6 @@ public abstract class ServiceClient {
   public abstract ListenableFuture<Schema> getSchema();
   public abstract ListenableFuture<TimingInfoPath> getTimingInfo(DevicePath device, CapturePath capture, TimingFlags flags);
   public abstract ListenableFuture<CapturePath> importCapture(String name, byte[] Data);
-  public abstract ListenableFuture<Void> prerenderFramebuffers(DevicePath device, CapturePath capture, BinaryID api, int width, int height, long[] atomIndicies);
   public abstract ListenableFuture<Path> set(Path p, Object v);
   //<<<End:Java.ClientBody:1>>>
 

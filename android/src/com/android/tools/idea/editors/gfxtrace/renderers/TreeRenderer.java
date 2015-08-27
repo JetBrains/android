@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.gfxtrace.renderers;
 
-import com.android.tools.rpclib.schema.Render;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
@@ -23,12 +22,14 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import static com.android.tools.idea.editors.gfxtrace.renderers.Render.render;
+
 /**
  * This object is the renderer for AtomTreeNodes.
  * <p/>
- * Note that each atom tree needs its own SchemaTreeRenderer.
+ * Note that each atom tree needs its own TreeRenderer.
  */
-public class SchemaTreeRenderer extends ColoredTreeCellRenderer {
+public class TreeRenderer extends ColoredTreeCellRenderer {
   @Override
   public void customizeCellRenderer(@NotNull JTree tree,
                                     Object value,
@@ -39,6 +40,6 @@ public class SchemaTreeRenderer extends ColoredTreeCellRenderer {
                                     boolean hasFocus) {
     assert (value != null && value instanceof DefaultMutableTreeNode);
     DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)value;
-    Render.object(treeNode.getUserObject(), this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    render(treeNode.getUserObject(), this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
   }
 }

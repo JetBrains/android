@@ -77,10 +77,6 @@ public final class ServiceClientRPC extends ServiceClient {
     return myExecutorService.submit(new ImportCaptureCallable(name, Data));
   }
   @Override
-  public ListenableFuture<Void> prerenderFramebuffers(DevicePath device, CapturePath capture, BinaryID api, int width, int height, long[] atomIndicies) {
-    return myExecutorService.submit(new PrerenderFramebuffersCallable(device, capture, api, width, height, atomIndicies));
-  }
-  @Override
   public ListenableFuture<Path> set(Path p, Object v) {
     return myExecutorService.submit(new SetCallable(p, v));
   }
@@ -203,24 +199,6 @@ public final class ServiceClientRPC extends ServiceClient {
     public CapturePath call() throws Exception {
       ResultImportCapture result = (ResultImportCapture)myBroadcaster.Send(myCall);
       return result.getValue();
-    }
-  }
-  private class PrerenderFramebuffersCallable implements Callable<Void> {
-    private final CallPrerenderFramebuffers myCall;
-
-    private PrerenderFramebuffersCallable(DevicePath device, CapturePath capture, BinaryID api, int width, int height, long[] atomIndicies) {
-      myCall = new CallPrerenderFramebuffers();
-      myCall.setDevice(device);
-      myCall.setCapture(capture);
-      myCall.setApi(api);
-      myCall.setWidth(width);
-      myCall.setHeight(height);
-      myCall.setAtomIndicies(atomIndicies);
-    }
-    @Override
-    public Void call() throws Exception {
-      myBroadcaster.Send(myCall);
-      return null;
     }
   }
   private class SetCallable implements Callable<Path> {
