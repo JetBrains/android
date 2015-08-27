@@ -15,27 +15,19 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.StateNodeData;
-import com.android.tools.idea.editors.gfxtrace.renderers.SchemaTreeRenderer;
+import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
-import com.android.tools.idea.editors.gfxtrace.service.path.*;
-import com.android.tools.rpclib.schema.Dynamic;
-import com.google.common.util.concurrent.Futures;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.SimpleTree;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
-import java.util.Map;
 
 public abstract class TreeController implements PathListener {
   @NotNull protected final GfxTraceEditor myEditor;
@@ -49,7 +41,7 @@ public abstract class TreeController implements PathListener {
     myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT);
     myTree.setRootVisible(false);
     myTree.setLineStyleAngled();
-    myTree.setCellRenderer(new SchemaTreeRenderer());
+    myTree.setCellRenderer(new TreeRenderer());
     myTree.getEmptyText().setText(emptyText);
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), editor.getProject());
     myLoadingPanel.add(myTree);

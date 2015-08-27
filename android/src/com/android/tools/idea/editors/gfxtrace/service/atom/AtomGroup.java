@@ -17,9 +17,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomNodeData;
 import com.android.tools.rpclib.binary.*;
-import com.android.tools.rpclib.schema.Render;
+import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
@@ -27,14 +26,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.IOException;
 
-public final class AtomGroup implements BinaryObject, Render.ToComponent {
+public final class AtomGroup implements BinaryObject {
   public boolean isValid() {
     return myRange.isValid();
-  }
-
-  @Override
-  public void render(@NotNull SimpleColoredComponent component, SimpleTextAttributes defaultAttributes) {
-    component.append(getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
 
   public void addChildren(@NotNull DefaultMutableTreeNode parent, @NotNull AtomList atoms) {
@@ -98,7 +92,6 @@ public final class AtomGroup implements BinaryObject, Render.ToComponent {
     Namespace.register(ID, Klass.INSTANCE);
   }
   public static void register() {}
-
   //<<<End:Java.ClassBody:1>>>
   public enum Klass implements BinaryClass {
     //<<<Start:Java.KlassBody:2>>>
