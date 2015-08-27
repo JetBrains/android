@@ -43,30 +43,14 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.util.*;
 
-public class AtomController implements PathListener {
+public class AtomController extends TreeController {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
-  @NotNull private final GfxTraceEditor myEditor;
-  @NotNull private final JBLoadingPanel myLoadingPanel;
-  @NotNull private final SimpleTree myTree;
   private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
   private boolean mDisableActivation = false;
 
   public AtomController(@NotNull GfxTraceEditor editor, @NotNull Project project, @NotNull JBScrollPane scrollPane) {
-    myEditor = editor;
-    myEditor.addPathListener(this);
-    scrollPane.getHorizontalScrollBar().setUnitIncrement(20);
-    scrollPane.getVerticalScrollBar().setUnitIncrement(20);
-    myTree = new SimpleTree();
-    myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT);
-    myTree.setRootVisible(false);
-    myTree.setLineStyleAngled();
-    myTree.getEmptyText().setText(GfxTraceEditor.SELECT_CAPTURE);
+    super(editor, scrollPane, GfxTraceEditor.SELECT_CAPTURE);
     myTree.setLargeModel(true); // Set some performance optimizations for large models.
-    myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT); // Make sure our rows are constant height.
-    myTree.setCellRenderer(new SchemaTreeRenderer());
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project);
-    myLoadingPanel.add(myTree);
-    scrollPane.setViewportView(myLoadingPanel);
     myTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
       public void valueChanged(TreeSelectionEvent treeSelectionEvent) {
@@ -82,11 +66,6 @@ public class AtomController implements PathListener {
       }
     });
 
-  }
-
-  @NotNull
-  public SimpleTree getTree() {
-    return myTree;
   }
 
   public void selectDeepestVisibleNode(long atomIndex) {
@@ -127,19 +106,7 @@ public class AtomController implements PathListener {
     }
   }
 
-  public void clear() {
-    myTree.setModel(null);
-  }
-
-  public void setRoot(DefaultMutableTreeNode root) {
-    assert(ApplicationManager.getApplication().isDispatchThread());
-    myTree.setModel(new DefaultTreeModel(root));
-    myLoadingPanel.stopLoading();
-    myLoadingPanel.revalidate();
-  }
-
-  @Override
-  public void notifyPath(Path path) {
+  @Override  public void notifyPath(Path path) {
     boolean updateAtoms = false;
     if (path instanceof CapturePath) {
       updateAtoms |= myAtomsPath.update(((CapturePath)path).atoms());
