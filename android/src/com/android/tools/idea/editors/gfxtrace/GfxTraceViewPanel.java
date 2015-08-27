@@ -121,6 +121,7 @@ public class GfxTraceViewPanel implements Disposable {
     middleSplitter.setMinimumSize(new Dimension(100, 10));
     middleSplitter.setFirstComponent(atomTreePanel);
     middleSplitter.setSecondComponent(bufferWrapper);
+    middleSplitter.setProportion(0.3f);
     myThreePanes.setInnerComponent(middleSplitter);
 
     // Configure the miscellaneous tabs.
@@ -151,6 +152,8 @@ public class GfxTraceViewPanel implements Disposable {
 
     // Make sure the bottom splitter honors minimum sizes.
     myThreePanes.setHonorComponentsMinimumSize(true);
+    myThreePanes.setFirstSize(150);
+    myThreePanes.setLastSize(300);
 
     myThreePanes.addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
       @Override
