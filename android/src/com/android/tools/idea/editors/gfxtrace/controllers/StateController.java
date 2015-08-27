@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.idea.editors.gfxtrace.service.path.StatePath;
 import com.android.tools.rpclib.schema.Dynamic;
+import com.android.tools.rpclib.schema.Field;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBScrollPane;
@@ -52,26 +53,35 @@ public class StateController extends TreeController {
   }
 
   @Nullable
-  private static DefaultMutableTreeNode constructStateNode(@Nullable Object key, @Nullable Object value) {
-    DefaultMutableTreeNode node = new DefaultMutableTreeNode();
-    Object render = value;
+  private static DefaultMutableTreeNode createNode(@Nullable Object key, @Nullable Object value) {
+    DefaultMutableTreeNode child = new DefaultMutableTreeNode();
+    fillNode(child, key, value);
+    if (child.getChildCount() == 0) {
+      child.setUserObject(new Node(key, value));
+    } else {
+      child.setUserObject(new Node(key, null));
+    }
+    return child;
+  }
+
+  private static void fillNode(@NotNull DefaultMutableTreeNode parent, @Nullable Object key, @Nullable Object value) {
     if (value instanceof Dynamic) {
-      render = null;
-      node.setUserObject(new Node(key, value));
       Dynamic dynamic = (Dynamic)value;
       for (int index = 0; index < dynamic.getFieldCount(); ++index) {
-        node.add(constructStateNode(dynamic.getFieldInfo(index), dynamic.getFieldValue(index)));
+        Field field = dynamic.getFieldInfo(index);
+        if (field.getDeclared().length() == 0) {
+          // embed anonymous fields directly into the parent
+          fillNode(parent, field, dynamic.getFieldValue(index));
+        } else {
+          parent.add(createNode(field, dynamic.getFieldValue(index)));
+        }
       }
     } else if (value instanceof Map) {
-      render = null;
-      node.setUserObject(new Node(key, value));
       Map<?,?> map = (Map)value;
       for (java.util.Map.Entry entry : map.entrySet()) {
-        node.add(constructStateNode(entry.getKey(), entry.getValue()));
+        parent.add(createNode(entry.getKey(), entry.getValue()));
       }
     }
-    node.setUserObject(new Node(key, render));
-    return node;
   }
 
   @Override
@@ -84,7 +94,7 @@ public class StateController extends TreeController {
       Futures.addCallback(myEditor.getClient().get(myStatePath.getPath()), new LoadingCallback<Object>(LOG, myLoadingPanel) {
         @Override
         public void onSuccess(@Nullable final Object state) {
-          final DefaultMutableTreeNode stateNode = constructStateNode("state", state);
+          final DefaultMutableTreeNode stateNode = createNode("state", state);
           EdtExecutor.INSTANCE.execute(new Runnable() {
             @Override
             public void run() {
