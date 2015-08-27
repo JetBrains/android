@@ -47,6 +47,7 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -128,6 +129,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JSeparator myKeyboardSeparator;
   private JSeparator myNetworkSeparator;
   private AvdConfigurationOptionHelpPanel myAvdConfigurationOptionHelpPanel;
+  private JBScrollPane myScrollPane;
 
   private PropertyChangeListener myFocusListener;
 
@@ -231,6 +233,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       }
     };
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myFocusListener);
+    myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
   }
 
   @Override
