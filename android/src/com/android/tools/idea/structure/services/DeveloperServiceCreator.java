@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.structure.services;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
@@ -148,7 +150,7 @@ public abstract class DeveloperServiceCreator {
   }
 
   @NotNull
-  private ServiceContext createContext(@NotNull Module module) {
+  private static ServiceContext createContext(@NotNull Module module) {
     ServiceContext context = new ServiceContext();
 
     String packageName = ManifestInfo.get(module, false).getPackage();
@@ -166,7 +168,7 @@ public abstract class DeveloperServiceCreator {
    * callback, as long as the initial callback doesn't throw an exception or return null.
    * The output of the initial callback will be fed as an argument into the dispatch callback.
    */
-  protected final <T> void runInBackground(@NotNull final Callable<T> backgroundAction, @Nullable final Dispatchable<T> dispatchAfter) {
+  protected static <T> void runInBackground(@NotNull final Callable<T> backgroundAction, @Nullable final Dispatchable<T> dispatchAfter) {
     final Application application = ApplicationManager.getApplication();
     application.executeOnPooledThread(new Runnable() {
       @Override
@@ -186,11 +188,28 @@ public abstract class DeveloperServiceCreator {
   }
 
   /**
-   * Convenience method to open a target ULR in a browser window.
+   * Convenience method to open a target URL in a browser window.
    */
-  protected final void browse(@NotNull String url) {
+  protected static void browse(@NotNull String url) {
     BrowserUtil.browse(url);
   }
+
+  /**
+   * Given a maven group ID and artifact ID, e.g. "com.google.android.gms" and "play-services",
+   * return the highest version we know about, or {@code null} if we can't resolve the passed in
+   * IDs.
+   *
+   * Note that this method currently only checks local repositories and does not do a network
+   * fetch as part of resolving the highest version.
+   *
+   * TODO: Add network fetch as an option if necessary.
+   */
+  @Nullable
+  protected static String getHighestVersion(@NotNull String groupId, @NotNull String artifactId) {
+    GradleCoordinate gradleCoordinate = new GradleCoordinate(groupId, artifactId, GradleCoordinate.PLUS_REV);
+    return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(gradleCoordinate, null);
+  }
+
 
   /**
    * Returns the root path that all resource paths returned by {@link #getResources()} live under.
