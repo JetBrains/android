@@ -66,12 +66,15 @@ public class DeviceRenderer {
 
     component.append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES);
 
-    if (d.getState() != IDevice.DeviceState.ONLINE) {
+    IDevice.DeviceState deviceState = d.getState();
+    if (deviceState != IDevice.DeviceState.ONLINE) {
       String state = String.format("%1$s [%2$s] ", d.getSerialNumber(), d.getState());
       component.append(state, SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
     }
 
-    component.append(DevicePropertyUtil.getBuild(d), SimpleTextAttributes.GRAY_ATTRIBUTES);
+    if (deviceState != IDevice.DeviceState.DISCONNECTED && deviceState != IDevice.DeviceState.OFFLINE) {
+      component.append(DevicePropertyUtil.getBuild(d), SimpleTextAttributes.GRAY_ATTRIBUTES);
+    }
   }
 
   private static void renderCloudDeviceName(IDevice device, ColoredTextContainer component,
