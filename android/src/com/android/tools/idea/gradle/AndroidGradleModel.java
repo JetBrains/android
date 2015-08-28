@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.ImmutableList;
@@ -977,5 +979,10 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   public SourceProvider getVariantSourceProvider() {
     AndroidArtifact mainArtifact = getMainArtifact();
     return mainArtifact.getVariantSourceProvider();
+  }
+
+  @Override
+  public boolean getDataBindingEnabled() {
+    return GradleUtil.dependsOn(this, SdkConstants.DATA_BINDING_LIB_ARTIFACT);
   }
 }
