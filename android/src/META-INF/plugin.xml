@@ -195,6 +195,7 @@
     <action class="com.android.tools.idea.actions.AndroidShowThemeEditor" id="Android.ShowThemeEditor">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
+    <action id="SendFeedback" class="com.android.tools.idea.actions.SendFeedbackAction" overrides="true"/>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
