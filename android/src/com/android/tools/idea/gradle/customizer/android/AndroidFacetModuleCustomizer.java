@@ -97,7 +97,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<AndroidGra
     facetState.ASSETS_FOLDER_RELATIVE_PATH = relativePath(moduleDirPath, assetsDirs);
 
     facet.setAndroidModel(androidModel);
-    facet.syncSelectedVariantAndTestArtifact();
+    androidModel.syncSelectedVariantAndTestArtifact(facet);
   }
 
   private static void syncSelectedVariantAndTestArtifact(@NotNull JpsAndroidModuleProperties facetState,

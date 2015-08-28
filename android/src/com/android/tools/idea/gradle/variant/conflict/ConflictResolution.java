@@ -85,7 +85,7 @@ public final class ConflictResolution {
       String expectedVariant = getFirstItem(variants);
       if (isNotEmpty(expectedVariant)) {
         source.setSelectedVariantName(expectedVariant);
-        facet.syncSelectedVariantAndTestArtifact();
+        source.syncSelectedVariantAndTestArtifact(facet);
         return true;
       }
     }
@@ -95,7 +95,7 @@ public final class ConflictResolution {
         String selectedVariant = dialog.getSelectedVariant();
         if (isNotEmpty(selectedVariant)) {
           source.setSelectedVariantName(selectedVariant);
-          facet.syncSelectedVariantAndTestArtifact();
+          source.syncSelectedVariantAndTestArtifact(facet);
           return true;
         }
       }
