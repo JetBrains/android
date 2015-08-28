@@ -17,11 +17,14 @@ package com.android.tools.idea.templates;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.google.common.io.Files;
+import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -35,12 +38,13 @@ public class RepositoryUrlManagerTest extends TestCase {
   private AndroidSdkData mockSdkData;
   private String myFileText;
   private boolean myFileExists = true;
+  private File mSdkDir;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mockSdkData = mock(AndroidSdkData.class);
-    when(mockSdkData.getLocation()).thenReturn(new File("<SDK_DIR>"));
+    when(mockSdkData.getLocation()).thenReturn(getMockSupportLibraryInstallation());
 
     myRepositoryUrlManager = new RepositoryUrlManager() {
       @Nullable
@@ -60,6 +64,79 @@ public class RepositoryUrlManagerTest extends TestCase {
         return myFileExists;
       }
     };
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+
+    if (mSdkDir != null) {
+      FileUtil.delete(mSdkDir);
+      mSdkDir = null;
+    }
+  }
+
+  /** Creates a mock SDK installation structure, containing a fixed set of dependencies */
+  private File getMockSupportLibraryInstallation() {
+    if (mSdkDir == null) {
+      // Make fake SDK "installation" such that we can predict the set
+      // of Maven repositories discovered by this test
+      mSdkDir = Files.createTempDir();
+
+      String[] paths = new String[]{
+        // Android repository
+        "extras/android/m2repository/com/android/support/appcompat-v7/18.0.0/appcompat-v7-18.0.0.aar",
+        "extras/android/m2repository/com/android/support/appcompat-v7/19.0.0/appcompat-v7-19.0.0.aar",
+        "extras/android/m2repository/com/android/support/appcompat-v7/19.0.1/appcompat-v7-19.0.1.aar",
+        "extras/android/m2repository/com/android/support/appcompat-v7/19.1.0/appcompat-v7-19.1.0.aar",
+        "extras/android/m2repository/com/android/support/appcompat-v7/20.0.0/appcompat-v7-20.0.0.aar",
+        "extras/android/m2repository/com/android/support/appcompat-v7/21.0.0/appcompat-v7-21.0.0.aar",
+        "extras/android/m2repository/com/android/support/appcompat-v7/21.0.2/appcompat-v7-21.0.2.aar",
+        "extras/android/m2repository/com/android/support/cardview-v7/21.0.0/cardview-v7-21.0.0.aar",
+        "extras/android/m2repository/com/android/support/cardview-v7/21.0.2/cardview-v7-21.0.2.aar",
+        "extras/android/m2repository/com/android/support/support-v13/20.0.0/support-v13-20.0.0.aar",
+        "extras/android/m2repository/com/android/support/support-v13/21.0.0/support-v13-21.0.0.aar",
+        "extras/android/m2repository/com/android/support/support-v13/21.0.2/support-v13-21.0.2.aar",
+        "extras/android/m2repository/com/android/support/support-v4/20.0.0/support-v4-20.0.0.aar",
+        "extras/android/m2repository/com/android/support/support-v4/21.0.0/support-v4-21.0.0.aar",
+        "extras/android/m2repository/com/android/support/support-v4/21.0.2/support-v4-21.0.2.aar",
+
+        // Google repository
+        "extras/google/m2repository/com/google/android/gms/play-services/3.1.36/play-services-3.1.36.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services/3.1.59/play-services-3.1.59.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services/3.2.25/play-services-3.2.25.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services/3.2.65/play-services-3.2.65.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services/4.0.30/play-services-4.0.30.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services/4.1.32/play-services-4.1.32.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services/4.2.42/play-services-4.2.42.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services/4.3.23/play-services-4.3.23.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services/4.4.52/play-services-4.4.52.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services/5.0.89/play-services-5.0.89.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services/6.1.11/play-services-6.1.11.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services/6.1.71/play-services-6.1.71.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services-wearable/5.0.77/play-services-wearable-5.0.77.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services-wearable/6.1.11/play-services-wearable-6.1.11.aar",
+        "extras/google/m2repository/com/google/android/gms/play-services-wearable/6.1.71/play-services-wearable-6.1.71.aar",
+        "extras/google/m2repository/com/google/android/support/wearable/1.0.0/wearable-1.0.0.aar"
+      };
+
+      for (String path : paths) {
+        File file = new File(mSdkDir, path.replace('/', File.separatorChar));
+        File parent = file.getParentFile();
+        if (!parent.exists()) {
+          boolean ok = parent.mkdirs();
+          assertTrue(ok);
+        }
+        try {
+          boolean created = file.createNewFile();
+          assertTrue(created);
+        } catch (IOException e) {
+          fail(e.toString());
+        }
+      }
+    }
+
+    return mSdkDir;
   }
 
   public void testGetLibraryCoordinate() throws Exception {
@@ -125,20 +202,53 @@ public class RepositoryUrlManagerTest extends TestCase {
     // Check support library
     GradleCoordinate supportCoordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:18.3.1");
     assertNotNull(supportCoordinate);
-    File expectedFile = new File("<SDK_DIR>/extras/android/m2repository/com/android/support/support-v4/18.3.1/support-v4-18.3.1.jar");
+    File expectedFile = new File(getMockSupportLibraryInstallation().getPath()
+                                 + "/extras/android/m2repository/com/android/support/support-v4/18.3.1/support-v4-18.3.1.jar"
+                                   .replace('/', File.separatorChar));
     assertEquals(expectedFile, myRepositoryUrlManager.getArchiveForCoordinate(supportCoordinate));
 
     // Check AppCompat
     GradleCoordinate appcompatCoordinate = GradleCoordinate.parseCoordinateString("com.android.support:appcompat-v7:19.0.1");
     assertNotNull(appcompatCoordinate);
-    expectedFile = new File("<SDK_DIR>/extras/android/m2repository/com/android/support/appcompat-v7/19.0.1/appcompat-v7-19.0.1.aar");
+    expectedFile = new File(getMockSupportLibraryInstallation().getPath()
+                            + "/extras/android/m2repository/com/android/support/appcompat-v7/19.0.1/appcompat-v7-19.0.1.aar"
+                              .replace('/', File.separatorChar));
     assertEquals(expectedFile, myRepositoryUrlManager.getArchiveForCoordinate(appcompatCoordinate));
 
     // Check PlayServices
     GradleCoordinate playservicesCoordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.1.32");
     assertNotNull(playservicesCoordinate);
-    expectedFile = new File("<SDK_DIR>/extras/google/m2repository/com/google/android/gms/play-services/4.1.32/play-services-4.1.32.aar");
+    expectedFile = new File(getMockSupportLibraryInstallation().getPath()
+                            + "/extras/google/m2repository/com/google/android/gms/play-services/4.1.32/play-services-4.1.32.aar"
+                              .replace('/', File.separatorChar));
     assertEquals(expectedFile, myRepositoryUrlManager.getArchiveForCoordinate(playservicesCoordinate));
+  }
+
+  public void testResolvedCoordinate() throws Exception {
+    // Check null SDK
+    AndroidSdkData oldMockSdk = mockSdkData;
+    mockSdkData = null;
+    assertNull(myRepositoryUrlManager.getArchiveForCoordinate(mock(GradleCoordinate.class)));
+    mockSdkData = oldMockSdk;
+
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+");
+    assertNotNull(coordinate);
+    assertEquals("4.4.52", myRepositoryUrlManager.resolveDynamicCoordinateVersion(coordinate, null));
+    assertEquals(GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.4.52"),
+                 myRepositoryUrlManager.resolveDynamicCoordinate(coordinate, null));
+
+    coordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:+");
+    assertNotNull(coordinate);
+    assertEquals("21.0.2", myRepositoryUrlManager.resolveDynamicCoordinateVersion(coordinate, null));
+
+    // Make sure already resolved coordinates are handled correctly
+    coordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:1.2.3");
+    assertNotNull(coordinate);
+    assertEquals("1.2.3", myRepositoryUrlManager.resolveDynamicCoordinateVersion(coordinate, null));
+
+    coordinate = GradleCoordinate.parseCoordinateString("my.group.id:my.bogus.artifact:+");
+    assertNotNull(coordinate);
+    assertNull(myRepositoryUrlManager.resolveDynamicCoordinateVersion(coordinate, null));
   }
 
   public void testSupports() throws Exception {

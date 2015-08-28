@@ -853,68 +853,7 @@ public class AndroidLintInspectionToolProvider {
             @Nullable
             @Override
             protected String getNewValue() {
-              String filter = plus.getFullRevision();
-              assert filter.endsWith("+") : filter;
-              filter = filter.substring(0, filter.length() - 1);
-
-              // If this coordinate points to an artifact in one of our repositories, mark it will a comment if they don't
-              // have that repository available.
-
-              RepositoryUrlManager manager = RepositoryUrlManager.get();
-              String libraryCoordinate = manager
-                .getLibraryCoordinate(plus.getGroupId(), plus.getArtifactId(), filter, false);
-              if (libraryCoordinate != null) {
-                return libraryCoordinate;
-              }
-              // If that didn't yield any matches, try again, this time allowing preview platforms.
-              // This is necessary if the artifact filter includes enough of a version where there are
-              // only preview matches.
-              libraryCoordinate = manager.getLibraryCoordinate(plus.getGroupId(), plus.getArtifactId(), filter, true);
-              if (libraryCoordinate != null) {
-                return libraryCoordinate;
-              }
-
-              // Obsolete; remove in 1.4
-              String artifactId = plus.getArtifactId();
-              if (RepositoryUrlManager.supports(plus.getArtifactId())) {
-                // First look for matches, where we don't allow preview versions
-                libraryCoordinate = manager.getLibraryCoordinate(artifactId, filter, false);
-                if (libraryCoordinate != null) {
-                  GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
-                  if (available != null) {
-                    return available.getFullRevision();
-                  }
-                }
-                // If that didn't yield any matches, try again, this time allowing preview platforms.
-                // This is necessary if the artifact filter includes enough of a version where there are
-                // only preview matches.
-                libraryCoordinate = manager.getLibraryCoordinate(artifactId, filter, true);
-                if (libraryCoordinate != null) {
-                  GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
-                  if (available != null) {
-                    return available.toString();
-                  }
-                }
-              }
-
-              // Regular Gradle dependency? Look in Gradle cache
-              Project project = startElement.getProject();
-              GradleCoordinate found = GradleUtil.findLatestVersionInGradleCache(plus, filter, project);
-              if (found != null) {
-                return found.getFullRevision();
-              }
-
-              // Perform network lookup to resolve current best version, if possible
-              LintClient client = new IntellijLintClient(project);
-              PreciseRevision latest = GradleDetector.getLatestVersionFromRemoteRepo(client, plus, plus.isPreview());
-              if (latest != null) {
-                String version = latest.toShortString();
-                if (version.startsWith(filter)) {
-                  return version;
-                }
-              }
-
-              return null;
+              return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(plus, startElement.getProject());
             }
           }};
         }
