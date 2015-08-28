@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.*;
 import com.google.common.base.Splitter;
@@ -366,33 +367,20 @@ public class IntellijLintUtils {
   @NotNull
   public static List<File> getResourceDirectories(@NotNull AndroidFacet facet) {
     if (facet.requiresAndroidModel()) {
-      List<File> resDirectories = new ArrayList<File>();
-      resDirectories.addAll(facet.getMainSourceProvider().getResDirectories());
-      List<SourceProvider> flavorSourceProviders = facet.getFlavorSourceProviders();
-      if (flavorSourceProviders != null) {
-        for (SourceProvider provider : flavorSourceProviders) {
+      AndroidModel androidModel = facet.getAndroidModel();
+      if (androidModel != null) {
+        List<File> resDirectories = new ArrayList<File>();
+        List<SourceProvider> sourceProviders = androidModel.getActiveSourceProviders();
+        for (SourceProvider provider : sourceProviders) {
           for (File file : provider.getResDirectories()) {
             if (file.isDirectory()) {
               resDirectories.add(file);
             }
           }
         }
+        return resDirectories;
       }
-
-      SourceProvider buildTypeSourceProvider = facet.getBuildTypeSourceProvider();
-      if (buildTypeSourceProvider != null) {
-        for (File file : buildTypeSourceProvider.getResDirectories()) {
-          if (file.isDirectory()) {
-            resDirectories.add(file);
-          }
-        }
-      }
-
-      return resDirectories;
-    } else {
-      return new ArrayList<File>(facet.getMainSourceProvider().getResDirectories());
     }
+    return new ArrayList<File>(facet.getMainSourceProvider().getResDirectories());
   }
-
-
 }

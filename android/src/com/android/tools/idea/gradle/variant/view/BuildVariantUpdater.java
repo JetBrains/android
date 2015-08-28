@@ -101,7 +101,7 @@ class BuildVariantUpdater {
 
           if (!androidModel.getSelectedTestArtifactName().equals(testArtifactName)) {
             androidModel.setSelectedTestArtifactName(testArtifactName);
-            androidFacet.syncSelectedVariantAndTestArtifact();
+            androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
             invokeCustomizers(androidFacet.getModule(), androidModel);
             affectedFacets.add(androidFacet);
           }
@@ -154,7 +154,7 @@ class BuildVariantUpdater {
       return false;
     }
     androidModel.setSelectedVariantName(variantToSelect);
-    androidFacet.syncSelectedVariantAndTestArtifact();
+    androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
     Module module = invokeCustomizers(androidFacet.getModule(), androidModel);
 
     selectedVariant = androidModel.getSelectedVariant();
