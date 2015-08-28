@@ -26,6 +26,7 @@ import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
 import com.android.tools.rpclib.binary.Namespace;
 
+import java.awt.*;
 import java.io.IOException;
 
 public final class ResourcePath extends Path {
@@ -34,6 +35,9 @@ public final class ResourcePath extends Path {
     return myAfter.stringPath(builder).append(".Resource<").append(myID).append(">");
   }
 
+  public ThumbnailPath thumbnail(Dimension dimension) {
+    return new ThumbnailPath().setObject(this).setDesiredWidth(dimension.width).setDesiredHeight(dimension.height);
+  }
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;
   private AtomPath myAfter;

@@ -62,8 +62,16 @@ public abstract class ServiceClient {
     return transform(get((Path)p), new FutureCast<ImageInfo>());
   }
 
+  public ListenableFuture<ImageInfo> get(ThumbnailPath p) {
+    return transform(get((Path)p), new FutureCast<ImageInfo>());
+  }
+
   public ListenableFuture<byte[]> get(BlobPath p) {
     return transform(get((Path)p), new FutureCast<byte[]>());
+  }
+
+  public ListenableFuture<Resources> get(ResourcesPath p) {
+    return transform(get((Path)p), new FutureCast<Resources>());
   }
 
   static class FutureCast<T> implements Function<Object, T> {

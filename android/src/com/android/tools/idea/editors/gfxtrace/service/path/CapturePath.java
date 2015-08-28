@@ -36,6 +36,11 @@ public final class CapturePath extends Path {
     return new HierarchyPath().setCapture(this);
   }
 
+  public ResourcesPath resources() {
+    return new ResourcesPath().setCapture(this);
+  }
+
+
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;
 
