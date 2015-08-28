@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.StatusText;
@@ -54,6 +58,7 @@ public abstract class CellController<T extends CellController.Data> implements P
     }
   }
 
+  @NotNull private static final Logger LOG = Logger.getInstance(CellController.class);
   @NotNull protected final GfxTraceEditor myEditor;
   @NotNull protected final JBScrollPane myPane;
   @NotNull protected final JBList myList;
@@ -107,13 +112,25 @@ public abstract class CellController<T extends CellController.Data> implements P
     return loadCell((T)cell);
   }
 
-  protected void loaded(@NotNull T cell, @NotNull ImageIcon icon) {
-    cell.icon = icon;
-    cell.stopLoading();
-    if (myRenderer.updateKnownSize(new Dimension(icon.getIconWidth(), icon.getIconHeight()))) {
-      resize(myRenderer.getCellDimensions());
-    }
-    myList.repaint();
+  public void loadCellImage(final Data cell, final ServiceClient client, final Path imagePath) {
+    Futures.addCallback(FetchedImage.load(client, imagePath), new LoadingCallback<FetchedImage>(LOG, cell) {
+      @Override
+      public void onSuccess(FetchedImage fetchedImage) {
+        final ImageIcon icon = fetchedImage.createImageIcon();
+        EdtExecutor.INSTANCE.execute(new Runnable() {
+          @Override
+          public void run() {
+            // Back in the UI thread here
+            cell.icon = icon;
+            cell.stopLoading();
+            if (myRenderer.updateKnownSize(new Dimension(icon.getIconWidth(), icon.getIconHeight()))) {
+              resize(myRenderer.getCellDimensions());
+            }
+            myList.repaint();
+          }
+        });
+      }
+    });
   }
 
   public void selectItem(int index) {

@@ -74,25 +74,7 @@ public class ScrubberController extends CellController<ScrubberController.Data> 
     Futures.addCallback(imagePathF, new LoadingCallback<ImageInfoPath>(LOG, cell) {
       @Override
       public void onSuccess(@Nullable final ImageInfoPath imagePath) {
-        Futures.addCallback(client.get(imagePath), new LoadingCallback<ImageInfo>(LOG, cell) {
-          @Override
-          public void onSuccess(@Nullable final ImageInfo imageInfo) {
-            Futures.addCallback(client.get(imageInfo.getData()), new LoadingCallback<byte[]>(LOG, cell) {
-              @Override
-              public void onSuccess(@Nullable final byte[] data) {
-                final FetchedImage fetchedImage = new FetchedImage(imageInfo, data);
-                final ImageIcon image = fetchedImage.createImageIcon();
-                EdtExecutor.INSTANCE.execute(new Runnable() {
-                  @Override
-                  public void run() {
-                    // Back in the UI thread here
-                    loaded(cell, image);
-                  }
-                });
-              }
-            });
-          }
-        });
+        loadCellImage(cell, client, imagePath);
       }
     });
     return true;

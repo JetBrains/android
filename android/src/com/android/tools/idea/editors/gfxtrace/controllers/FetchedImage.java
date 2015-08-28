@@ -15,10 +15,20 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.image.FmtFloat32;
 import com.android.tools.idea.editors.gfxtrace.service.image.FmtRGBA;
 import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
+import com.android.tools.idea.editors.gfxtrace.service.path.AsPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,9 +39,44 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class FetchedImage {
+  @NotNull private static final Logger LOG = Logger.getInstance(FetchedImage.class);
   @NotNull private final ImageInfo myImageInfo;
   @NotNull private final byte[] myData;
   @NotNull private final DepthConversionMode myDepthConversionMode = DepthConversionMode.GO_CLIENT;
+
+  public static ListenableFuture<FetchedImage> load(final ServiceClient client, final Path imagePath) {
+    final SettableFuture<FetchedImage> result = SettableFuture.create();
+    Futures.addCallback(client.get(imagePath), new LoadingCallback<Object>(LOG) {
+      @Override
+      public void onSuccess(@Nullable final Object object) {
+        assert (object instanceof ImageInfo);
+        final ImageInfo imageInfo = (ImageInfo)object;
+        if (imageInfo.getFormat() instanceof FmtRGBA) {
+          doLoad(client, imageInfo, result);
+        } else {
+          final AsPath asPath = new AsPath().setObject(imagePath).setType(new FmtRGBA());
+          Futures.addCallback(client.get(asPath), new LoadingCallback<Object>(LOG) {
+            @Override
+            public void onSuccess(@Nullable final Object object) {
+              assert (object instanceof ImageInfo);
+              final ImageInfo imageInfo = (ImageInfo)object;
+              doLoad(client, imageInfo, result);
+            }
+          });
+        }
+      }
+    });
+    return result;
+  }
+
+  private static void doLoad(final ServiceClient client, final ImageInfo imageInfo, final SettableFuture<FetchedImage> result) {
+    Futures.addCallback(client.get(imageInfo.getData()), new LoadingCallback<byte[]>(LOG) {
+      @Override
+      public void onSuccess(@Nullable final byte[] data) {
+        result.set(new FetchedImage(imageInfo, data));
+      }
+    });
+  }
 
   public FetchedImage(@NotNull ImageInfo imageInfo, @NotNull byte[] data) {
     myImageInfo = imageInfo;
