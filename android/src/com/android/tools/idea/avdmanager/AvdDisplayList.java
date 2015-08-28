@@ -116,8 +116,11 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     ActionMap am = myTable.getActionMap();
     am.put("selectPreviousColumnCell", new CycleAction(true));
     am.put("selectNextColumnCell", new CycleAction(false));
+    am.put("deleteAvd", new DeleteAvdAction(this));
     myTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
     myTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "enter");
+    myTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deleteAvd");
+    myTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "deleteAvd");
     am.put("enter", new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
