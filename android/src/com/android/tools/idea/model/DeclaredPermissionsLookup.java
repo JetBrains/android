@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.AndroidLibrary;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
@@ -375,8 +376,9 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
             myManifests.add(getManifestPermissions(manifest));
           }
         }
-        if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
-          Collection<AndroidLibrary> libraries = myFacet.getAndroidModel().getMainArtifact().getDependencies().getLibraries();
+        AndroidGradleModel androidGradleModel = AndroidGradleModel.get(myFacet);
+        if (androidGradleModel != null) {
+          Collection<AndroidLibrary> libraries = androidGradleModel.getMainArtifact().getDependencies().getLibraries();
           myLibraries = Lists.newArrayList();
           for (AndroidLibrary library : libraries) {
             myLibraries.add(getLibraryPermissions(library));
