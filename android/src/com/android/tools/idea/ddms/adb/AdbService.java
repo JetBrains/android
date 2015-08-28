@@ -67,6 +67,8 @@ public class AdbService implements Disposable {
   private AdbService() {
     DdmPreferences.setLogLevel(Log.LogLevel.INFO.getStringValue());
     DdmPreferences.setTimeOut(AndroidUtils.TIMEOUT);
+
+    Log.setLogOutput(new AdbLogOutput());
   }
 
   @Override
