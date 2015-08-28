@@ -36,6 +36,7 @@ public final class Render {
     if (value instanceof Dynamic) {               render((Dynamic)value, component, attributes); return; }
     if (value instanceof Field) {                 render((Field)value, component, attributes); return; }
     if (value instanceof StateController.Node) {  render((StateController.Node)value, component, attributes); return; }
+    if (value instanceof StateController.Typed) { render((StateController.Typed)value, component, attributes); return; }
     if (value instanceof AtomController.Node) {   render((AtomController.Node)value, component, attributes); return; }
     if (value instanceof AtomController.Memory) { render((AtomController.Memory)value, component, attributes); return; }
     if (value instanceof AtomGroup) {             render((AtomGroup)value, component, attributes); return; }
@@ -66,12 +67,12 @@ public final class Render {
     }
     if (node.value != null) {
       component.append(": ", attributes);
-      if (node.key instanceof Field) {
-        render(node.value, ((Field)node.key).getType(), component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
-      } else {
-        render(node.value, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
-      }
+      render(node.value, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
     }
+  }
+
+  public static void render(@NotNull StateController.Typed typed, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+    render(typed.value, typed.type, component, attributes);
   }
 
   public static void render(@NotNull AtomController.Node node, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {

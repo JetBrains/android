@@ -24,6 +24,8 @@ import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.idea.editors.gfxtrace.service.path.StatePath;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
+import com.android.tools.rpclib.schema.Type;
+import com.android.tools.rpclib.schema.Map;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBScrollPane;
@@ -31,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import java.util.Map;
 
 public class StateController extends TreeController {
   @NotNull private static final Logger LOG = Logger.getInstance(StateController.class);
@@ -42,24 +43,36 @@ public class StateController extends TreeController {
     super(editor, scrollPane, GfxTraceEditor.SELECT_ATOM);
   }
 
-  public static class Node {
-    public final Object key;
-    public final Object value;
+  public static class Typed {
+    @NotNull public final Type type;
+    @NotNull public final Object value;
 
-    public Node(Object key, Object value) {
+    public Typed(@NotNull Type type, @NotNull Object value) {
+      this.type = type;
+      this.value = value;
+    }
+  }
+
+  public static class Node {
+    @Nullable public final Object key;
+    @Nullable public final Object value;
+
+    public Node(@Nullable Object key, @Nullable Object value) {
       this.key = key;
       this.value = value;
     }
   }
 
   @Nullable
-  private static DefaultMutableTreeNode createNode(@Nullable Object key, @Nullable Object value) {
+  private static DefaultMutableTreeNode createNode(@Nullable Object key, @Nullable Type type, @Nullable Object value) {
     DefaultMutableTreeNode child = new DefaultMutableTreeNode();
     fillNode(child, key, value);
-    if (child.getChildCount() == 0) {
-      child.setUserObject(new Node(key, value));
-    } else {
+    if (child.getChildCount() != 0) {
       child.setUserObject(new Node(key, null));
+    } else if ((type != null) && (value!=null)) {
+      child.setUserObject(new Node(key, new Typed(type, value)));
+    } else  {
+      child.setUserObject(new Node(key, value));
     }
     return child;
   }
@@ -73,13 +86,17 @@ public class StateController extends TreeController {
           // embed anonymous fields directly into the parent
           fillNode(parent, field, dynamic.getFieldValue(index));
         } else {
-          parent.add(createNode(field, dynamic.getFieldValue(index)));
+          parent.add(createNode(field, field.getType(), dynamic.getFieldValue(index)));
         }
       }
-    } else if (value instanceof Map) {
-      Map<?,?> map = (Map)value;
-      for (java.util.Map.Entry entry : map.entrySet()) {
-        parent.add(createNode(entry.getKey(), entry.getValue()));
+    } else if (key instanceof Field) {
+      Field field = (Field)key;
+      if (field.getType() instanceof Map) {
+        assert (value instanceof java.util.Map);
+        Map map = (Map)field.getType();
+        for (java.util.Map.Entry entry : ((java.util.Map<?, ?>)value).entrySet()) {
+          parent.add(createNode(new Typed(map.getKeyType(), entry.getKey()), map.getValueType(), entry.getValue()));
+        }
       }
     }
   }
@@ -94,7 +111,7 @@ public class StateController extends TreeController {
       Futures.addCallback(myEditor.getClient().get(myStatePath.getPath()), new LoadingCallback<Object>(LOG, myLoadingPanel) {
         @Override
         public void onSuccess(@Nullable final Object state) {
-          final DefaultMutableTreeNode stateNode = createNode("state", state);
+          final DefaultMutableTreeNode stateNode = createNode("state", null, state);
           EdtExecutor.INSTANCE.execute(new Runnable() {
             @Override
             public void run() {
