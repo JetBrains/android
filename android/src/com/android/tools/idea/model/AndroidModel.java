@@ -148,4 +148,9 @@ public interface AndroidModel {
   @Deprecated
   @NotNull
   VirtualFile getRootDir();
+
+  /**
+   * @return Whether data binding is enabled for this model
+   */
+  boolean getDataBindingEnabled();
 }
