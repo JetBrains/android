@@ -33,6 +33,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -190,26 +191,30 @@ public class SdkQuickfixWizard extends DynamicWizard {
       }
     }
     return result;
-
   }
 
   @Override
   public void performFinishingActions() {
     List<IPkgDesc> skipped = myState.get(SKIPPED_INSTALL_REQUESTS_KEY);
     if (skipped != null && !skipped.isEmpty()) {
-      StringBuilder warningBuilder = new StringBuilder("The following packages were not installed.\n\n Would you like to exit ");
+      final StringBuilder warningBuilder = new StringBuilder("The following packages were not installed.\n\n Would you like to exit ");
       warningBuilder.append(ApplicationNamesInfo.getInstance().getFullProductName());
       warningBuilder.append(" and install the following packages using the standalone SDK manager?");
       for (IPkgDesc problemPkg : skipped) {
         warningBuilder.append("\n");
         warningBuilder.append(problemPkg.getListDescription());
       }
-      String restartOption = String.format("Exit %s and launch SDK Manager", ApplicationNamesInfo.getInstance().getProductName());
-      int result = Messages.showDialog(getProject(), warningBuilder.toString(), "Warning", new String[]{restartOption, "Skip installation"},
-                                       0, AllIcons.General.Warning);
-      if (result == 0) {
-        startSdkManagerAndExit();
-      }
+      UIUtil.invokeLaterIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          String restartOption = String.format("Exit %s and launch SDK Manager", ApplicationNamesInfo.getInstance().getProductName());
+          int result = Messages
+            .showDialog(getProject(), warningBuilder.toString(), "Warning", new String[]{restartOption, "Skip installation"}, 0, AllIcons.General.Warning);
+          if (result == 0) {
+            startSdkManagerAndExit();
+          }
+        }
+      });
     }
     // We've already installed things, so clearly there's an SDK.
     AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
