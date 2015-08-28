@@ -37,6 +37,9 @@ public class PushFileToDeviceAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
+    if (FastDeployManager.DISPLAY_STATISTICS) {
+      FastDeployManager.notifyBegin();
+    }
     Module module = e.getData(LangDataKeys.MODULE);
     VirtualFile file = e.getData(CommonDataKeys.VIRTUAL_FILE);
     if (module != null && file != null) {
