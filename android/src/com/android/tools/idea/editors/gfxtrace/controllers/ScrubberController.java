@@ -105,7 +105,6 @@ public class ScrubberController implements PathListener {
 
   public void notifyDimensionChanged(@NotNull Dimension newDimension) {
     resize(newDimension);
-    myEditor.notifyDimensionChanged(newDimension);
   }
 
   public void populateUi(@NotNull List<ScrubberLabelData> cells) {

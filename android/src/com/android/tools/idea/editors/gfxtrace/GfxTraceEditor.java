@@ -40,6 +40,7 @@ import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -70,19 +71,13 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private static final int SERVER_LAUNCH_SLEEP_INCREMENT_MS = 10;
 
   @NotNull private final Project myProject;
-  @NotNull private final GfxTraceViewPanel myView;
+  @NotNull private GfxTraceViewPanel myView;
   @NotNull private final ListeningExecutorService myExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
   private Process myServerProcess;
   private Socket myServerSocket;
   @NotNull private ServiceClient myClient;
 
   @NotNull private List<PathListener> myPathListeners = new ArrayList<PathListener>();
-  private ContextController myContextController;
-  private AtomController myAtomController;
-  private ScrubberController myScrubberController;
-  private FrameBufferController myFrameBufferController;
-  private StateController myStateController;
-  private DocumentationController myDocumentationController;
 
   public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
     myProject = project;
@@ -155,20 +150,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           return;
         }
 
-        myContextController = new ContextController(GfxTraceEditor.this);
-        myAtomController = new AtomController(GfxTraceEditor.this, project, myView.getAtomScrollPane());
-        myScrubberController = new ScrubberController(GfxTraceEditor.this, myView.getScrubberScrollPane(), myView.getScrubberList());
-        myFrameBufferController =
-          new FrameBufferController(GfxTraceEditor.this, myView.getColorScrollPane(), myView.getWireframeScrollPane(),
-                                    myView.getDepthScrollPane());
-        myStateController = new StateController(GfxTraceEditor.this, myView.getStateScrollPane());
-        // TODO: Rewrite to use IntelliJ documentation view.
-        myDocumentationController = new DocumentationController(GfxTraceEditor.this, myView.getDocsTextPane());
-
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
-            myView.finalizeUi(myProject, myContextController.getContextAction());
+            myView.finalizeUi(GfxTraceEditor.this);
+            Disposer.register(GfxTraceEditor.this, myView);
           }
         });
       }
@@ -213,10 +199,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   public void addPathListener(@NotNull PathListener listener) {
     myPathListeners.add(listener);
-  }
-
-  public void notifyDimensionChanged(@NotNull Dimension newDimension) {
-    myView.resize();
   }
 
   @NotNull
@@ -290,6 +272,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public void dispose() {
+    myView = null;
     shutdown();
   }
 

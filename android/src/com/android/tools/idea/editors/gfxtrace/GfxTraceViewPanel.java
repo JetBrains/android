@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
+import com.android.tools.idea.editors.gfxtrace.controllers.*;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
@@ -42,29 +44,18 @@ public class GfxTraceViewPanel implements Disposable {
 
   @NotNull private LoadingDecorator myLoadingDecorator;
 
-  @NotNull private JBPanel mainPanel = new JBPanel(new BorderLayout());
-  @NotNull private ThreeComponentsSplitter myThreePanes = new ThreeComponentsSplitter(true);
+  @NotNull private JBPanel myMainPanel = new JBPanel(new BorderLayout());
 
-  @NotNull private JBScrollPane myScrubberScrollPane = new JBScrollPane();
-  @NotNull private JBList myScrubberList = new JBList();
-
-  @NotNull private JBScrollPane myAtomScrollPane = new JBScrollPane();
-
-  @NotNull private JBScrollPane myColorScrollPane = new JBScrollPane();
-  @NotNull private JBScrollPane myWireframeScrollPane = new JBScrollPane();
-  @NotNull private JBScrollPane myDepthScrollPane = new JBScrollPane();
-
-  @NotNull private JBScrollPane myStateScrollPane = new JBScrollPane();
-
-  @NotNull private JPanel myMemoryPanel = new JPanel();
-  @NotNull private JBScrollPane myDocsScrollPane = new JBScrollPane();
-  @NotNull private JPanel myDocsPanel = new JPanel();
-  @NotNull private JTextPane myDocsTextPane = new JTextPane();
-  @NotNull private JPanel myImagePanel = new JPanel();
+  @NotNull private ContextController myContextController;
+  @NotNull private AtomController myAtomController;
+  @NotNull private ScrubberController myScrubberController;
+  @NotNull private FrameBufferController myFrameBufferController;
+  @NotNull private StateController myStateController;
+  @NotNull private DocumentationController myDocumentationController;
 
   GfxTraceViewPanel() {
-    mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-    myLoadingDecorator = new LoadingDecorator(mainPanel, this, 0);
+    myMainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+    myLoadingDecorator = new LoadingDecorator(myMainPanel, this, 0);
     myLoadingDecorator.setLoadingText("Initializing GFX Trace System");
     myLoadingDecorator.startLoading(false);
   }
@@ -73,39 +64,49 @@ public class GfxTraceViewPanel implements Disposable {
     myLoadingDecorator.setLoadingText(errorString);
   }
 
-  void finalizeUi(@NotNull Project project, @NotNull AnAction deviceContextAction) {
-    mainPanel.add(myThreePanes, BorderLayout.CENTER);
-    myThreePanes.setDividerWidth(5);
+  void finalizeUi(@NotNull GfxTraceEditor editor) {
+    ThreeComponentsSplitter threePanes = new ThreeComponentsSplitter(true);
+    myMainPanel.add(threePanes, BorderLayout.CENTER);
+    threePanes.setDividerWidth(5);
 
     // Add the toolbar for the device selection.
-    DefaultActionGroup group = new DefaultActionGroup(deviceContextAction);
+    myContextController = new ContextController(editor);
+    DefaultActionGroup group = new DefaultActionGroup(myContextController.getContextAction());
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
     toolbar.getComponent().setName(TOOLBAR_NAME);
-    mainPanel.add(toolbar.getComponent(), BorderLayout.NORTH);
+    myMainPanel.add(toolbar.getComponent(), BorderLayout.NORTH);
 
     // Add the scrubber view to the top panel.
-    myScrubberList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-    myScrubberScrollPane = new JBScrollPane();
-    myScrubberScrollPane.setViewportView(myScrubberList);
+    JBList scrubberList = new JBList();
+    scrubberList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+    JBScrollPane scrubberScrollPane = new JBScrollPane();
+    scrubberScrollPane.setViewportView(scrubberList);
     JPanel scrubberPanel = new JPanel(new BorderLayout());
-    scrubberPanel.add(myScrubberScrollPane, BorderLayout.CENTER);
-    myThreePanes.setFirstComponent(scrubberPanel);
+    scrubberPanel.add(scrubberScrollPane, BorderLayout.CENTER);
+    threePanes.setFirstComponent(scrubberPanel);
+    threePanes.setFirstSize(150);
+    myScrubberController = new ScrubberController(editor, scrubberScrollPane, scrubberList);
 
     // Configure the Atom tree container.
     JPanel atomTreePanel = new JPanel(new BorderLayout());
-    atomTreePanel.add(myAtomScrollPane, BorderLayout.CENTER);
+    JBScrollPane atomScrollPane = new JBScrollPane();
+    atomTreePanel.add(atomScrollPane, BorderLayout.CENTER);
+    myAtomController = new AtomController(editor, editor.getProject(), atomScrollPane);
 
     // Configure the framebuffer views.
-    final JBRunnerTabs bufferTabs = new JBRunnerTabs(project, ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
+    final JBRunnerTabs bufferTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
     bufferTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
       .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
 
     JPanel colorPanel = new JPanel(new BorderLayout());
-    colorPanel.add(myColorScrollPane, BorderLayout.CENTER);
+    JBScrollPane colorScrollPane = new JBScrollPane();
+    colorPanel.add(colorScrollPane, BorderLayout.CENTER);
     JPanel wireframePanel = new JPanel(new BorderLayout());
-    wireframePanel.add(myWireframeScrollPane, BorderLayout.CENTER);
+    JBScrollPane wireframeScrollPane = new JBScrollPane();
+    wireframePanel.add(wireframeScrollPane, BorderLayout.CENTER);
     JPanel depthPanel = new JPanel(new BorderLayout());
-    depthPanel.add(myDepthScrollPane, BorderLayout.CENTER);
+    JBScrollPane depthScrollPane = new JBScrollPane();
+    depthPanel.add(depthScrollPane, BorderLayout.CENTER);
     bufferTabs.addTab(new TabInfo(colorPanel).setText("Color"));
     bufferTabs.addTab(new TabInfo(wireframePanel).setText("Wireframe"));
     bufferTabs.addTab(new TabInfo(depthPanel).setText("Depth"));
@@ -115,6 +116,7 @@ public class GfxTraceViewPanel implements Disposable {
     JPanel bufferWrapper = new JPanel(new BorderLayout());
     bufferWrapper.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     bufferWrapper.add(bufferTabs, BorderLayout.CENTER);
+    myFrameBufferController = new FrameBufferController(editor, colorScrollPane, wireframeScrollPane, depthScrollPane);
 
     // Now add the atom tree and buffer views to the middle pane in the main pane.
     final JBSplitter middleSplitter = new JBSplitter(false);
@@ -122,17 +124,24 @@ public class GfxTraceViewPanel implements Disposable {
     middleSplitter.setFirstComponent(atomTreePanel);
     middleSplitter.setSecondComponent(bufferWrapper);
     middleSplitter.setProportion(0.3f);
-    myThreePanes.setInnerComponent(middleSplitter);
+    threePanes.setInnerComponent(middleSplitter);
 
     // Configure the miscellaneous tabs.
-    JBRunnerTabs miscTabs = new JBRunnerTabs(project, ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
+    JBRunnerTabs miscTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
     miscTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
       .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
-    miscTabs.addTab(new TabInfo(myMemoryPanel).setText("Memory"));
-    miscTabs.addTab(new TabInfo(myImagePanel).setText("Image"));
-    miscTabs.addTab(new TabInfo(myDocsPanel).setText("Docs"));
+    JPanel memoryPanel = new JPanel();
+    miscTabs.addTab(new TabInfo(memoryPanel).setText("Memory"));
+    JPanel imagePanel = new JPanel();
+    miscTabs.addTab(new TabInfo(imagePanel).setText("Image"));
+    JPanel docsPanel = new JPanel();
+    miscTabs.addTab(new TabInfo(docsPanel).setText("Docs"));
     miscTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
-    getDocsScrollPane().setViewportView(getDocsTextPane());
+    JBScrollPane docsScrollPane = new JBScrollPane();
+    JTextPane docsTextPane = new JTextPane();
+    docsScrollPane.setViewportView(docsTextPane);
+    // TODO: Rewrite to use IntelliJ documentation view.
+    myDocumentationController = new DocumentationController(editor, docsTextPane);
 
     // More borders for miscellaneous tabs.
     JPanel miscPanel = new JPanel(new BorderLayout());
@@ -141,122 +150,38 @@ public class GfxTraceViewPanel implements Disposable {
 
     // Borders for the state tree as well.
     JPanel stateWrapper = new JPanel(new BorderLayout());
-    stateWrapper.add(myStateScrollPane, BorderLayout.CENTER);
+    JBScrollPane stateScrollPane = new JBScrollPane();
+    stateWrapper.add(stateScrollPane, BorderLayout.CENTER);
+    myStateController = new StateController(editor, stateScrollPane);
 
     // Configure the bottom splitter.
     JBSplitter bottomSplitter = new JBSplitter(false);
     bottomSplitter.setMinimumSize(new Dimension(100, 10));
     bottomSplitter.setFirstComponent(stateWrapper);
     bottomSplitter.setSecondComponent(miscPanel);
-    myThreePanes.setLastComponent(bottomSplitter);
+    threePanes.setLastComponent(bottomSplitter);
+    threePanes.setLastSize(300);
 
     // Make sure the bottom splitter honors minimum sizes.
-    myThreePanes.setHonorComponentsMinimumSize(true);
-    myThreePanes.setFirstSize(150);
-    myThreePanes.setLastSize(300);
-
-    myThreePanes.addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
-      @Override
-      public void ancestorResized(HierarchyEvent hierarchyEvent) {
-        super.ancestorResized(hierarchyEvent);
-        resize();
-      }
-    });
+    threePanes.setHonorComponentsMinimumSize(true);
+    Disposer.register(this, threePanes);
 
     myLoadingDecorator.stopLoading();
   }
 
   @NotNull
   public JPanel getRootComponent() {
-    return mainPanel;
-  }
-
-  @NotNull
-  public JBScrollPane getScrubberScrollPane() {
-    return myScrubberScrollPane;
-  }
-
-  @NotNull
-  public JBList getScrubberList() {
-    return myScrubberList;
-  }
-
-  @NotNull
-  JBScrollPane getAtomScrollPane() {
-    return myAtomScrollPane;
-  }
-
-  @NotNull
-  public JBScrollPane getColorScrollPane() {
-    return myColorScrollPane;
-  }
-
-  @NotNull
-  public JBScrollPane getWireframeScrollPane() {
-    return myWireframeScrollPane;
-  }
-
-  @NotNull
-  public JBScrollPane getDepthScrollPane() {
-    return myDepthScrollPane;
-  }
-
-  @NotNull
-  public JBScrollPane getStateScrollPane() {
-    return myStateScrollPane;
-  }
-
-  @NotNull
-  public JPanel getImagePanel() {
-    return myImagePanel;
-  }
-
-  @NotNull
-  public JPanel getMemoryPanel() {
-    return myMemoryPanel;
-  }
-
-  @NotNull
-  public JBScrollPane getDocsScrollPane() {
-    return myDocsScrollPane;
-  }
-
-  @NotNull
-  public JPanel getDocsPanel() {
-    return myDocsPanel;
-  }
-
-  @NotNull
-  public JTextPane getDocsTextPane() {
-    return myDocsTextPane;
+    return myMainPanel;
   }
 
   @Override
   public void dispose() {
-  }
-
-  void resize() {
-    assert myThreePanes.getLastComponent() != null;
-    JComponent bottomSplitter = myThreePanes.getLastComponent();
-
-    assert myThreePanes.getInnerComponent() != null;
-    JComponent middleSplitter = myThreePanes.getInnerComponent();
-
-    assert myThreePanes.getFirstComponent() != null;
-    int scrubberHeight = myThreePanes.getFirstComponent().getMinimumSize().height;
-    if (myThreePanes.getFirstSize() < scrubberHeight) {
-      int totalHeight = myThreePanes.getHeight();
-      int residualHeightAfter = Math.max(0, totalHeight - scrubberHeight);
-
-      myThreePanes.setFirstSize(scrubberHeight);
-      int middleSize = middleSplitter.getPreferredSize().height;
-      int bottomSize = bottomSplitter.getPreferredSize().height;
-      if (bottomSize + middleSize > 0) {
-        myThreePanes.setLastSize(residualHeightAfter * bottomSize / (bottomSize + middleSize)); // Split the middle and bottom panes evenly.
-      }
-      else {
-        myThreePanes.setLastSize(residualHeightAfter / 2);
-      }
-    }
+    myAtomController.clear();
+    myScrubberController.clear();
+    //myFrameBufferController.clear();
+    myStateController.clear();
+    //myDocumentationController.clear();
+    myMainPanel.removeAll();
+    myLoadingDecorator = null;
   }
 }
