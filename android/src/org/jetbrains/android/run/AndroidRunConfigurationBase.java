@@ -20,10 +20,10 @@ import com.android.builder.model.AndroidArtifactOutput;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.CloudDebuggingTargetChooser;
 import com.android.tools.idea.run.CloudTargetChooser;
@@ -218,10 +218,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(GRADLE_SYNC_FAILED_ERR_MSG);
     }
 
-    AndroidModel androidModel = facet.getAndroidModel();
-    if (androidModel != null) {
-      if (!androidModel.getMainArtifact().isSigned()) {
-        AndroidArtifactOutput output = GradleUtil.getOutput(androidModel.getMainArtifact());
+    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
+    if (androidGradleModel != null) {
+      if (!androidGradleModel.getMainArtifact().isSigned()) {
+        AndroidArtifactOutput output = GradleUtil.getOutput(androidGradleModel.getMainArtifact());
         String message = AndroidBundle.message("run.error.apk.not.signed", output.getMainOutputFile().getOutputFile().getName());
         String title = CommonBundle.getErrorTitle();
         NotificationHyperlink quickfix =
