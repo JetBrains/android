@@ -164,7 +164,7 @@ public class InstanceReferenceTreeView implements DataProvider {
           .setRenderer(new ColoredTreeCellRenderer() {
             @Override
             public void customizeCellRenderer(@NotNull JTree tree,
-                                              Object value,
+                                              @Nullable Object value,
                                               boolean selected,
                                               boolean expanded,
                                               boolean leaf,
@@ -236,7 +236,7 @@ public class InstanceReferenceTreeView implements DataProvider {
 
                 append(instance.toString(), classTextAttributes);
               }
-              else {
+              else if (value != null) {
                 append(value.toString(), SimpleTextAttributes.ERROR_ATTRIBUTES);
               }
             }
@@ -250,7 +250,7 @@ public class InstanceReferenceTreeView implements DataProvider {
           .setRenderer(new ColoredTreeCellRenderer() {
             @Override
             public void customizeCellRenderer(@NotNull JTree tree,
-                                              Object value,
+                                              @Nullable Object value,
                                               boolean selected,
                                               boolean expanded,
                                               boolean leaf,
@@ -274,7 +274,7 @@ public class InstanceReferenceTreeView implements DataProvider {
           .setRenderer(new ColoredTreeCellRenderer() {
             @Override
             public void customizeCellRenderer(@NotNull JTree tree,
-                                              Object value,
+                                              @Nullable Object value,
                                               boolean selected,
                                               boolean expanded,
                                               boolean leaf,
@@ -298,7 +298,7 @@ public class InstanceReferenceTreeView implements DataProvider {
         .setRenderer(new ColoredTreeCellRenderer() {
           @Override
           public void customizeCellRenderer(@NotNull JTree tree,
-                                            Object value,
+                                            @Nullable Object value,
                                             boolean selected,
                                             boolean expanded,
                                             boolean leaf,
