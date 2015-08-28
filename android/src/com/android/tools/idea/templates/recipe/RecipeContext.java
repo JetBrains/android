@@ -217,7 +217,8 @@ public final class RecipeContext {
         myNeedsGradleSync = true;
       }
       else if (to.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
-        contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myProject);
+        String compileSdkVersion = (String)myParamMap.get(TemplateMetadata.ATTR_BUILD_API_STRING);
+        contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myProject, compileSdkVersion);
         myNeedsGradleSync = true;
       }
       else if (hasExtension(to, DOT_XML)) {
@@ -340,7 +341,8 @@ public final class RecipeContext {
     if (destinationContents == null) {
       destinationContents = "";
     }
-    String result = GradleFileMerger.mergeGradleFiles(contents, destinationContents, myProject);
+    String compileSdkVersion = (String)myParamMap.get(TemplateMetadata.ATTR_BUILD_API_STRING);
+    String result = GradleFileMerger.mergeGradleFiles(contents, destinationContents, myProject, compileSdkVersion);
     writeFile(this, result, gradleBuildFile);
     myNeedsGradleSync = true;
   }
