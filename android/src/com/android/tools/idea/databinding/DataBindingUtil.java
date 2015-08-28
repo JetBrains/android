@@ -20,8 +20,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.res2.DataBindingResourceType;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.DataBindingInfo;
 import com.android.tools.idea.rendering.LocalResourceRepository;
@@ -38,7 +37,9 @@ import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.light.*;
+import com.intellij.psi.impl.light.LightField;
+import com.intellij.psi.impl.light.LightIdentifier;
+import com.intellij.psi.impl.light.LightMethod;
 import com.intellij.psi.scope.ElementClassHint;
 import com.intellij.psi.scope.NameHint;
 import com.intellij.psi.scope.PsiScopeProcessor;
@@ -96,15 +97,6 @@ public class DataBindingUtil {
 
   private static PsiType parsePsiType(String text, AndroidFacet facet, PsiElement context) {
     return PsiElementFactory.SERVICE.getInstance(facet.getModule().getProject()).createTypeFromText(text, context);
-  }
-
-  private static void handleGradleSyncResult(Project project, AndroidFacet facet) {
-    boolean wasEnabled = facet.isDataBindingEnabled();
-    boolean enabled = project != null && resolveHasDataBinding(facet);
-    if (enabled != wasEnabled) {
-      facet.setDataBindingEnabled(enabled);
-      ourDataBindingEnabledModificationCount.incrementAndGet();
-    }
   }
 
   public static PsiType resolveViewPsiType(DataBindingInfo.ViewWithId viewWithId, AndroidFacet facet) {
@@ -174,21 +166,6 @@ public class DataBindingUtil {
       viewName = tag.getAttributeValue(SdkConstants.ATTR_CLASS, SdkConstants.ANDROID_URI);
     }
     return viewName;
-  }
-
-  private static boolean resolveHasDataBinding(AndroidFacet facet) {
-    if (!facet.requiresAndroidModel()) {
-      return false;
-    }
-    if (facet.getAndroidModel() == null) {
-      return false;
-    }
-    // TODO Instead of checking library dependency, we should be checking whether data binding plugin is
-    // applied to this facet or not. Having library dependency does not guarantee data binding
-    // unless the plugin is applied as well.
-    // TODO: b/23031914
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(facet);
-    return GradleUtil.dependsOn(gradleModel, SdkConstants.DATA_BINDING_LIB_ARTIFACT);
   }
 
   static PsiClass getOrCreatePsiClass(DataBindingInfo info) {
@@ -279,7 +256,15 @@ public class DataBindingUtil {
    * @param facet the {@linkplain AndroidFacet} whose IdeaProject is just set.
    */
   public static void onIdeaProjectSet(AndroidFacet facet) {
-    handleGradleSyncResult(facet.getModule().getProject(), facet);
+    AndroidModel androidModel = facet.getAndroidModel();
+    if (androidModel != null) {
+      boolean wasEnabled = facet.isDataBindingEnabled();
+      boolean enabled = androidModel.getDataBindingEnabled();
+      if (enabled != wasEnabled) {
+        facet.setDataBindingEnabled(enabled);
+        ourDataBindingEnabledModificationCount.incrementAndGet();
+      }
+    }
   }
 
   /**
