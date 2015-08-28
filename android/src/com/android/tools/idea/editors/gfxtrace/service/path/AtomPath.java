@@ -29,7 +29,11 @@ public final class AtomPath extends Path {
   }
 
   public StatePath stateAfter() {
-    return new StatePath ().setAfter(this);
+    return new StatePath().setAfter(this);
+  }
+
+  public ResourcePath resourceAfter(BinaryID id) {
+    return new ResourcePath().setAfter(this).setID(id);
   }
 
   //<<<Start:Java.ClassBody:1>>>

@@ -52,6 +52,8 @@ public class GfxTraceViewPanel implements Disposable {
   @NotNull private FrameBufferController myFrameBufferController;
   @NotNull private StateController myStateController;
   @NotNull private DocumentationController myDocumentationController;
+  @NotNull private TexturesController myTexturesController;
+
 
   GfxTraceViewPanel() {
     myMainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
@@ -130,10 +132,21 @@ public class GfxTraceViewPanel implements Disposable {
     JBRunnerTabs miscTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
     miscTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
       .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
+
+    // Add the textures view to the misc tabs.
+    JBList texturesList = new JBList();
+    texturesList.setLayoutOrientation(JList.VERTICAL);
+    JBScrollPane texturesScrollPane = new JBScrollPane();
+    texturesScrollPane.setViewportView(texturesList);
+    JPanel texturesPanel = new JPanel(new BorderLayout());
+    texturesPanel.add(texturesScrollPane, BorderLayout.CENTER);
+    miscTabs.addTab(new TabInfo(texturesPanel).setText("Textures"));
+    myTexturesController = new TexturesController(editor, texturesScrollPane, texturesList);
+
+    // Add the memory viewer to the misc tabs
     JPanel memoryPanel = new JPanel();
     miscTabs.addTab(new TabInfo(memoryPanel).setText("Memory"));
-    JPanel imagePanel = new JPanel();
-    miscTabs.addTab(new TabInfo(imagePanel).setText("Image"));
+
     JPanel docsPanel = new JPanel();
     miscTabs.addTab(new TabInfo(docsPanel).setText("Docs"));
     miscTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
@@ -181,6 +194,7 @@ public class GfxTraceViewPanel implements Disposable {
     //myFrameBufferController.clear();
     myStateController.clear();
     //myDocumentationController.clear();
+    myTexturesController.clear();
     myMainPanel.removeAll();
     myLoadingDecorator = null;
   }
