@@ -23,11 +23,13 @@ import com.android.tools.idea.editors.gfxtrace.service.memory.*;
 import com.android.tools.rpclib.any.AnyType;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.schema.Pointer;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
 public final class Render {
+  @NotNull private static final Logger LOG = Logger.getInstance(Render.class);
   // object rendering functions
 
   public static void render(@NotNull Object value, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
@@ -64,7 +66,11 @@ public final class Render {
     }
     if (node.value != null) {
       component.append(": ", attributes);
-      render(node.value, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+      if (node.key instanceof Field) {
+        render(node.value, ((Field)node.key).getType(), component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+      } else {
+        render(node.value, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+      }
     }
   }
 
@@ -129,6 +135,7 @@ public final class Render {
   // Type based rendering functions
 
   public static void render(@NotNull Object value, @NotNull Type type, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+    if (type instanceof Primitive) { render(value, (Primitive)type, component, attributes); return; }
     if (type instanceof Struct) {    render(value, (Struct)type, component, attributes); return; }
     if (type instanceof Pointer) {   render(value, (Pointer)type, component, attributes); return; }
     if (type instanceof Interface) { render(value, (Interface)type, component, attributes); return; }
