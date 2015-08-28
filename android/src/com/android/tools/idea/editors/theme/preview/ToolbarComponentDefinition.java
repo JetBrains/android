@@ -47,7 +47,12 @@ class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition
     String attrPrefix = getAttrPrefix(isAppCompat);
     set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
     set(ATTR_LAYOUT_HEIGHT, attrPrefix + "actionBarSize");
+
+    // we style this toolbar to look as if it was set as the Activity ActionBar
     set(ATTR_BACKGROUND, attrPrefix + "colorPrimary");
+    // always use android:theme, as app:theme is deprecated
+    set(ATTR_THEME, attrPrefix + "actionBarTheme");
+    // TODO: some apps may use ToolBars as ActionBars AND on there own simply inside a layout, should we preview both types?
 
     addAlias("Actionbar");
   }
@@ -77,7 +82,7 @@ class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition
 
     // Create a title using the same values that the Toolbar title has when created programmatically.
     Element title = document.createElement(TEXT_VIEW);
-    title.setAttributeNS(ANDROID_URI, ATTR_TEXT, "Toolbar");
+    title.setAttributeNS(ANDROID_URI, ATTR_TEXT, myIsAppCompat ? "v7 Toolbar" : "Toolbar");
     if (myIsAppCompat) {
       title.setAttributeNS(ANDROID_URI, "textAppearance", "@style/TextAppearance.Widget.AppCompat.Toolbar.Title");
     } else {
