@@ -18,10 +18,10 @@ package com.android.tools.idea.monitor;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithActions;
+import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.ui.UIUtil;
-import gnu.trove.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -39,22 +39,10 @@ public abstract class BaseMonitorView implements HierarchyListener, TimelineEven
 
   @NotNull protected Project myProject;
   @NotNull protected JLayeredPane myContentPane;
-  @NotNull private TranslucentLabel myOverlayLabel;
+  @NotNull private JPanel myTextPanel;
+  @NotNull private JTextPane myOverlayText;
   @NotNull private HashMap<String, ZOrderedOverlayText> myOverlayLookup;
   @NotNull private PriorityQueue<ZOrderedOverlayText> myVisibleOverlays;
-
-  private static class TranslucentLabel extends JLabel {
-    public TranslucentLabel() {
-      super();
-    }
-
-    @Override
-    public void paintComponent(@NotNull Graphics g) {
-      g.setColor(getBackground());
-      g.fillRect(0, 0, getWidth(), getHeight());
-      super.paintComponent(g);
-    }
-  }
 
   private static class ZOrderedOverlayText {
     @NotNull private String myText;
@@ -84,11 +72,26 @@ public abstract class BaseMonitorView implements HierarchyListener, TimelineEven
       }
     };
 
-    myOverlayLabel = new TranslucentLabel();
+    // Use GridBagLayout because it center aligns content by default
     //noinspection UseJBColor
-    Color translucentBackgroundColor = ColorUtil.toAlpha(BACKGROUND_COLOR, 192);
-    myOverlayLabel.setHorizontalAlignment(SwingConstants.CENTER);
-    myOverlayLabel.setBackground(translucentBackgroundColor);
+    myTextPanel = new JPanel(new GridBagLayout()) {
+      Color translucentBackgroundColor = ColorUtil.toAlpha(BACKGROUND_COLOR, 192);
+
+      @Override
+      public void paintComponent(@NotNull Graphics g) {
+        g.setColor(translucentBackgroundColor);
+        g.fillRect(0, 0, getWidth(), getHeight());
+        super.paintComponent(g);
+      }
+    };
+    myTextPanel.setOpaque(false);
+
+    myOverlayText = new JTextPane();
+    myOverlayText.setEditable(false);
+    myOverlayText.setOpaque(false);
+    myOverlayText.setEditorKit(UIUtil.getHTMLEditorKit());
+    myOverlayText.setBackground(UIUtil.TRANSPARENT_COLOR);
+    myOverlayText.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
 
     myOverlayLookup = new HashMap<String, ZOrderedOverlayText>();
     myVisibleOverlays = new PriorityQueue<ZOrderedOverlayText>(5, new Comparator<ZOrderedOverlayText>() {
@@ -98,8 +101,9 @@ public abstract class BaseMonitorView implements HierarchyListener, TimelineEven
       }
     });
 
-    myOverlayLabel.setVisible(false);
-    myContentPane.add(myOverlayLabel, OVERLAY_LAYER, 0);
+    myTextPanel.add(myOverlayText);
+    myTextPanel.setVisible(false);
+    myContentPane.add(myTextPanel, OVERLAY_LAYER, 0);
     myContentPane.addHierarchyListener(this);
   }
 
@@ -161,23 +165,27 @@ public abstract class BaseMonitorView implements HierarchyListener, TimelineEven
     if (enabled) {
       if (!myVisibleOverlays.contains(orderedText)) {
         myVisibleOverlays.add(orderedText);
-        myOverlayLabel.setText(myVisibleOverlays.peek().myText);
-        myOverlayLabel.setVisible(true);
+        updateOverlayText(myVisibleOverlays.peek().myText);
       }
     }
     else {
       myVisibleOverlays.remove(orderedText);
       if (myVisibleOverlays.size() > 0) {
-        myOverlayLabel.setText(myVisibleOverlays.peek().myText);
+        updateOverlayText(myVisibleOverlays.peek().myText);
       }
       else {
-        myOverlayLabel.setText("");
-        myOverlayLabel.setVisible(false);
+        updateOverlayText("");
       }
     }
   }
 
   protected final void setViewComponent(@NotNull JComponent component) {
     myContentPane.add(component, JLayeredPane.DEFAULT_LAYER, 0);
+  }
+
+  private void updateOverlayText(String text) {
+    myOverlayText.setText(text);
+    myTextPanel.setVisible(!text.isEmpty());
+    myTextPanel.invalidate();
   }
 }
