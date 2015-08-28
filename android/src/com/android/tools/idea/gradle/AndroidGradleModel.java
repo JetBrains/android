@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
@@ -33,9 +34,11 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.*;
 import java.util.*;
@@ -870,5 +873,109 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
       return null;
     }
     return ((AndroidGradleModel) androidModel);
+  }
+
+  /**
+   * Returns the source provider for the current build type, which will never be {@code null} for a project backed by an
+   * {@link AndroidProject}, and always {@code null} for a legacy Android project.
+   *
+   * @return the build type source set or {@code null}.
+   */
+  @NotNull
+  public SourceProvider getBuildTypeSourceProvider() {
+    Variant selectedVariant = getSelectedVariant();
+    BuildTypeContainer buildType = findBuildType(selectedVariant.getBuildType());
+    assert buildType != null;
+    return buildType.getSourceProvider();
+  }
+
+  /**
+   * Returns the source providers for the available flavors, which will never be {@code null} for a project backed by an
+   * {@link AndroidProject}, and always null for a legacy Android project.
+   *
+   * @return the flavor source providers or null in legacy projects.
+   */
+  @NotNull
+  public List<SourceProvider> getFlavorSourceProviders() {
+    Variant selectedVariant = getSelectedVariant();
+    List<String> productFlavors = selectedVariant.getProductFlavors();
+    List<SourceProvider> providers = Lists.newArrayList();
+    for (String flavor : productFlavors) {
+      ProductFlavorContainer productFlavor = findProductFlavor(flavor);
+      assert productFlavor != null;
+      providers.add(productFlavor.getSourceProvider());
+    }
+    return providers;
+  }
+
+  public void syncSelectedVariantAndTestArtifact(@NotNull AndroidFacet facet) {
+    Variant variant = getSelectedVariant();
+    JpsAndroidModuleProperties state = facet.getProperties();
+    state.SELECTED_BUILD_VARIANT = variant.getName();
+    state.SELECTED_TEST_ARTIFACT = getSelectedTestArtifactName();
+
+    AndroidArtifact mainArtifact = variant.getMainArtifact();
+    BaseArtifact testArtifact = findSelectedTestArtifactInSelectedVariant();
+    updateGradleTaskNames(state, mainArtifact, testArtifact);
+  }
+
+  @VisibleForTesting
+  static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state,
+                                    @NotNull AndroidArtifact mainArtifact,
+                                    @Nullable BaseArtifact testArtifact) {
+    state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
+    state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
+    state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet(getIdeSetupTasks(mainArtifact));
+
+    if (testArtifact != null) {
+      state.ASSEMBLE_TEST_TASK_NAME = testArtifact.getAssembleTaskName();
+      state.COMPILE_JAVA_TEST_TASK_NAME = testArtifact.getCompileTaskName();
+      state.AFTER_SYNC_TASK_NAMES.addAll(getIdeSetupTasks(testArtifact));
+    }
+    else {
+      state.ASSEMBLE_TEST_TASK_NAME = "";
+      state.COMPILE_JAVA_TEST_TASK_NAME = "";
+    }
+  }
+
+  private static @NotNull Set<String> getIdeSetupTasks(@NotNull BaseArtifact artifact) {
+    try {
+      // This method was added in 1.1 - we have to handle the case when it's missing on the Gradle side.
+      return artifact.getIdeSetupTaskNames();
+    }
+    catch (NoSuchMethodError e) {
+      if (artifact instanceof AndroidArtifact) {
+        return Sets.newHashSet(((AndroidArtifact)artifact).getSourceGenTaskName());
+      }
+    }
+    catch (UnsupportedMethodException e) {
+      if (artifact instanceof AndroidArtifact) {
+        return Sets.newHashSet(((AndroidArtifact)artifact).getSourceGenTaskName());
+      }
+    }
+
+    return Collections.emptySet();
+  }
+
+  /**
+   * Returns the source provider specific to the flavor combination, if any.
+   *
+   * @return the source provider or {@code null}.
+   */
+  @Nullable
+  public SourceProvider getMultiFlavorSourceProvider() {
+    AndroidArtifact mainArtifact = getMainArtifact();
+    return mainArtifact.getMultiFlavorSourceProvider();
+  }
+
+  /**
+   * Returns the source provider specific to the variant, if any.
+   *
+   * @return the source provider or {@code null}.
+   */
+  @Nullable
+  public SourceProvider getVariantSourceProvider() {
+    AndroidArtifact mainArtifact = getMainArtifact();
+    return mainArtifact.getVariantSourceProvider();
   }
 }

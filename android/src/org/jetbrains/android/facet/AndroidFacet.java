@@ -16,7 +16,8 @@
 package org.jetbrains.android.facet;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.SourceProvider;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -25,7 +26,6 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.avdmanager.EmulatorRunner;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
-import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
@@ -36,7 +36,6 @@ import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.ILogger;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -77,7 +76,6 @@ import com.intellij.util.Processor;
 import com.intellij.util.ThreeState;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
@@ -148,7 +146,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private LocalResourceRepository myModuleResources;
   private AppResourceRepository myAppResources;
   private ProjectResourceRepository myProjectResources;
-  private AndroidGradleModel myAndroidModel;
+  private AndroidModel myAndroidModel;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
   private SourceProvider myMainSourceSet;
@@ -188,7 +186,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    *
    * @param androidModel the new Android model.
    */
-  public void setAndroidModel(@Nullable AndroidGradleModel androidModel) {
+  public void setAndroidModel(@Nullable AndroidModel androidModel) {
     myAndroidModel = androidModel;
     DataBindingUtil.onIdeaProjectSet(this);
   }
@@ -233,24 +231,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myMainIdeaSourceSet;
   }
 
-  /**
-   * Returns the source provider for the current build type, which will never be {@code null} for a project backed by an
-   * {@link AndroidProject}, and always {@code null} for a legacy Android project.
-   *
-   * @return the build type source set or {@code null}.
-   */
-  @Nullable
-  public SourceProvider getBuildTypeSourceProvider() {
-    if (myAndroidModel != null) {
-      Variant selectedVariant = myAndroidModel.getSelectedVariant();
-      BuildTypeContainer buildType = myAndroidModel.findBuildType(selectedVariant.getBuildType());
-      assert buildType != null;
-      return buildType.getSourceProvider();
-    } else {
-      return null;
-    }
-  }
-
   public ResourceFolderManager getResourceFolderManager() {
     return myFolderManager;
   }
@@ -263,72 +243,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myFolderManager.getFolders();
   }
 
-  /**
-   * @return the name of the build type.
-   */
-  @Nullable
-  public String getBuildTypeName() {
-    return myAndroidModel != null ? myAndroidModel.getSelectedVariant().getName() : null;
-  }
-
-  /**
-   * Returns the source providers for the available flavors, which will never be {@code null} for a project backed by an
-   * {@link AndroidProject}, and always null for a legacy Android project.
-   *
-   * @return the flavor source providers or null in legacy projects.
-   */
-  @Nullable
-  public List<SourceProvider> getFlavorSourceProviders() {
-    if (myAndroidModel != null) {
-      Variant selectedVariant = myAndroidModel.getSelectedVariant();
-      List<String> productFlavors = selectedVariant.getProductFlavors();
-      List<SourceProvider> providers = Lists.newArrayList();
-      for (String flavor : productFlavors) {
-        ProductFlavorContainer productFlavor = myAndroidModel.findProductFlavor(flavor);
-        assert productFlavor != null;
-        providers.add(productFlavor.getSourceProvider());
-      }
-      return providers;
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * Returns the source provider specific to the flavor combination, if any.
-   *
-   * @return the source provider or {@code null}.
-   */
-  @Nullable
-  public SourceProvider getMultiFlavorSourceProvider() {
-    if (myAndroidModel != null) {
-      AndroidArtifact mainArtifact = myAndroidModel.getMainArtifact();
-      SourceProvider provider = mainArtifact.getMultiFlavorSourceProvider();
-      if (provider != null) {
-        return provider;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Returns the source provider specific to the variant, if any.
-   *
-   * @return the source provider or {@code null}.
-   */
-  @Nullable
-  public SourceProvider getVariantSourceProvider() {
-    if (myAndroidModel != null) {
-      AndroidArtifact mainArtifact = myAndroidModel.getMainArtifact();
-      SourceProvider provider = mainArtifact.getVariantSourceProvider();
-      if (provider != null) {
-        return provider;
-      }
-    }
-
-    return null;
-  }
 
   /**
    * This returns the primary resource directory; the default location to place newly created resources etc.  This method is marked
@@ -1030,57 +944,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public void addListener(@NotNull GradleSyncListener listener) {
     Module module = getModule();
     GradleSyncState.subscribe(module.getProject(), listener);
-  }
-
-  public void syncSelectedVariantAndTestArtifact() {
-    if (myAndroidModel != null) {
-      Variant variant = myAndroidModel.getSelectedVariant();
-      JpsAndroidModuleProperties state = getProperties();
-      state.SELECTED_BUILD_VARIANT = variant.getName();
-      state.SELECTED_TEST_ARTIFACT = myAndroidModel.getSelectedTestArtifactName();
-
-      AndroidArtifact mainArtifact = variant.getMainArtifact();
-      BaseArtifact testArtifact = myAndroidModel.findSelectedTestArtifactInSelectedVariant();
-      updateGradleTaskNames(state, mainArtifact, testArtifact);
-    }
-  }
-
-  @VisibleForTesting
-  static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state,
-                                    @NotNull AndroidArtifact mainArtifact,
-                                    @Nullable BaseArtifact testArtifact) {
-    state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
-    state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
-    state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet(getIdeSetupTasks(mainArtifact));
-
-    if (testArtifact != null) {
-      state.ASSEMBLE_TEST_TASK_NAME = testArtifact.getAssembleTaskName();
-      state.COMPILE_JAVA_TEST_TASK_NAME = testArtifact.getCompileTaskName();
-      state.AFTER_SYNC_TASK_NAMES.addAll(getIdeSetupTasks(testArtifact));
-    }
-    else {
-      state.ASSEMBLE_TEST_TASK_NAME = "";
-      state.COMPILE_JAVA_TEST_TASK_NAME = "";
-    }
-  }
-
-  private static @NotNull Set<String> getIdeSetupTasks(@NotNull BaseArtifact artifact) {
-    try {
-      // This method was added in 1.1 - we have to handle the case when it's missing on the Gradle side.
-      return artifact.getIdeSetupTaskNames();
-    }
-    catch (NoSuchMethodError e) {
-      if (artifact instanceof AndroidArtifact) {
-        return Sets.newHashSet(((AndroidArtifact)artifact).getSourceGenTaskName());
-      }
-    }
-    catch (UnsupportedMethodException e) {
-      if (artifact instanceof AndroidArtifact) {
-        return Sets.newHashSet(((AndroidArtifact)artifact).getSourceGenTaskName());
-      }
-    }
-
-    return Collections.emptySet();
   }
 
   /**

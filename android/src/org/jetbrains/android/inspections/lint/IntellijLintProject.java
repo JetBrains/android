@@ -299,7 +299,7 @@ class IntellijLintProject extends Project {
       }
       dir = new File(FileUtil.toSystemDependentName(moduleDirPath));
     }
-    LintModuleProject project;
+    LintModuleProject project = null;
     if (facet == null) {
       project = new LintModuleProject(client, dir, dir, module);
       AndroidFacet f = findAndroidFacetInProject(module.getProject());
@@ -308,12 +308,17 @@ class IntellijLintProject extends Project {
       }
     }
     else if (facet.requiresAndroidModel()) {
-      project = new LintGradleProject(client, dir, dir, facet);
+      AndroidModel androidModel = facet.getAndroidModel();
+      if (androidModel instanceof AndroidGradleModel) {
+        project = new LintGradleProject(client, dir, dir, facet, (AndroidGradleModel)androidModel);
+      }
     }
     else {
       project = new LintAndroidProject(client, dir, dir, facet);
     }
-    client.registerProject(dir, project);
+    if (project != null) {
+      client.registerProject(dir, project);
+    }
     return project;
   }
 
@@ -643,13 +648,21 @@ class IntellijLintProject extends Project {
   }
 
   private static class LintGradleProject extends LintAndroidProject {
+    private final AndroidGradleModel myAndroidGradleModel;
+
     /**
      * Creates a new Project. Use one of the factory methods to create.
      */
-    private LintGradleProject(@NonNull LintClient client, @NonNull File dir, @NonNull File referenceDir, @NonNull AndroidFacet facet) {
+    private LintGradleProject(
+      @NonNull LintClient client,
+      @NonNull File dir,
+      @NonNull File referenceDir,
+      @NonNull AndroidFacet facet,
+      @NonNull AndroidGradleModel androidGradleModel) {
       super(client, dir, referenceDir, facet);
       mGradleProject = true;
       mMergeManifests = true;
+      myAndroidGradleModel = androidGradleModel;
     }
 
     @NonNull
@@ -662,7 +675,7 @@ class IntellijLintProject extends Project {
           mManifestFiles.add(mainManifest);
         }
 
-        List<SourceProvider> flavorSourceProviders = myFacet.getFlavorSourceProviders();
+        List<SourceProvider> flavorSourceProviders = myAndroidGradleModel.getFlavorSourceProviders();
         if (flavorSourceProviders != null) {
           for (SourceProvider provider : flavorSourceProviders) {
             File manifestFile = provider.getManifestFile();
@@ -672,7 +685,7 @@ class IntellijLintProject extends Project {
           }
         }
 
-        SourceProvider multiProvider = myFacet.getMultiFlavorSourceProvider();
+        SourceProvider multiProvider = myAndroidGradleModel.getMultiFlavorSourceProvider();
         if (multiProvider != null) {
           File manifestFile = multiProvider.getManifestFile();
           if (manifestFile.exists()) {
@@ -680,7 +693,7 @@ class IntellijLintProject extends Project {
           }
         }
 
-        SourceProvider buildTypeSourceProvider = myFacet.getBuildTypeSourceProvider();
+        SourceProvider buildTypeSourceProvider = myAndroidGradleModel.getBuildTypeSourceProvider();
         if (buildTypeSourceProvider != null) {
           File manifestFile = buildTypeSourceProvider.getManifestFile();
           if (manifestFile.exists()) {
@@ -688,7 +701,7 @@ class IntellijLintProject extends Project {
           }
         }
 
-        SourceProvider variantProvider = myFacet.getVariantSourceProvider();
+        SourceProvider variantProvider = myAndroidGradleModel.getVariantSourceProvider();
         if (variantProvider != null) {
           File manifestFile = variantProvider.getManifestFile();
           if (manifestFile.exists()) {
