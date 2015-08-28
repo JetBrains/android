@@ -95,7 +95,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   public static final Key<Integer> ATTR_ORIGINAL_HEIGHT = createKey(AssetStudioAssetGenerator.ATTR_ORIGINAL_HEIGHT, STEP, Integer.class);
   public static final Key<Integer> ATTR_VECTOR_DRAWBLE_OPACTITY = createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_OPACTITY, STEP, Integer.class);
   public static final Key<Boolean> ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED = createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED, STEP, Boolean.class);
-
+  public static final Key<Boolean> ATTR_VALID_PREVIEW = createKey(AssetStudioAssetGenerator.ATTR_VALID_PREVIEW, STEP, Boolean.class);
 
   private static final Logger LOG = Logger.getInstance(IconStep.class);
   private static final int CLIPART_ICON_SIZE = 32;
