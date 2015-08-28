@@ -188,12 +188,19 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
         // wrong. The only identified reason so far is that some machines have incompatible versions of adb that were already running.
         // e.g. Genymotion, some HTC flashing software, Ubuntu's adb package may all conflict with the version of adb in the SDK.
         Logger.getInstance(AndroidToolWindowFactory.class).info("Unable to obtain debug bridge", t);
-        String msg = String.format("Unable to establish a connection to adb.\n\n" +
-                                   "This usually happens if you have an incompatible version of adb running already.\n" +
-                                   "Try re-opening Studio after killing any existing adb daemons.\n\n" +
-                                   "If this happens repeatedly, please file a bug at http://b.android.com including the following:\n" +
-                                   "  1. Output of the command: '%1$s devices'\n" +
-                                   "  2. Your idea.log file (Help | Show Log in Explorer)\n", adb.getAbsolutePath());
+        String msg;
+        if (t.getMessage() != null) {
+          msg = t.getMessage();
+        }
+        else {
+          msg = String.format("Unable to establish a connection to adb.\n\n" +
+                              "Check the Event Log for possible issues.\n" +
+                              "This can happen if you have an incompatible version of adb running already.\n" +
+                              "Try re-opening Studio after killing any existing adb daemons.\n\n" +
+                              "If this happens repeatedly, please file a bug at http://b.android.com including the following:\n" +
+                              "  1. Output of the command: '%1$s devices'\n" +
+                              "  2. Your idea.log file (Help | Show Log in Explorer)\n", adb.getAbsolutePath());
+        }
         Messages.showErrorDialog(msg, "ADB Connection Error");
       }
     }, EdtExecutor.INSTANCE);
