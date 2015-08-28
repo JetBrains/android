@@ -187,8 +187,8 @@ public class ThemeEditorTableTest extends GuiTestCase {
     Font cellFont = themeEditorTable.valueFontAt(cell);
     assertNotNull(cellFont);
     assertEquals(Font.PLAIN, cellFont.getStyle());
-    assertEquals("android:colorBackground", themeEditorTable.attributeNameAt(cell));
-    assertEquals("@android:color/background_holo_light", themeEditorTable.valueAt(cell));
+    assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
+    assertEquals("@android:color/holo_light_primary", themeEditorTable.valueAt(cell));
 
     JTableCellFixture colorCell = themeEditorTable.cell(cell);
     colorCell.requireEditable();
@@ -202,13 +202,13 @@ public class ThemeEditorTableTest extends GuiTestCase {
     cellFont = themeEditorTable.valueFontAt(cell);
     assertNotNull(cellFont);
     assertEquals(Font.BOLD, cellFont.getStyle());
-    assertEquals("android:colorBackground", themeEditorTable.attributeNameAt(cell));
-    assertEquals("@color/background_holo_light", themeEditorTable.valueAt(cell));
+    assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
+    assertEquals("@color/holo_light_primary", themeEditorTable.valueAt(cell));
 
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/values/colors.xml");
-    editor.moveTo(editor.findOffset(null, "background", true));
-    assertEquals("<color name=\"^background_holo_light\">" + ResourceHelper.colorToString(color) + "</color>",
+    editor.moveTo(editor.findOffset(null, "holo", true));
+    assertEquals("<color name=\"^holo_light_primary\">" + ResourceHelper.colorToString(color) + "</color>",
                  editor.getCurrentLineContents(true, true, 0));
   }
 }
