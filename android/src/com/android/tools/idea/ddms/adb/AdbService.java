@@ -21,7 +21,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -68,7 +67,7 @@ public class AdbService implements Disposable {
     DdmPreferences.setLogLevel(Log.LogLevel.INFO.getStringValue());
     DdmPreferences.setTimeOut(AndroidUtils.TIMEOUT);
 
-    Log.setLogOutput(new AdbLogOutput());
+    Log.addLogger(new AdbLogOutput.SystemLogRedirecter());
   }
 
   @Override
@@ -83,7 +82,7 @@ public class AdbService implements Disposable {
     }
 
     if (myFuture == null) {
-      Future<AndroidDebugBridge> future = ApplicationManager.getApplication().executeOnPooledThread(new CreateBridgeTask(adb));
+      Future<BridgeConnectionResult> future = ApplicationManager.getApplication().executeOnPooledThread(new CreateBridgeTask(adb));
       // TODO: expose connection timeout in some settings UI? Also see AndroidUtils.TIMEOUT which is way too long
       myFuture = makeTimedFuture(future, 20, TimeUnit.SECONDS);
     }
@@ -157,7 +156,7 @@ public class AdbService implements Disposable {
     }
   }
 
-  private static class CreateBridgeTask implements Callable<AndroidDebugBridge> {
+  private static class CreateBridgeTask implements Callable<BridgeConnectionResult> {
     private final File myAdb;
 
     public CreateBridgeTask(@NotNull File adb) {
@@ -165,42 +164,80 @@ public class AdbService implements Disposable {
     }
 
     @Override
-    public AndroidDebugBridge call() throws Exception {
+    public BridgeConnectionResult call() throws Exception {
       AdbErrors.clear();
       boolean clientSupport = AndroidEnableAdbServiceAction.isAdbServiceEnabled();
       LOG.info("Initializing adb using: " + myAdb.getAbsolutePath() + ", client support = " + clientSupport);
 
       AndroidDebugBridge bridge;
-      synchronized (ADB_INIT_LOCK) {
-        AndroidDebugBridge.init(clientSupport);
-        bridge = AndroidDebugBridge.createBridge(myAdb.getPath(), false);
-      }
-      while (!bridge.isConnected()) {
-        try {
-          TimeUnit.MILLISECONDS.sleep(200);
-        } catch (InterruptedException e) {
-          // if cancelled, don't wait for connection and return immediately
-          return bridge;
+      AdbLogOutput.ToStringLogger toStringLogger = new AdbLogOutput.ToStringLogger();
+      Log.addLogger(toStringLogger);
+      try {
+        synchronized (ADB_INIT_LOCK) {
+          AndroidDebugBridge.init(clientSupport);
+          bridge = AndroidDebugBridge.createBridge(myAdb.getPath(), false);
         }
-      }
 
-      LOG.info("Successfully connected to adb");
-      return bridge;
+        if (bridge == null) {
+          return BridgeConnectionResult.make("Unable to start adb server: " + toStringLogger.getOutput());
+        }
+
+        while (!bridge.isConnected()) {
+          try {
+            TimeUnit.MILLISECONDS.sleep(200);
+          }
+          catch (InterruptedException e) {
+            // if cancelled, don't wait for connection and return immediately
+            return BridgeConnectionResult.make("Timed out attempting to connect to adb: " + toStringLogger.getOutput());
+          }
+        }
+
+        LOG.info("Successfully connected to adb");
+        return BridgeConnectionResult.make(bridge);
+      } finally {
+        Log.removeLogger(toStringLogger);
+      }
     }
   }
 
-  /** Returns a future that wraps the given future with a timeout. */
-  private static <T> ListenableFuture<T> makeTimedFuture(@NotNull final Future<T> delegate,
+  // It turns out that IntelliJ's invokeOnPooledThread will capture exceptions thrown from the callable, log them,
+  // and not pass them on via the future. As a result, the callable has to pass the error status back inline. Hence we have
+  // this simple wrapper class around either an error result or a correct result.
+  private static class BridgeConnectionResult {
+    @Nullable public final AndroidDebugBridge bridge;
+    @Nullable public final String error;
+
+    private BridgeConnectionResult(@Nullable AndroidDebugBridge bridge, @Nullable String error) {
+      this.bridge = bridge;
+      this.error = error;
+    }
+
+    public static BridgeConnectionResult make(@NotNull AndroidDebugBridge bridge) {
+      return new BridgeConnectionResult(bridge, null);
+    }
+
+    public static BridgeConnectionResult make(@NotNull String error) {
+      return new BridgeConnectionResult(null, error);
+    }
+  }
+
+  /** Returns a future that wraps the given future for obtaining the debug bridge with a timeout. */
+  private static ListenableFuture<AndroidDebugBridge> makeTimedFuture(@NotNull final Future<BridgeConnectionResult> delegate,
                                                          final long timeout,
                                                          @NotNull final TimeUnit unit) {
-    final SettableFuture<T> future = SettableFuture.create();
+    final SettableFuture<AndroidDebugBridge> future = SettableFuture.create();
 
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
         try {
-          T value = delegate.get(timeout, unit);
-          future.set(value);
+          BridgeConnectionResult value = delegate.get(timeout, unit);
+          if (value.error != null) {
+            future.setException(new RuntimeException("Unable to create Debug Bridge: " + value.error));
+          }
+          else {
+            future.set(value.bridge);
+          }
         }
         catch (ExecutionException e) {
           future.setException(e.getCause());
