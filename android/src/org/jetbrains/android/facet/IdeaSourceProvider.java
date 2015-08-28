@@ -120,7 +120,7 @@ public abstract class IdeaSourceProvider {
       File manifestFile = myProvider.getManifestFile();
       if (myManifestFile == null || !FileUtil.filesEqual(manifestFile, myManifestIoFile)) {
         myManifestIoFile = manifestFile;
-        myManifestFile = VfsUtil.findFileByIoFile(manifestFile, true);
+        myManifestFile = VfsUtil.findFileByIoFile(manifestFile, false);
       }
 
       return myManifestFile;
