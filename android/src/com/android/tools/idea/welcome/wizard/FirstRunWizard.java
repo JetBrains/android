@@ -74,7 +74,13 @@ public class FirstRunWizard extends DynamicWizard {
     }
     addPath(myJdkPath);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
-      addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
+      if (initialSdkLocation.getPath().isEmpty()) {
+        // We don't have a default path specified, have to do custom install.
+        myState.put(KEY_CUSTOM_INSTALL, true);
+      }
+      else {
+        addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
+      }
       addPath(new SingleStepPath(new SelectThemeStep(KEY_CUSTOM_INSTALL)));
     }
     if (myMode == FirstRunWizardMode.MISSING_SDK) {
