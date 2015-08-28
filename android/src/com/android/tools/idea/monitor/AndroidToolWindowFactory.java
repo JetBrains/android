@@ -118,14 +118,11 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     logcatContent.setSearchComponent(logcatView.createSearchComponent());
     layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
 
-    Content adbLogsContent = createAdbLogsContent(layoutUi, project);
-    layoutUi.addContent(adbLogsContent, 1, PlaceInGrid.center, false);
-
     Content memoryContent = createMemoryContent(layoutUi, project, deviceContext);
-    layoutUi.addContent(memoryContent, 2, PlaceInGrid.center, false);
+    layoutUi.addContent(memoryContent, 1, PlaceInGrid.center, false);
 
     Content cpuContent = createCpuContent(layoutUi, project, deviceContext);
-    layoutUi.addContent(cpuContent, 3, PlaceInGrid.center, false);
+    layoutUi.addContent(cpuContent, 2, PlaceInGrid.center, false);
 
     Content gpuContent = createGpuContent(layoutUi, project, deviceContext);
     layoutUi.addContent(gpuContent, 3, PlaceInGrid.center, false);
@@ -298,71 +295,6 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     logcatContent.setPreferredFocusableComponent(logcatContentPanel);
 
     return logcatContent;
-  }
-
-  private Content createAdbLogsContent(RunnerLayoutUi layoutUi, Project project) {
-    final ConsoleView console = new ConsoleViewImpl(project, false);
-    Content adbLogsContent =
-      layoutUi.createContent(ADBLOGS_CONTENT_ID, console.getComponent(), AndroidBundle.message("android.adb.logs.tab.title"), null, null);
-    adbLogsContent.setCloseable(false);
-
-    //noinspection UnnecessaryFullyQualifiedName
-    com.android.ddmlib.Log.setLogOutput(new Log.ILogOutput() {
-      @Override
-      public void printLog(Log.LogLevel logLevel, String tag, String message) {
-        reportAdbLogMessage(logLevel, tag, message, console);
-      }
-
-      @Override
-      public void printAndPromptLog(Log.LogLevel logLevel, String tag, String message) {
-        // todo: should we show dialog?
-        reportAdbLogMessage(logLevel, tag, message, console);
-      }
-    });
-
-    return adbLogsContent;
-  }
-
-  private static void reportAdbLogMessage(Log.LogLevel logLevel, String tag, String message, @NotNull ConsoleView consoleView) {
-    if (message == null) {
-      return;
-    }
-    if (logLevel == null) {
-      logLevel = Log.LogLevel.INFO;
-    }
-
-    if (logLevel == Log.LogLevel.ERROR || logLevel == Log.LogLevel.ASSERT) {
-      AdbErrors.reportError(message, tag);
-    }
-
-    final ConsoleViewContentType contentType = toConsoleViewContentType(logLevel);
-    if (contentType == null) {
-      return;
-    }
-
-    final String fullMessage = tag != null ? tag + ": " + message : message;
-    consoleView.print(fullMessage + '\n', contentType);
-  }
-
-  @Nullable
-  private static ConsoleViewContentType toConsoleViewContentType(@NotNull Log.LogLevel logLevel) {
-    switch (logLevel) {
-      case VERBOSE:
-        return null;
-      case DEBUG:
-        return null;
-      case INFO:
-        return ConsoleViewContentType.getConsoleViewType(AndroidLogcatConstants.INFO);
-      case WARN:
-        return ConsoleViewContentType.getConsoleViewType(AndroidLogcatConstants.WARNING);
-      case ERROR:
-        return ConsoleViewContentType.getConsoleViewType(AndroidLogcatConstants.ERROR);
-      case ASSERT:
-        return ConsoleViewContentType.getConsoleViewType(AndroidLogcatConstants.ASSERT);
-      default:
-        assert false : "Unknown log level " + logLevel;
-    }
-    return null;
   }
 
   private static void checkFacetAndSdk(Project project, @NotNull final ConsoleView console) {
