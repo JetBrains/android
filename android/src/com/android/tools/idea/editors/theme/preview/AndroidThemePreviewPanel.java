@@ -371,6 +371,9 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
         builder
           .addComponentFilter(mySupportReplacementsFilter)
           .addAllComponents(mySupportLibraryComponents);
+
+        // sometimes we come here when the mySupportLibraryComponents and the mySupportReplacementsFilter are not ready yet
+        // thats not too bad, as when they are ready, we will call reload again, and then the components list will be correct.
       }
       myAndroidPreviewPanel.setDocument(builder.build());
 
