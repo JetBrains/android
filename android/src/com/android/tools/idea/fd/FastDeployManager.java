@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.fd;
 
-import com.android.SdkConstants;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
@@ -93,10 +92,19 @@ import java.util.zip.ZipEntry;
 
 import static com.android.SdkConstants.*;
 import static java.io.File.separator;
-import static java.io.File.separatorChar;
 
+/**
+ * TODO: Migrate aapt to gradle
+ * TODO: Handle edits in assets
+ * TODO: Handle manifest edits
+ * TODO: Display error message if not using correct Gradle model
+ */
 public class FastDeployManager implements ProjectComponent, BulkFileListener {
   private static final Logger LOG = Logger.getInstance(FastDeployManager.class);
+
+  /** Display instant run statistics */
+  @SuppressWarnings("SimplifiableConditionalExpression")
+  public static final boolean DISPLAY_STATISTICS = System.getProperty("fd.stats") != null ? Boolean.getBoolean("fd.stats") : true;
 
   /** Build code changes with Gradle rather than IDE hooks? */
   @SuppressWarnings("SimplifiableConditionalExpression")
@@ -118,7 +126,6 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
 
     // Keep in sync with FileManager#getDataFolder in the runtime library
     return "/data/data/" + applicationId + "/files/studio-fd";
-
   }
 
   private static final boolean SEND_WHOLE_AP_FILE = true;
@@ -283,9 +290,11 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
                                         final Collection<VirtualFile> files) {
     assert REBUILD_CODE_WITH_GRADLE;
 
-    final String variantName = getVariantName(facet);
-// TODO: Add in task for resources too!
-    String taskName = "incremental" + StringUtil.capitalize(variantName) + "SupportDex"; // TODO: Add task name to model
+
+    // Clean out *old* patch files (e.g. from a previous build such that if you for example
+    // only change a resource, we don't redeploy the same .dex file over and over!
+    // This should be performed by the Gradle plugin; this is a temporary workaround.
+    removeOldPatches(model);
 
     final Project project = facet.getModule().getProject();
     final GradleInvoker invoker = GradleInvoker.getInstance(project);
@@ -304,23 +313,199 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     };
     reference.set(task);
     invoker.addAfterGradleInvocationTask(task);
+    String taskName = getIncrementalDexTask(model);
     invoker.executeTasks(Collections.singletonList(taskName));
   }
 
+  // TODO: Get the intermediates folder from the model itself!
+  @Nullable
+  private static File findIntermediatesFolder(@NotNull AndroidGradleModel model) {
+    Variant variant = model.getSelectedVariant();
+    Collection<AndroidArtifactOutput> outputs = variant.getMainArtifact().getOutputs();
+    for (AndroidArtifactOutput output : outputs) {
+      File apk = output.getMainOutputFile().getOutputFile();
+      File intermediates = new File(apk.getParentFile().getParentFile().getParentFile(), "intermediates");
+      if (intermediates.exists()) {
+        return intermediates;
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static File findMergedResFolder(@NotNull AndroidFacet facet) {
+    File intermediates = findIntermediatesFolder(facet);
+    if (intermediates != null) {
+      String variantName = getVariantName(facet);
+      File res = new File(intermediates, "res" + separator + "merged" + separator + variantName);
+      if (res.isDirectory()) {
+        return res;
+      }
+
+      // Older Gradle plugin had it here: Do we still need to look for it?
+      // Look for resources in known Android plugin intermediate dirs; this should be handled by Gradle instead:
+      // res/debug/values/values.xml
+      //res = new File(intermediates, "res" + separator + variantName);
+      //if (res.isDirectory()) {
+      //  return res;
+      //}
+    }
+
+    return null;
+  }
+
+  // TODO: Get the build folder from the model itself!
+  @Nullable
+  private static File findBuildFolder(@NotNull AndroidFacet facet) {
+    String rootPath = AndroidRootUtil.getModuleDirPath(facet.getModule());
+    if (rootPath == null) {
+      return null;
+    }
+    File root = new File(FileUtil.toSystemDependentName(rootPath));
+
+    File build = new File(root, "build");
+    if (build.exists()) {
+      return build;
+    }
+
+    return null;
+  }
+
+  // TODO: Get the intermediates folder from the model itself!
+  @Nullable
+  private static File findIntermediatesFolder(@NotNull AndroidFacet facet) {
+    File build = findBuildFolder(facet);
+    if (build != null) {
+      File intermediates = new File(build, "intermediates");
+      if (intermediates.exists()) {
+        return intermediates;
+      }
+    }
+
+    return null;
+  }
+
+  // TODO: Get the merged resource folder from the model itself!
+  @Nullable
+  private static File findMergedResourceFolder(@NotNull AndroidFacet facet) {
+    File intermediates = findIntermediatesFolder(facet);
+    if (intermediates != null) {
+      String variantName = getVariantName(facet);
+      File resourceDir = new File(intermediates, "res" + File.separator + "merged" + File.separator + variantName);
+      if (resourceDir.exists()) {
+        return resourceDir;
+      }
+    }
+    return null;
+  }
+
+  // TODO: Get the generated folder from the model itself!
+  @Nullable
+  private static File findGeneratedFolder(@NotNull AndroidFacet facet) {
+    File build = findBuildFolder(facet);
+    if (build != null) {
+      File generated = new File(build, "generated");
+      if (generated.exists()) {
+        return generated;
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static File findMergedManifestFile(@NotNull AndroidFacet facet) {
+    // TODO: This might already be in the model
+    File intermediates = findIntermediatesFolder(facet);
+    if (intermediates != null) {
+      String variantName = getVariantName(facet);
+      File manifest = new File(intermediates, "manifests" + File.separator + "full" + File.separator + variantName
+                                              + File.separator + ANDROID_MANIFEST_XML);
+      if (manifest.exists()) {
+        return manifest;
+      }
+    }
+
+    return null;
+  }
+
+  // TODO: Get the assets folder from the model itself!
+  @Nullable
+  private static File findAssetsFolder(@NotNull AndroidFacet facet) {
+    File intermediates = findIntermediatesFolder(facet);
+    if (intermediates != null) {
+      String variantName = getVariantName(facet);
+      File assets = new File(intermediates, "assets" + File.separator + variantName);
+      if (assets.exists()) {
+        return assets;
+      }
+    }
+
+    return null;
+  }
+
+  // TODO: Get the R class folder from the model itself!
+  @Nullable
+  private static File findResourceClassFolder(@NotNull AndroidFacet facet) {
+    File generated = findGeneratedFolder(facet);
+    if (generated != null) {
+      String variantName = getVariantName(facet);
+      File resourceClassFolder = new File(generated, "source" + File.separator + "r" + File.separator + variantName);
+      if (resourceClassFolder.exists()) {
+        return resourceClassFolder;
+      }
+    }
+
+    return null;
+  }
+
+  // TODO: This should be provided as part of the model!
+  @NotNull
+  private static String getIncrementalDexTask(@NotNull AndroidGradleModel model) {
+    final String variantName = getVariantName(model);
+
+    // TODO: Add in task for resources too!
+    return "incremental" + StringUtil.capitalize(variantName) + "SupportDex";
+  }
+
+  @Nullable
+  private static File findReloadDex(final AndroidGradleModel model) {
+    return findDexPatch(model, "reload-dex");
+  }
+
+  @Nullable
+  private static File findStartDex(final AndroidGradleModel model) {
+    return findDexPatch(model, "restart-dex");
+  }
+
+  @Nullable
+  private static File findDexPatch(@NotNull AndroidGradleModel model, @NotNull String dexTypeFolder) {
+    File intermediates = findIntermediatesFolder(model);
+    if (intermediates != null) {
+      final String variantName = getVariantName(model);
+      File dexFile = new File(intermediates, dexTypeFolder + File.separator + variantName + File.separator + "classes.dex");
+      if (dexFile.exists()) {
+        return dexFile;
+      }
+    }
+
+    return null;
+  }
 
   private void afterBuild(AndroidGradleModel model, AndroidFacet facet, boolean forceRestart,
                           Collection<VirtualFile> files) {
     List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(4);
 
     if (REBUILD_CODE_WITH_GRADLE) {
-      gatherGradleCodeChanges(model, facet, changes);
+      gatherGradleCodeChanges(model, changes);
     } else {
       computeCodeChangesDirectly(model, changes, facet, files);
     }
     if (REBUILD_RESOURCES_WITH_GRADLE) {
       gatherGradleResourceChanges(model, facet, changes);
     } else {
-      computeResourceChangesDirectly(model, facet, files, changes);
+      computeResourceChangesDirectly(facet, files, changes);
     }
 
     push(facet.getModule().getProject(), changes, forceRestart);
@@ -333,88 +518,164 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     throw new UnsupportedOperationException("Not yet implemented");
   }
 
-  private void computeResourceChangesDirectly(AndroidGradleModel model, AndroidFacet facet, Collection<VirtualFile> files,
-                                           List<ApplicationPatch> changes) {
-    // TODO: Skip if not a debug build type!
-    //Variant variant = model.getSelectedVariant();
-    //if (variant.getBuildType()) {
-    // ...
-    //}
+  private void computeResourceChangesDirectly(AndroidFacet facet, Collection<VirtualFile> files, List<ApplicationPatch> changes) {
+    File res = findMergedResFolder(facet);
+    if (res != null) {
+      List<VirtualFile> resourceFiles = Lists.newArrayList();
+      List<VirtualFile> sourceFiles = Lists.newArrayList();
 
-    Variant variant = model.getSelectedVariant();
-    String variantName = variant.getName();
-    Collection<AndroidArtifactOutput> outputs = variant.getMainArtifact().getOutputs();
-    for (AndroidArtifactOutput output : outputs) {
-      File generatedManifest = output.getGeneratedManifest();
-      // We don't have the location of the merged resources in the model, but they live relative to
-      // the generated manifest: getGeneratedManifest()/../res/
-      File res = new File(generatedManifest.getParentFile(), SdkConstants.FD_RES);
-      if (!res.exists()) {
-        // Look for resources in known Android plugin intermediate dirs; this should be handled by Gradle instead:
-        // manifests/full/debug/AndroidManifest.xml
-        // res/debug/values/values.xml
-        // res/merged/debug/values/values.xml
-        res = new File(generatedManifest.getParentFile().getParentFile().getParentFile().getParentFile(),
-                       "res" + separator + variantName);
-        if (!res.isDirectory()) {
-          res = new File(generatedManifest.getParentFile().getParentFile().getParentFile().getParentFile(),
-                         "res" + separator + "merged" + separator + variantName);
-
-          if (!res.isDirectory()) {
-            continue;
+      for (VirtualFile file : files) {
+        if (file.getFileType() == StdFileTypes.JAVA) {
+          sourceFiles.add(file);
+        } else {
+          ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+          if (folderType != null || file.getName().equals(ANDROID_MANIFEST_XML)) {
+            resourceFiles.add(file);
           }
         }
       }
 
-      for (VirtualFile file : files) {
-        if (file.getFileType() == StdFileTypes.JAVA) {
-          continue;
-        }
-        ResourceFolderType folderType = ResourceHelper.getFolderType(file);
-        if (folderType == ResourceFolderType.VALUES) {
-          // Perform value diffs
-          diffValueResource(changes, facet, res, file);
-        }
-        else {
-          // Perform file diffing
-// NO: THIS IS INEFFICIENT! APPLY ALL CHANGES FIRST, *THEN* RUN AAPT!!!
-          diffNonValueResource(changes, facet, res, file, folderType);
+      if (!resourceFiles.isEmpty()) {
+        try {
+          // Attempt to just push the whole arsc envelope over
+          File intermediates = findIntermediatesFolder(facet);
+          if (intermediates == null) {
+            LOG.warn("Couldn't find intermediates folder in the project for module " + facet.getModule());
+            return;
+          }
+
+          File generated = findGeneratedFolder(facet);
+          if (generated == null) {
+            LOG.warn("Couldn't find generated source folder in the project for module " + facet.getModule());
+            return;
+          }
+
+          File resourceDir = findMergedResourceFolder(facet);
+          if (resourceDir == null) {
+            LOG.warn("Couldn't find merged resource folder in the project for module " + facet.getModule());
+            return;
+          }
+
+          ListIterator<VirtualFile> iterator = resourceFiles.listIterator();
+          while (iterator.hasNext()) {
+            VirtualFile file = iterator.next();
+            ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+            File oldFile;
+            if (folderType == ResourceFolderType.VALUES) {
+              oldFile = new File(res, file.getParent().getName() + separator + file.getParent().getName() + DOT_XML);
+            }
+            else if (folderType != null) {
+              // File resources
+              oldFile = new File(res, file.getParent().getName() + separator + file.getName());
+              if (!oldFile.exists() || !isDifferent(facet.getModule().getProject(), oldFile, file)) {
+                iterator.remove();
+                continue;
+              }
+
+            }
+            else {
+              // Manifest file
+              // TODO: Handle manifest files! I'll need to run the manifest merger again here!
+              // This is probably not worth doing until we merge this functionality into the
+              // Gradle plugin
+              LOG.warn("Skipping manifest files for now");
+              iterator.remove();
+              continue;
+            }
+
+            boolean ok = updateMergedResourceFile(resourceDir, oldFile, file, folderType);
+            if (!ok) {
+              LOG.warn("Failed to merge updates to file " + file);
+            }
+          }
+
+          if (resourceFiles.isEmpty()) {
+            // No files changed: nothing to do.
+            return;
+          }
+
+          // Next compile all the resources with a single aapt run
+          File binaryXml = compileResources(facet, resourceDir);
+          if (binaryXml != null) {
+            // Extract all the files
+            for (VirtualFile file : resourceFiles) {
+              ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+              if (folderType == null) {
+                // TODO: Handle manifest files!
+                continue;
+              }
+              byte[] bytes = extractFile(binaryXml, file, folderType);
+              if (bytes != null) {
+                if (folderType == ResourceFolderType.VALUES ) {
+                  changes.add(new ApplicationPatch(RESOURCE_FILE_NAME, bytes));
+                }
+                else {
+                  // TODO: If it's a PNG file, perform aapt crunching and nine patch processing:
+                  //
+                  //     aapt c[runch] [-v] -S resource-sources ... -C output-folder ...
+                  //      Do PNG preprocessing on one or several resource folders
+                  //      and store the results in the output folder.
+                  //
+                  //    aapt s[ingleCrunch] [-v] -i input-file -o outputfile
+                  //      Do PNG preprocessing on a single file.
+
+                  // TODO: Consider sending across the whole .ap_
+
+                  @SuppressWarnings("ConstantConditions") String path =
+                    // NOTE: *Not* using File.separator in Android file paths
+                    SEND_WHOLE_AP_FILE ? RESOURCE_FILE_NAME : "res/" + file.getParent().getName() + "/" + file.getName();
+                  changes.add(new ApplicationPatch(path, bytes));
+                }
+              }
+            }
+
+            FileUtil.delete(binaryXml);
+          }
+
+        } catch (IOException ioe) {
+          LOG.warn(ioe);
         }
       }
     }
   }
 
-  private static void gatherGradleCodeChanges(AndroidGradleModel model,
-                                              AndroidFacet facet,
-                                              List<ApplicationPatch> changes) {
+  private static void gatherGradleCodeChanges(AndroidGradleModel model, List<ApplicationPatch> changes) {
     assert REBUILD_CODE_WITH_GRADLE;
-    Variant variant = model.getSelectedVariant();
-    Collection<AndroidArtifactOutput> outputs = variant.getMainArtifact().getOutputs();
-    final String variantName = getVariantName(facet);
-    for (AndroidArtifactOutput output : outputs) {
-      File apk = output.getMainOutputFile().getOutputFile();
-      // TODO: Get intermediates folder from model!
-      File intermediates = new File(apk.getParentFile().getParentFile().getParentFile(), "intermediates");
 
-      File restart = new File(intermediates, "restart-dex" + File.separator + variantName + File.separator + "classes.dex");
-      if (restart.exists()) {
-        try {
-          byte[] bytes = Files.toByteArray(restart);
+    File restart = findStartDex(model);
+    if (restart != null) {
+      try {
+        byte[] bytes = Files.toByteArray(restart);
+        changes.add(new ApplicationPatch("classes.dex", bytes));
 
-          changes.add(new ApplicationPatch("classes.dex", bytes));
-          //forceRestart = true;
-
-          File incremental = new File(intermediates, "reload-dex" + File.separator + variantName + File.separator + "classes.dex");
-          if (incremental.exists()) {
-            //forceRestart = false; // let the server device, it has a patch that might work
-            bytes = Files.toByteArray(incremental);
-            changes.add(new ApplicationPatch("classes.dex.3", bytes));
+        File incremental = findReloadDex(model);
+        if (incremental != null) {
+          bytes = Files.toByteArray(incremental);
+          changes.add(new ApplicationPatch("classes.dex.3", bytes));
+          boolean deleted = incremental.delete();
+          if (!deleted) {
+            Logger.getInstance(FastDeployManager.class).error("Couldn't delete " + incremental);
           }
-
-        } catch (Throwable t) {
-          Logger.getInstance(FastDeployManager.class).error("Couldn't generate dex", t);
         }
-        break;
+      } catch (Throwable t) {
+        Logger.getInstance(FastDeployManager.class).error("Couldn't generate dex", t);
+      }
+    }
+  }
+
+  private static void removeOldPatches(AndroidGradleModel model) {
+    File restart = findStartDex(model);
+    if (restart != null) {
+      boolean deleted = restart.delete();
+      if (!deleted) {
+        Logger.getInstance(FastDeployManager.class).error("Couldn't delete " + restart);
+      }
+    }
+    File incremental = findReloadDex(model);
+    if (incremental != null) {
+      boolean deleted = incremental.delete();
+      if (!deleted) {
+        Logger.getInstance(FastDeployManager.class).error("Couldn't delete " + incremental);
       }
     }
   }
@@ -614,14 +875,64 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     }
   }
 
-  private void diffValueResource(List<ApplicationPatch> changes, AndroidFacet facet, File res, VirtualFile file) {
+  private static boolean updateMergedResourceFile(@NotNull File resourceDir, @NotNull File oldFile, @NotNull VirtualFile file,
+                                                  @NotNull ResourceFolderType folderType) throws IOException {
+    String parentName = file.getParent().getName();
+    if (folderType == ResourceFolderType.VALUES) {
+      // Nope - turns out it's now using the parent name + xml - e.g.
+      //   we have values/values.xml and values-21/values-21.xml, not values-21/values.xml !
+      File targetFile = new File(resourceDir, parentName + separator + parentName + DOT_XML);
+      // This isn't quite right: we might be rewriting resources into values that were overridden by higher priority overlays!
 
-    File oldFile = new File(res, file.getParent().getName() + separator + file.getParent().getName() + DOT_XML);
-    // Attempt to just push the whole arsc envelope over
-    byte[] data = compileResources(oldFile, facet, file, ResourceFolderType.VALUES);
-    if (data != null) {
-      changes.add(new ApplicationPatch(RESOURCE_FILE_NAME, data));
+      Document allDoc = XmlUtils.parseDocumentSilently(Files.toString(targetFile, Charsets.UTF_8), true);
+      Document newDoc = XmlUtils.parseDocumentSilently(new String(file.contentsToByteArray(), Charsets.UTF_8), true);
+      if (newDoc == null || allDoc == null) {
+        return false;
+      }
+      Element allRoot = allDoc.getDocumentElement();
+      Element documentElement = newDoc.getDocumentElement();
+      if (documentElement == null || allRoot == null) {
+        return false;
+      }
+      Map<String, Element> insertMap = Maps.newHashMap();
+      for (Element element : LintUtils.getChildren(documentElement)) {
+        // Can't just stash elements by name: the same file can contain multiple identical names separated
+        // by different types (e.g. in the I/O app we have both <string name="social_extended"> and <color name="social_extended">)
+        String key = getKey(element);
+        if (key != null) {
+          insertMap.put(key, element);
+        }
+      }
+      for (Element element : LintUtils.getChildren(allRoot)) {
+        String key = getKey(element);
+        if (key != null) {
+          Element replacement = insertMap.get(key);
+          if (replacement != null) {
+            Node imported = duplicateNode(allDoc, replacement);
+            allRoot.replaceChild(imported, element);
+            insertMap.remove(key);
+          }
+        }
+      }
+
+      for (Element remaining : insertMap.values()) {
+        Node imported = duplicateNode(allDoc, remaining);
+        allRoot.appendChild(imported);
+      }
+
+      String xml = XmlUtils.toXml(allDoc);
+      Files.write(xml, targetFile, Charsets.UTF_8);
+
+      // I don't actually need to copy if I'm going to do it this way!
+      Files.write(xml, oldFile, Charsets.UTF_8);
     }
+    else {
+      // Non-value resources: much simpler, just replace the file
+      byte[] bytes = file.contentsToByteArray();
+      FileUtil.writeToFile(oldFile, bytes);
+    }
+
+    return true;
   }
 
   private static boolean isDifferent(Project project, File oldFile, VirtualFile file) {
@@ -652,46 +963,13 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     return false;
   }
 
-  private void diffNonValueResource(List<ApplicationPatch> changes,
-                                           AndroidFacet facet,
-                                           File res,
-                                           VirtualFile file,
-                                           ResourceFolderType folderType) {
-    // TODO: Binary diff the files? Or just look at file stamps?
-
-    File oldFile = new File(res, file.getParent().getName() + separator + file.getName());
-    if (oldFile.exists() && isDifferent(facet.getModule().getProject(), oldFile, file)) {
-      byte[] data = compileResources(oldFile, facet, file, folderType);
-      if (data == null) {
-        return;
-      }
-      // TODO: If it's a PNG file, perform aapt crunching and nine patch processing:
-      //
-      //     aapt c[runch] [-v] -S resource-sources ... -C output-folder ...
-      //      Do PNG preprocessing on one or several resource folders
-      //      and store the results in the output folder.
-      //
-      //    aapt s[ingleCrunch] [-v] -i input-file -o outputfile
-      //      Do PNG preprocessing on a single file.
-
-      // TODO: Consider sending across the whole .ap_
-
-      @SuppressWarnings("ConstantConditions")
-      String path = SEND_WHOLE_AP_FILE ? RESOURCE_FILE_NAME : "res/" + file.getParent().getName() + "/" + file.getName();
-      changes.add(new ApplicationPatch(path, data));
-    }
-  }
-
   /**
    * Create an aapt binary packaged version of the given file.
    * <p/>
    * We should port this to Java, but for now perform a (very inefficient) aapt packaging task instead
    */
   @Nullable
-  private byte[] compileResources(@NotNull File oldFile,
-                                  @NotNull AndroidFacet facet,
-                                  @NotNull VirtualFile file,
-                                  @NotNull ResourceFolderType folderType) {
+  private File compileResources(@NotNull AndroidFacet facet, @NotNull File resourceDir) throws IOException {
     AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
     if (platform == null) {
       return null;
@@ -702,7 +980,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     }
     LocalSdk localSdk = sdkData.getLocalSdk();
 
-    String variantName = getVariantName(facet);
+    File binaryXml = FileUtil.createTempFile("binaryXml", ".ap_");
 
     // Try to repackage the XML files
     try {
@@ -723,89 +1001,32 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       // Find android.jar
       File androidJar = platform.getTarget().getFile(IAndroidTarget.ANDROID_JAR);
       args.add(androidJar.getPath());
-      args.add("-M");
 
-      String rootPath = AndroidRootUtil.getModuleDirPath(facet.getModule());
-      if (rootPath == null) {
-        return null;
+      File manifest = findMergedManifestFile(facet);
+      if (manifest != null) {
+        args.add("-M");
+        args.add(manifest.getPath());
+
       }
-      File root = new File(FileUtil.toSystemDependentName(rootPath));
-      args.add(new File(root, ("build/intermediates/manifests/full/" + variantName + "/AndroidManifest.xml").replace('/', separatorChar)).getPath());
       args.add("-S");
-
-      // Create overlay
-      File resourceDir = new File(root, ("build/intermediates/res/merged/" + variantName).replace('/', separatorChar));
-
-      String parentName = file.getParent().getName();
-      if (folderType == ResourceFolderType.VALUES) {
-        // Nope - turns out it's now using the parent name + xml - e.g.
-        //   we have values/values.xml and values-21/values-21.xml, not values-21/values.xml !
-        File targetFile = new File(resourceDir, parentName + separator + parentName + DOT_XML);
-        // This isn't quite right: we might be rewriting resources into values that were overridden by higher priority overlays!
-
-        Document allDoc = XmlUtils.parseDocumentSilently(Files.toString(targetFile, Charsets.UTF_8), true);
-        Document newDoc = XmlUtils.parseDocumentSilently(new String(file.contentsToByteArray(), Charsets.UTF_8), true);
-        if (newDoc == null || allDoc == null) {
-          return null;
-        }
-        Element allRoot = allDoc.getDocumentElement();
-        Element documentElement = newDoc.getDocumentElement();
-        if (documentElement == null || allRoot == null) {
-          return null;
-        }
-        Map<String, Element> insertMap = Maps.newHashMap();
-        for (Element element : LintUtils.getChildren(documentElement)) {
-          // Can't just stash elements by name: the same file can contain multiple identical names separated
-          // by different types (e.g. in the I/O app we have both <string name="social_extended"> and <color name="social_extended">)
-          String key = getKey(element);
-          if (key != null) {
-            insertMap.put(key, element);
-          }
-        }
-        for (Element element : LintUtils.getChildren(allRoot)) {
-          String key = getKey(element);
-          if (key != null) {
-            Element replacement = insertMap.get(key);
-            if (replacement != null) {
-              Node imported = duplicateNode(allDoc, replacement);
-              allRoot.replaceChild(imported, element);
-              insertMap.remove(key);
-            }
-          }
-        }
-
-        for (Element remaining : insertMap.values()) {
-          Node imported = duplicateNode(allDoc, remaining);
-          allRoot.appendChild(imported);
-        }
-
-        String xml = XmlUtils.toXml(allDoc);
-        Files.write(xml, targetFile, Charsets.UTF_8);
-
-        // I don't actually need to copy if I'm going to do it this way!
-        Files.write(xml, oldFile, Charsets.UTF_8);
-      }
-      else {
-        // Non-value resources: much simpler, just replace the file
-        File targetFile = new File(resourceDir, parentName + separator + file.getName());
-        byte[] bytes = file.contentsToByteArray();
-        FileUtil.writeToFile(targetFile, bytes);
-        // I don't actually need to copy if I'm going to do it this way!
-        FileUtil.writeToFile(oldFile, bytes);
-      }
-
-      // Copy in the new file contents
       args.add(resourceDir.getPath());
 
-      // TODO: Copy this to a different directory and override with current versions!
-      args.add("-A");
-      args.add(new File(root, ("build/intermediates/assets/" + variantName).replace('/', separatorChar)).getPath()); // We probably don't need to include this?
+      File assetsFolder = findAssetsFolder(facet);
+      if (assetsFolder != null) {
+        // TODO: Copy this asset folder to a different directory and override with current versions!
+        args.add("-A");
+        args.add(assetsFolder.getPath()); // TODO: We probably don't need to include this if we're just packaging resources?
+      }
+
       args.add("-m");
-      args.add("-J");
-      args.add(new File(root, ("build/generated/source/r/" + variantName).replace('/', separatorChar)).getPath());
+
+      File resourceClassFolder = findResourceClassFolder(facet);
+      if (resourceClassFolder != null) {
+        args.add("-J");
+        args.add(resourceClassFolder.getPath());
+      }
       args.add("-F");
-      File binaryXml = FileUtil.createTempFile("binaryXml", ".ap_");
-      args.add(binaryXml.getPath()); // NO, pick other
+      args.add(binaryXml.getPath());
       args.add("--debug-mode");
       args.add("--custom-package");
       String pkg = AndroidModuleInfo.get(facet).getPackage();
@@ -817,58 +1038,68 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       args.add("apk");
 
       String[] argv = ArrayUtil.toStringArray(args);
-      byte[] bytes = null;
       final Process process = Runtime.getRuntime().exec(argv);
       int code = process.waitFor();
       if (code == 0) {
-        if (folderType == ResourceFolderType.VALUES || SEND_WHOLE_AP_FILE) {
-          bytes = Files.toByteArray(binaryXml);
-        }
-        else {
-          // Look in the generated .ap_ file for the target resource
-          InputStream inputStream = new FileInputStream(binaryXml);
-          JarInputStream jarInputStream = new JarInputStream(inputStream);
-          try {
-            // Always using / rather than File.separator in ZipEntry paths
-            String target = FD_RES + '/' + parentName + '/' + file.getName();
-
-            ZipEntry entry = jarInputStream.getNextEntry();
-            while (entry != null) {
-              String name = entry.getName();
-              if (name.equals(target)) {
-                bytes = ByteStreams.toByteArray(jarInputStream);
-                break;
-              }
-              entry = jarInputStream.getNextEntry();
-            }
-          }
-          finally {
-            jarInputStream.close();
-          }
-        }
+        return binaryXml;
       }
       else {
         dumpProcessOutput(process, "Incremental aapt");
         postBalloon(MessageType.WARNING, "There were errors computing resources; could not send resource diffs to app");
       }
-
-      FileUtil.delete(binaryXml);
-
-      return bytes;
-    }
-    catch (IOException e) {
-      LOG.warn(e);
     }
     catch (InterruptedException e) {
       LOG.warn(e);
     }
 
+    FileUtil.delete(binaryXml);
     return null;
+  }
+
+  /**
+   * Create an aapt binary packaged version of the given file.
+   * <p/>
+   * We should port this to Java, but for now perform a (very inefficient) aapt packaging task instead
+   */
+  @Nullable
+  private static byte[] extractFile(@NotNull File binaryXml, @NotNull VirtualFile file, @NotNull ResourceFolderType folderType)
+      throws IOException {
+    if (folderType == ResourceFolderType.VALUES || SEND_WHOLE_AP_FILE) {
+      return Files.toByteArray(binaryXml);
+    }
+    else {
+      // Look in the generated .ap_ file for the target resource
+      InputStream inputStream = new FileInputStream(binaryXml);
+      JarInputStream jarInputStream = new JarInputStream(inputStream);
+      try {
+        // Always using / rather than File.separator in ZipEntry paths
+        String parentName = file.getParent().getName();
+        String target = FD_RES + '/' + parentName + '/' + file.getName();
+
+        ZipEntry entry = jarInputStream.getNextEntry();
+        while (entry != null) {
+          String name = entry.getName();
+          if (name.equals(target)) {
+            return ByteStreams.toByteArray(jarInputStream);
+          }
+          entry = jarInputStream.getNextEntry();
+        }
+      }
+      finally {
+        jarInputStream.close();
+      }
+
+      return null;
+    }
   }
 
   @NotNull
   private static String getVariantName(@NotNull AndroidFacet facet) {
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    return getVariantName(AndroidGradleModel.get(facet));
+  }
+
+  @NotNull
+  private static String getVariantName(@Nullable AndroidGradleModel model) {
     if (model != null) {
       return model.getSelectedVariant().getName();
     }
@@ -972,6 +1203,9 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       }
       catch (ExecutionException ignore) {
       }
+      if (DISPLAY_STATISTICS) {
+        notifyEnd(project);
+      }
     }
   }
 
@@ -1017,6 +1251,19 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
         DataOutputStream output = new DataOutputStream(socket.getOutputStream());
         try {
           ApplicationPatch.write(output, changes, forceRestart);
+
+          // Finally read a boolean back from the other side; this has the net effect of
+          // waiting until applying/verifying code on the other side is done. (It doesn't
+          // count the actual restart time, but for activity restarts it's typically instant,
+          // and for cold starts we have no easy way to handle it (the process will die and a
+          // new process come up; to measure that we'll need to work a lot harder.)
+          DataInputStream input = new DataInputStream(socket.getInputStream());
+          try {
+            input.readBoolean();
+          }
+          finally {
+            input.close();
+          }
         } finally {
           output.close();
         }
@@ -1072,5 +1319,38 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     // Clear any locally cached data on the device related to this app
     String pkg = remotePath.substring(remotePath.lastIndexOf('/') + 1);
     state.executeDeviceCommandAndWriteToConsole(device, "adb shell rm -rf " + getDataFolder(pkg), receiver);
+  }
+
+  private static long ourBeginTime;
+
+  public static void notifyBegin() {
+    ourBeginTime = System.currentTimeMillis();
+  }
+
+  public static void notifyEnd(Project project) {
+    long end = System.currentTimeMillis();
+    final String message = "Instant Run: " + (end - ourBeginTime) + "ms";
+    JFrame frame = WindowManager.getInstance().getFrame(project.isDefault() ? null : project);
+    if (frame == null) {
+      return;
+    }
+    final JComponent component = frame.getRootPane();
+    if (component == null) {
+      LOG.info(message);
+      return;
+    }
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        Rectangle rect = component.getVisibleRect();
+        Point p = new Point(rect.x + rect.width - 10, rect.y + 10);
+        RelativePoint point = new RelativePoint(component, p);
+        JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(message,
+                                                                  MessageType.WARNING.getDefaultIcon(),
+                                                                  MessageType.WARNING.getPopupBackground(), null)
+          .setShowCallout(false).setCloseButtonEnabled(true)
+          .createBalloon().show(point, Balloon.Position.atLeft);
+      }
+    });
   }
 }
