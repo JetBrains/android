@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
-import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -30,6 +29,8 @@ import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 
 public abstract class TreeController implements PathListener {
+  public static final int TREE_ROW_HEIGHT = 19;
+
   @NotNull protected final GfxTraceEditor myEditor;
   @NotNull protected final JBLoadingPanel myLoadingPanel;
   @NotNull protected final SimpleTree myTree;
@@ -38,7 +39,7 @@ public abstract class TreeController implements PathListener {
     myEditor = editor;
     myEditor.addPathListener(this);
     myTree = new SimpleTree();
-    myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT);
+    myTree.setRowHeight(TREE_ROW_HEIGHT);
     myTree.setRootVisible(false);
     myTree.setLineStyleAngled();
     myTree.setCellRenderer(new TreeRenderer());
@@ -46,8 +47,8 @@ public abstract class TreeController implements PathListener {
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), editor.getProject());
     myLoadingPanel.add(myTree);
     scrollPane.setViewportView(myLoadingPanel);
-    scrollPane.getHorizontalScrollBar().setUnitIncrement(TreeUtil.TREE_ROW_HEIGHT);
-    scrollPane.getVerticalScrollBar().setUnitIncrement(TreeUtil.TREE_ROW_HEIGHT);
+    scrollPane.getHorizontalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
+    scrollPane.getVerticalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
   }
 
   public void clear() {
