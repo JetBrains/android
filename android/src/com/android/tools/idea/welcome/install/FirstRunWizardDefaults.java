@@ -23,6 +23,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -118,7 +119,10 @@ public class FirstRunWizardDefaults {
         path = FileUtil.join(userHome, "Android", "Sdk");
       }
       else {
-        throw new IllegalStateException("Unsupported OS");
+        Messages.showErrorDialog("Your OS is not officially supported.\n" +
+                                 "You can continue, but it is likely you will encounter further problems.",
+                                 "Unsupported OS");
+        path = "";
       }
     }
     return new File(path);
