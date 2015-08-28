@@ -339,13 +339,13 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
   /**
    * We will always show the first line of errorMessage. If there are more errors, we will show a
    * underlined text as "More...". When it is clicked, we will show more lines.
-   * At the same time, we also parse the errorMessage to decide whether going to the next step.
+   * At the same time, we also check whether the preview is valid before going to the next step.
    * Basically, if the preview image is empty, we disable the next step.
    *
    * @return whether or not the preview image is valid.
    */
   private boolean setupErrorMessages(String errorMessage) {
-    boolean isPreviewValid = errorMessage.isEmpty();
+    boolean isPreviewValid =  myTemplateState.getBoolean(ATTR_VALID_PREVIEW);
     int firstLineBreak = errorMessage.indexOf("\n");
     boolean moreErrors = firstLineBreak > 0 && firstLineBreak < errorMessage.length() - 1;
     String firstLineError = moreErrors ? errorMessage.substring(0, firstLineBreak) : errorMessage;

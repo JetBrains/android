@@ -222,6 +222,11 @@ public final class TemplateWizardContextAdapter implements AssetStudioContext {
   }
 
   @Override
+  public void setValidPreview(boolean valid) {
+    myWizardState.put(ATTR_VALID_PREVIEW, valid);
+  }
+
+  @Override
   public int getVectorOpacity()  {
     return myWizardState.getInt(ATTR_VECTOR_DRAWBLE_OPACTITY);
   }
