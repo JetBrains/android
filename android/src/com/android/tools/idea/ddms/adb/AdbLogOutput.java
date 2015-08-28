@@ -19,50 +19,81 @@ import com.android.ddmlib.Log;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.MessageType;
+import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/** {@link AdbLogOutput} redirects the output from {@link Log.ILogOutput} to IDEA's log files. */
-public class AdbLogOutput implements Log.ILogOutput {
-  private static final NotificationGroup EVENT_LOG = NotificationGroup.logOnlyGroup("ADB Logs");
-  private static final Logger LOG = Logger.getInstance("#com.android.ddmlib");
+public class AdbLogOutput {
+  /** {@link SystemLogRedirecter} redirects the output from {@link Log.ILogOutput} to IDEA's log files. */
+  public static class SystemLogRedirecter implements Log.ILogOutput {
+    private static final NotificationGroup EVENT_LOG = NotificationGroup.logOnlyGroup("ADB Logs");
+    private static final Logger LOG = Logger.getInstance("#com.android.ddmlib");
 
-  @Override
-  public void printLog(Log.LogLevel logLevel, String tag, String message) {
-    reportAdbLog(logLevel, tag, message);
-  }
-
-  @Override
-  public void printAndPromptLog(Log.LogLevel logLevel, String tag, String message) {
-    reportAdbLog(logLevel, tag, message);
-  }
-
-  private static void reportAdbLog(@Nullable Log.LogLevel logLevel, @Nullable String tag, @Nullable String message) {
-    if (message == null) {
-      return;
+    @Override
+    public void printLog(@Nullable Log.LogLevel logLevel, @Nullable String tag, @Nullable String message) {
+      reportAdbLog(logLevel, tag, message);
     }
 
-    if (logLevel == null) {
-      logLevel = Log.LogLevel.DEBUG;
+    @Override
+    public void printAndPromptLog(@Nullable Log.LogLevel logLevel, @Nullable String tag, @Nullable String message) {
+      reportAdbLog(logLevel, tag, message);
     }
 
-    switch (logLevel) {
-      case VERBOSE:
-      case DEBUG:
-        LOG.debug(message);
-        break;
-      case INFO:
-        LOG.info(message);
-        break;
-      case WARN:
-        LOG.warn(message);
-        break;
-      case ERROR:
-      case ASSERT:
-        // Note: These aren't programming errors, but setup/installation errors. So we inform the user via an entry in the
-        // event log, and append to the system log file so that we can potentially inspect and understand bug reports.
-        LOG.warn(message);
-        EVENT_LOG.createNotification(message, MessageType.ERROR).notify(null);
-        break;
+    private static void reportAdbLog(@Nullable Log.LogLevel logLevel, @Nullable String tag, @Nullable String message) {
+      if (StringUtil.isEmpty(message)) {
+        return;
+      }
+
+      if (logLevel == null) {
+        logLevel = Log.LogLevel.DEBUG;
+      }
+
+      switch (logLevel) {
+        case VERBOSE:
+        case DEBUG:
+          LOG.debug(message);
+          break;
+        case INFO:
+          LOG.info(message);
+          break;
+        case WARN:
+          LOG.warn(message);
+          break;
+        case ERROR:
+        case ASSERT:
+          // Note: These aren't programming errors, but setup/installation errors. So we inform the user via an entry in the
+          // event log, and append to the system log file so that we can potentially inspect and understand bug reports.
+          LOG.warn(message);
+          EVENT_LOG.createNotification(message, MessageType.ERROR).notify(null);
+          break;
+      }
+    }
+  }
+
+  /** {@link ToStringLogger} collects all the output from {@link Log.ILogOutput} into a string in memory */
+  public static class ToStringLogger implements Log.ILogOutput {
+    private final StringBuilder sb = new StringBuilder(100);
+
+    @Override
+    public void printLog(@Nullable Log.LogLevel logLevel, @Nullable String tag, @Nullable String message) {
+      append(message);
+    }
+
+    @Override
+    public void printAndPromptLog(@Nullable Log.LogLevel logLevel, @Nullable String tag, @Nullable String message) {
+      append(message);
+    }
+
+    private void append(String message) {
+      if (!StringUtil.isEmpty(message)) {
+        sb.append(message);
+        sb.append('\n');
+      }
+    }
+
+    @NotNull
+    public String getOutput() {
+      return sb.toString();
     }
   }
 }
