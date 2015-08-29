@@ -64,36 +64,11 @@ public class GfxTraceViewPanel implements Disposable {
     threePanes.setFirstComponent(ScrubberController.createUI(editor));
     threePanes.setFirstSize(150);
 
-    // Configure the framebuffer views.
-    final JBRunnerTabs bufferTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
-    bufferTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
-      .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
-
-    JPanel colorPanel = new JPanel(new BorderLayout());
-    JBScrollPane colorScrollPane = new JBScrollPane();
-    colorPanel.add(colorScrollPane, BorderLayout.CENTER);
-    JPanel wireframePanel = new JPanel(new BorderLayout());
-    JBScrollPane wireframeScrollPane = new JBScrollPane();
-    wireframePanel.add(wireframeScrollPane, BorderLayout.CENTER);
-    JPanel depthPanel = new JPanel(new BorderLayout());
-    JBScrollPane depthScrollPane = new JBScrollPane();
-    depthPanel.add(depthScrollPane, BorderLayout.CENTER);
-    bufferTabs.addTab(new TabInfo(colorPanel).setText("Color"));
-    bufferTabs.addTab(new TabInfo(wireframePanel).setText("Wireframe"));
-    bufferTabs.addTab(new TabInfo(depthPanel).setText("Depth"));
-    bufferTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
-
-    // Put the buffer views in a panel so a border can be drawn around it.
-    JPanel bufferWrapper = new JPanel(new BorderLayout());
-    bufferWrapper.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-    bufferWrapper.add(bufferTabs, BorderLayout.CENTER);
-    FrameBufferController.createUI(editor, colorScrollPane, wireframeScrollPane, depthScrollPane);
-
     // Now add the atom tree and buffer views to the middle pane in the main pane.
     final JBSplitter middleSplitter = new JBSplitter(false);
     middleSplitter.setMinimumSize(new Dimension(100, 10));
     middleSplitter.setFirstComponent(AtomController.createUI(editor));
-    middleSplitter.setSecondComponent(bufferWrapper);
+    middleSplitter.setSecondComponent(FrameBufferController.createUI(editor));
     middleSplitter.setProportion(0.3f);
     threePanes.setInnerComponent(middleSplitter);
 
