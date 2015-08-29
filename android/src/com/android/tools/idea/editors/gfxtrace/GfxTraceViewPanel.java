@@ -19,7 +19,6 @@ import com.android.tools.idea.editors.gfxtrace.controllers.*;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
@@ -36,24 +35,11 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.HierarchyBoundsAdapter;
-import java.awt.event.HierarchyEvent;
 
 public class GfxTraceViewPanel implements Disposable {
-  @NotNull public static final String TOOLBAR_NAME = "GfxTraceViewPanelToolbar";
-
   @NotNull private LoadingDecorator myLoadingDecorator;
 
   @NotNull private JBPanel myMainPanel = new JBPanel(new BorderLayout());
-
-  @NotNull private ContextController myContextController;
-  @NotNull private AtomController myAtomController;
-  @NotNull private ScrubberController myScrubberController;
-  @NotNull private FrameBufferController myFrameBufferController;
-  @NotNull private StateController myStateController;
-  @NotNull private DocumentationController myDocumentationController;
-  @NotNull private TexturesController myTexturesController;
-
 
   GfxTraceViewPanel() {
     myMainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
@@ -72,11 +58,7 @@ public class GfxTraceViewPanel implements Disposable {
     threePanes.setDividerWidth(5);
 
     // Add the toolbar for the device selection.
-    myContextController = new ContextController(editor);
-    DefaultActionGroup group = new DefaultActionGroup(myContextController.getContextAction());
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
-    toolbar.getComponent().setName(TOOLBAR_NAME);
-    myMainPanel.add(toolbar.getComponent(), BorderLayout.NORTH);
+    myMainPanel.add(ContextController.createUI(editor), BorderLayout.NORTH);
 
     // Add the scrubber view to the top panel.
     JBList scrubberList = new JBList();
@@ -87,13 +69,13 @@ public class GfxTraceViewPanel implements Disposable {
     scrubberPanel.add(scrubberScrollPane, BorderLayout.CENTER);
     threePanes.setFirstComponent(scrubberPanel);
     threePanes.setFirstSize(150);
-    myScrubberController = new ScrubberController(editor, scrubberScrollPane, scrubberList);
+    ScrubberController.createUI(editor, scrubberScrollPane, scrubberList);
 
     // Configure the Atom tree container.
     JPanel atomTreePanel = new JPanel(new BorderLayout());
     JBScrollPane atomScrollPane = new JBScrollPane();
     atomTreePanel.add(atomScrollPane, BorderLayout.CENTER);
-    myAtomController = new AtomController(editor, editor.getProject(), atomScrollPane);
+    AtomController.createUI(editor, editor.getProject(), atomScrollPane);
 
     // Configure the framebuffer views.
     final JBRunnerTabs bufferTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
@@ -118,7 +100,7 @@ public class GfxTraceViewPanel implements Disposable {
     JPanel bufferWrapper = new JPanel(new BorderLayout());
     bufferWrapper.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     bufferWrapper.add(bufferTabs, BorderLayout.CENTER);
-    myFrameBufferController = new FrameBufferController(editor, colorScrollPane, wireframeScrollPane, depthScrollPane);
+    FrameBufferController.createUI(editor, colorScrollPane, wireframeScrollPane, depthScrollPane);
 
     // Now add the atom tree and buffer views to the middle pane in the main pane.
     final JBSplitter middleSplitter = new JBSplitter(false);
@@ -141,7 +123,7 @@ public class GfxTraceViewPanel implements Disposable {
     JPanel texturesPanel = new JPanel(new BorderLayout());
     texturesPanel.add(texturesScrollPane, BorderLayout.CENTER);
     miscTabs.addTab(new TabInfo(texturesPanel).setText("Textures"));
-    myTexturesController = new TexturesController(editor, texturesScrollPane, texturesList);
+    TexturesController.createUI(editor, texturesScrollPane, texturesList);
 
     // Add the memory viewer to the misc tabs
     JPanel memoryPanel = new JPanel();
@@ -154,7 +136,7 @@ public class GfxTraceViewPanel implements Disposable {
     JTextPane docsTextPane = new JTextPane();
     docsScrollPane.setViewportView(docsTextPane);
     // TODO: Rewrite to use IntelliJ documentation view.
-    myDocumentationController = new DocumentationController(editor, docsTextPane);
+    DocumentationController.createUI(editor, docsTextPane);
 
     // More borders for miscellaneous tabs.
     JPanel miscPanel = new JPanel(new BorderLayout());
@@ -165,7 +147,7 @@ public class GfxTraceViewPanel implements Disposable {
     JPanel stateWrapper = new JPanel(new BorderLayout());
     JBScrollPane stateScrollPane = new JBScrollPane();
     stateWrapper.add(stateScrollPane, BorderLayout.CENTER);
-    myStateController = new StateController(editor, stateScrollPane);
+    StateController.createUI(editor, stateScrollPane);
 
     // Configure the bottom splitter.
     JBSplitter bottomSplitter = new JBSplitter(false);
@@ -189,12 +171,6 @@ public class GfxTraceViewPanel implements Disposable {
 
   @Override
   public void dispose() {
-    myAtomController.clear();
-    myScrubberController.clear();
-    //myFrameBufferController.clear();
-    myStateController.clear();
-    //myDocumentationController.clear();
-    myTexturesController.clear();
     myMainPanel.removeAll();
     myLoadingDecorator = null;
   }
