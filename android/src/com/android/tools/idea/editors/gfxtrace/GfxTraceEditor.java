@@ -40,9 +40,11 @@ import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,17 +73,20 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private static final int SERVER_LAUNCH_SLEEP_INCREMENT_MS = 10;
 
   @NotNull private final Project myProject;
-  @NotNull private GfxTraceViewPanel myView;
+  @NotNull private LoadingDecorator myLoadingDecorator;
+  @NotNull private JBPanel myView = new JBPanel(new BorderLayout());
   @NotNull private final ListeningExecutorService myExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
   private Process myServerProcess;
   private Socket myServerSocket;
-  @NotNull private ServiceClient myClient;
+  private ServiceClient myClient;
 
   @NotNull private List<PathListener> myPathListeners = new ArrayList<PathListener>();
 
   public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
     myProject = project;
-    myView = new GfxTraceViewPanel();
+    myLoadingDecorator = new LoadingDecorator(myView, this, 0);
+    myLoadingDecorator.setLoadingText("Initializing GFX Trace System");
+    myLoadingDecorator.startLoading(false);
 
     // Attempt to start/connect to the server on a separate thread to reduce the IDE from stalling.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
@@ -153,8 +158,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
-            myView.finalizeUi(GfxTraceEditor.this);
-            Disposer.register(GfxTraceEditor.this, myView);
+            myView.add(MainController.createUI(GfxTraceEditor.this), BorderLayout.CENTER);
+            myLoadingDecorator.stopLoading();
           }
         });
       }
@@ -169,7 +174,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull
   @Override
   public JComponent getComponent() {
-    return myView.getRootComponent();
+    return myView;
   }
 
   @Nullable
@@ -272,7 +277,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public void dispose() {
-    myView = null;
     shutdown();
   }
 
@@ -363,7 +367,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        myView.setLoadingError(error);
+        myLoadingDecorator.setLoadingText(error);
       }
     });
   }

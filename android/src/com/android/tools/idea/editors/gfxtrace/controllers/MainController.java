@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.gfxtrace;
+package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.editors.gfxtrace.controllers.*;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -36,29 +34,21 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-public class GfxTraceViewPanel implements Disposable {
-  @NotNull private LoadingDecorator myLoadingDecorator;
-
-  @NotNull private JBPanel myMainPanel = new JBPanel(new BorderLayout());
-
-  GfxTraceViewPanel() {
-    myMainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-    myLoadingDecorator = new LoadingDecorator(myMainPanel, this, 0);
-    myLoadingDecorator.setLoadingText("Initializing GFX Trace System");
-    myLoadingDecorator.startLoading(false);
+public class MainController extends Controller {
+  public static JComponent createUI(GfxTraceEditor editor) {
+    return new MainController(editor).myPanel;
   }
 
-  void setLoadingError(@NotNull String errorString) {
-    myLoadingDecorator.setLoadingText(errorString);
-  }
+  @NotNull private JBPanel myPanel = new JBPanel(new BorderLayout());
 
-  void finalizeUi(@NotNull GfxTraceEditor editor) {
+  private MainController(@NotNull GfxTraceEditor editor) {
+    super(editor);
     ThreeComponentsSplitter threePanes = new ThreeComponentsSplitter(true);
-    myMainPanel.add(threePanes, BorderLayout.CENTER);
+    myPanel.add(threePanes, BorderLayout.CENTER);
     threePanes.setDividerWidth(5);
 
     // Add the toolbar for the device selection.
-    myMainPanel.add(ContextController.createUI(editor), BorderLayout.NORTH);
+    myPanel.add(ContextController.createUI(editor), BorderLayout.NORTH);
 
     // Add the scrubber view to the top panel.
     threePanes.setFirstComponent(ScrubberController.createUI(editor));
@@ -99,18 +89,13 @@ public class GfxTraceViewPanel implements Disposable {
     // Make sure the bottom splitter honors minimum sizes.
     threePanes.setHonorComponentsMinimumSize(true);
     Disposer.register(this, threePanes);
-
-    myLoadingDecorator.stopLoading();
-  }
-
-  @NotNull
-  public JPanel getRootComponent() {
-    return myMainPanel;
   }
 
   @Override
-  public void dispose() {
-    myMainPanel.removeAll();
-    myLoadingDecorator = null;
+  public void notifyPath(Path path) {}
+
+  @Override
+  public void clear() {
+    myPanel.removeAll();
   }
 }
