@@ -138,7 +138,7 @@ public class ScrubberController extends CellController<ScrubberController.Data> 
     if (path instanceof AtomPath) {
       selectFrame(((AtomPath)path).getIndex());
     }
-    if (updateIcons && myAtomsPath.isValid()) {
+    if (updateIcons && myAtomsPath.getPath() != null) {
       Futures.addCallback(myEditor.getClient().get(myAtomsPath.getPath()), new LoadingCallback<AtomList>(LOG) {
         @Override
         public void onSuccess(@Nullable final AtomList atoms) {

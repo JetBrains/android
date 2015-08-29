@@ -109,7 +109,7 @@ public class FrameBufferController extends Controller {
     if (path instanceof AtomPath) {
       updateTabs |= myAtomPath.update((AtomPath)path);
     }
-    if (updateTabs && myRenderDevice.isValid() && myAtomPath.isValid()) {
+    if (updateTabs && myRenderDevice.getPath() != null && myAtomPath.getPath() != null) {
       // TODO: maybe do the selected tab first, but it's probably not much of a win
       updateTab(myColorTab);
       updateTab(myWireframeTab);
