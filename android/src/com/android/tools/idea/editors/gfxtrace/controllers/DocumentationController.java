@@ -20,11 +20,15 @@ import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -36,25 +40,29 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class DocumentationController extends Controller {
-  public static void createUI(GfxTraceEditor editor, @NotNull JTextPane textPane) {
-    new DocumentationController(editor, textPane);
+  public static JComponent createUI(GfxTraceEditor editor) {
+    return new DocumentationController(editor).myPanel;
   }
 
-  @NotNull private final JTextPane myView;
+  @NotNull private final JPanel myPanel = new JPanel();
+  @NotNull private final JBScrollPane myScrollPane = new JBScrollPane();
+  @NotNull private final JTextPane myTextPane = new JTextPane();
   @NotNull private Map<String, String> myDocumentationCache = new HashMap<String, String>();
   @NotNull private Set<String> myRequestInProgress = new HashSet<String>();
   private String myTargetUrl;
 
-  private DocumentationController(@NotNull GfxTraceEditor editor, @NotNull JTextPane textPane) {
+  private DocumentationController(@NotNull GfxTraceEditor editor) {
     super(editor);
-    myView = textPane;
-    myView.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+    myScrollPane.setViewportView(myTextPane);
+    myPanel.add(myScrollPane, BorderLayout.CENTER);
+    myTextPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+    // TODO: Rewrite to use IntelliJ documentation view.
   }
 
   public void setDocumentation(@Nullable final String url) {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
-    myView.setText(null);
+    myTextPane.setText(null);
     if (url == null || url.isEmpty()) {
       return;
     }
@@ -101,7 +109,7 @@ public class DocumentationController extends Controller {
               myRequestInProgress.remove(url);
             }
             else if (url.equals(myTargetUrl)) {
-              myView.setText(documentation);
+              myTextPane.setText(documentation);
             }
             myDocumentationCache.put(url, documentation);
           }
