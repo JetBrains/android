@@ -76,22 +76,12 @@ public class GfxTraceViewPanel implements Disposable {
     JBRunnerTabs miscTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
     miscTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
       .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
+    miscTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
 
     // Add the textures view to the misc tabs.
     miscTabs.addTab(new TabInfo(TexturesController.createUI(editor)).setText("Textures"));
-
-    // Add the memory viewer to the misc tabs
-    JPanel memoryPanel = new JPanel();
-    miscTabs.addTab(new TabInfo(memoryPanel).setText("Memory"));
-
-    JPanel docsPanel = new JPanel();
-    miscTabs.addTab(new TabInfo(docsPanel).setText("Docs"));
-    miscTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
-    JBScrollPane docsScrollPane = new JBScrollPane();
-    JTextPane docsTextPane = new JTextPane();
-    docsScrollPane.setViewportView(docsTextPane);
-    // TODO: Rewrite to use IntelliJ documentation view.
-    DocumentationController.createUI(editor, docsTextPane);
+    miscTabs.addTab(new TabInfo(MemoryController.createUI(editor)).setText("Memory"));
+    miscTabs.addTab(new TabInfo(DocumentationController.createUI(editor)).setText("Docs"));
 
     // More borders for miscellaneous tabs.
     JPanel miscPanel = new JPanel(new BorderLayout());
