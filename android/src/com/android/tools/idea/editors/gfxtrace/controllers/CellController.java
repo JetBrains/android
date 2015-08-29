@@ -59,15 +59,17 @@ public abstract class CellController<T extends CellController.Data> extends Cont
   }
 
   @NotNull private static final Logger LOG = Logger.getInstance(CellController.class);
-  @NotNull protected final JBScrollPane myPane;
-  @NotNull protected final JBList myList;
+  @NotNull protected final JBScrollPane myScrollPane = new JBScrollPane();
+  @NotNull protected final JBList myList = new JBList();;
+  @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull protected final CellRenderer myRenderer;
   @Nullable protected List<T> myData;
 
-  public CellController(@NotNull GfxTraceEditor editor, @NotNull JBScrollPane scrubberScrollPane, @NotNull JBList scrubberComponent) {
+  public CellController(@NotNull GfxTraceEditor editor) {
     super(editor);
-    myPane = scrubberScrollPane;
-    myList = scrubberComponent;
+    myList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+    myScrollPane.setViewportView(myList);
+    myPanel.add(myScrollPane, BorderLayout.CENTER);
     myRenderer = new CellRenderer(this);
     Dimension minCellDimension = myRenderer.getCellDimensions();
     myList.setExpandableItemsEnabled(false); // Turn this off, since the "preview" will cause all the thumbnails to be loaded.
@@ -146,10 +148,10 @@ public abstract class CellController<T extends CellController.Data> extends Cont
     myList.setFixedCellWidth(newDimensions.width);
     myList.setFixedCellHeight(newDimensions.height);
     if (myList.getLayoutOrientation() ==  JList.HORIZONTAL_WRAP) {
-      newDimensions.height += myPane.getHorizontalScrollBar().getUI().getPreferredSize(myPane).height;
+      newDimensions.height += myScrollPane.getHorizontalScrollBar().getUI().getPreferredSize(myScrollPane).height;
     } else {
-      newDimensions.width += myPane.getHorizontalScrollBar().getUI().getPreferredSize(myPane).width;
+      newDimensions.width += myScrollPane.getHorizontalScrollBar().getUI().getPreferredSize(myScrollPane).width;
     }
-    myPane.setMinimumSize(newDimensions);
+    myScrollPane.setMinimumSize(newDimensions);
   }
 }

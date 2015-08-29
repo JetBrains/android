@@ -61,15 +61,8 @@ public class GfxTraceViewPanel implements Disposable {
     myMainPanel.add(ContextController.createUI(editor), BorderLayout.NORTH);
 
     // Add the scrubber view to the top panel.
-    JBList scrubberList = new JBList();
-    scrubberList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-    JBScrollPane scrubberScrollPane = new JBScrollPane();
-    scrubberScrollPane.setViewportView(scrubberList);
-    JPanel scrubberPanel = new JPanel(new BorderLayout());
-    scrubberPanel.add(scrubberScrollPane, BorderLayout.CENTER);
-    threePanes.setFirstComponent(scrubberPanel);
+    threePanes.setFirstComponent(ScrubberController.createUI(editor));
     threePanes.setFirstSize(150);
-    ScrubberController.createUI(editor, scrubberScrollPane, scrubberList);
 
     // Configure the Atom tree container.
     JPanel atomTreePanel = new JPanel(new BorderLayout());
@@ -116,14 +109,7 @@ public class GfxTraceViewPanel implements Disposable {
       .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
 
     // Add the textures view to the misc tabs.
-    JBList texturesList = new JBList();
-    texturesList.setLayoutOrientation(JList.VERTICAL);
-    JBScrollPane texturesScrollPane = new JBScrollPane();
-    texturesScrollPane.setViewportView(texturesList);
-    JPanel texturesPanel = new JPanel(new BorderLayout());
-    texturesPanel.add(texturesScrollPane, BorderLayout.CENTER);
-    miscTabs.addTab(new TabInfo(texturesPanel).setText("Textures"));
-    TexturesController.createUI(editor, texturesScrollPane, texturesList);
+    miscTabs.addTab(new TabInfo(TexturesController.createUI(editor)).setText("Textures"));
 
     // Add the memory viewer to the misc tabs
     JPanel memoryPanel = new JPanel();
