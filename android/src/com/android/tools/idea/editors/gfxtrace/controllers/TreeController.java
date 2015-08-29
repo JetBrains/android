@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
-import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -58,7 +57,7 @@ public abstract class TreeController extends Controller {
   }
 
   public void setRoot(DefaultMutableTreeNode root) {
-    assert(ApplicationManager.getApplication().isDispatchThread());
+    assert (ApplicationManager.getApplication().isDispatchThread());
     myTree.setModel(new DefaultTreeModel(root));
     myLoadingPanel.stopLoading();
     myLoadingPanel.revalidate();

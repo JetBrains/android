@@ -18,8 +18,6 @@ package com.android.tools.idea.editors.gfxtrace.service.atom;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
-import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
 public class DynamicAtom extends Atom {
@@ -66,7 +64,7 @@ public class DynamicAtom extends Atom {
   public Observations getObservations() {
     if (myMetadata.myObservationsIndex >= 0) {
       Object value = getFieldValue(myMetadata.myObservationsIndex);
-      assert(value instanceof Observations);
+      assert (value instanceof Observations);
       return (Observations)value;
     }
     return null;

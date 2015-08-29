@@ -19,10 +19,11 @@ import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.idea.editors.gfxtrace.controllers.StateController;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.DynamicAtom;
-import com.android.tools.idea.editors.gfxtrace.service.memory.*;
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryPointer;
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
+import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
 import com.android.tools.rpclib.any.AnyType;
 import com.android.tools.rpclib.schema.*;
-import com.android.tools.rpclib.schema.Pointer;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
@@ -33,16 +34,46 @@ public final class Render {
   // object rendering functions
 
   public static void render(@NotNull Object value, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
-    if (value instanceof Dynamic) {               render((Dynamic)value, component, attributes); return; }
-    if (value instanceof Field) {                 render((Field)value, component, attributes); return; }
-    if (value instanceof StateController.Node) {  render((StateController.Node)value, component, attributes); return; }
-    if (value instanceof StateController.Typed) { render((StateController.Typed)value, component, attributes); return; }
-    if (value instanceof AtomController.Node) {   render((AtomController.Node)value, component, attributes); return; }
-    if (value instanceof AtomController.Memory) { render((AtomController.Memory)value, component, attributes); return; }
-    if (value instanceof AtomGroup) {             render((AtomGroup)value, component, attributes); return; }
-    if (value instanceof DynamicAtom) {           render((DynamicAtom)value, component, attributes); return; }
-    if (value instanceof MemoryPointer) {         render((MemoryPointer)value, component, attributes); return; }
-    if (value instanceof MemoryRange) {           render((MemoryRange)value, component, attributes); return; }
+    if (value instanceof Dynamic) {
+      render((Dynamic)value, component, attributes);
+      return;
+    }
+    if (value instanceof Field) {
+      render((Field)value, component, attributes);
+      return;
+    }
+    if (value instanceof StateController.Node) {
+      render((StateController.Node)value, component, attributes);
+      return;
+    }
+    if (value instanceof StateController.Typed) {
+      render((StateController.Typed)value, component, attributes);
+      return;
+    }
+    if (value instanceof AtomController.Node) {
+      render((AtomController.Node)value, component, attributes);
+      return;
+    }
+    if (value instanceof AtomController.Memory) {
+      render((AtomController.Memory)value, component, attributes);
+      return;
+    }
+    if (value instanceof AtomGroup) {
+      render((AtomGroup)value, component, attributes);
+      return;
+    }
+    if (value instanceof DynamicAtom) {
+      render((DynamicAtom)value, component, attributes);
+      return;
+    }
+    if (value instanceof MemoryPointer) {
+      render((MemoryPointer)value, component, attributes);
+      return;
+    }
+    if (value instanceof MemoryRange) {
+      render((MemoryRange)value, component, attributes);
+      return;
+    }
     component.append(value.toString(), attributes);
   }
 
@@ -61,7 +92,9 @@ public final class Render {
     component.append(field.getName(), attributes);
   }
 
-  public static void render(@NotNull StateController.Node node, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull StateController.Node node,
+                            @NotNull SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
     if (node.key != null) {
       render(node.key, component, attributes);
     }
@@ -71,7 +104,9 @@ public final class Render {
     }
   }
 
-  public static void render(@NotNull StateController.Typed typed, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull StateController.Typed typed,
+                            @NotNull SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
     render(typed.value, typed.type, component, attributes);
   }
 
@@ -83,8 +118,10 @@ public final class Render {
     }
   }
 
-  public static void render(@NotNull AtomController.Memory memory, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
-    render(memory.isRead?"read:":"write:", component, attributes);
+  public static void render(@NotNull AtomController.Memory memory,
+                            @NotNull SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
+    render(memory.isRead ? "read:" : "write:", component, attributes);
     render(memory.observation.getRange(), component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
   }
 
@@ -135,51 +172,102 @@ public final class Render {
 
   // Type based rendering functions
 
-  public static void render(@NotNull Object value, @NotNull Type type, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
-    if (type instanceof Primitive) { render(value, (Primitive)type, component, attributes); return; }
-    if (type instanceof Struct) {    render(value, (Struct)type, component, attributes); return; }
-    if (type instanceof Pointer) {   render(value, (Pointer)type, component, attributes); return; }
-    if (type instanceof Interface) { render(value, (Interface)type, component, attributes); return; }
-    if (type instanceof Array) {     render(value, (Array)type, component, attributes); return; }
-    if (type instanceof Slice) {     render(value, (Slice)type, component, attributes); return; }
-    if (type instanceof Map) {       render(value, (Map)type, component, attributes); return; }
-    if (type instanceof AnyType) {   render(value, (AnyType)type, component, attributes); return; }
+  public static void render(@NotNull Object value,
+                            @NotNull Type type,
+                            @NotNull SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
+    if (type instanceof Primitive) {
+      render(value, (Primitive)type, component, attributes);
+      return;
+    }
+    if (type instanceof Struct) {
+      render(value, (Struct)type, component, attributes);
+      return;
+    }
+    if (type instanceof Pointer) {
+      render(value, (Pointer)type, component, attributes);
+      return;
+    }
+    if (type instanceof Interface) {
+      render(value, (Interface)type, component, attributes);
+      return;
+    }
+    if (type instanceof Array) {
+      render(value, (Array)type, component, attributes);
+      return;
+    }
+    if (type instanceof Slice) {
+      render(value, (Slice)type, component, attributes);
+      return;
+    }
+    if (type instanceof Map) {
+      render(value, (Map)type, component, attributes);
+      return;
+    }
+    if (type instanceof AnyType) {
+      render(value, (AnyType)type, component, attributes);
+      return;
+    }
     render(value, component, attributes);
   }
 
-  public static void render(@NotNull Object value, @NotNull Struct type, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull Object value,
+                            @NotNull Struct type,
+                            @NotNull SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
     render(value, component, attributes);
   }
 
-  public static void render(@NotNull Object value, @NotNull Pointer type, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull Object value,
+                            @NotNull Pointer type,
+                            @NotNull SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
     component.append("*", SimpleTextAttributes.GRAY_ATTRIBUTES);
     render(value, component, attributes);
   }
 
-  public static void render(@NotNull Object value, @NotNull Interface type, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull Object value,
+                            @NotNull Interface type,
+                            @NotNull SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
     component.append("$", SimpleTextAttributes.GRAY_ATTRIBUTES);
     render(value, component, attributes);
   }
 
-  public static void render(@NotNull Object value, @NotNull Array type, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
-    assert(value instanceof Object[]);
+  public static void render(@NotNull Object value,
+                            @NotNull Array type,
+                            @NotNull SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
+    assert (value instanceof Object[]);
     render((Object[])value, type.getValueType(), component, attributes);
   }
 
-  public static void render(@NotNull Object value, @NotNull Slice type, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
-    assert(value instanceof Object[]);
+  public static void render(@NotNull Object value,
+                            @NotNull Slice type,
+                            @NotNull SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
+    assert (value instanceof Object[]);
     render((Object[])value, type.getValueType(), component, attributes);
   }
 
-  public static void render(@NotNull Object value, @NotNull Map type, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull Object value,
+                            @NotNull Map type,
+                            @NotNull SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
     render(value, component, attributes);
   }
 
-  public static void render(@NotNull Object value, @NotNull AnyType type, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull Object value,
+                            @NotNull AnyType type,
+                            @NotNull SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
     render(value, component, attributes);
   }
 
-  public static void render(@NotNull Object value, @NotNull Primitive type, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull Object value,
+                            @NotNull Primitive type,
+                            @NotNull SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
     ConstantSet constants = ConstantSet.lookup(type);
     if (constants != null) {
       for (Constant constant : constants.getEntries()) {
@@ -212,7 +300,7 @@ public final class Render {
         component.append(String.format("%d", (Integer)value), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
         return;
       case Method.Uint32:
-        component.append(String.format("%d", ((Integer)value).longValue()&0xffffffffL), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(String.format("%d", ((Integer)value).longValue() & 0xffffffffL), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
         return;
       case Method.Int64:
         component.append(String.format("%d", (Long)value), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
@@ -238,7 +326,10 @@ public final class Render {
 
   private static final int MAX_DISPLAY = 3;
 
-  public static void render(@NotNull Object[] array, @NotNull Type valueType, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull Object[] array,
+                            @NotNull Type valueType,
+                            @NotNull SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
     int count = Math.min(array.length, MAX_DISPLAY);
     component.append("[", SimpleTextAttributes.GRAY_ATTRIBUTES);
     for (int index = 0; index < count; ++index) {

@@ -19,7 +19,6 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -92,7 +91,8 @@ public class MainController extends Controller {
   }
 
   @Override
-  public void notifyPath(Path path) {}
+  public void notifyPath(Path path) {
+  }
 
   @Override
   public void clear() {

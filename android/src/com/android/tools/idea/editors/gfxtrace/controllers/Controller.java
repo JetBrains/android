@@ -16,19 +16,10 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.treeStructure.SimpleTree;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
 
 public abstract class Controller implements PathListener, Disposable {
   @NotNull protected final GfxTraceEditor myEditor;
@@ -44,5 +35,6 @@ public abstract class Controller implements PathListener, Disposable {
     clear();
   }
 
-  public void clear() {}
+  public void clear() {
+  }
 }

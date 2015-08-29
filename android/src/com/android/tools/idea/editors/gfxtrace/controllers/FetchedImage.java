@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.image.FmtFloat32;
@@ -53,7 +52,8 @@ public class FetchedImage {
         final ImageInfo imageInfo = (ImageInfo)object;
         if (imageInfo.getFormat() instanceof FmtRGBA) {
           doLoad(client, imageInfo, result);
-        } else {
+        }
+        else {
           final AsPath asPath = new AsPath().setObject(imagePath).setType(new FmtRGBA());
           Futures.addCallback(client.get(asPath), new LoadingCallback<Object>(LOG) {
             @Override

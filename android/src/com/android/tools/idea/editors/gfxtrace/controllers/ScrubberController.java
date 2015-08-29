@@ -25,18 +25,14 @@ import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
-import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.components.JBList;
-import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,7 +68,9 @@ public class ScrubberController extends CellController<ScrubberController.Data> 
   @Override
   public boolean loadCell(final Data cell) {
     final DevicePath devicePath = myRenderDevice.getPath();
-    if (devicePath == null) { return false; }
+    if (devicePath == null) {
+      return false;
+    }
     final ServiceClient client = myEditor.getClient();
     ListenableFuture<ImageInfoPath> imagePathF = client.getFramebufferColor(devicePath, cell.atomPath, myRenderSettings);
     Futures.addCallback(imagePathF, new LoadingCallback<ImageInfoPath>(LOG, cell) {
@@ -86,7 +84,9 @@ public class ScrubberController extends CellController<ScrubberController.Data> 
 
   @Override
   void selected(@NotNull Data cell) {
-    if (mDisableActivation || myAtomsPath.getPath() == null) { return; }
+    if (mDisableActivation || myAtomsPath.getPath() == null) {
+      return;
+    }
     AtomPath atomPath = myAtomsPath.getPath().index(cell.range.getLast());
     myEditor.activatePath(atomPath);
   }
@@ -101,11 +101,11 @@ public class ScrubberController extends CellController<ScrubberController.Data> 
     for (int index = 0; index < atoms.getAtoms().length; ++index) {
       Atom atom = atoms.get(index);
       if (atom.getIsEndOfFrame()) {
-        range.setEnd(index+1);
+        range.setEnd(index + 1);
         Data frameData = new Data(path.index(index), range, Integer.toString(frameCount++), myRenderer.getDefaultIcon());
         generatedList.add(frameData);
         range = new Range();
-        range.setStart(index+1);
+        range.setStart(index + 1);
       }
     }
     return generatedList;
@@ -118,7 +118,8 @@ public class ScrubberController extends CellController<ScrubberController.Data> 
         try {
           mDisableActivation = true;
           selectItem(i);
-        } finally {
+        }
+        finally {
           mDisableActivation = false;
         }
       }

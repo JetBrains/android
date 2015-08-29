@@ -18,15 +18,13 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
-import com.android.tools.idea.editors.gfxtrace.service.*;
-import com.android.tools.idea.editors.gfxtrace.service.image.FmtRGBA;
-import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
+import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
+import com.android.tools.idea.editors.gfxtrace.service.Resources;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.components.JBList;
-import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,7 +59,8 @@ public class TexturesController extends CellController<TexturesController.Data> 
   }
 
   @Override
-  void selected(@NotNull Data cell) {}
+  void selected(@NotNull Data cell) {
+  }
 
   @Override
   public boolean loadCell(final Data cell) {
@@ -79,7 +78,7 @@ public class TexturesController extends CellController<TexturesController.Data> 
         @Override
         public void run() {
           final List<Data> cells = new ArrayList<Data>();
-          for(ResourceInfo info : resources.getTextures()) {
+          for (ResourceInfo info : resources.getTextures()) {
             cells.add(new Data(info, atomPath.resourceAfter(info.getID()), myRenderer.getDefaultIcon()));
           }
           EdtExecutor.INSTANCE.execute(new Runnable() {

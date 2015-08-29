@@ -20,7 +20,7 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
-import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBList;
@@ -60,7 +60,7 @@ public abstract class CellController<T extends CellController.Data> extends Cont
 
   @NotNull private static final Logger LOG = Logger.getInstance(CellController.class);
   @NotNull protected final JBScrollPane myScrollPane = new JBScrollPane();
-  @NotNull protected final JBList myList = new JBList();;
+  @NotNull protected final JBList myList = new JBList();
   @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull protected final CellRenderer myRenderer;
   @Nullable protected List<T> myData;
@@ -106,6 +106,7 @@ public abstract class CellController<T extends CellController.Data> extends Cont
   }
 
   abstract void selected(@NotNull T cell);
+
   abstract boolean loadCell(@NotNull T cell);
 
   public boolean startLoad(@NotNull CellController.Data cell) {
@@ -147,9 +148,10 @@ public abstract class CellController<T extends CellController.Data> extends Cont
   protected void resize(@NotNull Dimension newDimensions) {
     myList.setFixedCellWidth(newDimensions.width);
     myList.setFixedCellHeight(newDimensions.height);
-    if (myList.getLayoutOrientation() ==  JList.HORIZONTAL_WRAP) {
+    if (myList.getLayoutOrientation() == JList.HORIZONTAL_WRAP) {
       newDimensions.height += myScrollPane.getHorizontalScrollBar().getUI().getPreferredSize(myScrollPane).height;
-    } else {
+    }
+    else {
       newDimensions.width += myScrollPane.getHorizontalScrollBar().getUI().getPreferredSize(myScrollPane).width;
     }
     myScrollPane.setMinimumSize(newDimensions);

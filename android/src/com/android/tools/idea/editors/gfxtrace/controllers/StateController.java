@@ -24,11 +24,10 @@ import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.idea.editors.gfxtrace.service.path.StatePath;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
-import com.android.tools.rpclib.schema.Type;
 import com.android.tools.rpclib.schema.Map;
+import com.android.tools.rpclib.schema.Type;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,9 +73,11 @@ public class StateController extends TreeController {
     fillNode(child, key, value);
     if (child.getChildCount() != 0) {
       child.setUserObject(new Node(key, null));
-    } else if ((type != null) && (value!=null)) {
+    }
+    else if ((type != null) && (value != null)) {
       child.setUserObject(new Node(key, new Typed(type, value)));
-    } else  {
+    }
+    else {
       child.setUserObject(new Node(key, value));
     }
     return child;
@@ -90,11 +91,13 @@ public class StateController extends TreeController {
         if (field.getDeclared().length() == 0) {
           // embed anonymous fields directly into the parent
           fillNode(parent, field, dynamic.getFieldValue(index));
-        } else {
+        }
+        else {
           parent.add(createNode(field, field.getType(), dynamic.getFieldValue(index)));
         }
       }
-    } else if (key instanceof Field) {
+    }
+    else if (key instanceof Field) {
       Field field = (Field)key;
       if (field.getType() instanceof Map) {
         assert (value instanceof java.util.Map);
