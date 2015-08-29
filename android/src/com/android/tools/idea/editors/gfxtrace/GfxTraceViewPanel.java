@@ -64,12 +64,6 @@ public class GfxTraceViewPanel implements Disposable {
     threePanes.setFirstComponent(ScrubberController.createUI(editor));
     threePanes.setFirstSize(150);
 
-    // Configure the Atom tree container.
-    JPanel atomTreePanel = new JPanel(new BorderLayout());
-    JBScrollPane atomScrollPane = new JBScrollPane();
-    atomTreePanel.add(atomScrollPane, BorderLayout.CENTER);
-    AtomController.createUI(editor, editor.getProject(), atomScrollPane);
-
     // Configure the framebuffer views.
     final JBRunnerTabs bufferTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
     bufferTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
@@ -98,7 +92,7 @@ public class GfxTraceViewPanel implements Disposable {
     // Now add the atom tree and buffer views to the middle pane in the main pane.
     final JBSplitter middleSplitter = new JBSplitter(false);
     middleSplitter.setMinimumSize(new Dimension(100, 10));
-    middleSplitter.setFirstComponent(atomTreePanel);
+    middleSplitter.setFirstComponent(AtomController.createUI(editor));
     middleSplitter.setSecondComponent(bufferWrapper);
     middleSplitter.setProportion(0.3f);
     threePanes.setInnerComponent(middleSplitter);
@@ -129,16 +123,10 @@ public class GfxTraceViewPanel implements Disposable {
     miscPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     miscPanel.add(miscTabs, BorderLayout.CENTER);
 
-    // Borders for the state tree as well.
-    JPanel stateWrapper = new JPanel(new BorderLayout());
-    JBScrollPane stateScrollPane = new JBScrollPane();
-    stateWrapper.add(stateScrollPane, BorderLayout.CENTER);
-    StateController.createUI(editor, stateScrollPane);
-
     // Configure the bottom splitter.
     JBSplitter bottomSplitter = new JBSplitter(false);
     bottomSplitter.setMinimumSize(new Dimension(100, 10));
-    bottomSplitter.setFirstComponent(stateWrapper);
+    bottomSplitter.setFirstComponent(StateController.createUI(editor));
     bottomSplitter.setSecondComponent(miscPanel);
     threePanes.setLastComponent(bottomSplitter);
     threePanes.setLastSize(300);

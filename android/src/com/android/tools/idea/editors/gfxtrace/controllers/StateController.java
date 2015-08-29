@@ -36,16 +36,16 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class StateController extends TreeController {
-  public static void createUI(GfxTraceEditor editor, @NotNull JBScrollPane scrollPane) {
-    new StateController(editor, scrollPane);
+  public static JComponent createUI(GfxTraceEditor editor) {
+    return new StateController(editor).myPanel;
   }
 
   @NotNull private static final Logger LOG = Logger.getInstance(StateController.class);
 
   private final PathStore<StatePath> myStatePath = new PathStore<StatePath>();
 
-  private StateController(@NotNull GfxTraceEditor editor, @NotNull JBScrollPane scrollPane) {
-    super(editor, scrollPane, GfxTraceEditor.SELECT_ATOM);
+  private StateController(@NotNull GfxTraceEditor editor) {
+    super(editor, GfxTraceEditor.SELECT_ATOM);
   }
 
   public static class Typed {
