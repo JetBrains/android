@@ -41,8 +41,8 @@ public class CellRenderer implements ListCellRenderer {
   @NotNull private static final Border DEFAULT_BORDER = new EmptyBorder(BORDER_SIZE, BORDER_SIZE, BORDER_SIZE, BORDER_SIZE);
   @NotNull private static final Border SELECTED_BORDER = new RoundedLineBorder(UIUtil.getFocusedBoundsColor(), 5, false);
   @NotNull private static final Dimension DEFAULT_IMAGE_SIZE = new Dimension(MAX_WIDTH, MAX_HEIGHT);
-  @NotNull private static final ScheduledExecutorService ourTickerScheduler = ConcurrencyUtil.newSingleScheduledThreadExecutor(
-    "CellAnimation");
+  @NotNull private static final ScheduledExecutorService ourTickerScheduler =
+    ConcurrencyUtil.newSingleScheduledThreadExecutor("CellAnimation");
 
   @NotNull private final CellLabel myCellLabel;
   @NotNull private final CellController myCellLoader;

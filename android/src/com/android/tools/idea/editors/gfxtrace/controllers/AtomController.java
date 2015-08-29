@@ -27,8 +27,6 @@ import com.android.tools.rpclib.binary.BinaryObject;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,7 +78,8 @@ public class AtomController extends TreeController {
         Object object = node.getUserObject();
         if (object instanceof AtomGroup) {
           myEditor.activatePath(myAtomsPath.getPath().index(((AtomGroup)object).getRange().getLast()));
-        } else if (object instanceof Node) {
+        }
+        else if (object instanceof Node) {
           myEditor.activatePath(myAtomsPath.getPath().index(((Node)object).index));
         }
       }
@@ -90,7 +89,7 @@ public class AtomController extends TreeController {
 
   public void selectDeepestVisibleNode(long atomIndex) {
     Object object = myTree.getModel().getRoot();
-    assert(object instanceof DefaultMutableTreeNode);
+    assert (object instanceof DefaultMutableTreeNode);
     DefaultMutableTreeNode root = (DefaultMutableTreeNode)object;
     selectDeepestVisibleNode(root, new TreePath(root), atomIndex);
   }
@@ -102,7 +101,8 @@ public class AtomController extends TreeController {
         myTree.setSelectionPath(path);
         myTree.scrollPathToVisible(path);
         return;
-      } finally {
+      }
+      finally {
         mDisableActivation = false;
       }
     }
@@ -113,9 +113,9 @@ public class AtomController extends TreeController {
       DefaultMutableTreeNode child = (DefaultMutableTreeNode)obj;
       Object object = child.getUserObject();
       boolean matches = false;
-      if((object instanceof AtomGroup) && (((AtomGroup)object).getRange().contains(atomIndex)) ||
-         (object instanceof Node) && ((((Node)object).index == atomIndex))) {
-          matches = true;
+      if ((object instanceof AtomGroup) && (((AtomGroup)object).getRange().contains(atomIndex)) ||
+          (object instanceof Node) && ((((Node)object).index == atomIndex))) {
+        matches = true;
       }
       if (matches) {
         selectDeepestVisibleNode(child, path.pathByAddingChild(child), atomIndex);
@@ -123,7 +123,8 @@ public class AtomController extends TreeController {
     }
   }
 
-  @Override  public void notifyPath(Path path) {
+  @Override
+  public void notifyPath(Path path) {
     boolean updateAtoms = false;
     if (path instanceof CapturePath) {
       updateAtoms |= myAtomsPath.update(((CapturePath)path).atoms());

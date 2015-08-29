@@ -20,16 +20,12 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
-import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
-import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
-import com.android.tools.rpclib.binary.BinaryObject;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
@@ -43,12 +39,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.tree.TreeNode;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class FrameBufferController extends Controller {
   public static JComponent createUI(GfxTraceEditor editor) {
@@ -108,7 +99,7 @@ public class FrameBufferController extends Controller {
     myWireframeTab.mySettings.setWireframeMode(WireframeMode.allWireframe());
     myDepthTab.myIsDepth = true;
   }
-  
+
   @Override
   public void notifyPath(Path path) {
     boolean updateTabs = false;
@@ -133,7 +124,8 @@ public class FrameBufferController extends Controller {
     ListenableFuture<ImageInfoPath> imagePathF;
     if (tab.myIsDepth) {
       imagePathF = myEditor.getClient().getFramebufferDepth(myRenderDevice.getPath(), myAtomPath.getPath());
-    } else {
+    }
+    else {
       imagePathF = myEditor.getClient().getFramebufferColor(myRenderDevice.getPath(), myAtomPath.getPath(), tab.mySettings);
     }
     Futures.addCallback(imagePathF, new LoadingCallback<ImageInfoPath>(LOG, tab.myLoading) {
