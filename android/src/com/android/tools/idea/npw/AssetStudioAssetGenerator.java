@@ -80,6 +80,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   public static final String ATTR_ORIGINAL_HEIGHT = "originalHeight";
   public static final String ATTR_VECTOR_DRAWBLE_OPACTITY = "vectorDrawableOpacity";
   public static final String ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED = "vectorDrawableAutoMirror";
+  public static final String ATTR_VALID_PREVIEW = "validPreview";
 
   public static final String ERROR_MESSAGE_EMPTY_PREVIEW_IMAGE = "Empty preview image!";
 
@@ -183,6 +184,8 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     void setOriginalWidth(int width);
 
     void setOriginalHeight(int height);
+
+    void setValidPreview(boolean valid);
   }
 
   public static class ImageGeneratorException extends Exception {
@@ -668,6 +671,11 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
       image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
       // This sentence is also used as a flag to turn on / off the next button in vector step.
       errorLog.insert(0, ERROR_MESSAGE_EMPTY_PREVIEW_IMAGE + "\n");
+      // When the preview is invalid, we will disable the "next" button.
+      myContext.setValidPreview(false);
+    } else {
+      // When the preview is valid, then we can go ahead enable next step.
+      myContext.setValidPreview(true);
     }
     return image;
   }

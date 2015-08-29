@@ -239,4 +239,9 @@ public class ScopedStateStoreAdapter implements AssetStudioAssetGenerator.AssetS
   public boolean getVectorAutoMirrored()  {
     return myState.get(ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED);
   }
+
+  @Override
+  public void setValidPreview(boolean valid)  {
+    myState.put(ATTR_VALID_PREVIEW, valid);
+  }
 }
