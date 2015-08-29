@@ -40,8 +40,8 @@ import javax.swing.tree.TreePath;
 import java.util.Enumeration;
 
 public class AtomController extends TreeController {
-  public static void createUI(GfxTraceEditor editor, @NotNull Project project, @NotNull JBScrollPane scrollPane) {
-    new AtomController(editor, project, scrollPane);
+  public static JComponent createUI(GfxTraceEditor editor) {
+    return new AtomController(editor).myPanel;
   }
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
@@ -68,8 +68,8 @@ public class AtomController extends TreeController {
     }
   }
 
-  private AtomController(@NotNull GfxTraceEditor editor, @NotNull Project project, @NotNull JBScrollPane scrollPane) {
-    super(editor, scrollPane, GfxTraceEditor.SELECT_CAPTURE);
+  private AtomController(@NotNull GfxTraceEditor editor) {
+    super(editor, GfxTraceEditor.SELECT_CAPTURE);
     myTree.setLargeModel(true); // Set some performance optimizations for large models.
     myTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override

@@ -24,6 +24,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.SimpleTree;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
@@ -32,11 +33,13 @@ public abstract class TreeController extends Controller {
   public static final int TREE_ROW_HEIGHT = 19;
 
   @NotNull protected final JBLoadingPanel myLoadingPanel;
-  @NotNull protected final SimpleTree myTree;
+  @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
+  @NotNull protected final JBScrollPane myScrollPane = new JBScrollPane();
+  @NotNull protected final SimpleTree myTree = new SimpleTree();
 
-  public TreeController(@NotNull GfxTraceEditor editor, @NotNull JBScrollPane scrollPane, @NotNull String emptyText) {
+  public TreeController(@NotNull GfxTraceEditor editor, @NotNull String emptyText) {
     super(editor);
-    myTree = new SimpleTree();
+    myPanel.add(myScrollPane, BorderLayout.CENTER);
     myTree.setRowHeight(TREE_ROW_HEIGHT);
     myTree.setRootVisible(false);
     myTree.setLineStyleAngled();
@@ -44,9 +47,9 @@ public abstract class TreeController extends Controller {
     myTree.getEmptyText().setText(emptyText);
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), editor.getProject());
     myLoadingPanel.add(myTree);
-    scrollPane.setViewportView(myLoadingPanel);
-    scrollPane.getHorizontalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
-    scrollPane.getVerticalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
+    myScrollPane.setViewportView(myLoadingPanel);
+    myScrollPane.getHorizontalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
+    myScrollPane.getVerticalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
   }
 
   @Override
