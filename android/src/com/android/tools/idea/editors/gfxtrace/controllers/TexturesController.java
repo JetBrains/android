@@ -35,6 +35,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TexturesController extends CellController<TexturesController.Data> {
+  public static void createUI(GfxTraceEditor editor, @NotNull JBScrollPane scrollPane, @NotNull JBList list) {
+    new TexturesController(editor, scrollPane, list);
+  }
+
   public static class Data extends CellController.Data {
     @NotNull public final ResourceInfo info;
     @NotNull public final ResourcePath path;
@@ -51,7 +55,7 @@ public class TexturesController extends CellController<TexturesController.Data> 
   @NotNull private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
   @NotNull private Resources myResources;
 
-  public TexturesController(@NotNull final GfxTraceEditor editor, @NotNull JBScrollPane scrollPane, @NotNull JBList list) {
+  private TexturesController(@NotNull final GfxTraceEditor editor, @NotNull JBScrollPane scrollPane, @NotNull JBList list) {
     super(editor, scrollPane, list);
   }
 

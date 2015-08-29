@@ -35,14 +35,18 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
-public class DocumentationController implements PathListener {
+public class DocumentationController extends Controller {
+  public static void createUI(GfxTraceEditor editor, @NotNull JTextPane textPane) {
+    new DocumentationController(editor, textPane);
+  }
+
   @NotNull private final JTextPane myView;
   @NotNull private Map<String, String> myDocumentationCache = new HashMap<String, String>();
   @NotNull private Set<String> myRequestInProgress = new HashSet<String>();
   private String myTargetUrl;
 
-  public DocumentationController(@NotNull GfxTraceEditor editor, @NotNull JTextPane textPane) {
-    editor.addPathListener(this);
+  private DocumentationController(@NotNull GfxTraceEditor editor, @NotNull JTextPane textPane) {
+    super(editor);
     myView = textPane;
     myView.setBorder(BorderFactory.createLineBorder(JBColor.border()));
   }

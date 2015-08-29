@@ -32,6 +32,7 @@ import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -39,6 +40,10 @@ import javax.swing.tree.TreePath;
 import java.util.Enumeration;
 
 public class AtomController extends TreeController {
+  public static void createUI(GfxTraceEditor editor, @NotNull Project project, @NotNull JBScrollPane scrollPane) {
+    new AtomController(editor, project, scrollPane);
+  }
+
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
   private boolean mDisableActivation = false;
@@ -63,7 +68,7 @@ public class AtomController extends TreeController {
     }
   }
 
-  public AtomController(@NotNull GfxTraceEditor editor, @NotNull Project project, @NotNull JBScrollPane scrollPane) {
+  private AtomController(@NotNull GfxTraceEditor editor, @NotNull Project project, @NotNull JBScrollPane scrollPane) {
     super(editor, scrollPane, GfxTraceEditor.SELECT_CAPTURE);
     myTree.setLargeModel(true); // Set some performance optimizations for large models.
     myTree.addTreeSelectionListener(new TreeSelectionListener() {

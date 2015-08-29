@@ -35,7 +35,7 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.util.List;
 
-public abstract class CellController<T extends CellController.Data> implements PathListener {
+public abstract class CellController<T extends CellController.Data> extends Controller {
   public static class Data implements LoadingCallback.LoadingDone {
     @NotNull public final String label;
     @NotNull public ImageIcon icon;
@@ -59,15 +59,13 @@ public abstract class CellController<T extends CellController.Data> implements P
   }
 
   @NotNull private static final Logger LOG = Logger.getInstance(CellController.class);
-  @NotNull protected final GfxTraceEditor myEditor;
   @NotNull protected final JBScrollPane myPane;
   @NotNull protected final JBList myList;
   @NotNull protected final CellRenderer myRenderer;
   @Nullable protected List<T> myData;
 
   public CellController(@NotNull GfxTraceEditor editor, @NotNull JBScrollPane scrubberScrollPane, @NotNull JBList scrubberComponent) {
-    myEditor = editor;
-    myEditor.addPathListener(this);
+    super(editor);
     myPane = scrubberScrollPane;
     myList = scrubberComponent;
     myRenderer = new CellRenderer(this);
@@ -87,7 +85,7 @@ public abstract class CellController<T extends CellController.Data> implements P
     });
   }
 
-  public void populateUi(@NotNull List<T> cells) {
+  protected void populateUi(@NotNull List<T> cells) {
     myData = cells;
 
     DefaultListModel model = new DefaultListModel();
@@ -112,7 +110,7 @@ public abstract class CellController<T extends CellController.Data> implements P
     return loadCell((T)cell);
   }
 
-  public void loadCellImage(final Data cell, final ServiceClient client, final Path imagePath) {
+  protected void loadCellImage(final Data cell, final ServiceClient client, final Path imagePath) {
     Futures.addCallback(FetchedImage.load(client, imagePath), new LoadingCallback<FetchedImage>(LOG, cell) {
       @Override
       public void onSuccess(FetchedImage fetchedImage) {
@@ -138,6 +136,7 @@ public abstract class CellController<T extends CellController.Data> implements P
     myList.scrollRectToVisible(myList.getCellBounds(index, index));
   }
 
+  @Override
   public void clear() {
     myList.setModel(new DefaultListModel());
     myList.setCellRenderer(new DefaultListCellRenderer());

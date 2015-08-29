@@ -18,7 +18,9 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.SimpleTree;
@@ -28,38 +30,19 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 
-public abstract class TreeController extends Controller {
-  public static final int TREE_ROW_HEIGHT = 19;
+public abstract class Controller implements PathListener, Disposable {
+  @NotNull protected final GfxTraceEditor myEditor;
 
-  @NotNull protected final JBLoadingPanel myLoadingPanel;
-  @NotNull protected final SimpleTree myTree;
-
-  public TreeController(@NotNull GfxTraceEditor editor, @NotNull JBScrollPane scrollPane, @NotNull String emptyText) {
-    super(editor);
-    myTree = new SimpleTree();
-    myTree.setRowHeight(TREE_ROW_HEIGHT);
-    myTree.setRootVisible(false);
-    myTree.setLineStyleAngled();
-    myTree.setCellRenderer(new TreeRenderer());
-    myTree.getEmptyText().setText(emptyText);
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), editor.getProject());
-    myLoadingPanel.add(myTree);
-    scrollPane.setViewportView(myLoadingPanel);
-    scrollPane.getHorizontalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
-    scrollPane.getVerticalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
+  public Controller(@NotNull GfxTraceEditor editor) {
+    myEditor = editor;
+    myEditor.addPathListener(this);
+    Disposer.register(editor, this);
   }
 
   @Override
-  public void clear() {
-    myTree.setModel(null);
+  public void dispose() {
+    clear();
   }
 
-  public void setRoot(DefaultMutableTreeNode root) {
-    assert(ApplicationManager.getApplication().isDispatchThread());
-    myTree.setModel(new DefaultTreeModel(root));
-    myLoadingPanel.stopLoading();
-    myLoadingPanel.revalidate();
-  }
-
-
+  public void clear() {}
 }

@@ -41,6 +41,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ScrubberController extends CellController<ScrubberController.Data> {
+  public static void createUI(GfxTraceEditor editor, @NotNull JBScrollPane scrollPane, @NotNull JBList list) {
+    new ScrubberController(editor, scrollPane, list);
+  }
+
   public static class Data extends CellController.Data {
     @NotNull public final AtomPath atomPath;
     @NotNull public final Range range;
@@ -58,7 +62,7 @@ public class ScrubberController extends CellController<ScrubberController.Data> 
   @NotNull private final RenderSettings myRenderSettings = new RenderSettings();
   private boolean mDisableActivation = false;
 
-  public ScrubberController(@NotNull final GfxTraceEditor editor, @NotNull JBScrollPane scrollPane, @NotNull JBList list) {
+  private ScrubberController(@NotNull final GfxTraceEditor editor, @NotNull JBScrollPane scrollPane, @NotNull JBList list) {
     super(editor, scrollPane, list);
     myRenderSettings.setMaxWidth(CellRenderer.MAX_WIDTH);
     myRenderSettings.setMaxHeight(CellRenderer.MAX_HEIGHT);

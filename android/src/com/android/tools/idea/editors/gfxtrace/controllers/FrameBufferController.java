@@ -45,11 +45,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class FrameBufferController implements PathListener {
+public class FrameBufferController extends Controller {
+  public static void createUI(GfxTraceEditor editor,
+                              @NotNull JBScrollPane colorScrollPane,
+                              @NotNull JBScrollPane wireframePane,
+                              @NotNull JBScrollPane depthScrollPane) {
+    new FrameBufferController(editor, colorScrollPane, wireframePane, depthScrollPane);
+  }
+
   private static final int MAX_SIZE = 0xffff;
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
-  @NotNull private final GfxTraceEditor myEditor;
 
   @NotNull private final BufferTab colorTab = new BufferTab();
   @NotNull private final BufferTab wireframeTab = new BufferTab();
@@ -65,13 +71,11 @@ public class FrameBufferController implements PathListener {
     public RenderSettings mySettings = new RenderSettings();
   }
 
-  public FrameBufferController(@NotNull GfxTraceEditor editor,
+  private FrameBufferController(@NotNull GfxTraceEditor editor,
                                @NotNull JBScrollPane colorScrollPane,
                                @NotNull JBScrollPane wireframePane,
                                @NotNull JBScrollPane depthScrollPane) {
-    myEditor = editor;
-    myEditor.addPathListener(this);
-
+    super(editor);
     initTab(colorTab, colorScrollPane);
     colorTab.mySettings.setWireframeMode(WireframeMode.wireframeOverlay());
     initTab(wireframeTab, wireframePane);
