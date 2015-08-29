@@ -121,7 +121,7 @@ public class ContextController extends Controller {
       @Override
       public void update(AnActionEvent e) {
         super.update(e);
-        if (mySelectedDevice.isValid() && myDevices != null) {
+        if (mySelectedDevice.getPath() != null && myDevices != null) {
           for (DeviceEntry device : myDevices) {
             if (mySelectedDevice.is(device.myPath)) {
               getTemplatePresentation().setText(device.toString());

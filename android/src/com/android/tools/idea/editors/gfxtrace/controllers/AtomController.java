@@ -72,7 +72,7 @@ public class AtomController extends TreeController {
     myTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
       public void valueChanged(TreeSelectionEvent treeSelectionEvent) {
-        if (mDisableActivation || !myAtomsPath.isValid()) return;
+        if (mDisableActivation || myAtomsPath.getPath() == null) return;
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)myTree.getLastSelectedPathComponent();
         if (node == null || node.getUserObject() == null) return;
         Object object = node.getUserObject();
@@ -132,7 +132,7 @@ public class AtomController extends TreeController {
     if (path instanceof AtomPath) {
       selectDeepestVisibleNode(((AtomPath)path).getIndex());
     }
-    if (updateAtoms && myAtomsPath.isValid()) {
+    if (updateAtoms && myAtomsPath.getPath() != null) {
       myTree.getEmptyText().setText("");
       myLoadingPanel.startLoading();
       final ListenableFuture<AtomList> atomF = myEditor.getClient().get(myAtomsPath.getPath());

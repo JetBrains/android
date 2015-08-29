@@ -37,8 +37,4 @@ public class PathStore<T extends Path> {
     if (myPath == null) return path == null;
     return myPath.equals(path);
   }
-
-  public boolean isValid() {
-    return myPath != null;
-  }
 }
