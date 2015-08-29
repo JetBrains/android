@@ -28,16 +28,21 @@ import com.android.tools.rpclib.binary.BinaryObject;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.tabs.TabInfo;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.tree.TreeNode;
 import java.awt.*;
 import java.util.ArrayList;
@@ -46,58 +51,64 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class FrameBufferController extends Controller {
-  public static void createUI(GfxTraceEditor editor,
-                              @NotNull JBScrollPane colorScrollPane,
-                              @NotNull JBScrollPane wireframePane,
-                              @NotNull JBScrollPane depthScrollPane) {
-    new FrameBufferController(editor, colorScrollPane, wireframePane, depthScrollPane);
+  public static JComponent createUI(GfxTraceEditor editor) {
+    return new FrameBufferController(editor).myPanel;
   }
 
   private static final int MAX_SIZE = 0xffff;
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
 
-  @NotNull private final BufferTab colorTab = new BufferTab();
-  @NotNull private final BufferTab wireframeTab = new BufferTab();
-  @NotNull private final BufferTab depthTab = new BufferTab();
+  @NotNull private final JPanel myPanel = new JPanel(new BorderLayout());
+  @NotNull private final BufferTab myColorTab = new BufferTab();
+  @NotNull private final BufferTab myWireframeTab = new BufferTab();
+  @NotNull private final BufferTab myDepthTab = new BufferTab();
 
   private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
   private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
 
   private final class BufferTab {
-    public JBScrollPane myPane;
+    public final JPanel myPanel = new JPanel(new BorderLayout());
+    public final JBScrollPane myScrollPane = new JBScrollPane();
     public JBLoadingPanel myLoading;
     public boolean myIsDepth = false;
     public RenderSettings mySettings = new RenderSettings();
+
+    public BufferTab() {
+      myPanel.add(myScrollPane, BorderLayout.CENTER);
+      myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
+      myScrollPane.getVerticalScrollBar().setUnitIncrement(20);
+      myScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
+      myScrollPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+      myScrollPane.setViewportView(myLoading);
+      mySettings.setMaxHeight(MAX_SIZE);
+      mySettings.setMaxWidth(MAX_SIZE);
+      mySettings.setWireframeMode(WireframeMode.noWireframe());
+      // TODO: Add a way to pan the viewport with the keyboard.
+    }
   }
 
-  private FrameBufferController(@NotNull GfxTraceEditor editor,
-                               @NotNull JBScrollPane colorScrollPane,
-                               @NotNull JBScrollPane wireframePane,
-                               @NotNull JBScrollPane depthScrollPane) {
+  private FrameBufferController(@NotNull GfxTraceEditor editor) {
     super(editor);
-    initTab(colorTab, colorScrollPane);
-    colorTab.mySettings.setWireframeMode(WireframeMode.wireframeOverlay());
-    initTab(wireframeTab, wireframePane);
-    wireframeTab.mySettings.setWireframeMode(WireframeMode.allWireframe());
-    initTab(depthTab, depthScrollPane);
-    depthTab.myIsDepth = true;
+
+    JBRunnerTabs bufferTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
+    bufferTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
+      .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
+
+    bufferTabs.addTab(new TabInfo(myColorTab.myPanel).setText("Color"));
+    bufferTabs.addTab(new TabInfo(myWireframeTab.myPanel).setText("Wireframe"));
+    bufferTabs.addTab(new TabInfo(myDepthTab.myPanel).setText("Depth"));
+    bufferTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
+
+    // Put the buffer views in a panel so a border can be drawn around it.
+    myPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+    myPanel.add(bufferTabs, BorderLayout.CENTER);
+
+    myColorTab.mySettings.setWireframeMode(WireframeMode.wireframeOverlay());
+    myWireframeTab.mySettings.setWireframeMode(WireframeMode.allWireframe());
+    myDepthTab.myIsDepth = true;
   }
-
-  private void initTab(BufferTab tab, JBScrollPane pane) {
-    tab.myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
-    tab.myPane = pane;
-    tab.myPane.getVerticalScrollBar().setUnitIncrement(20);
-    tab.myPane.getHorizontalScrollBar().setUnitIncrement(20);
-    tab.myPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-    tab.myPane.setViewportView(tab.myLoading);
-
-    tab.mySettings.setMaxHeight(MAX_SIZE);
-    tab.mySettings.setMaxWidth(MAX_SIZE);
-    tab.mySettings.setWireframeMode(WireframeMode.noWireframe());
-    // TODO: Add a way to pan the viewport with the keyboard.
-  }
-
+  
   @Override
   public void notifyPath(Path path) {
     boolean updateTabs = false;
@@ -109,9 +120,9 @@ public class FrameBufferController extends Controller {
     }
     if (updateTabs && myRenderDevice.isValid() && myAtomPath.isValid()) {
       // TODO: maybe do the selected tab first, but it's probably not much of a win
-      updateTab(colorTab);
-      updateTab(wireframeTab);
-      updateTab(depthTab);
+      updateTab(myColorTab);
+      updateTab(myWireframeTab);
+      updateTab(myDepthTab);
     }
   }
 
@@ -149,7 +160,7 @@ public class FrameBufferController extends Controller {
                 tab.myLoading.stopLoading();
                 tab.myLoading.getContentPanel().removeAll();
                 tab.myLoading.add(new JBLabel(image));
-                tab.myPane.repaint();
+                tab.myPanel.repaint();
               }
             });
           }
