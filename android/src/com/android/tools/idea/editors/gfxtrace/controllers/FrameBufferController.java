@@ -59,19 +59,17 @@ public class FrameBufferController extends Controller {
   private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
 
   private final class BufferTab {
-    public final JPanel myPanel = new JPanel(new BorderLayout());
     public final JBScrollPane myScrollPane = new JBScrollPane();
     public JBLoadingPanel myLoading;
     public boolean myIsDepth = false;
     public RenderSettings mySettings = new RenderSettings();
 
     public BufferTab() {
-      myPanel.add(myScrollPane, BorderLayout.CENTER);
-      myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
       myScrollPane.getVerticalScrollBar().setUnitIncrement(20);
       myScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
       myScrollPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-      myScrollPane.setViewportView(myLoading);
+      myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
+      myLoading.add(myScrollPane, BorderLayout.CENTER);
       mySettings.setMaxHeight(MAX_SIZE);
       mySettings.setMaxWidth(MAX_SIZE);
       mySettings.setWireframeMode(WireframeMode.noWireframe());
@@ -86,9 +84,9 @@ public class FrameBufferController extends Controller {
     bufferTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
       .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
 
-    bufferTabs.addTab(new TabInfo(myColorTab.myPanel).setText("Color"));
-    bufferTabs.addTab(new TabInfo(myWireframeTab.myPanel).setText("Wireframe"));
-    bufferTabs.addTab(new TabInfo(myDepthTab.myPanel).setText("Depth"));
+    bufferTabs.addTab(new TabInfo(myColorTab.myLoading).setText("Color"));
+    bufferTabs.addTab(new TabInfo(myWireframeTab.myLoading).setText("Wireframe"));
+    bufferTabs.addTab(new TabInfo(myDepthTab.myLoading).setText("Depth"));
     bufferTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
 
     // Put the buffer views in a panel so a border can be drawn around it.
@@ -150,9 +148,7 @@ public class FrameBufferController extends Controller {
               public void run() {
                 // Back in the UI thread here
                 tab.myLoading.stopLoading();
-                tab.myLoading.getContentPanel().removeAll();
-                tab.myLoading.add(new JBLabel(image));
-                tab.myPanel.repaint();
+                tab.myScrollPane.setViewportView(new JBLabel(image));
               }
             });
           }
