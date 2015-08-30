@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
+import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
@@ -116,15 +117,14 @@ public abstract class CellController<T extends CellController.Data> extends Cont
   protected void loadCellImage(final Data cell, final ServiceClient client, final Path imagePath) {
     Futures.addCallback(FetchedImage.load(client, imagePath), new LoadingCallback<FetchedImage>(LOG, cell) {
       @Override
-      public void onSuccess(FetchedImage fetchedImage) {
-        final ImageIcon icon = fetchedImage.createImageIcon();
+      public void onSuccess(final FetchedImage fetchedImage) {
         EdtExecutor.INSTANCE.execute(new Runnable() {
           @Override
           public void run() {
             // Back in the UI thread here
-            cell.icon = icon;
+            cell.icon = fetchedImage.icon;
             cell.stopLoading();
-            if (myRenderer.updateKnownSize(new Dimension(icon.getIconWidth(), icon.getIconHeight()))) {
+            if (myRenderer.updateKnownSize(fetchedImage.dimensions)) {
               resize(myRenderer.getCellDimensions());
             }
             myList.repaint();
