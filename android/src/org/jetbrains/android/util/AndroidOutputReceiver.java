@@ -17,9 +17,7 @@
 package org.jetbrains.android.util;
 
 import com.android.ddmlib.MultiLineReceiver;
-import com.intellij.openapi.diagnostic.Logger;
-
-import java.io.UnsupportedEncodingException;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AndroidOutputReceiver extends MultiLineReceiver {
   private static final String BAD_ACCESS_ERROR = "Bad address (14)";
@@ -48,5 +46,5 @@ public abstract class AndroidOutputReceiver extends MultiLineReceiver {
     myTryAgain = false;
   }
 
-  protected abstract void processNewLine(String line);
+  protected abstract void processNewLine(@NotNull String line);
 }
