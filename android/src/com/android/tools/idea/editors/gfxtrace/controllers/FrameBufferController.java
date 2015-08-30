@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
+import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.google.common.util.concurrent.Futures;
@@ -135,22 +136,15 @@ public class FrameBufferController extends Controller {
   }
 
   private void updateTab(final BufferTab tab, final ImageInfoPath imageInfoPath) {
-    Futures.addCallback(myEditor.getClient().get(imageInfoPath), new LoadingCallback<ImageInfo>(LOG, tab.myLoading) {
+    Futures.addCallback(FetchedImage.load(myEditor.getClient(), imageInfoPath), new LoadingCallback<FetchedImage>(LOG, tab.myLoading) {
       @Override
-      public void onSuccess(@Nullable final ImageInfo imageInfo) {
-        Futures.addCallback(myEditor.getClient().get(imageInfo.getData()), new LoadingCallback<byte[]>(LOG, tab.myLoading) {
+      public void onSuccess(final FetchedImage fetchedImage) {
+        EdtExecutor.INSTANCE.execute(new Runnable() {
           @Override
-          public void onSuccess(@Nullable final byte[] data) {
-            final FetchedImage fetchedImage = new FetchedImage(imageInfo, data);
-            final ImageIcon image = fetchedImage.createImageIcon();
-            EdtExecutor.INSTANCE.execute(new Runnable() {
-              @Override
-              public void run() {
-                // Back in the UI thread here
-                tab.myLoading.stopLoading();
-                tab.myScrollPane.setViewportView(new JBLabel(image));
-              }
-            });
+          public void run() {
+            // Back in the UI thread here
+            tab.myLoading.stopLoading();
+            tab.myScrollPane.setViewportView(new JBLabel(fetchedImage.icon));
           }
         });
       }
