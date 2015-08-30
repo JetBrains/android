@@ -354,7 +354,7 @@ public class RepositoryUrlManager {
     if (version != null && coordinate.getGroupId() != null && coordinate.getArtifactId() != null) {
       List<GradleCoordinate.RevisionComponent> revisions = GradleCoordinate.parseRevisionNumber(version);
       if (!revisions.isEmpty()) {
-        return new GradleCoordinate(coordinate.getGroupId(), coordinate.getArtifactId(), revisions, null);
+        return new GradleCoordinate(coordinate.getGroupId(), coordinate.getArtifactId(), revisions, coordinate.getArtifactType());
       }
     }
 
