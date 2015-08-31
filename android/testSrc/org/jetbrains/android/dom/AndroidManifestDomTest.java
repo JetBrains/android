@@ -88,7 +88,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testTagNameCompletion1() throws Throwable {
-    doTestCompletionVariants("tn1.xml", "uses-permission", "uses-sdk", "uses-configuration", "uses-feature");
+    doTestCompletionVariants("tn1.xml", "uses-permission",  "uses-permission-sdk-23", "uses-sdk", "uses-configuration", "uses-feature");
   }
 
   public void testSoftTagsAndAttrs() throws Throwable {
@@ -187,6 +187,14 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+  }
+
+  public void testUsesPermissionCompletion4() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type('\n');
     myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
   }
 
