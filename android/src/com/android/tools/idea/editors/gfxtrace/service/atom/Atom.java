@@ -15,18 +15,34 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
-import com.android.tools.rpclib.schema.Render;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class Atom implements Render.ToComponent {
+import javax.swing.tree.DefaultMutableTreeNode;
+
+public abstract class Atom {
   public static Atom wrap(BinaryObject object) {
     if (object instanceof Dynamic) {
       return new DynamicAtom((Dynamic)object);
     }
     return (Atom)object;
+  }
+
+  public void buildTree(@NotNull DefaultMutableTreeNode parent, long index) {
+    DefaultMutableTreeNode atomNode = new DefaultMutableTreeNode(new AtomController.Node(index, this), true);
+    parent.add(atomNode);
+    Observations observations = getObservations();
+    if (observations != null) {
+      for (Observation read : observations.getReads()) {
+        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(read, true), false));
+      }
+      for (Observation write : observations.getWrites()) {
+        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(write, false), false));
+      }
+    }
   }
 
   @NotNull

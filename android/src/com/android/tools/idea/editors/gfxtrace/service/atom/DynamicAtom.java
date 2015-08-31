@@ -18,8 +18,6 @@ package com.android.tools.idea.editors.gfxtrace.service.atom;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
-import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
 public class DynamicAtom extends Atom {
@@ -66,7 +64,7 @@ public class DynamicAtom extends Atom {
   public Observations getObservations() {
     if (myMetadata.myObservationsIndex >= 0) {
       Object value = getFieldValue(myMetadata.myObservationsIndex);
-      assert(value instanceof Observations);
+      assert (value instanceof Observations);
       return (Observations)value;
     }
     return null;
@@ -80,31 +78,5 @@ public class DynamicAtom extends Atom {
   @Override
   public boolean getIsEndOfFrame() {
     return myMetadata.getEndOfFrame();
-  }
-
-  @Override
-  public void render(@NotNull SimpleColoredComponent component, SimpleTextAttributes defaultAttributes) {
-    component.append(getName() + "(", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-    int resultIndex = getResultIndex();
-    int observationsIndex = getObservationsIndex();
-    boolean needComma = false;
-    for (int i = 0; i < getFieldCount(); ++i) {
-      if (i == resultIndex || i == observationsIndex) continue;
-      if (needComma) {
-        component.append(", ", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-      }
-      needComma = true;
-      Field field = getFieldInfo(i);
-      Object parameterValue = getFieldValue(i);
-      field.getType().render(parameterValue, component, defaultAttributes);
-    }
-
-    component.append(")", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-    if (resultIndex >= 0) {
-      component.append("->", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-      Field field = getFieldInfo(resultIndex);
-      Object parameterValue = getFieldValue(resultIndex);
-      field.getType().render(parameterValue, component, defaultAttributes);
-    }
   }
 }

@@ -18,21 +18,32 @@
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
 import com.android.tools.rpclib.binary.*;
-import com.android.tools.rpclib.schema.Render;
+import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.IOException;
 
-public final class AtomGroup implements BinaryObject, Render.ToComponent {
+public final class AtomGroup implements BinaryObject {
   public boolean isValid() {
     return myRange.isValid();
   }
 
-  @Override
-  public void render(@NotNull SimpleColoredComponent component, SimpleTextAttributes defaultAttributes) {
-    component.append(getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+  public void addChildren(@NotNull DefaultMutableTreeNode parent, @NotNull AtomList atoms) {
+    long next = myRange.getStart();
+    for (AtomGroup subGroup : mySubGroups) {
+      // add any atoms that come before the group
+      atoms.addAtoms(parent, next, subGroup.getRange().getStart());
+      // and add the group itself
+      DefaultMutableTreeNode subNode = new DefaultMutableTreeNode(subGroup, true);
+      subGroup.addChildren(subNode, atoms);
+      parent.add(subNode);
+      next = subGroup.getRange().getEnd();
+    }
+    // Add all the trailing atoms
+    atoms.addAtoms(parent, next, myRange.getEnd());
   }
 
   //<<<Start:Java.ClassBody:1>>>
@@ -81,7 +92,6 @@ public final class AtomGroup implements BinaryObject, Render.ToComponent {
     Namespace.register(ID, Klass.INSTANCE);
   }
   public static void register() {}
-
   //<<<End:Java.ClassBody:1>>>
   public enum Klass implements BinaryClass {
     //<<<Start:Java.KlassBody:2>>>

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.renderers;
 
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.ScrubberLabelData;
+import com.android.tools.idea.editors.gfxtrace.controllers.CellController;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
@@ -25,24 +25,24 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-public class ScrubberLabel extends JBLabel {
+public class CellLabel extends JBLabel {
   private static final long CYCLE_LENGTH = 800l;
   private static final int CORNER_RADIUS = 3;
   private static final Icon[] LOADING_ICONS =
     {AllIcons.Process.Big.Step_1, AllIcons.Process.Big.Step_2, AllIcons.Process.Big.Step_3, AllIcons.Process.Big.Step_4,
       AllIcons.Process.Big.Step_5, AllIcons.Process.Big.Step_6, AllIcons.Process.Big.Step_7, AllIcons.Process.Big.Step_8,
       AllIcons.Process.Big.Step_9, AllIcons.Process.Big.Step_10, AllIcons.Process.Big.Step_11, AllIcons.Process.Big.Step_12};
-  @Nullable private ScrubberLabelData myData;
+  @Nullable private CellController.Data myData;
 
-  public ScrubberLabel() {
+  public CellLabel() {
   }
 
   @Nullable
-  public ScrubberLabelData getUserData() {
+  public CellController.Data getUserData() {
     return myData;
   }
 
-  public void setUserData(@NotNull ScrubberLabelData data) {
+  public void setUserData(@NotNull CellController.Data data) {
     myData = data;
   }
 
@@ -61,22 +61,22 @@ public class ScrubberLabel extends JBLabel {
       try {
         assert (myData != null);
 
-        setBackground(UIUtil.getListBackground(myData.isSelected()));
+        setBackground(UIUtil.getListBackground(myData.isSelected));
 
         if (pushedContext != null) {
-          Icon previewImage = myData.getIcon();
+          Icon previewImage = myData.icon;
           int previewImageWidth = previewImage.getIconWidth();
           int previewImageHeight = previewImage.getIconHeight();
           int backgroundOffsetX = (getWidth() - previewImageWidth) / 2;
           int backgroundOffsetY = (getHeight() - previewImageHeight) / 2;
 
-          if (myData.isLoading()) {
+          if (myData.isLoading) {
             setOpaque(true);
-            pushedContext.setColor(myData.isSelected() ? getBackground() : UIUtil.getLabelDisabledForeground());
+            pushedContext.setColor(myData.isSelected ? getBackground() : UIUtil.getLabelDisabledForeground());
             pushedContext.fillRoundRect(backgroundOffsetX, backgroundOffsetY, previewImageWidth - 1, previewImageHeight - 1, CORNER_RADIUS,
                                         CORNER_RADIUS);
             Icon targetIcon =
-              LOADING_ICONS[(int)((((System.currentTimeMillis() - myData.getLoadIconStartTime()) % CYCLE_LENGTH) * 12l) / CYCLE_LENGTH)];
+              LOADING_ICONS[(int)((((System.currentTimeMillis() - myData.loadstartTime) % CYCLE_LENGTH) * 12l) / CYCLE_LENGTH)];
             targetIcon.paintIcon(this, g, backgroundOffsetX + (previewImageWidth - targetIcon.getIconWidth()) / 2,
                                  backgroundOffsetY + (previewImageHeight - targetIcon.getIconHeight()) / 2);
           }
@@ -87,7 +87,7 @@ public class ScrubberLabel extends JBLabel {
             pushedContext.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, CORNER_RADIUS, CORNER_RADIUS);
           }
         }
-        if (!myData.isLoading()) {
+        if (!myData.isLoading) {
           ui.update(pushedContext, this);
         }
         if (pushedContext != null) {
