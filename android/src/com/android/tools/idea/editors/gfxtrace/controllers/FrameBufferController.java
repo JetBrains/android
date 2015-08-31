@@ -20,77 +20,83 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
-import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
-import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
+import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
-import com.android.tools.rpclib.binary.BinaryObject;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.tabs.TabInfo;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.tree.TreeNode;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
-public class FrameBufferController implements PathListener {
+public class FrameBufferController extends Controller {
+  public static JComponent createUI(GfxTraceEditor editor) {
+    return new FrameBufferController(editor).myPanel;
+  }
+
   private static final int MAX_SIZE = 0xffff;
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
-  @NotNull private final GfxTraceEditor myEditor;
 
-  @NotNull private final BufferTab colorTab = new BufferTab();
-  @NotNull private final BufferTab wireframeTab = new BufferTab();
-  @NotNull private final BufferTab depthTab = new BufferTab();
+  @NotNull private final JPanel myPanel = new JPanel(new BorderLayout());
+  @NotNull private final BufferTab myColorTab = new BufferTab();
+  @NotNull private final BufferTab myWireframeTab = new BufferTab();
+  @NotNull private final BufferTab myDepthTab = new BufferTab();
 
   private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
   private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
 
   private final class BufferTab {
-    public JBScrollPane myPane;
+    public final JBScrollPane myScrollPane = new JBScrollPane();
     public JBLoadingPanel myLoading;
     public boolean myIsDepth = false;
     public RenderSettings mySettings = new RenderSettings();
+
+    public BufferTab() {
+      myScrollPane.getVerticalScrollBar().setUnitIncrement(20);
+      myScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
+      myScrollPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+      myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
+      myLoading.add(myScrollPane, BorderLayout.CENTER);
+      mySettings.setMaxHeight(MAX_SIZE);
+      mySettings.setMaxWidth(MAX_SIZE);
+      mySettings.setWireframeMode(WireframeMode.noWireframe());
+      // TODO: Add a way to pan the viewport with the keyboard.
+    }
   }
 
-  public FrameBufferController(@NotNull GfxTraceEditor editor,
-                               @NotNull JBScrollPane colorScrollPane,
-                               @NotNull JBScrollPane wireframePane,
-                               @NotNull JBScrollPane depthScrollPane) {
-    myEditor = editor;
-    myEditor.addPathListener(this);
+  private FrameBufferController(@NotNull GfxTraceEditor editor) {
+    super(editor);
 
-    initTab(colorTab, colorScrollPane);
-    initTab(wireframeTab, wireframePane);
-    wireframeTab.mySettings.setWireframeMode(WireframeMode.allWireframe());
-    initTab(depthTab, depthScrollPane);
-    depthTab.myIsDepth = true;
-  }
+    JBRunnerTabs bufferTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
+    bufferTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
+      .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
 
-  private void initTab(BufferTab tab, JBScrollPane pane) {
-    tab.myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
-    tab.myPane = pane;
-    tab.myPane.getVerticalScrollBar().setUnitIncrement(20);
-    tab.myPane.getHorizontalScrollBar().setUnitIncrement(20);
-    tab.myPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-    tab.myPane.setViewportView(tab.myLoading);
+    bufferTabs.addTab(new TabInfo(myColorTab.myLoading).setText("Color"));
+    bufferTabs.addTab(new TabInfo(myWireframeTab.myLoading).setText("Wireframe"));
+    bufferTabs.addTab(new TabInfo(myDepthTab.myLoading).setText("Depth"));
+    bufferTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
 
-    tab.mySettings.setMaxHeight(MAX_SIZE);
-    tab.mySettings.setMaxWidth(MAX_SIZE);
-    tab.mySettings.setWireframeMode(WireframeMode.noWireframe());
-    // TODO: Add a way to pan the viewport with the keyboard.
+    // Put the buffer views in a panel so a border can be drawn around it.
+    myPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+    myPanel.add(bufferTabs, BorderLayout.CENTER);
+
+    myColorTab.mySettings.setWireframeMode(WireframeMode.wireframeOverlay());
+    myWireframeTab.mySettings.setWireframeMode(WireframeMode.allWireframe());
+    myDepthTab.myIsDepth = true;
   }
 
   @Override
@@ -102,11 +108,11 @@ public class FrameBufferController implements PathListener {
     if (path instanceof AtomPath) {
       updateTabs |= myAtomPath.update((AtomPath)path);
     }
-    if (updateTabs && myRenderDevice.isValid() && myAtomPath.isValid()) {
+    if (updateTabs && myRenderDevice.getPath() != null && myAtomPath.getPath() != null) {
       // TODO: maybe do the selected tab first, but it's probably not much of a win
-      updateTab(colorTab);
-      updateTab(wireframeTab);
-      updateTab(depthTab);
+      updateTab(myColorTab);
+      updateTab(myWireframeTab);
+      updateTab(myDepthTab);
     }
   }
 
@@ -117,7 +123,8 @@ public class FrameBufferController implements PathListener {
     ListenableFuture<ImageInfoPath> imagePathF;
     if (tab.myIsDepth) {
       imagePathF = myEditor.getClient().getFramebufferDepth(myRenderDevice.getPath(), myAtomPath.getPath());
-    } else {
+    }
+    else {
       imagePathF = myEditor.getClient().getFramebufferColor(myRenderDevice.getPath(), myAtomPath.getPath(), tab.mySettings);
     }
     Futures.addCallback(imagePathF, new LoadingCallback<ImageInfoPath>(LOG, tab.myLoading) {
@@ -129,24 +136,15 @@ public class FrameBufferController implements PathListener {
   }
 
   private void updateTab(final BufferTab tab, final ImageInfoPath imageInfoPath) {
-    Futures.addCallback(myEditor.getClient().get(imageInfoPath), new LoadingCallback<ImageInfo>(LOG, tab.myLoading) {
+    Futures.addCallback(FetchedImage.load(myEditor.getClient(), imageInfoPath), new LoadingCallback<FetchedImage>(LOG, tab.myLoading) {
       @Override
-      public void onSuccess(@Nullable final ImageInfo imageInfo) {
-        Futures.addCallback(myEditor.getClient().get(imageInfo.getData()), new LoadingCallback<byte[]>(LOG, tab.myLoading) {
+      public void onSuccess(final FetchedImage fetchedImage) {
+        EdtExecutor.INSTANCE.execute(new Runnable() {
           @Override
-          public void onSuccess(@Nullable final byte[] data) {
-            final FetchedImage fetchedImage = new FetchedImage(imageInfo, data);
-            final ImageIcon image = fetchedImage.createImageIcon();
-            EdtExecutor.INSTANCE.execute(new Runnable() {
-              @Override
-              public void run() {
-                // Back in the UI thread here
-                tab.myLoading.stopLoading();
-                tab.myLoading.getContentPanel().removeAll();
-                tab.myLoading.add(new JBLabel(image));
-                tab.myPane.repaint();
-              }
-            });
+          public void run() {
+            // Back in the UI thread here
+            tab.myLoading.stopLoading();
+            tab.myScrollPane.setViewportView(new JBLabel(fetchedImage.icon));
           }
         });
       }

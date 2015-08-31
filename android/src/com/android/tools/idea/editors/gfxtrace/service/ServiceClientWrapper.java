@@ -69,10 +69,6 @@ public class ServiceClientWrapper extends ServiceClient {
     return myClient.importCapture(name, Data);
   }
   @Override
-  public ListenableFuture<Void> prerenderFramebuffers(DevicePath device, CapturePath capture, BinaryID api, int width, int height, long[] atomIndicies) {
-    return myClient.prerenderFramebuffers(device, capture, api, width, height, atomIndicies);
-  }
-  @Override
   public ListenableFuture<Path> set(Path p, Object v) {
     return myClient.set(p, v);
   }

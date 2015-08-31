@@ -13,23 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.gfxtrace.renderers.styles;
+package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.intellij.util.ui.UIUtil;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+public abstract class Controller implements PathListener, Disposable {
+  @NotNull protected final GfxTraceEditor myEditor;
 
-public class TreeUtil {
-  public static final int TREE_ROW_HEIGHT = 19;
-
-  @NotNull
-  public static Color getTreeForeground(boolean selected) {
-    return selected ? UIUtil.getTreeSelectionForeground() : UIUtil.getTreeForeground();
+  public Controller(@NotNull GfxTraceEditor editor) {
+    myEditor = editor;
+    myEditor.addPathListener(this);
+    Disposer.register(editor, this);
   }
 
-  @NotNull
-  public static Color getTreeBackground(boolean selected) {
-    return selected ? UIUtil.getTreeSelectionBackground() : UIUtil.getTreeBackground();
+  @Override
+  public void dispose() {
+    clear();
+  }
+
+  public void clear() {
   }
 }
