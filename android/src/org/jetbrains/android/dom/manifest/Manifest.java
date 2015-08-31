@@ -44,6 +44,8 @@ public interface Manifest extends ManifestElement {
 
   List<UsesPermission> getUsesPermissions();
 
+  List<UsesPermissionSdk23> getUsesPermissionSdk23s();
+
   List<UsesSdk> getUsesSdks();
 
   List<UsesFeature> getUsesFeatures();
