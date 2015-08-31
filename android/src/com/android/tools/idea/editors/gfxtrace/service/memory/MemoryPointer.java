@@ -17,42 +17,48 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.memory;
 
-import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
+
+import com.android.tools.rpclib.binary.BinaryClass;
+import com.android.tools.rpclib.binary.BinaryID;
+import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.tools.rpclib.binary.Decoder;
+import com.android.tools.rpclib.binary.Encoder;
+import com.android.tools.rpclib.binary.Namespace;
 
 import java.io.IOException;
 
-public final class Range implements BinaryObject {
+public final class MemoryPointer implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  private long myBase;
-  private long mySize;
+  private long myAddress;
+  private PoolID myPool;
 
-  // Constructs a default-initialized {@link Range}.
-  public Range() {}
+  // Constructs a default-initialized {@link MemoryPointer}.
+  public MemoryPointer() {}
 
 
-  public long getBase() {
-    return myBase;
+  public long getAddress() {
+    return myAddress;
   }
 
-  public Range setBase(long v) {
-    myBase = v;
+  public MemoryPointer setAddress(long v) {
+    myAddress = v;
     return this;
   }
 
-  public long getSize() {
-    return mySize;
+  public PoolID getPool() {
+    return myPool;
   }
 
-  public Range setSize(long v) {
-    mySize = v;
+  public MemoryPointer setPool(PoolID v) {
+    myPool = v;
     return this;
   }
 
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {77, 8, 67, -77, -73, 125, -116, 123, 95, 127, 84, -73, 123, -93, -42, 85, 119, 1, 82, 44, };
+  private static final byte[] IDBytes = {50, -111, 32, 44, 113, 28, -103, -45, -34, -83, -42, -85, -84, 103, 120, -83, -3, -75, 5, -7, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
@@ -68,20 +74,20 @@ public final class Range implements BinaryObject {
     public BinaryID id() { return ID; }
 
     @Override @NotNull
-    public BinaryObject create() { return new Range(); }
+    public BinaryObject create() { return new MemoryPointer(); }
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      Range o = (Range)obj;
-      e.uint64(o.myBase);
-      e.uint64(o.mySize);
+      MemoryPointer o = (MemoryPointer)obj;
+      e.uint64(o.myAddress);
+      o.myPool.encode(e);
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      Range o = (Range)obj;
-      o.myBase = d.uint64();
-      o.mySize = d.uint64();
+      MemoryPointer o = (MemoryPointer)obj;
+      o.myAddress = d.uint64();
+      o.myPool = PoolID.decode(d);
     }
     //<<<End:Java.KlassBody:2>>>
   }

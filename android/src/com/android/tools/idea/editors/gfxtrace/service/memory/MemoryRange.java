@@ -17,55 +17,48 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.memory;
 
-import com.android.tools.rpclib.binary.*;
-import com.android.tools.rpclib.schema.Render;
-import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
+
+import com.android.tools.rpclib.binary.BinaryClass;
+import com.android.tools.rpclib.binary.BinaryID;
+import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.tools.rpclib.binary.Decoder;
+import com.android.tools.rpclib.binary.Encoder;
+import com.android.tools.rpclib.binary.Namespace;
 
 import java.io.IOException;
 
-public final class Pointer implements BinaryObject, Render.ToComponent {
-  @Override
-  public void render(@NotNull SimpleColoredComponent component, SimpleTextAttributes defaultAttributes) {
-    component.append("0x" + Long.toHexString((Long)myAddress), defaultAttributes);
-    component.append("0x" + Long.toHexString((Long)myAddress), defaultAttributes);
-    if (myPool.value != PoolID.ApplicationPool) {
-      component.append("@", SimpleTextAttributes.GRAY_ATTRIBUTES);
-      component.append(myPool.toString(), defaultAttributes);
-    }
-  }
-
+public final class MemoryRange implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  private long myAddress;
-  private PoolID myPool;
+  private long myBase;
+  private long mySize;
 
-  // Constructs a default-initialized {@link Pointer}.
-  public Pointer() {}
+  // Constructs a default-initialized {@link MemoryRange}.
+  public MemoryRange() {}
 
 
-  public long getAddress() {
-    return myAddress;
+  public long getBase() {
+    return myBase;
   }
 
-  public Pointer setAddress(long v) {
-    myAddress = v;
+  public MemoryRange setBase(long v) {
+    myBase = v;
     return this;
   }
 
-  public PoolID getPool() {
-    return myPool;
+  public long getSize() {
+    return mySize;
   }
 
-  public Pointer setPool(PoolID v) {
-    myPool = v;
+  public MemoryRange setSize(long v) {
+    mySize = v;
     return this;
   }
 
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {50, -111, 32, 44, 113, 28, -103, -45, -34, -83, -42, -85, -84, 103, 120, -83, -3, -75, 5, -7, };
+  private static final byte[] IDBytes = {77, 8, 67, -77, -73, 125, -116, 123, 95, 127, 84, -73, 123, -93, -42, 85, 119, 1, 82, 44, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
@@ -81,20 +74,20 @@ public final class Pointer implements BinaryObject, Render.ToComponent {
     public BinaryID id() { return ID; }
 
     @Override @NotNull
-    public BinaryObject create() { return new Pointer(); }
+    public BinaryObject create() { return new MemoryRange(); }
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      Pointer o = (Pointer)obj;
-      e.uint64(o.myAddress);
-      o.myPool.encode(e);
+      MemoryRange o = (MemoryRange)obj;
+      e.uint64(o.myBase);
+      e.uint64(o.mySize);
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      Pointer o = (Pointer)obj;
-      o.myAddress = d.uint64();
-      o.myPool = PoolID.decode(d);
+      MemoryRange o = (MemoryRange)obj;
+      o.myBase = d.uint64();
+      o.mySize = d.uint64();
     }
     //<<<End:Java.KlassBody:2>>>
   }
