@@ -21,13 +21,10 @@ import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.Device;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
-import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -37,19 +34,27 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ContextController implements PathListener {
-  private static final String NO_DEVICE_AVAILABLE = "No Device Available";
-  private static final String NO_DEVICE_SELECTED = "No Device Selected";
-  private static final String RETRIEVING_DEVICES = "Retrieving Devices";
+public class ContextController extends Controller {
+  @NotNull public static final String TOOLBAR_NAME = "GfxTraceViewPanelToolbar";
+  @NotNull private static final String NO_DEVICE_AVAILABLE = "No Device Available";
+  @NotNull private static final String NO_DEVICE_SELECTED = "No Device Selected";
+  @NotNull private static final String RETRIEVING_DEVICES = "Retrieving Devices";
 
   @NotNull private static final Logger LOG = Logger.getInstance(ContextController.class);
-  @NotNull private final GfxTraceEditor myEditor;
   @Nullable private DeviceEntry[] myDevices;
+  @NotNull private final JComponent myToolBar;
   private final PathStore<DevicePath> mySelectedDevice = new PathStore<DevicePath>();
 
-  public ContextController(@NotNull GfxTraceEditor editor) {
-    myEditor = editor;
-    myEditor.addPathListener(this);
+  public static JComponent createUI(GfxTraceEditor editor) {
+    return new ContextController(editor).myToolBar;
+  }
+
+  private ContextController(@NotNull GfxTraceEditor editor) {
+    super(editor);
+    DefaultActionGroup group = new DefaultActionGroup(getContextAction());
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
+    myToolBar = toolbar.getComponent();
+    myToolBar.setName(TOOLBAR_NAME);
 
     // Populate the available device list.
     Futures.addCallback(myEditor.getClient().getDevices(), new LoadingCallback<DevicePath[]>(LOG) {
@@ -92,7 +97,7 @@ public class ContextController implements PathListener {
   }
 
   @NotNull
-  public AnAction getContextAction() {
+  private AnAction getContextAction() {
     return new ComboBoxAction() {
       @NotNull
       @Override
@@ -116,7 +121,7 @@ public class ContextController implements PathListener {
       @Override
       public void update(AnActionEvent e) {
         super.update(e);
-        if (mySelectedDevice.isValid() && myDevices != null) {
+        if (mySelectedDevice.getPath() != null && myDevices != null) {
           for (DeviceEntry device : myDevices) {
             if (mySelectedDevice.is(device.myPath)) {
               getTemplatePresentation().setText(device.toString());

@@ -20,12 +20,20 @@ package com.android.tools.idea.editors.gfxtrace.service.atom;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.IOException;
 
 public final class AtomList implements BinaryObject {
   public Atom get(long index) {
     return myAtoms[(int)index];
   }
+
+  public void addAtoms(@NotNull DefaultMutableTreeNode parent, long start, long end) {
+    for (long index = start; index < end;  ++index) {
+      get(index).buildTree(parent, index);
+    }
+  }
+
 
   //<<<Start:Java.ClassBody:1>>>
   private Atom[] myAtoms;

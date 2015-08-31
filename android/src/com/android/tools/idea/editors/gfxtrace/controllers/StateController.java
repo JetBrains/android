@@ -18,75 +18,95 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.StateNodeData;
-import com.android.tools.idea.editors.gfxtrace.renderers.SchemaTreeRenderer;
-import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
-import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
-import com.android.tools.idea.editors.gfxtrace.service.path.*;
-import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
+import com.android.tools.idea.editors.gfxtrace.service.path.StatePath;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
+import com.android.tools.rpclib.schema.Map;
+import com.android.tools.rpclib.schema.Type;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.treeStructure.SimpleTree;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import java.awt.*;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicLong;
 
-public class StateController implements PathListener {
+public class StateController extends TreeController {
+  public static JComponent createUI(GfxTraceEditor editor) {
+    return new StateController(editor).myPanel;
+  }
+
   @NotNull private static final Logger LOG = Logger.getInstance(StateController.class);
-
-  @NotNull private final GfxTraceEditor myEditor;
-  @NotNull private final JBLoadingPanel myLoadingPanel;
-  @NotNull private final SimpleTree myTree;
 
   private final PathStore<StatePath> myStatePath = new PathStore<StatePath>();
 
-  public StateController(@NotNull GfxTraceEditor editor, @NotNull JBScrollPane scrollPane) {
-    myEditor = editor;
-    myEditor.addPathListener(this);
-    myTree = new SimpleTree();
-    myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT);
-    myTree.setRootVisible(false);
-    myTree.setCellRenderer(new SchemaTreeRenderer());
-    myTree.getEmptyText().setText(GfxTraceEditor.SELECT_ATOM);
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), editor.getProject());
-    myLoadingPanel.add(myTree);
-    scrollPane.setViewportView(myLoadingPanel);
+  private StateController(@NotNull GfxTraceEditor editor) {
+    super(editor, GfxTraceEditor.SELECT_ATOM);
+  }
+
+  public static class Typed {
+    @NotNull public final Type type;
+    @NotNull public final Object value;
+
+    public Typed(@NotNull Type type, @NotNull Object value) {
+      this.type = type;
+      this.value = value;
+    }
+  }
+
+  public static class Node {
+    @Nullable public final Object key;
+    @Nullable public final Object value;
+
+    public Node(@Nullable Object key, @Nullable Object value) {
+      this.key = key;
+      this.value = value;
+    }
   }
 
   @Nullable
-  private static DefaultMutableTreeNode constructStateNode(@Nullable Object key, @Nullable Object value) {
-    DefaultMutableTreeNode node = new DefaultMutableTreeNode();
-    Object render = value;
+  private static DefaultMutableTreeNode createNode(@Nullable Object key, @Nullable Type type, @Nullable Object value) {
+    DefaultMutableTreeNode child = new DefaultMutableTreeNode();
+    fillNode(child, key, value);
+    if (child.getChildCount() != 0) {
+      child.setUserObject(new Node(key, null));
+    }
+    else if ((type != null) && (value != null)) {
+      child.setUserObject(new Node(key, new Typed(type, value)));
+    }
+    else {
+      child.setUserObject(new Node(key, value));
+    }
+    return child;
+  }
+
+  private static void fillNode(@NotNull DefaultMutableTreeNode parent, @Nullable Object key, @Nullable Object value) {
     if (value instanceof Dynamic) {
-      render = null;
-      node.setUserObject(new StateNodeData(key, value));
       Dynamic dynamic = (Dynamic)value;
       for (int index = 0; index < dynamic.getFieldCount(); ++index) {
-        node.add(constructStateNode(dynamic.getFieldInfo(index), dynamic.getFieldValue(index)));
-      }
-    } else if (value instanceof Map) {
-      render = null;
-      node.setUserObject(new StateNodeData(key, value));
-      Map<?,?> map = (Map)value;
-      for (java.util.Map.Entry entry : map.entrySet()) {
-        node.add(constructStateNode(entry.getKey(), entry.getValue()));
+        Field field = dynamic.getFieldInfo(index);
+        if (field.getDeclared().length() == 0) {
+          // embed anonymous fields directly into the parent
+          fillNode(parent, field, dynamic.getFieldValue(index));
+        }
+        else {
+          parent.add(createNode(field, field.getType(), dynamic.getFieldValue(index)));
+        }
       }
     }
-    node.setUserObject(new StateNodeData(key, render));
-    return node;
+    else if (key instanceof Field) {
+      Field field = (Field)key;
+      if (field.getType() instanceof Map) {
+        assert (value instanceof java.util.Map);
+        Map map = (Map)field.getType();
+        for (java.util.Map.Entry entry : ((java.util.Map<?, ?>)value).entrySet()) {
+          parent.add(createNode(new Typed(map.getKeyType(), entry.getKey()), map.getValueType(), entry.getValue()));
+        }
+      }
+    }
   }
 
   @Override
@@ -95,18 +115,15 @@ public class StateController implements PathListener {
     if (path instanceof AtomPath) {
       updateState |= myStatePath.update(((AtomPath)path).stateAfter());
     }
-    if (updateState && myStatePath.isValid()) {
+    if (updateState && myStatePath.getPath() != null) {
       Futures.addCallback(myEditor.getClient().get(myStatePath.getPath()), new LoadingCallback<Object>(LOG, myLoadingPanel) {
         @Override
         public void onSuccess(@Nullable final Object state) {
-          final DefaultMutableTreeNode stateNode = constructStateNode("state", state);
+          final DefaultMutableTreeNode stateNode = createNode("state", null, state);
           EdtExecutor.INSTANCE.execute(new Runnable() {
             @Override
             public void run() {
-              // Back in the UI thread here
-              myTree.setModel(new DefaultTreeModel(stateNode));
-              myTree.updateUI();
-              myLoadingPanel.stopLoading();
+              setRoot(stateNode);
             }
           });
         }

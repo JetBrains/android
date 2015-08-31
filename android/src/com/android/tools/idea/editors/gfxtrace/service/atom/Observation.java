@@ -17,7 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
-import com.android.tools.idea.editors.gfxtrace.service.memory.Range;
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,18 +25,18 @@ import java.io.IOException;
 
 public final class Observation implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  private Range myRange;
+  private MemoryRange myRange;
   private BinaryID myID;
 
   // Constructs a default-initialized {@link Observation}.
   public Observation() {}
 
 
-  public Range getRange() {
+  public MemoryRange getRange() {
     return myRange;
   }
 
-  public Observation setRange(Range v) {
+  public Observation setRange(MemoryRange v) {
     myRange = v;
     return this;
   }
@@ -81,7 +81,7 @@ public final class Observation implements BinaryObject {
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       Observation o = (Observation)obj;
-      o.myRange = new Range();
+      o.myRange = new MemoryRange();
       d.value(o.myRange);
       o.myID = d.id();
     }

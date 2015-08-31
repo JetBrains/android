@@ -17,7 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
-import com.android.tools.idea.editors.gfxtrace.service.memory.Range;
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,9 +26,9 @@ import java.io.IOException;
 public final class MemoryInfo implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
   private byte[] myData;
-  private Range[] myReads;
-  private Range[] myWrites;
-  private Range[] myObserved;
+  private MemoryRange[] myReads;
+  private MemoryRange[] myWrites;
+  private MemoryRange[] myObserved;
 
   // Constructs a default-initialized {@link MemoryInfo}.
   public MemoryInfo() {}
@@ -43,29 +43,29 @@ public final class MemoryInfo implements BinaryObject {
     return this;
   }
 
-  public Range[] getReads() {
+  public MemoryRange[] getReads() {
     return myReads;
   }
 
-  public MemoryInfo setReads(Range[] v) {
+  public MemoryInfo setReads(MemoryRange[] v) {
     myReads = v;
     return this;
   }
 
-  public Range[] getWrites() {
+  public MemoryRange[] getWrites() {
     return myWrites;
   }
 
-  public MemoryInfo setWrites(Range[] v) {
+  public MemoryInfo setWrites(MemoryRange[] v) {
     myWrites = v;
     return this;
   }
 
-  public Range[] getObserved() {
+  public MemoryRange[] getObserved() {
     return myObserved;
   }
 
-  public MemoryInfo setObserved(Range[] v) {
+  public MemoryInfo setObserved(MemoryRange[] v) {
     myObserved = v;
     return this;
   }
@@ -117,19 +117,19 @@ public final class MemoryInfo implements BinaryObject {
       o.myData = new byte[d.uint32()];
       d.read(o.myData, o.myData.length);
 
-      o.myReads = new Range[d.uint32()];
+      o.myReads = new MemoryRange[d.uint32()];
       for (int i = 0; i <o.myReads.length; i++) {
-        o.myReads[i] = new Range();
+        o.myReads[i] = new MemoryRange();
         d.value(o.myReads[i]);
       }
-      o.myWrites = new Range[d.uint32()];
+      o.myWrites = new MemoryRange[d.uint32()];
       for (int i = 0; i <o.myWrites.length; i++) {
-        o.myWrites[i] = new Range();
+        o.myWrites[i] = new MemoryRange();
         d.value(o.myWrites[i]);
       }
-      o.myObserved = new Range[d.uint32()];
+      o.myObserved = new MemoryRange[d.uint32()];
       for (int i = 0; i <o.myObserved.length; i++) {
-        o.myObserved[i] = new Range();
+        o.myObserved[i] = new MemoryRange();
         d.value(o.myObserved[i]);
       }
     }

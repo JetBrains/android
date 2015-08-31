@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace;
 
 import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.editors.gfxtrace.controllers.*;
+import com.android.tools.idea.editors.gfxtrace.controllers.MainController;
 import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomMetadata;
 import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
@@ -40,8 +40,10 @@ import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,23 +72,20 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private static final int SERVER_LAUNCH_SLEEP_INCREMENT_MS = 10;
 
   @NotNull private final Project myProject;
-  @NotNull private final GfxTraceViewPanel myView;
+  @NotNull private LoadingDecorator myLoadingDecorator;
+  @NotNull private JBPanel myView = new JBPanel(new BorderLayout());
   @NotNull private final ListeningExecutorService myExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
   private Process myServerProcess;
   private Socket myServerSocket;
-  @NotNull private ServiceClient myClient;
+  private ServiceClient myClient;
 
   @NotNull private List<PathListener> myPathListeners = new ArrayList<PathListener>();
-  private ContextController myContextController;
-  private AtomController myAtomController;
-  private ScrubberController myScrubberController;
-  private FrameBufferController myFrameBufferController;
-  private StateController myStateController;
-  private DocumentationController myDocumentationController;
 
   public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
     myProject = project;
-    myView = new GfxTraceViewPanel();
+    myLoadingDecorator = new LoadingDecorator(myView, this, 0);
+    myLoadingDecorator.setLoadingText("Initializing GFX Trace System");
+    myLoadingDecorator.startLoading(false);
 
     // Attempt to start/connect to the server on a separate thread to reduce the IDE from stalling.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
@@ -155,20 +154,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           return;
         }
 
-        myContextController = new ContextController(GfxTraceEditor.this);
-        myAtomController = new AtomController(GfxTraceEditor.this, project, myView.getAtomScrollPane());
-        myScrubberController = new ScrubberController(GfxTraceEditor.this, myView.getScrubberScrollPane(), myView.getScrubberList());
-        myFrameBufferController =
-          new FrameBufferController(GfxTraceEditor.this, myView.getColorScrollPane(), myView.getWireframeScrollPane(),
-                                    myView.getDepthScrollPane());
-        myStateController = new StateController(GfxTraceEditor.this, myView.getStateScrollPane());
-        // TODO: Rewrite to use IntelliJ documentation view.
-        myDocumentationController = new DocumentationController(GfxTraceEditor.this, myView.getDocsTextPane());
-
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
-            myView.finalizeUi(myProject, myContextController.getContextAction());
+            myView.add(MainController.createUI(GfxTraceEditor.this), BorderLayout.CENTER);
+            myLoadingDecorator.stopLoading();
           }
         });
       }
@@ -183,7 +173,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull
   @Override
   public JComponent getComponent() {
-    return myView.getRootComponent();
+    return myView;
   }
 
   @Nullable
@@ -213,10 +203,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   public void addPathListener(@NotNull PathListener listener) {
     myPathListeners.add(listener);
-  }
-
-  public void notifyDimensionChanged(@NotNull Dimension newDimension) {
-    myView.resize();
   }
 
   @NotNull
@@ -380,7 +366,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        myView.setLoadingError(error);
+        myLoadingDecorator.setLoadingText(error);
       }
     });
   }
