@@ -150,7 +150,7 @@ public interface AndroidModel {
   VirtualFile getRootDir();
 
   /**
-   * @return Whether data binding is enabled for this model
+   * @return Whether data binding is enabled for this model.
    */
   boolean getDataBindingEnabled();
 }
