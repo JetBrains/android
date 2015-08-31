@@ -80,7 +80,7 @@ public class SetupJdkPath extends DynamicWizardPath {
       path = result.toString();
     }
 
-    if (StringUtil.isEmpty(path)) {
+    if (StringUtil.isEmpty(path) || JdkDetection.validateJdkLocation(new File(path)) != null) {
       addStep(myJdkLocationStep);
     }
     else {
