@@ -1,6 +1,6 @@
 package com.android.tools.idea.gradle.facet;
 
-import com.android.tools.idea.structure.gradle.AndroidModuleEditor;
+import com.android.tools.idea.gradle.structure.editors.AndroidModuleEditor;
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;

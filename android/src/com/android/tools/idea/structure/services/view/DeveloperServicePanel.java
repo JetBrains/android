@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.structure.services.view;
 
-import com.android.tools.idea.structure.EditorPanel;
+import com.android.tools.idea.gradle.structure.EditorPanel;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServiceMetadata;
 import com.android.tools.idea.structure.services.ServiceContext;
