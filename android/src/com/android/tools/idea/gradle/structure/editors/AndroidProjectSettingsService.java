@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.gradle;
+package com.android.tools.idea.gradle.structure.editors;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
-import com.android.tools.idea.structure.AndroidProjectStructureConfigurable;
+import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
 import com.intellij.compiler.actions.ArtifactAwareProjectSettingsService;
 import com.intellij.ide.projectView.impl.ModuleGroup;
 import com.intellij.openapi.module.Module;

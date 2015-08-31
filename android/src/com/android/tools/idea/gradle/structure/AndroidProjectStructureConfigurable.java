@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure;
+package com.android.tools.idea.gradle.structure;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
@@ -25,8 +25,8 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.structure.gradle.AndroidModuleConfigurable;
-import com.android.tools.idea.structure.gradle.AndroidProjectConfigurable;
+import com.android.tools.idea.gradle.structure.editors.AndroidModuleConfigurable;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurable;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServices;
 import com.android.tools.idea.structure.services.ServiceCategory;

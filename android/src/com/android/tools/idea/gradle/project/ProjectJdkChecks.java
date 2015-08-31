@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHype
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
-import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.Document;

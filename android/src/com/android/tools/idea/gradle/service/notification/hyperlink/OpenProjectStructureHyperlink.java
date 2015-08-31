@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import org.jetbrains.annotations.NotNull;
