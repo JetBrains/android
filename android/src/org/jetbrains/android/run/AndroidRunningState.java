@@ -18,10 +18,12 @@ package org.jetbrains.android.run;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.*;
 import com.android.prefs.AndroidLocation;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
@@ -31,6 +33,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
@@ -66,6 +69,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Condition;
@@ -1159,6 +1163,16 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           showMessageDialog(AndroidBundle.message("deployment.failed.no.certificates.explanation"));
           retry = false;
           break;
+        case INSTALL_FAILED_OLDER_SDK:
+          reason = validateSdkVersion(device);
+          if (reason != null) {
+            if (shouldOpenProjectStructure(reason)) {
+              openProjectStructure();
+            }
+            retry =  false;  // Don't retry as there needs to be another sync and build.
+            break;
+          }
+          // Maybe throw an exception because this shouldn't happen. But let it fall through to UNTYPED_ERROR for now.
         case UNTYPED_ERROR:
           reason = AndroidBundle.message("deployment.failed.uninstall.prompt.generic.text", result.failureMessage);
           retry = promptUninstallExistingApp(reason) && uninstallPackage(device, packageName);
@@ -1221,6 +1235,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     INSTALL_FAILED_VERSION_DOWNGRADE,
     INSTALL_FAILED_DEXOPT,
     NO_CERTIFICATE,
+    INSTALL_FAILED_OLDER_SDK,
     UNTYPED_ERROR
   }
 
@@ -1256,6 +1271,49 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
                              receiver.output.toString());
   }
 
+  private String validateSdkVersion(@NotNull IDevice device) {
+    AndroidVersion deviceVersion = DevicePropertyUtil.getDeviceVersion(device);
+    AndroidVersion minSdkVersion = myFacet.getAndroidModuleInfo().getRuntimeMinSdkVersion();
+    if ((deviceVersion.canRun(minSdkVersion))) {
+      message("Device API level: " + deviceVersion.toString(), STDERR); // Log the device version to console for easy reference.
+      return AndroidBundle.message("deployment.failed.reason.oldersdk", minSdkVersion.toString(), deviceVersion.toString());
+    }
+    else {
+      return null;
+    }
+  }
+
+  private boolean shouldOpenProjectStructure(@NotNull final String reason) {
+    final AtomicBoolean open = new AtomicBoolean(false);
+    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+      @Override
+      public void run() {
+        int result = Messages.showOkCancelDialog(myFacet.getModule().getProject(), reason,
+                                                 AndroidBundle.message("deployment.failed.title"),
+                                                 Messages.getQuestionIcon());
+        open.set(result == Messages.OK);
+      }
+    }, ModalityState.defaultModalityState());
+
+    return open.get();
+  }
+
+  /**
+   * Opens the project structure dialog and selects the flavors tab.
+   */
+  private boolean openProjectStructure() {
+    final ProjectSettingsService service = ProjectSettingsService.getInstance(myFacet.getModule().getProject());
+    if (service instanceof AndroidProjectSettingsService) {
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          ((AndroidProjectSettingsService)service).openAndSelectFlavorsEditor(myFacet.getModule());
+        }
+      });
+    }
+    return false;
+  }
+
   private InstallFailureCode getFailureCode(MyReceiver receiver) {
     if (receiver.errorType == NO_ERROR && receiver.failureMessage == null) {
       return InstallFailureCode.NO_ERROR;
@@ -1269,6 +1327,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return InstallFailureCode.INSTALL_FAILED_VERSION_DOWNGRADE;
     } else if ("INSTALL_FAILED_DEXOPT".equals(receiver.failureMessage)) {
       return InstallFailureCode.INSTALL_FAILED_DEXOPT;
+    } else if ("INSTALL_FAILED_OLDER_SDK".equals(receiver.failureMessage)) {
+      return InstallFailureCode.INSTALL_FAILED_OLDER_SDK;
     }
 
     return InstallFailureCode.UNTYPED_ERROR;
