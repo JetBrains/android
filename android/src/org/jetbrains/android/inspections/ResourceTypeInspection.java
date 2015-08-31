@@ -677,7 +677,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       if (annotation == null) {
         return;
       }
-      String message = String.format("The result '%1$s' is not used", method.getName());
+      String message = String.format("The result of '%1$s' is not used", method.getName());
       PsiAnnotationMemberValue value = annotation.findAttributeValue(ATTR_SUGGEST);
       if (value instanceof PsiLiteral) {
         PsiLiteral literal = (PsiLiteral)value;
