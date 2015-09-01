@@ -169,14 +169,15 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   }
 
   @Override
-  public AndroidRunningState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
-    final AndroidRunningState state = super.getState(executor, env);
+  public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
+    final RunProfileState state = super.getState(executor, env);
 
-    if (state == null) {
-      return null;
+    if (!(state instanceof AndroidRunningState)) {
+      return state;
     }
 
-    final AndroidFacet facet = state.getFacet();
+    AndroidRunningState androidRunningState = (AndroidRunningState) state;
+    final AndroidFacet facet = androidRunningState.getFacet();
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
 
     if (!facet.requiresAndroidModel() && !configuration.getState().PACK_TEST_CODE) {

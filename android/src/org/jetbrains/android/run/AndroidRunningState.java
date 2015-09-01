@@ -31,7 +31,10 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.CloudConfigurationProvider;
+import com.android.tools.idea.run.CloudDebuggingTargetChooser;
+import com.android.tools.idea.run.InstalledApks;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
@@ -105,8 +108,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.run.CloudConfiguration.Kind.MATRIX;
-import static com.android.tools.idea.run.CloudConfiguration.Kind.SINGLE_DEVICE;
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
 
@@ -208,14 +209,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       }
     }
 
-    final CloudConfigurationProvider provider = CloudConfigurationProvider.getCloudConfigurationProvider();
-    boolean debugMatrixOnCloud = myTargetChooser instanceof CloudTargetChooser &&
-                                 ((CloudTargetChooser)myTargetChooser).getConfigurationKind() == MATRIX &&
-                                 executor instanceof DefaultDebugExecutor;
-
-    // Show the device chooser if either the config specifies it, or if the request is to debug a matrix of devices on cloud
-    // (which does not make sense).
-    if (myTargetChooser instanceof ManualTargetChooser || debugMatrixOnCloud) {
+    if (myTargetChooser instanceof ManualTargetChooser) {
       if (myConfiguration.USE_LAST_SELECTED_DEVICE) {
         DeviceStateAtLaunch lastLaunchState = myConfiguration.getDevicesUsedInLastLaunch();
 
@@ -257,8 +251,15 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           myAvdName = selectedAvd;
         }
         else if (chooser.isCloudTestOptionSelected()) {
-          return provider
-            .executeCloudMatrixTests(chooser.getSelectedMatrixConfigurationId(), chooser.getChosenCloudProjectId(), this, executor);
+          // TODO: Delegating to a separate running state here is a temporary measure while we refactor out target selection.
+          CloudMatrixTestRunningState cloudMatrixState = new CloudMatrixTestRunningState(
+            getEnvironment(),
+            getFacet(),
+            getConfiguration(),
+            chooser.getSelectedMatrixConfigurationId(),
+            chooser.getChosenCloudProjectId());
+          myProcessHandler = cloudMatrixState.getProcessHandler();
+          return cloudMatrixState.execute(executor, runner);
         }
         else {
           final IDevice[] selectedDevices = chooser.getSelectedDevices();
@@ -277,25 +278,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         }
       }
     }
-    else if (myTargetChooser instanceof CloudTargetChooser) {
-      assert provider != null;
-      final CloudTargetChooser cloudTargetChooser = (CloudTargetChooser)myTargetChooser;
-      if (cloudTargetChooser.getConfigurationKind() == MATRIX) {
-        return provider
-          .executeCloudMatrixTests(cloudTargetChooser.getCloudConfigurationId(), cloudTargetChooser.getCloudProjectId(), this, executor);
-      }
-      else {
-        assert cloudTargetChooser.getConfigurationKind() == SINGLE_DEVICE;
-        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-          @Override
-          public void run() {
-            provider.launchCloudDevice(cloudTargetChooser.getCloudConfigurationId(), cloudTargetChooser.getCloudProjectId(), myFacet);
-          }
-        });
-        return new DefaultExecutionResult(console, myProcessHandler);
-      }
-    }
     else if (myTargetChooser instanceof CloudDebuggingTargetChooser) {
+      final CloudConfigurationProvider provider = CloudConfigurationProvider.getCloudConfigurationProvider();
       assert provider != null;
       myTargetDevices = EMPTY_DEVICE_ARRAY;
       String cloudDeviceSerialNumber = ((CloudDebuggingTargetChooser)myTargetChooser).getCloudDeviceSerialNumber();
