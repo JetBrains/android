@@ -431,7 +431,14 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                                  + "* src/test/pkg/latency.rs => app/src/main/rs/latency.rs\n"
                                  + "* src/zoneinfo-global/Pacific/Honolulu.ics => app/src/main/resources/zoneinfo-global/Pacific/Honolulu.ics\n"
                                  + MSG_FOOTER,
-                                 true /* checkBuild */);
+                                 //true /* checkBuild */);
+                                 // Turning off check builds because on some Jenkins machines this is triggering an exception
+                                 // from the RenderScript compiler, presumably because it's running on a too-old version
+                                 // of Ubuntu:
+                                 //
+                                 //  android-sdk-linux/build-tools/23.0.0/llvm-rs-cc: error while loading shared libraries: libncurses.so.5:
+                                 //  cannot open shared object file: No such file or directory
+                                 false /* checkBuild */);
 
     // Imported contents
     assertEquals(""
