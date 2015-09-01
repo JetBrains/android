@@ -16,14 +16,11 @@
 package com.android.tools.idea.monitor.gpu;
 
 import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
 import com.android.tools.chartlib.EventData;
 import com.android.tools.chartlib.TimelineComponent;
 import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.monitor.BaseMonitorView;
-import com.android.tools.idea.monitor.DeviceSampler;
-import com.android.tools.idea.monitor.TimelineEventListener;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.LHandler;
@@ -40,37 +37,36 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-public class GpuMonitorView extends BaseMonitorView
-  implements ProfileStateListener, TimelineEventListener, DeviceContext.DeviceSelectionListener {
+public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements ProfileStateListener {
   public static final int PRE_M_SAMPLE_FREQUENCY_MS = 33;
+  private static final float PRE_M_TIMELINE_BUFFER_TIME = PRE_M_SAMPLE_FREQUENCY_MS * 1.5f / 1000;
+  private static final float PRE_M_TIMELINE_ABSOLUTE_MAX = 67.0f;
   public static final int POST_M_SAMPLE_FREQUENCY_MS = 200;
+  private static final float POST_M_TIMELINE_BUFFER_TIME = POST_M_SAMPLE_FREQUENCY_MS * 1.5f / 1000;
+  private static final float POST_M_TIMELINE_ABSOLUTE_MAX = 67.0f;
+  private static final float TIMELINE_INITIAL_MAX = 17.0f;
+  private static final float TIMELINE_INITIAL_MARKER_SEPARATION = 3.0f;
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
 
   private static final String NEEDS_NEWER_API_LABEL = "This device does not support the minimum API level (16) for GPU monitor.";
-  private static final String NEEDS_PROFILING_ENABLED_LABEL =
-    "GPU Profiling needs to be enabled in the device's developer options. " +
-    "<a href='https://developer.android.com/preview/testing/performance.html#timing-dump'>Learn more</a>.";
+  private static final String NEEDS_PROFILING_ENABLED_LABEL = "GPU Profiling needs to be enabled in the device's developer options. " +
+                                                              "<a href='https://developer.android.com/preview/testing/performance.html#timing-dump'>Learn more</a>.";
 
   @NotNull private final JPanel myPanel;
-  @NotNull private final GpuSampler myGpuSampler;
-  @Nullable private TimelineComponent myCurrentTimelineComponent;
-  @Nullable private Client myClient;
-  private int myApiLevel;
+  private int myApiLevel = MHandler.MIN_API_LEVEL;
 
   public GpuMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
-    super(project);
-
+    super(project, deviceContext, new GpuSampler(POST_M_SAMPLE_FREQUENCY_MS), POST_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX,
+          POST_M_TIMELINE_ABSOLUTE_MAX, TIMELINE_INITIAL_MARKER_SEPARATION);
+    mySampler.myProfileStateListener = this;
     myPanel = new JPanel(new BorderLayout());
 
     addOverlayText(NEEDS_NEWER_API_LABEL, 0);
     addOverlayText(PAUSED_LABEL, 1);
     addOverlayText(NEEDS_PROFILING_ENABLED_LABEL, 2);
 
-    myGpuSampler = new GpuSampler(PRE_M_SAMPLE_FREQUENCY_MS, this);
-    myGpuSampler.addListener(this);
-
-    myApiLevel = myGpuSampler.getApiLevel();
-    configureTimelineComponent(myGpuSampler.getTimelineData());
+    myApiLevel = mySampler.getApiLevel();
+    configureTimelineComponent(mySampler.getTimelineData());
     deviceContext.addListener(this, project);
 
     myPanel.setBackground(BACKGROUND_COLOR);
@@ -88,45 +84,19 @@ public class GpuMonitorView extends BaseMonitorView
   }
 
   @Override
-  public void deviceSelected(@Nullable IDevice device) {
-
-  }
-
-  @Override
-  public void deviceChanged(@NotNull IDevice device, int changeMask) {
-
-  }
-
-  @Override
   public void clientSelected(@Nullable final Client client) {
-    if (client != myClient) {
+    if (client != mySampler.getClient()) {
       setOverlayEnabled(NEEDS_NEWER_API_LABEL, false);
       setOverlayEnabled(NEEDS_PROFILING_ENABLED_LABEL, false);
     }
-
-    myClient = client;
-    myGpuSampler.setClient(client);
+    super.clientSelected(client);
     if (client != null) {
-      int newApiLevel = myGpuSampler.getApiLevel();
+      int newApiLevel = mySampler.getApiLevel();
       if (newApiLevel != myApiLevel) {
         myApiLevel = newApiLevel;
-        configureTimelineComponent(myGpuSampler.getTimelineData());
+        configureTimelineComponent(mySampler.getTimelineData());
       }
     }
-  }
-
-  @Override
-  public void setPaused(boolean paused) {
-    myGpuSampler.setIsPaused(paused);
-    setOverlayEnabled(PAUSED_LABEL, paused);
-    if (myCurrentTimelineComponent != null) {
-      myCurrentTimelineComponent.setUpdateData(!paused);
-    }
-  }
-
-  @Override
-  public boolean isPaused() {
-    return myGpuSampler.getIsPaused();
   }
 
   @NotNull
@@ -135,65 +105,54 @@ public class GpuMonitorView extends BaseMonitorView
     return "gpu usage";
   }
 
-  @Override
-  protected DeviceSampler getSampler() {
-    return myGpuSampler;
-  }
-
   private void configureTimelineComponent(@NotNull TimelineData data) {
     EventData events = new EventData();
 
     if (myApiLevel >= MHandler.MIN_API_LEVEL) {
-      // Buffer at one and a half times the sample frequency.
-      float bufferTimeInSeconds = POST_M_SAMPLE_FREQUENCY_MS * 1.5f / 1000.f;
+      myPanel.remove(myTimelineComponent);
+      myTimelineComponent =
+        new TimelineComponent(data, events, POST_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, POST_M_TIMELINE_ABSOLUTE_MAX,
+                              TIMELINE_INITIAL_MARKER_SEPARATION);
 
-      if (myCurrentTimelineComponent != null) {
-        myPanel.remove(myCurrentTimelineComponent);
-      }
-      myCurrentTimelineComponent = new TimelineComponent(data, events, bufferTimeInSeconds, 17.0f, 67.0f, 3.0f);
-
-      myCurrentTimelineComponent.configureUnits("ms");
-      myCurrentTimelineComponent.configureStream(0, "VSync Delay", new JBColor(0x007c6d, 0x00695c));
-      myCurrentTimelineComponent.configureStream(1, "Input Handling", new JBColor(0x00a292, 0x00897b));
-      myCurrentTimelineComponent.configureStream(2, "Animation", new JBColor(0x00b2a1, 0x009688));
-      myCurrentTimelineComponent.configureStream(3, "Measure/Layout", new JBColor(0x2dc5b6, 0x26a69a));
-      myCurrentTimelineComponent.configureStream(4, "Draw", new JBColor(0x27b2ff, 0x2196f3));
-      myCurrentTimelineComponent.configureStream(5, "Sync", new JBColor(0x5de7ff, 0x4fc3f7));
-      myCurrentTimelineComponent.configureStream(6, "Command Issue", new JBColor(0xff4f40, 0xf44336));
-      myCurrentTimelineComponent.configureStream(7, "Swap Buffers", new JBColor(0xffb400, 0xff9800));
-      myCurrentTimelineComponent.configureStream(8, "Misc Time", new JBColor(0x008f7f, 0x00796b));
-      myCurrentTimelineComponent.setBackground(BACKGROUND_COLOR);
+      myTimelineComponent.configureUnits("ms");
+      myTimelineComponent.configureStream(0, "VSync Delay", new JBColor(0x007c6d, 0x00695c));
+      myTimelineComponent.configureStream(1, "Input Handling", new JBColor(0x00a292, 0x00897b));
+      myTimelineComponent.configureStream(2, "Animation", new JBColor(0x00b2a1, 0x009688));
+      myTimelineComponent.configureStream(3, "Measure/Layout", new JBColor(0x2dc5b6, 0x26a69a));
+      myTimelineComponent.configureStream(4, "Draw", new JBColor(0x27b2ff, 0x2196f3));
+      myTimelineComponent.configureStream(5, "Sync", new JBColor(0x5de7ff, 0x4fc3f7));
+      myTimelineComponent.configureStream(6, "Command Issue", new JBColor(0xff4f40, 0xf44336));
+      myTimelineComponent.configureStream(7, "Swap Buffers", new JBColor(0xffb400, 0xff9800));
+      myTimelineComponent.configureStream(8, "Misc Time", new JBColor(0x008f7f, 0x00796b));
+      myTimelineComponent.setBackground(BACKGROUND_COLOR);
 
       setOverlayEnabled(NEEDS_NEWER_API_LABEL, false);
-      myPanel.add(myCurrentTimelineComponent, BorderLayout.CENTER);
+      myPanel.add(myTimelineComponent, BorderLayout.CENTER);
     }
     else if (myApiLevel >= JHandler.MIN_API_LEVEL) {
-      // Buffer at one and a half times the sample frequency.
-      float bufferTimeInSeconds = PRE_M_SAMPLE_FREQUENCY_MS * 1.5f / 1000.f;
-
-      if (myCurrentTimelineComponent != null) {
-        myPanel.remove(myCurrentTimelineComponent);
-      }
-      myCurrentTimelineComponent = new TimelineComponent(data, events, bufferTimeInSeconds, 17.0f, 100.0f, 3.0f);
+      myPanel.remove(myTimelineComponent);
+      myTimelineComponent =
+        new TimelineComponent(data, events, PRE_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, PRE_M_TIMELINE_ABSOLUTE_MAX,
+                              TIMELINE_INITIAL_MARKER_SEPARATION);
 
       if (myApiLevel >= LHandler.MIN_API_LEVEL) {
-        myCurrentTimelineComponent.configureUnits("ms");
-        myCurrentTimelineComponent.configureStream(0, "Draw", new JBColor(0x4979f2, 0x3e66cc));
-        myCurrentTimelineComponent.configureStream(1, "Prepare", new JBColor(0xa900ff, 0x8f00ff));
-        myCurrentTimelineComponent.configureStream(2, "Process", new JBColor(0xff4315, 0xdc3912));
-        myCurrentTimelineComponent.configureStream(3, "Execute", new JBColor(0xffb400, 0xe69800));
-        myCurrentTimelineComponent.setBackground(BACKGROUND_COLOR);
+        myTimelineComponent.configureUnits("ms");
+        myTimelineComponent.configureStream(0, "Draw", new JBColor(0x4979f2, 0x3e66cc));
+        myTimelineComponent.configureStream(1, "Prepare", new JBColor(0xa900ff, 0x8f00ff));
+        myTimelineComponent.configureStream(2, "Process", new JBColor(0xff4315, 0xdc3912));
+        myTimelineComponent.configureStream(3, "Execute", new JBColor(0xffb400, 0xe69800));
+        myTimelineComponent.setBackground(BACKGROUND_COLOR);
       }
       else {
-        myCurrentTimelineComponent.configureUnits("ms");
-        myCurrentTimelineComponent.configureStream(0, "Draw", new JBColor(0x4979f2, 0x3e66cc));
-        myCurrentTimelineComponent.configureStream(1, "Process", new JBColor(0xff4315, 0xdc3912));
-        myCurrentTimelineComponent.configureStream(2, "Execute", new JBColor(0xffb400, 0xe69800));
-        myCurrentTimelineComponent.setBackground(BACKGROUND_COLOR);
+        myTimelineComponent.configureUnits("ms");
+        myTimelineComponent.configureStream(0, "Draw", new JBColor(0x4979f2, 0x3e66cc));
+        myTimelineComponent.configureStream(1, "Process", new JBColor(0xff4315, 0xdc3912));
+        myTimelineComponent.configureStream(2, "Execute", new JBColor(0xffb400, 0xe69800));
+        myTimelineComponent.setBackground(BACKGROUND_COLOR);
       }
 
       setOverlayEnabled(NEEDS_NEWER_API_LABEL, false);
-      myPanel.add(myCurrentTimelineComponent, BorderLayout.CENTER);
+      myPanel.add(myTimelineComponent, BorderLayout.CENTER);
     }
     else {
       setOverlayEnabled(NEEDS_NEWER_API_LABEL, true);
@@ -206,13 +165,13 @@ public class GpuMonitorView extends BaseMonitorView
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        if (myClient == client) {
+        if (mySampler.getClient() == client) {
           setOverlayEnabled(NEEDS_PROFILING_ENABLED_LABEL, !enabled);
           if (enabled) {
-            configureTimelineComponent(myGpuSampler.getTimelineData());
+            configureTimelineComponent(mySampler.getTimelineData());
           }
           else {
-            myGpuSampler.getTimelineData().clear();
+            mySampler.getTimelineData().clear();
           }
         }
       }
