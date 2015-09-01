@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
@@ -506,7 +506,11 @@ public class GradleProjectImporter {
       GradleSyncState syncState = GradleSyncState.getInstance(project);
       if (syncState.syncStarted(true)) {
         createTopLevelProjectAndOpen(project);
-        syncState.syncFailed(nullToEmpty(preSyncCheckResult.getFailureCause()));
+        String cause = nullToEmpty(preSyncCheckResult.getFailureCause());
+        syncState.syncFailed(cause);
+        if (listener != null) {
+          listener.syncFailed(project, cause);
+        }
       }
       return;
     }
