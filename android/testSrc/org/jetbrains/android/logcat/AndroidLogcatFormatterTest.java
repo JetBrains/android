@@ -69,7 +69,7 @@ public class AndroidLogcatFormatterTest {
   @Test
   public void parseMessageForTagAndLogLevel() {
     String message = "02-12 17:04:44.005   1282-12/com.google.android.apps" +
-                     ".maps:GoogleLocationService D/dalvikvm" + AndroidLogcatFormatter.TAG_SEPARATOR + " Debugger has detached; object " +
+                     ".maps:GoogleLocationService D/dalvikvm: Debugger has detached; object " +
                      "registry had 1 entries";
 
     LogMessageHeader header = AndroidLogcatFormatter.parseMessage(message).getHeader();
