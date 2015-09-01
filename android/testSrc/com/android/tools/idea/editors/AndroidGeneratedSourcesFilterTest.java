@@ -16,11 +16,19 @@
 package com.android.tools.idea.editors;
 
 import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.google.common.base.Charsets;
+import com.intellij.ide.util.DirectoryUtil;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -40,6 +48,37 @@ public class AndroidGeneratedSourcesFilterTest extends AndroidGradleTestCase {
 
     file = findFile("module2/build.gradle");
     assertFalse(filter.isGeneratedSource(file, getProject()));
+
+    // Regression test for http://b.android.com/133655: Ensure that files in top level build dir (non-Android facet modules)
+    // are still considered generated!
+    // Can't use myFixture.addFileToProject(...,....) because this writes to a different
+    // folder than the directory where loadProject above has placed the project
+    VirtualFile cacheFile = WriteCommandAction.runWriteCommandAction(getProject(), new Computable<VirtualFile>() {
+      @Override
+      public VirtualFile compute() {
+        PsiDirectory dexCache = DirectoryUtil.mkdirs(PsiManager.getInstance(getProject()), getProject().getBasePath()
+                                                                                           + "/build/intermediates/dex-cache");
+        assertNotNull(dexCache);
+        PsiFile cachePsiFile = dexCache.createFile("cache.xml");
+        String xml =
+          "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+          "<items version=\"2\" >\n" +
+          "    <item />\n" +
+          "    </item>\n" +
+          "\n" +
+          "</items>";
+        VirtualFile cacheFile = cachePsiFile.getVirtualFile();
+        assertNotNull(cacheFile);
+        try {
+          cacheFile.setBinaryContent(xml.getBytes(Charsets.UTF_8));
+        }
+        catch (IOException e) {
+          fail(e.getMessage());
+        }
+        return cacheFile;
+      }
+    });
+    assertTrue(filter.isGeneratedSource(cacheFile, getProject()));
   }
 
   @NotNull
