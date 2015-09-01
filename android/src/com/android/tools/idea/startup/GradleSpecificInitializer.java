@@ -20,6 +20,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
@@ -32,11 +33,13 @@ import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.actions.TemplateProjectSettingsGroup;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
+import com.intellij.notification.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
@@ -51,10 +54,12 @@ import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.event.HyperlinkEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -198,9 +203,54 @@ public class GradleSpecificInitializer implements Runnable {
     }
   }
 
+  private static void notifyInvalidSdk() {
+    final String key = "android.invalid.sdk.message";
+    final String message = AndroidBundle.message(key);
+
+    final NotificationListener listener = new NotificationListener.Adapter() {
+      @Override
+      protected void hyperlinkActivated(@NotNull Notification notification,
+                                        @NotNull HyperlinkEvent e) {
+        ActionManager actionManager = ActionManager.getInstance();
+        AnAction sdkManagerAction = actionManager.getAction("Android.RunAndroidSdkManager");
+        sdkManagerAction.actionPerformed(null);
+        notification.expire();
+      }
+    };
+
+    final Application app = ApplicationManager.getApplication();
+
+    app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
+      @Override
+      public void appStarting(Project project) {
+        app.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            // Use the system health settings by default
+            NotificationGroup group = NotificationGroup.findRegisteredGroup("System Health");
+            if (group == null) {
+              // This shouldn't happen
+              group = new NotificationGroup("Sdk Validation", NotificationDisplayType.STICKY_BALLOON, true);
+            }
+            Notification notification = group.createNotification("SDK Validation", message, NotificationType.WARNING, listener);
+            notification.setImportant(true);
+            Notifications.Bus.notify(notification);
+          }
+        });
+      }
+    });
+  }
+
   private static void setupSdks() {
     File androidHome = IdeSdks.getAndroidSdkPath();
+
     if (androidHome != null) {
+      WizardUtils.ValidationResult sdkValidationResult =
+        WizardUtils.validateLocation(androidHome.getAbsolutePath(), "Android SDK location", false);
+      if (!sdkValidationResult.isOk()) {
+        notifyInvalidSdk();
+      }
+
       // Do not prompt user to select SDK path (we have one already.) Instead, check SDK compatibility when a project is opened.
       return;
     }
