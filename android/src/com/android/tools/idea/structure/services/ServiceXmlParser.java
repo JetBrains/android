@@ -314,7 +314,9 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       saxParser.parse(f, new DefaultHandler() {
         @Override
         public void startElement(String uri, String localName, String tagName, Attributes attributes) throws SAXException {
-          if (tagName.equals(SdkConstants.TAG_USES_PERMISSION)) {
+          if (tagName.equals(SdkConstants.TAG_USES_PERMISSION)
+              || tagName.equals(SdkConstants.TAG_USES_PERMISSION_SDK_23)
+              || tagName.equals(SdkConstants.TAG_USES_PERMISSION_SDK_M)) {
             String permission = attributes.getValue(SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_NAME);
             // Most permissions are "android.permission.XXX", so for readability, just remove the prefix if present
             permission = permission.replace(SdkConstants.ANDROID_PKG_PREFIX + SdkConstants.ATTR_PERMISSION + ".", "");
