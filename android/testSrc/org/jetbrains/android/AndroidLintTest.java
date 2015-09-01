@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -282,6 +283,15 @@ public class AndroidLintTest extends AndroidTestCase {
       assertNotNull(androidPlatform);
       // Put default platforms in the list before non-default ones so they'll be looked at first.
       AndroidSdkUtils.setSdkData(androidPlatform.getSdkData());
+    }
+
+    //noinspection ConstantConditions
+    File sdk = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
+    File appcompat = new File(sdk, "extras/android/m2repository/com/android/support/appcompat-v7/19.0.1".replace('/', File.separatorChar));
+    if (!appcompat.exists()) {
+      System.out.println("Not running " + this.getClass() + "#" + getName() + ": Needs SDK with Support Repo installed and " +
+                         "expected to find " + appcompat);
+      return;
     }
 
     // NOTE: The android support repository must be installed in the SDK used by the test!
