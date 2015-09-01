@@ -17,6 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
+import com.android.tools.idea.npw.NewAndroidActivityWizard;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.*;
@@ -65,6 +66,7 @@ public class TemplateManager {
   private static final String EXPLODED_AAR_PATH = "build/intermediates/exploded-aar";
 
   public static final String CATEGORY_OTHER = "Other";
+  private static final String CATEGORY_ACTIVITY = "Activity";
   private static final String ACTION_ID_PREFIX = "template.create.";
   private static final boolean USE_SDK_TEMPLATES = false;
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
@@ -416,34 +418,66 @@ public class TemplateManager {
       NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
         @Override
         public void update(AnActionEvent e) {
-          IdeView view = LangDataKeys.IDE_VIEW.getData(e.getDataContext());
-          final Module module = LangDataKeys.MODULE.getData(e.getDataContext());
-          final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
-          Presentation presentation = e.getPresentation();
-          boolean isProjectReady = facet != null && facet.getAndroidModel() != null;
-          presentation.setText(category + (isProjectReady ? "" : " (Project not ready)"));
-          presentation.setVisible(getChildrenCount() > 0 && view != null && facet != null && facet.requiresAndroidModel());
+          updateAction(e, category, getChildrenCount() > 0);
         }
       };
       categoryGroup.setPopup(true);
-      Presentation presentation = categoryGroup.getTemplatePresentation();
-      presentation.setIcon(AndroidIcons.Android);
-      presentation.setText(category);
-
-      Map<String, File> categoryRow = myCategoryTable.row(category);
-      for (String templateName : categoryRow.keySet()) {
-        if (EXCLUDED_TEMPLATES.contains(templateName)) {
-          continue;
-        }
-        TemplateMetadata metadata = getTemplate(myCategoryTable.get(category, templateName));
-        NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName, metadata);
-        String actionId = ACTION_ID_PREFIX + category + templateName;
-        am.unregisterAction(actionId);
-        am.registerAction(actionId, templateAction);
-        categoryGroup.add(templateAction);
-      }
+      fillCategory(categoryGroup, category, am);
       myTopGroup.add(categoryGroup);
+      setPresentation(category, categoryGroup);
     }
+  }
+
+  private static void updateAction(AnActionEvent event, String text, boolean visible) {
+    IdeView view = LangDataKeys.IDE_VIEW.getData(event.getDataContext());
+    final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
+    final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
+    Presentation presentation = event.getPresentation();
+    boolean isProjectReady = facet != null && facet.getAndroidModel() != null;
+    presentation.setText(text + (isProjectReady ? "" : " (Project not ready)"));
+    presentation.setVisible(visible && view != null && facet != null && facet.requiresAndroidModel());
+  }
+
+  private void fillCategory(NonEmptyActionGroup categoryGroup, final String category, ActionManager am) {
+    Map<String, File> categoryRow = myCategoryTable.row(category);
+    if (CATEGORY_ACTIVITY.equals(category)) {
+      AnAction action = new AnAction() {
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+          DataContext dataContext = e.getDataContext();
+          final Module module = LangDataKeys.MODULE.getData(dataContext);
+          VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+          NewAndroidActivityWizard wizard = new NewAndroidActivityWizard(module, targetFile, null);
+          wizard.init();
+          wizard.show();
+        }
+
+        @Override
+        public void update(AnActionEvent e) {
+          updateAction(e, "Gallery...", true);
+        }
+      };
+      categoryGroup.add(action);
+      categoryGroup.addSeparator();
+      setPresentation(category, action);
+    }
+    for (String templateName : categoryRow.keySet()) {
+      if (EXCLUDED_TEMPLATES.contains(templateName)) {
+        continue;
+      }
+      TemplateMetadata metadata = getTemplate(myCategoryTable.get(category, templateName));
+      NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName, metadata);
+      String actionId = ACTION_ID_PREFIX + category + templateName;
+      am.unregisterAction(actionId);
+      am.registerAction(actionId, templateAction);
+      categoryGroup.add(templateAction);
+    }
+  }
+
+  private static void setPresentation(String category, AnAction categoryGroup) {
+    Presentation presentation = categoryGroup.getTemplatePresentation();
+    presentation.setIcon(AndroidIcons.Android);
+    presentation.setText(category);
   }
 
   private Table<String, String, File> getCategoryTable() {
