@@ -507,7 +507,9 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
         continue;
       }
       String nodeName = item.getNodeName();
-      if (nodeName.equals(TAG_USES_PERMISSION)) {
+      if (nodeName.equals(TAG_USES_PERMISSION)
+          || nodeName.equals(TAG_USES_PERMISSION_SDK_23)
+          || nodeName.equals(TAG_USES_PERMISSION_SDK_M)) {
         Element element = (Element)item;
         String name = element.getAttributeNS(ANDROID_URI, ATTR_NAME);
         if (!name.isEmpty()) {
