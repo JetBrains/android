@@ -18,13 +18,16 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectStructureHyperlink;
 import com.android.tools.idea.gradle.util.GradleProperties;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.CommonBundle;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.DialogWrapper.DoNotAskOption;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -41,6 +44,8 @@ import java.io.IOException;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.checkForJdk;
 import static com.intellij.openapi.ui.Messages.*;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -70,6 +75,15 @@ final class PreSyncChecks {
     }
 
     if (isAndroidStudio()) {
+      // We only check jdk for Studio, because only Studio uses the same JDK for all modules and all Gradle invocations.
+      // See https://code.google.com/p/android/issues/detail?id=172714
+      Sdk jdk = IdeSdks.getJdk();
+      if (jdk == null || !checkForJdk(project, jdk.getName())) {
+        AndroidGradleNotification.getInstance(project).showBalloon("Invalid Project JDK", "Please choose a valid JDK directory", ERROR,
+                                                                   OpenProjectStructureHyperlink.openJdkSettings(project));
+        return PreSyncCheckResult.failure("Invalid Project Jdk");
+      }
+
       // We only check proxy settings for Studio, because Studio does not pass the IDE's proxy settings to Gradle.
       // See https://code.google.com/p/android/issues/detail?id=169743
       checkHttpProxySettings(project);
