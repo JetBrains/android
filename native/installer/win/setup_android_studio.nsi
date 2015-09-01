@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-# This script relies on the Unicode install of NSIS. If you use vanilla NSIS,
-# this script won't compile. http://www.scratchpaper.com/
+# This script relies on NSIS 3.0 (currently 3.0b2), with the UAC, FindProc
+# and Nsis7z plugins
 
 # IMPORTANT: to run this script, the defines DIR_SRC and DIR_SDK (if BUNDLE_SDK
 # is set) must exist and point to the absolute path where those components can
@@ -98,6 +98,7 @@ RequestExecutionLevel admin # The uninstaller always runs in admin mode
 
 !define DEFAULT_STUDIO_PATH "$PROGRAMFILES\Android\Android Studio"
 !define DEFAULT_SDK_PATH "$PROFILE\AppData\Local\Android\sdk"
+!define FALLBACK_SDK_PATH "C:\Android\sdk"
 !define ANDROID_USER_SETTINGS "$PROFILE\.android"
 
 !define VERSION_MAJOR 1
@@ -678,6 +679,26 @@ SectionEnd
     Pop $0
 !macroend
 
+# Gets the default SDK path. This will be in the users AppData\Local\Android\sdk
+# if that path doesn't contain spaces, otherwise it will be a hardcoded absolute
+# path with no spaces.
+Function fnc_DefaultSdkPath
+    Push $R0
+    ${StrContains} $R0 ${DEFAULT_SDK_PATH} ' '
+    ${If} $R0 == 0
+        Push ${DEFAULT_SDK_PATH}
+    ${Else}
+        Push ${FALLBACK_SDK_PATH}
+    ${EndIf}
+    Exch
+    Pop $R0
+FunctionEnd
+!macro fnc_DefaultSdkPath VAR
+    call fnc_DefaultSdkPath
+    Pop ${VAR}
+!macroend
+!define fnc_DefaultSdkPath "!insertmacro fnc_DefaultSdkPath"
+
 # Elevate the installer from user to admin priveleges, passing along some values
 # from one process to the other via a temporarily created file.
 !macro ELEVATE_PROCESS
@@ -686,7 +707,8 @@ SectionEnd
 # (Current User) registry
 ${IfNot} ${UAC_IsAdmin}
     FileOpen $R0 ${USER_ADMIN_HANDOFF_FILE} w
-    FileWriteUTF16LE $R0 ${DEFAULT_SDK_PATH}
+    ${fnc_DefaultSdkPath} $s_DefaultSdkPath
+    FileWriteUTF16LE $R0 $s_DefaultSdkPath
     FileWriteUTF16LE $R0 "$\r$\n"
     FileWriteUTF16LE $R0 ${ANDROID_USER_SETTINGS}
     FileClose $R0
@@ -705,7 +727,7 @@ ${Else}
 
     # Fail-safe in case values couldn't get read in for some reason
     ${If} $s_DefaultSdkPath == ""
-        StrCpy $s_DefaultSdkPath ${DEFAULT_SDK_PATH}
+        ${fnc_DefaultSdkPath} $s_DefaultSdkPath
     ${EndIf}
     ${If} $s_UserSettingsPath == ""
         StrCpy $s_UserSettingsPath ${ANDROID_USER_SETTINGS}
@@ -1285,6 +1307,15 @@ Function fnc_InstallDirsPage_Leave
 
     ${If} $s_InstallSdk != 0
         ${NSD_GetText} $hCtl_InstallDirsPage_DirRequestSdk_Txt $s_SdkPath
+
+        Push $R0
+        ${StrContains} $R0 $s_SdkPath ' '
+        ${If} $R0 != 0
+            MessageBox MB_OK|MB_ICONINFORMATION "The SDK path must not contain spaces." /SD IDOK
+            Pop $R0
+            Abort
+        ${Endif}
+        Pop $R0
 
         ${IS_SDK} $s_SdkPath $R1 # $R1 will be set to 1 if an SDK is already there
         ${If} $R1 == 1
