@@ -449,6 +449,14 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     myFixture.checkHighlighting(true, false, false);
   }
 
+  public void testDoNotFlagLintXml() throws Throwable {
+    // In default locale, with a tools:locale defined to non-English, should not get typos highlighted
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    VirtualFile file = copyFileToProject("lint.xml", "lint.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting(true, false, false);
+  }
+
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     final List<HighlightInfo> infos = myFixture.doHighlighting();
