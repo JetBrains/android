@@ -659,7 +659,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.GradleSyncState"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.messages.ProjectSyncMessages"/>
-    <projectService serviceImplementation="com.android.tools.idea.structure.AndroidProjectStructureConfigurable"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewConfiguration"/>
 
     <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
@@ -684,7 +684,7 @@
     <projectService serviceInterface="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"
                     serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
     <projectService serviceInterface="com.intellij.openapi.roots.ui.configuration.ProjectSettingsService"
-                    serviceImplementation="com.android.tools.idea.structure.gradle.AndroidProjectSettingsService"
+                    serviceImplementation="com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService"
                     overrides="true"/>
     <projectService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureService"/>
     <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
@@ -824,6 +824,8 @@
                     interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
     <extensionPoint qualifiedName="com.android.tools.idea.stats.tracker"
                     interface="com.android.tools.idea.stats.UsageUploader" />
+    <extensionPoint qualifiedName="com.android.ide.developerServiceBuildSystemOperations"
+                    interface="com.android.tools.idea.structure.services.DeveloperServiceBuildSystemOperations"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
@@ -876,6 +878,7 @@
 
   <extensions defaultExtensionNs="com.android.ide">
     <sdkEventListener implementation="com.android.tools.idea.sdk.GradleAndroidSdkEventListener"/>
+    <developerServiceBuildSystemOperations implementation="com.android.tools.idea.gradle.structure.services.GradleOperations"/>
   </extensions>
 
   <!-- Layout editor -->
