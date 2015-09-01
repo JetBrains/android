@@ -89,6 +89,7 @@ public class SdkPathsTest extends TestCase {
   public void testInvalidNdkDirectory() throws Exception {
     File mockFile = mock(File.class);
     when(mockFile.getPath()).thenReturn("/dummy/path");
+    when(mockFile.getAbsolutePath()).thenReturn("/dummy/path");
     when(mockFile.isDirectory()).thenReturn(false);
 
     ValidationResult result = validateAndroidNdk(mockFile, false);
@@ -103,6 +104,7 @@ public class SdkPathsTest extends TestCase {
   public void testUnReadableNdkDirectory() throws Exception {
     File mockFile = mock(File.class);
     when(mockFile.getPath()).thenReturn("/dummy/path");
+    when(mockFile.getAbsolutePath()).thenReturn("/dummy/path");
     when(mockFile.isDirectory()).thenReturn(true);
     when(mockFile.canRead()).thenReturn(false);
 

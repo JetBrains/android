@@ -21,6 +21,7 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
@@ -276,6 +277,10 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     myNdkDownloadHyperlinkLabel.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
+        if (validateAndroidSdkPath() != null) {
+          Messages.showErrorDialog(getContentPanel(), "Please select a valid SDK before downloading the NDK.");
+          return;
+        }
         List<IPkgDesc> requested = ImmutableList.of(PkgDesc.Builder.newNdk(FullRevision.NOT_SPECIFIED).create());
         SdkQuickfixWizard wizard = new SdkQuickfixWizard(null, null, requested);
         wizard.init();
@@ -524,6 +529,11 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
    */
   @Nullable
   private String validateAndroidSdkPath() {
+    WizardUtils.ValidationResult wizardValidationResult =
+      WizardUtils.validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false);
+    if (!wizardValidationResult.isOk()) {
+      return wizardValidationResult.getFormattedMessage();
+    }
     ValidationResult validationResult = validateAndroidSdk(getSdkLocation(), false);
     if (!validationResult.success) {
       String msg = validationResult.message;
