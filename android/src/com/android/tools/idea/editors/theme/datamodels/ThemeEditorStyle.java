@@ -290,7 +290,7 @@ public class ThemeEditorStyle {
 
     // Load the current style from all the folders where it exists
     ConfigurationManager manager = myConfiguration.getConfigurationManager();
-    ResourceResolverCache resolverCache = ResourceResolverCache.create(manager);
+    ResourceResolverCache resolverCache = manager.getResolverCache();
     List<ResourceItem> allStyleDefinitions = getStyleResourceItems();
     // Get the configuration associated to each version of the style
     Collection<FolderConfiguration> allConfigurations = getFolderConfigurationsFromResourceItems(allStyleDefinitions);
@@ -329,8 +329,6 @@ public class ThemeEditorStyle {
         LOG.warn(String.format("Parent of %s is null", myStyleResourceValue.getName()));
       }
     }
-    resolverCache.reset();
-
     return parents.build();
   }
 
