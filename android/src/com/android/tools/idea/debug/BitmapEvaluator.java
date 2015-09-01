@@ -16,6 +16,7 @@
 package com.android.tools.idea.debug;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.DebuggerUtils;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
@@ -32,12 +33,17 @@ import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class BitmapEvaluator {
   private static final Logger LOG = Logger.getInstance(BitmapEvaluator.class);
 
   /** Maximum height or width of image beyond which we scale it on the device before retrieving. */
   private static final int MAX_DIMENSION = 1024;
+
+  private static final Map<String, BitmapExtractor> SUPPORTED_FORMATS = ImmutableMap.of(
+    "\"ARGB_8888\"", new ARGB8888_BitmapExtractor(),
+    "\"RGB_565\"", new RGB565_BitmapExtractor());
 
   @Nullable
   public static BufferedImage getBitmap(EvaluationContextImpl evaluationContext, Value bitmap) throws EvaluateException {
@@ -51,7 +57,12 @@ public class BitmapEvaluator {
     }
 
     String config = getBitmapConfigName((ObjectReference)bitmap, evaluationContext);
-    if (!"\"ARGB_8888\"".equals(config)) {
+    if (config == null) {
+      throw new RuntimeException("Unable to determine bitmap configuration");
+    }
+
+    BitmapExtractor bitmapExtractor = SUPPORTED_FORMATS.get(config);
+    if (bitmapExtractor == null) {
       throw new RuntimeException("Unsupported bitmap configuration: " + config);
     }
 
@@ -101,7 +112,7 @@ public class BitmapEvaluator {
       }
     }
 
-    return createBufferedImage(size.width, size.height, argb);
+    return bitmapExtractor.getImage(size.width, size.height, argb);
   }
 
   @Nullable
@@ -221,22 +232,56 @@ public class BitmapEvaluator {
     return null;
   }
 
-  private static BufferedImage createBufferedImage(int width, int height, byte[] rgba) {
-    @SuppressWarnings("UndesirableClassUsage")
-    BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+  private interface BitmapExtractor {
+    BufferedImage getImage(int w, int h, byte[] data);
+  }
 
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        int i = (y * width + x) * 4;
-        long rgb = 0;
-        rgb |= ((long)rgba[i+0] & 0xff) << 16; // r
-        rgb |= ((long)rgba[i+1] & 0xff) << 8;  // g
-        rgb |= ((long)rgba[i+2] & 0xff) << 0;  // b
-        rgb |= ((long)rgba[i+3] & 0xff) << 24; // a
-        bufferedImage.setRGB(x, y, (int)(rgb & 0xffffffff));
+  private static class ARGB8888_BitmapExtractor implements BitmapExtractor {
+    @Override
+    public BufferedImage getImage(int width, int height, byte[] rgba) {
+      @SuppressWarnings("UndesirableClassUsage")
+      BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          int i = (y * width + x) * 4;
+          long rgb = 0;
+          rgb |= ((long)rgba[i+0] & 0xff) << 16; // r
+          rgb |= ((long)rgba[i+1] & 0xff) << 8;  // g
+          rgb |= ((long)rgba[i+2] & 0xff) << 0;  // b
+          rgb |= ((long)rgba[i+3] & 0xff) << 24; // a
+          bufferedImage.setRGB(x, y, (int)(rgb & 0xffffffff));
+        }
       }
-    }
 
-    return bufferedImage;
+      return bufferedImage;
+    }
+  }
+
+  private static class RGB565_BitmapExtractor implements BitmapExtractor {
+    @Override
+    public BufferedImage getImage(int width, int height, byte[] rgb) {
+      int bytesPerPixel = 2;
+
+      @SuppressWarnings("UndesirableClassUsage")
+      BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          int index = (x + y * width) * bytesPerPixel;
+          int value = (rgb[index] & 0x00ff) | (rgb[index + 1] << 8) & 0xff00;
+          // RGB565 to RGB888
+          // Multiply by 255/31 to convert from 5 bits (31 max) to 8 bits (255)
+          int r = ((value >>> 11) & 0x1f) * 255/31;
+          int g = ((value >>> 5)  & 0x3f) * 255/63;
+          int b = ((value)        & 0x1f) * 255/31;
+          int a = 0xFF;
+          int rgba = a << 24 | r << 16 | g << 8 | b;
+          bufferedImage.setRGB(x, y, rgba);
+        }
+      }
+
+      return bufferedImage;
+    }
   }
 }
