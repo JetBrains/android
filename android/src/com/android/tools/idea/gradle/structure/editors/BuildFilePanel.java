@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.editors;
 
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.structure.EditorPanel;
+import com.android.tools.idea.structure.EditorPanel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;

@@ -35,6 +35,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.containers.Stack;
 import freemarker.template.Configuration;
@@ -61,6 +62,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
@@ -128,19 +130,6 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   @NotNull
   public ServiceContext getContext() {
     return myContext;
-  }
-
-  @NotNull
-  DeveloperServiceBuildSystemOperations getBuildSystemOperations() {
-    DeveloperServiceBuildSystemOperations found = null;
-    for (DeveloperServiceBuildSystemOperations operations : DeveloperServiceBuildSystemOperations.EP_NAME.getExtensions()) {
-      if (operations.canHandle(myModule.getProject())) {
-        found = operations;
-        break;
-      }
-    }
-    assert found != null;
-    return found;
   }
 
   @NotNull
@@ -302,7 +291,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       myDeveloperServiceMetadata.addModifiedFile(f);
     }
 
-    boolean allDependenciesFound = getBuildSystemOperations().containsAllDependencies(myModule, myDeveloperServiceMetadata);
+    Project project = myModule.getProject();
+    boolean allDependenciesFound = getBuildSystemOperations(project).containsAllDependencies(myModule, myDeveloperServiceMetadata);
     myContext.installed().set(allDependenciesFound);
     myContext.snapshot();
   }

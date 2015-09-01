@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.structure.services;
 
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.model.ManifestInfo;
-import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
@@ -38,6 +36,8 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
 import java.net.URL;
 import java.util.concurrent.Callable;
+
+import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
 
 /**
  * A class used by plugins to expose their service resources to Android Studio.
@@ -151,7 +151,8 @@ public abstract class DeveloperServiceCreator {
 
   @NotNull
   private static ServiceContext createContext(@NotNull Module module) {
-    ServiceContext context = new ServiceContext();
+    String buildSystemId = getBuildSystemOperations(module.getProject()).getBuildSystemId();
+    ServiceContext context = new ServiceContext(buildSystemId);
 
     String packageName = ManifestInfo.get(module, false).getPackage();
 
@@ -195,21 +196,14 @@ public abstract class DeveloperServiceCreator {
   }
 
   /**
-   * Given a maven group ID and artifact ID, e.g. "com.google.android.gms" and "play-services",
-   * return the highest version we know about, or {@code null} if we can't resolve the passed in
-   * IDs.
-   *
-   * Note that this method currently only checks local repositories and does not do a network
-   * fetch as part of resolving the highest version.
-   *
-   * TODO: Add network fetch as an option if necessary.
+   * Given a dependency group ID and artifact ID, e.g. "com.google.android.gms" and "play-services", returns the highest version we know
+   * about, or {@code null} if we can't resolve the passed in IDs.
    */
   @Nullable
-  protected static String getHighestVersion(@NotNull String groupId, @NotNull String artifactId) {
-    GradleCoordinate gradleCoordinate = new GradleCoordinate(groupId, artifactId, GradleCoordinate.PLUS_REV);
-    return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(gradleCoordinate, null);
+  protected static String getHighestVersion(@NotNull String groupId, @NotNull String artifactId, @NotNull ServiceContext serviceContext) {
+    DeveloperServiceBuildSystemOperations operations = getBuildSystemOperations(serviceContext.getBuildSystemId());
+    return operations.getHighestVersion(groupId, artifactId);
   }
-
 
   /**
    * Returns the root path that all resource paths returned by {@link #getResources()} live under.
