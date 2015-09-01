@@ -237,6 +237,12 @@ public class RepositoryUrlManagerTest extends TestCase {
     assertEquals(GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.4.52"),
                  myRepositoryUrlManager.resolveDynamicCoordinate(coordinate, null));
 
+    coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+@aar");
+    assertNotNull(coordinate);
+    assertEquals("4.4.52", myRepositoryUrlManager.resolveDynamicCoordinateVersion(coordinate, null));
+    assertEquals(GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.4.52@aar"),
+                 myRepositoryUrlManager.resolveDynamicCoordinate(coordinate, null));
+
     coordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:+");
     assertNotNull(coordinate);
     assertEquals("21.0.2", myRepositoryUrlManager.resolveDynamicCoordinateVersion(coordinate, null));
