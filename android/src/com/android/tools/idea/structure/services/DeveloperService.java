@@ -15,11 +15,6 @@
  */
 package com.android.tools.idea.structure.services;
 
-import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.BuildFileStatement;
-import com.android.tools.idea.gradle.parser.Dependency;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -27,8 +22,8 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.Iterator;
-import java.util.List;
+
+import static com.android.tools.idea.stats.UsageTracker.*;
 
 /**
  * A class that wraps the contents and {@link ServiceContext} of a 'service.xml' file. Each
@@ -36,7 +31,6 @@ import java.util.List;
  * output, and when {@link #install()} is called, it copies the service's files into the project.
  */
 public final class DeveloperService {
-
   @NotNull private final ServiceXmlParser myServiceParser;
 
   public DeveloperService(@NotNull final ServiceXmlParser serviceParser) {
@@ -80,10 +74,7 @@ public final class DeveloperService {
       }
     }.execute();
     getContext().snapshot();
-
-    UsageTracker.getInstance()
-      .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_DEVELOPER_SERVICES_INSTALLED, getMetadata().getName(),
-                  null);
+    trackEvent(ACTION_DEVELOPER_SERVICES_INSTALLED);
   }
 
   public void uninstall() {
@@ -91,40 +82,12 @@ public final class DeveloperService {
       return;
     }
 
-    final GradleBuildFile gradleFile = GradleBuildFile.get(getModule());
-    if (gradleFile != null) {
-      boolean dependenciesChanged = false;
-      final List<BuildFileStatement> dependencies = gradleFile.getDependencies();
-      Iterator<BuildFileStatement> iterator = dependencies.iterator();
-      while (iterator.hasNext()) {
-        BuildFileStatement statement = iterator.next();
-        if (!(statement instanceof Dependency)) {
-          continue;
-        }
+    myServiceParser.getBuildSystemOperations().removeDependencies(getModule(), getMetadata());
+    trackEvent(ACTION_DEVELOPER_SERVICES_REMOVED);
+  }
 
-        Dependency dependency = (Dependency)statement;
-        for (String dependencyValue : getMetadata().getDependencies()) {
-          if (dependency.getValueAsString().equals(dependencyValue)) {
-            iterator.remove();
-            dependenciesChanged = true;
-            break;
-          }
-        }
-      }
-
-      if (dependenciesChanged) {
-        new WriteCommandAction.Simple(getModule().getProject(), "Uninstall " + getMetadata().getName()) {
-          @Override
-          public void run() {
-            gradleFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
-          }
-        }.execute();
-      }
-      GradleProjectImporter.getInstance().requestProjectSync(getModule().getProject(), null);
-    }
-
-    UsageTracker.getInstance()
-      .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_DEVELOPER_SERVICES_REMOVED, getMetadata().getName(), null);
+  private void trackEvent(@NotNull String event) {
+    UsageTracker.getInstance().trackEvent(CATEGORY_DEVELOPER_SERVICES, event, getMetadata().getName(), null);
   }
 
   /**
@@ -133,25 +96,7 @@ public final class DeveloperService {
    * which listens to whenever the build model is modified.
    */
   void updateInstalledState() {
-    boolean isInstalled = false;
-    final GradleBuildFile gradleFile = GradleBuildFile.get(getModule());
-    if (gradleFile != null) {
-      final List<BuildFileStatement> dependencies = gradleFile.getDependencies();
-      for (BuildFileStatement statement : dependencies) {
-        if (!(statement instanceof Dependency)) {
-          continue;
-        }
-
-        Dependency dependency = (Dependency)statement;
-        for (String dependencyValue : getMetadata().getDependencies()) {
-          if (dependency.getValueAsString().equals(dependencyValue)) {
-            isInstalled = true;
-            break;
-          }
-        }
-      }
-
-      getContext().installed().set(isInstalled);
-    }
+    boolean isInstalled = myServiceParser.getBuildSystemOperations().isServiceInstalled(getModule(), getMetadata());
+    getContext().installed().set(isInstalled);
   }
 }

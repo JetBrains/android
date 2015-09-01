@@ -16,9 +16,6 @@
 package com.android.tools.idea.structure.services;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.parser.BuildFileStatement;
-import com.android.tools.idea.gradle.parser.Dependency;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.parse.SaxUtils;
@@ -35,7 +32,6 @@ import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import com.android.tools.idea.ui.properties.swing.*;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -134,10 +130,25 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     return myContext;
   }
 
+  @NotNull
+  DeveloperServiceBuildSystemOperations getBuildSystemOperations() {
+    DeveloperServiceBuildSystemOperations found = null;
+    for (DeveloperServiceBuildSystemOperations operations : DeveloperServiceBuildSystemOperations.EP_NAME.getExtensions()) {
+      if (operations.canHandle(myModule.getProject())) {
+        found = operations;
+        break;
+      }
+    }
+    assert found != null;
+    return found;
+  }
+
+  @NotNull
   public DeveloperServiceMetadata getDeveloperServiceMetadata() {
     return myDeveloperServiceMetadata;
   }
 
+  @NotNull
   public ServiceCategory getServiceCategory() {
     return myServiceCategory;
   }
@@ -291,48 +302,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       myDeveloperServiceMetadata.addModifiedFile(f);
     }
 
-    // Consider ourselves installed if this service's dependencies are already found in the current
-    // module.
-    // TODO: Flesh this simplistic approach out more. We would like to have a way to say a service
-    // isn't installed even if its dependency happens to be added to the project. For example,
-    // multiple services might share a dependency but have additional settings that indicate some
-    // are installed and others aren't.
-    List<String> moduleDependencyNames = Lists.newArrayList();
-    GradleBuildFile gradleBuildFile = GradleBuildFile.get(myModule);
-    if (gradleBuildFile != null) {
-      for (BuildFileStatement dependency : gradleBuildFile.getDependencies()) {
-        if (dependency instanceof Dependency) {
-          Object data = ((Dependency)dependency).data;
-          if (data instanceof String) {
-            String dependencyString = (String)data;
-            List<String> dependencyParts = Lists.newArrayList(Splitter.on(':').split(dependencyString));
-            if (dependencyParts.size() == 3) {
-              // From the dependency URL "group:name:version" string - we only care about "name"
-              // We ignore the version, as a service may be installed using an older version
-              // TODO: Handle "group: 'com.android.support', name: 'support-v4', version: '21.0.+'" format also
-              // See also GradleDetector#getNamedDependency
-              moduleDependencyNames.add(dependencyParts.get(1));
-            }
-          }
-        }
-      }
-    }
-    boolean allDependenciesFound = true;
-    for (String serviceDependency : myDeveloperServiceMetadata.getDependencies()) {
-      boolean thisDependencyFound = false;
-      for (String moduleDependencyName : moduleDependencyNames) {
-        if (serviceDependency.contains(moduleDependencyName)) {
-          thisDependencyFound = true;
-          break;
-        }
-      }
-
-      if (!thisDependencyFound) {
-        allDependenciesFound = false;
-        break;
-      }
-    }
-
+    boolean allDependenciesFound = getBuildSystemOperations().containsAllDependencies(myModule, myDeveloperServiceMetadata);
     myContext.installed().set(allDependenciesFound);
     myContext.snapshot();
   }

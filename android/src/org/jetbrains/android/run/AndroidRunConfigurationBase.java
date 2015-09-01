@@ -27,7 +27,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.CloudDebuggingTargetChooser;
 import com.android.tools.idea.run.CloudTargetChooser;
-import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.intellij.CommonBundle;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
