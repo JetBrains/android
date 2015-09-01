@@ -52,6 +52,8 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
  */
 public abstract class DynamicWizardStep extends ScopedDataBinder implements Step {
   private static final Logger LOG = Logger.getInstance(DynamicWizardStep.class);
+  /** Used to set empty text on a label. If completely empty, the height calculations are off. */
+  static final String BLANK = " ";
 
   // Reference to the parent path.
   protected DynamicWizardPath myPath;
@@ -281,6 +283,9 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
    * @param errorMessage the message to display
    */
   public final void setErrorHtml(@Nullable String errorMessage) {
+    if (StringUtil.isEmpty(errorMessage)) {
+      errorMessage = BLANK;
+    }
     JLabel label = getMessageLabel();
     if (label != null) {
       errorMessage = toHtml(errorMessage);
