@@ -614,7 +614,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    }\n" +
             "\n" +
             "    private Bitmap checkResult(Bitmap bitmap) {\n" +
-            "        /*The result 'extractAlpha' is not used*/bitmap.extractAlpha()/**/; // WARNING\n" +
+            "        /*The result of 'extractAlpha' is not used*/bitmap.extractAlpha()/**/; // WARNING\n" +
             "        Bitmap bitmap2 = bitmap.extractAlpha(); // OK\n" +
             "        call(bitmap.extractAlpha()); // OK\n" +
             "        return bitmap.extractAlpha(); // OK\n" +
