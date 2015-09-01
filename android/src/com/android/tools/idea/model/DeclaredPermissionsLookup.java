@@ -35,6 +35,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
@@ -111,7 +112,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
   }
 
   @NonNull
-  private ModulePermissions getModulePermissions(@NonNull Module module) {
+  private synchronized ModulePermissions getModulePermissions(@NonNull Module module) {
     if (myModulePermissionsMap == null) {
       myModulePermissionsMap = Maps.newIdentityHashMap();
     }
@@ -119,59 +120,15 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
     if (modulePermissions != null) {
       return modulePermissions;
     }
-
-    Map<Module, ModulePermissions> modulePermissionsToComplete = Maps.newHashMap();
-    getModulePermissionsToComplete(module, modulePermissionsToComplete);
-
-    // For all of our new ModulePermissions, add their dependent modules ModulePermission. Doing
-    // this in two steps prevents infinite recursion due to cycles.
-    for (Map.Entry<Module, ModulePermissions> entry : modulePermissionsToComplete.entrySet()) {
-      Module[] dependencies = ModuleRootManager.getInstance(entry.getKey()).getDependencies(false);
-      for (Module dep : dependencies) {
-        ModulePermissions depPermissions = myModulePermissionsMap.get(dep);
-        if (depPermissions == null) {
-          depPermissions = modulePermissionsToComplete.get(dep);
-        }
-        // We should have created or found this dependency's ModulePermission
-        assert depPermissions != null;
-        entry.getValue().addDependency(depPermissions);
-      }
-    }
-
-    // Now that we have valid ModulePermission instances, add them to our map
-    myModulePermissionsMap.putAll(modulePermissionsToComplete);
-
-    modulePermissions = myModulePermissionsMap.get(module);
-    // This was just added to this collection, so it cannot be null
-    assert modulePermissions != null;
-    return modulePermissions;
-  }
-
-  /**
-   * Create the base for all ModulePermissions in the transitive closure of {@param module}. After
-   * these {@link DeclaredPermissionsLookup.ModulePermissions} have been created, their dependencies
-   * must be manually added.
-   * @param module module for which we need the {@link DeclaredPermissionsLookup.ModulePermissions}
-   * @param newModulePermissions collection to store newly created
-   * {@link DeclaredPermissionsLookup.ModulePermissions} in
-   */
-  private void getModulePermissionsToComplete(@NotNull Module module,
-                                              @NotNull Map<Module, ModulePermissions> newModulePermissions) {
-    ModulePermissions modulePermissions = myModulePermissionsMap.get(module);
-    if (modulePermissions != null) {
-      return;
-    }
-    modulePermissions = newModulePermissions.get(module);
-    if (modulePermissions != null) {
-      return;
-    }
-
     modulePermissions = new ModulePermissions(module);
-    newModulePermissions.put(module, modulePermissions);
+    myModulePermissionsMap.put(module, modulePermissions);
+
     Module[] dependencies = ModuleRootManager.getInstance(module).getDependencies(false);
-    for (Module dep : dependencies) {
-      getModulePermissionsToComplete(dep, newModulePermissions);
+    for (Module dependencyModule : dependencies) {
+      ModulePermissions dependencyModulePermissions = getModulePermissions(dependencyModule);
+      modulePermissions.addDependency(dependencyModulePermissions);
     }
+    return modulePermissions;
   }
 
   private ManifestPermissions getManifestPermissions(VirtualFile manifest) {
@@ -396,7 +353,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
         return true;
       }
 
-      boolean hasPermission = computeHasPermission(permission);
+      boolean hasPermission = computeHasPermission(permission, new HashSet<ModulePermissions>());
       if (hasPermission) {
         // We only cache *successfully* found permissions. If you've already
         // declared a permission, it's unlikely that it will disappear, so we
@@ -412,8 +369,11 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
       return hasPermission;
     }
 
-    private boolean computeHasPermission(@NonNull String permission) {
+    private boolean computeHasPermission(@NonNull String permission, Set<ModulePermissions> seen) {
       if (myFacet == null) {
+        return false;
+      }
+      if (!seen.add(this)) {
         return false;
       }
 
