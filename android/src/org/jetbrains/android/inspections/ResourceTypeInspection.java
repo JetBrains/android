@@ -765,7 +765,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           if (tagName.equals(TAG_APPLICATION)) {
             before = tag;
             break;
-          } else if (tagName.equals(TAG_USES_PERMISSION)) {
+          } else if (tagName.equals(TAG_USES_PERMISSION)
+                           || tagName.equals(TAG_USES_PERMISSION_SDK_23)
+                           || tagName.equals(TAG_USES_PERMISSION_SDK_M)) {
             String name = tag.getAttributeValue(ATTR_NAME, ANDROID_URI);
             if (name != null && name.compareTo(myPermissionName) > 0) {
               before = tag;
