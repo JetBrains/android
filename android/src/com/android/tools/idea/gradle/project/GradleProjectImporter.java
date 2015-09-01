@@ -220,6 +220,9 @@ public class GradleProjectImporter {
                                  boolean useCachedProjectData,
                                  boolean generateSourcesOnSuccess,
                                  @Nullable GradleSyncListener listener) {
+    if (GradleSyncState.getInstance(project).isSyncInProgress()) {
+      return;
+    }
     Runnable syncRequest = createSyncRequest(project, IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, useCachedProjectData, listener);
     invokeLaterIfProjectAlive(project, syncRequest);
   }
@@ -227,6 +230,9 @@ public class GradleProjectImporter {
   public void syncProjectSynchronously(@NotNull Project project,
                                        boolean generateSourcesOnSuccess,
                                        @Nullable GradleSyncListener listener) {
+    if (GradleSyncState.getInstance(project).isSyncInProgress()) {
+      return;
+    }
     Runnable syncRequest = createSyncRequest(project, MODAL_SYNC, generateSourcesOnSuccess, false, listener);
     invokeAndWaitIfNeeded(syncRequest);
   }
@@ -498,9 +504,10 @@ public class GradleProjectImporter {
     if (!preSyncCheckResult.isSuccess()) {
       // User should have already warned that something is not right and sync cannot continue.
       GradleSyncState syncState = GradleSyncState.getInstance(project);
-      syncState.syncStarted(true);
-      createTopLevelProjectAndOpen(project);
-      syncState.syncFailed(nullToEmpty(preSyncCheckResult.getFailureCause()));
+      if (syncState.syncStarted(true)) {
+        createTopLevelProjectAndOpen(project);
+        syncState.syncFailed(nullToEmpty(preSyncCheckResult.getFailureCause()));
+      }
       return;
     }
 
@@ -535,7 +542,10 @@ public class GradleProjectImporter {
 
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
-    GradleSyncState.getInstance(project).syncStarted(!newProject);
+    boolean started = GradleSyncState.getInstance(project).syncStarted(!newProject);
+    if (!started) {
+      return;
+    }
 
     PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(options.generateSourcesOnSuccess);
     ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, false, listener);

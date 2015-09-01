@@ -119,15 +119,26 @@ public class GradleSyncState {
     trackSyncEvent(ACTION_GRADLE_SYNC_SKIPPED);
   }
 
-  public void syncStarted(boolean notifyUser) {
+  /**
+   * Notification that a sync has started.
+   *
+   * @param notifyUser indicates whether the user should be notified.
+   * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
+   * current request cannot continue because there is already one in progress.
+   */
+  public boolean syncStarted(boolean notifyUser) {
+    synchronized (myLock) {
+      if (mySyncInProgress) {
+        LOG.info(String.format("Sync already in progress for project '%1$s'.", myProject.getName()));
+        return false;
+      }
+      mySyncInProgress = true;
+    }
     LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
 
     addInfoToEventLog("Gradle sync started");
 
     cleanUpProjectPreferences();
-    synchronized (myLock) {
-      mySyncInProgress = true;
-    }
     if (notifyUser) {
       notifyUser();
     }
@@ -139,6 +150,8 @@ public class GradleSyncState {
     });
 
     trackSyncEvent(ACTION_GRADLE_SYNC_STARTED);
+
+    return true;
   }
 
   public void syncFailed(@NotNull final String message) {
