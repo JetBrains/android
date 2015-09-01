@@ -33,12 +33,11 @@ public class GpuSampler extends DeviceSampler {
   private GfxinfoHandler myCurrentGfxinfoHandler;
   private int myApiLevel = JHandler.MIN_API_LEVEL;
 
-  @NotNull private ProfileStateListener myProfileStateListener;
+  @Nullable protected ProfileStateListener myProfileStateListener;
   private boolean myGpuProfileSetting = true; // Flag to determine if the GPU profiling setting on the device is enabled.
 
-  public GpuSampler(int sampleFrequencyMs, @NotNull ProfileStateListener profileStateListener) {
+  public GpuSampler(int sampleFrequencyMs) {
     super(new TimelineData(3, GfxinfoHandler.SAMPLE_BUFFER_SIZE), sampleFrequencyMs); // Use a dummy TimelineData.
-    myProfileStateListener = profileStateListener;
   }
 
   @NotNull
@@ -126,7 +125,7 @@ public class GpuSampler extends DeviceSampler {
     if (myGpuProfileSetting != newSetting) {
       myGpuProfileSetting = newSetting;
       Client client = getClient();
-      if (client != null) {
+      if ((client != null) && (myProfileStateListener != null)) {
         myProfileStateListener.notifyGpuProfileStateChanged(client, myGpuProfileSetting);
       }
     }
