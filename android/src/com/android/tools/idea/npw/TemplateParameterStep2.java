@@ -79,6 +79,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
+import static com.android.tools.idea.wizard.WizardConstants.IS_LIBRARY_KEY;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
@@ -246,7 +247,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
 
   @Override
   public boolean isStepVisible() {
-    return myState.get(AddAndroidActivityPath.KEY_SELECTED_TEMPLATE) != null;
+    return !myState.getNotNull(IS_LIBRARY_KEY, false) && super.isStepVisible();
   }
 
   @NotNull

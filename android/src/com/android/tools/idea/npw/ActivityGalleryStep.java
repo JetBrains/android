@@ -38,6 +38,7 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
+import static com.android.tools.idea.wizard.WizardConstants.IS_LIBRARY_KEY;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
@@ -123,6 +124,11 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
         myGallery.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
       }
     });
+  }
+
+  @Override
+  public boolean isStepVisible() {
+    return !myState.getNotNull(IS_LIBRARY_KEY, false) && super.isStepVisible();
   }
 
   @Override
