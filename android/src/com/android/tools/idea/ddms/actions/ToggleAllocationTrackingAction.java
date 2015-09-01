@@ -15,27 +15,32 @@
  */
 package com.android.tools.idea.ddms.actions;
 
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.AndroidDebugBridge.IClientChangeListener;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.tools.chartlib.EventData;
 import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.editors.allocations.AllocationCaptureType;
 import com.android.tools.idea.monitor.memory.MemoryMonitorView;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.ToggleAction;
+import com.android.tools.idea.profiling.capture.Capture;
+import com.android.tools.idea.profiling.capture.CaptureService;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+
 public class ToggleAllocationTrackingAction extends AbstractClientToggleAction {
+  private final Project myProject;
   private final EventData myEvents;
   private EventData.Event myEvent;
 
-  public ToggleAllocationTrackingAction(@NotNull DeviceContext context, @NotNull EventData events) {
-    super(context,
-          AndroidBundle.message("android.ddms.actions.allocationtracker.start"),
-          null,
-          AndroidIcons.Ddms.AllocationTracker);
+  public ToggleAllocationTrackingAction(@NotNull Project project, @NotNull DeviceContext context, @NotNull EventData events) {
+    super(context, AndroidBundle.message("android.ddms.actions.allocationtracker.start"), null, AndroidIcons.Ddms.AllocationTracker);
+    myProject = project;
     myEvents = events;
   }
 
@@ -56,7 +61,9 @@ public class ToggleAllocationTrackingAction extends AbstractClientToggleAction {
       }
       myEvent.stop(now);
       myEvent = null;
-    } else {
+    }
+    else {
+      installListener(c, myProject);
       c.enableAllocationTracker(true);
       if (myEvent != null) {
         // TODO add support for different end types (error, etc)
@@ -70,8 +77,39 @@ public class ToggleAllocationTrackingAction extends AbstractClientToggleAction {
   @Override
   @NotNull
   protected String getActiveText(@NotNull Client c) {
-    return c.getClientData().getAllocationStatus() == ClientData.AllocationTrackingStatus.ON ?
-                  AndroidBundle.message("android.ddms.actions.allocationtracker.stop") :
-                  AndroidBundle.message("android.ddms.actions.allocationtracker.start");
+    return c.getClientData().getAllocationStatus() == ClientData.AllocationTrackingStatus.ON ? AndroidBundle
+      .message("android.ddms.actions.allocationtracker.stop") : AndroidBundle.message("android.ddms.actions.allocationtracker.start");
+  }
+
+  private void installListener(@NotNull final Client listeningClient, @NotNull Project project) {
+    AndroidDebugBridge.addClientChangeListener(new IClientChangeListener() {
+      @Override
+      public void clientChanged(Client client, int changeMask) {
+        if (client == listeningClient && (changeMask & Client.CHANGE_HEAP_ALLOCATIONS) != 0) {
+          final byte[] data = client.getClientData().getAllocationsData();
+
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              try {
+                if (myProject.isDisposed()) {
+                  return;
+                }
+
+                CaptureService service = CaptureService.getInstance(myProject);
+                Capture capture = service.createCapture(AllocationCaptureType.class, data);
+                service.notifyCaptureReady(capture);
+              }
+              catch (IOException e) {
+                throw new RuntimeException(e);
+              }
+            }
+          });
+
+          // Remove self from listeners.
+          AndroidDebugBridge.removeClientChangeListener(this);
+        }
+      }
+    });
   }
 }
