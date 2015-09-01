@@ -43,6 +43,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 
@@ -275,6 +276,10 @@ public class UpdaterData {
               }
             }
 
+          }
+          catch (ProcessCanceledException e) {
+            // A valid exception that shouldn't be logged in the monitor. Propagate it back up.
+            throw e;
           }
           catch (Throwable t) {
             // Display anything unexpected in the monitor.

@@ -25,7 +25,6 @@ import com.android.sdklib.io.FileOp;
 import com.android.sdklib.io.IFileOp;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.sdk.remote.internal.CanceledByUserException;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
@@ -34,11 +33,11 @@ import com.android.utils.GrabProcessOutput;
 import com.android.utils.GrabProcessOutput.IProcessOutput;
 import com.android.utils.GrabProcessOutput.Wait;
 import com.android.utils.Pair;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.message.BasicHeader;
 
@@ -514,10 +513,10 @@ public class ArchiveInstaller {
       return true;
 
     }
-    catch (CanceledByUserException e) {
+    catch (ProcessCanceledException e) {
       // HTTP Basic Auth or NTLM login was canceled by user.
       // Don't output an error in the log.
-
+      throw e;
     }
     catch (FileNotFoundException e) {
       // The FNF message is just the URL. Make it a bit more useful.

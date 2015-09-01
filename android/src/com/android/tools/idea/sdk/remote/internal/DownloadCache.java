@@ -25,13 +25,11 @@ import com.android.prefs.AndroidLocation;
 import com.android.prefs.AndroidLocation.AndroidLocationException;
 import com.android.sdklib.io.FileOp;
 import com.android.sdklib.io.IFileOp;
-import com.android.tools.idea.sdk.remote.internal.sources.SdkAddonsListConstants;
 import com.android.utils.Pair;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.util.net.HttpConfigurable;
 import org.apache.http.*;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.message.BasicStatusLine;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -230,7 +228,7 @@ public class DownloadCache {
             @NonNull String url,
             boolean needsMarkResetSupport,
             @NonNull ITaskMonitor monitor,
-            @Nullable Header[] headers) throws IOException, CanceledByUserException {
+            @Nullable Header[] headers) throws IOException, ProcessCanceledException {
         HttpURLConnection connection = HttpConfigurable.getInstance().openHttpConnection(url);
         if (headers != null) {
             for (Header header : headers) {
@@ -317,7 +315,7 @@ public class DownloadCache {
      *              input stream if it's the desired code (e.g. 200 or 206).
      * @throws IOException Exception thrown when there are problems retrieving
      *                 the URL or its content.
-     * @throws CanceledByUserException Exception thrown if the user cancels the
+     * @throws ProcessCanceledException Exception thrown if the user cancels the
      *              authentication dialog.
      */
     @NonNull
@@ -325,7 +323,7 @@ public class DownloadCache {
             @NonNull  String urlString,
             @Nullable Header[] headers,
             @NonNull  ITaskMonitor monitor)
-                throws IOException, CanceledByUserException {
+                throws IOException, ProcessCanceledException {
         if (DEBUG) {
             System.out.println(String.format("%s : Direct download", urlString)); //$NON-NLS-1$
         }
@@ -360,7 +358,7 @@ public class DownloadCache {
      *              input stream if it's the desired code (e.g. 200 or 206).
      * @throws IOException Exception thrown when there are problems retrieving
      *                 the URL or its content.
-     * @throws CanceledByUserException Exception thrown if the user cancels the
+     * @throws ProcessCanceledException Exception thrown if the user cancels the
      *              authentication dialog.
      * @see #openDirectUrl(String, Header[], ITaskMonitor)
      */
@@ -368,7 +366,7 @@ public class DownloadCache {
     public Pair<InputStream, Integer> openDirectUrl(
             @NonNull  String urlString,
             @NonNull  ITaskMonitor monitor)
-                throws IOException, CanceledByUserException {
+                throws IOException, ProcessCanceledException {
         if (DEBUG) {
             System.out.println(String.format("%s : Direct download", urlString)); //$NON-NLS-1$
         }
@@ -399,12 +397,12 @@ public class DownloadCache {
      *   Returns null if the document is not cached and strategy is {@link Strategy#ONLY_CACHE}.
      * @throws IOException Exception thrown when there are problems retrieving
      *             the URL or its content.
-     * @throws CanceledByUserException Exception thrown if the user cancels the
+     * @throws ProcessCanceledException Exception thrown if the user cancels the
      *              authentication dialog.
      */
     @NonNull
     public InputStream openCachedUrl(@NonNull String urlString, @NonNull ITaskMonitor monitor)
-            throws IOException, CanceledByUserException {
+            throws IOException, ProcessCanceledException {
         // Don't cache in direct mode.
         if (mStrategy == Strategy.DIRECT) {
             Pair<InputStream, HttpURLConnection> result = openUrl(
@@ -663,7 +661,7 @@ public class DownloadCache {
             @NonNull File info,
             @Nullable Header[] headers,
             @Nullable AtomicInteger outStatusCode)
-                throws FileNotFoundException, IOException, CanceledByUserException {
+                throws IOException, ProcessCanceledException {
         InputStream is = null;
         OutputStream os = null;
 
