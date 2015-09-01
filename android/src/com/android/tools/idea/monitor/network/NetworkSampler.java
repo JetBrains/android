@@ -60,7 +60,8 @@ public class NetworkSampler extends DeviceSampler {
   }
 
   public boolean canReadNetworkStatistics() {
-    IDevice device = myClient != null ? myClient.getDevice() : null;
+    Client client = myClient;
+    IDevice device = client != null ? client.getDevice() : null;
     if (device == null || device.isOffline()) {
       return false;
     }
@@ -90,13 +91,14 @@ public class NetworkSampler extends DeviceSampler {
    */
   @Override
   protected void sample(boolean forced) throws InterruptedException {
-    IDevice device = myClient != null ? myClient.getDevice() : null;
+    Client client = myClient;
+    IDevice device = client != null ? client.getDevice() : null;
     if (device == null) {
       return;
     }
 
     if (myUid < 0) {
-      int pid = myClient.getClientData().getPid();
+      int pid = client.getClientData().getPid();
       myUid = getUidFromPid(pid, device);
       if (myUid < 0) {
         return;
