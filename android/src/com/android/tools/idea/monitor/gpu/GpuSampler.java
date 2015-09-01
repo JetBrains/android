@@ -37,7 +37,7 @@ public class GpuSampler extends DeviceSampler {
   private boolean myGpuProfileSetting = true; // Flag to determine if the GPU profiling setting on the device is enabled.
 
   public GpuSampler(int sampleFrequencyMs, @NotNull ProfileStateListener profileStateListener) {
-    super(new TimelineData(3, JHandler.SAMPLE_BUFFER_SIZE), sampleFrequencyMs); // Use a dummy TimelineData.
+    super(new TimelineData(3, GfxinfoHandler.SAMPLE_BUFFER_SIZE), sampleFrequencyMs); // Use a dummy TimelineData.
     myProfileStateListener = profileStateListener;
   }
 
