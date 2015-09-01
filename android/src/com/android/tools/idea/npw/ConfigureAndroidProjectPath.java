@@ -19,15 +19,14 @@ import com.android.SdkConstants;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.sdk.wizard.SmwOldApiDirectInstall;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.WizardConstants;
-import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription.WizardStepHeaderSettings;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription.WizardStepHeaderSettings;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -114,7 +113,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
       // Gradle expects a platform-neutral path
       state.put(WizardConstants.SDK_HOME_KEY, FileUtil.toSystemIndependentName(sdkData.getPath()));
     }
-
+    state.put(AddAndroidActivityPath.KEY_APPCOMPAT, true);
     state.put(AddAndroidActivityPath.KEY_APPCOMPAT_ACTIVITY, buildMajorVersion >= MIN_BUILD_VERSION_FOR_APPCOMPAT_ACTIVITY);
   }
 
