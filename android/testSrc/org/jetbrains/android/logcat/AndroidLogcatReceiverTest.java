@@ -50,9 +50,8 @@ public class AndroidLogcatReceiverTest extends TestCase {
     myReceiver.processNewLine(line2);
     myReceiver.processNewLine(line3);
 
-    assertEquals("02-11 18:03:35.037  19796-19796/? E/AndroidRuntime"
-                 + AndroidLogcatFormatter.TAG_SEPARATOR + " "
-                 + line1 + "\n" +
+    assertEquals("02-11 18:03:35.037  19796-19796/? E/AndroidRuntime: " +
+                 line1 + "\n" +
                  AndroidLogcatReceiver.CONTINUATION_LINE_PREFIX + line2 + "\n" +
                  AndroidLogcatReceiver.STACK_TRACE_LINE_PREFIX + line3 + "\n",
                  myWriter.getBuffer().toString());
@@ -87,11 +86,11 @@ public class AndroidLogcatReceiverTest extends TestCase {
       insertTagSeparator("08-11 19:11:07.132      495-495/? V/vtag", "verbose message\n") +
       insertTagSeparator("08-11 19:11:07.132      495-495/? W/wtag", "warning message\n") +
       insertTagSeparator("08-11 19:11:07.132      495-495/? A/wtftag", "wtf message\n") +
-      insertTagSeparator("08-11 21:15:35.7524      540-540/? D/debug tag", "debug message\n"),
+      insertTagSeparator("08-11 21:15:35.7524      540-540/? D/debugtag", "debug message\n"),
                        myWriter.getBuffer().toString());
   }
 
   private String insertTagSeparator(String header, String msg) {
-    return String.format("%1$s%2$s %3$s", header, AndroidLogcatFormatter.TAG_SEPARATOR, msg);
+    return String.format("%1$s: %2$s", header, msg);
   }
 }
