@@ -91,9 +91,9 @@ public class DumpHprofAction extends AbstractClientAction {
 
     @Override
     public void clientChanged(Client client, int changeMask) {
-      assert !ApplicationManager.getApplication().isDispatchThread();
-
       if (changeMask == Client.CHANGE_HPROF && client == myClient) {
+        assert !ApplicationManager.getApplication().isDispatchThread();
+
         final ClientData.HprofData data = client.getClientData().getHprofData();
         if (data != null) {
           switch (data.type) {
