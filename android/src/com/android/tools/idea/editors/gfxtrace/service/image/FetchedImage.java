@@ -19,6 +19,8 @@ import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.path.AsPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.google.common.base.Function;
+import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -42,36 +44,33 @@ public class FetchedImage {
   @NotNull public final ImageIcon icon;
 
   public static ListenableFuture<FetchedImage> load(final ServiceClient client, final Path imagePath) {
-    final SettableFuture<FetchedImage> result = SettableFuture.create();
-    Futures.addCallback(client.get(imagePath), new LoadingCallback<Object>(LOG) {
+    return Futures.transform(client.get(imagePath), new AsyncFunction<Object, FetchedImage>() {
       @Override
-      public void onSuccess(@Nullable final Object object) {
+      public ListenableFuture<FetchedImage> apply(Object object) throws Exception {
         assert (object instanceof ImageInfo);
-        final ImageInfo imageInfo = (ImageInfo)object;
+        final ImageInfo imageInfo = (ImageInfo) object;
         if (imageInfo.getFormat() instanceof FmtRGBA) {
-          doLoad(client, imageInfo, result);
+          return load(client, imageInfo);
         }
         else {
-          final AsPath asPath = new AsPath().setObject(imagePath).setType(new FmtRGBA());
-          Futures.addCallback(client.get(asPath), new LoadingCallback<Object>(LOG) {
+          AsPath asPath = new AsPath().setObject(imagePath).setType(new FmtRGBA());
+          return Futures.transform(client.get(asPath), new AsyncFunction<Object, FetchedImage>() {
             @Override
-            public void onSuccess(@Nullable final Object object) {
+            public ListenableFuture<FetchedImage> apply(Object object) throws Exception {
               assert (object instanceof ImageInfo);
-              final ImageInfo imageInfo = (ImageInfo)object;
-              doLoad(client, imageInfo, result);
+              return load(client, (ImageInfo) object);
             }
           });
         }
       }
     });
-    return result;
   }
 
-  private static void doLoad(final ServiceClient client, final ImageInfo imageInfo, final SettableFuture<FetchedImage> result) {
-    Futures.addCallback(client.get(imageInfo.getData()), new LoadingCallback<byte[]>(LOG) {
+  private static ListenableFuture<FetchedImage> load(ServiceClient client, final ImageInfo imageInfo) {
+    return Futures.transform(client.get(imageInfo.getData()), new Function<byte[], FetchedImage>() {
       @Override
-      public void onSuccess(@Nullable final byte[] data) {
-        result.set(new FetchedImage(imageInfo, data));
+      public FetchedImage apply(byte[] data) {
+        return new FetchedImage(imageInfo, data);
       }
     });
   }
