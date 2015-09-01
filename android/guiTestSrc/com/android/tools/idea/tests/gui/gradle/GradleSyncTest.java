@@ -89,6 +89,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
@@ -1430,5 +1431,30 @@ public class GradleSyncTest extends GuiTestCase {
       assertThat(e.getMessage()).contains("Failed to find URL");
       assertThat(e.getMessage()).contains(hyperlinkText);
     }
+  }
+
+  @Test
+  @IdeGuiTest
+  public void testSyncWithInvalidJdk() throws Exception {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+
+    final File tempJdkDirectory = createTempDirectory("GradleSyncTest", "testSyncWithInvalidJdk", true);
+    String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
+    copyDir(new File(jdkHome), tempJdkDirectory);
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            IdeSdks.setJdkPath(tempJdkDirectory);
+          }
+        });
+      }
+    });
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    delete(tempJdkDirectory);
+    projectFrame.requestProjectSyncAndExpectFailure();
   }
 }
