@@ -93,7 +93,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver {
       myLastMessageHeader.myAppPackage =
         myDevice == null ? "" : myDevice.getClientName(myLastMessageHeader.myPid);
       myLastMessageHeader.myLogLevel = getByLetterString(matcher.group(4));
-      myLastMessageHeader.myTag = matcher.group(5).trim();
+      myLastMessageHeader.myTag = matcher.group(5).trim().replace(" ", "");
     }
     else {
       if (line.length() == 0) return;
