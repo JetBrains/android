@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.structure;
+package com.android.tools.idea.gradle.structure;
 
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;

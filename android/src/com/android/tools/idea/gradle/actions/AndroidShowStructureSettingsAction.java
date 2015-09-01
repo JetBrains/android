@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.structure.AndroidProjectStructureConfigurable;
+import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.eclipse;
 
-import com.android.tools.idea.structure.DefaultSdksConfigurable;
+import com.android.tools.idea.gradle.structure.DefaultSdksConfigurable;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.projectImport.ProjectImportWizardStep;
