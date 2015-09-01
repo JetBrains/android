@@ -23,11 +23,10 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.CloudDebuggingTargetChooser;
-import com.android.tools.idea.run.CloudTargetChooser;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.intellij.CommonBundle;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -68,8 +67,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
-import static com.android.tools.idea.run.CloudConfiguration.Kind.MATRIX;
-import static com.android.tools.idea.run.CloudConfiguration.Kind.SINGLE_DEVICE;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunConfigurationBase");
@@ -202,7 +199,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @Override
-  public AndroidRunningState getState(@NotNull final Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
+  public RunProfileState getState(@NotNull final Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     final Module module = getConfigurationModule().getModule();
     if (module == null) {
       throw new ExecutionException("Module is not found");
@@ -276,15 +273,19 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       case USB_DEVICE:
         targetChooser = new UsbDeviceTargetChooser();
         break;
-      case CLOUD_MATRIX_TEST:
-        targetChooser = new CloudTargetChooser(MATRIX, SELECTED_CLOUD_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_MATRIX_PROJECT_ID);
-        break;
-      case CLOUD_DEVICE_LAUNCH:
-        targetChooser = new CloudTargetChooser(SINGLE_DEVICE, SELECTED_CLOUD_DEVICE_CONFIGURATION_ID, SELECTED_CLOUD_DEVICE_PROJECT_ID);
-        break;
       case CLOUD_DEVICE_DEBUGGING:
         targetChooser = new CloudDebuggingTargetChooser(CLOUD_DEVICE_SERIAL_NUMBER);
         break;
+      case CLOUD_MATRIX_TEST:
+        if (executor instanceof DefaultDebugExecutor) {
+          // It does not make sense to debug a matrix of devices on the cloud.
+          // TODO: Consider making the debug executor unavailable in this case rather than popping the extended chooser dialog.
+          targetChooser = new ManualTargetChooser();
+          break;
+        }
+        return new CloudMatrixTestRunningState(env, facet, this, SELECTED_CLOUD_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_MATRIX_PROJECT_ID);
+      case CLOUD_DEVICE_LAUNCH:
+        return new CloudDeviceLaunchRunningState(facet, SELECTED_CLOUD_DEVICE_CONFIGURATION_ID, SELECTED_CLOUD_DEVICE_PROJECT_ID);
       default:
         assert false : "Unknown target selection mode " + TARGET_SELECTION_MODE;
         break;
