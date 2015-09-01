@@ -846,7 +846,7 @@ public class AndroidLintInspectionToolProvider {
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull final PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
       String before = GradleDetector.getOldValue(GradleDetector.PLUS, message, RAW);
-      if (before != null && before.endsWith("+")) {
+      if (before != null && before.contains("+")) {
         final GradleCoordinate plus = GradleCoordinate.parseCoordinateString(before);
         if (plus != null && plus.getArtifactId() != null) {
           return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with specific version", plus.getFullRevision(), "specific version") {
