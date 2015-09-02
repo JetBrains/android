@@ -32,6 +32,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * A filter which plugs into {@link LogConsoleBase} for custom logcat filtering.
@@ -46,7 +48,9 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   private boolean myFullMessageApplicable = false;
   private boolean myFullMessageApplicableByCustomFilter = false;
   private StringBuilder myMessageBuilder = new StringBuilder();
-  
+  private boolean myIsInvalidRegexp = false;
+  private @Nullable Pattern myCustomPattern;
+
   protected List<AndroidLogFilter> myLogFilters = new ArrayList<AndroidLogFilter>();
 
   public AndroidLogFilterModel() {
@@ -55,10 +59,28 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     }
   }
 
+  private void updateCustomPattern(@Nullable String filter) {
+    myIsInvalidRegexp = false;
+    myCustomPattern = null;
+    if (filter != null && filter.length() > 0) {
+      if (isRegexp()) {
+        try {
+          myCustomPattern = Pattern.compile(filter, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+        }
+        catch (PatternSyntaxException e) {
+          myIsInvalidRegexp = true;
+        }
+      }
+      if (myCustomPattern == null) {
+        myCustomPattern = Pattern.compile(Pattern.quote(filter), Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+      }
+    }
+  }
 
   @Override
   public final void updateCustomFilter(String filter) {
     super.updateCustomFilter(filter);
+    updateCustomPattern(filter);
     setCustomFilter(filter);
     fireTextFilterChange();
   }
@@ -68,14 +90,28 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     fireTextFilterChange();
   }
 
+  public void updateIsRegexp(boolean isRegexp) {
+    setIsRegexp(isRegexp);
+    updateCustomPattern(getCustomFilter());
+    fireTextFilterChange();
+  }
+
   protected abstract void setCustomFilter(String filter);
 
   protected void setConfiguredFilter(@Nullable ConfiguredFilter filter) {
   }
 
+  protected abstract void setIsRegexp(boolean isRegexp);
+
   @Nullable
   protected ConfiguredFilter getConfiguredFilter() {
     return null;
+  }
+
+  protected abstract boolean isRegexp();
+
+  public boolean isInvalidRegexp() {
+    return myIsInvalidRegexp;
   }
 
   protected abstract void saveLogLevel(String logLevelName);
@@ -122,7 +158,8 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
   @Override
   public final boolean isApplicable(String text) {
-    if (!super.isApplicable(text)) return false;
+    // Not calling the super class version, it does not do what we want with regular expression matching
+    if (myCustomPattern != null && !myCustomPattern.matcher(text).find()) return false;
     final LogFilter selectedLogLevelFilter = getSelectedLogLevelFilter();
     return selectedLogLevelFilter == null || selectedLogLevelFilter.isAcceptable(text);
   }
