@@ -22,6 +22,7 @@ import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ProjectViewNodeDecorator;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -29,7 +30,6 @@ import com.intellij.packageDependencies.ui.PackageDependenciesNode;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
 
 /** Provides custom icons for modules based on the module type. */
 public class ModuleNodeIconDecorator implements ProjectViewNodeDecorator {
@@ -49,14 +49,9 @@ public class ModuleNodeIconDecorator implements ProjectViewNodeDecorator {
 
     VirtualFile folder = psiDirectory.getVirtualFile();
     Module module = ProjectRootManager.getInstance(project).getFileIndex().getModuleForFile(folder);
-    if (module != null && isModuleFolder(folder, module)) {
+    if (module != null && ModuleUtilCore.isModuleDir(module, folder)) {
       data.setIcon(GradleUtil.getModuleIcon(module));
     }
-  }
-
-  private static boolean isModuleFolder(@NotNull VirtualFile folder, @NotNull Module module) {
-    VirtualFile moduleFile = module.getModuleFile();
-    return moduleFile != null && folder.equals(moduleFile.getParent());
   }
 
   @Override
