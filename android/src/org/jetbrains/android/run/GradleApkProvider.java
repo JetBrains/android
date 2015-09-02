@@ -92,7 +92,6 @@ public class GradleApkProvider implements ApkProvider {
 
   @Override
   public String getTestPackageName() throws ApkProvisionException {
-    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
     AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
     assert androidModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
     // In the case of Gradle projects, either the merged flavor provides a test package name,
