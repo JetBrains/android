@@ -52,11 +52,6 @@
 # If uncommented, bundle Intel HAXM with the installer.
 #!define DIR_HAXM ..\..\..\intel
 
-# TODO(davidherman): We need to temporarily hide our sidebar, header, and icon
-# assets until we're ready to unveil our new logo. After that point, we can
-# safely remove this define and all references to it.
-#!define HIDE_ASSETS
-
 Unicode true
 
 !define APP_NAME "Android Studio"
@@ -97,6 +92,7 @@ RequestExecutionLevel admin # The uninstaller always runs in admin mode
 !define USER_ADMIN_HANDOFF_FILE "inst_user_settings.tmp"
 
 !define DEFAULT_STUDIO_PATH "$PROGRAMFILES\Android\Android Studio"
+!define FALLBACK_STUDIO_PATH "C:\Android\Android Studio"
 !define DEFAULT_SDK_PATH "$PROFILE\AppData\Local\Android\sdk"
 !define FALLBACK_SDK_PATH "C:\Android\sdk"
 !define ANDROID_USER_SETTINGS "$PROFILE\.android"
@@ -109,22 +105,16 @@ RequestExecutionLevel admin # The uninstaller always runs in admin mode
 !define URL http://developer.android.com
 
 # MUI Symbol Definitions
-!ifndef HIDE_ASSETS
 !define MUI_ICON "assets\studio-inst.ico"
-!else
-!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\orange-install.ico"
-!endif
 !ifndef DRY_RUN
 # Abort normally, but dry runs are for testing, and we often want to test,
 # quit, and iterate in that case, so don't slow us down then.
 !define MUI_ABORTWARNING
 !endif
 !define MUI_FINISHPAGE_NOAUTOCLOSE
-!ifndef HIDE_ASSETS
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_BITMAP "assets\header.bmp"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "assets\sidebar.bmp"
-!endif
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "${REGKEY}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
@@ -132,11 +122,7 @@ RequestExecutionLevel admin # The uninstaller always runs in admin mode
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_TEXT "Start ${APP_NAME}"
 !define MUI_FINISHPAGE_RUN_FUNCTION s_StartApp
-!ifndef HIDE_ASSETS
 !define MUI_UNICON ${MUI_ICON} # Our studio install icon is generic, so just re-use it for uninstall
-!else
-!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\orange-uninstall.ico"
-!endif
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
 # Included files
@@ -679,25 +665,63 @@ SectionEnd
     Pop $0
 !macroend
 
-# Gets the default SDK path. This will be in the users AppData\Local\Android\sdk
-# if that path doesn't contain spaces, otherwise it will be a hardcoded absolute
-# path with no spaces.
-Function fnc_DefaultSdkPath
+# Returns 1 if PATH contains only valid chars, 0 otherwise. If INCLUDE_SPACE is 1, consider space an invalid char
+Var validPath_path
+Var validPath_includeSpace
+Var validPath_badChars
+
+Function fnc_ValidPath
+    Pop $validPath_includeSpace
+    Pop $validPath_path
     Push $R0
-    ${StrContains} $R0 ${DEFAULT_SDK_PATH} ' '
-    ${If} $R0 == 0
-        Push ${DEFAULT_SDK_PATH}
+    StrLen $R0 $validPath_path
+    StrCpy $validPath_path $validPath_path $R0 2 ; Skip c:
+    ${If} $validPath_includeSpace == 0
+        StrCpy $validPath_badChars '!?%*:|"<>'
     ${Else}
-        Push ${FALLBACK_SDK_PATH}
+        StrCpy $validPath_badChars ' !?%*:|"<>'
+    ${EndIf}
+    ${StrContainsAnyOf} $R0 $validPath_path $validPath_badChars
+    Exch $R0
+FunctionEnd
+!macro fnc_ValidPath VAR PATH INCLUDE_SPACE
+    Push `${PATH}`
+    Push `${INCLUDE_SPACE}`
+    call fnc_ValidPath
+    Pop `${VAR}`
+!macroend
+!define fnc_ValidPath "!insertmacro fnc_ValidPath"
+
+
+# Returns DEFAULT if it contains none of ' ?%*:|"<>!', otherwise returns FALLBACK
+Var defaultPath_default
+Var defaultPath_fallback
+Var defaultPath_includeSpace
+Var defaultPath_badChars
+
+Function fnc_DefaultPath
+    Pop $defaultPath_includeSpace
+    Pop $defaultPath_fallback
+    Pop $defaultPath_default
+    Push $R0
+    ${fnc_ValidPath} $R0 $defaultPath_default $defaultPath_includeSpace
+    ${If} $R0 == 0
+        Push $defaultPath_default
+    ${Else}
+        Push $defaultPath_fallback
     ${EndIf}
     Exch
     Pop $R0
 FunctionEnd
-!macro fnc_DefaultSdkPath VAR
-    call fnc_DefaultSdkPath
-    Pop ${VAR}
+!macro fnc_DefaultPath VAR DEFAULT FALLBACK INCLUDE_SPACE
+    Push `${DEFAULT}`
+    Push `${FALLBACK}`
+    Push `${INCLUDE_SPACE}`
+    call fnc_DefaultPath
+    Pop `${VAR}`
 !macroend
-!define fnc_DefaultSdkPath "!insertmacro fnc_DefaultSdkPath"
+!define fnc_DefaultPath "!insertmacro fnc_DefaultPath"
+
 
 # Elevate the installer from user to admin priveleges, passing along some values
 # from one process to the other via a temporarily created file.
@@ -707,7 +731,7 @@ FunctionEnd
 # (Current User) registry
 ${IfNot} ${UAC_IsAdmin}
     FileOpen $R0 ${USER_ADMIN_HANDOFF_FILE} w
-    ${fnc_DefaultSdkPath} $s_DefaultSdkPath
+    ${fnc_DefaultPath} $s_DefaultSdkPath "${DEFAULT_SDK_PATH}" "${FALLBACK_SDK_PATH}" 1
     FileWriteUTF16LE $R0 $s_DefaultSdkPath
     FileWriteUTF16LE $R0 "$\r$\n"
     FileWriteUTF16LE $R0 ${ANDROID_USER_SETTINGS}
@@ -727,7 +751,7 @@ ${Else}
 
     # Fail-safe in case values couldn't get read in for some reason
     ${If} $s_DefaultSdkPath == ""
-        ${fnc_DefaultSdkPath} $s_DefaultSdkPath
+        ${fnc_DefaultPath} $s_DefaultSdkPath "${DEFAULT_SDK_PATH}" "${FALLBACK_SDK_PATH}" 1
     ${EndIf}
     ${If} $s_UserSettingsPath == ""
         StrCpy $s_UserSettingsPath ${ANDROID_USER_SETTINGS}
@@ -828,7 +852,7 @@ Function .onInit
 
     !endif # DRY_RUN
 
-    StrCpy $s_StudioPath "${DEFAULT_STUDIO_PATH}"
+    ${fnc_DefaultPath} $s_StudioPath "${DEFAULT_STUDIO_PATH}" "${FALLBACK_STUDIO_PATH}" 0
     !ifdef BUNDLE_SDK
         StrCpy $s_SdkPath $s_DefaultSdkPath
     !endif # BUNDLE_SDK
@@ -1301,21 +1325,24 @@ Function fnc_InstallDirsPage_Leave
     ${NSD_GetText} $hCtl_InstallDirsPage_DirRequestStudio_Txt $s_StudioPath
     ${s_IsEmptyDir} $0 $s_StudioPath
     ${If} $0 == 0
-        MessageBox MB_OK|MB_ICONINFORMATION "Please select an empty folder to install Android Studio." /SD IDOK
+        MessageBox MB_OK|MB_ICONEXCLAMATION "Please select an empty folder to install Android Studio." /SD IDOK
+        Abort
+    ${Endif}
+
+    ${fnc_ValidPath} $0 $s_StudioPath 0
+    ${If} $0 != 0
+        MessageBox MB_OK|MB_ICONEXCLAMATION 'The install path must not contain any of ?%*:|"<>! or space.' /SD IDOK
         Abort
     ${Endif}
 
     ${If} $s_InstallSdk != 0
         ${NSD_GetText} $hCtl_InstallDirsPage_DirRequestSdk_Txt $s_SdkPath
 
-        Push $R0
-        ${StrContains} $R0 $s_SdkPath ' '
-        ${If} $R0 != 0
-            MessageBox MB_OK|MB_ICONINFORMATION "The SDK path must not contain spaces." /SD IDOK
-            Pop $R0
+        ${fnc_ValidPath} $0 $s_SdkPath 1
+        ${If} $0 != 0
+            MessageBox MB_OK|MB_ICONEXCLAMATION 'The SDK path must not contain any of ?%*:|"<>! or space.' /SD IDOK
             Abort
         ${Endif}
-        Pop $R0
 
         ${IS_SDK} $s_SdkPath $R1 # $R1 will be set to 1 if an SDK is already there
         ${If} $R1 == 1
@@ -1325,7 +1352,7 @@ Function fnc_InstallDirsPage_Leave
 
         ${s_IsEmptyDir} $0 $s_SdkPath
         ${If} $0 == 0
-            MessageBox MB_OK|MB_ICONINFORMATION "Please select an empty folder to install the Android SDK." /SD IDOK
+            MessageBox MB_OK|MB_ICONEXCLAMATION "Please select an empty folder to install the Android SDK." /SD IDOK
             Abort
         ${Endif}
 
