@@ -152,7 +152,7 @@ public class InternalAndroidModelView {
         property = property.substring(3);
       }
       Object value = entry.getValue();
-      if (property.equals("Name")) {
+      if (value != null && property.equals("Name")) {
         name = value.toString();
       }
       addPropertyNode(node, property, value);
