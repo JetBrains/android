@@ -312,11 +312,17 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     myAutogenerationEnabled = true;
   }
 
+  private void clearClassMaps() {
+    synchronized (myClassMapLock) {
+      myInitialClassMaps.clear();
+    }
+  }
+
   public void androidPlatformChanged() {
     myAvdManager = null;
     myLocalResourceManager = null;
     myPublicSystemResourceManager = null;
-    myInitialClassMaps.clear();
+    clearClassMaps();
   }
 
   @NotNull
@@ -532,6 +538,10 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
               synchronized (myDirtyModes) {
                 myDirtyModes.addAll(Arrays.asList(AndroidAutogeneratorMode.values()));
               }
+            } else {
+              // When roots change, we need to rebuild the class inheritance map to make sure new dependencies
+              // from libraries are added
+              clearClassMaps();
             }
             myPrevSdk = newSdk;
           }
