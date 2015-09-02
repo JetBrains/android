@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure;
+package com.android.tools.idea.structure;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,6 +21,7 @@ import java.awt.*;
 /**
  * This is the base class for panels that can appear in the right-hand pane of the Project Structure dialog.
  */
+@Deprecated
 public abstract class EditorPanel extends JPanel {
   public EditorPanel(LayoutManager layoutManager) {
     super(layoutManager);

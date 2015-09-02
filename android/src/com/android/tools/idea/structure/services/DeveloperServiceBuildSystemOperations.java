@@ -19,6 +19,7 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface DeveloperServiceBuildSystemOperations {
   ExtensionPointName<DeveloperServiceBuildSystemOperations> EP_NAME =
@@ -31,4 +32,20 @@ public interface DeveloperServiceBuildSystemOperations {
   boolean isServiceInstalled(@NotNull Module module, @NotNull DeveloperServiceMetadata metadata);
 
   void removeDependencies(@NotNull Module module, @NotNull DeveloperServiceMetadata metadata);
+
+  void initializeServices(@NotNull Module module, @NotNull final Runnable initializationTask);
+
+  /**
+   * @return a unique ID that identifies the build system being used (e.g. "Gradle"). We need this ID because
+   * {@link DeveloperServiceCreator} does not have references to projects or modules, which are necessary to identify the build system.
+   */
+  @NotNull
+  String getBuildSystemId();
+
+  /**
+   * Given a dependency group ID and artifact ID, e.g. "com.google.android.gms" and "play-services", returns the highest version we know
+   * about, or {@code null} if we can't resolve the passed in IDs.
+   */
+  @Nullable
+  String getHighestVersion(@NotNull String groupId, @NotNull String artifactId);
 }

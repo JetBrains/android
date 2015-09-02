@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.structure.services;
 
-import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
@@ -27,8 +25,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ModuleAdapter;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
 
 /**
  * Helper class which collects developer services from all plugins and provides a simple
@@ -45,6 +44,7 @@ public final class DeveloperServices {
     return ourServices.get(module);
   }
 
+  @NotNull
   public static Iterable<DeveloperService> getFor(@NotNull Module module, final ServiceCategory category) {
     return Iterables.filter(getAll(module), new Predicate<DeveloperService>() {
       @Override
@@ -73,18 +73,16 @@ public final class DeveloperServices {
       }
     }
 
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
-    facet.addListener(new GradleSyncListener.Adapter() {
+    getBuildSystemOperations(module.getProject()).initializeServices(module, new Runnable() {
       @Override
-      public void syncSucceeded(@NotNull Project project) {
+      public void run() {
         for (DeveloperService service : ourServices.get(module)) {
           service.updateInstalledState();
         }
       }
     });
 
-    final MessageBusConnection connection = module.getMessageBus().connect(module);
+    MessageBusConnection connection = module.getMessageBus().connect(module);
     connection.subscribe(ProjectTopics.MODULES, new ModuleAdapter() {
       @Override
       public void moduleRemoved(Project project, Module moduleRemoved) {
