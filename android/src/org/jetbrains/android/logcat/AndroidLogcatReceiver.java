@@ -93,7 +93,9 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver {
       myLastMessageHeader.myAppPackage =
         myDevice == null ? "" : myDevice.getClientName(myLastMessageHeader.myPid);
       myLastMessageHeader.myLogLevel = getByLetterString(matcher.group(4));
-      myLastMessageHeader.myTag = matcher.group(5).trim().replace(" ", "");
+      // For parsing later, tags should not have spaces in them. Replace spaces with
+      // "no break" spaces, which looks like whitespace but doesn't act like it.
+      myLastMessageHeader.myTag = matcher.group(5).trim().replace(' ', '\u00A0');
     }
     else {
       if (line.length() == 0) return;

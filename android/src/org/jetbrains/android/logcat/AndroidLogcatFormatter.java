@@ -37,7 +37,7 @@ public final class AndroidLogcatFormatter {
     "(\\d+)-(\\d+)/" +                                     // pid-tid
     "(\\S+)\\s+" +                                         // package
     "([A-Z])/" +                                           // log level
-    "([^ ]+): " +                                          // tag (after any spaces have been stripped out)
+    "([^ ]+): " +                                          // tag (be sure it has no spaces)
     "(.*)$"                                                // message
   );
 
