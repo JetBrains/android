@@ -660,8 +660,8 @@
 
     <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
                     serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
-    <projectService serviceInterface="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"
-                    serviceImplementation="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"/>
+    <projectService serviceInterface="org.jetbrains.android.logcat.AndroidLogcatPreferences"
+                    serviceImplementation="org.jetbrains.android.logcat.AndroidLogcatPreferences"/>
     <projectService serviceInterface="org.jetbrains.android.logcat.AndroidConfiguredLogFilters"
                     serviceImplementation="org.jetbrains.android.logcat.AndroidConfiguredLogFilters"/>
     <projectService serviceInterface="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"
