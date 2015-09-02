@@ -22,7 +22,7 @@ import static com.intellij.execution.ui.ConsoleViewContentType.registerNewConsol
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.util.Key;
 
-public class AndroidLogcatConstants {
+public final class AndroidLogcatConstants {
   public static final TextAttributesKey VERBOSE_OUTPUT_KEY =
     TextAttributesKey.createTextAttributesKey("LOGCAT_VERBOSE_OUTPUT", ConsoleViewContentType.NORMAL_OUTPUT_KEY);
 
