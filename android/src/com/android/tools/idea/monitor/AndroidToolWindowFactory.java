@@ -18,7 +18,6 @@ package com.android.tools.idea.monitor;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.ClientData;
-import com.android.ddmlib.Log;
 import com.android.tools.idea.ddms.*;
 import com.android.tools.idea.ddms.actions.*;
 import com.android.tools.idea.ddms.adb.AdbService;
@@ -65,8 +64,6 @@ import com.intellij.ui.content.ContentManager;
 import com.intellij.util.messages.MessageBusConnection;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.logcat.AdbErrors;
-import org.jetbrains.android.logcat.AndroidLogcatConstants;
 import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.run.AndroidDebugRunner;
@@ -107,10 +104,9 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
     DeviceContext deviceContext = new DeviceContext();
 
-    // TODO Remove global handlers. These handlers are global, but are set per project
+    // TODO Remove global handlers. These handlers are global, but are set per project.
     // if there are two projects opened, things go very wrong.
     ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
-    ClientData.setAllocationTrackingHandler(new ShowAllocationsHandler(project));
 
     Content logcatContent = createLogcatContent(layoutUi, project, deviceContext);
     final AndroidLogcatView logcatView = logcatContent.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
