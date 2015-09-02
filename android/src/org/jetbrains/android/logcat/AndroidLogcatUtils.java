@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 
-public class AndroidLogcatUtils {
+public final class AndroidLogcatUtils {
   private static final Logger LOG = Logger.getInstance(AndroidLogcatUtils.class);
 
   private AndroidLogcatUtils() {
