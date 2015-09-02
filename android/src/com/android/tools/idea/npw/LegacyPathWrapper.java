@@ -52,6 +52,9 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
   }
 
   private static boolean isStepValid(ModuleWizardStep currentStep) {
+    if (currentStep == null) {
+      return true;
+    }
     try {
       return currentStep.validate();
     }
@@ -117,7 +120,7 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
 
   @Override
   public ModuleWizardStep getCurrentStep() {
-    return mySteps.get(myCurrentStep);
+    return myCurrentStep < 0 ? null : mySteps.get(myCurrentStep);
   }
 
   @Override
@@ -207,6 +210,9 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
 
   private Step navigate(int direction) {
     myCurrentStep = findNext(myCurrentStep, direction);
+    if (myCurrentStep < 0) {
+      return null;
+    }
     assert myCurrentStep >= 0;
     updateWizard();
     return mySteps.get(myCurrentStep);
