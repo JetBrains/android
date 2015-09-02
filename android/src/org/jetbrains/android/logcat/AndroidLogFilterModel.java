@@ -57,13 +57,13 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
 
   @Override
-  public void updateCustomFilter(String filter) {
+  public final void updateCustomFilter(String filter) {
     super.updateCustomFilter(filter);
     setCustomFilter(filter);
     fireTextFilterChange();
   }
 
-  public void updateConfiguredFilter(@Nullable ConfiguredFilter filter) {
+  public final void updateConfiguredFilter(@Nullable ConfiguredFilter filter) {
     setConfiguredFilter(filter);
     fireTextFilterChange();
   }
@@ -81,12 +81,12 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   protected abstract void saveLogLevel(String logLevelName);
 
   @Override
-  public void addFilterListener(LogFilterListener listener) {
+  public final void addFilterListener(LogFilterListener listener) {
     myListeners.add(listener);
   }
 
   @Override
-  public void removeFilterListener(LogFilterListener listener) {
+  public final void removeFilterListener(LogFilterListener listener) {
     myListeners.remove(listener);
   }
 
@@ -121,13 +121,13 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   }
 
   @Override
-  public boolean isApplicable(String text) {
+  public final boolean isApplicable(String text) {
     if (!super.isApplicable(text)) return false;
     final LogFilter selectedLogLevelFilter = getSelectedLogLevelFilter();
     return selectedLogLevelFilter == null || selectedLogLevelFilter.isAcceptable(text);
   }
 
-  public boolean isApplicableByCustomFilter(String text) {
+  public final boolean isApplicableByCustomFilter(String text) {
     final ConfiguredFilter configuredFilterName = getConfiguredFilter();
     if (configuredFilterName == null) {
       return true;
@@ -166,7 +166,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   }
 
   @Override
-  public List<? extends LogFilter> getLogFilters() {
+  public final List<? extends LogFilter> getLogFilters() {
     return myLogFilters;
   }
 
@@ -238,7 +238,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
   @Override
   @NotNull
-  public MyProcessingResult processLine(String line) {
+  public final MyProcessingResult processLine(String line) {
     AndroidLogcatFormatter.Message result = AndroidLogcatFormatter.parseMessage(line);
     final boolean hasHeader = result.getHeader() != null;
 
