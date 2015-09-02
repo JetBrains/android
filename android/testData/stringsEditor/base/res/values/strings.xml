@@ -7,4 +7,5 @@
     <!-- <string name="key4">Key 4 default</string> -->
     <string name="key5" translatable="false">Key 5 default</string>
     <string name="key6" translatable="false">Key 6 default, but has translation in fr</string>
+    <string name="key7">Key 7 default</string>
 </resources>
