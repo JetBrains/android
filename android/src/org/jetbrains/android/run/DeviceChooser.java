@@ -28,6 +28,8 @@ import com.android.tools.idea.run.LaunchCompatibility;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.text.StringUtil;
@@ -54,9 +56,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -154,7 +155,27 @@ public class DeviceChooser implements Disposable {
         }
       }
     });
-
+    myDeviceTable.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON3) {
+          int i = myDeviceTable.rowAtPoint(e.getPoint());
+          Object serial = myDeviceTable.getValueAt(i, SERIAL_COLUMN_INDEX);
+          final String serialString = serial.toString();
+          // Add a menu to copy the serial key.
+          JBPopupMenu popupMenu = new JBPopupMenu();
+          Action action = new AbstractAction("Copy Serial Number") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              CopyPasteManager.getInstance().setContents(new StringSelection(serialString));
+            }
+          };
+          popupMenu.add(action);
+          popupMenu.show(e.getComponent(), e.getX(), e.getY());
+        }
+        super.mouseReleased(e);
+      }
+    });
     setColumnWidth(myDeviceTable, DEVICE_NAME_COLUMN_INDEX, "Samsung Galaxy Nexus Android 4.1 (API 17)");
     setColumnWidth(myDeviceTable, DEVICE_STATE_COLUMN_INDEX, "offline");
     setColumnWidth(myDeviceTable, COMPATIBILITY_COLUMN_INDEX, "Compatible");
