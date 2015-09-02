@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.editors;
 
-import com.android.tools.idea.gradle.structure.EditorPanel;
+import com.android.tools.idea.structure.EditorPanel;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModuleConfigurationEditor;

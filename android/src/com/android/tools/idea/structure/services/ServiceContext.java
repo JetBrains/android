@@ -22,6 +22,7 @@ import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.EmptyRunnable;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,6 +50,7 @@ import java.util.concurrent.Callable;
  * scratch?
  */
 public final class ServiceContext {
+
   private final Map<String, Observable> myValues = Maps.newHashMap();
   private final Map<String, Runnable> myActions = Maps.newHashMap();
   private final Map<ObservableProperty, Object> myWatched = new WeakHashMap<ObservableProperty, Object>();
@@ -62,6 +64,8 @@ public final class ServiceContext {
     }
   };
 
+  @NotNull private final String myBuildSystemId;
+
   private Runnable myBeforeShown = EmptyRunnable.INSTANCE;
   private Callable<Boolean> myTestValidity = new Callable<Boolean>() {
     @Override
@@ -69,6 +73,15 @@ public final class ServiceContext {
       return true;
     }
   };
+
+  public ServiceContext(@NotNull String buildSystemId) {
+    myBuildSystemId = buildSystemId;
+  }
+
+  @NotNull
+  String getBuildSystemId() {
+    return myBuildSystemId;
+  }
 
   /**
    * Set a callback to call before this service's UI is shown to the user. This is a useful place
