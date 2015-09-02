@@ -248,8 +248,11 @@ class IntellijLintProject extends Project {
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.requiresAndroidModel()) {
-      addGradleLibraryProjects(client, files, libraryMap, projects, facet, project, projectMap, dependencies);
+    if (facet != null) {
+      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
+      if (androidGradleModel != null) {
+        addGradleLibraryProjects(client, files, libraryMap, projects, facet, androidGradleModel, project, projectMap, dependencies);
+      }
     }
 
     project.setDirectLibraries(dependencies);
@@ -345,40 +348,38 @@ class IntellijLintProject extends Project {
                                                @NonNull Map<AndroidLibrary, Project> libraryMap,
                                                @NonNull List<Project> projects,
                                                @NonNull AndroidFacet facet,
+                                               @NonNull AndroidGradleModel androidGradleModel,
                                                @NonNull LintModuleProject project,
                                                @NonNull Map<Project,Module> projectMap,
                                                @NonNull List<Project> dependencies) {
-    AndroidModel androidModel = facet.getAndroidModel();
-    if (androidModel != null) {
-      Collection<AndroidLibrary> libraries = androidModel.getMainArtifact().getDependencies().getLibraries();
-      for (AndroidLibrary library : libraries) {
-        Project p = libraryMap.get(library);
-        if (p == null) {
-          File dir = library.getFolder();
-          p = new LintGradleLibraryProject(client, dir, dir, library);
-          libraryMap.put(library, p);
-          projectMap.put(p, facet.getModule());
-          projects.add(p);
+    Collection<AndroidLibrary> libraries = androidGradleModel.getMainArtifact().getDependencies().getLibraries();
+    for (AndroidLibrary library : libraries) {
+      Project p = libraryMap.get(library);
+      if (p == null) {
+        File dir = library.getFolder();
+        p = new LintGradleLibraryProject(client, dir, dir, library);
+        libraryMap.put(library, p);
+        projectMap.put(p, facet.getModule());
+        projects.add(p);
 
-          if (files != null) {
-            VirtualFile libraryDir = LocalFileSystem.getInstance().findFileByIoFile(dir);
-            if (libraryDir != null) {
-              ListIterator<VirtualFile> iterator = files.listIterator();
-              while (iterator.hasNext()) {
-                VirtualFile file = iterator.next();
-                if (VfsUtilCore.isAncestor(libraryDir, file, false)) {
-                  project.addFile(VfsUtilCore.virtualToIoFile(file));
-                  iterator.remove();
-                }
+        if (files != null) {
+          VirtualFile libraryDir = LocalFileSystem.getInstance().findFileByIoFile(dir);
+          if (libraryDir != null) {
+            ListIterator<VirtualFile> iterator = files.listIterator();
+            while (iterator.hasNext()) {
+              VirtualFile file = iterator.next();
+              if (VfsUtilCore.isAncestor(libraryDir, file, false)) {
+                project.addFile(VfsUtilCore.virtualToIoFile(file));
+                iterator.remove();
               }
             }
-            if (files.isEmpty()) {
-              files = null; // No more work in other modules
-            }
+          }
+          if (files.isEmpty()) {
+            files = null; // No more work in other modules
           }
         }
-        dependencies.add(p);
       }
+      dependencies.add(p);
     }
   }
 
@@ -758,13 +759,7 @@ class IntellijLintProject extends Project {
           // Overridden because we don't synchronize the gradle output directory to
           // the AndroidDexCompiler settings the way java source roots are mapped into
           // the module content root settings
-          File dir = null;
-          if (myFacet.requiresAndroidModel()) {
-            AndroidModel androidModel = myFacet.getAndroidModel();
-            if (androidModel != null) {
-              dir = androidModel.getMainArtifact().getClassesFolder();
-            }
-          }
+          File dir = myAndroidGradleModel.getMainArtifact().getClassesFolder();
           if (dir != null) {
             mJavaClassFolders = Collections.singletonList(dir);
           } else {
@@ -784,8 +779,7 @@ class IntellijLintProject extends Project {
       if (SUPPORT_CLASS_FILES) {
         if (mJavaLibraries == null) {
           if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
-            AndroidModel androidModel = myFacet.getAndroidModel();
-            Collection<JavaLibrary> libs = androidModel.getMainArtifact().getDependencies().getJavaLibraries();
+            Collection<JavaLibrary> libs = myAndroidGradleModel.getMainArtifact().getDependencies().getJavaLibraries();
             mJavaLibraries = Lists.newArrayListWithExpectedSize(libs.size());
             for (JavaLibrary lib : libs) {
               File jar = lib.getJarFile();
