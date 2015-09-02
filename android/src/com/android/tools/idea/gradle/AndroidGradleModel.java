@@ -147,7 +147,6 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   }
 
   @NotNull
-  @Override
   public AndroidArtifact getMainArtifact() {
     return getSelectedVariant().getMainArtifact();
   }
