@@ -102,7 +102,7 @@ public class MemoryMonitorView extends BaseMonitorView
     group.add(new Separator());
     group.add(new GcAction(myDeviceContext));
     group.add(new DumpHprofAction(myProject, myDeviceContext, myEvents));
-    group.add(new ToggleAllocationTrackingAction(myDeviceContext, myEvents));
+    group.add(new ToggleAllocationTrackingAction(myProject, myDeviceContext, myEvents));
 
     if (Boolean.getBoolean("studio.profiling.debug")) {
       group.addSeparator();
