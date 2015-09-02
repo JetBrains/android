@@ -663,12 +663,12 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     @Override
     public Dimension getPreferredSize() {
-      return JBUI.size(200, 150);
+      return JBUI.size(250, 170);
     }
 
     @Override
     public Dimension getMinimumSize() {
-      return JBUI.size(200, 150);
+      return JBUI.size(150, 170);
     }
 
     @Override
@@ -727,7 +727,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     @Override
     public Dimension getMinimumSize() {
-      return JBUI.size(100, 32);
+      return getPreferredSize();
     }
 
     public void setColor(Color c) {
@@ -794,8 +794,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
               return;
             }
           } else {
-            if ((mySrc == myRed && num > 359)
-              || ((mySrc == myGreen || mySrc == myBlue) && num > 100)) {
+            if ((mySrc == myRed && num > 359) || ((mySrc == myGreen || mySrc == myBlue) && num > 100)) {
               Toolkit.getDefaultToolkit().beep();
               return;
             }
@@ -1503,8 +1502,8 @@ class SlideComponent extends JComponent {
   @Override
   public Dimension getMaximumSize() {
     return myVertical
-           ? new Dimension(getPreferredSize().width, Integer.MAX_VALUE)
-           : new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+           ? new Dimension(JBUI.scale(getPreferredSize().width), Integer.MAX_VALUE)
+           : new Dimension(Integer.MAX_VALUE, JBUI.scale(getPreferredSize().height));
   }
 
   @Override
@@ -1527,7 +1526,7 @@ class SlideComponent extends JComponent {
       g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
     }
 
-    drawKnob(g2d, myVertical ? JBUI.scale(7) : myPointerValue, myVertical ? myPointerValue : 7, myVertical);
+    drawKnob(g2d, myVertical ? JBUI.scale(7) : myPointerValue, myVertical ? myPointerValue : JBUI.scale(7), myVertical);
   }
 
   protected static void drawKnob(Graphics2D g2d, int x, int y, boolean vertical) {
@@ -1623,7 +1622,7 @@ class HueSlideComponent extends SlideComponent {
   protected void paintComponent(Graphics g) {
     final Graphics2D g2d = (Graphics2D)g;
 
-    g2d.setPaint(new LinearGradientPaint(new Point2D.Double(0, 0), new Point2D.Double(getWidth() - JBUI.scale(30), 0), myPoints, myColors));
+    g2d.setPaint(new LinearGradientPaint(new Point2D.Double(0, 0), new Point2D.Double(getWidth() - 2 * MARGIN, 0), myPoints, myColors));
     g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
     drawKnob(g2d, valueToPointerValue(Math.round(myHue * 360)), JBUI.scale(7), false);
   }
