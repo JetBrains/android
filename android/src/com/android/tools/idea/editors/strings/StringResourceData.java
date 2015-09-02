@@ -26,6 +26,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +90,7 @@ public class StringResourceData {
   @Nullable
   public static XmlTag resourceToXmlTag(@NotNull ResourceItem item) {
     if (item instanceof PsiResourceItem) {
-      XmlTag tag = ((PsiResourceItem) item).getTag();
+      XmlTag tag = ((PsiResourceItem)item).getTag();
       return tag != null && tag.isValid() ? tag : null;
     }
     return null;
@@ -133,7 +134,7 @@ public class StringResourceData {
         translatable = SdkConstants.VALUE_FALSE;
         myUntranslatableKeys.add(key);
       }
-      else{
+      else {
         translatable = null;
         myUntranslatableKeys.remove(key);
       }
@@ -161,8 +162,11 @@ public class StringResourceData {
       }
     }
     else { // create new item
+      @SuppressWarnings("deprecation") VirtualFile primaryResourceDir = myFacet.getPrimaryResourceDir();
+      assert primaryResourceDir != null;
+
       ResourceItem item =
-        StringsWriteUtils.createItem(myFacet, myFacet.getPrimaryResourceDir(), locale, key, value, !getUntranslatableKeys().contains(key));
+        StringsWriteUtils.createItem(myFacet, primaryResourceDir, locale, key, value, !getUntranslatableKeys().contains(key));
       if (item != null) {
         if (locale == null) {
           myDefaultValues.put(key, item);
@@ -187,10 +191,8 @@ public class StringResourceData {
     if (myUntranslatableKeys.contains(key)) {
       if (!translationsForKey.isEmpty()) {
         Set<Locale> localesWithTranslation = translationsForKey.keySet();
-        return String.format("Key '%1$s' is marked as non translatable, but is translated in %2$s %3$s",
-                             key,
-                             StringUtil.pluralize("locale", localesWithTranslation.size()),
-                             summarizeLocales(localesWithTranslation));
+        return String.format("Key '%1$s' is marked as non translatable, but is translated in %2$s %3$s", key,
+                             StringUtil.pluralize("locale", localesWithTranslation.size()), summarizeLocales(localesWithTranslation));
       }
     }
     else { // translatable key
@@ -198,12 +200,12 @@ public class StringResourceData {
         return "Key '" + key + "' missing default value";
       }
 
-      Set<Locale> missingTranslations = getMissingTranslations(key);
+      Collection<Locale> missingTranslations = getMissingTranslations(key);
+
       if (!missingTranslations.isEmpty()) {
-        return String.format("Key '%1$s' has translations missing for %2$s %3$s",
-                             key,
-                             StringUtil.pluralize("locale", missingTranslations.size()),
-                             summarizeLocales(missingTranslations));
+        return String
+          .format("Key '%1$s' has translations missing for %2$s %3$s", key, StringUtil.pluralize("locale", missingTranslations.size()),
+                  summarizeLocales(missingTranslations));
       }
     }
     return null;
@@ -232,12 +234,8 @@ public class StringResourceData {
   }
 
   @NotNull
-  private Set<Locale> getMissingTranslations(@NotNull String key) {
-    Map<Locale, ResourceItem> translations = myTranslations.row(key);
-    if (translations.size() == myLocales.size()) {
-      return Collections.emptySet();
-    }
-
+  @VisibleForTesting
+  Collection<Locale> getMissingTranslations(@NotNull String key) {
     Set<Locale> missingTranslations = Sets.newHashSet();
     for (Locale locale : myLocales) {
       if (isTranslationMissing(key, locale)) {
@@ -248,21 +246,20 @@ public class StringResourceData {
     return missingTranslations;
   }
 
-  private boolean isTranslationMissing(@NotNull String key, @NotNull Locale locale) {
-    // TODO: do we need to check the value of resource item != empty or just item != null?
-    if (myTranslations.get(key, locale) != null) {
+  @VisibleForTesting
+  boolean isTranslationMissing(@NotNull String key, @NotNull Locale locale) {
+    if (locale.hasRegion()) {
+      locale = Locale.create(locale.qualifier.getLanguage());
+    }
+
+    ResourceItem item = myTranslations.get(key, locale);
+
+    if (item == null || resourceToString(item).isEmpty()) {
+      return true;
+    }
+    else {
       return false;
     }
-
-    if (locale.hasRegion()) {
-      // Drop region
-      Locale base = Locale.create(locale.qualifier.getLanguage());
-      if (myTranslations.get(key, base) != null) {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   @VisibleForTesting
