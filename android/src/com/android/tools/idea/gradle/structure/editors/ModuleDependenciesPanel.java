@@ -21,7 +21,7 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.gradle.parser.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.gradle.structure.EditorPanel;
+import com.android.tools.idea.structure.EditorPanel;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;

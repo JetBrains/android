@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 import static com.android.tools.idea.stats.UsageTracker.*;
+import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
 
 /**
  * A class that wraps the contents and {@link ServiceContext} of a 'service.xml' file. Each
@@ -82,7 +83,8 @@ public final class DeveloperService {
       return;
     }
 
-    myServiceParser.getBuildSystemOperations().removeDependencies(getModule(), getMetadata());
+    Module module = getModule();
+    getBuildSystemOperations(module.getProject()).removeDependencies(module, getMetadata());
     trackEvent(ACTION_DEVELOPER_SERVICES_REMOVED);
   }
 
@@ -96,7 +98,8 @@ public final class DeveloperService {
    * which listens to whenever the build model is modified.
    */
   void updateInstalledState() {
-    boolean isInstalled = myServiceParser.getBuildSystemOperations().isServiceInstalled(getModule(), getMetadata());
+    Module module = getModule();
+    boolean isInstalled = getBuildSystemOperations(module.getProject()).isServiceInstalled(module, getMetadata());
     getContext().installed().set(isInstalled);
   }
 }
