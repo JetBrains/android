@@ -3,4 +3,5 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="key1" >Key 1 en-rGB</string>
     <string name="key2" >Key 2 en-rGB</string>
+    <string name="key7"></string>
 </resources>
