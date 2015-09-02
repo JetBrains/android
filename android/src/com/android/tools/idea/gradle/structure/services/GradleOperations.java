@@ -15,19 +15,24 @@
  */
 package com.android.tools.idea.gradle.structure.services;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.structure.services.DeveloperServiceBuildSystemOperations;
 import com.android.tools.idea.structure.services.DeveloperServiceMetadata;
+import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.List;
@@ -142,5 +147,36 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
       }
       GradleProjectImporter.getInstance().requestProjectSync(project, null);
     }
+  }
+
+  @Override
+  public void initializeServices(@NotNull Module module, @NotNull final Runnable initializationTask) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null;
+    facet.addListener(new GradleSyncListener.Adapter() {
+      @Override
+      public void syncSucceeded(@NotNull Project project) {
+        initializationTask.run();
+      }
+    });
+  }
+
+  @Override
+  @NotNull
+  public String getBuildSystemId() {
+    return "Gradle";
+  }
+
+  /**
+   * Note that this method currently only checks local repositories and does not do a network
+   * fetch as part of resolving the highest version.
+   *
+   * TODO: Add network fetch as an option if necessary.
+   */
+  @Override
+  @Nullable
+  public String getHighestVersion(@NotNull String groupId, @NotNull String artifactId) {
+    GradleCoordinate gradleCoordinate = new GradleCoordinate(groupId, artifactId, GradleCoordinate.PLUS_REV);
+    return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(gradleCoordinate, null);
   }
 }
