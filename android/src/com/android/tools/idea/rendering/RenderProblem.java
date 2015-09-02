@@ -72,7 +72,7 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
       String url = linkManager.createRunnableLink(new ShowExceptionFix(project, throwable));
       builder.add(" (").addLink("Details", url).add(")");
       problem.throwable(throwable);
-      if (throwable.getMessage().equals(message)) {
+      if (message.equals(throwable.getMessage())) {
         problem.myIsDefaultHtml = true;
       }
     }
