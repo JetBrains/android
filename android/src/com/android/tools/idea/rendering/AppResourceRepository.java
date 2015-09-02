@@ -26,7 +26,6 @@ import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.util.Pair;
 import com.google.common.collect.Lists;
@@ -169,11 +168,15 @@ public class AppResourceRepository extends MultiResourceRepository {
   private static List<File> findAarLibraries(AndroidFacet facet, List<AndroidFacet> dependentFacets) {
     // Use the gradle model if available, but if not, fall back to using plain IntelliJ library dependencies
     // which have been persisted since the most recent sync
-    if (facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
+    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
+    if (androidGradleModel != null) {
       List<AndroidLibrary> libraries = Lists.newArrayList();
-      addGradleLibraries(libraries, facet);
-      for (AndroidFacet f : dependentFacets) {
-        addGradleLibraries(libraries, f);
+      addGradleLibraries(libraries, androidGradleModel);
+      for (AndroidFacet dependentFacet : dependentFacets) {
+        AndroidGradleModel dependentGradleModel = AndroidGradleModel.get(dependentFacet);
+        if (dependentGradleModel != null) {
+          addGradleLibraries(libraries, dependentGradleModel);
+        }
       }
       return findAarLibrariesFromGradle(dependentFacets, libraries);
     }
@@ -184,12 +187,15 @@ public class AppResourceRepository extends MultiResourceRepository {
   public static Collection<AndroidLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
     if (facet.requiresAndroidModel()) {
-      AndroidModel androidModel = facet.getAndroidModel();
+      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
       if (androidModel != null) {
         List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-        addGradleLibraries(libraries, facet);
+        addGradleLibraries(libraries, androidModel);
         for (AndroidFacet dependentFacet : dependentFacets) {
-          addGradleLibraries(libraries, dependentFacet);
+          AndroidGradleModel dependentGradleModel = AndroidGradleModel.get(dependentFacet);
+          if (dependentGradleModel != null) {
+            addGradleLibraries(libraries, dependentGradleModel);
+          }
         }
       }
     }
@@ -272,15 +278,12 @@ public class AppResourceRepository extends MultiResourceRepository {
     return dirs;
   }
 
-  private static void addGradleLibraries(List<AndroidLibrary> list, AndroidFacet facet) {
-    AndroidModel androidModel = facet.getAndroidModel();
-    if (androidModel != null) {
-      // TODO: b/23032391
-      Collection<AndroidLibrary> libraries = androidModel.getMainArtifact().getDependencies().getLibraries();
-      Set<File> unique = Sets.newHashSet();
-      for (AndroidLibrary library : libraries) {
-        addGradleLibrary(list, library, unique);
-      }
+  // TODO: b/23032391
+  private static void addGradleLibraries(List<AndroidLibrary> list, AndroidGradleModel androidGradleModel) {
+    Collection<AndroidLibrary> libraries = androidGradleModel.getMainArtifact().getDependencies().getLibraries();
+    Set<File> unique = Sets.newHashSet();
+    for (AndroidLibrary library : libraries) {
+      addGradleLibrary(list, library, unique);
     }
   }
 

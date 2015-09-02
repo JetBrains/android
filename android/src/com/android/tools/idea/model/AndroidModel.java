@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -30,13 +29,6 @@ import java.util.Set;
  * A common interface for Android module models.
  */
 public interface AndroidModel {
-  /**
-   * @return the currently selected main Android artifact produced by this Android module.
-   * TODO: Remove this method - it exposes Gradle-specific AndroidArtifact.
-   */
-  @Deprecated
-  @NotNull
-  AndroidArtifact getMainArtifact();
 
   /**
    * @return the default source provider.
