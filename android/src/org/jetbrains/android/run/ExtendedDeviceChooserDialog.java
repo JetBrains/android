@@ -126,7 +126,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
 
     getOKAction().setEnabled(false);
 
-    myDeviceChooser = new DeviceChooser(multipleSelection, getOKAction(), facet, projectTarget, null);
+    myDeviceChooser = new DeviceChooser(multipleSelection, getOKAction(), facet, projectTarget);
     Disposer.register(myDisposable, myDeviceChooser);
     myDeviceChooser.addListener(new DeviceChooserListener() {
       @Override
@@ -413,6 +413,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
   @NotNull
   @Override
   protected Alarm.ThreadToUse getValidationThreadToUse() {
+    // The default swing thread doesn't work for some reason - the doValidate method is never called.
     return Alarm.ThreadToUse.POOLED_THREAD;
   }
 

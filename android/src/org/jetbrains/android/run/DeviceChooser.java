@@ -25,13 +25,13 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.run.CloudConfigurationProvider;
 import com.android.tools.idea.run.LaunchCompatibility;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.DoubleClickListener;
@@ -97,7 +97,6 @@ public class DeviceChooser implements Disposable {
   private JBTable myDeviceTable;
 
   private final AndroidFacet myFacet;
-  private final Condition<IDevice> myFilter;
   private final AndroidVersion myMinSdkVersion;
   private final IAndroidTarget myProjectTarget;
   private final EnumSet<IDevice.HardwareFeature> myRequiredHardwareFeatures;
@@ -108,12 +107,10 @@ public class DeviceChooser implements Disposable {
   public DeviceChooser(boolean multipleSelection,
                        @NotNull final Action okAction,
                        @NotNull AndroidFacet facet,
-                       @NotNull IAndroidTarget projectTarget,
-                       @Nullable Condition<IDevice> filter) {
+                       @NotNull IAndroidTarget projectTarget) {
 
     myCloudConfigurationProvider = CloudConfigurationProvider.getCloudConfigurationProvider();
     myFacet = facet;
-    myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
     myRequiredHardwareFeatures = getRequiredHardwareFeatures(ManifestInfo.get(facet.getModule(), true).getRequiredFeatures());
@@ -392,12 +389,7 @@ public class DeviceChooser implements Disposable {
 
   @NotNull
   private IDevice[] getFilteredDevices(AndroidDebugBridge bridge) {
-    final List<IDevice> filteredDevices = new ArrayList<IDevice>();
-    for (IDevice device : bridge.getDevices()) {
-      if (myFilter == null || myFilter.value(device)) {
-        filteredDevices.add(device);
-      }
-    }
+    final List<IDevice> filteredDevices = Lists.newArrayList(bridge.getDevices());
     // Do not filter launching cloud devices as they are just unselectable progress markers
     // that are replaced with the actual cloud devices as soon as they are up and the actual cloud devices will be filtered above.
     if (myCloudConfigurationProvider != null) {
