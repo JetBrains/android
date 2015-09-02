@@ -24,6 +24,8 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 public class StackTraceExpanderTest {
   // From http://docs.oracle.com/javase/7/docs/api/java/lang/Throwable.html#printStackTrace%28%29
   @Test
@@ -95,12 +97,12 @@ public class StackTraceExpanderTest {
   public void testStackFrameMatcher() {
     String[] validFrames = new String[] {
       "at com.example.t1.MainActivity.one(MainActivity.java:31)",
-      "at android.app.ActivityThread.access$700(ActivityThread.java:134)",
-      "at java.lang.reflect.Method.invokeNative(Native Method)",
+      "      at android.app.ActivityThread.access$700(ActivityThread.java:134)",
+      "\tat java.lang.reflect.Method.invokeNative(Native Method)",
     };
 
     for (String frame: validFrames) {
-      Assert.assertTrue(StackTraceExpander.isStackFrame(frame));
+      assertThat(StackTraceExpander.getStackLine(frame)).isEqualTo(frame.trim());
     }
 
     String[] invalidFrames = new String[] {
@@ -109,7 +111,28 @@ public class StackTraceExpanderTest {
     };
 
     for (String frame: invalidFrames) {
-      Assert.assertFalse(StackTraceExpander.isStackFrame(frame));
+      Assert.assertNull(StackTraceExpander.getStackLine(frame));
+    }
+  }
+  @Test
+  public void testCausedByMatcher() {
+    String[] validCauses = new String[] {
+      "Caused by: java.lang.RuntimeException",
+      "    Caused by: java.io.IOException",
+      "\tCaused by: java.lang.IllegalArgumentException"
+    };
+
+    for (String cause: validCauses) {
+      assertThat(StackTraceExpander.getCauseLine(cause)).isEqualTo(cause.trim());
+    }
+
+    String[] invalidCauses = new String[] {
+      "at com.example.t1.MainActivity.one(MainActivity.java:31)",
+      "... 15 more"
+    };
+
+    for (String cause: invalidCauses) {
+      Assert.assertNull(StackTraceExpander.getCauseLine(cause));
     }
   }
 

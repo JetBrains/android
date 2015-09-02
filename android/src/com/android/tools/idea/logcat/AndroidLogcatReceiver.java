@@ -107,7 +107,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
       myActiveHeader.myTag = matcher.group(5).trim().replace(' ', '\u00A0');
     }
     else if (myActiveHeader != null) {
-      for (String processedLine : myStackTraceExpander.process(line.trim())) {
+      for (String processedLine : myStackTraceExpander.process(line)) {
         processedLine = getFullMessage(myActiveHeader, processedLine);
         myWriter.addMessage(processedLine);
       }
