@@ -20,11 +20,14 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogConsoleListener;
+import com.intellij.diagnostic.logging.LogFilter;
+import com.intellij.diagnostic.logging.LogFilterListener;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -36,9 +39,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.SideBorder;
+import com.intellij.ui.*;
+import com.intellij.util.ui.UIUtil;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -66,16 +68,17 @@ public abstract class AndroidLogcatView implements Disposable {
   static final String SELECTED_APP_FILTER = AndroidBundle.message("android.logcat.filters.selected");
   static final String NO_FILTERS = AndroidBundle.message("android.logcat.filters.none");
   static final String EDIT_FILTER_CONFIGURATION = AndroidBundle.message("android.logcat.filters.edit");
+  static final String REGEX = "Re&gex";
 
   private final Project myProject;
   private final DeviceContext myDeviceContext;
 
   private JPanel myPanel;
-
   private DefaultComboBoxModel myFilterComboBoxModel;
+  private JTextField myFilterTextField;
 
   private volatile IDevice myDevice;
-  private final LogConsoleBase myLogConsole;
+  private final AndroidLogConsole myLogConsole;
   private final AndroidLogFilterModel myLogFilterModel;
 
   private final Object myReaderWriterLock = new Object();
@@ -205,6 +208,16 @@ public abstract class AndroidLogcatView implements Disposable {
         protected ConfiguredFilter getConfiguredFilter() {
           return myConfiguredFilter;
         }
+
+        @Override
+        protected void setIsRegexp(boolean isRegexp) {
+          AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_REGEXP_FILTER = isRegexp;
+        }
+
+        @Override
+        protected boolean isRegexp() {
+          return AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_REGEXP_FILTER;
+        }
       };
     myLogConsole = new AndroidLogConsole(project, myLogFilterModel);
     myLogConsole.addListener(new LogConsoleListener() {
@@ -220,6 +233,21 @@ public abstract class AndroidLogcatView implements Disposable {
             }
           }
         }
+      }
+    });
+    myLogFilterModel.addFilterListener(new LogFilterListener() {
+      @Override
+      public void onFilterStateChange(LogFilter filter) {
+      }
+
+      @Override
+      public void onTextFilterChange() {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            myLogConsole.setInvalidFilter(myLogFilterModel.isInvalidRegexp());
+          }
+        });
       }
     });
 
@@ -337,7 +365,8 @@ public abstract class AndroidLogcatView implements Disposable {
         if (value instanceof ConfiguredFilter) {
           setBorder(null);
           append(((ConfiguredFilter)value).getName());
-        } else {
+        }
+        else {
           setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
           append(value.toString());
         }
@@ -479,6 +508,8 @@ public abstract class AndroidLogcatView implements Disposable {
   }
 
   public final class AndroidLogConsole extends LogConsoleBase {
+    private @Nullable JPanel myTextFilterPanel;
+
     public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel) {
       super(project, new MyLoggingReader(), "", false, logFilterModel);
       ConsoleView console = getConsole();
@@ -489,6 +520,12 @@ public abstract class AndroidLogcatView implements Disposable {
       }
     }
 
+    void setInvalidFilter(boolean invalid) {
+      if (myFilterTextField != null) {
+        myFilterTextField.setBackground(invalid ? LightColors.RED : UIUtil.getTextFieldBackground());
+      }
+    }
+
     @Override
     public boolean isActive() {
       return AndroidLogcatView.this.isActive();
@@ -496,6 +533,38 @@ public abstract class AndroidLogcatView implements Disposable {
 
     public void clearLogcat() {
       AndroidLogcatView.this.clearLogcat(getSelectedDevice());
+    }
+
+    @NotNull
+    @Override
+    protected Component getTextFilterComponent() {
+      if (myTextFilterPanel != null) {
+        return myTextFilterPanel;
+      }
+
+      final CheckboxAction regexToggle = new CheckboxAction(REGEX) {
+        @Override
+        public boolean isSelected(AnActionEvent e) {
+          return myLogFilterModel.isRegexp();
+        }
+
+        @Override
+        public void setSelected(AnActionEvent e, boolean state) {
+          myLogFilterModel.updateIsRegexp(state);
+        }
+      };
+      Presentation presentation = regexToggle.getTemplatePresentation();
+      presentation.putClientProperty(Toggleable.SELECTED_PROPERTY, myLogFilterModel.isRegexp());
+
+      myTextFilterPanel = new JPanel(new BorderLayout());
+      Component component = super.getTextFilterComponent();
+      if (component instanceof FilterComponent) {
+        myFilterTextField = ((FilterComponent)component).getTextEditor();
+      }
+      myTextFilterPanel.add(component, BorderLayout.CENTER);
+      myTextFilterPanel.add(regexToggle.createCustomComponent(presentation), BorderLayout.EAST);
+
+      return myTextFilterPanel;
     }
   }
 }

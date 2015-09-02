@@ -31,6 +31,7 @@ public final class AndroidLogcatPreferences implements PersistentStateComponent<
   public String TOOL_WINDOW_CUSTOM_FILTER = "";
   public String TOOL_WINDOW_LOG_LEVEL = "VERBOSE";
   public String TOOL_WINDOW_CONFIGURED_FILTER = "";
+  public boolean TOOL_WINDOW_REGEXP_FILTER = true;
 
   public static AndroidLogcatPreferences getInstance(Project project) {
     return ServiceManager.getService(project, AndroidLogcatPreferences.class);
