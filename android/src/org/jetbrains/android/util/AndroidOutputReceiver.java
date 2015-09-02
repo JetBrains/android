@@ -23,6 +23,11 @@ public abstract class AndroidOutputReceiver extends MultiLineReceiver {
   private static final String BAD_ACCESS_ERROR = "Bad address (14)";
   private boolean myTryAgain;
 
+  public AndroidOutputReceiver() {
+    // We handling all trimming ourselves, in AndroidLogcatReceiver and supporting classes
+    setTrimLine(false);
+  }
+
   @Override
   public void processNewLines(String[] lines) {
     if (myTryAgain) {

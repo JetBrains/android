@@ -20,6 +20,7 @@ import com.android.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,10 +41,13 @@ import java.util.regex.Pattern;
 class StackTraceExpander {
 
   /** Regex to match a stack trace line. E.g.: "at com.foo.Class.method(FileName.extension:10)" */
-  private static final Pattern EXCEPTION_LINE_PATTERN = Pattern.compile("^at .*\\(.*\\)$");
+  private static final Pattern EXCEPTION_LINE_PATTERN = Pattern.compile("^\\s*(at .*\\(.*\\))$");
 
   /** Regex to match an the excluded frames line i.e. line of form "... N more" */
-  private static final Pattern ELIDED_LINE_PATTERN = Pattern.compile("^... (\\d+) more$");
+  private static final Pattern ELIDED_LINE_PATTERN = Pattern.compile("^\\s*... (\\d+) more$");
+
+  /** Regex to match an outer stack trace line. E.g.: "Caused by: java.io.IOException" */
+  private static final Pattern CAUSED_BY_LINE_PATTERN = Pattern.compile("^\\s*(Caused by:.*)$");
 
   /**
    * Marker to indicate stack trace lines that were originally of the form "... 5 more" but
@@ -98,8 +102,9 @@ class StackTraceExpander {
   @NotNull
   public List<String> process(@NotNull String line) {
 
-    if (isStackFrame(line)) {
-      return handleStackTraceLine(line);
+    String stackLine = getStackLine(line);
+    if (stackLine != null) {
+      return handleStackTraceLine(stackLine);
     }
 
     if (!myIsInTrace) {
@@ -108,8 +113,9 @@ class StackTraceExpander {
       return handleNormalLine(line);
     }
 
-    if (isCauseLine(line)) {
-      return handleCausedByLine(line);
+    String causeLine = getCauseLine(line);
+    if (causeLine != null) {
+      return handleCausedByLine(causeLine);
     }
 
     int elidedCount = getElidedFrameCount(line);
@@ -121,8 +127,17 @@ class StackTraceExpander {
   }
 
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
-  static boolean isStackFrame(@NotNull String line) {
-    return EXCEPTION_LINE_PATTERN.matcher(line).matches();
+  @Nullable
+  static String getStackLine(@NotNull String line) {
+    Matcher matcher = EXCEPTION_LINE_PATTERN.matcher(line);
+    return matcher.matches() ? matcher.group(1) : null;
+  }
+
+  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
+  @Nullable
+  static String getCauseLine(@NotNull String line) {
+    Matcher matcher = CAUSED_BY_LINE_PATTERN.matcher(line);
+    return matcher.matches() ? matcher.group(1) : null;
   }
 
   /**
