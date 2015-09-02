@@ -481,12 +481,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
         public void run() {
-          devicesWrapper[0] = chooseDevicesManually(new Condition<IDevice>() {
-            @Override
-            public boolean value(IDevice device) {
-              return isCompatibleDevice(device) != Boolean.FALSE;
-            }
-          });
+          devicesWrapper[0] = chooseDevicesManually(null);
         }
       }, ModalityState.defaultModalityState());
       return devicesWrapper[0].length > 0 ? devicesWrapper[0] : null;
