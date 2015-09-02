@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.run;
 
+import com.android.annotations.Nullable;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
@@ -67,10 +68,6 @@ public class GradleApkProvider implements ApkProvider {
     // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
     if (!androidModel.getAndroidProject().isLibrary()) {
       File apk = getApk(selectedVariant, device);
-      if (apk == null) {
-        String message = AndroidBundle.message("deployment.failed.cannot.determine.apk", selectedVariant.getDisplayName(), device.getName());
-        throw new ApkProvisionException(message);
-      }
       apkList.add(new ApkInfo(apk, getPackageName()));
     }
 
@@ -105,12 +102,12 @@ public class GradleApkProvider implements ApkProvider {
     return (testPackageName != null) ? testPackageName : getPackageName() + DEFAULT_TEST_PACKAGE_SUFFIX;
   }
 
-  static File getApk(@NotNull Variant variant, @NotNull IDevice device) {
+  @NotNull
+  private static File getApk(@NotNull Variant variant, @NotNull IDevice device) throws ApkProvisionException {
     AndroidArtifact mainArtifact = variant.getMainArtifact();
     List<AndroidArtifactOutput> outputs = Lists.newArrayList(mainArtifact.getOutputs());
     if (outputs.isEmpty()) {
-      LOG.info("No outputs for the main artifact of variant: " + variant.getDisplayName());
-      return null;
+      throw new ApkProvisionException("No outputs for the main artifact of variant: " + variant.getDisplayName());
     }
 
     List<String> abis = device.getAbis();
@@ -118,9 +115,12 @@ public class GradleApkProvider implements ApkProvider {
     Set<String> variantAbiFilters = mainArtifact.getAbiFilters();
     List<OutputFile> apkFiles = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
     if (apkFiles.isEmpty()) {
-      String message = AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
-      LOG.error(message);
-      return null;
+      String message = AndroidBundle.message("deployment.failed.splitapk.nomatch",
+                                             variant.getDisplayName(),
+                                             outputs.size(),
+                                             density,
+                                             Joiner.on(", ").join(abis));
+      throw new ApkProvisionException(message);
     }
     return apkFiles.get(0).getOutputFile();
   }
