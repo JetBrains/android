@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.monitor;
 
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
+import com.android.tools.chartlib.EventData;
+import com.android.tools.chartlib.TimelineComponent;
+import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.ddms.EdtExecutor;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithActions;
@@ -23,6 +29,7 @@ import com.intellij.ui.ColorUtil;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,17 +39,23 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.PriorityQueue;
 
-public abstract class BaseMonitorView implements HierarchyListener, TimelineEventListener {
+public abstract class BaseMonitorView<T extends DeviceSampler>
+  implements HierarchyListener, TimelineEventListener, DeviceContext.DeviceSelectionListener {
   @NotNull protected static final String PAUSED_LABEL = "This monitor is disabled.";
   @NotNull private static final Integer OVERLAY_LAYER = JLayeredPane.DEFAULT_LAYER + 10;
   @NotNull private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
 
   @NotNull protected Project myProject;
+  @NotNull protected DeviceContext myDeviceContext;
   @NotNull protected JLayeredPane myContentPane;
   @NotNull private JPanel myTextPanel;
+  @NotNull protected volatile TimelineComponent myTimelineComponent;
   @NotNull private JTextPane myOverlayText;
   @NotNull private HashMap<String, ZOrderedOverlayText> myOverlayLookup;
   @NotNull private PriorityQueue<ZOrderedOverlayText> myVisibleOverlays;
+  @NotNull protected final T mySampler;
+  @NotNull protected final EventData myEvents = new EventData();
+
 
   private static class ZOrderedOverlayText {
     @NotNull private String myText;
@@ -54,8 +67,20 @@ public abstract class BaseMonitorView implements HierarchyListener, TimelineEven
     }
   }
 
-  protected BaseMonitorView(@NotNull Project project) {
+  protected BaseMonitorView(@NotNull Project project,
+                            @NotNull DeviceContext deviceContext,
+                            @NotNull T sampler,
+                            float bufferTime,
+                            float initialMax,
+                            float absoluteMax,
+                            float initialMarkerSeparation) {
     myProject = project;
+    myDeviceContext = deviceContext;
+    myDeviceContext.addListener(this, project);
+    mySampler = sampler;
+    mySampler.addListener(this);
+    myTimelineComponent =
+      new TimelineComponent(mySampler.getTimelineData(), myEvents, bufferTime, initialMax, absoluteMax, initialMarkerSeparation);
     myContentPane = new JBLayeredPane() {
       @Override
       public void doLayout() {
@@ -110,8 +135,8 @@ public abstract class BaseMonitorView implements HierarchyListener, TimelineEven
   @Override
   public void hierarchyChanged(HierarchyEvent hierarchyEvent) {
     if ((hierarchyEvent.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
-      if (!getSampler().isRunning()) {
-        getSampler().start();
+      if (!mySampler.isRunning()) {
+        mySampler.start();
       }
     }
   }
@@ -125,26 +150,61 @@ public abstract class BaseMonitorView implements HierarchyListener, TimelineEven
 
   public abstract ActionGroup getToolbarActions();
 
-  public abstract void setPaused(boolean paused);
-
-  public abstract boolean isPaused();
 
   @Override
-  public void onStart() {}
+  public void clientSelected(@Nullable Client c) {
+    mySampler.setClient(c);
+  }
 
   @Override
-  public void onStop() {}
+  public void deviceChanged(@NotNull IDevice device, int changeMask) {
+  }
+
+  @Override
+  public void deviceSelected(@Nullable IDevice device) {
+  }
+
+
+  public void setPaused(boolean paused) {
+    mySampler.setIsPaused(paused);
+    setOverlayEnabled(PAUSED_LABEL, paused);
+    myTimelineComponent.setUpdateData(!paused);
+  }
+
+  public boolean isPaused() {
+    return mySampler.getIsPaused();
+  }
+
+  @Override
+  public void onStart() {
+    EdtExecutor.INSTANCE.execute(new Runnable() {
+      @Override
+      public void run() {
+        setOverlayEnabled(PAUSED_LABEL, false);
+      }
+    });
+    myTimelineComponent.setUpdateData(true);
+  }
+
+  @Override
+  public void onStop() {
+    EdtExecutor.INSTANCE.execute(new Runnable() {
+      @Override
+      public void run() {
+        setOverlayEnabled(PAUSED_LABEL, true);
+      }
+    });
+    myTimelineComponent.setUpdateData(false);
+  }
 
   @NotNull
   public abstract String getDescription();
 
-  protected abstract DeviceSampler getSampler();
-
   /**
    * Registers the given text in the list of possible strings usable in the overlay.
    *
-   * @param text   is the unique text reference representing the text to be displayed in the overlay
-   * @param index  is the priority of the text, in the range of [0, Integer.MAX_VALUE]
+   * @param text  is the unique text reference representing the text to be displayed in the overlay
+   * @param index is the priority of the text, in the range of [0, Integer.MAX_VALUE]
    */
   protected final void addOverlayText(@NotNull String text, int index) {
     assert !myOverlayLookup.containsKey(text) && index >= 0 && index < Integer.MAX_VALUE;
@@ -154,8 +214,8 @@ public abstract class BaseMonitorView implements HierarchyListener, TimelineEven
   /**
    * Enables and, if lowest {@code index} in all calls to {@link #addOverlayText(String, int)}, displays the text over this view.
    *
-   * @param text     is the unique text reference given to {@link #addOverlayText(String, int)}
-   * @param enabled  true to enable, false to disable
+   * @param text    is the unique text reference given to {@link #addOverlayText(String, int)}
+   * @param enabled true to enable, false to disable
    */
   protected final void setOverlayEnabled(@NotNull String text, boolean enabled) {
     assert myOverlayLookup.containsKey(text);
