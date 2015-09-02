@@ -16,9 +16,10 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.npw.NewAndroidActivityWizard;
+import com.android.tools.idea.npw.ThemeHelper;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.npw.NewAndroidActivityWizard;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
@@ -42,6 +43,7 @@ public class NewAndroidComponentAction extends AnAction {
   private final String myTemplateCategory;
   private final String myTemplateName;
   private final int myMinSdkVersion;
+  private final boolean myRequireAppTheme;
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, @Nullable TemplateMetadata metadata) {
     super(templateName, "Create a new " + templateName, null);
@@ -55,9 +57,11 @@ public class NewAndroidComponentAction extends AnAction {
     }
     if (metadata != null) {
       myMinSdkVersion = metadata.getMinSdk();
+      myRequireAppTheme = metadata.isAppThemeRequired();
     }
     else {
       myMinSdkVersion = 0;
+      myRequireAppTheme = false;
     }
   }
 
@@ -76,11 +80,21 @@ public class NewAndroidComponentAction extends AnAction {
     if (moduleInfo == null) {
       return;
     }
+
+    Presentation presentation = e.getPresentation();
     int moduleMinSdkVersion = moduleInfo.getMinSdkVersion().getApiLevel();
     if (myMinSdkVersion > moduleMinSdkVersion) {
-      Presentation presentation = getTemplatePresentation();
       presentation.setText(myTemplateName + " (Requires minSdk >= " + myMinSdkVersion + ")");
       presentation.setEnabled(false);
+      return;
+    }
+    if (myRequireAppTheme) {
+      ThemeHelper themeHelper = new ThemeHelper(module);
+      if (themeHelper.hasDefaultAppCompatTheme() == null) {
+        presentation.setText(myTemplateName + " (AppTheme not found)");
+        presentation.setEnabled(false);
+        return;
+      }
     }
   }
 
