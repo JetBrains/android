@@ -851,7 +851,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           apks = myApkProvider.getApks(device);
         } catch (ApkProvisionException e) {
           message(e.getMessage(), STDERR);
-          LOG.error(e);
+          LOG.warn(e);
           return false;
         }
         for (ApkInfo apk : apks) {
