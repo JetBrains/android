@@ -6,4 +6,5 @@
     <string name="key3" >Key 3 fr</string>
     <string name="key4" >Key 4 fr</string>
     <string name="key6" >Key 6 shouldn't have a translation</string>
+    <string name="key7"></string>
 </resources>
