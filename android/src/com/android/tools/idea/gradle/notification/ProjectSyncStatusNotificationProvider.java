@@ -72,11 +72,11 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     }
     if (lastGradleSyncFailed(myProject)) {
       String text = "Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.";
-      return new SyncProblemNotificationPanel(text, true /* Show "Try Again" link */);
+      return new SyncProblemNotificationPanel(text);
     }
     if (hasErrors(myProject)) {
-      String text = "Project sync succeeded. Open the 'Messages' view to see the errors found.";
-      return new SyncProblemNotificationPanel(text, false);
+      String text = "Gradle project sync completed with some errors. Open the 'Messages' view to see the errors found.";
+      return new SyncProblemNotificationPanel(text);
     }
 
     ThreeState gradleSyncNeeded = syncState.isSyncNeeded();
@@ -101,17 +101,15 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   }
 
   private class SyncProblemNotificationPanel extends EditorNotificationPanel {
-    SyncProblemNotificationPanel(@NotNull String text, boolean trySyncAgain) {
+    SyncProblemNotificationPanel(@NotNull String text) {
       setText(text);
 
-      if (trySyncAgain) {
-        createActionLabel("Try Again", new Runnable() {
-          @Override
-          public void run() {
-            GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
-          }
-        });
-      }
+      createActionLabel("Try Again", new Runnable() {
+        @Override
+        public void run() {
+          GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+        }
+      });
 
       createActionLabel("Open 'Messages' View", new Runnable() {
         @Override
@@ -129,5 +127,4 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       });
     }
   }
-
 }
