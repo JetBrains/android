@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
@@ -48,6 +49,7 @@ public class TemplateMetadata {
   public static final String ATTR_MIN_BUILD_API = "minBuildApi";
   public static final String ATTR_BUILD_API = "buildApi";
   public static final String ATTR_BUILD_API_STRING = "buildApiString";
+  public static final String ATTR_APPTHEME_REQUIRED = "requireAppTheme";
   public static final String ATTR_REVISION = "revision";
   public static final String ATTR_MIN_API_LEVEL = "minApiLevel";
   public static final String ATTR_PACKAGE_NAME = "packageName";
@@ -164,6 +166,10 @@ public class TemplateMetadata {
 
   public int getRevision() {
     return getInteger(ATTR_REVISION, 1);
+  }
+
+  public boolean isAppThemeRequired() {
+    return getBoolean(ATTR_APPTHEME_REQUIRED, false);
   }
 
   @Nullable
@@ -295,6 +301,14 @@ public class TemplateMetadata {
     } catch (RuntimeException e) {
       return defaultValue;
     }
+  }
+
+  private boolean getBoolean(@NotNull String attrName, boolean defaultValue) {
+    String value = myDocument.getDocumentElement().getAttribute(attrName);
+    if (value == null) {
+      return defaultValue;
+    }
+    return value.equals(SdkConstants.VALUE_TRUE);
   }
 
   /**
