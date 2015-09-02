@@ -313,7 +313,7 @@ public class AndroidStudioInitializer implements Runnable {
     }
 
     String sdkPath = getLastSdkPathUsedByAndroidTools();
-    if (!isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
+    if (!isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(sdkPath)) {
       msg = String.format("Last SDK used by Android tools: '%1$s'", sdkPath);
     } else {
       msg = "Unable to locate last SDK used by Android tools";
