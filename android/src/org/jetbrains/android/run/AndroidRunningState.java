@@ -1264,7 +1264,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private String validateSdkVersion(@NotNull IDevice device) {
     AndroidVersion deviceVersion = DevicePropertyUtil.getDeviceVersion(device);
     AndroidVersion minSdkVersion = myFacet.getAndroidModuleInfo().getRuntimeMinSdkVersion();
-    if ((deviceVersion.canRun(minSdkVersion))) {
+    if (!deviceVersion.canRun(minSdkVersion)) {
       message("Device API level: " + deviceVersion.toString(), STDERR); // Log the device version to console for easy reference.
       return AndroidBundle.message("deployment.failed.reason.oldersdk", minSdkVersion.toString(), deviceVersion.toString());
     }
