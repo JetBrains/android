@@ -73,6 +73,8 @@ public class AndroidLogcatReceiverTest extends TestCase {
       "wtf message",
       "[ 08-11 21:15:35.7524  540:0x21c D/debug tag    ]",
       "debug message",
+      "[ 08-11 21:15:35.7524  540:0x21c I/tag:with:colons ]",
+      "message:with:colons",
     };
 
     for (int i = 0; i < messages.length; i++) {
@@ -86,7 +88,8 @@ public class AndroidLogcatReceiverTest extends TestCase {
       insertTagSeparator("08-11 19:11:07.132      495-495/? V/vtag", "verbose message\n") +
       insertTagSeparator("08-11 19:11:07.132      495-495/? W/wtag", "warning message\n") +
       insertTagSeparator("08-11 19:11:07.132      495-495/? A/wtftag", "wtf message\n") +
-      insertTagSeparator("08-11 21:15:35.7524      540-540/? D/debugtag", "debug message\n"),
+      insertTagSeparator("08-11 21:15:35.7524      540-540/? D/debug tag", "debug message\n") +
+      insertTagSeparator("08-11 21:15:35.7524      540-540/? I/tag:with:colons", "message:with:colons\n"),
                        myWriter.getBuffer().toString());
   }
 
