@@ -21,6 +21,7 @@ import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.concurrent.Future;
 
 public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implements DeviceContext.DeviceSelectionListener {
   private static final int SAMPLE_FREQUENCY_MS = 500;
@@ -37,6 +39,10 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
   private static final float TIMELINE_INITIAL_MARKER_SEPARATION = 1.f;
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
   private static final String MISSING_LABEL = "Network monitoring is not available on your device.";
+  private static final String STARTING_LABEL =
+    "Starting... If it is not finished within seconds, the device may not be properly connected, please reconnect.";
+
+  private Future<?> checkStatsFileFuture;
 
   public NetworkMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
     super(project, deviceContext, new NetworkSampler(SAMPLE_FREQUENCY_MS), TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX,
@@ -51,6 +57,7 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
     // Some system images do not have the network stats file, it is a bug; we show a label before the bug is fixed.
     addOverlayText(MISSING_LABEL, 0);
     addOverlayText(PAUSED_LABEL, 1);
+    addOverlayText(STARTING_LABEL, 2);
 
     setViewComponent(myTimelineComponent);
     deviceContext.addListener(this, project);
@@ -64,11 +71,38 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
     return group;
   }
 
+  /**
+   * Sets the newly selected client or null and resets the overlay text in a pooled thread, because an adb command
+   * which may be stuck will be called.
+   */
   @Override
-  public void clientSelected(@Nullable Client c) {
-    super.clientSelected(c);
-    // TODO: Need to move canReadNetworkStatistics to a separate thread. This is causing a hiccup in the UI.
-    setOverlayEnabled(MISSING_LABEL, c != null && !mySampler.canReadNetworkStatistics());
+  public void clientSelected(@Nullable final Client c) {
+    mySampler.setClient(c);
+    if (checkStatsFileFuture != null) {
+      if (!checkStatsFileFuture.isDone()) {
+        checkStatsFileFuture.cancel(true);
+      }
+      checkStatsFileFuture = null;
+    }
+    setOverlayEnabled(STARTING_LABEL, c != null);
+    setOverlayEnabled(MISSING_LABEL, false);
+    if (c != null) {
+      checkStatsFileFuture = ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+        @Override
+        public void run() {
+          final int networkStatsFileState = mySampler.checkStatsFile(c);
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              if (c == myDeviceContext.getSelectedClient()) {
+                setOverlayEnabled(STARTING_LABEL, networkStatsFileState == 0);
+                setOverlayEnabled(MISSING_LABEL, networkStatsFileState < 0);
+              }
+            }
+          });
+        }
+      });
+    }
   }
 
   @NotNull
