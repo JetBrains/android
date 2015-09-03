@@ -352,11 +352,11 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
 
   @Nullable
   private Step showNextStep(@Nullable AndroidStudioWizardPath path) {
-    Step newStep;
-    if (path != null && path.hasNext()) {
+    Step newStep = null;
+    if (path != null) {
       newStep = path.next();
     }
-    else {
+    if (newStep == null) {
       newStep = null;
       while (myPathListIterator.hasNext() && newStep == null) {
         myCurrentPath = myPathListIterator.next();
@@ -397,22 +397,14 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
       return;
     }
 
-    Step newStep;
-    if (myCurrentPath == null || !myCurrentPath.hasPrevious()) {
-      newStep = null;
+    Step newStep = myCurrentPath.previous();
+    if (newStep == null) {
       while (myPathListIterator.hasPrevious() && newStep == null) {
         myCurrentPath = myPathListIterator.previous();
         assert myCurrentPath != null;
         myCurrentPath.onPathStarted(false /* fromBeginning */);
         newStep = myCurrentPath.getCurrentStep();
       }
-    }
-    else if (myCurrentPath.hasPrevious()) {
-      newStep = myCurrentPath.previous();
-    }
-    else {
-      myHost.close(DynamicWizardHost.CloseAction.CANCEL);
-      return;
     }
     if (newStep != null) {
       showStep(newStep);

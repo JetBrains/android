@@ -79,6 +79,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   private TextFieldWithBrowseButton myPath;
   private JPanel myBody;
   private boolean myUserEditedPath = false;
+  private boolean myWasVisible = false;
 
   public SdkComponentsStep(@NotNull ComponentTreeNode rootNode,
                            @NotNull ScopedStateStore.Key<Boolean> keyCustomInstall,
@@ -246,7 +247,13 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return !myMode.hasValidSdkLocation() && myState.getNotNull(myKeyCustomInstall, true);
+    if (myWasVisible) {
+      // If we showed it once (e.g. if we had a invalid path on the standard setup path) we want to be sure it shows again (e.g. if we
+      // fix the path and then go backward and forward). Otherwise the experience is confusing.
+      return true;
+    }
+    myWasVisible = !myMode.hasValidSdkLocation() && myState.getNotNull(myKeyCustomInstall, true) || !validate();
+    return myWasVisible;
   }
 
   private void createUIComponents() {
