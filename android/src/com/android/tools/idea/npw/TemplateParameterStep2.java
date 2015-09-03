@@ -235,8 +235,8 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
 
   private Map<String, Object> getImplicitParameters() {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<String, Object>();
-    for (Key<String> parameter : AddAndroidActivityPath.IMPLICIT_PARAMETERS) {
-      String value = myState.get(parameter);
+    for (Key<?> parameter : AddAndroidActivityPath.IMPLICIT_PARAMETERS) {
+      Object value = myState.get(parameter);
       if (value != null) {
         builder.put(parameter.name, value);
       }
