@@ -72,6 +72,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
@@ -481,7 +482,12 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
         public void run() {
-          devicesWrapper[0] = chooseDevicesManually();
+          devicesWrapper[0] = chooseDevicesManually(new Condition<IDevice>() {
+            @Override
+            public boolean value(IDevice device) {
+              return isCompatibleDevice(device) != Boolean.FALSE;
+            }
+          });
         }
       }, ModalityState.defaultModalityState());
       return devicesWrapper[0].length > 0 ? devicesWrapper[0] : null;
@@ -637,7 +643,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   @NotNull
-  private IDevice[] chooseDevicesManually() {
+  private IDevice[] chooseDevicesManually(@Nullable Condition<IDevice> filter) {
     final Project project = myFacet.getModule().getProject();
     String value = PropertiesComponent.getInstance(project).getValue(ANDROID_TARGET_DEVICES_PROPERTY);
     String[] selectedSerials = value != null ? fromString(value) : null;
@@ -646,7 +652,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       LOG.error("Android platform not set for module: " + myFacet.getModule().getName());
       return DeviceChooser.EMPTY_DEVICE_ARRAY;
     }
-    DeviceChooserDialog chooser = new DeviceChooserDialog(myFacet, platform.getTarget(), mySupportMultipleDevices, selectedSerials);
+    DeviceChooserDialog chooser = new DeviceChooserDialog(myFacet, platform.getTarget(), mySupportMultipleDevices, selectedSerials, filter);
     chooser.show();
     IDevice[] devices = chooser.getSelectedDevices();
     if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE || devices.length == 0) {
