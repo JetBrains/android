@@ -21,6 +21,8 @@ import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.model.AndroidModel;
+import com.intellij.debugger.DebuggerManagerEx;
+import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.executors.DefaultDebugExecutor;
@@ -32,10 +34,12 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.WindowManager;
 import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
@@ -70,6 +74,7 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -322,13 +327,11 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       for (Client client : device.getClients()) {
         final String clientDescription = client.getClientData().getClientDescription();
 
-        if (clientDescription != null &&
-            (showAllProcesses || isRelatedProcess(processNames, clientDescription))) {
+        if (clientDescription != null && (showAllProcesses || isRelatedProcess(processNames, clientDescription))) {
           final DefaultMutableTreeNode clientNode = new DefaultMutableTreeNode(client);
           deviceNode.add(clientNode);
 
-          if (clientDescription.equals(myLastSelectedProcess) &&
-              (selectedDeviceNode == null || deviceName.equals(myLastSelectedDevice))) {
+          if (clientDescription.equals(myLastSelectedProcess) && (selectedDeviceNode == null || deviceName.equals(myLastSelectedDevice))) {
             selectedClientNode = clientNode;
             selectedDeviceNode = deviceNode;
           }
@@ -460,8 +463,17 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
   private void closeOldSessionAndRun(final String debugPort) {
     final String configurationName = getRunConfigurationName(debugPort);
-    final Collection<RunContentDescriptor> descriptors =
-      ExecutionHelper.findRunningConsoleByTitle(myProject, new NotNullFunction<String, Boolean>() {
+
+    Collection<RunContentDescriptor> descriptors = null;
+    Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+    Project targetProject = null;
+
+    // Scan through open project to find if this port has been opened in any session.
+    for (Project project : openProjects) {
+      targetProject = project;
+
+      // First check the titles of the run configurations.
+      descriptors = ExecutionHelper.findRunningConsoleByTitle(targetProject, new NotNullFunction<String, Boolean>() {
         @NotNull
         @Override
         public Boolean fun(String title) {
@@ -469,7 +481,22 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
         }
       });
 
-    if (descriptors.size() > 0) {
+      // If it can't find a matching title, check the debugger sessions.
+      if (descriptors.isEmpty()) {
+        for (DebuggerSession session : DebuggerManagerEx.getInstanceEx(targetProject).getSessions()) {
+          if (debugPort.trim().equals(session.getProcess().getConnection().getAddress().trim()) && session.getXDebugSession() != null) {
+            descriptors = Collections.singletonList(session.getXDebugSession().getRunContentDescriptor());
+            break;
+          }
+        }
+      }
+
+      if (!descriptors.isEmpty()) {
+        break;
+      }
+    }
+
+    if (descriptors != null && !descriptors.isEmpty()) {
       final RunContentDescriptor descriptor = descriptors.iterator().next();
       final ProcessHandler processHandler = descriptor.getProcessHandler();
       final Content content = descriptor.getAttachedContent();
@@ -478,12 +505,22 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
         final Executor executor = DefaultDebugExecutor.getDebugExecutorInstance();
 
         if (processHandler.isProcessTerminated()) {
-          ExecutionManager.getInstance(myProject).getContentManager()
-            .removeRunContent(executor, descriptor);
+          ExecutionManager.getInstance(targetProject).getContentManager().removeRunContent(executor, descriptor);
         }
         else {
+          if (targetProject != myProject) {
+            // Bring window frame to front if the found tool window is not for the active project.
+            JFrame targetFrame = WindowManager.getInstance().getFrame(targetProject);
+            boolean alwaysOnTop = targetFrame.isAlwaysOnTop();
+
+            targetFrame.setExtendedState(Frame.NORMAL);
+            targetFrame.setAlwaysOnTop(true);
+            targetFrame.toFront();
+            targetFrame.requestFocus();
+            targetFrame.setAlwaysOnTop(alwaysOnTop);
+          }
           content.getManager().setSelectedContent(content);
-          ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(executor.getToolWindowId());
+          ToolWindow window = ToolWindowManager.getInstance(targetProject).getToolWindow(executor.getToolWindowId());
           window.activate(null, false, true);
           return;
         }
