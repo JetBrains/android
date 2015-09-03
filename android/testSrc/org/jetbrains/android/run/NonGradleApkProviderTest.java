@@ -76,41 +76,4 @@ public class NonGradleApkProviderTest extends AndroidTestCase {
     assertEquals("p1.p2", apk.getApplicationId());
     assertTrue(apk.getFile().getPath().endsWith("right.apk"));
   }
-
-  /**
-   * A non-Gradle APK provider can be used when an AndroidGradleModel is present if Projects.isBuildWithGradle is false.
-   */
-  public void testGetPackageNameForIdeaAndroidProject() throws Exception {
-    myFacet.setAndroidModel(getAndroidModel());
-
-    NonGradleApkProvider provider = new NonGradleApkProvider(myFacet, null);
-    assertEquals("app.variantname", provider.getPackageName());
-    // The test package name matches the main APK package name.
-    assertEquals("app.variantname", provider.getTestPackageName());
-  }
-
-  public void testGetApksForIdeaAndroidProject() throws Exception {
-    IDevice device = Mockito.mock(IDevice.class);
-    myFacet.setAndroidModel(getAndroidModel());
-
-    NonGradleApkProvider provider = new NonGradleApkProvider(myFacet, null);
-    Collection<ApkInfo> apks = provider.getApks(device);
-    assertNotNull(apks);
-    assertEquals(1, apks.size());
-    ApkInfo apk = apks.iterator().next();
-    assertEquals("app.variantname", apk.getApplicationId());
-    assertTrue(apk.getFile().getPath().endsWith("_main_-variantName.apk"));
-  }
-
-  private AndroidGradleModel getAndroidModel() throws Exception {
-    AndroidProjectStub androidProject = new AndroidProjectStub("projectName");
-    VariantStub variant = androidProject.addVariant("variantName");
-    return new AndroidGradleModel(
-        new ProjectSystemId("systemId"),
-        myFacet.getModule().getName(),
-        androidProject.getRootDir(),
-        androidProject,
-        variant.getName(),
-        variant.getInstrumentTestArtifact().getName());
-  }
 }

@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.run;
 
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.model.ManifestInfo;
 import com.google.common.base.Predicates;
 import com.intellij.execution.ExecutionException;
@@ -46,8 +47,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 
 /**
  * @author Eugene.Kudelevsky
@@ -98,7 +97,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     assert module != null;
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-    if (facet.getAndroidModel() != null && isBuildWithGradle(module)) {
+    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+    if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidGradleModel) {
       return new GradleApkProvider(facet, false);
     }
     return new NonGradleApkProvider(facet, ARTIFACT_NAME);
