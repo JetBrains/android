@@ -25,8 +25,6 @@ import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.google.common.base.Predicate;
-
-import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.*;
@@ -210,7 +208,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     assert module != null;
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-    if (facet.getAndroidModel() != null && Projects.isBuildWithGradle(module)) {
+    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+    if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidGradleModel) {
       return new GradleApkProvider(facet, true);
     }
     return new NonGradleApkProvider(facet, null);
