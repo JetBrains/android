@@ -39,6 +39,7 @@ import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -47,6 +48,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
@@ -87,6 +89,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
@@ -102,6 +105,7 @@ import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDial
 import static com.android.tools.idea.tests.gui.framework.fixture.FileFixture.getDocument;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.*;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -1433,13 +1437,13 @@ public class GradleSyncTest extends GuiTestCase {
     }
   }
 
-  @Test
-  @IdeGuiTest
-  public void testSyncWithInvalidJdk() throws Exception {
+  @Test @IdeGuiTest
+  public void testSyncWithInvalidJdk() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
 
     final File tempJdkDirectory = createTempDirectory("GradleSyncTest", "testSyncWithInvalidJdk", true);
     String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
+    assert jdkHome != null;
     copyDir(new File(jdkHome), tempJdkDirectory);
     execute(new GuiTask() {
       @Override
@@ -1456,5 +1460,41 @@ public class GradleSyncTest extends GuiTestCase {
 
     delete(tempJdkDirectory);
     projectFrame.requestProjectSyncAndExpectFailure();
+  }
+
+  @Test @IdeGuiTest
+  public void testUseLibrary() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    Project project = projectFrame.getProject();
+
+    // Make sure the library was added.
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    final String libraryName = "android-23.org.apache.http.legacy";
+    final Library library = libraryTable.getLibraryByName(libraryName);
+    assertNotNull(library);
+
+    // Verify that the library has the right j
+    VirtualFile[] jarFiles = library.getFiles(CLASSES);
+    assertThat(jarFiles).hasSize(1);
+    VirtualFile jarFile = jarFiles[0];
+    assertEquals("org.apache.http.legacy.jar", jarFile.getName());
+
+    final Module appModule = projectFrame.getModule("app");
+    final AtomicBoolean dependencyFound = new AtomicBoolean();
+    new ReadAction() {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(appModule).getModifiableModel();
+        for (OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
+          if (orderEntry instanceof LibraryOrderEntry) {
+            LibraryOrderEntry libraryDependency = (LibraryOrderEntry)orderEntry;
+            if (libraryDependency.getLibrary() == library) {
+              dependencyFound.set(true);
+            }
+          }
+        }
+      }
+    }.execute();
+    assertTrue("Module app should depend on library '" + library.getName() + "'", dependencyFound.get());
   }
 }
