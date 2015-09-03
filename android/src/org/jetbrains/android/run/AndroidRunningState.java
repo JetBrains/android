@@ -34,6 +34,7 @@ import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Charsets;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.intellij.CommonBundle;
@@ -71,7 +72,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
@@ -481,9 +481,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
         public void run() {
-          devicesWrapper[0] = chooseDevicesManually(new Condition<IDevice>() {
+          devicesWrapper[0] = chooseDevicesManually(new Predicate<IDevice>() {
             @Override
-            public boolean value(IDevice device) {
+            public boolean apply(IDevice device) {
               return isCompatibleDevice(device) != Boolean.FALSE;
             }
           });
@@ -642,7 +642,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   @NotNull
-  private IDevice[] chooseDevicesManually(@Nullable Condition<IDevice> filter) {
+  private IDevice[] chooseDevicesManually(@Nullable Predicate<IDevice> filter) {
     final Project project = myFacet.getModule().getProject();
     String value = PropertiesComponent.getInstance(project).getValue(ANDROID_TARGET_DEVICES_PROPERTY);
     String[] selectedSerials = value != null ? fromString(value) : null;
