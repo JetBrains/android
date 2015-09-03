@@ -728,8 +728,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       registerSubtags(ARC_MOTION_TAG, ArcMotion.class, callback, registeredSubTags);
       registerSubtags(PATH_MOTION_TAG, PathMotion.class, callback, registeredSubTags);
       registerSubtags(PATTERN_PATH_MOTION_TAG, PatternPathMotion.class, callback, registeredSubTags);
-
-      // Check whether I also have for "transition":Transition
+      registerSubtags(TRANSITION_TAG, TransitionSetTransition.class, callback, registeredSubTags);
 
     } else if (tagName.equals(TRANSITION_MANAGER_TAG)) {
       registerSubtags(TRANSITION_TAG, TransitionTag.class, callback, registeredSubTags);
