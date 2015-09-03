@@ -24,6 +24,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
@@ -108,8 +109,9 @@ public class WizardUtils {
       BAD_SLASHES("Your %1s contains incorrect slashes ('\\' vs '/')"),
       ILLEGAL_CHARACTER("Illegal character in %1s path: '%2c' in filename %3s"),
       ILLEGAL_FILENAME("Illegal filename in %1s path: %2s"),
-      WHITESPACE("Your %1s contains whitespace. This can cause problems on some platforms and is not recommended."),
-      NON_ASCII_CHARS("Your %1s contains non-ASCII characters. This can cause problems on Windows. Proceed with caution."),
+      WHITESPACE("%1s cannot contain whitespace."),
+      NON_ASCII_CHARS_WARNING("Your %1s contains non-ASCII characters, which can cause problems. Proceed with caution."),
+      NON_ASCII_CHARS_ERROR("Your %1s contains non-ASCII characters."),
       PATH_NOT_WRITEABLE("The path '%2s' is not writeable. Please choose a new location."),
       PROJECT_LOC_IS_FILE("There must not already be a file at the %1s."),
       NON_EMPTY_DIR(
@@ -215,10 +217,15 @@ public class WizardUtils {
         return ValidationResult.error(ValidationResult.Message.ILLEGAL_FILENAME, fieldName, filename);
       }
       if (CharMatcher.WHITESPACE.matchesAnyOf(filename)) {
-        warningResult = ValidationResult.warn(ValidationResult.Message.WHITESPACE, fieldName);
+        return ValidationResult.error(ValidationResult.Message.WHITESPACE, fieldName);
       }
       if (!CharMatcher.ASCII.matchesAllOf(filename)) {
-        warningResult = ValidationResult.warn(ValidationResult.Message.NON_ASCII_CHARS, fieldName);
+        if (SystemInfo.isWindows) {
+          return ValidationResult.error(ValidationResult.Message.NON_ASCII_CHARS_ERROR, fieldName);
+        }
+        else {
+          warningResult = ValidationResult.warn(ValidationResult.Message.NON_ASCII_CHARS_WARNING, fieldName);
+        }
       }
       // Check that we can write to that location: make sure we can write into the first extant directory in the path.
       if (!testFile.exists() && testFile.getParentFile() != null && testFile.getParentFile().exists()) {
