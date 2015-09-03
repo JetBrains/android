@@ -93,7 +93,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public String NETWORK_LATENCY = "none";
   public boolean CLEAR_LOGCAT = false;
   public boolean SHOW_LOGCAT_AUTOMATICALLY = true;
-  public boolean FILTER_LOGCAT_AUTOMATICALLY = true;
 
   public int SELECTED_CLOUD_MATRIX_CONFIGURATION_ID = 0;
   public String SELECTED_CLOUD_MATRIX_PROJECT_ID = "";

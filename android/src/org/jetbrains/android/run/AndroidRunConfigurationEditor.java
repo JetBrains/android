@@ -73,7 +73,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JComboBox myNetworkSpeedCombo;
   private JComboBox myNetworkLatencyCombo;
   private JCheckBox myDisableBootAnimationCombo;
-  private JCheckBox myClearLogCheckBox;
   private JBLabel myModuleJBLabel;
   private JRadioButton myShowChooserRadioButton;
   private JRadioButton myEmulatorRadioButton;
@@ -82,10 +81,11 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JBLabel myMinSdkInfoMessageLabel;
   private JBCheckBox myUseAdditionalCommandLineOptionsCheckBox;
   private RawCommandLineEditor myCommandLineField;
-  private JCheckBox myShowLogcatCheckBox;
-  private JCheckBox myFilterLogcatCheckBox;
   private JCheckBox myUseLastSelectedDeviceCheckBox;
   private JRadioButton myRunTestsInGoogleCloudRadioButton;
+
+  private JCheckBox myClearLogCheckBox;
+  private JCheckBox myShowLogcatCheckBox;
 
   private CloudConfigurationComboBox myCloudMatrixConfigurationCombo;
   private JBLabel myCloudMatrixProjectLabel;
@@ -115,7 +115,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myConfigurationSpecificPanel.add(configurationSpecificEditor.getComponent());
     setAnchor(myConfigurationSpecificEditor.getAnchor());
     myShowLogcatCheckBox.setVisible(configurationSpecificEditor instanceof ApplicationRunParameters);
-    myFilterLogcatCheckBox.setVisible(configurationSpecificEditor instanceof ApplicationRunParameters);
   }
 
   public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator) {
@@ -450,9 +449,9 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myDisableBootAnimationCombo.setSelected(configuration.DISABLE_BOOT_ANIMATION);
     selectItemCaseInsensitively(myNetworkSpeedCombo, configuration.NETWORK_SPEED);
     selectItemCaseInsensitively(myNetworkLatencyCombo, configuration.NETWORK_LATENCY);
+
     myClearLogCheckBox.setSelected(configuration.CLEAR_LOGCAT);
     myShowLogcatCheckBox.setSelected(configuration.SHOW_LOGCAT_AUTOMATICALLY);
-    myFilterLogcatCheckBox.setSelected(configuration.FILTER_LOGCAT_AUTOMATICALLY);
 
     updateEnabled();
   }
@@ -512,9 +511,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     configuration.DISABLE_BOOT_ANIMATION = myDisableBootAnimationCombo.isSelected();
     configuration.NETWORK_SPEED = ((String)myNetworkSpeedCombo.getSelectedItem()).toLowerCase();
     configuration.NETWORK_LATENCY = ((String)myNetworkLatencyCombo.getSelectedItem()).toLowerCase();
+
     configuration.CLEAR_LOGCAT = myClearLogCheckBox.isSelected();
     configuration.SHOW_LOGCAT_AUTOMATICALLY = myShowLogcatCheckBox.isSelected();
-    configuration.FILTER_LOGCAT_AUTOMATICALLY = myFilterLogcatCheckBox.isSelected();
+
     if (myAvdComboComponent.isEnabled()) {
       JComboBox combo = myAvdCombo.getComboBox();
       IdDisplay preferredAvd = (IdDisplay)combo.getSelectedItem();
