@@ -126,7 +126,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
 
     getOKAction().setEnabled(false);
 
-    myDeviceChooser = new DeviceChooser(multipleSelection, getOKAction(), facet, projectTarget);
+    myDeviceChooser = new DeviceChooser(multipleSelection, getOKAction(), facet, projectTarget, null);
     Disposer.register(myDisposable, myDeviceChooser);
     myDeviceChooser.addListener(new DeviceChooserListener() {
       @Override
