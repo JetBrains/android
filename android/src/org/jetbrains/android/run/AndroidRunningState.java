@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.run;
 
-import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.*;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.AndroidVersion;
@@ -58,7 +57,6 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -82,8 +80,6 @@ import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Consumer;
 import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.ui.update.MergingUpdateQueue;
-import com.intellij.util.ui.update.Update;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AvdsNotSupportedException;
@@ -592,7 +588,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     if (myDebugMode) {
       AndroidDebugBridge.addClientChangeListener(this);
     }
-    final MyDeviceChangeListener[] deviceListener = {null};
+    final DeviceReadyListener[] deviceListener = {null};
     getProcessHandler().addProcessListener(new ProcessAdapter() {
       @Override
       public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
@@ -772,7 +768,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   @Nullable
-  private MyDeviceChangeListener prepareAndStartAppWhenDeviceIsOnline() {
+  private DeviceReadyListener prepareAndStartAppWhenDeviceIsOnline() {
     if (myTargetDevices.length > 0) {
       boolean allDevicesOnline = true;
       for (IDevice targetDevice : myTargetDevices) {
@@ -797,7 +793,24 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         return null;
       }
     }
-    final MyDeviceChangeListener deviceListener = new MyDeviceChangeListener();
+    Predicate<IDevice> deviceFilter = new Predicate<IDevice>() {
+      @Override
+      public boolean apply(IDevice device) {
+        return isMyDevice(device);
+      }
+    };
+    DeviceReadyListener.Callback callback = new DeviceReadyListener.Callback() {
+      @Override
+      public void onDeviceReady(@NotNull IDevice device) {
+        if ((!prepareAndStartApp(device) || !myDebugMode) && !myStopped) {
+          getProcessHandler().destroyProcess();
+        }
+      }
+    };
+    final DeviceReadyListener deviceListener = new DeviceReadyListener(
+      new ProcessHandlerSimpleLogger(getProcessHandler()),
+      deviceFilter,
+      callback);
     AndroidDebugBridge.addDeviceChangeListener(deviceListener);
     return deviceListener;
   }
@@ -1332,86 +1345,5 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   public void addListener(@NotNull AndroidRunningStateListener listener) {
     myListeners.add(listener);
-  }
-
-  private class MyDeviceChangeListener implements AndroidDebugBridge.IDeviceChangeListener, Disposable {
-    private final MergingUpdateQueue myQueue =
-      new MergingUpdateQueue("ANDROID_DEVICE_STATE_UPDATE_QUEUE", 1000, true, null, this, null, false);
-
-    @GuardedBy("this")
-    private boolean installed;
-
-    @Override
-    public void deviceConnected(final IDevice device) {
-      // avd may be null if usb device is used, or if it didn't set by ddmlib yet
-      if (device.getAvdName() == null || isMyDevice(device)) {
-        message("Device connected: " + device.getSerialNumber(), STDOUT);
-
-        // we need this, because deviceChanged is not triggered if avd is set to the emulator
-        myQueue.queue(new MyDeviceStateUpdate(device));
-      }
-    }
-
-    @Override
-    public void deviceDisconnected(IDevice device) {
-      if (isMyDevice(device)) {
-        message("Device disconnected: " + device.getSerialNumber(), STDOUT);
-      }
-    }
-
-    @Override
-    public void deviceChanged(final IDevice device, int changeMask) {
-      myQueue.queue(new Update(device.getSerialNumber()) {
-        @Override
-        public void run() {
-          onDeviceChanged(device);
-        }
-      });
-    }
-
-    private synchronized void onDeviceChanged(IDevice device) {
-      if (installed || !isMyDevice(device) || !device.isOnline()) {
-        return;
-      }
-
-      if (myTargetDevices.length == 0) {
-        myTargetDevices = new IDevice[]{device};
-      }
-
-      // Devices (esp. emulators) may be reported as online, but may not have services running yet. Attempting to
-      // install at this time would result in an error like "Could not access the Package Manager".
-      // We use the following heuristic to check that the system is in a reasonable state to install apps.
-      if (device.getClients().length < 5 &&
-          device.getClient("android.process.acore") == null &&
-          device.getClient("com.google.android.wearable.app") == null) {
-        message(String.format("Device %1$s is online, waiting for processes to start up..", device.getName()), STDOUT);
-        return;
-      }
-
-      message("Device is ready: " + device.getName(), STDOUT);
-      installed = true;
-      if ((!prepareAndStartApp(device) || !myDebugMode) && !myStopped) {
-        getProcessHandler().destroyProcess();
-      }
-    }
-
-    @Override
-    public void dispose() {
-    }
-
-    private class MyDeviceStateUpdate extends Update {
-      private final IDevice myDevice;
-
-      public MyDeviceStateUpdate(IDevice device) {
-        super(device.getSerialNumber());
-        myDevice = device;
-      }
-
-      @Override
-      public void run() {
-        onDeviceChanged(myDevice);
-        myQueue.queue(new MyDeviceStateUpdate(myDevice));
-      }
-    }
   }
 }
