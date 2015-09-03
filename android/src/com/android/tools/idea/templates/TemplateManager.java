@@ -70,7 +70,7 @@ public class TemplateManager {
   private static final String ACTION_ID_PREFIX = "template.create.";
   private static final boolean USE_SDK_TEMPLATES = false;
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
-  public static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of("Empty Activity");
+  public static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of();
   private static final String TEMPLATE_ZIP_NAME = "templates.zip";
 
   /**
