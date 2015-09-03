@@ -16,6 +16,7 @@
 package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.npw.WizardUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,6 +52,13 @@ public class SdkPaths {
    */
   @NotNull
   public static ValidationResult validateAndroidNdk(@Nullable File ndkPath, boolean includePathInMessage) {
+    if (ndkPath != null) {
+      WizardUtils.ValidationResult wizardValidationResult =
+        WizardUtils.validateLocation(ndkPath.getAbsolutePath(), "Android NDK location", false, false);
+      if (!wizardValidationResult.isOk()) {
+        return ValidationResult.error(wizardValidationResult.getFormattedMessage());
+      }
+    }
     ValidationResult validationResult = validatedSdkPath(ndkPath, "NDK", false, includePathInMessage);
     if (validationResult.success && ndkPath != null) {
       File toolchainsDirPath = new File(ndkPath, "toolchains");

@@ -83,7 +83,7 @@ public class WizardUtils {
    *
    * @param dir the directory to list
    * @return the children, or empty if it has no children, is not a directory,
-   *         etc.
+   * etc.
    */
   @NotNull
   public static File[] listFiles(@Nullable File dir) {
@@ -114,8 +114,7 @@ public class WizardUtils {
       NON_ASCII_CHARS_ERROR("Your %1s contains non-ASCII characters."),
       PATH_NOT_WRITEABLE("The path '%2s' is not writeable. Please choose a new location."),
       PROJECT_LOC_IS_FILE("There must not already be a file at the %1s."),
-      NON_EMPTY_DIR(
-        "A non-empty directory already exists at the specified %1s. Existing files may be overwritten. Proceed with caution."),
+      NON_EMPTY_DIR("A non-empty directory already exists at the specified %1s. Existing files may be overwritten. Proceed with caution."),
       PROJECT_IS_FILE_SYSTEM_ROOT("The %1s can not be at the filesystem root"),
       IS_UNDER_ANDROID_STUDIO_ROOT("Path points to a location within Android Studio installation directory"),
       PARENT_NOT_DIR("The %1s's parent directory must be a directory, not a plain file"),
@@ -165,7 +164,7 @@ public class WizardUtils {
     }
 
     public String getFormattedMessage() {
-      if(myMessage == null) {
+      if (myMessage == null) {
         throw new IllegalStateException("Null message, are you trying to get the message of an OK?");
       }
       return String.format(myMessage.toString(), myMessageParams);
@@ -195,14 +194,23 @@ public class WizardUtils {
   }
 
   @NotNull
-  public static ValidationResult validateLocation(@Nullable String projectLocation, @NotNull String fieldName, boolean checkEmpty) {
+  public static ValidationResult validateLocation(@Nullable String projectLocation,
+                                                  @NotNull String fieldName,
+                                                  boolean checkEmpty) {
+    return validateLocation(projectLocation, fieldName, checkEmpty, true);
+  }
+
+  @NotNull
+  public static ValidationResult validateLocation(@Nullable String projectLocation,
+                                                  @NotNull String fieldName,
+                                                  boolean checkEmpty,
+                                                  boolean checkWriteable) {
     ValidationResult warningResult = null;
     if (projectLocation == null || projectLocation.isEmpty()) {
       return ValidationResult.error(ValidationResult.Message.NO_LOCATION_SPECIFIED, fieldName);
     }
     // Check the separators
-    if ((File.separatorChar == '/' && projectLocation.contains("\\")) ||
-        (File.separatorChar == '\\' && projectLocation.contains("/"))) {
+    if ((File.separatorChar == '/' && projectLocation.contains("\\")) || (File.separatorChar == '\\' && projectLocation.contains("/"))) {
       return ValidationResult.error(ValidationResult.Message.BAD_SLASHES, fieldName);
     }
     // Check the individual components for not allowed characters.
@@ -228,7 +236,7 @@ public class WizardUtils {
         }
       }
       // Check that we can write to that location: make sure we can write into the first extant directory in the path.
-      if (!testFile.exists() && testFile.getParentFile() != null && testFile.getParentFile().exists()) {
+      if (checkWriteable && !testFile.exists() && testFile.getParentFile() != null && testFile.getParentFile().exists()) {
         if (!testFile.getParentFile().canWrite()) {
           return ValidationResult.error(ValidationResult.Message.PATH_NOT_WRITEABLE, fieldName, testFile.getParentFile().getPath());
         }
@@ -246,7 +254,7 @@ public class WizardUtils {
     if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
       return ValidationResult.error(ValidationResult.Message.PARENT_NOT_DIR, fieldName);
     }
-    if (file.exists() && !file.canWrite()) {
+    if (checkWriteable && file.exists() && !file.canWrite()) {
       return ValidationResult.error(ValidationResult.Message.PATH_NOT_WRITEABLE, fieldName, file.getPath());
     }
 
