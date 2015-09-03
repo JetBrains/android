@@ -58,6 +58,12 @@ public class AndroidTransitionDomTest extends AndroidDomTest {
     doTestHighlighting("hl3.xml");
   }
 
+  // The test checks that <transition> tag can be inside <transitionSet> and can have "class" attribute
+  // Regression test for http://b.android.com/78390
+  public void testHighlighting4() throws Throwable {
+    doTestHighlighting("hl4.xml");
+  }
+
   public void testAttributeNames() throws Throwable {
     toTestCompletion("an.xml", "an_after.xml");
   }
