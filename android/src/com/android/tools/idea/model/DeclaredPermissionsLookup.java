@@ -350,12 +350,16 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
 
     @Override
     public boolean hasPermission(@NonNull String permission) {
+      return hasPermission(permission, new HashSet<ModulePermissions>());
+    }
+
+    private boolean hasPermission(@NonNull String permission, Set<ModulePermissions> seen) {
       // Permission already found to be available?
       if (myFoundCache.contains(permission)) {
         return true;
       }
 
-      boolean hasPermission = computeHasPermission(permission, new HashSet<ModulePermissions>());
+      boolean hasPermission = computeHasPermission(permission, seen);
       if (hasPermission) {
         // We only cache *successfully* found permissions. If you've already
         // declared a permission, it's unlikely that it will disappear, so we
@@ -389,7 +393,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
 
       if (myDependencies != null) {
         for (ModulePermissions module : myDependencies) {
-          if (module.hasPermission(permission)) {
+          if (module.hasPermission(permission, seen)) {
             return true;
           }
         }
