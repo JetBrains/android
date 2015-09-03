@@ -1,0 +1,5 @@
+<resources>
+  <style name="myStyle">
+    <item name="android:windowEnterTransition">@transition/good</item>
+  </style>
+</resources>

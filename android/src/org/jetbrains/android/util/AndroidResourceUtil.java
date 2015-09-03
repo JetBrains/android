@@ -98,10 +98,9 @@ public class AndroidResourceUtil {
   public static final Set<ResourceType> ALL_VALUE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
 
   public static final Set<ResourceType> REFERRABLE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
-  public static final Set<ResourceType> XML_FILE_RESOURCE_TYPES = EnumSet.of(ResourceType.ANIM, ResourceType.ANIMATOR,
-                                                                             ResourceType.INTERPOLATOR, ResourceType.LAYOUT,
-                                                                             ResourceType.MENU, ResourceType.XML, ResourceType.COLOR,
-                                                                             ResourceType.DRAWABLE, ResourceType.MIPMAP);
+  public static final Set<ResourceType> XML_FILE_RESOURCE_TYPES = EnumSet
+    .of(ResourceType.ANIM, ResourceType.ANIMATOR, ResourceType.INTERPOLATOR, ResourceType.LAYOUT, ResourceType.MENU, ResourceType.XML,
+        ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.RAW, ResourceType.TRANSITION);
   static final String ROOT_TAG_PROPERTY = "ROOT_TAG";
   static final String LAYOUT_WIDTH_PROPERTY = "LAYOUT_WIDTH";
   static final String LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT";
