@@ -114,10 +114,12 @@ public class CpuSampler extends DeviceSampler {
       previousTotalUptime = totalUptime;
     }
     else {
-      synchronized (myTimelineData) {
-        if (myTimelineData.size() > 0) {
-          TimelineData.Sample lastSample = myTimelineData.get(myTimelineData.size() - 1);
-          myTimelineData.add(System.currentTimeMillis(), TYPE_NOT_FOUND, lastSample.values[0], lastSample.values[1]);
+      final TimelineData timelineData = myTimelineData;
+      //noinspection SynchronizationOnLocalVariableOrMethodParameter - TimelineData synchronises on itself, and we need size/get to match
+      synchronized (timelineData) {
+        if (timelineData.size() > 0) {
+          TimelineData.Sample lastSample = timelineData.get(timelineData.size() - 1);
+          timelineData.add(System.currentTimeMillis(), TYPE_NOT_FOUND, lastSample.values[0], lastSample.values[1]);
         }
       }
     }

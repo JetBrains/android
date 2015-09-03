@@ -82,7 +82,6 @@ public abstract class DeviceSampler implements Runnable {
     if (myExecutingTask != null) {
       myRunning = false;
       myDataSemaphore.release();
-      myTimelineData.clear();
 
       myExecutingTask.cancel(true);
       try {
@@ -141,7 +140,8 @@ public abstract class DeviceSampler implements Runnable {
     return myIsPaused;
   }
 
-  protected void prepareSampler(@Nullable Client client) {}
+  protected void prepareSampler(@Nullable Client client) {
+  }
 
   /**
    * This method returns a local copy of <code>myClient</code>, as it is volatile.
@@ -176,6 +176,10 @@ public abstract class DeviceSampler implements Runnable {
         timeToWait -= System.currentTimeMillis() - start;
         if (timeToWait <= 0) {
           timeToWait = mySampleFrequencyMs;
+        }
+        Client client = myClient; // needed because myClient is volatile
+        if ((client == null) || !client.isValid()) {
+          stop();
         }
       }
       catch (InterruptedException e) {

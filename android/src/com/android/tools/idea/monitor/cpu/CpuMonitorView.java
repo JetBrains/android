@@ -15,53 +15,37 @@
  */
 package com.android.tools.idea.monitor.cpu;
 
-import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
-import com.android.tools.chartlib.EventData;
-import com.android.tools.chartlib.TimelineComponent;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.ToggleMethodProfilingAction;
 import com.android.tools.idea.monitor.BaseMonitorView;
-import com.android.tools.idea.monitor.DeviceSampler;
 import com.android.tools.idea.monitor.TimelineEventListener;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComponentWithActions;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
-public class CpuMonitorView extends BaseMonitorView implements TimelineEventListener, DeviceContext.DeviceSelectionListener {
+public class CpuMonitorView extends BaseMonitorView<CpuSampler> implements TimelineEventListener, DeviceContext.DeviceSelectionListener {
   /**
    * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
    * a sample on every GC.
    */
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
   private static final int SAMPLE_FREQUENCY_MS = 500;
-  @NotNull private final CpuSampler myCpuSampler;
-  @NotNull private final TimelineComponent myTimelineComponent;
-  private final DeviceContext myDeviceContext;
+  // Buffer at one and a half times the sample frequency.
+  private static final float TIMELINE_BUFFER_TIME = SAMPLE_FREQUENCY_MS * 1.5f / 1000;
+  private static final float TIMELINE_INITIAL_MAX = 100.0f;
+  private static final float TIMELINE_ABSOLUTE_MAX = TIMELINE_INITIAL_MAX;
+  private static final float TIMELINE_INITIAL_MARKER_SEPARATION = 10.0f;
 
   public CpuMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
-    super(project);
-
-    // Buffer at one and a half times the sample frequency.
-    float bufferTimeInSeconds = SAMPLE_FREQUENCY_MS * 1.5f / 1000.f;
-    float initialMax = 100.0f;
-    float initialMarker = 10.0f;
-
-    myCpuSampler = new CpuSampler(SAMPLE_FREQUENCY_MS);
-    myCpuSampler.addListener(this);
-
-    EventData events = new EventData();
-    myTimelineComponent =
-      new TimelineComponent(myCpuSampler.getTimelineData(), events, bufferTimeInSeconds, initialMax, 100, initialMarker);
+    super(project, deviceContext, new CpuSampler(SAMPLE_FREQUENCY_MS), TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, TIMELINE_ABSOLUTE_MAX,
+          TIMELINE_INITIAL_MARKER_SEPARATION);
 
     myTimelineComponent.configureUnits("%");
     myTimelineComponent.configureStream(0, "Kernel", new JBColor(0xd73f3f, 0xd73f3f));
@@ -71,9 +55,6 @@ public class CpuMonitorView extends BaseMonitorView implements TimelineEventList
     addOverlayText(PAUSED_LABEL, 0);
 
     setViewComponent(myTimelineComponent);
-
-    myDeviceContext = deviceContext;
-    myDeviceContext.addListener(this, project);
   }
 
   @Override
@@ -88,39 +69,9 @@ public class CpuMonitorView extends BaseMonitorView implements TimelineEventList
     return group;
   }
 
-  @Override
-  public void deviceSelected(@Nullable IDevice device) {
-  }
-
-  @Override
-  public void deviceChanged(@NotNull IDevice device, int changeMask) {
-  }
-
-  @Override
-  public void clientSelected(@Nullable Client c) {
-    myCpuSampler.setClient(c);
-  }
-
-  @Override
-  public void setPaused(boolean paused) {
-    myCpuSampler.setIsPaused(paused);
-    setOverlayEnabled(PAUSED_LABEL, paused);
-    myTimelineComponent.setUpdateData(!paused);
-  }
-
-  @Override
-  public boolean isPaused() {
-    return myCpuSampler.getIsPaused();
-  }
-
   @NotNull
   @Override
   public String getDescription() {
     return "cpu usage";
-  }
-
-  @Override
-  protected DeviceSampler getSampler() {
-    return myCpuSampler;
   }
 }
