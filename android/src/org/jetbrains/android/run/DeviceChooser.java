@@ -25,10 +25,13 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.run.CloudConfigurationProvider;
 import com.android.tools.idea.run.LaunchCompatibility;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.DoubleClickListener;
@@ -53,9 +56,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -66,11 +68,11 @@ import static com.intellij.openapi.util.text.StringUtil.capitalize;
  * @author Eugene.Kudelevsky
  */
 public class DeviceChooser implements Disposable {
-  private static final String[] COLUMN_TITLES = new String[]{"Device", "Serial Number", "State", "Compatible"};
+  private static final String[] COLUMN_TITLES = new String[]{"Device", "State", "Compatible", "Serial Number"};
   private static final int DEVICE_NAME_COLUMN_INDEX = 0;
-  private static final int SERIAL_COLUMN_INDEX = 1;
-  private static final int DEVICE_STATE_COLUMN_INDEX = 2;
-  private static final int COMPATIBILITY_COLUMN_INDEX = 3;
+  private static final int DEVICE_STATE_COLUMN_INDEX = 1;
+  private static final int COMPATIBILITY_COLUMN_INDEX = 2;
+  private static final int SERIAL_COLUMN_INDEX = 3;
   private static final int REFRESH_INTERVAL_MS = 500;
 
   public static final IDevice[] EMPTY_DEVICE_ARRAY = new IDevice[0];
@@ -95,7 +97,6 @@ public class DeviceChooser implements Disposable {
   private JBTable myDeviceTable;
 
   private final AndroidFacet myFacet;
-  private final Condition<IDevice> myFilter;
   private final AndroidVersion myMinSdkVersion;
   private final IAndroidTarget myProjectTarget;
   private final EnumSet<IDevice.HardwareFeature> myRequiredHardwareFeatures;
@@ -106,19 +107,17 @@ public class DeviceChooser implements Disposable {
   public DeviceChooser(boolean multipleSelection,
                        @NotNull final Action okAction,
                        @NotNull AndroidFacet facet,
-                       @NotNull IAndroidTarget projectTarget,
-                       @Nullable Condition<IDevice> filter) {
+                       @NotNull IAndroidTarget projectTarget) {
 
     myCloudConfigurationProvider = CloudConfigurationProvider.getCloudConfigurationProvider();
     myFacet = facet;
-    myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
     myRequiredHardwareFeatures = getRequiredHardwareFeatures(ManifestInfo.get(facet.getModule(), true).getRequiredFeatures());
 
     myDeviceTable = new JBTable();
     myPanel = ScrollPaneFactory.createScrollPane(myDeviceTable);
-    myPanel.setPreferredSize(new Dimension(450, 220));
+    myPanel.setPreferredSize(new Dimension(550, 220));
 
     myDeviceTable.setModel(new MyDeviceTableModel(EMPTY_DEVICE_ARRAY));
     myDeviceTable.setSelectionMode(multipleSelection ?
@@ -153,11 +152,31 @@ public class DeviceChooser implements Disposable {
         }
       }
     });
-
+    myDeviceTable.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON3) {
+          int i = myDeviceTable.rowAtPoint(e.getPoint());
+          Object serial = myDeviceTable.getValueAt(i, SERIAL_COLUMN_INDEX);
+          final String serialString = serial.toString();
+          // Add a menu to copy the serial key.
+          JBPopupMenu popupMenu = new JBPopupMenu();
+          Action action = new AbstractAction("Copy Serial Number") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              CopyPasteManager.getInstance().setContents(new StringSelection(serialString));
+            }
+          };
+          popupMenu.add(action);
+          popupMenu.show(e.getComponent(), e.getX(), e.getY());
+        }
+        super.mouseReleased(e);
+      }
+    });
     setColumnWidth(myDeviceTable, DEVICE_NAME_COLUMN_INDEX, "Samsung Galaxy Nexus Android 4.1 (API 17)");
-    setColumnWidth(myDeviceTable, SERIAL_COLUMN_INDEX, "0000-0000-00000");
     setColumnWidth(myDeviceTable, DEVICE_STATE_COLUMN_INDEX, "offline");
-    setColumnWidth(myDeviceTable, COMPATIBILITY_COLUMN_INDEX, "yes");
+    setColumnWidth(myDeviceTable, COMPATIBILITY_COLUMN_INDEX, "Compatible");
+    setColumnWidth(myDeviceTable, SERIAL_COLUMN_INDEX, "123456");
 
     // Do not recreate columns on every model update - this should help maintain the column sizes set above
     myDeviceTable.setAutoCreateColumnsFromModel(false);
@@ -184,12 +203,12 @@ public class DeviceChooser implements Disposable {
     return EnumSet.noneOf(IDevice.HardwareFeature.class);
   }
 
-  private void setColumnWidth(JBTable deviceTable, int columnIndex, String sampleText) {
+  private static void setColumnWidth(JBTable deviceTable, int columnIndex, String sampleText) {
     int width = getWidth(deviceTable, sampleText);
     deviceTable.getColumnModel().getColumn(columnIndex).setPreferredWidth(width);
   }
 
-  private int getWidth(JBTable deviceTable, String sampleText) {
+  private static int getWidth(JBTable deviceTable, String sampleText) {
     FontMetrics metrics = deviceTable.getFontMetrics(deviceTable.getFont());
     return metrics.stringWidth(sampleText);
   }
@@ -276,7 +295,7 @@ public class DeviceChooser implements Disposable {
     IDevice[] devices = myDetectedDevicesRef.get();
     myDisplayedDevices = devices;
 
-    final IDevice[] selectedDevices = getSelectedDevices();
+    final IDevice[] selectedDevices = getSelectedDevices(false);
     final TIntArrayList selectedRows = new TIntArrayList();
     for (int i = 0; i < devices.length; i++) {
       if (ArrayUtil.indexOf(selectedDevices, devices[i]) >= 0) {
@@ -311,12 +330,46 @@ public class DeviceChooser implements Disposable {
     return myPanel;
   }
 
+  @Nullable
+  public ValidationInfo doValidate() {
+    int[] rows = mySelectedRows != null ? mySelectedRows : myDeviceTable.getSelectedRows();
+    boolean hasIncompatible = false;
+    boolean hasCompatible = false;
+    for (int row : rows) {
+      if (!isRowCompatible(row)) {
+        hasIncompatible = true;
+      } else {
+        hasCompatible = true;
+      }
+    }
+    if (!hasIncompatible) {
+      return null;
+    }
+    String message;
+    if (hasCompatible) {
+      message = "At least one of the selected devices is incompatible. Will only install on compatible devices.";
+    }
+    else {
+      String devicesAre = rows.length > 1 ? "devices are" : "device is";
+      message = "The selected " + devicesAre + " incompatible.";
+    }
+    return new ValidationInfo(message);
+  }
+
   @NotNull
   public IDevice[] getSelectedDevices() {
+    return getSelectedDevices(true);
+  }
+
+  @NotNull
+  private IDevice[] getSelectedDevices(boolean onlyCompatible) {
     int[] rows = mySelectedRows != null ? mySelectedRows : myDeviceTable.getSelectedRows();
     List<IDevice> result = new ArrayList<IDevice>();
     for (int row : rows) {
       if (row >= 0) {
+        if (onlyCompatible && !isRowCompatible(row)) {
+          continue;
+        }
         Object serial = myDeviceTable.getValueAt(row, SERIAL_COLUMN_INDEX);
         final AndroidDebugBridge bridge = AndroidSdkUtils.getDebugBridge(myFacet.getModule().getProject());
         if (bridge == null) {
@@ -336,18 +389,19 @@ public class DeviceChooser implements Disposable {
 
   @NotNull
   private IDevice[] getFilteredDevices(AndroidDebugBridge bridge) {
-    final List<IDevice> filteredDevices = new ArrayList<IDevice>();
-    for (IDevice device : bridge.getDevices()) {
-      if (myFilter == null || myFilter.value(device)) {
-        filteredDevices.add(device);
-      }
-    }
+    final List<IDevice> filteredDevices = Lists.newArrayList(bridge.getDevices());
     // Do not filter launching cloud devices as they are just unselectable progress markers
     // that are replaced with the actual cloud devices as soon as they are up and the actual cloud devices will be filtered above.
     if (myCloudConfigurationProvider != null) {
       filteredDevices.addAll(myCloudConfigurationProvider.getLaunchingCloudDevices());
     }
     return filteredDevices.toArray(new IDevice[filteredDevices.size()]);
+  }
+
+  private boolean isRowCompatible(int row) {
+    // Use the value already computed in the table to avoid having to compute it again.
+    Object compatibility = myDeviceTable.getValueAt(row, COMPATIBILITY_COLUMN_INDEX);
+    return compatibility instanceof LaunchCompatibility && ((LaunchCompatibility)compatibility).isCompatible() != ThreeState.NO;
   }
 
   public void finish() {
@@ -415,6 +469,7 @@ public class DeviceChooser implements Disposable {
         case DEVICE_STATE_COLUMN_INDEX:
           return getDeviceState(device);
         case COMPATIBILITY_COLUMN_INDEX:
+          // This value is also used in the method isRowCompatible(). Update that if there's a change here.
           return LaunchCompatibility.canRunOnDevice(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures, device, null);
       }
       return null;
