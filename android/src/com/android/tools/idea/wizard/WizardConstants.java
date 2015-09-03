@@ -88,7 +88,7 @@ public class WizardConstants {
   public static final Key<List<File>> FILES_TO_OPEN_KEY = createKey("files.to.open", WIZARD, (Class<List<File>>)(Class)List.class);
 
   // Patterns
-  public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>!]";
+  public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>!;]";
   public static final Set<String> INVALID_WINDOWS_FILENAMES = ImmutableSet
     .of("con", "prn", "aux", "clock$", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2",
         "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9", "$mft", "$mftmirr", "$logfile", "$volume", "$attrdef", "$bitmap", "$boot",
