@@ -31,6 +31,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.ui.popup.PopupStep;
@@ -38,6 +39,7 @@ import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.Alarm;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -124,7 +126,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
 
     getOKAction().setEnabled(false);
 
-    myDeviceChooser = new DeviceChooser(multipleSelection, getOKAction(), facet, projectTarget, null);
+    myDeviceChooser = new DeviceChooser(multipleSelection, getOKAction(), facet, projectTarget);
     Disposer.register(myDisposable, myDeviceChooser);
     myDeviceChooser.addListener(new DeviceChooserListener() {
       @Override
@@ -222,6 +224,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
 
     updateDialogComponentsVisibility(isGoogleCloudRadioButtonShown);
     updateEnabled();
+    initValidation();
   }
 
   private class LaunchDeviceActionListener implements ActionListener {
@@ -244,7 +247,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
       }
 
       ListPopup popup = JBPopupFactory.getInstance()
-        .createListPopup(new BaseListPopupStep<String>("Launch a Device", new String[]{EMULATOR, CLOUD_DEVICE}) {
+        .createListPopup(new BaseListPopupStep<String>("Launch a Device", EMULATOR, CLOUD_DEVICE) {
           @Override
           public PopupStep onChosen(String selectedValue, boolean finalChoice) {
             if (selectedValue.equals(EMULATOR)) {
@@ -378,7 +381,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     myDeviceChooser.finish();
 
     final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
-    properties.setValue(SELECTED_SERIALS_PROPERTY, AndroidRunningState.toString(myDeviceChooser.getSelectedDevices()));
+    properties.setValue(SELECTED_SERIALS_PROPERTY, AndroidRunningState.toString(getSelectedDevices()));
 
     final IdDisplay selectedAvd = (IdDisplay)myAvdCombo.getComboBox().getSelectedItem();
     if (selectedAvd != null) {
@@ -399,6 +402,19 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
   @Override
   protected JComponent createCenterPanel() {
     return myPanel;
+  }
+
+  @Nullable
+  @Override
+  protected ValidationInfo doValidate() {
+    return myDeviceChooser.doValidate();
+  }
+
+  @NotNull
+  @Override
+  protected Alarm.ThreadToUse getValidationThreadToUse() {
+    // The default swing thread doesn't work for some reason - the doValidate method is never called.
+    return Alarm.ThreadToUse.POOLED_THREAD;
   }
 
   @NotNull
