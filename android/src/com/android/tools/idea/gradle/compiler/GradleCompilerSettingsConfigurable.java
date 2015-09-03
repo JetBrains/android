@@ -24,7 +24,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,8 +67,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myCompilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
     myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
 
-    boolean isInternal = SystemProperties.getBooleanProperty("idea.is.internal", false);
-    if (!isAndroidStudio() || !isInternal) {
+    if (!isAndroidStudio()) {
       myUseInProcessBuildLabel.setVisible(false);
       myUseInProcessBuildCheckBox.setVisible(false);
       myUseInProcessBuildSpacing.setVisible(false);
