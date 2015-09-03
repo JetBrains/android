@@ -112,6 +112,25 @@ public class AndroidRenameTest extends AndroidTestCase {
     assertNotNull(myFixture.findFileInTempDir("res/mipmap/app_icon.png"));
   }
 
+  // Regression test for raw resources renaming, http://b.android.com/183128
+  public void testXmlReferenceToFileResource3() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "styles.xml", "res/raw/raw_resource.txt");
+    myFixture
+      .configureFromExistingVirtualFile(myFixture.copyFileToProject(BASE_PATH + "AndroidManifest_raw_before.xml", "AndroidManifest.xml"));
+    renameElementWithTextOccurences("new_raw_resource.txt");
+    myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + "AndroidManifest_raw_after.xml", true);
+    assertNotNull(myFixture.findFileInTempDir("res/raw/new_raw_resource.txt"));
+  }
+
+  // Regression test for transition resources renaming, http://b.android.com/183128
+  public void testXmlReferenceToFileResource4() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "transition.xml", "res/transition/great.xml");
+    myFixture.configureFromExistingVirtualFile(myFixture.copyFileToProject(BASE_PATH + "styles12.xml", "res/values/styles.xml"));
+    renameElementWithTextOccurences("good.xml");
+    myFixture.checkResultByFile("res/values/styles.xml", BASE_PATH + "styles12_after.xml", true);
+    assertNotNull(myFixture.findFileInTempDir("res/transition/good.xml"));
+  }
+
   public void testMoveApplicationClass() throws Throwable {
     deleteManifest();
     myFixture.copyFileToProject(BASE_PATH + "MyApplication.java", "src/p1/p2/MyApplication.java");
