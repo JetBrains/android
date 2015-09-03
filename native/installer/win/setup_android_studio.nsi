@@ -96,6 +96,7 @@ RequestExecutionLevel admin # The uninstaller always runs in admin mode
 !define DEFAULT_SDK_PATH "$PROFILE\AppData\Local\Android\sdk"
 !define FALLBACK_SDK_PATH "C:\Android\sdk"
 !define ANDROID_USER_SETTINGS "$PROFILE\.android"
+!define BAD_CHARS '?%*:|"<>!;'
 
 !define VERSION_MAJOR 1
 !define VERSION_MINOR 0
@@ -677,9 +678,9 @@ Function fnc_ValidPath
     StrLen $R0 $validPath_path
     StrCpy $validPath_path $validPath_path $R0 2 ; Skip c:
     ${If} $validPath_includeSpace == 0
-        StrCpy $validPath_badChars '!?%*:|"<>'
+        StrCpy $validPath_badChars '${BAD_CHARS}'
     ${Else}
-        StrCpy $validPath_badChars ' !?%*:|"<>'
+        StrCpy $validPath_badChars ' {$BAD_CHARS}'
     ${EndIf}
     ${StrContainsAnyOf} $R0 $validPath_path $validPath_badChars
     Exch $R0
@@ -693,11 +694,10 @@ FunctionEnd
 !define fnc_ValidPath "!insertmacro fnc_ValidPath"
 
 
-# Returns DEFAULT if it contains none of ' ?%*:|"<>!', otherwise returns FALLBACK
+# Returns DEFAULT if it contains none of $BAD_CHARS (or space if INCLUDE_SPACE = 1) otherwise returns FALLBACK
 Var defaultPath_default
 Var defaultPath_fallback
 Var defaultPath_includeSpace
-Var defaultPath_badChars
 
 Function fnc_DefaultPath
     Pop $defaultPath_includeSpace
@@ -1331,7 +1331,7 @@ Function fnc_InstallDirsPage_Leave
 
     ${fnc_ValidPath} $0 $s_StudioPath 0
     ${If} $0 != 0
-        MessageBox MB_OK|MB_ICONEXCLAMATION 'The install path must not contain any of ?%*:|"<>! or space.' /SD IDOK
+        MessageBox MB_OK|MB_ICONEXCLAMATION 'The install path must not contain any of ${BAD_CHARS}.' /SD IDOK
         Abort
     ${Endif}
 
@@ -1340,7 +1340,7 @@ Function fnc_InstallDirsPage_Leave
 
         ${fnc_ValidPath} $0 $s_SdkPath 1
         ${If} $0 != 0
-            MessageBox MB_OK|MB_ICONEXCLAMATION 'The SDK path must not contain any of ?%*:|"<>! or space.' /SD IDOK
+            MessageBox MB_OK|MB_ICONEXCLAMATION 'The SDK path must not contain any of ${BAD_CHARS} or space.' /SD IDOK
             Abort
         ${Endif}
 
