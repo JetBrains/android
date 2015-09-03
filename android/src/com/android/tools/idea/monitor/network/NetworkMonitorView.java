@@ -16,12 +16,8 @@
 package com.android.tools.idea.monitor.network;
 
 import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
-import com.android.tools.chartlib.EventData;
-import com.android.tools.chartlib.TimelineComponent;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.monitor.BaseMonitorView;
-import com.android.tools.idea.monitor.DeviceSampler;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -31,29 +27,21 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.awt.*;
 
-public class NetworkMonitorView extends BaseMonitorView implements DeviceContext.DeviceSelectionListener {
+public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implements DeviceContext.DeviceSelectionListener {
   private static final int SAMPLE_FREQUENCY_MS = 500;
   private static final float TIMELINE_BUFFER_TIME = SAMPLE_FREQUENCY_MS * 1.5f / 1000;
   private static final float TIMELINE_INITIAL_MAX = 5.f;
+  private static final float TIMELINE_ABSOLUTE_MAX = Float.MAX_VALUE;
   private static final float TIMELINE_INITIAL_MARKER_SEPARATION = 1.f;
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
   private static final String MISSING_LABEL = "Network monitoring is not available on your device.";
 
-  @NotNull private final NetworkSampler myNetworkSampler;
-  @NotNull private final TimelineComponent myTimelineComponent;
-
   public NetworkMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
-    super(project);
+    super(project, deviceContext, new NetworkSampler(SAMPLE_FREQUENCY_MS), TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX,
+          TIMELINE_ABSOLUTE_MAX, TIMELINE_INITIAL_MARKER_SEPARATION);
 
-    myNetworkSampler = new NetworkSampler(SAMPLE_FREQUENCY_MS);
-    myNetworkSampler.addListener(this);
-
-    myTimelineComponent =
-      new TimelineComponent(myNetworkSampler.getTimelineData(), new EventData(), TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX,
-                            Float.MAX_VALUE, TIMELINE_INITIAL_MARKER_SEPARATION);
     // TODO: Change the initial unit to B/s after fixing the window frozen problem.
     myTimelineComponent.configureUnits("KB/s");
     myTimelineComponent.configureStream(0, "Rx", new JBColor(0xff8000, 0xff8000));
@@ -77,40 +65,15 @@ public class NetworkMonitorView extends BaseMonitorView implements DeviceContext
   }
 
   @Override
-  public void deviceChanged(@NotNull IDevice device, int changeMask) {
-  }
-
-  @Override
-  public void deviceSelected(@Nullable IDevice device) {
-  }
-
-  @Override
   public void clientSelected(@Nullable Client c) {
-    myNetworkSampler.setClient(c);
+    super.clientSelected(c);
     // TODO: Need to move canReadNetworkStatistics to a separate thread. This is causing a hiccup in the UI.
-    setOverlayEnabled(MISSING_LABEL, c != null && !myNetworkSampler.canReadNetworkStatistics());
-  }
-
-  @Override
-  public void setPaused(boolean paused) {
-    myNetworkSampler.setIsPaused(paused);
-    setOverlayEnabled(PAUSED_LABEL, paused);
-    myTimelineComponent.setUpdateData(!paused);
-  }
-
-  @Override
-  public boolean isPaused() {
-    return myNetworkSampler.getIsPaused();
+    setOverlayEnabled(MISSING_LABEL, c != null && !mySampler.canReadNetworkStatistics());
   }
 
   @NotNull
   @Override
   public String getDescription() {
     return "network data usage";
-  }
-
-  @Override
-  protected DeviceSampler getSampler() {
-    return myNetworkSampler;
   }
 }
