@@ -25,13 +25,13 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.run.CloudConfigurationProvider;
 import com.android.tools.idea.run.LaunchCompatibility;
+import com.google.common.base.Predicate;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.DoubleClickListener;
@@ -97,7 +97,7 @@ public class DeviceChooser implements Disposable {
   private JBTable myDeviceTable;
 
   private final AndroidFacet myFacet;
-  private final Condition<IDevice> myFilter;
+  private final Predicate<IDevice> myFilter;
   private final AndroidVersion myMinSdkVersion;
   private final IAndroidTarget myProjectTarget;
   private final EnumSet<IDevice.HardwareFeature> myRequiredHardwareFeatures;
@@ -109,7 +109,7 @@ public class DeviceChooser implements Disposable {
                        @NotNull final Action okAction,
                        @NotNull AndroidFacet facet,
                        @NotNull IAndroidTarget projectTarget,
-                       @Nullable Condition<IDevice> filter) {
+                       @Nullable Predicate<IDevice> filter) {
 
     myCloudConfigurationProvider = CloudConfigurationProvider.getCloudConfigurationProvider();
     myFacet = facet;
@@ -394,7 +394,7 @@ public class DeviceChooser implements Disposable {
   private IDevice[] getFilteredDevices(AndroidDebugBridge bridge) {
     final List<IDevice> filteredDevices = new ArrayList<IDevice>();
     for (IDevice device : bridge.getDevices()) {
-      if (myFilter == null || myFilter.value(device)) {
+      if (myFilter == null || myFilter.apply(device)) {
         filteredDevices.add(device);
       }
     }
