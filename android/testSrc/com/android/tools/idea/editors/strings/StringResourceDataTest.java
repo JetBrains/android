@@ -71,9 +71,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     }));
     assertSameElements(locales, ImmutableSet.of("en", "en-GB", "en-IN", "fr", "hi"));
 
-    Map<String, ResourceItem> defaultValues = data.getDefaultValues();
-    assertEquals(5, defaultValues.size());
-    assertContainsElements(defaultValues.keySet(), ImmutableSet.of("key1", "key2", "key3", "key5"));
+    assertEquals(ImmutableSet.of("key1", "key2", "key3", "key5", "key6", "key7"), data.getDefaultValues().keySet());
 
     Set<String> untranslatableKeys = data.getUntranslatableKeys();
     assertSameElements(untranslatableKeys, Lists.newArrayList("key5", "key6"));
@@ -181,7 +179,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en/strings.xml");
     assert file != null;
 
-    XmlTag tag = getNthXmlTag(file, "string", 3);
+    XmlTag tag = getNthXmlTag(file, "string", 4);
     assertEquals("key4", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals("Hello", tag.getValue().getText());
 
