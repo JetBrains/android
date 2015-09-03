@@ -56,6 +56,20 @@ public final class AndroidLogcatFormatter {
   }
 
   /**
+   * Construct a fake logcat message at the specified level.
+   */
+  public static String formatMessage(@NotNull Log.LogLevel level, @NotNull String message) {
+    LogMessageHeader header = new LogMessageHeader();
+    header.myTime = "00-00 00:00:00.0";
+    header.myLogLevel = level;
+    header.myPid = 0;
+    header.myTid = "0";
+    header.myAppPackage = "?";
+    header.myTag = "Internal";
+    return formatMessage(header, message);
+  }
+
+  /**
    * Parse a message that was encoded using {@link #formatMessage(LogMessageHeader, String)}
    */
   public static Message parseMessage(@NotNull String msg) {
