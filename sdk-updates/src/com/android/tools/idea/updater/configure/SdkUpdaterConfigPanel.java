@@ -18,6 +18,7 @@ package com.android.tools.idea.updater.configure;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.remote.RemoteSdk;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
@@ -306,11 +307,14 @@ public class SdkUpdaterConfigPanel {
     if (data != null) {
       sdkLocation = data.getLocation();
     }
-    boolean valid = sdkLocation != null;
-    myTabPane.setEnabled(valid);
-    myPlatformComponentsPanel.setEnabled(valid);
-    mySdkLocationLabel.setForeground(valid ? JBColor.foreground() : JBColor.RED);
-    mySdkErrorLabel.setVisible(!valid);
+    WizardUtils.ValidationResult result = WizardUtils.validateLocation(sdkLocation.getAbsolutePath(), "Android SDK Location", false);
+    myTabPane.setEnabled(result.isOk());
+    myPlatformComponentsPanel.setEnabled(result.isOk());
+    mySdkLocationLabel.setForeground(result.isOk() ? JBColor.foreground() : JBColor.RED);
+    mySdkErrorLabel.setVisible(!result.isOk());
+    if (!result.isOk()) {
+      mySdkErrorLabel.setText(result.getFormattedMessage());
+    }
   }
 
   private void loadPackages(SdkPackages packages) {
