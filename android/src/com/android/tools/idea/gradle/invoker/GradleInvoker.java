@@ -190,13 +190,14 @@ public class GradleInvoker {
 
   public void executeTasks(@NotNull final List<String> gradleTasks, @NotNull final List<String> commandLineArguments) {
     ExternalSystemTaskId id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, EXECUTE_TASK, myProject);
-    executeTasks(gradleTasks, commandLineArguments, id, null, false);
+    executeTasks(gradleTasks, Collections.<String>emptyList(), commandLineArguments, id, null, false);
   }
 
   /**
    * Asks to execute target gradle tasks.
    *
    * @param gradleTasks           names of the tasks to execute
+   * @param jvmArguments          arguments for the JVM running the gradle tasks.
    * @param commandLineArguments  command line arguments to use for the target tasks execution
    * @param taskId                id of the request to execute given gradle tasks (if any), e.g. there is a possible case
    *                              that this call implies from IDE run configuration, so, it assigns a unique id to the request
@@ -205,6 +206,7 @@ public class GradleInvoker {
    * @param waitForCompletion     a flag which hints whether current method should return control flow before target tasks are executed
    */
   public void executeTasks(@NotNull final List<String> gradleTasks,
+                           @NotNull final List<String> jvmArguments,
                            @NotNull final List<String> commandLineArguments,
                            @NotNull final ExternalSystemTaskId taskId,
                            @Nullable final ExternalSystemTaskNotificationListener taskListener,
@@ -222,7 +224,8 @@ public class GradleInvoker {
     }
 
     GradleTaskExecutionContext context =
-      new GradleTaskExecutionContext(this, myProject, gradleTasks, commandLineArguments, myCancellationMap, taskId, taskListener);
+      new GradleTaskExecutionContext(this, myProject, gradleTasks, jvmArguments, commandLineArguments, myCancellationMap, taskId,
+                                     taskListener);
     final GradleTasksExecutor executor = new GradleTasksExecutor(context);
     invokeAndWaitIfNeeded(new Runnable() {
       @Override

@@ -304,7 +304,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
           LOG.info("Build command line options: " + commandLineArgs);
 
-          List<String> jvmArgs = Collections.emptyList();
+          List<String> jvmArgs = Lists.newArrayList(myContext.getJvmArgs());
           BuildLauncher launcher = connection.newBuild();
           prepare(launcher, id, executionSettings, GRADLE_LISTENER, jvmArgs, commandLineArgs, connection);
 
