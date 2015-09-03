@@ -551,6 +551,9 @@ public class TemplateTest extends AndroidGradleTestCase {
     // Iterate over all (valid) combinations of build target, minSdk and targetSdk
     // TODO: Assert that the SDK manager has a minimum set of SDKs installed needed to be certain
     // the test is comprehensive
+    // For now make sure there's at least one
+    boolean ranTest = false;
+
     IAndroidTarget[] targets = sdkData.getTargets();
     for (int i = targets.length - 1; i >= 0; i--) {
       IAndroidTarget target = targets[i];
@@ -621,6 +624,7 @@ public class TemplateTest extends AndroidGradleTestCase {
                                   + "_build_" + target.getVersion().getApiLevel()
                                   + "_theme_" + optionId;
                     checkApiTarget(minSdk, targetSdk, target, values, base, state, null);
+                    ranTest = true;
                     if (!TEST_VARIABLE_COMBINATIONS) {
                       break projectParameters;
                     }
@@ -644,6 +648,7 @@ public class TemplateTest extends AndroidGradleTestCase {
         break;
       }
     }
+    assertTrue("Didn't run any tests! Make sure you have the right platforms installed.", ranTest);
   }
 
   /** Checks creating the given project and template for the given SDK versions */
@@ -790,9 +795,10 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private void checkProject(@NonNull final String projectName,
+  private void checkProject(@NonNull String projectName,
                             @NonNull NewProjectWizardState projectValues,
                             @Nullable final TemplateWizardState templateValues) throws Exception {
+    final String modifiedProjectName = projectName + "!@#$^&()_+=-,.`~你所有的基地都属于我们";
     ourCount++;
     projectValues.put(ATTR_RES_OUT, null);
     projectValues.put(ATTR_SRC_OUT, null);
@@ -802,9 +808,9 @@ public class TemplateTest extends AndroidGradleTestCase {
     JavaCodeInsightTestFixture fixture = null;
     File projectDir = null;
     try {
-      projectValues.put(ATTR_MODULE_NAME, projectName);
+      projectValues.put(ATTR_MODULE_NAME, modifiedProjectName);
       IdeaTestFixtureFactory factory = IdeaTestFixtureFactory.getFixtureFactory();
-      TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = factory.createFixtureBuilder(projectName);
+      TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = factory.createFixtureBuilder(modifiedProjectName);
       fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
       fixture.setUp();
 
@@ -826,7 +832,7 @@ public class TemplateTest extends AndroidGradleTestCase {
             File projectRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
             Template template = templateValues.getTemplate();
             assert template != null;
-            File moduleRoot = new File(projectRoot, projectName);
+            File moduleRoot = new File(projectRoot, modifiedProjectName);
             templateValues.put(ATTR_MODULE_NAME, moduleRoot.getName());
             try {
               templateValues.populateDirectoryParameters();
