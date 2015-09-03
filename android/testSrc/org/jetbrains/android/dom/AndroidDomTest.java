@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -62,7 +63,8 @@ abstract class AndroidDomTest extends AndroidTestCase {
     myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.java");
   }
 
-  protected void doTestNamespaceCompletion(boolean systemNamespace, boolean customNamespace) throws IOException {
+  protected void doTestNamespaceCompletion(boolean systemNamespace, boolean customNamespace, boolean toolsNamespace, boolean xliffNamespace)
+    throws IOException {
     final VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
@@ -71,12 +73,18 @@ abstract class AndroidDomTest extends AndroidTestCase {
     final List<String> expectedVariants = new ArrayList<String>();
 
     if (systemNamespace) {
-      expectedVariants.add("http://schemas.android.com/apk/res/android");
+      expectedVariants.add(SdkConstants.ANDROID_URI);
     }
     if (customNamespace) {
       expectedVariants.add("http://schemas.android.com/apk/res/p1.p2");
     }
-    expectedVariants.add(SdkConstants.TOOLS_URI);
+    if (toolsNamespace) {
+      expectedVariants.add(SdkConstants.TOOLS_URI);
+    }
+    if (xliffNamespace) {
+      expectedVariants.add(SdkConstants.XLIFF_URI);
+    }
+    Collections.sort(expectedVariants);
     assertEquals(expectedVariants, variants);
   }
 
