@@ -33,6 +33,7 @@ public class GradleTaskExecutionContext {
   @NotNull private final GradleInvoker myGradleInvoker;
   @NotNull private final Project myProject;
   @NotNull private final List<String> myGradleTasks;
+  @NotNull private final List<String> myJvmArgs;
   @NotNull private final List<String> myCommandLineArgs;
   @NotNull private final Map<ExternalSystemTaskId, CancellationTokenSource> myCancellationMap;
 
@@ -42,6 +43,7 @@ public class GradleTaskExecutionContext {
   public GradleTaskExecutionContext(@NotNull GradleInvoker gradleInvoker,
                                     @NotNull Project project,
                                     @NotNull List<String> gradleTasks,
+                                    @NotNull List<String> jvmArgs,
                                     @NotNull List<String> commandLineArgs,
                                     @NotNull Map<ExternalSystemTaskId, CancellationTokenSource> cancellationMap,
                                     @NotNull ExternalSystemTaskId taskId,
@@ -49,6 +51,7 @@ public class GradleTaskExecutionContext {
     myGradleInvoker = gradleInvoker;
     myProject = project;
     myGradleTasks = gradleTasks;
+    myJvmArgs = jvmArgs;
     myCommandLineArgs = commandLineArgs;
     myCancellationMap = cancellationMap;
     myTaskId = taskId;
@@ -68,6 +71,11 @@ public class GradleTaskExecutionContext {
   @NotNull
   public List<String> getGradleTasks() {
     return myGradleTasks;
+  }
+
+  @NotNull
+  public List<String> getJvmArgs() {
+    return myJvmArgs;
   }
 
   @NotNull

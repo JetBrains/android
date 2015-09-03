@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManagerExtension;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -50,7 +49,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
       // Returning false gives control back to the framework, and the task(s) will be invoked by IDEA.
       return false;
     }
-    invoker.executeTasks(taskNames, Collections.<String>emptyList(), id, listener, true);
+    invoker.executeTasks(taskNames, vmOptions, scriptParameters, id, listener, true);
     return true;
   }
 
