@@ -100,6 +100,7 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -875,9 +876,28 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         trackInstallation(device);
         myApplicationDeployed = true;
       }
-      final AndroidApplicationLauncher.LaunchResult launchResult =
-        myApplicationLauncher.launch(this, device);
 
+      // From Version 23 onwards (in the emulator, possibly later on devices), we can dismiss the keyguard
+      // with "adb shell wm dismiss-keyguard". This allows the application to show up without the user having
+      // to manually dismiss the keyguard.
+      final AndroidVersion canDismissKeyguard = new AndroidVersion(23, null);
+      if (canDismissKeyguard.compareTo(DevicePropertyUtil.getDeviceVersion(device)) <= 0) {
+        // It is not necessary to wait for the keyguard to be dismissed. On a slow emulator, this seems
+        // to take a while (6s on my machine)
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              device.executeShellCommand("wm dismiss-keyguard", new NullOutputReceiver(), 10, TimeUnit.SECONDS);
+            }
+            catch (Exception e) {
+              LOG.warn("Unable to dismiss keyguard before launching activity");
+            }
+          }
+        });
+      }
+
+      final AndroidApplicationLauncher.LaunchResult launchResult = myApplicationLauncher.launch(this, device);
       if (launchResult == AndroidApplicationLauncher.LaunchResult.STOP) {
         return false;
       }
