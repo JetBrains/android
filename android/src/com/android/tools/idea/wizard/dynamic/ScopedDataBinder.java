@@ -102,7 +102,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
                                          DocumentListener, ItemListener {
   // State store
   // TODO: Temporary change. Set to private in a followup CL!
-  @VisibleForTesting
+  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   public ScopedStateStore myState;
 
   // Mapping documents to components.
