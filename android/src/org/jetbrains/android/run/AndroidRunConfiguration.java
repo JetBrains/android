@@ -85,7 +85,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     if (state != null) {
       state.setDeploy(DEPLOY);
       state.setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
-      state.setFilterLogcatAutomatically(FILTER_LOGCAT_AUTOMATICALLY);
     }
     return state;
   }
