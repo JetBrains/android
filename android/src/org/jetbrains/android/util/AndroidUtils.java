@@ -111,6 +111,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author yole, coyote
@@ -142,6 +143,7 @@ public class AndroidUtils {
   @NonNls public static final String PROVIDER_CLASS_NAME = SdkConstants.CLASS_CONTENTPROVIDER;
 
   public static final int TIMEOUT = 3000000;
+  public static final int MAX_RETRIES = 5;
 
   private static final Key<ConsoleView> CONSOLE_VIEW_KEY = new Key<ConsoleView>("AndroidConsoleView");
 
@@ -304,23 +306,13 @@ public class AndroidUtils {
                                             @NotNull AndroidOutputReceiver receiver,
                                             boolean infinite)
     throws IOException, TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException {
-    int attempt = 0;
-    while (attempt < 5) {
-      if (infinite) {
-        device.executeShellCommand(command, receiver, 0);
-      }
-      else {
-        device.executeShellCommand(command, receiver, TIMEOUT);
-      }
-      if (infinite && !receiver.isCancelled()) {
-        attempt++;
-      }
-      else if (receiver.isTryAgain()) {
-        attempt++;
-      }
-      else {
-        break;
-      }
+
+    long timeout = infinite ? 0 : TIMEOUT;
+    for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      device.executeShellCommand(command, receiver, timeout, TimeUnit.MILLISECONDS);
+      if (receiver.isCancelled()) break;
+      boolean retry = infinite || receiver.isTryAgain();
+      if (!retry) break;
       receiver.invalidate();
     }
   }
