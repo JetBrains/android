@@ -2,6 +2,7 @@ package org.jetbrains.android.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.IAndroidTarget;
+import com.google.common.base.Predicate;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
@@ -22,7 +23,7 @@ public class DeviceChooserDialog extends DialogWrapper {
                              @NotNull IAndroidTarget projectTarget,
                              boolean multipleSelection,
                              @Nullable String[] selectedSerials,
-                             @Nullable Condition<IDevice> filter) {
+                             @Nullable Predicate<IDevice> filter) {
     super(facet.getModule().getProject(), true);
     setTitle(AndroidBundle.message("choose.device.dialog.title"));
 
