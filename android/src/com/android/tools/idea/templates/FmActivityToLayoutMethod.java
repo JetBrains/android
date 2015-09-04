@@ -32,11 +32,15 @@ import static com.android.tools.idea.wizard.template.TemplateWizardState.LAYOUT_
 public class FmActivityToLayoutMethod implements TemplateMethodModelEx {
   @Override
   public TemplateModel exec(List args) throws TemplateModelException {
-    if (args.size() != 1) {
+    if (args.size() < 1 || args.size() > 2) {
       throw new TemplateModelException("Wrong arguments");
     }
 
     String activityName = ((TemplateScalarModel)args.get(0)).getAsString();
+    String layoutNamePrefix = LAYOUT_NAME_PREFIX;
+    if (args.size() > 1) {
+      layoutNamePrefix = ((TemplateScalarModel)args.get(1)).getAsString() + "_";
+    }
 
     if (activityName.isEmpty()) {
       return new SimpleScalar("");
@@ -46,7 +50,7 @@ public class FmActivityToLayoutMethod implements TemplateMethodModelEx {
 
     // Convert CamelCase convention used in activity class names to underlined convention
     // used in layout name:
-    String name = LAYOUT_NAME_PREFIX + TemplateUtils.camelCaseToUnderlines(activityName);
+    String name = layoutNamePrefix + TemplateUtils.camelCaseToUnderlines(activityName);
 
     return new SimpleScalar(name);
   }
