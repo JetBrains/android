@@ -33,7 +33,7 @@ import java.util.Map;
 public class LibraryDependency extends Dependency {
   @NotNull private final Map<PathType, Collection<String>> myPathsByType = Maps.newEnumMap(PathType.class);
 
-  @NotNull private String myName;
+  private String myName;
 
   /**
    * Creates a new {@link LibraryDependency}.
