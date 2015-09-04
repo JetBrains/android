@@ -62,8 +62,8 @@ abstract class AbstractGradleAwareFix implements IntentionAction, LocalQuickFix,
   }
 
   protected static void runWriteCommandActionAndSync(@NotNull final Project project,
-                                           @NotNull final Runnable action,
-                                           @Nullable final GradleSyncListener syncListener) {
+                                                     @NotNull final Runnable action,
+                                                     @Nullable final GradleSyncListener syncListener) {
     invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {

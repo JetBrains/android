@@ -19,14 +19,13 @@ import com.intellij.codeInsight.daemon.QuickFixBundle;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.Callable;
 
 import static com.intellij.psi.search.GlobalSearchScope.moduleWithLibrariesScope;
 
@@ -59,12 +58,12 @@ public class AddGradleJUnitDependencyFix extends AbstractGradleDependencyFix {
         String dependency = myIsJunit4 ? "junit:junit:4.12" : "junit:junit:3.8.1";
         addDependency(myModule, configurationName, dependency);
       }
-    }, editor, new Callable<PsiClass[]>() {
+    }, new Computable<PsiClass[]>() {
       @Override
-      public PsiClass[] call() {
+      public PsiClass[] compute() {
         PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(myClassName, moduleWithLibrariesScope(myModule));
         return aClass != null ? new PsiClass[]{aClass} : null;
       }
-    });
+    }, editor);
   }
 }

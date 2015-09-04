@@ -23,6 +23,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -33,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
@@ -88,12 +88,12 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
       public void run() {
         addDependency(myModule, configurationName, myLibraryGradleEntry);
       }
-    }, editor, new Callable<PsiClass[]>() {
+    }, new Computable<PsiClass[]>() {
       @Override
-      public PsiClass[] call() {
+      public PsiClass[] compute() {
         return new PsiClass[]{myClass};
       }
-    });
+    }, editor);
   }
 
   /**

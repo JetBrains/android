@@ -42,7 +42,7 @@ public class OpenFileHyperlink extends NotificationHyperlink {
    * Creates a file hyperlink. The line and column numbers should be 0-based. The file path should be a file system dependent path.
    */
   public OpenFileHyperlink(@NotNull String filePath, @NotNull String text, int lineNumber, int column) {
-    super("openFile", text);
+    super("openFile:" + filePath, text);
     myFilePath = FileUtil.toSystemIndependentName(filePath);
     myLineNumber = lineNumber;
     myColumn = column;
