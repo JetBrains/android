@@ -33,6 +33,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.speedSearch.ListWithFilter;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.AbstractLayoutManager;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
@@ -389,18 +390,18 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   private void createUIComponents() {
     myQualifierOptionsPanel = new JPanel(new CardLayout());
 
-    final JPanel leftPanel = new JPanel(new BorderLayout(5, 5));
+    final JPanel leftPanel = new JPanel(new BorderLayout(JBUI.scale(5), JBUI.scale(5)));
     myAvailableQualifiersList = new JBList();
-    myAvailableQualifiersList.setMinimumSize(new Dimension(10, 10));
+    myAvailableQualifiersList.setMinimumSize(JBUI.size(10, 10));
     JBLabel label = new JBLabel(AndroidBundle.message("android.layout.preview.edit.configuration.available.qualifiers.label"));
     label.setLabelFor(myAvailableQualifiersList);
     leftPanel.add(label, BorderLayout.NORTH);
     leftPanel.add(new JBScrollPane(myAvailableQualifiersList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
 
-    final JPanel rightPanel = new JPanel(new BorderLayout(5, 5));
+    final JPanel rightPanel = new JPanel(new BorderLayout(JBUI.scale(5), JBUI.scale(5)));
     myChosenQualifiersList = new JBList();
-    myChosenQualifiersList.setMinimumSize(new Dimension(10, 10));
+    myChosenQualifiersList.setMinimumSize(JBUI.size(10, 10));
     label = new JBLabel(AndroidBundle.message("android.layout.preview.edit.configuration.choosen.qualifiers.label"));
     label.setLabelFor(myChosenQualifiersList);
     rightPanel.add(label, BorderLayout.NORTH);
@@ -1116,13 +1117,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  // See com.intellij.codeInsight.lookup.impl.Advertiser -- the class used to
-  // render tips at the bottom of code completion dialog
-  private static Font adFont() {
-    Font font = UIUtil.getLabelFont();
-    return font.deriveFont((float)(font.getSize() - 2));
-  }
-
   private class MyLocaleEditor extends MyQualifierEditor<LocaleQualifier> {
     private final JBList myLanguageList = new JBList();
     private final JBList myRegionList = new JBList();
@@ -1134,7 +1128,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     JComponent getComponent() {
       GridBagConstraints gridBagConstraints;
       JPanel pane = new JPanel(new GridBagLayout());
-      pane.setBorder(new EmptyBorder(0, 20, 0, 0)); // pad 20 pixels on the left hand side to space out the two views
+      pane.setBorder(JBUI.Borders.empty(0, 20, 0, 0)); // pad 20 pixels on the left hand side to space out the two views
 
       myShowAllRegions = new JBCheckBox("Show All Regions", false);
       myWarningsLabel = new JBLabel("BCP 47 tags (3-letter languages or regions) will only match on API 21");
@@ -1162,7 +1156,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       JBScrollPane scroll = new JBScrollPane(myLanguageList);
       JComponent languagePane = ListWithFilter.wrap(myLanguageList, scroll, FlagManager.getLanguageNameMapper());
       languageLabel.setLabelFor(myLanguageList);
-      languageTip.setFont(adFont());
+      languageTip.setFont(JBUI.Fonts.miniFont());
 
       myRegionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       myRegionList.setCellRenderer(FlagManager.get().getRegionCodeCellRenderer());

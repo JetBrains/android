@@ -36,6 +36,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,7 +83,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateWizardSt
     Window window = getWindow();
     // Allow creation in headless mode for tests
     if (window != null) {
-      getWindow().setMinimumSize(new Dimension(1000, 640));
+      getWindow().setMinimumSize(JBUI.size(1000, 640));
     }
     else {
       // We should always have a window unless we're in test mode

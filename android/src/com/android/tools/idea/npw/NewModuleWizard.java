@@ -23,6 +23,7 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,7 +62,7 @@ public class NewModuleWizard extends TemplateWizard {
     Window window = getWindow();
     // Allow creation in headless mode for tests
     if (window != null) {
-      getWindow().setMinimumSize(new Dimension(1000, 640));
+      getWindow().setMinimumSize(JBUI.size(1000, 640));
     } else {
       // We should always have a window unless we're in test mode
       ApplicationManager.getApplication().isUnitTestMode();

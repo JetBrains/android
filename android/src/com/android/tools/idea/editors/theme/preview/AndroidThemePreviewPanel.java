@@ -198,9 +198,9 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
     myBreadcrumbs.setRootItem(new Breadcrumb("All components"));
 
-    add(Box.createRigidArea(new Dimension(0, 5)));
+    add(Box.createRigidArea(JBUI.size(0, 5)));
     add(myBreadcrumbs);
-    add(Box.createRigidArea(new Dimension(0, 10)));
+    add(Box.createRigidArea(JBUI.size(0, 10)));
     add(myScrollPane);
 
     setBackground(background);

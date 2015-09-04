@@ -686,7 +686,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     @Override
     public Dimension getMinimumSize() {
       Dimension original = super.getMinimumSize();
-      return new Dimension(Math.max(original.width, 100), original.height);
+      return new Dimension(Math.max(original.width, JBUI.scale(100)), original.height);
     }
 
     @Nullable

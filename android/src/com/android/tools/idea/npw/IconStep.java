@@ -39,6 +39,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
@@ -98,9 +99,9 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   public static final Key<Boolean> ATTR_VALID_PREVIEW = createKey(AssetStudioAssetGenerator.ATTR_VALID_PREVIEW, STEP, Boolean.class);
 
   private static final Logger LOG = Logger.getInstance(IconStep.class);
-  private static final int CLIPART_ICON_SIZE = 32;
-  private static final int CLIPART_DIALOG_BORDER = 10;
-  private static final int DIALOG_HEADER = 20;
+  private static final int CLIPART_ICON_SIZE = JBUI.scale(32);
+  private static final int CLIPART_DIALOG_BORDER = JBUI.scale(10);
+  private static final int DIALOG_HEADER = JBUI.scale(20);
   private static final String V11 = "V11";
   private static final String V9 = "V9";
 

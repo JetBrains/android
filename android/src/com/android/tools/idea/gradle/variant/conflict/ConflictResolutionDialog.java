@@ -24,6 +24,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.CheckedTreeNode;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +63,7 @@ class ConflictResolutionDialog extends DialogWrapper {
 
     setTitle("Resolve Variant Selection Conflict");
     myPanel = new JPanel(new BorderLayout());
-    myPanel.setPreferredSize(new Dimension(400, 400));
+    myPanel.setPreferredSize(JBUI.size(400, 400));
 
     init();
 

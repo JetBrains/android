@@ -28,6 +28,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -94,7 +95,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
       }
     });
 
-    myContentPanel.setPreferredSize(new Dimension(myContentPanel.getPreferredSize().width, 250));
+    myContentPanel.setPreferredSize(new Dimension(myContentPanel.getPreferredSize().width, JBUI.scale(250)));
   }
 
   @Override

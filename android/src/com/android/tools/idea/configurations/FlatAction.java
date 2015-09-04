@@ -24,6 +24,7 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.util.ui.GraphicsUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 
 import javax.swing.*;
@@ -80,10 +81,10 @@ public abstract class FlatAction extends AnAction implements CustomComponentActi
       setHorizontalAlignment(LEFT);
       setFocusable(false);
       Insets margins = getMargin();
-      setMargin(new Insets(margins.top, 2, margins.bottom, 2));
+      setMargin(JBUI.insets(margins.top, 2, margins.bottom, 2));
       setBorder(IdeBorderFactory.createEmptyBorder(0, 2, 0, 2));
       if (!UIUtil.isUnderGTKLookAndFeel()) {
-        setFont(UIUtil.getLabelFont().deriveFont(11.0f));
+        setFont(UIUtil.getLabelFont().deriveFont(JBUI.scale(11.0f)));
       }
       addActionListener(new ActionListener() {
         @Override
@@ -216,9 +217,9 @@ public abstract class FlatAction extends AnAction implements CustomComponentActi
     @Override
     public Dimension getPreferredSize() {
       final boolean isEmpty = getIcon() == null && StringUtil.isEmpty(getText());
-      int width = isEmpty ? 10 : super.getPreferredSize().width;
+      int width = isEmpty ? JBUI.scale(10) : super.getPreferredSize().width;
       // See ActionToolBarImpl: For a horizontal toolbar, the preferred height is 24
-      return new Dimension(width, 24);
+      return new Dimension(width, JBUI.scale(24));
     }
 
     @Override

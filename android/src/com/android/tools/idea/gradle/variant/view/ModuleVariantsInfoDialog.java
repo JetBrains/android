@@ -34,6 +34,7 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.CheckedTreeNode;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +58,7 @@ class ModuleVariantsInfoDialog extends DialogWrapper {
     super(module.getProject());
     setTitle(String.format("Dependency Details for Module '%1$s'", module.getName()));
     myPanel = new JPanel(new BorderLayout());
-    myPanel.setPreferredSize(new Dimension(600, 400));
+    myPanel.setPreferredSize(JBUI.size(600, 400));
 
     Splitter splitter = new Splitter(false, 0.5f);
     myPanel.add(splitter, BorderLayout.CENTER);

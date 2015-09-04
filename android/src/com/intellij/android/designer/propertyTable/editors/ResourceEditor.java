@@ -38,6 +38,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -207,7 +208,7 @@ public class ResourceEditor extends PropertyEditor {
   private Dimension getComponentPreferredSize() {
     Dimension size1 = myEditor.getChildComponent().getPreferredSize();
     Dimension size2 = myEditor.getButton().getPreferredSize();
-    return new Dimension(Math.max(size1.width, 25) + 5 + size2.width, size1.height);
+    return new Dimension(Math.max(size1.width, JBUI.scale(25)) + JBUI.scale(5) + size2.width, size1.height);
   }
 
   public static ResourceType[] convertTypes(Set<AttributeFormat> formats) {

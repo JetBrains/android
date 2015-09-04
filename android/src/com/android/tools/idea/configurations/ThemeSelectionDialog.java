@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +45,7 @@ public class ThemeSelectionDialog extends DialogWrapper {
   @Override
   protected JComponent createCenterPanel() {
     JPanel contentPanel = myPanel.getContentPanel();
-    contentPanel.setPreferredSize(new Dimension(800, 500));
+    contentPanel.setPreferredSize(JBUI.size(800, 500));
     return contentPanel;
   }
 

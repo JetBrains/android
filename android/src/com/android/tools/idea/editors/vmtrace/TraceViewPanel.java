@@ -41,6 +41,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.treeStructure.treetable.TreeTable;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -153,7 +154,7 @@ public class TraceViewPanel {
     });
 
     JTextField editorTextField = stf.getTextEditor();
-    editorTextField.setMinimumSize(new Dimension(200, -1));
+    editorTextField.setMinimumSize(new Dimension(JBUI.scale(200), -1));
 
     editorTextField.registerKeyboardAction(new ActionListener() {
       @Override

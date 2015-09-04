@@ -26,6 +26,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.tabs.TabInfo;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,7 +56,7 @@ public class MainController extends Controller {
 
     // Now add the atom tree and buffer views to the middle pane in the main pane.
     final JBSplitter middleSplitter = new JBSplitter(false);
-    middleSplitter.setMinimumSize(new Dimension(100, 10));
+    middleSplitter.setMinimumSize(JBUI.size(100, 10));
     middleSplitter.setFirstComponent(AtomController.createUI(editor));
     middleSplitter.setSecondComponent(FrameBufferController.createUI(editor));
     middleSplitter.setProportion(0.3f);
@@ -65,7 +66,7 @@ public class MainController extends Controller {
     JBRunnerTabs miscTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
     miscTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
       .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
-    miscTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
+    miscTabs.setBorder(JBUI.Borders.empty(0, 2, 0, 0));
 
     // Add the textures view to the misc tabs.
     miscTabs.addTab(new TabInfo(TexturesController.createUI(editor)).setText("Textures"));
@@ -79,7 +80,7 @@ public class MainController extends Controller {
 
     // Configure the bottom splitter.
     JBSplitter bottomSplitter = new JBSplitter(false);
-    bottomSplitter.setMinimumSize(new Dimension(100, 10));
+    bottomSplitter.setMinimumSize(JBUI.size(100, 10));
     bottomSplitter.setFirstComponent(StateController.createUI(editor));
     bottomSplitter.setSecondComponent(miscPanel);
     threePanes.setLastComponent(bottomSplitter);

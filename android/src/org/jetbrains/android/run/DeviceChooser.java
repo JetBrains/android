@@ -43,6 +43,7 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.ui.JBUI;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.UsesFeature;
@@ -120,7 +121,7 @@ public class DeviceChooser implements Disposable {
 
     myDeviceTable = new JBTable();
     myPanel = ScrollPaneFactory.createScrollPane(myDeviceTable);
-    myPanel.setPreferredSize(new Dimension(550, 220));
+    myPanel.setPreferredSize(JBUI.size(550, 220));
 
     myDeviceTable.setModel(new MyDeviceTableModel(EMPTY_DEVICE_ARRAY));
     myDeviceTable.setSelectionMode(multipleSelection ?

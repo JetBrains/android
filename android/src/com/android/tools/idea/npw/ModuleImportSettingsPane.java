@@ -22,6 +22,7 @@ import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +49,7 @@ public final class ModuleImportSettingsPane extends JPanel implements ModuleImpo
   public ModuleImportSettingsPane() {
     setLayout(new GridLayoutManager(2, COLUMN_COUNT, UIUtil.PANEL_REGULAR_INSETS, -1, -1));
     addToGrid(new JLabel("Source location:"), false, 1);
-    mySourcePath.setPreferredSize(new Dimension(20, -1));
+    mySourcePath.setPreferredSize(new Dimension(JBUI.scale(20), -1));
     addToGrid(mySourcePath, true, 2);
     GridConstraints checkBoxConstraints = createGridConstraints(false, 1);
     checkBoxConstraints.setAnchor(GridConstraints.ANCHOR_EAST);
@@ -60,7 +61,7 @@ public final class ModuleImportSettingsPane extends JPanel implements ModuleImpo
     moduleNameConstraint.setHSizePolicy(GridConstraints.SIZEPOLICY_FIXED);
     myModuleName.setColumns(15);
     add(myModuleName, moduleNameConstraint);
-    myStatusMessage.setPreferredSize(new Dimension(20, -1));
+    myStatusMessage.setPreferredSize(new Dimension(JBUI.scale(20), -1));
     addToGrid(myStatusMessage, true, 2);
 
     myModuleName.getDocument().addDocumentListener(new DocumentAdapter() {
