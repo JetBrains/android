@@ -237,7 +237,7 @@ public class InstanceReferenceTreeView implements DataProvider {
                 append(instance.toString(), classTextAttributes);
               }
               else if (value != null) {
-                append(value.toString(), SimpleTextAttributes.ERROR_ATTRIBUTES);
+                append(StringUtil.notNullize(value.toString()), SimpleTextAttributes.ERROR_ATTRIBUTES);
               }
             }
           })
