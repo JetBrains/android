@@ -21,6 +21,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.run.LoggingReceiver;
 import org.jetbrains.android.util.AndroidBundle;
@@ -73,6 +74,7 @@ public final class AndroidLogcatUtils {
       }
     });
     final AndroidLogcatReceiver receiver = new AndroidLogcatReceiver(device, writer);
+    Disposer.register(project, receiver);
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
