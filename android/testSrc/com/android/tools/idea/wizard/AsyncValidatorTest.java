@@ -57,7 +57,7 @@ public final class AsyncValidatorTest extends TestCase {
           return IdeaTestApplication.getInstance();
         }
       });
-    application.get(30, TimeUnit.SECONDS); // Wait for the application instantiation
+    application.get(50, TimeUnit.SECONDS); // Wait for the application instantiation
   }
 
   public void testBasicValidation() throws InterruptedException {
