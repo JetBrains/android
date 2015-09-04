@@ -83,17 +83,6 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
     myFilterEntries = filterEntries;
   }
 
-  @JdkConstants.PatternFlags
-  static int getPatternCompileFlags(@NotNull String regex) {
-    for (char c : regex.toCharArray()) {
-      if (Character.isUpperCase(c)) {
-        return 0;
-      }
-    }
-
-    return Pattern.CASE_INSENSITIVE;
-  }
-
   /**
    * A version of {@link ConfiguredFilter} for serialization / deserialization.
    */
@@ -101,10 +90,13 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
   static final class FilterEntry {
     private String myName;
     private String myLogMessagePattern;
+    private boolean myLogMessageIsRegex = true;
     private String myLogLevel;
     private String myLogTagPattern;
+    private boolean myLogTagIsRegex = true;
     private String myPid;
     private String myPackageNamePattern;
+    private boolean myPackageNameIsRegex = true;
 
     public String getName() {
       return myName;
@@ -114,12 +106,20 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
       return myLogMessagePattern;
     }
 
+    public boolean getLogMessageIsRegex() {
+      return myLogMessageIsRegex;
+    }
+
     public String getLogLevel() {
       return myLogLevel;
     }
 
     public String getLogTagPattern() {
       return myLogTagPattern;
+    }
+
+    public boolean getLogTagIsRegex() {
+      return myLogTagIsRegex;
     }
 
     public String getPid() {
@@ -134,12 +134,20 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
       myLogMessagePattern = logMessagePattern;
     }
 
+    public void setLogMessageIsRegex(boolean logMessageIsRegex) {
+      myLogMessageIsRegex = logMessageIsRegex;
+    }
+
     public void setLogLevel(String logLevel) {
       myLogLevel = logLevel;
     }
 
     public void setLogTagPattern(String logTagPattern) {
       myLogTagPattern = logTagPattern;
+    }
+
+    public void setLogTagIsRegex(boolean logTagIsRegex) {
+      myLogTagIsRegex = logTagIsRegex;
     }
 
     public void setPid(String pid) {
@@ -150,8 +158,16 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
       return myPackageNamePattern;
     }
 
+    public boolean getPackageNameIsRegex() {
+      return myPackageNameIsRegex;
+    }
+
     public void setPackageNamePattern(String packageNamePattern) {
       myPackageNamePattern = packageNamePattern;
+    }
+
+    public void setPackageNameIsRegex(boolean logPackageNameIsRegex) {
+      myPackageNameIsRegex = logPackageNameIsRegex;
     }
   }
 }
