@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.hprof;
 
 import com.android.tools.perflib.heap.Snapshot;
-import com.android.tools.perflib.heap.io.MemoryMappedFileBuffer;
+import com.android.tools.perflib.captures.MemoryMappedFileBuffer;
 import com.google.common.base.Throwables;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
