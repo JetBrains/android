@@ -17,18 +17,16 @@ package com.android.tools.idea.gradle.dsl.parser;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
-import java.util.Collection;
 import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -59,16 +57,20 @@ class DependenciesElementParser implements GradleDslElementParser {
 
   private static void parse(@NotNull GrClosableBlock closure, @NotNull GradleBuildModel buildFile) {
     DependenciesElement dependencies = new DependenciesElement(closure);
-    Collection<GrMethodCallExpression> expressions = findChildrenOfType(closure, GrMethodCallExpression.class);
-    for (GrMethodCallExpression expression : expressions) {
-      List<DependencyElement> dependencyList = parseDependencies(expression);
-      dependencies.addAll(dependencyList);
+    GrMethodCallExpression[] expressions = getChildrenOfType(closure, GrMethodCallExpression.class);
+    if (expressions != null) {
+      for (GrMethodCallExpression expression : expressions) {
+        List<DependencyElement> dependencyList = parseDependencies(expression);
+        dependencies.addAll(dependencyList);
+      }
     }
 
-    Collection<GrApplicationStatement> statements = findChildrenOfType(closure, GrApplicationStatement.class);
-    for (GrApplicationStatement statement : statements) {
-      List<DependencyElement> dependencyList = parseDependencies(statement);
-      dependencies.addAll(dependencyList);
+    GrApplicationStatement[] statements = getChildrenOfType(closure, GrApplicationStatement.class);
+    if (statements != null) {
+      for (GrApplicationStatement statement : statements) {
+        List<DependencyElement> dependencyList = parseDependencies(statement);
+        dependencies.addAll(dependencyList);
+      }
     }
     buildFile.add(dependencies);
   }
@@ -90,10 +92,15 @@ class DependenciesElementParser implements GradleDslElementParser {
             if (argument instanceof GrLiteral) {
               // "Compact" notation
               dependencies.addAll(parseExternalDependenciesWithCompactNotation(configurationName, arguments));
-            }
-            else if (argument instanceof GrNamedArgument) {
+            } else if (argument instanceof GrNamedArgument) {
               // "Map" notation
               dependencies.addAll(parseExternalDependenciesWithMapNotation(configurationName, arguments));
+            } else if (argument instanceof GrMethodCallExpression) {
+              // fileTree, project dependencies
+              DependencyElement dependencyElement = parseDependencies(configurationName, (GrMethodCallExpression)argument);
+              if (dependencyElement != null) {
+                dependencies.add(dependencyElement);
+              }
             }
           }
         }
@@ -134,6 +141,33 @@ class DependenciesElementParser implements GradleDslElementParser {
     }
     return dependencies;
   }
+
+  @Nullable
+  private static DependencyElement parseDependencies(@NotNull String configurationName, @NotNull GrMethodCallExpression expression) {
+    GrReferenceExpression referenceExpression = getChildOfType(expression, GrReferenceExpression.class);
+    if (referenceExpression != null) {
+      String referenceName = referenceExpression.getText();
+      if (isNotEmpty(referenceName)) {
+        if ("project".equals(referenceName)) {
+          return parseProjectDependency(configurationName, expression.getArgumentList());
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static DependencyElement parseProjectDependency(@NotNull String configurationName, @NotNull GrArgumentList argumentList) {
+    GroovyPsiElement[] arguments = argumentList.getAllArguments();
+    if (arguments.length == 0) {
+      return null;
+    }
+    if (arguments.length == 1 && arguments[0] instanceof GrLiteral) {
+      return ProjectDependencyElement.withCompactNotation(configurationName, (GrLiteral)arguments[0]);
+    }
+    return ProjectDependencyElement.withMapNotation(configurationName, argumentList);
+  }
+
 
   @NotNull
   private static List<DependencyElement> parseDependencies(@NotNull GrMethodCallExpression expression) {
