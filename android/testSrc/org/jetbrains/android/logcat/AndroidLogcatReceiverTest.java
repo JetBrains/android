@@ -16,18 +16,38 @@
 
 package org.jetbrains.android.logcat;
 
+import com.intellij.openapi.util.Key;
 import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.StringWriter;
 
 public class AndroidLogcatReceiverTest extends TestCase {
-  private StringWriter myWriter;
+  private AndroidConsoleWriter mySink;
   private AndroidLogcatReceiver myReceiver;
 
   @Override
   public void setUp() {
-    myWriter = new StringWriter();
-    myReceiver = new AndroidLogcatReceiver(null, myWriter);
+    mySink = new AndroidConsoleWriter() {
+      private StringWriter myWriter = new StringWriter();
+
+      @Override
+      public String toString() {
+        return myWriter.getBuffer().toString();
+      }
+
+      @Override
+      public void clear() {
+        myWriter.flush();
+        myWriter.getBuffer().setLength(0);
+      }
+
+      @Override
+      public void addMessage(@NotNull String text) {
+        myWriter.append(text).append('\n');
+      }
+    };
+    myReceiver = new AndroidLogcatReceiver(null, mySink);
   }
 
   public void testParser() {
@@ -37,7 +57,7 @@ public class AndroidLogcatReceiverTest extends TestCase {
 
     assertEquals(
       insertTagSeparator("02-11 16:41:10.621  17945-17995/? W/GAV2", "Thread[Service Reconnect,5,main]: Connection to service failed 1\n"),
-      myWriter.getBuffer().toString());
+      mySink.toString());
   }
 
   public void testParseException() {
@@ -54,7 +74,7 @@ public class AndroidLogcatReceiverTest extends TestCase {
                  line1 + "\n" +
                  AndroidLogcatReceiver.CONTINUATION_LINE_PREFIX + line2 + "\n" +
                  AndroidLogcatReceiver.STACK_TRACE_LINE_PREFIX + line3 + "\n",
-                 myWriter.getBuffer().toString());
+                 mySink.toString());
   }
 
   public void testParser2() {
@@ -90,7 +110,7 @@ public class AndroidLogcatReceiverTest extends TestCase {
       insertTagSeparator("08-11 19:11:07.132      495-495/? A/wtftag", "wtf message\n") +
       insertTagSeparator("08-11 21:15:35.7524      540-540/? D/debug tag", "debug message\n") +
       insertTagSeparator("08-11 21:15:35.7524      540-540/? I/tag:with:colons", "message:with:colons\n"),
-                       myWriter.getBuffer().toString());
+                       mySink.toString());
   }
 
   private String insertTagSeparator(String header, String msg) {
