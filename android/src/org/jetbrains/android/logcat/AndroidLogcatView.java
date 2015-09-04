@@ -19,14 +19,15 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.diagnostic.logging.LogConsoleBase;
-import com.intellij.diagnostic.logging.LogConsoleListener;
+import com.intellij.diagnostic.logging.LogFilter;
+import com.intellij.diagnostic.logging.LogFilterListener;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -34,12 +35,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.SideBorder;
-import net.jcip.annotations.GuardedBy;
+import com.intellij.ui.*;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,9 +46,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.util.List;
 
 import static javax.swing.BoxLayout.X_AXIS;
@@ -59,30 +54,23 @@ import static javax.swing.BoxLayout.X_AXIS;
  * A UI panel which wraps a console that prints output from Android's logging system.
  */
 public abstract class AndroidLogcatView implements Disposable {
-  private static final Logger LOG = Logger.getInstance(AndroidLogcatView.class);
-
   public static final Key<AndroidLogcatView> ANDROID_LOGCAT_VIEW_KEY = Key.create("ANDROID_LOGCAT_VIEW_KEY");
 
   static final String SELECTED_APP_FILTER = AndroidBundle.message("android.logcat.filters.selected");
   static final String NO_FILTERS = AndroidBundle.message("android.logcat.filters.none");
   static final String EDIT_FILTER_CONFIGURATION = AndroidBundle.message("android.logcat.filters.edit");
+  static final String REGEX = "Re&gex";
 
   private final Project myProject;
   private final DeviceContext myDeviceContext;
 
   private JPanel myPanel;
-
   private DefaultComboBoxModel myFilterComboBoxModel;
+  private JTextField myFilterTextField;
 
   private volatile IDevice myDevice;
-  private final LogConsoleBase myLogConsole;
+  private final AndroidLogConsole myLogConsole;
   private final AndroidLogFilterModel myLogFilterModel;
-
-  private final Object myReaderWriterLock = new Object();
-  @GuardedBy("myReaderWriterLock")
-  private Reader myCurrentReader;
-  @GuardedBy("myReaderWriterLock")
-  private Writer myCurrentWriter;
 
   private final IDevice myPreselectedDevice;
 
@@ -92,14 +80,20 @@ public abstract class AndroidLogcatView implements Disposable {
   @NotNull
   private ConfiguredFilter myNoFilter;
 
-  private void updateInUIThread() {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+  /**
+   * Called internally when the device may have changed, or been significantly altered.
+   * @param forceReconnect Forces the logcat connection to restart even if the device has not changed.
+   */
+  private void notifyDeviceUpdated(final boolean forceReconnect) {
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         if (myProject.isDisposed()) {
           return;
         }
-
+        if (forceReconnect) {
+          myDevice = null;
+        }
         updateLogConsole();
       }
     });
@@ -126,32 +120,7 @@ public abstract class AndroidLogcatView implements Disposable {
     // end up blocking the current logcat readers. As a result, we need to issue a restart of the logging to work around the platform bug.
     // See https://code.google.com/p/android/issues/detail?id=81164 and https://android-review.googlesource.com/#/c/119673
     if (device.equals(getSelectedDevice())) {
-      restartLogging();
-    }
-  }
-
-  private final class MyLoggingReader extends Reader {
-    @Override
-    public int read(char[] cbuf, int off, int len) throws IOException {
-      synchronized (myReaderWriterLock) {
-        return myCurrentReader != null ? myCurrentReader.read(cbuf, off, len) : -1;
-      }
-    }
-
-    @Override
-    public boolean ready() throws IOException {
-      synchronized (myReaderWriterLock) {
-        return myCurrentReader != null && myCurrentReader.ready();
-      }
-    }
-
-    @Override
-    public void close() throws IOException {
-      synchronized (myReaderWriterLock) {
-        if (myCurrentReader != null) {
-          myCurrentReader.close();
-        }
-      }
+      notifyDeviceUpdated(true);
     }
   }
 
@@ -205,21 +174,31 @@ public abstract class AndroidLogcatView implements Disposable {
         protected ConfiguredFilter getConfiguredFilter() {
           return myConfiguredFilter;
         }
+
+        @Override
+        protected void setIsRegexp(boolean isRegexp) {
+          AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_REGEXP_FILTER = isRegexp;
+        }
+
+        @Override
+        protected boolean isRegexp() {
+          return AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_REGEXP_FILTER;
+        }
       };
     myLogConsole = new AndroidLogConsole(project, myLogFilterModel);
-    myLogConsole.addListener(new LogConsoleListener() {
+    myLogFilterModel.addFilterListener(new LogFilterListener() {
       @Override
-      public void loggingWillBeStopped() {
-        synchronized (myReaderWriterLock) {
-          if (myCurrentWriter != null) {
-            try {
-              myCurrentWriter.close();
-            }
-            catch (IOException e) {
-              LOG.error(e);
-            }
+      public void onFilterStateChange(LogFilter filter) {
+      }
+
+      @Override
+      public void onTextFilterChange() {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            myLogConsole.setInvalidFilter(myLogFilterModel.isInvalidRegexp());
           }
-        }
+        });
       }
     });
 
@@ -228,14 +207,13 @@ public abstract class AndroidLogcatView implements Disposable {
         new DeviceContext.DeviceSelectionListener() {
           @Override
           public void deviceSelected(@Nullable IDevice device) {
-            updateInUIThread();
+            notifyDeviceUpdated(false);
           }
 
           @Override
           public void deviceChanged(@NotNull IDevice device, int changeMask) {
             if (device == myDevice && ((changeMask & IDevice.CHANGE_STATE) == IDevice.CHANGE_STATE)) {
-              myDevice = null;
-              updateInUIThread();
+              notifyDeviceUpdated(true);
             }
           }
 
@@ -337,7 +315,8 @@ public abstract class AndroidLogcatView implements Disposable {
         if (value instanceof ConfiguredFilter) {
           setBorder(null);
           append(((ConfiguredFilter)value).getName());
-        } else {
+        }
+        else {
           setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
           append(value.toString());
         }
@@ -364,42 +343,22 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
+  private volatile @Nullable AndroidLogcatReceiver myReciever;
+
   private void updateLogConsole() {
     IDevice device = getSelectedDevice();
     if (myDevice != device) {
-      synchronized (myReaderWriterLock) {
-        myDevice = device;
-        if (myCurrentWriter != null) {
-          try {
-            myCurrentWriter.close();
-          }
-          catch (IOException e) {
-            LOG.error(e);
-          }
+      myDevice = device;
+      AndroidLogcatReceiver reciever = myReciever;
+      if (reciever != null) {
+        reciever.cancel();
+      }
+      if (device != null) {
+        final ConsoleView console = myLogConsole.getConsole();
+        if (console != null) {
+          console.clear();
         }
-        if (myCurrentReader != null) {
-          try {
-            myCurrentReader.close();
-          }
-          catch (IOException e) {
-            LOG.error(e);
-          }
-        }
-        if (device != null) {
-          final ConsoleView console = myLogConsole.getConsole();
-          if (console != null) {
-            console.clear();
-          }
-          final Pair<Reader, Writer> pair = AndroidLogcatUtils.startLoggingThread(myProject, device, false, myLogConsole);
-          if (pair != null) {
-            myCurrentReader = pair.first;
-            myCurrentWriter = pair.second;
-          }
-          else {
-            myCurrentReader = null;
-            myCurrentWriter = null;
-          }
-        }
+        myReciever = AndroidLogcatUtils.startLoggingThread(myProject, device, false, myLogConsole);
       }
     }
   }
@@ -469,23 +428,26 @@ public abstract class AndroidLogcatView implements Disposable {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      restartLogging();
+      notifyDeviceUpdated(true);
     }
   }
 
-  private void restartLogging() {
-    myDevice = null;
-    updateLogConsole();
-  }
+  public final class AndroidLogConsole extends LogConsoleBase implements AndroidConsoleWriter {
+    private @Nullable JPanel myTextFilterPanel;
 
-  public final class AndroidLogConsole extends LogConsoleBase {
     public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel) {
-      super(project, new MyLoggingReader(), "", false, logFilterModel);
+      super(project, null, "", false, logFilterModel);
       ConsoleView console = getConsole();
       if (console instanceof ConsoleViewImpl) {
         ConsoleViewImpl c = ((ConsoleViewImpl)console);
         c.addCustomConsoleAction(new Separator());
         c.addCustomConsoleAction(new MyRestartAction());
+      }
+    }
+
+    void setInvalidFilter(boolean invalid) {
+      if (myFilterTextField != null) {
+        myFilterTextField.setBackground(invalid ? LightColors.RED : UIUtil.getTextFieldBackground());
       }
     }
 
@@ -496,6 +458,43 @@ public abstract class AndroidLogcatView implements Disposable {
 
     public void clearLogcat() {
       AndroidLogcatView.this.clearLogcat(getSelectedDevice());
+    }
+
+    @NotNull
+    @Override
+    protected Component getTextFilterComponent() {
+      if (myTextFilterPanel != null) {
+        return myTextFilterPanel;
+      }
+
+      final CheckboxAction regexToggle = new CheckboxAction(REGEX) {
+        @Override
+        public boolean isSelected(AnActionEvent e) {
+          return myLogFilterModel.isRegexp();
+        }
+
+        @Override
+        public void setSelected(AnActionEvent e, boolean state) {
+          myLogFilterModel.updateIsRegexp(state);
+        }
+      };
+      Presentation presentation = regexToggle.getTemplatePresentation();
+      presentation.putClientProperty(Toggleable.SELECTED_PROPERTY, myLogFilterModel.isRegexp());
+
+      myTextFilterPanel = new JPanel(new BorderLayout());
+      Component component = super.getTextFilterComponent();
+      if (component instanceof FilterComponent) {
+        myFilterTextField = ((FilterComponent)component).getTextEditor();
+      }
+      myTextFilterPanel.add(component, BorderLayout.CENTER);
+      myTextFilterPanel.add(regexToggle.createCustomComponent(presentation), BorderLayout.EAST);
+
+      return myTextFilterPanel;
+    }
+
+    @Override
+    public synchronized void addMessage(@NotNull String text) {
+      super.addMessage(text);
     }
   }
 }

@@ -20,14 +20,11 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log;
 import com.android.tools.idea.logcat.ExceptionFolding;
 import com.android.tools.idea.logcat.StackTraceExpander;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidOutputReceiver;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,7 +33,6 @@ import java.util.regex.Pattern;
  * if matched, further processed.
  */
 public final class AndroidLogcatReceiver extends AndroidOutputReceiver {
-  private static final Logger LOG = Logger.getInstance(AndroidLogcatReceiver.class);
   private static Pattern LOG_PATTERN =
     Pattern.compile("^\\[\\s(\\d\\d-\\d\\d\\s\\d\\d:\\d\\d:\\d\\d\\.\\d+)\\s+(\\d*):\\s*(\\S+)\\s([VDIWEAF])/(.*)\\]$", Pattern.DOTALL);
 
@@ -58,7 +54,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver {
 
   private LogMessageHeader myLastMessageHeader;
   private volatile boolean myCanceled = false;
-  private final Writer myWriter;
+  private final AndroidConsoleWriter myWriter;
   private final IDevice myDevice;
 
   private final StackTraceExpander myStackTraceExpander = new StackTraceExpander(CONTINUATION_LINE_PREFIX,
@@ -66,9 +62,9 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver {
                                                                                  EXPANDED_STACK_TRACE_LINE_PREFIX,
                                                                                  STACK_TRACE_CAUSE_LINE_PREFIX);
 
-  public AndroidLogcatReceiver(IDevice device, Writer writer) {
+  public AndroidLogcatReceiver(@NotNull IDevice device, @NotNull AndroidConsoleWriter writer) {
     myDevice = device;
-    myWriter = new PrintWriter(writer);
+    myWriter = writer;
   }
 
   @Override
@@ -90,8 +86,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver {
       }
       myLastMessageHeader.myTid = Long.toString(tidValue);
 
-      myLastMessageHeader.myAppPackage =
-        myDevice == null ? "" : myDevice.getClientName(myLastMessageHeader.myPid);
+      myLastMessageHeader.myAppPackage = myDevice.getClientName(myLastMessageHeader.myPid);
       myLastMessageHeader.myLogLevel = getByLetterString(matcher.group(4));
       // For parsing later, tags should not have spaces in them. Replace spaces with
       // "no break" spaces, which looks like whitespace but doesn't act like it.
@@ -105,12 +100,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver {
       } else {
         text = getFullMessage(myLastMessageHeader, line);
       }
-      try {
-        myWriter.write(text + '\n');
-      }
-      catch (IOException ignored) {
-        LOG.info(ignored);
-      }
+      myWriter.addMessage(text);
       myLastMessageHeader = null;
     }
   }
