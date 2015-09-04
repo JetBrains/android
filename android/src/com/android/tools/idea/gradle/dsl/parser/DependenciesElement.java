@@ -30,6 +30,7 @@ import java.util.List;
 public class DependenciesElement implements GradleDslElement {
   @NotNull private final GrClosableBlock myPsiElement;
   @NotNull private final List<ExternalDependencyElement> myExternalDependencies = Lists.newArrayList();
+  @NotNull private final List<ProjectDependencyElement> myProjectDependencies = Lists.newArrayList();
 
   DependenciesElement(@NotNull GrClosableBlock psiElement) {
     myPsiElement = psiElement;
@@ -44,12 +45,19 @@ public class DependenciesElement implements GradleDslElement {
   private void add(@NotNull DependencyElement dependency) {
     if (dependency instanceof ExternalDependencyElement) {
       myExternalDependencies.add((ExternalDependencyElement)dependency);
+    } else if (dependency instanceof ProjectDependencyElement) {
+      myProjectDependencies.add((ProjectDependencyElement)dependency);
     }
   }
 
   @NotNull
   public List<ExternalDependencyElement> getExternalDependenciesView() {
     return ImmutableList.copyOf(myExternalDependencies);
+  }
+
+  @NotNull
+  public List<ProjectDependencyElement> getProjectDependenciesView() {
+    return ImmutableList.copyOf(myProjectDependencies);
   }
 
   /**

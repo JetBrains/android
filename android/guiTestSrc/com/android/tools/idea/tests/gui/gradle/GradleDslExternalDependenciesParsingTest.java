@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.parser.DependenciesElement;
 import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyElement;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -29,7 +28,6 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.assertions.AssertExtension;
-import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -45,12 +43,10 @@ import static com.intellij.openapi.vfs.VfsUtilCore.loadText;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
-public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
-  @NonNls private static final String APP_BUILD_GRADLE_RELATIVE_PATH = "app/build.gradle";
+public class GradleDslExternalDependenciesParsingTest extends GradleDslTestCase {
   @NonNls private static final String DEPENDENCIES_BLOCK_START = "dependencies {";
 
   @Test @IdeGuiTest
@@ -358,22 +354,6 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
         }
       }
     });
-  }
-
-  @NotNull
-  private static GradleBuildModel openAndParseAppBuildFile(@NotNull final IdeFrameFixture projectFrame) {
-    String relativePath = APP_BUILD_GRADLE_RELATIVE_PATH;
-    projectFrame.getEditor().open(relativePath).getCurrentFile();
-    final VirtualFile appBuildFile = projectFrame.findFileByRelativePath(relativePath, true);
-    GradleBuildModel buildModel = execute(new GuiQuery<GradleBuildModel>() {
-      @Override
-      @NotNull
-      protected GradleBuildModel executeInEDT() throws Throwable {
-        return GradleBuildModel.parseBuildFile(appBuildFile, projectFrame.getProject());
-      }
-    });
-    assertNotNull(buildModel);
-    return buildModel;
   }
 
   @NotNull
