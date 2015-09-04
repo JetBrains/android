@@ -84,8 +84,11 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JCheckBox myUseLastSelectedDeviceCheckBox;
   private JRadioButton myRunTestsInGoogleCloudRadioButton;
 
+  // Misc. options tab
   private JCheckBox myClearLogCheckBox;
   private JCheckBox myShowLogcatCheckBox;
+  private JCheckBox mySkipNoOpApkInstallation;
+  private JCheckBox myForceStopRunningApplicationCheckBox;
 
   private CloudConfigurationComboBox myCloudMatrixConfigurationCombo;
   private JBLabel myCloudMatrixProjectLabel;
@@ -188,12 +191,19 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myNetworkSpeedCombo.setModel(new DefaultComboBoxModel(NETWORK_SPEEDS));
     myNetworkLatencyCombo.setModel(new DefaultComboBoxModel(NETWORK_LATENCIES));
 
-    myUseAdditionalCommandLineOptionsCheckBox.addActionListener(new ActionListener() {
+    ActionListener actionListener = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        myCommandLineField.setEnabled(myUseAdditionalCommandLineOptionsCheckBox.isSelected());
+        if (myUseAdditionalCommandLineOptionsCheckBox == e.getSource()) {
+          myCommandLineField.setEnabled(myUseAdditionalCommandLineOptionsCheckBox.isSelected());
+        }
+        else if (mySkipNoOpApkInstallation == e.getSource()) {
+          myForceStopRunningApplicationCheckBox.setEnabled(mySkipNoOpApkInstallation.isSelected());
+        }
       }
-    });
+    };
+    myUseAdditionalCommandLineOptionsCheckBox.addActionListener(actionListener);
+    mySkipNoOpApkInstallation.addActionListener(actionListener);
 
     updateEnabled();
   }
@@ -438,9 +448,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     myAvdComboComponent.setEnabled(targetSelectionMode == TargetSelectionMode.EMULATOR);
 
-    resetAvdCompatibilityWarningLabel(targetSelectionMode == TargetSelectionMode.EMULATOR
-                                      ? getAvdCompatibilityWarning()
-                                      : null);
+    resetAvdCompatibilityWarningLabel(targetSelectionMode == TargetSelectionMode.EMULATOR ? getAvdCompatibilityWarning() : null);
 
     myUseAdditionalCommandLineOptionsCheckBox.setSelected(configuration.USE_COMMAND_LINE);
     myCommandLineField.setText(configuration.COMMAND_LINE);
@@ -452,6 +460,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     myClearLogCheckBox.setSelected(configuration.CLEAR_LOGCAT);
     myShowLogcatCheckBox.setSelected(configuration.SHOW_LOGCAT_AUTOMATICALLY);
+    mySkipNoOpApkInstallation.setSelected(configuration.SKIP_NOOP_APK_INSTALLATIONS);
+    myForceStopRunningApplicationCheckBox.setSelected(configuration.FORCE_STOP_RUNNING_APP);
 
     updateEnabled();
   }
@@ -514,6 +524,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     configuration.CLEAR_LOGCAT = myClearLogCheckBox.isSelected();
     configuration.SHOW_LOGCAT_AUTOMATICALLY = myShowLogcatCheckBox.isSelected();
+    configuration.SKIP_NOOP_APK_INSTALLATIONS = mySkipNoOpApkInstallation.isSelected();
+    configuration.FORCE_STOP_RUNNING_APP = myForceStopRunningApplicationCheckBox.isSelected();
 
     if (myAvdComboComponent.isEnabled()) {
       JComboBox combo = myAvdCombo.getComboBox();
