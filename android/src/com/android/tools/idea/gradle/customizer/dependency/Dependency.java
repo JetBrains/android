@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -28,7 +28,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.BINARY;
+import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.SOURCE;
+import static com.android.tools.idea.gradle.util.GradleUtil.findSourceJarForLibrary;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.TEST;
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
  * An IDEA module's dependency on an artifact (e.g. a jar file or another IDEA module.)
@@ -38,7 +45,7 @@ public abstract class Dependency {
    * The Android Gradle plug-in only supports "compile" and "test" scopes. This list is sorted by width of the scope, being "compile" a
    * wider scope than "test."
    */
-  static final List<DependencyScope> SUPPORTED_SCOPES = Lists.newArrayList(DependencyScope.COMPILE, DependencyScope.TEST);
+  static final List<DependencyScope> SUPPORTED_SCOPES = Lists.newArrayList(COMPILE, TEST);
 
   // Without this '@SuppressWarnings' IDEA shows a warning because the field 'myScope' is not set directly in the constructor, and therefore
   // IDEA thinks it can be null, contradicting '@NotNull'. In reality, the field is set in the constructor by calling 'setScope'. To avoid
@@ -50,7 +57,7 @@ public abstract class Dependency {
    * Creates a new {@link Dependency} with {@link DependencyScope#COMPILE} scope.
    */
   Dependency() {
-    this(DependencyScope.COMPILE);
+    this(COMPILE);
   }
 
   /**
@@ -88,10 +95,10 @@ public abstract class Dependency {
 
     BaseArtifact testArtifact = androidProject.findSelectedTestArtifactInSelectedVariant();
     if (testArtifact != null) {
-      populate(dependencies, testArtifact, DependencyScope.TEST);
+      populate(dependencies, testArtifact, TEST);
     }
     AndroidArtifact mainArtifact = androidProject.getMainArtifact();
-    populate(dependencies, mainArtifact, DependencyScope.COMPILE);
+    populate(dependencies, mainArtifact, COMPILE);
 
     return dependencies;
   }
@@ -135,7 +142,7 @@ public abstract class Dependency {
       return coordinates.getArtifactId() + "-" + coordinates.getVersion();
     }
     File bundle = library.getBundle();
-    return FileUtil.getNameWithoutExtension(bundle);
+    return getNameWithoutExtension(bundle);
   }
 
   /**
@@ -164,12 +171,19 @@ public abstract class Dependency {
   @NotNull
   private static LibraryDependency createLibraryDependency(@NotNull AndroidLibrary library, @NotNull DependencyScope scope) {
     LibraryDependency dependency = new LibraryDependency(getLibraryName(library), scope);
-    dependency.addPath(LibraryDependency.PathType.BINARY, library.getJarFile());
-    dependency.addPath(LibraryDependency.PathType.BINARY, library.getResFolder());
+    dependency.addPath(BINARY, library.getJarFile());
+    dependency.addPath(BINARY, library.getResFolder());
 
     for (File localJar : library.getLocalJars()) {
-      dependency.addPath(LibraryDependency.PathType.BINARY, localJar);
+      dependency.addPath(BINARY, localJar);
     }
+
+    VirtualFile sourceJar = findSourceJarForLibrary(library.getBundle());
+    if (sourceJar != null) {
+      File sourceJarFile = virtualToIoFile(sourceJar);
+      dependency.addPath(SOURCE, sourceJarFile);
+    }
+
     return dependency;
   }
 

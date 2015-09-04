@@ -33,6 +33,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
+import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
@@ -99,8 +100,8 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
-import static com.android.tools.idea.startup.GradleSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.GradleSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -138,6 +139,7 @@ public final class GradleUtil {
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
   private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-(.*)-(.*)\\.jar");
+  private static final String SOURCES_JAR_NAME_SUFFIX = "-sources.jar";
 
   /**
    * Finds characters that shouldn't be used in the Gradle path.
@@ -1360,5 +1362,46 @@ public final class GradleUtil {
   public static boolean hasLayoutRenderingIssue(@NotNull AndroidProject model) {
     String modelVersion = model.getModelVersion();
     return modelVersion.startsWith("1.2.0") || modelVersion.equals("1.2.1") || modelVersion.equals("1.2.2");
+  }
+
+  @Nullable
+  public static VirtualFile findSourceJarForLibrary(@NotNull File libraryFilePath) {
+    VirtualFile realJarFile = findFileByIoFile(libraryFilePath, true);
+
+    if (realJarFile == null) {
+      // Unlikely to happen. At this point the jar file should exist.
+      return null;
+    }
+
+    VirtualFile parent = realJarFile.getParent();
+    String name = getNameWithoutExtension(libraryFilePath);
+    String sourceFileName = name + SOURCES_JAR_NAME_SUFFIX;
+    if (parent != null) {
+
+      // Try finding sources in the same folder as the jar file. This is the layout of Maven repositories.
+      VirtualFile sourceJar = parent.findChild(sourceFileName);
+      if (sourceJar != null) {
+        return sourceJar;
+      }
+
+      // Try the parent's parent. This is the layout of the repository cache in .gradle folder.
+      parent = parent.getParent();
+      if (parent != null) {
+        for (VirtualFile child : parent.getChildren()) {
+          if (!child.isDirectory()) {
+            continue;
+          }
+          sourceJar = child.findChild(sourceFileName);
+          if (sourceJar != null) {
+            return sourceJar;
+          }
+        }
+      }
+    }
+
+    // Try IDEA's own cache.
+    File librarySourceDirPath = InternetAttachSourceProvider.getLibrarySourceDir();
+    File sourceJar = new File(librarySourceDirPath, sourceFileName);
+    return findFileByIoFile(sourceJar, true);
   }
 }
