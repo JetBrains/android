@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.logcat;
+package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;

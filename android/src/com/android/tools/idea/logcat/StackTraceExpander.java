@@ -17,8 +17,6 @@
 package com.android.tools.idea.logcat;
 
 import com.android.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.text.StringUtil;
 
 import java.util.ArrayList;
@@ -28,7 +26,7 @@ import java.util.regex.Pattern;
 
 /**
  * When printing out exceptions, Java collapses frames that match those of the enclosing exception, and just says "... N more".
- * This class receives parses a sequence of lines from logcat, and maintains a knowledge of the current stack trace.
+ * This class parses a sequence of lines from logcat, and maintains a knowledge of the current stack trace.
  * If it ever sees the pattern "... N more", it then tries to see if that can be fully expanded with the correct frames
  * from the enclosing exception. The logcat view then folds these frames back and displays "...N more", except now users can
  * unfold it to view the full trace.
@@ -36,7 +34,7 @@ import java.util.regex.Pattern;
  * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Throwable.html#printStackTrace%28%29">Description in
  * Throwable.printStackTrace</a>
  */
-public class StackTraceExpander {
+class StackTraceExpander {
   private final String myContinuationPrefix;
   private final String myStackTracePrefix;
   private final String myExpandedStackTracePrefix;
