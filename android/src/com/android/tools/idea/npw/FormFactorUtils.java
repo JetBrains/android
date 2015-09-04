@@ -59,7 +59,7 @@ public class FormFactorUtils {
     public static final FormFactor TV = new FormFactor("TV", DeviceMenuAction.FormFactor.TV, "TV", 21,
                                                        Lists.newArrayList("20"), null, 2, null);
     public static final FormFactor CAR = new FormFactor("Car", DeviceMenuAction.FormFactor.CAR, "Android Auto", 21,
-            null, Lists.newArrayList("21", "22"), 3, MOBILE);
+            null, null, 3, MOBILE);
 
     public static final FormFactor GLASS = new FormFactor("Glass", DeviceMenuAction.FormFactor.GLASS, "Glass", 19,
                                                           null, Lists.newArrayList("Glass", "google_gdk"), 4, null);
