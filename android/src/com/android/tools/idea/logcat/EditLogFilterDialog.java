@@ -61,18 +61,23 @@ final class EditLogFilterDialog extends DialogWrapper {
   private static final String NEW_FILTER_NAME_PREFIX = "Unnamed-";
   @NonNls private static final String EDIT_FILTER_DIALOG_DIMENSIONS_KEY =
     "edit.logcat.filter.dialog.dimensions";
+  static final int FILTER_HISTORY_SIZE = 5;
+  @NonNls private static final String LOG_FILTER_MESSAGE_HISTORY = "LOG_FILTER_MESSAGE_HISTORY";
+  @NonNls private static final String LOG_FILTER_TAG_HISTORY = "LOG_FILTER_TAG_HISTORY";
+  @NonNls private static final String LOG_FILTER_PACKAGE_NAME_HISTORY = "LOG_FILTER_PACKAGE_NAME_HISTORY";
 
   private final Splitter mySplitter;
   private JPanel myContentPanel;
   private JPanel myLeftPanel;
 
   private EditorTextField myFilterNameField;
-  private EditorTextField myLogMessageField;
-  private TextFieldWithAutoCompletion myTagField;
+  private RegexFilterComponent myLogMessageField;
+  private RegexFilterComponent myTagField;
   private TextFieldWithAutoCompletion myPidField;
-  private TextFieldWithAutoCompletion myPackageNameField;
+  private RegexFilterComponent myPackageNameField;
   private JComboBox myLogLevelCombo;
 
+  private JPanel myLogMessageFieldWrapper;
   private JPanel myTagFieldWrapper;
   private JPanel myPidFieldWrapper;
   private JPanel myPackageNameFieldWrapper;
@@ -141,17 +146,12 @@ final class EditLogFilterDialog extends DialogWrapper {
 
   private void createEditorFields() {
     myNameFieldLabel.setLabelFor(myFilterNameField);
+
+    myLogMessageField = new RegexFilterComponent(LOG_FILTER_MESSAGE_HISTORY, FILTER_HISTORY_SIZE, false);
+    myLogMessageFieldWrapper.add(myLogMessageField);
     myLogMessageLabel.setLabelFor(myLogMessageField);
 
-    myTagField = new TextFieldWithAutoCompletion<String>(myProject, new TextFieldWithAutoCompletion.StringsCompletionProvider(null, null) {
-      @NotNull
-      @Override
-      public Collection<String> getItems(String prefix, boolean cached, CompletionParameters parameters) {
-        parseExistingMessagesIfNecessary();
-        setItems(Arrays.asList(myUsedTags));
-        return super.getItems(prefix, cached, parameters);
-      }
-    }, true, null);
+    myTagField = new RegexFilterComponent(LOG_FILTER_TAG_HISTORY, FILTER_HISTORY_SIZE, false);
     myTagFieldWrapper.add(myTagField);
     myLogTagLabel.setLabelFor(myTagField);
 
@@ -174,28 +174,14 @@ final class EditLogFilterDialog extends DialogWrapper {
     myPidFieldWrapper.add(myPidField);
     myPidLabel.setLabelFor(myPidField);
 
-    myPackageNameField = new TextFieldWithAutoCompletion<String>(
-      myProject, new TextFieldWithAutoCompletion.StringsCompletionProvider(null, null) {
-      @NotNull
-      @Override
-      public Collection<String> getItems(String prefix, boolean cached,
-                                         CompletionParameters parameters) {
-        parseExistingMessagesIfNecessary();
-        setItems(Arrays.asList(myUsedPackageNames));
-        return super.getItems(prefix, cached, parameters);
-      }
-    }, true, null);
+    myPackageNameField = new RegexFilterComponent(LOG_FILTER_PACKAGE_NAME_HISTORY, FILTER_HISTORY_SIZE, false);
     myPackageNameFieldWrapper.add(myPackageNameField);
     myPackageNameLabel.setLabelFor(myPackageNameField);
 
     myLogLevelCombo.setModel(new EnumComboBoxModel<Log.LogLevel>(Log.LogLevel.class));
     myLogLevelCombo.setRenderer(new ListCellRendererWrapper() {
       @Override
-      public void customize(JList list,
-                            Object value,
-                            int index,
-                            boolean selected,
-                            boolean hasFocus) {
+      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value != null) {
           setText(StringUtil.capitalize(((Log.LogLevel)value).getStringValue().toLowerCase()));
         }
@@ -214,10 +200,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     });
 
     myFilterNameField.getDocument().putUserData(OWNER, myFilterNameField);
-    myTagField.getDocument().putUserData(OWNER, myTagField);
-    myLogMessageField.getDocument().putUserData(OWNER, myLogMessageField);
     myPidField.getDocument().putUserData(OWNER, myPidField);
-    myPackageNameField.getDocument().putUserData(OWNER, myPackageNameField);
 
     DocumentListener l = new DocumentAdapter() {
       @Override
@@ -229,14 +212,8 @@ final class EditLogFilterDialog extends DialogWrapper {
         String text = e.getDocument().getText().trim();
         JComponent src = e.getDocument().getUserData(OWNER);
 
-        if (src == myTagField) {
-          mySelectedEntry.setLogTagPattern(text);
-        } else if (src == myPidField) {
+        if (src == myPidField) {
           mySelectedEntry.setPid(text);
-        } else if (src == myPackageNameField) {
-          mySelectedEntry.setPackageNamePattern(text);
-        } else if (src == myLogMessageField) {
-          mySelectedEntry.setLogMessagePattern(text);
         } else if (src == myFilterNameField) {
           int index = myFiltersList.getSelectedIndex();
           if (index != -1) {
@@ -248,10 +225,26 @@ final class EditLogFilterDialog extends DialogWrapper {
     };
 
     myFilterNameField.getDocument().addDocumentListener(l);
-    myTagField.getDocument().addDocumentListener(l);
-    myLogMessageField.getDocument().addDocumentListener(l);
     myPidField.getDocument().addDocumentListener(l);
-    myPackageNameField.getDocument().addDocumentListener(l);
+
+    RegexFilterComponent.Listener rl = new RegexFilterComponent.Listener() {
+      @Override
+      public void filterChanged(RegexFilterComponent filter) {
+        if (filter == myTagField) {
+          mySelectedEntry.setLogTagPattern(filter.getFilter());
+          mySelectedEntry.setLogTagIsRegex(filter.isRegex());
+        } else if (filter == myLogMessageField) {
+          mySelectedEntry.setLogMessagePattern(filter.getFilter());
+          mySelectedEntry.setLogMessageIsRegex(filter.isRegex());
+        } else if (filter == myPackageNameField) {
+          mySelectedEntry.setPackageNamePattern(filter.getFilter());
+          mySelectedEntry.setPackageNameIsRegex(filter.isRegex());
+        }
+      }
+    };
+    myTagField.addRegexListener(rl);
+    myLogMessageField.addRegexListener(rl);
+    myPackageNameField.addRegexListener(rl);
   }
 
   private void initFiltersList() {
@@ -273,8 +266,7 @@ final class EditLogFilterDialog extends DialogWrapper {
       myFiltersListModel.add(entry.getName());
     }
     myFiltersList.setModel(myFiltersListModel);
-    myFiltersList.setEmptyText(
-      AndroidBundle.message("android.logcat.edit.filter.dialog.no.filters"));
+    myFiltersList.setEmptyText(AndroidBundle.message("android.logcat.edit.filter.dialog.no.filters"));
   }
 
   private void initFiltersToolbar() {
@@ -344,10 +336,13 @@ final class EditLogFilterDialog extends DialogWrapper {
                                : Log.LogLevel.VERBOSE;
 
     myFilterNameField.setText(name != null ? name : "");
-    myTagField.setText(tag != null ? tag : "");
-    myLogMessageField.setText(msg != null ? msg : "");
+    myTagField.setFilter(tag != null ? tag : "");
+    myTagField.setIsRegex(mySelectedEntry.getLogTagIsRegex());
+    myLogMessageField.setFilter(msg != null ? msg : "");
+    myLogMessageField.setIsRegex(mySelectedEntry.getLogMessageIsRegex());
     myPidField.setText(pid != null ? pid : "");
-    myPackageNameField.setText(pkg != null ? pkg : "");
+    myPackageNameField.setFilter(pkg != null ? pkg : "");
+    myPackageNameField.setIsRegex(mySelectedEntry.getPackageNameIsRegex());
     myLogLevelCombo.setSelectedItem(logLevel != null ? logLevel : Log.LogLevel.VERBOSE);
   }
 
@@ -393,25 +388,16 @@ final class EditLogFilterDialog extends DialogWrapper {
       return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.busy.error", name));
     }
 
-    ValidationInfo info = validatePattern(
-      myTagField.getText().trim(),
-      AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.log.tag.pattern.error"));
-    if (info != null) {
-      return info;
+    if (myTagField.getParseError() != null) {
+      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.log.tag.pattern.error") + '\n' + myTagField.getParseError());
     }
 
-    info = validatePattern(
-      myLogMessageField.getText().trim(),
-      AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.message.pattern.error"));
-    if (info != null) {
-      return info;
+    if (myLogMessageField.getParseError() != null) {
+      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.message.pattern.error") + '\n' + myLogMessageField.getParseError());
     }
 
-    info = validatePattern(
-      myPackageNameField.getText().trim(),
-      AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.application.name.pattern.error"));
-    if (info != null) {
-      return info;
+    if (myPackageNameField.getParseError() != null) {
+      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.application.name.pattern.error") + '\n' + myPackageNameField.getParseError());
     }
 
     boolean validPid = false;
@@ -430,25 +416,6 @@ final class EditLogFilterDialog extends DialogWrapper {
     }
 
     return null;
-  }
-
-  /**
-   * Returns a validation error if there's a problem or {@ocde null} if no issues.
-   */
-  @Nullable
-  private static ValidationInfo validatePattern(String pattern, String errorMessage) {
-    try {
-      if (!pattern.isEmpty()) {
-        // We don't care about the compile result, just that it can be compiled
-        //noinspection ResultOfMethodCallIgnored
-        Pattern.compile(pattern, AndroidConfiguredLogFilters.getPatternCompileFlags(pattern));
-      }
-      return null;
-    }
-    catch (PatternSyntaxException e) {
-      String message = e.getMessage();
-      return new ValidationInfo(errorMessage + (message != null ? ('\n' + message) : ""));
-    }
   }
 
   @Nullable

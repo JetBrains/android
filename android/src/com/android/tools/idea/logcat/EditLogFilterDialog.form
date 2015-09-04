@@ -123,12 +123,14 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="40de4" class="com.intellij.ui.EditorTextField" binding="myLogMessageField">
+              <grid id="b7279" binding="myLogMessageFieldWrapper" layout-manager="BorderLayout" hgap="0" vgap="0">
                 <constraints>
-                  <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                  <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
-              </component>
+                <border type="none"/>
+                <children/>
+              </grid>
             </children>
           </grid>
         </children>
