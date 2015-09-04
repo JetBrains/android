@@ -27,6 +27,7 @@ import com.android.utils.XmlUtils;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -54,6 +55,7 @@ import java.awt.event.FocusListener;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -335,8 +337,12 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       }
       Parameter param = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
       if (param != null) {
+        Set<Object> relatedValues = Sets.newHashSet();
+        for (Parameter related : myTemplateState.getTemplateMetadata().getRelatedParams(param)) {
+          relatedValues.add(myTemplateState.get(related.id));
+        }
         String error = param.validate(myProject, myModule, myTemplateState.getSourceProvider(),
-                                      (String)myTemplateState.get(ATTR_PACKAGE_NAME), myTemplateState.get(paramName));
+                                      (String)myTemplateState.get(ATTR_PACKAGE_NAME), myTemplateState.get(paramName), relatedValues);
         if (error != null) {
           setErrorHtml(error);
           return false;

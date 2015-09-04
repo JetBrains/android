@@ -21,5 +21,58 @@
     description="A simple test template."
     >
 
-  <execute file="recipe.xml.ftl"/>
+    <parameter
+        id="activityClass"
+        name="Activity Name"
+        type="string"
+        constraints="class|unique"
+        suggest="${layoutToActivity(layoutName)}"
+        default="MainActivity"
+        help="The name of the activity class to create" />
+
+    <parameter
+        id="layoutName"
+        name="Main Layout Name"
+        type="string"
+        constraints="layout|unique"
+        suggest="${activityToLayout(activityClass)}"
+        default="main"
+        help="The name of the layout to create for the activity" />
+
+    <parameter
+        id="mainFragment"
+        name="Main Fragment"
+        type="string"
+        constraints="class|unique"
+        default="MainFragment"
+        suggest="MainFragment"
+        help="The name of the main fragment." />
+
+    <parameter
+        id="activityTitle"
+        name="Title"
+        type="string"
+        default="Title"
+        suggest="${activityClass} Title"
+        help="The name of the activity. For launcher activities, the application title." />
+
+    <parameter
+        id="detailsActivity"
+        name="Details Activity"
+        type="string"
+        constraints="class|unique"
+        default="DetailsActivity"
+        suggest="DetailsActivity"
+        help="The name of the details activity." />
+
+    <parameter
+        id="detailsLayoutName"
+        name="Details Layout Name"
+        type="string"
+        constraints="layout|unique"
+        suggest="${activityToLayout(detailsActivity)}"
+        default="details"
+        help="The name of the layout to create for the activity" />
+
+    <execute file="recipe.xml.ftl"/>
 </template>
