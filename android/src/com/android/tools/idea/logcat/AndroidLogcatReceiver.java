@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,7 @@ import java.util.regex.Pattern;
  * An {@link AndroidOutputReceiver} whose output is matched against an expected logcat pattern and,
  * if matched, further processed.
  */
-public final class AndroidLogcatReceiver extends AndroidOutputReceiver {
+public final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Disposable {
   private static Pattern LOG_PATTERN =
     Pattern.compile("^\\[\\s(\\d\\d-\\d\\d\\s\\d\\d:\\d\\d:\\d\\d\\.\\d+)\\s+(\\d*):\\s*(\\S+)\\s([VDIWEAF])/(.*)\\]$", Pattern.DOTALL);
 
@@ -121,6 +122,11 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver {
   @Override
   public boolean isCancelled() {
     return myCanceled;
+  }
+
+  @Override
+  public void dispose() {
+    cancel();
   }
 
   static final class LogMessageHeader {
