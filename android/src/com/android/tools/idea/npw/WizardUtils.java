@@ -37,6 +37,7 @@ import java.io.File;
  */
 public class WizardUtils {
   private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(WizardConstants.INVALID_FILENAME_CHARS);
+  public static final int WINDOWS_PATH_LENGTH_LIMIT = 100;
 
   /**
    * Remove spaces, switch to lower case, and remove any invalid characters. If the resulting name
@@ -105,20 +106,21 @@ public class WizardUtils {
     }
 
     public enum Message {
-      NO_LOCATION_SPECIFIED("Please specify a %1s"),
-      BAD_SLASHES("Your %1s contains incorrect slashes ('\\' vs '/')"),
-      ILLEGAL_CHARACTER("Illegal character in %1s path: '%2c' in filename %3s"),
-      ILLEGAL_FILENAME("Illegal filename in %1s path: %2s"),
-      WHITESPACE("%1s cannot contain whitespace."),
-      NON_ASCII_CHARS_WARNING("Your %1s contains non-ASCII characters, which can cause problems. Proceed with caution."),
-      NON_ASCII_CHARS_ERROR("Your %1s contains non-ASCII characters."),
-      PATH_NOT_WRITEABLE("The path '%2s' is not writeable. Please choose a new location."),
-      PROJECT_LOC_IS_FILE("There must not already be a file at the %1s."),
-      NON_EMPTY_DIR("A non-empty directory already exists at the specified %1s. Existing files may be overwritten. Proceed with caution."),
-      PROJECT_IS_FILE_SYSTEM_ROOT("The %1s can not be at the filesystem root"),
+      NO_LOCATION_SPECIFIED("Please specify a %1$s"),
+      BAD_SLASHES("Your %1$s contains incorrect slashes ('\\' vs '/')"),
+      ILLEGAL_CHARACTER("Illegal character in %1$s path: '%2$c' in filename %3s"),
+      ILLEGAL_FILENAME("Illegal filename in %1$s path: %2$s"),
+      WHITESPACE("%1$s cannot contain whitespace."),
+      NON_ASCII_CHARS_WARNING("Your %1$s contains non-ASCII characters, which can cause problems. Proceed with caution."),
+      NON_ASCII_CHARS_ERROR("Your %1$s contains non-ASCII characters."),
+      PATH_NOT_WRITEABLE("The path '%2$s' is not writeable. Please choose a new location."),
+      PROJECT_LOC_IS_FILE("There must not already be a file at the %1$s."),
+      NON_EMPTY_DIR("A non-empty directory already exists at the specified %1$s. Existing files may be overwritten. Proceed with caution."),
+      PROJECT_IS_FILE_SYSTEM_ROOT("The %1$s can not be at the filesystem root"),
       IS_UNDER_ANDROID_STUDIO_ROOT("Path points to a location within Android Studio installation directory"),
-      PARENT_NOT_DIR("The %1s's parent directory must be a directory, not a plain file"),
-      INSIDE_ANDROID_STUDIO("The %1s is inside %2s install location");
+      PARENT_NOT_DIR("The %1$s's parent directory must be a directory, not a plain file"),
+      INSIDE_ANDROID_STUDIO("The %1$s is inside %2$s install location"),
+      PATH_TOO_LONG("The %1$s is too long");
 
       private final String myText;
 
@@ -242,6 +244,10 @@ public class WizardUtils {
         }
       }
       testFile = testFile.getParentFile();
+    }
+
+    if (SystemInfo.isWindows && projectLocation.length() > WINDOWS_PATH_LENGTH_LIMIT) {
+      return ValidationResult.error(ValidationResult.Message.PATH_TOO_LONG, fieldName);
     }
 
     File file = new File(projectLocation);
