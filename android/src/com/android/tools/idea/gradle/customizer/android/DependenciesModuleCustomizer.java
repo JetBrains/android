@@ -29,11 +29,14 @@ import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -42,9 +45,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import static com.android.SdkConstants.FD_JARS;
-import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.BINARY;
-import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.DOC;
-import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.SOURCE;
+import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.*;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
@@ -149,7 +150,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   }
 
   /**
-   * Sets the 'useLibrary' libraries as dependencies.
+   * Sets the 'useLibrary' libraries or SDK add-ons as library dependencies.
    * <p>
    * These libraries are set at the project level, which makes it impossible to add them to a IDE SDK definition because the IDE SDK is
    * global to the whole IDE. To work around this limitation, we set these libraries as module dependencies instead.
@@ -158,6 +159,21 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   private static void addExtraSdkLibrariesAsDependencies(@NotNull ModifiableRootModel moduleModel, @NotNull AndroidProject androidProject) {
     Sdk sdk = moduleModel.getSdk();
     assert sdk != null; // If we got here, SDK will *NOT* be null.
+
+    String suffix = null;
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+    if (sdkData != null) {
+      SdkAdditionalData data = sdk.getSdkAdditionalData();
+      if (data instanceof AndroidSdkAdditionalData) {
+        AndroidSdkAdditionalData androidSdkData = (AndroidSdkAdditionalData)data;
+        suffix = androidSdkData.getBuildTargetHashString();
+      }
+    }
+
+    if (suffix == null) {
+      // In practice, we won't get here. A proper Android SDK has been already configured by now, and the suffix won't be null.
+      suffix = androidProject.getCompileTarget();
+    }
 
     Set<String> currentIdeSdkFilePaths = Sets.newHashSetWithExpectedSize(5);
     for (VirtualFile sdkFile : sdk.getRootProvider().getFiles(CLASSES)) {
@@ -173,7 +189,8 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
         File binaryPath = new File(library);
         String name = binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(library);
         // Include compile target as part of the name, to ensure the library name is unique to this Android platform.
-        name = androidProject.getCompileTarget() + '.' + name;
+
+        name = name + "-" + suffix; // e.g. maps-android-23, effects-android-23 (it follows the library naming convention: library-version
         setUpLibraryDependency(moduleModel, name, DependencyScope.COMPILE, Collections.singletonList(library));
       }
     }

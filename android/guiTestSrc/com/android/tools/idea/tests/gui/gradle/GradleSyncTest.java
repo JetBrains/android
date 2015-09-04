@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
+import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
@@ -50,6 +52,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
@@ -72,6 +76,8 @@ import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -1543,5 +1549,47 @@ public class GradleSyncTest extends GuiTestCase {
     assertNotNull(library);
     VirtualFile[] files = library.getFiles(SOURCES);
     assertThat(files).hasSize(1);
+  }
+
+  // https://code.google.com/p/android/issues/detail?id=185313
+  @Test @IdeGuiTest
+  public void testSdkCreationForAddons() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    final Project project = projectFrame.getProject();
+
+    final Module appModule = projectFrame.getModule("app");
+    final GradleBuildFile buildFile = GradleBuildFile.get(appModule);
+    assertNotNull(buildFile);
+
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        runWriteCommandAction(project, new Runnable() {
+          @Override
+          public void run() {
+            buildFile.setValue(BuildFileKey.COMPILE_SDK_VERSION, "Google Inc.:Google APIs:23");
+          }
+        });
+      }
+    });
+
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    Sdk sdk = ModuleRootManager.getInstance(appModule).getSdk();
+    assertNotNull(sdk);
+
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+    assertNotNull(sdkData);
+
+    SdkAdditionalData data = sdk.getSdkAdditionalData();
+    assertThat(data).isInstanceOf(AndroidSdkAdditionalData.class);
+
+    AndroidSdkAdditionalData androidSdkData = (AndroidSdkAdditionalData)data;
+    assertNotNull(androidSdkData);
+    IAndroidTarget buildTarget = androidSdkData.getBuildTarget(sdkData);
+    assertNotNull(buildTarget);
+
+    // By checking that there are no additional libraries in the SDK, we are verifying that an additional SDK was not created for add-ons.
+    assertThat(buildTarget.getAdditionalLibraries()).hasSize(0);
   }
 }
