@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.google.common.collect.Lists;
 import freemarker.template.SimpleScalar;
 import freemarker.template.TemplateModelException;
 
@@ -29,6 +30,12 @@ public class FmActivityToLayoutMethodTest extends TestCase {
   private static void check(String s, String expected) throws TemplateModelException {
     FmActivityToLayoutMethod method = new FmActivityToLayoutMethod();
     List list = Collections.singletonList(new SimpleScalar(s));
+    assertEquals(expected, ((SimpleScalar)method.exec(list)).getAsString());
+  }
+
+  private static void check(String activity, String layoutPrefix, String expected) throws TemplateModelException {
+    FmActivityToLayoutMethod method = new FmActivityToLayoutMethod();
+    List list = Lists.newArrayList(new SimpleScalar(activity), new SimpleScalar(layoutPrefix));
     assertEquals(expected, ((SimpleScalar)method.exec(list)).getAsString());
   }
 
@@ -66,5 +73,13 @@ public class FmActivityToLayoutMethodTest extends TestCase {
 
   public void test9() throws Exception {
     check("Activity200", "activity_200");
+  }
+
+  public void test10() throws Exception {
+    check("MainActivity", "simple", "simple_main");
+  }
+
+  public void test11() throws Exception {
+    check("FullScreenActivity", "content", "content_full_screen");
   }
 }
