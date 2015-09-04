@@ -1055,9 +1055,12 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     message("Uploading file\n\tlocal path: " + localFile + "\n\tremote path: " + remotePath, STDOUT);
     try {
       InstalledApks installedApks = ServiceManager.getService(InstalledApks.class);
-      if (installedApks.isInstalled(device, localFile, packageName)) {
-        message("No apk changes detected. Skipping file upload, force stopping package instead.", STDOUT);
-        forceStopPackageSilently(device, packageName, true);
+      if (myConfiguration.SKIP_NOOP_APK_INSTALLATIONS && installedApks.isInstalled(device, localFile, packageName)) {
+        message("No apk changes detected.", STDOUT);
+        if (myConfiguration.FORCE_STOP_RUNNING_APP) {
+          message("Skipping file upload, force stopping package instead.", STDOUT);
+          forceStopPackageSilently(device, packageName, true);
+        }
         return true;
       } else {
         device.pushFile(localFile.getPath(), remotePath);
