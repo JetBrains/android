@@ -50,6 +50,7 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.runners.ProgramRunner;
@@ -194,7 +195,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   @Override
-  public ExecutionResult execute(@NotNull Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
+  public ExecutionResult execute(@NotNull final Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
     Project project = myFacet.getModule().getProject();
     myProcessHandler = new DefaultDebugProcessHandler();
     AndroidProcessText.attach(myProcessHandler);
@@ -319,6 +320,22 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     if (console == null) { //Will not be null in debug mode or if additional option was chosen.
       console = myConfiguration.attachConsole(this, executor);
     }
+
+    getProcessHandler().addProcessListener(new ProcessAdapter() {
+      @Override
+      public void onTextAvailable(final ProcessEvent event, final Key outputType) {
+        if (outputType.equals(ProcessOutputTypes.STDERR)) {
+          ToolWindow window = ToolWindowManager.getInstance(myFacet.getModule().getProject()).getToolWindow(executor.getToolWindowId());
+          window.activate(null, true, false);
+        }
+      }
+
+      @Override
+      public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
+        getProcessHandler().removeProcessListener(this);
+      }
+    });
+
     myConsole = console;
 
     return new DefaultExecutionResult(console, myProcessHandler);
