@@ -37,6 +37,7 @@ import java.util.regex.PatternSyntaxException;
 
 /**
  * A filter which plugs into {@link LogConsoleBase} for custom logcat filtering.
+ * This deliberatly drops the custom pattern behaviour of LogFilterModel, replacing it with a new version that allows regex support.
  */
 public abstract class AndroidLogFilterModel extends LogFilterModel {
   private final List<LogFilterListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
@@ -48,7 +49,6 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   private boolean myFullMessageApplicable = false;
   private boolean myFullMessageApplicableByCustomFilter = false;
   private StringBuilder myMessageBuilder = new StringBuilder();
-  private boolean myIsInvalidRegexp = false;
   private @Nullable Pattern myCustomPattern;
 
   protected List<AndroidLogFilter> myLogFilters = new ArrayList<AndroidLogFilter>();
@@ -59,29 +59,18 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     }
   }
 
-  private void updateCustomPattern(@Nullable String filter) {
-    myIsInvalidRegexp = false;
-    myCustomPattern = null;
-    if (filter != null && filter.length() > 0) {
-      if (isRegexp()) {
-        try {
-          myCustomPattern = Pattern.compile(filter, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-        }
-        catch (PatternSyntaxException e) {
-          myIsInvalidRegexp = true;
-        }
-      }
-      if (myCustomPattern == null) {
-        myCustomPattern = Pattern.compile(Pattern.quote(filter), Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-      }
-    }
+  // Implemented because it is abstract in the parent, but the functionality is no longer used.
+  @Override
+  public String getCustomFilter() {
+    return "";
   }
 
-  @Override
-  public final void updateCustomFilter(String filter) {
-    super.updateCustomFilter(filter);
-    updateCustomPattern(filter);
-    setCustomFilter(filter);
+  /**
+   * This is called to enable regular expression filtering of log messages.
+   * Replaces the customFilter mechanism.
+   */
+  public void updateCustomPattern(@Nullable Pattern pattern) {
+    myCustomPattern = pattern;
     fireTextFilterChange();
   }
 
@@ -90,28 +79,12 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     fireTextFilterChange();
   }
 
-  public void updateIsRegexp(boolean isRegexp) {
-    setIsRegexp(isRegexp);
-    updateCustomPattern(getCustomFilter());
-    fireTextFilterChange();
-  }
-
-  protected abstract void setCustomFilter(String filter);
-
   protected void setConfiguredFilter(@Nullable ConfiguredFilter filter) {
   }
-
-  protected abstract void setIsRegexp(boolean isRegexp);
 
   @Nullable
   protected ConfiguredFilter getConfiguredFilter() {
     return null;
-  }
-
-  protected abstract boolean isRegexp();
-
-  public boolean isInvalidRegexp() {
-    return myIsInvalidRegexp;
   }
 
   protected abstract void saveLogLevel(String logLevelName);
@@ -297,11 +270,11 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
         myPrevPid = Integer.toString(header.myPid);
       }
     }
-    final boolean applicable = isApplicable(line); 
+    final boolean applicable = isApplicable(line);
     final boolean applicableByCustomFilter = isApplicableByCustomFilter(line);
 
     String messagePrefix;
-    
+
     if (hasHeader) {
       messagePrefix = null;
       myMessageBuilder = new StringBuilder(line);
@@ -312,17 +285,13 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     else {
       messagePrefix = (myFullMessageApplicable || applicable) &&
                       (myFullMessageApplicableByCustomFilter || applicableByCustomFilter) &&
-                      !(myFullMessageApplicable && myFullMessageApplicableByCustomFilter)
-                      ? myMessageBuilder.toString()
-                      : null;
+                      !(myFullMessageApplicable && myFullMessageApplicableByCustomFilter) ? myMessageBuilder.toString() : null;
       myMessageBuilder.append(line).append('\n');
       myFullMessageApplicable = myFullMessageApplicable || applicable;
       myFullMessageApplicableByCustomFilter = myFullMessageApplicableByCustomFilter || applicableByCustomFilter;
     }
     final Key key = myPrevMessageLogLevel != null ? getProcessOutputType(myPrevMessageLogLevel) : ProcessOutputTypes.STDOUT;
-    
-    return new MyProcessingResult(key,
-                                  myFullMessageApplicable && myFullMessageApplicableByCustomFilter,
-                                  messagePrefix);
+
+    return new MyProcessingResult(key, myFullMessageApplicable && myFullMessageApplicableByCustomFilter, messagePrefix);
   }
 }
