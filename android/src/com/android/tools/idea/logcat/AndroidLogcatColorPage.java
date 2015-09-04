@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.logcat;
+package com.android.tools.idea.logcat;
 
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.PlainSyntaxHighlighter;

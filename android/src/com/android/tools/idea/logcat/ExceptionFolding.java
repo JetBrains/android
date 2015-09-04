@@ -16,7 +16,6 @@
 package com.android.tools.idea.logcat;
 
 import com.intellij.execution.ConsoleFolding;
-import org.jetbrains.android.logcat.AndroidLogcatReceiver;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;

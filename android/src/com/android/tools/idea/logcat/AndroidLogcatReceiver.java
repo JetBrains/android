@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.logcat;
+package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log;
-import com.android.tools.idea.logcat.ExceptionFolding;
-import com.android.tools.idea.logcat.StackTraceExpander;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.NotNull;

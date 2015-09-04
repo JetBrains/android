@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.logcat;
+package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.*;
-import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -30,7 +29,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.IOException;
 
 public final class AndroidLogcatUtils {
   private static final Logger LOG = Logger.getInstance(AndroidLogcatUtils.class);
