@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
-import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
@@ -48,7 +47,6 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
@@ -65,6 +63,7 @@ import com.intellij.util.net.HttpConfigurable;
 import junit.framework.AssertionFailedError;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
@@ -94,7 +93,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
+import static com.android.tools.idea.gradle.parser.BuildFileKey.DEPENDENCIES;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
+import static com.android.tools.idea.gradle.parser.Dependency.Scope.COMPILE;
+import static com.android.tools.idea.gradle.parser.Dependency.Type.EXTERNAL;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
@@ -105,7 +107,9 @@ import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDial
 import static com.android.tools.idea.tests.gui.framework.fixture.FileFixture.getDocument;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.*;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -212,10 +216,10 @@ public class GradleSyncTest extends GuiTestCase {
         new WriteCommandAction<Void>(projectFrame.getProject(), "Adding dependencies", buildFile.getPsiFile()) {
           @Override
           protected void run(@NotNull Result<Void> result) throws Throwable {
-            final Dependency nonExisting = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, ":fakeLibrary");
+            final Dependency nonExisting = new Dependency(COMPILE, Dependency.Type.MODULE, ":fakeLibrary");
             List<BuildFileStatement> dependencies = Lists.newArrayList();
             dependencies.add(nonExisting);
-            buildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+            buildFile.setValue(DEPENDENCIES, dependencies);
           }
         }.execute();
       }
@@ -417,7 +421,7 @@ public class GradleSyncTest extends GuiTestCase {
     File buildFilePath = new File(project.getBasePath(), FN_BUILD_GRADLE);
     final VirtualFile buildFile = findFileByIoFile(buildFilePath, true);
     assertNotNull(buildFile);
-    WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+    runWriteCommandAction(project, new Runnable() {
       @Override
       public void run() {
         new GradleBuildFile(buildFile, project).setValue(PLUGIN_VERSION, "0.12.+");
@@ -1479,6 +1483,7 @@ public class GradleSyncTest extends GuiTestCase {
     VirtualFile jarFile = jarFiles[0];
     assertEquals("org.apache.http.legacy.jar", jarFile.getName());
 
+    // Verify that the module depends on the library
     final Module appModule = projectFrame.getModule("app");
     final AtomicBoolean dependencyFound = new AtomicBoolean();
     new ReadAction() {
@@ -1496,5 +1501,47 @@ public class GradleSyncTest extends GuiTestCase {
       }
     }.execute();
     assertTrue("Module app should depend on library '" + library.getName() + "'", dependencyFound.get());
+  }
+
+  @Test @IdeGuiTest
+  public void testAarSourceAttachments() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    final Project project = projectFrame.getProject();
+
+    final Module appModule = projectFrame.getModule("app");
+    final GradleBuildFile buildFile = GradleBuildFile.get(appModule);
+    assertNotNull(buildFile);
+
+    final List<BuildFileStatement> dependencies = Lists.newArrayList();
+    new ReadAction() {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        dependencies.addAll(buildFile.getDependencies());
+      }
+    }.execute();
+    Dependency aarDependency = new Dependency(COMPILE, EXTERNAL, "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar");
+    dependencies.add(aarDependency);
+
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        runWriteCommandAction(project, new Runnable() {
+          @Override
+          public void run() {
+            buildFile.setValue(DEPENDENCIES, dependencies);
+          }
+        });
+      }
+    });
+
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    // Verify that the library has sources.
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    String libraryName = "mapbox-android-sdk-0.7.4";
+    Library library = libraryTable.getLibraryByName(libraryName);
+    assertNotNull(library);
+    VirtualFile[] files = library.getFiles(SOURCES);
+    assertThat(files).hasSize(1);
   }
 }
