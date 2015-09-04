@@ -39,5 +39,5 @@ dependencies {
     compile project(path: ':androidlib1', configuration: 'flavor1Release')
     compile project(path: ':androidlib2', configuration: 'flavor1Release')
     compile project(':javalib1')
-    compile project(':javalib2')
+    compile project(path: ':javalib2')
 }
