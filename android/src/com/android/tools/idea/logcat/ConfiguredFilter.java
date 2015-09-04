@@ -84,9 +84,9 @@ final class ConfiguredFilter {
   @NotNull
   public static ConfiguredFilter compile(@NotNull AndroidConfiguredLogFilters.FilterEntry entry, @NotNull String name) {
 
-    Pattern logMessagePattern = compilePattern(entry.getLogMessagePattern());
-    Pattern logTagPattern = compilePattern(entry.getLogTagPattern());
-    Pattern pkgNamePattern = compilePattern(entry.getPackageNamePattern());
+    Pattern logMessagePattern = RegexFilterComponent.pattern(entry.getLogMessagePattern(), entry.getLogMessageIsRegex());
+    Pattern logTagPattern = RegexFilterComponent.pattern(entry.getLogTagPattern(), entry.getLogTagIsRegex());
+    Pattern pkgNamePattern = RegexFilterComponent.pattern(entry.getPackageNamePattern(), entry.getPackageNameIsRegex());
 
     final String pid = entry.getPid();
 
@@ -101,19 +101,4 @@ final class ConfiguredFilter {
 
   }
 
-  private static Pattern compilePattern(String pattern) {
-    Pattern p = null;
-    if (StringUtil.isNotEmpty(pattern)) {
-      try {
-        p = Pattern.compile(pattern, AndroidConfiguredLogFilters.getPatternCompileFlags(pattern));
-      }
-      catch (PatternSyntaxException e) {
-        // This shouldn't happen if the pattern was entered through the UI in which case the
-        // {@link EditLogFilterDialog#doValidate()} captures and reports the issue to the user.
-        LOG.info(e);
-      }
-    }
-
-    return p;
-  }
 }

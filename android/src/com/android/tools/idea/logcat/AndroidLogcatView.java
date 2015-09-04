@@ -19,15 +19,11 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.diagnostic.logging.LogConsoleBase;
-import com.intellij.diagnostic.logging.LogFilter;
-import com.intellij.diagnostic.logging.LogFilterListener;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.ex.CheckboxAction;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -47,6 +43,7 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static javax.swing.BoxLayout.X_AXIS;
 
@@ -66,7 +63,6 @@ public abstract class AndroidLogcatView implements Disposable {
 
   private JPanel myPanel;
   private DefaultComboBoxModel myFilterComboBoxModel;
-  private JTextField myFilterTextField;
 
   private volatile IDevice myDevice;
   private final AndroidLogConsole myLogConsole;
@@ -144,11 +140,6 @@ public abstract class AndroidLogcatView implements Disposable {
         @Nullable private ConfiguredFilter myConfiguredFilter;
 
         @Override
-        protected void setCustomFilter(String filter) {
-          AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_CUSTOM_FILTER = filter;
-        }
-
-        @Override
         protected void saveLogLevel(String logLevelName) {
           AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_LOG_LEVEL = logLevelName;
         }
@@ -156,11 +147,6 @@ public abstract class AndroidLogcatView implements Disposable {
         @Override
         public String getSelectedLogLevelName() {
           return AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_LOG_LEVEL;
-        }
-
-        @Override
-        public String getCustomFilter() {
-          return AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_CUSTOM_FILTER;
         }
 
         @Override
@@ -174,33 +160,8 @@ public abstract class AndroidLogcatView implements Disposable {
         protected ConfiguredFilter getConfiguredFilter() {
           return myConfiguredFilter;
         }
-
-        @Override
-        protected void setIsRegexp(boolean isRegexp) {
-          AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_REGEXP_FILTER = isRegexp;
-        }
-
-        @Override
-        protected boolean isRegexp() {
-          return AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_REGEXP_FILTER;
-        }
       };
     myLogConsole = new AndroidLogConsole(project, myLogFilterModel);
-    myLogFilterModel.addFilterListener(new LogFilterListener() {
-      @Override
-      public void onFilterStateChange(LogFilter filter) {
-      }
-
-      @Override
-      public void onTextFilterChange() {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            myLogConsole.setInvalidFilter(myLogFilterModel.isInvalidRegexp());
-          }
-        });
-      }
-    });
 
     if (preselectedDevice == null && deviceContext != null) {
       DeviceContext.DeviceSelectionListener deviceSelectionListener =
@@ -433,8 +394,8 @@ public abstract class AndroidLogcatView implements Disposable {
   }
 
   public final class AndroidLogConsole extends LogConsoleBase implements AndroidConsoleWriter {
-    private @Nullable JPanel myTextFilterPanel;
-
+    private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5, true);
+    private final AndroidLogcatPreferences myPreferences;
     public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel) {
       super(project, null, "", false, logFilterModel);
       ConsoleView console = getConsole();
@@ -443,12 +404,17 @@ public abstract class AndroidLogcatView implements Disposable {
         c.addCustomConsoleAction(new Separator());
         c.addCustomConsoleAction(new MyRestartAction());
       }
-    }
-
-    void setInvalidFilter(boolean invalid) {
-      if (myFilterTextField != null) {
-        myFilterTextField.setBackground(invalid ? LightColors.RED : UIUtil.getTextFieldBackground());
-      }
+      myPreferences = AndroidLogcatPreferences.getInstance(project);
+      myRegexFilterComponent.setFilter(myPreferences.TOOL_WINDOW_CUSTOM_FILTER);
+      myRegexFilterComponent.setIsRegex(myPreferences.TOOL_WINDOW_REGEXP_FILTER);
+      myRegexFilterComponent.addRegexListener(new RegexFilterComponent.Listener() {
+        @Override
+        public void filterChanged(RegexFilterComponent filter) {
+          myPreferences.TOOL_WINDOW_CUSTOM_FILTER = filter.getFilter();
+          myPreferences.TOOL_WINDOW_REGEXP_FILTER = filter.isRegex();
+          myLogFilterModel.updateCustomPattern(filter.getPattern());
+        }
+      });
     }
 
     @Override
@@ -463,33 +429,7 @@ public abstract class AndroidLogcatView implements Disposable {
     @NotNull
     @Override
     protected Component getTextFilterComponent() {
-      if (myTextFilterPanel != null) {
-        return myTextFilterPanel;
-      }
-
-      final CheckboxAction regexToggle = new CheckboxAction(REGEX) {
-        @Override
-        public boolean isSelected(AnActionEvent e) {
-          return myLogFilterModel.isRegexp();
-        }
-
-        @Override
-        public void setSelected(AnActionEvent e, boolean state) {
-          myLogFilterModel.updateIsRegexp(state);
-        }
-      };
-      Presentation presentation = regexToggle.getTemplatePresentation();
-      presentation.putClientProperty(Toggleable.SELECTED_PROPERTY, myLogFilterModel.isRegexp());
-
-      myTextFilterPanel = new JPanel(new BorderLayout());
-      Component component = super.getTextFilterComponent();
-      if (component instanceof FilterComponent) {
-        myFilterTextField = ((FilterComponent)component).getTextEditor();
-      }
-      myTextFilterPanel.add(component, BorderLayout.CENTER);
-      myTextFilterPanel.add(regexToggle.createCustomComponent(presentation), BorderLayout.EAST);
-
-      return myTextFilterPanel;
+      return myRegexFilterComponent;
     }
 
     @Override
