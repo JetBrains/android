@@ -80,7 +80,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private HyperlinkLabel myHelpMeChooseLink = new HyperlinkLabel("Help me choose");
   private List<Pair<Key<Boolean>, JCheckBox>> myCheckboxKeys = Lists.newArrayList();
 
-  private Set<FormFactor> myFormFactors = Sets.newTreeSet();
+  private Map<FormFactor, Integer> myFormFactors = Maps.newTreeMap();
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
   private Disposable myDisposable;
   private Map<FormFactor, FormFactorSdkControls> myFormFactorApiSelectors = Maps.newHashMap();
@@ -173,7 +173,6 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     myFormFactorPanel.removeAll();
 
     int row = 0;
-    final Map<FormFactor, Integer> minSdks = Maps.newHashMap();
     for (File templateFile : applicationTemplates) {
       TemplateMetadata metadata = manager.getTemplate(templateFile);
       if (metadata == null || metadata.getFormFactor() == null) {
@@ -183,9 +182,10 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       if (formFactor == null) {
         continue;
       }
-      if (!myFormFactors.contains(formFactor)) {
-        myFormFactors.add(formFactor);
-        minSdks.put(formFactor, metadata.getMinSdk());
+      Integer prevMinSdk = myFormFactors.get(formFactor);
+      int templateMinSdk = metadata.getMinSdk();
+      if (prevMinSdk == null || templateMinSdk > prevMinSdk) {
+        myFormFactors.put(formFactor, templateMinSdk);
       }
     }
 
@@ -195,7 +195,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     gridLayoutManager.setVGap(5);
     gridLayoutManager.setHGap(10);
     myFormFactorPanel.setLayout(gridLayoutManager);
-    for (final FormFactor formFactor : myFormFactors) {
+    for (final FormFactor formFactor : myFormFactors.keySet()) {
       GridConstraints c = new GridConstraints();
       c.setRow(row);
       c.setColumn(0);
@@ -209,7 +209,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
 
       // Only show SDK selector for base form factors.
       if (formFactor.baseFormFactor == null) {
-        FormFactorSdkControls controls = new FormFactorSdkControls(formFactor, minSdks.get(formFactor));
+        FormFactorSdkControls controls = new FormFactorSdkControls(formFactor, myFormFactors.get(formFactor));
         FormFactorApiComboBox minSdkComboBox = controls.getMinSdkCombo();
         minSdkComboBox.setName(formFactor.id + ".minSdk");
 
@@ -231,7 +231,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
           layout.show(downloadCardPanel, DOWNLOAD_PROGRESS_CARD);
           c.setColumn(1);
           myFormFactorPanel.add(downloadCardPanel, c);
-          findCompatibleSdk(formFactor, minSdks.get(formFactor), link, downloadCardPanel);
+          findCompatibleSdk(formFactor, myFormFactors.get(formFactor), link, downloadCardPanel);
         }
       }
 
@@ -324,7 +324,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     super.deriveValues(modified);
     // Persist the min API level choices on a per-form factor basis
     int enabledFormFactors = 0;
-    for (FormFactor formFactor : myFormFactors) {
+    for (FormFactor formFactor : myFormFactors.keySet()) {
       Boolean included = myState.get(getInclusionKey(formFactor));
       // Disable api selection for non-enabled form factors and check to see if only one is selected
       if (included != null) {
@@ -352,7 +352,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       setErrorHtml("At least one form factor must be selected.");
       return false;
     }
-    for (FormFactor formFactor : myFormFactors) {
+    for (FormFactor formFactor : myFormFactors.keySet()) {
       Boolean included = myState.get(getInclusionKey(formFactor));
       // Disable api selection for non-enabled form factors and check to see if only one is selected
       if (included != null && included) {
@@ -375,12 +375,12 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     }
     Boolean isBaseEnabled = myState.get(getInclusionKey(formFactor.baseFormFactor));
     if (isBaseEnabled == null || !isBaseEnabled) {
-      setErrorHtml("In order to support " + formFactor + " you need to enable " + formFactor.baseFormFactor + "");
+      setErrorHtml("In order to support " + formFactor + " you need to enable " + formFactor.baseFormFactor);
       return false;
     }
     // Check if minSDK of the base is valid:
     AndroidTargetComboBoxItem baseMinSdk = myState.get(getTargetComboBoxKey(formFactor.baseFormFactor));
-    if (!FormFactorUtils.getMinSdkComboBoxFilter(formFactor, 0).apply(baseMinSdk)) {
+    if (!FormFactorUtils.getMinSdkComboBoxFilter(formFactor, myFormFactors.get(formFactor)).apply(baseMinSdk)) {
       // Don't allow the user to continue unless all minAPIs of base form factors are chosen
       // TODO: add valid minimum SDK levels to the error message.
       setErrorHtml("Set a minimum SDK level on " + formFactor.baseFormFactor + " that is compatible with " + formFactor);
