@@ -93,6 +93,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public String NETWORK_LATENCY = "none";
   public boolean CLEAR_LOGCAT = false;
   public boolean SHOW_LOGCAT_AUTOMATICALLY = true;
+  public boolean SKIP_NOOP_APK_INSTALLATIONS = true; // skip installation if the APK hasn't hasn't changed
+  public boolean FORCE_STOP_RUNNING_APP = true; // if no new apk is being installed, then stop the app before launching it again
 
   public int SELECTED_CLOUD_MATRIX_CONFIGURATION_ID = 0;
   public String SELECTED_CLOUD_MATRIX_PROJECT_ID = "";
