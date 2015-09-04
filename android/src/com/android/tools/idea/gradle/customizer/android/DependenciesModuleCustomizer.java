@@ -43,6 +43,8 @@ import java.util.Set;
 
 import static com.android.SdkConstants.FD_JARS;
 import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.BINARY;
+import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.DOC;
+import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.SOURCE;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
@@ -126,7 +128,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
                                              @NotNull LibraryDependency dependency,
                                              @NotNull AndroidProject androidProject) {
     Collection<String> binaryPaths = dependency.getPaths(BINARY);
-    setUpLibraryDependency(moduleModel, dependency.getName(), dependency.getScope(), binaryPaths);
+    Collection<String> sourcePaths = dependency.getPaths(SOURCE);
+    Collection<String> docPaths = dependency.getPaths(DOC);
+    setUpLibraryDependency(moduleModel, dependency.getName(), dependency.getScope(), binaryPaths, sourcePaths, docPaths);
 
     File buildFolder = androidProject.getBuildFolder();
 
