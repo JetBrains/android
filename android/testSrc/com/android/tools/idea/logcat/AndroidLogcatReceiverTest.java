@@ -17,76 +17,102 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.IDevice;
-import junit.framework.TestCase;
+import com.intellij.openapi.util.text.StringUtil;
 import org.easymock.EasyMock;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.StringWriter;
 
-public class AndroidLogcatReceiverTest extends TestCase {
-  private AndroidConsoleWriter mySink;
+import static org.fest.assertions.Assertions.assertThat;
+
+public class AndroidLogcatReceiverTest {
+  private static final String SPACE_BEFORE_AT = StringUtil.repeatSymbol(' ', 2);
+  private static final String SPACE_BEFORE_CAUSED_BY = " ";
+
+  private AndroidConsoleWriter myWriter;
   private AndroidLogcatReceiver myReceiver;
 
-  /** Helper method that creates a mock device. */
+  /**
+   * Helper method that creates a mock device.
+   */
   static IDevice createMockDevice() {
-    IDevice mockDevice = EasyMock.createMock(IDevice.class);
-    EasyMock.expect(mockDevice.getClientName(EasyMock.anyInt())).andStubReturn("?");
-    EasyMock.replay(mockDevice);
-    return mockDevice;
+    IDevice d = EasyMock.createMock(IDevice.class);
+    EasyMock.expect(d.getClientName(1493)).andStubReturn("dummy.client.name");
+    EasyMock.expect(d.getClientName(11698)).andStubReturn("com.android.chattylogger");
+    EasyMock.expect(d.getClientName(EasyMock.anyInt())).andStubReturn("?");
+    EasyMock.replay(d);
+    return d;
   }
 
-  @Override
+  @Before
   public void setUp() {
-    mySink = new AndroidConsoleWriter() {
-      private StringWriter myWriter = new StringWriter();
+    myWriter = new AndroidConsoleWriter() {
+      private final StringWriter myInnerWriter = new StringWriter();
 
       @Override
       public String toString() {
-        return myWriter.getBuffer().toString();
+        return myInnerWriter.getBuffer().toString();
       }
 
       @Override
       public void clear() {
-        myWriter.flush();
-        myWriter.getBuffer().setLength(0);
+        myInnerWriter.flush();
+        myInnerWriter.getBuffer().setLength(0);
       }
 
       @Override
       public void addMessage(@NotNull String text) {
-        myWriter.append(text).append('\n');
+        myInnerWriter.append(text).append('\n');
       }
     };
-    myReceiver = new AndroidLogcatReceiver(createMockDevice(), mySink);
+    StackTraceExpander expander = new StackTraceExpander(SPACE_BEFORE_AT, SPACE_BEFORE_CAUSED_BY);
+    myReceiver = new AndroidLogcatReceiver(createMockDevice(), myWriter, expander);
   }
 
-  public void testParser() {
-    // the following two lines are a sample output from 'logcat -v long'
-    myReceiver.processNewLine("[ 02-11 16:41:10.621 17945:17995 W/GAV2     ]");
-    myReceiver.processNewLine("Thread[Service Reconnect,5,main]: Connection to service failed 1");
+  @Test
+  public void processNewLineWorksOnSimpleLogEntry() {
+    // the following line is sample output from 'logcat -v long'
+    myReceiver.processNewLine("[ 08-18 16:39:11.439 1493:1595 W/EDMNativeHelper     ]");
+    assertThat("").isEqualTo(myWriter.toString()); // Nothing written until message is received
 
-    assertEquals(
-      insertTagSeparator("02-11 16:41:10.621  17945-17995/? W/GAV2", "Thread[Service Reconnect,5,main]: Connection to service failed 1\n"),
-      mySink.toString());
+    myReceiver.processNewLine("EDMNativeHelperService is published");
+    String expected = "08-18 16:39:11.439 1493-1595/dummy.client.name W/EDMNativeHelper: EDMNativeHelperService is published\n";
+    assertThat(myWriter.toString()).isEqualTo(expected);
   }
 
-  public void testParseException() {
-    String line1 = "FATAL EXCEPTION: main";
-    String line2 = "java.lang.RuntimeException: Unable to <snip>: j.l.Exception";
-    String line3 = "at android..performLaunchActivity(ActivityThread.java:2180)";
+  @Test
+  public void processNewLineUsesQuestionMarkForUnknownClientIds() {
+    myReceiver.processNewLine("[ 01-23 45:67:89.000 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("Dummy Message");
 
-    myReceiver.processNewLine("[ 02-11 18:03:35.037 19796:19796 E/AndroidRuntime ]");
-    myReceiver.processNewLine(line1);
-    myReceiver.processNewLine(line2);
-    myReceiver.processNewLine(line3);
-
-    assertEquals("02-11 18:03:35.037  19796-19796/? E/AndroidRuntime: " +
-                 line1 + "\n" +
-                 AndroidLogcatReceiver.CONTINUATION_LINE_PREFIX + line2 + "\n" +
-                 AndroidLogcatReceiver.STACK_TRACE_LINE_PREFIX + line3 + "\n",
-                 mySink.toString());
+    String expected = "01-23 45:67:89.000 99-99/? V/UnknownClient: Dummy Message\n";
+    assertThat(myWriter.toString()).isEqualTo(expected);
   }
 
-  public void testParser2() {
+  @Test
+  public void processNewLineHandlesException() {
+    myReceiver.processNewLine("[ 08-18 18:59:48.771 11698:11811 E/AndroidRuntime ]");
+
+    myReceiver.processNewLine("FATAL EXCEPTION: Timer-0");
+    myReceiver.processNewLine("Process: com.android.chattylogger, PID: 11698");
+    myReceiver.processNewLine("java.lang.RuntimeException: Bad response");
+    myReceiver.processNewLine("       at com.android.chattylogger.MainActivity$1.run(MainActivity.java:64)");
+    myReceiver.processNewLine("       at java.util.Timer$TimerImpl.run(Timer.java:284)");
+
+
+    String expected = "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime: FATAL EXCEPTION: Timer-0\n" +
+                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime: Process: com.android.chattylogger, PID: 11698\n" +
+                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime: java.lang.RuntimeException: Bad response\n" +
+                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime:   at com.android.chattylogger.MainActivity$1.run(MainActivity.java:64)\n" +
+                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime:   at java.util.Timer$TimerImpl.run(Timer.java:284)\n";
+
+    assertThat(myWriter.toString()).isEqualTo(expected);
+  }
+
+  @Test
+  public void testParseAllLogLevelsAndHexThreadIds() {
     String[] messages = new String[] {
       "[ 08-11 19:11:07.132   495:0x1ef D/dtag     ]",
       "debug message",
@@ -106,23 +132,20 @@ public class AndroidLogcatReceiverTest extends TestCase {
       "message:with:colons",
     };
 
-    for (int i = 0; i < messages.length; i++) {
-      myReceiver.processNewLine(messages[i]);
+    for (String message : messages) {
+      myReceiver.processNewLine(message);
     }
 
-    assertEquals(
-      insertTagSeparator("08-11 19:11:07.132      495-495/? D/dtag", "debug message\n") +
-      insertTagSeparator("08-11 19:11:07.132      495-234/? E/etag", "error message\n") +
-      insertTagSeparator("08-11 19:11:07.132      495-495/? I/itag", "info message\n") +
-      insertTagSeparator("08-11 19:11:07.132      495-495/? V/vtag", "verbose message\n") +
-      insertTagSeparator("08-11 19:11:07.132      495-495/? W/wtag", "warning message\n") +
-      insertTagSeparator("08-11 19:11:07.132      495-495/? A/wtftag", "wtf message\n") +
-      insertTagSeparator("08-11 21:15:35.7524      540-540/? D/debug tag", "debug message\n") +
-      insertTagSeparator("08-11 21:15:35.7524      540-540/? I/tag:with:colons", "message:with:colons\n"),
-                       mySink.toString());
-  }
+    String expected = "08-11 19:11:07.132 495-495/? D/dtag: debug message\n" +
+                      "08-11 19:11:07.132 495-234/? E/etag: error message\n" +
+                      "08-11 19:11:07.132 495-495/? I/itag: info message\n" +
+                      "08-11 19:11:07.132 495-495/? V/vtag: verbose message\n" +
+                      "08-11 19:11:07.132 495-495/? W/wtag: warning message\n" +
+                      "08-11 19:11:07.132 495-495/? A/wtftag: wtf message\n" +
+                      // NOTE: "debug tag" uses a special-case "no break" space character
+                      "08-11 21:15:35.7524 540-540/? D/debug tag: debug message\n" +
+                      "08-11 21:15:35.7524 540-540/? I/tag:with:colons: message:with:colons\n";
 
-  private String insertTagSeparator(String header, String msg) {
-    return String.format("%1$s: %2$s", header, msg);
+    assertThat(myWriter.toString()).isEqualTo(expected);
   }
 }
