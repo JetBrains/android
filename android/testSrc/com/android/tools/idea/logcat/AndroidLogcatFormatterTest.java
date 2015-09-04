@@ -18,12 +18,15 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log;
 import com.android.tools.idea.logcat.AndroidLogcatReceiver.LogMessageHeader;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Locale;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 public class AndroidLogcatFormatterTest {
+
   @Test
   public void formatMessageToParseMessageKeepsAllInformation() {
     String message = "xyz";
@@ -36,21 +39,21 @@ public class AndroidLogcatFormatterTest {
     header.myAppPackage = "system_process";
     header.myTag = "ConnectivityService";
 
-    String output = AndroidLogcatFormatter.formatMessage(header, message);
+    String output = AndroidLogcatFormatter.formatMessageFull(header, message);
     AndroidLogcatFormatter.Message result = AndroidLogcatFormatter.parseMessage(output);
 
-    Assert.assertNotNull(result.getHeader());
+    assertNotNull(result.getHeader());
 
     LogMessageHeader header2 = result.getHeader();
 
-    Assert.assertEquals(header.myTime, header2.myTime);
-    Assert.assertEquals(header.myLogLevel, header2.myLogLevel);
-    Assert.assertEquals(header.myPid, header2.myPid);
-    Assert.assertEquals(header.myTid, header2.myTid);
-    Assert.assertEquals(header.myAppPackage, header2.myAppPackage);
-    Assert.assertEquals(header.myTag, header2.myTag);
+    assertEquals(header.myTime, header2.myTime);
+    assertEquals(header.myLogLevel, header2.myLogLevel);
+    assertEquals(header.myPid, header2.myPid);
+    assertEquals(header.myTid, header2.myTid);
+    assertEquals(header.myAppPackage, header2.myAppPackage);
+    assertEquals(header.myTag, header2.myTag);
 
-    Assert.assertEquals(message, result.getMessage());
+    assertEquals(message, result.getMessage());
   }
 
   @Test
@@ -73,9 +76,52 @@ public class AndroidLogcatFormatterTest {
                      "registry had 1 entries";
 
     LogMessageHeader header = AndroidLogcatFormatter.parseMessage(message).getHeader();
-    Assert.assertNotNull(header);
+    assertNotNull(header);
 
-    Assert.assertEquals(Log.LogLevel.DEBUG, header.myLogLevel);
-    Assert.assertEquals("dalvikvm", header.myTag);
+    assertEquals(Log.LogLevel.DEBUG, header.myLogLevel);
+    assertEquals("dalvikvm", header.myTag);
   }
+
+  @Test
+  public void unknownFormatMessageRemainsSame(){
+    AndroidLogcatPreferences preferences = new AndroidLogcatPreferences();
+    AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(preferences);
+
+    String message = "some message that doesn't match any known AndroidLogcatFormatter format";
+    String formattedMessage = formatter.formatMessage(message);
+
+    assertEquals(message, formattedMessage);
+  }
+
+  @Test
+  public void emptyFormatMessageLeavesTheSame(){
+    String message = "01-23 45:67:89.000      1234-56/com.dummy.test D/test: Test message";
+
+    AndroidLogcatPreferences preferences = new AndroidLogcatPreferences();
+    AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(preferences);
+    assertEquals(preferences.LOGCAT_FORMAT_STRING, "");
+    String formattedMessage = formatter.formatMessage(message);
+    assertEquals(message, formattedMessage);
+  }
+
+  @Test
+  public void variousFormatsWorkAsExpected(){
+    String message = "01-23 45:67:89.000      1234-56/com.dummy.test D/test: Test message";
+
+    assertExpected(true, true, false, false, message, "01-23 45:67:89.000 1234-56 D: Test message");
+    assertExpected(false, true, false, false, message, "1234-56 D: Test message");
+    assertExpected(false, false, true, true, message, "com.dummy.test D/test: Test message");
+    assertExpected(false, false, false, true, message, "D/test: Test message");
+    assertExpected(false, false, false, false, message, "D: Test message");
+  }
+
+  private static void assertExpected(boolean showTime, boolean showPid, boolean showPackage, boolean showTag,
+                                     String message, String expected) {
+    AndroidLogcatPreferences preferences = new AndroidLogcatPreferences();
+    AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(preferences);
+    preferences.LOGCAT_FORMAT_STRING = AndroidLogcatFormatter.createCustomFormat(showTime, showPid, showPackage, showTag);
+    String formattedMessage = formatter.formatMessage(message);
+    assertEquals(expected, formattedMessage);
+  }
+
 }
