@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.logcat.ConfigureLogcatFormatDialog">
+  <grid id="27dc6" binding="topPanel" layout-manager="GridLayoutManager" row-count="6" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="20" y="20" width="521" height="400"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="45930" class="javax.swing.JCheckBox" binding="myShowTimeCheckBox" default-binding="true">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="messages/AndroidBundle" key="android.logcat.header.dialog.show.time"/>
+        </properties>
+      </component>
+      <component id="38452" class="javax.swing.JCheckBox" binding="myShowPidTidCheckBox" default-binding="true">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="messages/AndroidBundle" key="android.logcat.header.dialog.show.process.info"/>
+        </properties>
+      </component>
+      <component id="df0b2" class="javax.swing.JCheckBox" binding="myShowPackageNameCheckBox" default-binding="true">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="messages/AndroidBundle" key="android.logcat.header.dialog.show.packageName"/>
+        </properties>
+      </component>
+      <component id="213c1" class="javax.swing.JLabel" binding="myDemoLabel">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font name="Courier New"/>
+          <text value="Label"/>
+        </properties>
+      </component>
+      <component id="24d53" class="javax.swing.JCheckBox" binding="myShowTag">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="messages/AndroidBundle" key="android.logcat.header.dialog.show.tag"/>
+        </properties>
+      </component>
+      <component id="28d64" class="javax.swing.JToolBar$Separator">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
+    </children>
+  </grid>
+</form>

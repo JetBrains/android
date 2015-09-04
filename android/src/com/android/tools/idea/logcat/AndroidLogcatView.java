@@ -19,6 +19,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.diagnostic.logging.LogConsoleBase;
+import com.intellij.diagnostic.logging.LogFormatter;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
@@ -32,7 +33,10 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.*;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +47,6 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import static javax.swing.BoxLayout.X_AXIS;
 
@@ -127,8 +130,7 @@ public abstract class AndroidLogcatView implements Disposable {
     this(project, null, deviceContext);
   }
 
-  private AndroidLogcatView(final Project project, @Nullable IDevice preselectedDevice,
-                            @Nullable DeviceContext deviceContext) {
+  private AndroidLogcatView(final Project project, @Nullable IDevice preselectedDevice, @Nullable DeviceContext deviceContext) {
     myDeviceContext = deviceContext;
     myProject = project;
     myPreselectedDevice = preselectedDevice;
@@ -161,7 +163,9 @@ public abstract class AndroidLogcatView implements Disposable {
           return myConfiguredFilter;
         }
       };
-    myLogConsole = new AndroidLogConsole(project, myLogFilterModel);
+
+    AndroidLogcatFormatter logFormatter = new AndroidLogcatFormatter(AndroidLogcatPreferences.getInstance(project));
+    myLogConsole = new AndroidLogConsole(project, myLogFilterModel, logFormatter);
 
     if (preselectedDevice == null && deviceContext != null) {
       DeviceContext.DeviceSelectionListener deviceSelectionListener =
@@ -393,16 +397,31 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  public final class AndroidLogConsole extends LogConsoleBase implements AndroidConsoleWriter {
-    private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5, true);
-    private final AndroidLogcatPreferences myPreferences;
-    public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel) {
-      super(project, null, "", false, logFilterModel);
+  private final class MyConfigureLogcatHeaderAction extends AnAction {
+    public MyConfigureLogcatHeaderAction() {
+      super(AndroidBundle.message("android.configure.logcat.header.text"),
+            AndroidBundle.message("android.configure.logcat.header.description"), AllIcons.General.GearPlain);
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      ConfigureLogcatFormatDialog dialog = new ConfigureLogcatFormatDialog(myProject);
+      dialog.show();
+    }
+  }
+
+  final class AndroidLogConsole extends LogConsoleBase implements AndroidConsoleWriter {
+      private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5, true);
+      private final AndroidLogcatPreferences myPreferences;
+
+    public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel, LogFormatter logFormatter) {
+      super(project, null, "", false, logFilterModel, GlobalSearchScope.allScope(project), logFormatter);
       ConsoleView console = getConsole();
       if (console instanceof ConsoleViewImpl) {
         ConsoleViewImpl c = ((ConsoleViewImpl)console);
         c.addCustomConsoleAction(new Separator());
         c.addCustomConsoleAction(new MyRestartAction());
+        c.addCustomConsoleAction(new MyConfigureLogcatHeaderAction());
       }
       myPreferences = AndroidLogcatPreferences.getInstance(project);
       myRegexFilterComponent.setFilter(myPreferences.TOOL_WINDOW_CUSTOM_FILTER);
