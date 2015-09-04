@@ -25,7 +25,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
-import org.jetbrains.android.logcat.AdbErrors;
+import com.android.tools.idea.logcat.AdbErrors;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;

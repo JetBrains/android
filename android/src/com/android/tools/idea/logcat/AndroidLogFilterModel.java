@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.logcat;
+package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log;
+import com.android.tools.idea.logcat.AndroidLogcatReceiver.LogMessageHeader;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogFilter;
 import com.intellij.diagnostic.logging.LogFilterListener;
@@ -26,7 +27,6 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.android.logcat.AndroidLogcatReceiver.LogMessageHeader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.logcat;
+package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log;
+import com.android.tools.idea.logcat.AndroidLogcatReceiver.LogMessageHeader;
 import com.google.common.primitives.Ints;
-import org.jetbrains.android.logcat.AndroidLogcatReceiver.LogMessageHeader;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
