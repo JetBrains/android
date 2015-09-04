@@ -187,13 +187,16 @@ public class TemplateParameterStep extends TemplateWizardStep {
         continue;
       }
       JComponent component = myParamFields.get(paramName);
+      Set<Object> relatedValues = getRelatedValues(parameter);
       // If we have existing files, ensure uniqueness is satisfied
       if (parameter.constraints.contains(Parameter.Constraint.UNIQUE) &&
-          !parameter.uniquenessSatisfied(myProject, myModule, provider, packageName, myTemplateState.getString(parameter.id))) {
+          !parameter
+            .uniquenessSatisfied(myProject, myModule, provider, packageName, myTemplateState.getString(parameter.id), relatedValues)) {
         // While uniqueness isn't satisfied, increment number and add to end
         int i = 2;
         String originalValue = myTemplateState.getString(parameter.id);
-        while (!parameter.uniquenessSatisfied(myProject, myModule, provider, packageName, originalValue + Integer.toString(i))) {
+        while (!parameter
+          .uniquenessSatisfied(myProject, myModule, provider, packageName, originalValue + Integer.toString(i), relatedValues)) {
           i++;
         }
         String derivedValue = String.format("%s%d", originalValue, i);
@@ -206,6 +209,20 @@ public class TemplateParameterStep extends TemplateWizardStep {
     }
   }
 
+  @Nullable
+  private Set<Object> getRelatedValues(@NotNull Parameter param) {
+    TemplateMetadata metadata = myTemplateState.getTemplateMetadata();
+    if (metadata == null) {
+      return null;
+    }
+    Set<Object> relatedValues = Sets.newHashSet();
+    for (Parameter related : metadata.getRelatedParams(param)) {
+      if (related.id != null) {
+        relatedValues.add(myTemplateState.get(related.id));
+      }
+    }
+    return relatedValues;
+  }
   @Override
   protected void deriveValues() {
     super.deriveValues();

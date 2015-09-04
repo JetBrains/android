@@ -556,7 +556,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
       if (param != null) {
         Object value = getStateParameterValue(param);
         String error = param.validate(getProject(), getModule(), myState.get(AddAndroidActivityPath.KEY_SOURCE_PROVIDER),
-                                      myState.get(myPackageNameKey), value != null ? value : "");
+                                      myState.get(myPackageNameKey), value != null ? value : "", getRelatedValues(param));
         if (error != null) {
           // Highlight?
           setErrorHtml(error);
@@ -581,6 +581,14 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
       }
     }
     return true;
+  }
+
+  private Set<Object> getRelatedValues(Parameter param) {
+    Set<Object> relatedValues = Sets.newHashSet();
+    for (Parameter related : param.template.getRelatedParams(param)) {
+      relatedValues.add(getStateParameterValue(related));
+    }
+    return relatedValues;
   }
 
   @Override
@@ -1044,7 +1052,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
       boolean hasExtension = !extension.isEmpty();
       int extensionOffset = value.length() - extension.length();
       //noinspection ForLoopThatDoesntUseLoopVariable
-      for (int i = 2; !parameter.uniquenessSatisfied(project, module, provider, packageName, suggested); i++) {
+      for (int i = 2; !parameter.uniquenessSatisfied(project, module, provider, packageName, suggested, getRelatedValues(parameter)); i++) {
         if (hasExtension) {
           suggested = value.substring(0, extensionOffset) + i + value.substring(extensionOffset);
         }
