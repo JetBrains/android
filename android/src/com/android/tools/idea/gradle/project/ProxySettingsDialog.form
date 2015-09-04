@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.gradle.project.ProxySettingsDialog">
+  <grid id="cbd77" binding="myPane" layout-manager="GridLayoutManager" row-count="4" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="10" left="10" bottom="10" right="10"/>
+    <constraints>
+      <xy x="48" y="54" width="682" height="369"/>
+    </constraints>
+    <properties/>
+    <border type="none" title=""/>
+    <children>
+      <grid id="b13f6" binding="myHttpProxyPanel" layout-manager="GridLayoutManager" row-count="4" column-count="7" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none" title="HTTP Proxy"/>
+        <children>
+          <component id="3abc0" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="8f111"/>
+              <text resource-bundle="messages/CommonBundle" key="editbox.host.name"/>
+            </properties>
+          </component>
+          <component id="fd0e0" class="javax.swing.JCheckBox" binding="myHttpProxyAuthCheckBox">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <margin top="2" left="1" bottom="2" right="2"/>
+              <selected value="false"/>
+              <text resource-bundle="messages/CommonBundle" key="checkbox.proxy.authentication"/>
+            </properties>
+          </component>
+          <component id="fa7c5" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="4" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="71b34"/>
+              <text resource-bundle="messages/CommonBundle" key="editbox.login"/>
+            </properties>
+          </component>
+          <component id="c5cde" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="No proxy for:"/>
+            </properties>
+          </component>
+          <component id="71b34" class="javax.swing.JTextField" binding="myHttpProxyLoginTextField">
+            <constraints>
+              <grid row="3" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties>
+              <text value=""/>
+            </properties>
+          </component>
+          <component id="e38dc" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="4" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="60844"/>
+              <text resource-bundle="messages/CommonBundle" key="editbox.password"/>
+            </properties>
+          </component>
+          <component id="8f111" class="javax.swing.JTextField" binding="myHttpProxyHostTextField">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="60844" class="javax.swing.JPasswordField" binding="myHttpProxyPasswordTextField">
+            <constraints>
+              <grid row="3" column="4" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="302b9" class="com.intellij.ui.RawCommandLineEditor" binding="myHttpProxyExceptions">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="5" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <dialogCaption value="Proxy exceptions"/>
+            </properties>
+          </component>
+          <component id="8c286" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="7e62"/>
+              <text resource-bundle="messages/CommonBundle" key="editbox.port.number"/>
+            </properties>
+          </component>
+          <component id="f0c81" class="com.intellij.ui.PortField" binding="myHttpProxyPortTextField">
+            <constraints>
+              <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+          </component>
+        </children>
+      </grid>
+      <grid id="984b3" binding="myHttpsProxyPanel" layout-manager="GridLayoutManager" row-count="4" column-count="7" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <enabled value="true"/>
+        </properties>
+        <border type="none" title="HTTPS Proxy"/>
+        <children>
+          <component id="ddac" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="2008d"/>
+              <text resource-bundle="messages/CommonBundle" key="editbox.host.name"/>
+            </properties>
+          </component>
+          <component id="d28cc" class="javax.swing.JCheckBox" binding="myHttpsProxyAuthCheckBox">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <margin top="2" left="1" bottom="2" right="2"/>
+              <selected value="false"/>
+              <text resource-bundle="messages/CommonBundle" key="checkbox.proxy.authentication"/>
+            </properties>
+          </component>
+          <component id="4bbdb" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="4" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="fc937"/>
+              <text resource-bundle="messages/CommonBundle" key="editbox.login"/>
+            </properties>
+          </component>
+          <component id="b09ec" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="No proxy for:"/>
+            </properties>
+          </component>
+          <component id="33485" class="javax.swing.JTextField" binding="myHttpsProxyLoginTextField">
+            <constraints>
+              <grid row="3" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties>
+              <text value=""/>
+            </properties>
+          </component>
+          <component id="e2001" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="4" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="1acb8"/>
+              <text resource-bundle="messages/CommonBundle" key="editbox.password"/>
+            </properties>
+          </component>
+          <component id="fd7b6" class="javax.swing.JTextField" binding="myHttpsProxyHostTextField">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="61b36" class="javax.swing.JPasswordField" binding="myHttpsProxyPasswordTextField">
+            <constraints>
+              <grid row="3" column="4" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="7483b" class="com.intellij.ui.RawCommandLineEditor" binding="myHttpsProxyExceptions">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="5" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <dialogCaption value="Proxy exceptions"/>
+            </properties>
+          </component>
+          <component id="add5e" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="7e62"/>
+              <text resource-bundle="messages/CommonBundle" key="editbox.port.number"/>
+            </properties>
+          </component>
+          <component id="16921" class="com.intellij.ui.PortField" binding="myHttpsProxyPortTextField">
+            <constraints>
+              <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+          </component>
+        </children>
+      </grid>
+      <component id="98d7c" class="com.intellij.ui.components.JBLabel" binding="myMessageTextLabel">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="c1477" class="javax.swing.JCheckBox" binding="myEnableHTTPSProxyCheckBox" default-binding="true">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Enable HTTPS Proxy"/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>

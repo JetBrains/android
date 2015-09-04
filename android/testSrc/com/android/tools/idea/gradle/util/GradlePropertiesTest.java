@@ -49,8 +49,7 @@ public class GradlePropertiesTest extends IdeaTestCase {
     ideSettings.PROXY_HOST = host;
     ideSettings.PROXY_PORT = port;
 
-    GradleProperties.ProxySettings proxySettings = myProperties.getProxySettings();
-    proxySettings.copyFrom(ideSettings);
+    ProxySettings proxySettings =  new ProxySettings(ideSettings);
 
     assertEquals(host, proxySettings.getHost());
     assertEquals(port, proxySettings.getPort());
@@ -70,26 +69,25 @@ public class GradlePropertiesTest extends IdeaTestCase {
     ideSettings.PROXY_LOGIN = user;
     ideSettings.setPlainProxyPassword(password);
 
-    GradleProperties.ProxySettings proxySettings = myProperties.getProxySettings();
-    proxySettings.copyFrom(ideSettings);
+    ProxySettings ideProxySettings = new ProxySettings(ideSettings);
 
     // Verify that the proxy settings are stored properly in the actual properties file.
-    myProperties.setProxySettings(proxySettings);
+    ideProxySettings.applyProxySettings(myProperties.getProperties());
 
     assertEquals(host, myProperties.getProperty("systemProp.http.proxyHost"));
     assertEquals(String.valueOf(port), myProperties.getProperty("systemProp.http.proxyPort"));
     assertEquals(user, myProperties.getProperty("systemProp.http.proxyUser"));
     assertEquals(password, myProperties.getProperty("systemProp.http.proxyPassword"));
 
-    proxySettings = myProperties.getProxySettings();
-    assertEquals(host, proxySettings.getHost());
-    assertEquals(port, proxySettings.getPort());
+    ProxySettings gradleProxySetting = myProperties.getHttpProxySettings();
+    assertEquals(host, gradleProxySetting.getHost());
+    assertEquals(port, gradleProxySetting.getPort());
 
     // Verify that username and password are removed from properties file, if authentication is disabled in IDE settings.
     ideSettings.PROXY_AUTHENTICATION = false;
 
-    proxySettings.copyFrom(ideSettings);
-    myProperties.setProxySettings(proxySettings);
+    ideProxySettings = new ProxySettings(ideSettings);
+    ideProxySettings.applyProxySettings(myProperties.getProperties());
 
     assertNull(myProperties.getProperty("systemProp.http.proxyUser"));
     assertNull(myProperties.getProperty("systemProp.http.proxyPassword"));
