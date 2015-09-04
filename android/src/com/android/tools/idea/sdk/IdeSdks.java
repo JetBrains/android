@@ -315,7 +315,7 @@ public final class IdeSdks {
     if (sdkData == null) {
       return Collections.emptyList();
     }
-    IAndroidTarget[] targets = sdkData.getTargets();
+    IAndroidTarget[] targets = sdkData.getTargets(false /* do not include add-ons */);
     if (targets.length == 0) {
       return Collections.emptyList();
     }
@@ -325,7 +325,9 @@ public final class IdeSdks {
       if (target.isPlatform() && !doesIdeAndroidSdkExist(target)) {
         String name = chooseNameForNewLibrary(target);
         Sdk sdk = createNewAndroidPlatform(target, sdkData.getLocation().getPath(), name, ideSdk, true);
-        sdks.add(sdk);
+        if (sdk != null) {
+          sdks.add(sdk);
+        }
       }
     }
     return sdks;
