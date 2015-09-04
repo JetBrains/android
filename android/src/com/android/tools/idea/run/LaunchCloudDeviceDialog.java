@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.impl.PresentationFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -123,7 +124,7 @@ public class LaunchCloudDeviceDialog extends DialogWrapper {
     };
 
     myCloudProjectIdUpdateButton =
-      new ActionButton(action, new PresentationFactory().getPresentation(action), "MyPlace", new Dimension(25, 25));
+      new ActionButton(action, new PresentationFactory().getPresentation(action), "MyPlace", JBUI.size(25, 25));
 
     myCloudConfigurationCombo = new CloudConfigurationComboBox(SINGLE_DEVICE);
     Disposer.register(myDisposable, myCloudConfigurationCombo);

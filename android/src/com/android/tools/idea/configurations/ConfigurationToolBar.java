@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowForm;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +58,7 @@ public class ConfigurationToolBar extends JPanel {
     // toolbar does not fully fit etc)
     //toolbar.setMiniMode(true);
 
-    toolbar.setMinimumButtonSize(new Dimension(22, 24));
+    toolbar.setMinimumButtonSize(JBUI.size(22, 24));
     return toolbar;
   }
 

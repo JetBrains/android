@@ -36,6 +36,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,9 +59,9 @@ import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
  */
 public class RasterAssetSetStep extends CommonAssetSetStep {
   private static final Logger LOG = Logger.getInstance(RasterAssetSetStep.class);
-  private static final int CLIPART_ICON_SIZE = 32;
-  private static final int CLIPART_DIALOG_BORDER = 10;
-  private static final int DIALOG_HEADER = 20;
+  private static final int CLIPART_ICON_SIZE = JBUI.scale(32);
+  private static final int CLIPART_DIALOG_BORDER = JBUI.scale(10);
+  private static final int DIALOG_HEADER = JBUI.scale(20);
   public static final String ATTR_ICON_RESOURCE = "icon_resource";
 
   private static final String V11 = "V11";

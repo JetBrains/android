@@ -38,6 +38,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +67,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   private FirstRunWizard myWizard;
   private JFrame myFrame;
   private String myTitle;
-  private Dimension myPreferredWindowSize = new Dimension(800, 600);
+  private Dimension myPreferredWindowSize = JBUI.size(800, 600);
   private Map<Action, JButton> myActionToButtonMap = Maps.newHashMap();
   private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = Atomics.newReference();
   private boolean myIsActive;

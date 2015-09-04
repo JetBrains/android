@@ -21,6 +21,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -130,7 +131,7 @@ public class WizardStepHeaderPanel extends JPanel {
     boolean hasDescription = descriptionLabel != null;
     int anchor = hasDescription ? GridConstraints.ANCHOR_SOUTHWEST : GridConstraints.ANCHOR_WEST;
     titleLabel.setForeground(getForeground());
-    titleLabel.setFont(titleLabel.getFont().deriveFont(24f));
+    titleLabel.setFont(titleLabel.getFont().deriveFont(JBUI.scale(24f)));
     add(titleLabel, createHeaderLabelGridConstraints(0, column, anchor));
     if (hasDescription) {
       descriptionLabel.setForeground(getForeground());
@@ -142,7 +143,7 @@ public class WizardStepHeaderPanel extends JPanel {
     if (iconComponent != null) {
       GridConstraints imageConstraints =
         new GridConstraints(0, column, spanningRows, 1, GridConstraints.ANCHOR_NORTHWEST, GridConstraints.FILL_NONE,
-                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(60, 60), null);
+                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, JBUI.size(60, 60), null);
       add(iconComponent, imageConstraints);
       return true;
     }
