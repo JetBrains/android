@@ -442,6 +442,22 @@ public class TemplateTest extends AndroidGradleTestCase {
     PlatformTestUtil.assertFilesEqual(desired, actual);
   }
 
+  public void testRelatedParameters() throws Exception {
+    Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")));
+    Parameter layoutName = template.getMetadata().getParameter("layoutName");
+    Parameter activityClass = template.getMetadata().getParameter("activityClass");
+    Parameter mainFragment = template.getMetadata().getParameter("mainFragment");
+    Parameter activityTitle = template.getMetadata().getParameter("activityTitle");
+    Parameter detailsActivity = template.getMetadata().getParameter("detailsActivity");
+    Parameter detailsLayoutName = template.getMetadata().getParameter("detailsLayoutName");
+    assertSameElements(template.getMetadata().getRelatedParams(layoutName), detailsLayoutName);
+    assertSameElements(template.getMetadata().getRelatedParams(activityClass), detailsActivity, mainFragment);
+    assertSameElements(template.getMetadata().getRelatedParams(mainFragment), detailsActivity, activityClass);
+    assertEmpty(template.getMetadata().getRelatedParams(activityTitle));
+    assertSameElements(template.getMetadata().getRelatedParams(detailsActivity), activityClass, mainFragment);
+    assertSameElements(template.getMetadata().getRelatedParams(detailsLayoutName), layoutName);
+  }
+
   // ---- Test support code below ----
 
   /** Checks whether we've already checked the given template in a new project or existing project context */

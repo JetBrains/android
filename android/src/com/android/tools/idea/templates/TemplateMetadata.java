@@ -21,15 +21,16 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.npw.AssetStudioAssetGenerator;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.tools.idea.templates.Template.*;
 
@@ -99,6 +100,7 @@ public class TemplateMetadata {
   private final String myIconName;
   private String myFormFactor = null;
   private String myCategory = null;
+  private final Multimap<Parameter, Parameter> myRelatedParameters;
 
   @VisibleForTesting
   public TemplateMetadata(@NotNull Document document) {
@@ -144,6 +146,22 @@ public class TemplateMetadata {
         myFormFactor = element.getAttribute(Template.ATTR_VALUE);
       }
     }
+    myRelatedParameters = computeRelatedParameters();
+  }
+
+  private Multimap<Parameter, Parameter> computeRelatedParameters() {
+    ImmutableMultimap.Builder<Parameter, Parameter> builder = ImmutableMultimap.builder();
+    for (Parameter p : myParameterMap.values()) {
+      for (Parameter p2 : myParameterMap.values()) {
+        if (p == p2) {
+          continue;
+        }
+        if (p.isRelated(p2)) {
+          builder.put(p, p2);
+        }
+      }
+    }
+    return builder.build();
   }
 
   @Nullable
@@ -321,5 +339,13 @@ public class TemplateMetadata {
       return AndroidTargetHash.getPlatformHashString(version);
     }
     return version.getApiString();
+  }
+
+  /**
+   * Gets all the params that share a type constraint with the given param,
+   */
+  @NotNull
+  public Collection<Parameter> getRelatedParams(Parameter param) {
+    return myRelatedParameters.get(param);
   }
 }
