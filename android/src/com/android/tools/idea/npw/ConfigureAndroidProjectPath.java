@@ -41,7 +41,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.npw.AddAndroidActivityPath.MIN_BUILD_VERSION_FOR_APPCOMPAT_ACTIVITY;
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 
 /**
@@ -98,23 +97,18 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
     final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     BuildToolInfo buildTool = sdkData != null ? sdkData.getLatestBuildTool() : null;
     FullRevision minimumRequiredBuildToolVersion = FullRevision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
-    int buildMajorVersion = -1;
     if (buildTool != null && buildTool.getRevision().compareTo(minimumRequiredBuildToolVersion) >= 0) {
       state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, buildTool.getRevision().toString());
-      buildMajorVersion = buildTool.getRevision().getMajor();
     } else {
       // We need to install a new build tools version
       state.listPush(WizardConstants.INSTALL_REQUESTS_KEY, PkgDesc.Builder.newBuildTool(minimumRequiredBuildToolVersion).create());
       state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, minimumRequiredBuildToolVersion.toString());
-      buildMajorVersion = minimumRequiredBuildToolVersion.getMajor();
     }
 
     if (sdkData != null) {
       // Gradle expects a platform-neutral path
       state.put(WizardConstants.SDK_HOME_KEY, FileUtil.toSystemIndependentName(sdkData.getPath()));
     }
-    state.put(AddAndroidActivityPath.KEY_APPCOMPAT, true);
-    state.put(AddAndroidActivityPath.KEY_APPCOMPAT_ACTIVITY, buildMajorVersion >= MIN_BUILD_VERSION_FOR_APPCOMPAT_ACTIVITY);
   }
 
   @Override
