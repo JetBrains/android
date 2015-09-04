@@ -16,8 +16,9 @@
 
 package org.jetbrains.android.logcat;
 
-import com.intellij.openapi.util.Key;
+import com.android.ddmlib.IDevice;
 import junit.framework.TestCase;
+import org.easymock.EasyMock;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.StringWriter;
@@ -25,6 +26,14 @@ import java.io.StringWriter;
 public class AndroidLogcatReceiverTest extends TestCase {
   private AndroidConsoleWriter mySink;
   private AndroidLogcatReceiver myReceiver;
+
+  /** Helper method that creates a mock device. */
+  static IDevice createMockDevice() {
+    IDevice mockDevice = EasyMock.createMock(IDevice.class);
+    EasyMock.expect(mockDevice.getClientName(EasyMock.anyInt())).andStubReturn("?");
+    EasyMock.replay(mockDevice);
+    return mockDevice;
+  }
 
   @Override
   public void setUp() {
@@ -47,7 +56,7 @@ public class AndroidLogcatReceiverTest extends TestCase {
         myWriter.append(text).append('\n');
       }
     };
-    myReceiver = new AndroidLogcatReceiver(null, mySink);
+    myReceiver = new AndroidLogcatReceiver(createMockDevice(), mySink);
   }
 
   public void testParser() {
