@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.logcat;
+package com.android.tools.idea.logcat;
 
 import com.intellij.execution.actions.ConsoleActionsPostProcessor;
 import com.intellij.execution.impl.ConsoleViewImpl;
