@@ -59,16 +59,26 @@ public class NetworkSampler extends DeviceSampler {
     myIsFirstSample = true;
   }
 
-  public boolean canReadNetworkStatistics() {
-    Client client = myClient;
-    IDevice device = client != null ? client.getDevice() : null;
+  /**
+   * Returns whether the network monitoring stats file is present in the system image, the returned value is positive if the file
+   * is present, or negative if the stats file is absent which is a bug being fixed, or zero if the checking is interrupted by
+   * unexpected things.
+   */
+  public int checkStatsFile(@NotNull Client client) {
+    // Stops checking if the selected client is changed.
+    if (myClient != client) {
+      return 0;
+    }
+    IDevice device = client.getDevice();
     if (device == null || device.isOffline()) {
-      return false;
+      return -1;
     }
 
     CollectingOutputReceiver receiver = new CollectingOutputReceiver();
     try {
+      // Timeout should not be set since this is run on a pooled thread. Some machines may be slow and timeout can cause exit too early.
       device.executeShellCommand("ls " + NETWORK_STATS_FILE, receiver);
+      return receiver.getOutput().contains("No such file") ? -1 : 1;
     }
     catch (TimeoutException timeoutException) {
       LOG.warning(String.format("TimeoutException %1$s in ls %2$s", timeoutException.getMessage(), NETWORK_STATS_FILE));
@@ -83,7 +93,7 @@ public class NetworkSampler extends DeviceSampler {
     catch (IOException ioException) {
       LOG.warning(String.format("IOException %1$s in ls %2$s", ioException.getMessage(), NETWORK_STATS_FILE));
     }
-    return !receiver.getOutput().contains("No such file");
+    return 0;
   }
 
   /**
