@@ -23,6 +23,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogBuilder;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -142,6 +143,7 @@ public class IconPicker extends JPanel {
    *                       ---------------
    *                 |                           |
    *                    --------------------
+   *      License Label
    */
   public IconPicker(final DialogBuilder builder) {
     super(new BorderLayout(20, 20));
@@ -160,6 +162,13 @@ public class IconPicker extends JPanel {
     JPanel p = new JPanel(new BorderLayout());
     add(p, BorderLayout.WEST);
     p.add(mCategoryPane);
+
+    // Add license info at the bottom.
+    HyperlinkLabel licenseLabel = new HyperlinkLabel();
+    licenseLabel.setHyperlinkText("These icons are available under the ", "CC-BY license", "");
+    licenseLabel.setHyperlinkTarget("https://creativecommons.org/licenses/by/4.0/");
+
+    add(licenseLabel, BorderLayout.SOUTH);
 
     // Setup the picking interaction for the table.
     final ListSelectionModel selModel = mTable.getSelectionModel();
