@@ -61,7 +61,7 @@ final class ConfiguredFilter {
       return false;
     }
 
-    if (myPkgNamePattern != null && (pkg == null || !myPkgNamePattern.matcher(pkg).matches())) {
+    if (myPkgNamePattern != null && (pkg == null || !myPkgNamePattern.matcher(pkg).find())) {
       return false;
     }
 
