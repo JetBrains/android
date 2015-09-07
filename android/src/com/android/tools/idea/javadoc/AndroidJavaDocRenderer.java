@@ -805,7 +805,7 @@ public class AndroidJavaDocRenderer {
           }
           builder.addBold(name).add(" = ").add(v != null ? v.getValue() : "null");
           if (v != null && v.getValue() != null) {
-            ResourceUrl url = ResourceUrl.parse(v.getValue());
+            ResourceUrl url = ResourceUrl.parse(v.getValue(), styleValue.isFramework());
             if (url != null) {
               ResourceUrl resolvedUrl = url;
               int count = 0;
@@ -814,19 +814,18 @@ public class AndroidJavaDocRenderer {
                   lookupChain.clear();
                 }
                 ResourceValue resourceValue;
-                boolean framework = resolvedUrl.framework || styleValue.isFramework();
                 if (resolvedUrl.theme) {
-                  resourceValue = resolver.findItemInTheme(resolvedUrl.name, framework);
+                  resourceValue = resolver.findItemInTheme(resolvedUrl.name, resolvedUrl.framework);
                 }
                 else {
-                  resourceValue = resolver.findResValue(resolvedUrl.toString(), framework);
+                  resourceValue = resolver.findResValue(resolvedUrl.toString(), resolvedUrl.framework);
                 }
                 if (resourceValue == null || resourceValue.getValue() == null) {
                   break;
                 }
                 url = resolvedUrl;
                 value = resourceValue.getValue();
-                resolvedUrl = ResourceUrl.parse(value);
+                resolvedUrl = ResourceUrl.parse(value, resolvedUrl.framework);
                 if (count++ == MAX_RESOURCE_INDIRECTION) { // prevent deep recursion (likely an invalid resource cycle)
                   break;
                 }
