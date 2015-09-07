@@ -64,9 +64,8 @@ public class ThemeResolver {
 
   /**
    * Create a ThemeEditorStyle instance stored in ThemeResolver, which can be added to one of theme lists.
-   * @return null if theme with this name was already added or resolution has failed
    */
-  @Nullable
+  @Nullable("if theme with this name was already added or resolution has failed")
   private ThemeEditorStyle constructThemeFromResourceValue(@NotNull StyleResourceValue value, @Nullable Module sourceModule) {
     final String name = ResolutionUtils.getQualifiedStyleName(value);
 

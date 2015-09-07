@@ -312,9 +312,8 @@ public class ThemeEditorUtils {
 
   /**
    * Finds an ItemResourceValue for a given name in a theme inheritance tree
-   * @return null if there is not an item with that name
    */
-  @Nullable
+  @Nullable("if there is not an item with that name")
   public static ItemResourceValue resolveItemFromParents(@NotNull final ThemeEditorStyle theme,
                                                          @NotNull String name,
                                                          boolean isFrameworkAttr) {
