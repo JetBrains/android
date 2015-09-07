@@ -30,6 +30,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,7 +84,7 @@ public class TemplateGalleryStep extends TemplateWizardStep
     super(state, project, module, sidePanelIcon, updateListener);
     myGallery.setImageProvider(new TemplateImageProvider());
     myGallery.setLabelProvider(new TemplateLabelProvider());
-    myGallery.setThumbnailSize(new Dimension(256, 256));
+    myGallery.setThumbnailSize(JBUI.size(256, 256));
     myTemplateChangeListener = templateChangeListener;
 
     if (templateCategory != null) {

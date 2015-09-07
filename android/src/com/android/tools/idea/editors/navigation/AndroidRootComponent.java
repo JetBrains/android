@@ -29,6 +29,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -44,8 +45,8 @@ import java.util.List;
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class AndroidRootComponent extends JComponent {
   public static final boolean DEBUG = false;
-  public static final int PADDING = 3;
-  private static final int ARC_SIZE = 10;
+  public static final int PADDING = JBUI.scale(3);
+  private static final int ARC_SIZE = JBUI.scale(10);
   private static final Font FONT = UIUtil.getLabelFont();
   private static final FontMetrics FONT_METRICS = new Canvas().getFontMetrics(FONT);
 

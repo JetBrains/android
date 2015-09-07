@@ -6,6 +6,7 @@ import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.containers.HashMap;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.util.AndroidBundle;
 
 import javax.swing.*;
@@ -46,7 +47,7 @@ class ImportDependenciesDialog extends DialogWrapper {
   @Override
   protected JComponent createCenterPanel() {
     final JBScrollPane pane = new JBScrollPane(myCheckBoxList);
-    pane.setPreferredSize(new Dimension(500, 200));
+    pane.setPreferredSize(JBUI.size(500, 200));
     return pane;
   }
 
