@@ -145,6 +145,9 @@ public class Parameter {
     /** The associated value should represent a valid drawable resource name */
     DRAWABLE,
 
+    /** The associated value should represent a valid values file name */
+    VALUES,
+
     /** The associated value should represent a valid id resource name */
     ID,
 
@@ -359,6 +362,11 @@ public class Parameter {
         return name + " is not a valid resource name. " + resourceNameError;
 
       }
+    } else if (violations.contains(Constraint.VALUES)) {
+      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
+      if (resourceNameError != null) {
+        return name + " is not a valid resource name. " + resourceNameError;
+      }
     }
 
     if (violations.contains(Constraint.UNIQUE)) {
@@ -458,6 +466,21 @@ public class Parameter {
     }
     if (constraints.contains(Constraint.ID)) {
       // TODO: validity and existence check
+    }
+    if (constraints.contains(Constraint.VALUES)) {
+      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
+      if (resourceNameError != null) {
+        violations.add(Constraint.VALUES);
+      }
+
+      if (provider != null) {
+        for (File resDir : provider.getResDirectories()) {
+          if (existsResourceFile(resDir, ResourceFolderType.VALUES, value)) {
+            exists = true;
+            break;
+          }
+        }
+      }
     }
     if (constraints.contains(Constraint.STRING)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);

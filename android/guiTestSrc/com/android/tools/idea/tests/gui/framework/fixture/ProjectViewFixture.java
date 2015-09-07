@@ -76,6 +76,28 @@ public class ProjectViewFixture extends ToolWindowFixture {
     return new PaneFixture(projectView.getProjectViewPaneById(id));
   }
 
+  @NotNull
+  public PaneFixture selectAndroidPane() {
+    activate();
+    final ProjectView projectView = ProjectView.getInstance(myProject);
+    pause(new Condition("Project view is initialized") {
+      @Override
+      public boolean test() {
+        //noinspection ConstantConditions
+        return field("isInitialized").ofType(boolean.class).in(projectView).get();
+      }
+    }, SHORT_TIMEOUT);
+
+    final String id = "AndroidView";
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        projectView.changeView(id);
+      }
+    });
+    return new PaneFixture(projectView.getProjectViewPaneById(id));
+  }
+
   public static class PaneFixture {
     @NotNull private final AbstractProjectViewPane myPane;
 
