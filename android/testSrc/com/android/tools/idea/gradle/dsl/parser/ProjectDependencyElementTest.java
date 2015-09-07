@@ -48,6 +48,31 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
     expected.assertMatches(dependencies.get(0));
   }
 
+  public void testParsingWithDependencyOnRoot() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile project(':')\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    assertThat(dependenciesBlocks).hasSize(1);
+
+    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
+    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependenciesView();
+    assertThat(dependencies).hasSize(1);
+
+    ProjectDependencyElement actual = dependencies.get(0);
+
+    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    expected.configurationName = "compile";
+    expected.path = ":";
+    expected.assertMatches(actual);
+
+    assertEquals("", actual.getName());
+  }
+
   public void testParsingWithMapNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(path: ':androidlib1', configuration: 'flavor1Release')\n" +
@@ -158,7 +183,6 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
     expected.assertMatches(dependencies.get(0));
   }
 
-
   public void testSetNameOnMapNotationWithoutConfiguration() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(path: ':androidlib1')\n" +
@@ -193,6 +217,46 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
     expected.configurationName = "compile";
     expected.path = ":newName";
     expected.assertMatches(dependencies.get(0));
+  }
+
+  public void testSetNameWithPathHavingSameSegmentNames() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile project(path: ':name:name')\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
+    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependenciesView();
+
+    final ProjectDependencyElement dependency = dependencies.get(0);
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        dependency.setName("helloWorld");
+      }
+    });
+    buildModel.reparse();
+
+    dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    assertThat(dependenciesBlocks).hasSize(1);
+
+    dependenciesBlock = dependenciesBlocks.get(0);
+    dependencies = dependenciesBlock.getProjectDependenciesView();
+    assertThat(dependencies).hasSize(1);
+
+    ProjectDependencyElement actual = dependencies.get(0);
+
+    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    expected.configurationName = "compile";
+    expected.path = ":name:helloWorld";
+    expected.assertMatches(actual);
+
+    assertEquals("helloWorld", actual.getName());
   }
 
   public static class ExpectedProjectDependency {
