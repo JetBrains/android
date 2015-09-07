@@ -34,6 +34,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -221,6 +222,12 @@ public class StateListPicker extends JPanel {
             }
           }
         }
+
+        // The following is necessary since layoutlib will look on disk for the color state list file.
+        // So as soon as a color state list is modified, the change needs to be saved on disk
+        // for the correct values to be used in the theme editor preview.
+        // TODO: Remove this once layoutlib can get color state lists from PSI instead of disk
+        FileDocumentManager.getInstance().saveAllDocuments();
       }
     }.execute();
   }
