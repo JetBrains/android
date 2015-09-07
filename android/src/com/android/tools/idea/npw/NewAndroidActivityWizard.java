@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +51,7 @@ public final class NewAndroidActivityWizard extends DynamicWizard {
     myPath = new AddAndroidActivityPath(myTargetFile, myTemplate, ImmutableMap.<String, Object>of(), getDisposable());
     addPath(myPath);
     super.init();
-    myHost.setPreferredWindowSize(new Dimension(800, 640));
+    myHost.setPreferredWindowSize(JBUI.size(800, 640));
   }
 
   public void setOpenCreatedFiles(boolean openCreatedFiles) {

@@ -47,6 +47,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.AbstractTableCellEditor;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -367,7 +368,7 @@ public class BuildVariantView {
       Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
       setBackground(color == null ? UIUtil.getToolTipBackground() : color);
       setBorder(BorderFactory.createEmptyBorder(1, 15, 1, 15)); // Same as EditorNotificationPanel
-      setPreferredSize(new Dimension(-1, 24));
+      setPreferredSize(new Dimension(-1, JBUI.scale(24)));
 
       JLabel textLabel = new JLabel("Variant selection conflicts found.");
       textLabel.setOpaque(false);
@@ -396,7 +397,7 @@ public class BuildVariantView {
 
       ActionToolbar toolbar = actionManager.createActionToolbar("", group, true);
       toolbar.setReservePlaceAutoPopupIcon(false);
-      toolbar.setMinimumButtonSize(new Dimension(23, 23)); // a little smaller than default (25 x 25)
+      toolbar.setMinimumButtonSize(JBUI.size(23, 23)); // a little smaller than default (25 x 25)
 
       JComponent toolbarComponent = toolbar.getComponent();
       toolbarComponent.setBorder(null);

@@ -12,6 +12,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -50,8 +51,8 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
         }
       }
     });
-    JPanel tablePanel = decorator.setPreferredSize(new Dimension(-1, 120)).createPanel();
-    tablePanel.setMinimumSize(new Dimension(-1, 120));
+    JPanel tablePanel = decorator.setPreferredSize(new Dimension(-1, JBUI.scale(120))).createPanel();
+    tablePanel.setMinimumSize(new Dimension(-1, JBUI.scale(120)));
     add(tablePanel, BorderLayout.CENTER);
     final JBLabel label = new JBLabel("Config file paths:");
     label.setBorder(IdeBorderFactory.createEmptyBorder(0, 0, 5, 0));

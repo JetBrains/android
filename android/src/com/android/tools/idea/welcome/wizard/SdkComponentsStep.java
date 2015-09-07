@@ -36,6 +36,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Contract;
@@ -93,8 +94,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
                                    FileChooserDescriptorFactory.createSingleFolderDescriptor());
 
     mySdkDownloadPathKey = sdkDownloadPathKey;
-    Font labelFont = UIUtil.getLabelFont();
-    Font smallLabelFont = labelFont.deriveFont(labelFont.getSize() - 1.0f);
+    Font smallLabelFont = JBUI.Fonts.smallFont();
     myNeededSpace.setFont(smallLabelFont);
     myAvailableSpace.setFont(smallLabelFont);
     myErrorMessage.setText(null);

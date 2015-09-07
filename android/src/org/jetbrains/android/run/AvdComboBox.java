@@ -15,6 +15,7 @@ import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -64,7 +65,7 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
       }
     });
 
-    setMinimumSize(new Dimension(100, getMinimumSize().height));
+    setMinimumSize(new Dimension(JBUI.scale(100), getMinimumSize().height));
   }
 
 

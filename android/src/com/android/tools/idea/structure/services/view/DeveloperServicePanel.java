@@ -30,6 +30,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.IconUtil;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -144,7 +145,7 @@ public final class DeveloperServicePanel extends EditorPanel {
     JPanel verticalFlowPanel = new JPanel();
     verticalFlowPanel.setLayout(new BoxLayout(verticalFlowPanel, BoxLayout.PAGE_AXIS));
 
-    verticalFlowPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+    verticalFlowPanel.add(Box.createRigidArea(new Dimension(0, JBUI.scale(30))));
     final HtmlBuilder htmlBuilder = new HtmlBuilder();
     htmlBuilder.openHtmlBody();
     htmlBuilder.add("Enabling this service will...");
@@ -194,7 +195,7 @@ public final class DeveloperServicePanel extends EditorPanel {
     // Setting the padding on myLinksPanel puts in ugly leading space, so we instead space links
     // apart using invisible rigid areas instead.
     if (myLinksPanel.getComponentCount() > 0) {
-      myLinksPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+      myLinksPanel.add(Box.createRigidArea(new Dimension(JBUI.scale(10), 0)));
     }
     myLinksPanel.add(hyperlinkLabel);
   }

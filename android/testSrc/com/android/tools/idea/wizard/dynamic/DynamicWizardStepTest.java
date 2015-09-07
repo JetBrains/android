@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
@@ -107,8 +108,8 @@ public class DynamicWizardStepTest extends TestCase {
       mySecondPanel.add(myInputField);
       mySecondPanel.add(myDerivedField);
       myDerivedField.setEditable(false);
-      myInputField.setPreferredSize(new Dimension(300, 30));
-      myDerivedField.setPreferredSize(new Dimension(300, 30));
+      myInputField.setPreferredSize(JBUI.size(300, 30));
+      myDerivedField.setPreferredSize(JBUI.size(300, 30));
       myPanel.add(mySecondPanel, BorderLayout.CENTER);
       myPanel.add(myMessageLabel, BorderLayout.SOUTH);
 

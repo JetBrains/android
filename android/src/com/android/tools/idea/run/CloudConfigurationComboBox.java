@@ -22,6 +22,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.ui.JBUI;
 import org.jdesktop.swingx.combobox.ListComboBoxModel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.run.AndroidRunConfigurationBase;
@@ -63,7 +64,7 @@ public class CloudConfigurationComboBox extends ComboboxWithBrowseButton {
   public CloudConfigurationComboBox(@NotNull Kind configurationKind) {
     myConfigurationKind = configurationKind;
     myConfigurationProvider = CloudConfigurationProvider.getCloudConfigurationProvider();
-    setMinimumSize(new Dimension(100, getMinimumSize().height));
+    setMinimumSize(new Dimension(JBUI.scale(100), getMinimumSize().height));
 
     getComboBox().setRenderer(new TestConfigurationRenderer());
     getComboBox().addActionListener(new ActionListener() {
