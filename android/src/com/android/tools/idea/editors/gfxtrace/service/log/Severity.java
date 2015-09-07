@@ -59,7 +59,7 @@ public final class Severity {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || !(o instanceof Severity)) return false;
-    return value != ((Severity)o).value;
+    return value == ((Severity)o).value;
   }
 
   @Override
