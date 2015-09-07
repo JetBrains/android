@@ -53,7 +53,7 @@ public final class TimingFlags {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || !(o instanceof TimingFlags)) return false;
-    return value != ((TimingFlags)o).value;
+    return value == ((TimingFlags)o).value;
   }
 
   @Override
