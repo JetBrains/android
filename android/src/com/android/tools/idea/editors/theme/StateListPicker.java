@@ -248,9 +248,8 @@ public class StateListPicker extends JPanel {
 
   /**
    * Returns a {@Link ValidationInfo} specifying which of the state list component has a value which is a private resource.
-   * If there is no such component, returns null.
    */
-  @Nullable
+  @Nullable("if there is no error")
   public ValidationInfo getPrivateResourceError() {
     IAndroidTarget target = myConfiguration.getTarget();
     assert target != null;
@@ -281,9 +280,8 @@ public class StateListPicker extends JPanel {
 
   /**
    * Returns a {@Link ValidationInfo} specifying which of the state list component requires an API level higher than minApi.
-   * If there is no such component, returns null.
    */
-  @Nullable
+  @Nullable("if there is no such component")
   public ValidationInfo getApiError(int minApi) {
     for (StateComponent component : myStateComponents) {
       int resourceApi = ResolutionUtils.getOriginalApiLevel(component.getResourceValue(), myModule.getProject());

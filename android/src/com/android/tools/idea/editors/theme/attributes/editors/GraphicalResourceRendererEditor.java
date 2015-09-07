@@ -123,10 +123,8 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
   /**
    * Returns a restricted version of the passed configuration. The value returned will incompatible with any other configuration in the item.
    * This configuration can be used when we want to make sure that the configuration selected will be displayed.
-   * <p/>
-   * This method can return null if there is no configuration that matches the constraints.
    */
-  @Nullable
+  @Nullable("if there is no configuration that matches the constraints")
   static FolderConfiguration restrictConfiguration(@NotNull ConfigurationManager manager, @NotNull EditedStyleItem item, @NotNull final FolderConfiguration compatibleConfiguration) {
     ArrayList<FolderConfiguration> incompatibleConfigurations = Lists.newArrayListWithCapacity(
       item.getNonSelectedItemResourceValues().size() + 1);
