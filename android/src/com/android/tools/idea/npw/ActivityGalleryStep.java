@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.ui.ASGallery;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.module.Module;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -51,14 +52,17 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
   private final FormFactorUtils.FormFactor myFormFactor;
   private final Key<TemplateEntry> myCurrentSelectionKey;
   private final boolean myShowSkipEntry;
+  private final Module myModule;
+  private boolean myAppThemeExists;
   private ASGallery<Optional<TemplateEntry>> myGallery;
 
   public ActivityGalleryStep(@NotNull FormFactorUtils.FormFactor formFactor, boolean showSkipEntry,
-                             @NotNull Key<TemplateEntry> currentSelectionKey, @NotNull Disposable disposable) {
+                             @NotNull Key<TemplateEntry> currentSelectionKey, @Nullable Module module, @NotNull Disposable disposable) {
     super(disposable);
     myFormFactor = formFactor;
     myCurrentSelectionKey = currentSelectionKey;
     myShowSkipEntry = showSkipEntry;
+    myModule = module;
     setBodyComponent(createGallery());
   }
 
@@ -115,6 +119,12 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
         myGallery.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
       }
     });
+
+    myAppThemeExists = myState.getNotNull(WizardConstants.IS_NEW_PROJECT_KEY, false);
+    if (myModule != null) {
+      ThemeHelper themeHelper = new ThemeHelper(myModule);
+      myAppThemeExists = themeHelper.hasDefaultAppCompatTheme() != null;
+    }
   }
 
   @Override
@@ -135,6 +145,9 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
     else if (isIncompatibleBuildApi(template)) {
       status = PageStatus.INCOMPATIBLE_BUILD_API;
     }
+    else if (isMissingAppTheme(template)) {
+      status = PageStatus.MISSING_THEME;
+    }
     else {
       status = PageStatus.OK;
     }
@@ -142,14 +155,18 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
     return status.isPageValid();
   }
 
-  private boolean isIncompatibleBuildApi(TemplateEntry template) {
-    Integer buildSdk = myState.get(AddAndroidActivityPath.KEY_BUILD_SDK);
-    return buildSdk != null && buildSdk < template.getMinBuildApi();
+  private boolean isIncompatibleBuildApi(@NotNull TemplateEntry template) {
+    Integer buildSdkLevel = myState.get(FormFactorUtils.getBuildApiLevelKey(myFormFactor));
+    return buildSdkLevel != null && buildSdkLevel < template.getMinBuildApi();
   }
 
   private boolean isIncompatibleMinSdk(@NotNull TemplateEntry template) {
-    AndroidVersion minSdk = myState.get(AddAndroidActivityPath.KEY_MIN_SDK);
-    return minSdk != null && minSdk.getApiLevel() < template.getMinSdk();
+    Integer minSdkLevel = myState.get(FormFactorUtils.getMinApiLevelKey(myFormFactor));
+    return minSdkLevel != null && minSdkLevel < template.getMinSdk();
+  }
+
+  private boolean isMissingAppTheme(@NotNull TemplateEntry template) {
+    return !myAppThemeExists && template.getMetadata().isAppThemeRequired();
   }
 
   @Override
@@ -242,7 +259,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
   }
 
   private enum PageStatus {
-    OK, INCOMPATIBLE_BUILD_API, INCOMPATIBLE_MAIN_SDK, NOTHING_SELECTED;
+    OK, INCOMPATIBLE_BUILD_API, INCOMPATIBLE_MAIN_SDK, MISSING_THEME, NOTHING_SELECTED;
 
     public boolean isPageValid() {
       return this == OK;
@@ -257,12 +274,13 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
           return String.format("Selected activity template has a minimum build API level of %d.", template.getMinBuildApi());
         case INCOMPATIBLE_MAIN_SDK:
           return String.format("Selected activity template has a minimum SDK level of %d.", template.getMinSdk());
+        case MISSING_THEME:
+          return "Selected activity template requires an existing AppTheme";
         case NOTHING_SELECTED:
           return "No activity template was selected.";
         default:
           throw new IllegalArgumentException(name());
       }
     }
-
   }
 }
