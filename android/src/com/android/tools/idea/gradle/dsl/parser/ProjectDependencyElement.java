@@ -94,7 +94,7 @@ public class ProjectDependencyElement implements DependencyElement {
   }
 
   @NotNull
-  public String getGradlePath() {
+  public String getPath() {
     Object literalValue = myGradlePathElement.getValue();
     assert literalValue != null;
     return literalValue.toString();
@@ -102,12 +102,12 @@ public class ProjectDependencyElement implements DependencyElement {
 
   @NotNull
   public String getName() {
-    List<String> pathSegment = getPathSegments(getGradlePath());
+    List<String> pathSegment = getPathSegments(getPath());
     return pathSegment.get(pathSegment.size() - 1);
   }
 
   @Nullable
-  public String getTargetConfigurationName() {
+  public String getTargetConfiguration() {
     if (myTargetConfigurationElement == null) {
       return null;
     }

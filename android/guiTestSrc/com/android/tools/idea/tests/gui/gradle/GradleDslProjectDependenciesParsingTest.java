@@ -18,67 +18,77 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.dsl.parser.DependenciesElement;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.ProjectDependencyElement;
+import com.android.tools.idea.gradle.dsl.parser.ProjectDependencyElementTest.ExpectedProjectDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
+import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.edt.GuiTask;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
-public class GradleDslProjectDependenciesParsingTest extends GradleDslTestCase {
+public class GradleDslProjectDependenciesParsingTest extends GuiTestCase {
 
   @Test @IdeGuiTest
-  public void testParsingProjectDependencyInDifferentForm() throws IOException {
+  public void testParsingProjectDependencies() throws IOException {
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
-    GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
+    GradleBuildModel buildModel = new GradleBuildFileFixture(projectFrame).openAndParseAppBuildFile();
 
-    // compile project(":javalib1")
-    ProjectDependencyElement javalib1 = findProjectDependency(buildModel, "javalib1");
-    // compile project(path: ":javalib2")
-    ProjectDependencyElement javalib2 = findProjectDependency(buildModel, "javalib2");
-    // compile project(path: ":androidlib1", configuration: "flavor1Release");
-    ProjectDependencyElement androidlib1 = findProjectDependency(buildModel, "androidlib1");
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    assertThat(dependenciesBlocks).hasSize(1);
 
-    assertNotNull(javalib1);
-    assertNotNull(javalib2);
-    assertNotNull(androidlib1);
-  }
+    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
+    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependenciesView();
+    assertThat(dependencies).hasSize(4);
 
-  @Test @IdeGuiTest
-  public void testParsingProjectDependencyInDifferentConfiguration() throws IOException {
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
-    GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
+    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    expected.configurationName = "compile";
+    expected.path = ":androidlib1";
+    expected.configuration = "flavor1Release";
+    expected.assertMatches(dependencies.get(0));
 
-    // debugCompile project(path: ':library', configuration: 'debug')
-    ProjectDependencyElement debug = findProjectDependency(buildModel, "library", "debugCompile");
-    // releaseCompile project(path: ':library', configuration: 'release')
-    ProjectDependencyElement release = findProjectDependency(buildModel, "library", "releaseCompile");
+    expected.reset();
 
-    assertNotNull(debug);
-    assertNotNull(release);
+    expected.configurationName = "compile";
+    expected.path = ":androidlib2";
+    expected.configuration = "flavor1Release";
+    expected.assertMatches(dependencies.get(1));
 
-    assertEquals("debug", debug.getTargetConfigurationName());
-    assertEquals("release", release.getTargetConfigurationName());
+    expected.reset();
+
+    expected.configurationName = "compile";
+    expected.path = ":javalib1";
+    expected.assertMatches(dependencies.get(2));
+
+    expected.reset();
+
+    expected.configurationName = "compile";
+    expected.path = ":javalib2";
+    expected.assertMatches(dependencies.get(3));
   }
 
   @Test @IdeGuiTest
   public void testRenameProjectDependency() throws IOException {
     final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
-    final GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
+    final GradleBuildModel buildModel = new GradleBuildFileFixture(projectFrame).openAndParseAppBuildFile();
 
-    final ProjectDependencyElement dep = findProjectDependency(buildModel, "androidlib2");
-    assertNotNull(dep);
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
+    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependenciesView();
+
+    final ProjectDependencyElement dependency = dependencies.get(0);
+    assertNotNull(dependency);
 
     execute(new GuiTask() {
       @Override
@@ -86,37 +96,24 @@ public class GradleDslProjectDependenciesParsingTest extends GradleDslTestCase {
         WriteCommandAction.runWriteCommandAction(projectFrame.getProject(), new Runnable() {
           @Override
           public void run() {
-            dep.setName("renamed");
+            dependency.setName("renamed");
           }
         });
         buildModel.reparse();
       }
     });
 
-    assertEquals("renamed", dep.getName());
-    assertNull(findProjectDependency(buildModel, "androidlib2"));
-    assertNotNull(findProjectDependency(buildModel, "renamed"));
-  }
+    dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    assertThat(dependenciesBlocks).hasSize(1);
 
+    dependenciesBlock = dependenciesBlocks.get(0);
+    dependencies = dependenciesBlock.getProjectDependenciesView();
+    assertThat(dependencies).hasSize(4);
 
-  @Nullable
-  private static ProjectDependencyElement findProjectDependency(@NotNull GradleBuildModel buildModel,
-                                                                @NotNull String projectName) {
-    return findProjectDependency(buildModel, projectName, null);
-  }
-
-  @Nullable
-  private static ProjectDependencyElement findProjectDependency(@NotNull GradleBuildModel buildModel,
-                                                                @NotNull String projectName,
-                                                                @Nullable String configurationName) {
-    for (DependenciesElement dependenciesElement : buildModel.getDependenciesBlocksView()) {
-      for (ProjectDependencyElement element : dependenciesElement.getProjectDependenciesView()) {
-        if (projectName.equals(element.getName()) &&
-            (configurationName == null || configurationName.equals(element.getConfigurationName()))) {
-          return element;
-        }
-      }
-    }
-    return null;
+    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    expected.configurationName = "compile";
+    expected.path = ":renamed";
+    expected.configuration = "flavor1Release";
+    expected.assertMatches(dependencies.get(0));
   }
 }
