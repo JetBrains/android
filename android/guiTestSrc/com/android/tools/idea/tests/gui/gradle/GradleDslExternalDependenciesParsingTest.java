@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyElement;
 import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyElementTest.ExpectedExternalDependency;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
+import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -36,11 +37,12 @@ import static org.fest.swing.edt.GuiActionRunner.execute;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
-public class GradleDslExternalDependenciesParsingTest extends GradleDslTestCase {
+public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testParseExternalDependenciesWithCompactNotation() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
-    GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
+
+    GradleBuildModel buildModel = new GradleBuildFileFixture(projectFrame).openAndParseAppBuildFile();
 
     List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
     assertThat(dependenciesBlocks).hasSize(1);
@@ -68,7 +70,7 @@ public class GradleDslExternalDependenciesParsingTest extends GradleDslTestCase 
   @Test @IdeGuiTest
   public void testSetVersionOnExternalDependencyWithCompactNotation() throws IOException {
     final IdeFrameFixture projectFrame = importSimpleApplication();
-    final GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
+    final GradleBuildModel buildModel = new GradleBuildFileFixture(projectFrame).openAndParseAppBuildFile();
 
     List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
     assertThat(dependenciesBlocks).hasSize(1);
