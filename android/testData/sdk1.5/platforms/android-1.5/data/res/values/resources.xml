@@ -17,6 +17,10 @@
   <style name="Theme.Holo.Light" parent="Theme">
   </style>
 
+  <style name="Theme.FrameworkTheme" parent="Theme">
+      <item name="textColorPrimary">@color/state_list</item>
+  </style>
+
   <style name="Theme.Holo1.Light">
   </style>
 
