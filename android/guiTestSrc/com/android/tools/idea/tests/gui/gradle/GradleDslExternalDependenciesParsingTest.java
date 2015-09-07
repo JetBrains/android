@@ -17,38 +17,26 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.dsl.parser.DependenciesElement;
 import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyElement;
+import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyElementTest.ExpectedExternalDependency;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.fest.assertions.AssertExtension;
 import org.fest.swing.edt.GuiTask;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
-import static com.intellij.openapi.vfs.VfsUtil.saveText;
-import static com.intellij.openapi.vfs.VfsUtilCore.loadText;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.assertEquals;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class GradleDslExternalDependenciesParsingTest extends GradleDslTestCase {
-  @NonNls private static final String DEPENDENCIES_BLOCK_START = "dependencies {";
-
   @Test @IdeGuiTest
   public void testParseExternalDependenciesWithCompactNotation() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
@@ -61,63 +49,20 @@ public class GradleDslExternalDependenciesParsingTest extends GradleDslTestCase 
     List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
     assertThat(dependencies).hasSize(2);
 
-    assertThat(dependency(dependencies.get(0))).hasConfigurationName("compile")
-                                               .hasGroup("com.android.support")
-                                               .hasName("appcompat-v7")
-                                               .hasVersion("22.1.1");
+    ExpectedExternalDependency expected = new ExpectedExternalDependency();
+    expected.configurationName = "compile";
+    expected.group = "com.android.support";
+    expected.name = "appcompat-v7";
+    expected.version = "22.1.1";
+    expected.assertMatches(dependencies.get(0));
 
-    assertThat(dependency(dependencies.get(1))).hasConfigurationName("compile")
-                                               .hasGroup("com.google.guava")
-                                               .hasName("guava")
-                                               .hasVersion("18.0");
-  }
+    expected.reset();
 
-  @Test @IdeGuiTest
-  public void testAddExternalDependencyWithCompactNotation() throws IOException {
-    final IdeFrameFixture projectFrame = importSimpleApplication();
-    final GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
-
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
-    assertThat(dependenciesBlocks).hasSize(1);
-    final Ref<DependenciesElement> dependenciesBlockRef = new Ref<DependenciesElement>(dependenciesBlocks.get(0));
-
-    List<ExternalDependencyElement> dependencies = dependenciesBlockRef.get().getExternalDependenciesView();
-    assertThat(dependencies).hasSize(2);
-
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        WriteCommandAction.runWriteCommandAction(projectFrame.getProject(), new Runnable() {
-          @Override
-          public void run() {
-            dependenciesBlockRef.get().addExternalDependency("compile", "joda-time:joda-time:2.3");
-          }
-        });
-        buildModel.reparse();
-      }
-    });
-
-    dependenciesBlocks = buildModel.getDependenciesBlocksView();
-    assertThat(dependenciesBlocks).hasSize(1);
-    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-
-    dependencies = dependenciesBlock.getExternalDependenciesView();
-    assertThat(dependencies).hasSize(3);
-
-    assertThat(dependency(dependencies.get(0))).hasConfigurationName("compile")
-                                               .hasGroup("com.android.support")
-                                               .hasName("appcompat-v7")
-                                               .hasVersion("22.1.1");
-
-    assertThat(dependency(dependencies.get(1))).hasConfigurationName("compile")
-                                               .hasGroup("com.google.guava")
-                                               .hasName("guava")
-                                               .hasVersion("18.0");
-
-    assertThat(dependency(dependencies.get(2))).hasConfigurationName("compile")
-                                               .hasGroup("joda-time")
-                                               .hasName("joda-time")
-                                               .hasVersion("2.3");
+    expected.configurationName = "compile";
+    expected.group = "com.google.guava";
+    expected.name = "guava";
+    expected.version = "18.0";
+    expected.assertMatches(dependencies.get(1));
   }
 
   @Test @IdeGuiTest
@@ -133,9 +78,15 @@ public class GradleDslExternalDependenciesParsingTest extends GradleDslTestCase 
     assertThat(dependencies).hasSize(2);
 
     final ExternalDependencyElement appCompat = dependencies.get(0);
-    assertThat(dependency(appCompat)).hasConfigurationName("compile")
-                                     .hasGroup("com.android.support")
-                                     .hasName("appcompat-v7").hasVersion("22.1.1");
+
+    ExpectedExternalDependency expected = new ExpectedExternalDependency();
+    expected.configurationName = "compile";
+    expected.group = "com.android.support";
+    expected.name = "appcompat-v7";
+    expected.version = "22.1.1";
+    expected.assertMatches(appCompat);
+
+    expected.reset();
 
     execute(new GuiTask() {
       @Override
@@ -157,239 +108,10 @@ public class GradleDslExternalDependenciesParsingTest extends GradleDslTestCase 
     dependencies = dependenciesBlock.getExternalDependenciesView();
     assertThat(dependencies).hasSize(2);
 
-    assertThat(dependency(dependencies.get(0))).hasConfigurationName("compile")
-                                               .hasGroup("com.android.support")
-                                               .hasName("appcompat-v7")
-                                               .hasVersion("1.2.3");
-  }
-
-  @Test @IdeGuiTest
-  public void testParseDependenciesWithMapNotation() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    replaceDependenciesInAppBuildFile(projectFrame, "compile group: 'com.google.code.guice', name: 'guice', version: '1.0'");
-
-    GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
-    assertThat(dependenciesBlocks).hasSize(1);
-
-    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
-    assertThat(dependencies).hasSize(1);
-
-    assertThat(dependency(dependencies.get(0))).hasConfigurationName("compile")
-                                               .hasGroup("com.google.code.guice")
-                                               .hasName("guice")
-                                               .hasVersion("1.0");
-  }
-
-  @Test @IdeGuiTest
-  public void testSetVersionOnExternalDependencyWithMapNotation() throws IOException {
-    final IdeFrameFixture projectFrame = importSimpleApplication();
-    replaceDependenciesInAppBuildFile(projectFrame, "compile group: 'com.google.code.guice', name: 'guice', version: '1.0'");
-
-    final GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
-    assertThat(dependenciesBlocks).hasSize(1);
-
-    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
-    assertThat(dependencies).hasSize(1);
-
-    final ExternalDependencyElement guice = dependencies.get(0);
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        WriteCommandAction.runWriteCommandAction(projectFrame.getProject(), new Runnable() {
-          @Override
-          public void run() {
-            guice.setVersion("1.2.3");
-          }
-        });
-        buildModel.reparse();
-      }
-    });
-
-    dependenciesBlocks = buildModel.getDependenciesBlocksView();
-    assertThat(dependenciesBlocks).hasSize(1);
-    dependenciesBlock = dependenciesBlocks.get(0);
-
-    dependencies = dependenciesBlock.getExternalDependenciesView();
-    assertThat(dependencies).hasSize(1);
-
-    assertThat(dependency(dependencies.get(0))).hasConfigurationName("compile")
-                                               .hasGroup("com.google.code.guice")
-                                               .hasName("guice")
-                                               .hasVersion("1.2.3");
-  }
-
-  @Test @IdeGuiTest
-  public void testAddDependencyWhenBuildFileDoesNotHaveDependenciesBlock() throws IOException {
-    final IdeFrameFixture projectFrame = importSimpleApplication();
-
-    // Remove "dependencies" block.
-    final VirtualFile appBuildFile = projectFrame.findFileByRelativePath(APP_BUILD_GRADLE_RELATIVE_PATH, true);
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        String text = loadText(appBuildFile);
-        int indexOfDependenciesBlock = text.indexOf(DEPENDENCIES_BLOCK_START);
-        if (indexOfDependenciesBlock != -1) {
-          final String newText = text.substring(0, indexOfDependenciesBlock);
-          ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<Void, IOException>() {
-            @Override
-            public Void compute() throws IOException {
-              saveText(appBuildFile, newText);
-              return null;
-            }
-          });
-        }
-      }
-    });
-
-    final GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        WriteCommandAction.runWriteCommandAction(projectFrame.getProject(), new Runnable() {
-          @Override
-          public void run() {
-            buildModel.addExternalDependency("compile", "joda-time:joda-time:2.3");
-          }
-        });
-        buildModel.reparse();
-      }
-    });
-
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
-    assertThat(dependenciesBlocks).hasSize(1);
-
-    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
-    assertThat(dependencies).hasSize(1);
-
-    assertThat(dependency(dependencies.get(0))).hasConfigurationName("compile")
-                                               .hasGroup("joda-time")
-                                               .hasName("joda-time")
-                                               .hasVersion("2.3");
-  }
-
-  @Test @IdeGuiTest
-  public void testParseExternalDependenciesWithCompactNotationDeclaredInSingleLine() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    // Added comments to dependency declarations just ensure parsing works.
-    replaceDependenciesInAppBuildFile(projectFrame,
-                                      "runtime /* Hey */ 'org.springframework:spring-core:2.5', /* Hey */ 'org.springframework:spring-aop:2.5'");
-
-    GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
-
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
-    assertThat(dependenciesBlocks).hasSize(1);
-
-    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
-    assertThat(dependencies).hasSize(2);
-
-    assertThat(dependency(dependencies.get(0))).hasConfigurationName("runtime")
-                                               .hasGroup("org.springframework")
-                                               .hasName("spring-core")
-                                               .hasVersion("2.5");
-
-    assertThat(dependency(dependencies.get(1))).hasConfigurationName("runtime")
-                                               .hasGroup("org.springframework")
-                                               .hasName("spring-aop")
-                                               .hasVersion("2.5");
-  }
-
-  @Test @IdeGuiTest
-  public void testParseExternalDependenciesWithMapNotationUsingSingleConfigurationName() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    replaceDependenciesInAppBuildFile(projectFrame,
-                                      "runtime(\n" +
-                                      "        [group: 'org.springframework', name: 'spring-core', version: '2.5'],\n" +
-                                      "        [group: 'org.springframework', name: 'spring-aop', version: '2.5']\n" +
-                                      "    )");
-
-    GradleBuildModel buildModel = openAndParseAppBuildFile(projectFrame);
-
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
-    assertThat(dependenciesBlocks).hasSize(1);
-
-    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
-    assertThat(dependencies).hasSize(2);
-
-    assertThat(dependency(dependencies.get(0))).hasConfigurationName("runtime")
-                                               .hasGroup("org.springframework")
-                                               .hasName("spring-core")
-                                               .hasVersion("2.5");
-
-    assertThat(dependency(dependencies.get(1))).hasConfigurationName("runtime")
-                                               .hasGroup("org.springframework")
-                                               .hasName("spring-aop")
-                                               .hasVersion("2.5");
-  }
-
-  private static void replaceDependenciesInAppBuildFile(@NotNull IdeFrameFixture projectFrame, @NotNull final String...dependencies) {
-    final VirtualFile appBuildFile = projectFrame.findFileByRelativePath(APP_BUILD_GRADLE_RELATIVE_PATH, true);
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        String text = loadText(appBuildFile);
-        int indexOfDependenciesBlock = text.indexOf(DEPENDENCIES_BLOCK_START);
-        if (indexOfDependenciesBlock != -1) {
-          final StringBuilder newText = new StringBuilder();
-          newText.append(text.substring(0, indexOfDependenciesBlock));
-          newText.append("dependencies {\n");
-          for (String dependency : dependencies) {
-            newText.append("  ").append(dependency).append('\n');
-          }
-          newText.append("}");
-          ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<Void, IOException>() {
-            @Override
-            public Void compute() throws IOException {
-              saveText(appBuildFile, newText.toString());
-              return null;
-            }
-          });
-        }
-      }
-    });
-  }
-
-  @NotNull
-  private static ExternalDependencyAssertion dependency(@NotNull ExternalDependencyElement target) {
-    return new ExternalDependencyAssertion(target);
-  }
-
-  private static class ExternalDependencyAssertion implements AssertExtension {
-    @NotNull private final ExternalDependencyElement myTarget;
-
-    ExternalDependencyAssertion(@NotNull ExternalDependencyElement target) {
-      myTarget = target;
-    }
-
-    @NotNull
-    ExternalDependencyAssertion hasConfigurationName(@NotNull String expected) {
-      assertEquals("configurationName", expected, myTarget.getConfigurationName());
-      return this;
-    }
-
-    @NotNull
-    ExternalDependencyAssertion hasGroup(@Nullable String expected) {
-      assertEquals("groupId", expected, myTarget.getGroup());
-      return this;
-    }
-
-    @NotNull
-    ExternalDependencyAssertion hasName(@Nullable String expected) {
-      assertEquals("artifactId", expected, myTarget.getName());
-      return this;
-    }
-
-    @NotNull
-    ExternalDependencyAssertion hasVersion(@Nullable String expected) {
-      assertEquals("fullRevision", expected, myTarget.getVersion());
-      return this;
-    }
+    expected.configurationName = "compile";
+    expected.group = "com.android.support";
+    expected.name = "appcompat-v7";
+    expected.version = "1.2.3";
+    expected.assertMatches(dependencies.get(0));
   }
 }
