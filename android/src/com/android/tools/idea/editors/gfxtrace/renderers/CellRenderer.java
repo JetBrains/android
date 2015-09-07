@@ -19,6 +19,7 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.controllers.CellController;
 import com.android.tools.idea.editors.gfxtrace.renderers.styles.RoundedLineBorder;
 import com.intellij.util.ConcurrencyUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,14 +33,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class CellRenderer implements ListCellRenderer {
-  private static final int BORDER_SIZE = 5;
-  private static final int MIN_WIDTH = 64;
-  private static final int MIN_HEIGHT = 64;
-  public static final int MAX_WIDTH = 192;
-  public static final int MAX_HEIGHT = 192;
+  private static final int BORDER_SIZE = JBUI.scale(5);
+  private static final int MIN_WIDTH = JBUI.scale(64);
+  private static final int MIN_HEIGHT = JBUI.scale(64);
+  public static final int MAX_WIDTH = JBUI.scale(192);
+  public static final int MAX_HEIGHT = JBUI.scale(192);
   private static final int TICK_MILLISECONDS = 66;
-  @NotNull private static final Border DEFAULT_BORDER = new EmptyBorder(BORDER_SIZE, BORDER_SIZE, BORDER_SIZE, BORDER_SIZE);
-  @NotNull private static final Border SELECTED_BORDER = new RoundedLineBorder(UIUtil.getFocusedBoundsColor(), 5, false);
+  @NotNull private static final Border DEFAULT_BORDER = JBUI.Borders.empty(BORDER_SIZE, BORDER_SIZE);
+  @NotNull private static final Border SELECTED_BORDER = new RoundedLineBorder(UIUtil.getFocusedBoundsColor(), JBUI.scale(5), false);
   @NotNull private static final Dimension DEFAULT_IMAGE_SIZE = new Dimension(MAX_WIDTH, MAX_HEIGHT);
   @NotNull private static final ScheduledExecutorService ourTickerScheduler =
     ConcurrencyUtil.newSingleScheduledThreadExecutor("CellAnimation");

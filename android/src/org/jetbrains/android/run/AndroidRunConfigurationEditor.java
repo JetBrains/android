@@ -42,6 +42,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ThreeState;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -236,14 +237,14 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myCloudMatrixConfigurationCombo = new CloudConfigurationComboBox(MATRIX);
     AnAction cloudMatrixProjectAction = new SelectCloudProjectAction(myCloudMatrixProjectIdLabel, myCloudMatrixConfigurationCombo);
     myCloudMatrixProjectIdUpdateButton = new ActionButton(
-      cloudMatrixProjectAction, new PresentationFactory().getPresentation(cloudMatrixProjectAction), "MyPlace", new Dimension(25, 25));
+      cloudMatrixProjectAction, new PresentationFactory().getPresentation(cloudMatrixProjectAction), "MyPlace", JBUI.size(25, 25));
     Disposer.register(this, myCloudMatrixConfigurationCombo);
 
     myCloudDeviceProjectIdLabel = new CloudProjectIdLabel(SINGLE_DEVICE);
     myCloudDeviceConfigurationCombo = new CloudConfigurationComboBox(SINGLE_DEVICE);
     AnAction cloudDeviceProjectAction = new SelectCloudProjectAction(myCloudDeviceProjectIdLabel, myCloudDeviceConfigurationCombo);
     myCloudDeviceProjectIdUpdateButton = new ActionButton(
-      cloudDeviceProjectAction, new PresentationFactory().getPresentation(cloudDeviceProjectAction), "MyPlace", new Dimension(25, 25));
+      cloudDeviceProjectAction, new PresentationFactory().getPresentation(cloudDeviceProjectAction), "MyPlace", JBUI.size(25, 25));
     Disposer.register(this, myCloudDeviceConfigurationCombo);
   }
 

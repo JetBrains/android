@@ -34,6 +34,7 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBViewport;
 import com.intellij.ui.tabs.TabInfo;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,7 +103,7 @@ public class FrameBufferController extends Controller {
     bufferTabs.addTab(new TabInfo(myColorTab.myScrollPane).setText("Color"));
     bufferTabs.addTab(new TabInfo(myWireframeTab.myScrollPane).setText("Wireframe"));
     bufferTabs.addTab(new TabInfo(myDepthTab.myScrollPane).setText("Depth"));
-    bufferTabs.setBorder(new EmptyBorder(0, 2, 0, 0));
+    bufferTabs.setBorder(JBUI.Borders.empty(0, 2, 0, 0));
 
     // Put the buffer views in a panel so a border can be drawn around it.
     myPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));

@@ -23,6 +23,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -44,7 +45,7 @@ public class VectorAssetStudioWizard extends TemplateWizard implements TemplateW
     super("Vector Asset Studio", project);
     myModule = module;
     myTargetFile = targetFile;
-    getWindow().setMinimumSize(new Dimension(700, 700));
+    getWindow().setMinimumSize(JBUI.size(700, 700));
     init();
   }
 

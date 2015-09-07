@@ -49,6 +49,7 @@ import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -250,12 +251,12 @@ public class NavigationEditor extends UserDataHolderBase implements FileEditor {
     JPanel panel = new JPanel(new BorderLayout());
 
     JLabel titleLabel = new JLabel(title);
-    titleLabel.setFont(titleLabel.getFont().deriveFont(30f));
+    titleLabel.setFont(titleLabel.getFont().deriveFont(JBUI.scale(30f)));
     titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
     panel.add(titleLabel, BorderLayout.NORTH);
 
     JLabel errorLabel = new JLabel(errorMessage);
-    errorLabel.setFont(errorLabel.getFont().deriveFont(20f));
+    errorLabel.setFont(errorLabel.getFont().deriveFont(JBUI.scale(20f)));
     errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
     panel.add(errorLabel, BorderLayout.CENTER);
 

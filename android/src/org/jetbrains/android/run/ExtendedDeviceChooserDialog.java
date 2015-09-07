@@ -40,6 +40,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.Alarm;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -479,7 +480,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     };
 
     myCloudProjectIdUpdateButton =
-      new ActionButton(action, new PresentationFactory().getPresentation(action), "MyPlace", new Dimension(25, 25));
+      new ActionButton(action, new PresentationFactory().getPresentation(action), "MyPlace", JBUI.size(25, 25));
 
     myCloudConfigurationCombo = new CloudConfigurationComboBox(MATRIX);
     Disposer.register(myDisposable, myCloudConfigurationCombo);
