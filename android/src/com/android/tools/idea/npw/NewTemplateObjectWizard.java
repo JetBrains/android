@@ -25,10 +25,10 @@ import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
-import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -38,6 +38,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -212,7 +213,8 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateW
       super.init();
       // Ensure that the window is large enough to accommodate the contents without clipping the validation error label
       Dimension preferredSize = getContentPanel().getPreferredSize();
-      getContentPanel().setPreferredSize(new Dimension(Math.max(800, preferredSize.width), Math.max(640, preferredSize.height)));
+      getContentPanel()
+        .setPreferredSize(new Dimension(Math.max(JBUI.scale(800), preferredSize.width), Math.max(JBUI.scale(640), preferredSize.height)));
     }
   }
 

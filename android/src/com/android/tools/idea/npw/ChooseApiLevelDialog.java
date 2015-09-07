@@ -25,6 +25,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -58,9 +59,9 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
     Window window = getWindow();
     // Allow creation in headless mode for tests
     if (window != null) {
-      window.setMinimumSize(new Dimension(400, 680));
-      window.setPreferredSize(new Dimension(1100, 750));
-      window.setMaximumSize(new Dimension(1100, 800));
+      window.setMinimumSize(JBUI.size(400, 680));
+      window.setPreferredSize(JBUI.size(1100, 750));
+      window.setMaximumSize(JBUI.size(1100, 800));
     } else {
       assert ApplicationManager.getApplication().isUnitTestMode();
     }

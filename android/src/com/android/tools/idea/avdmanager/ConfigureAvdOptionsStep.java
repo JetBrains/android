@@ -49,6 +49,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -738,8 +739,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         public String apply(ScreenOrientation input) {
           return ORIENTATIONS.get(input).myName;
         }
-      }, new Dimension(50, 50));
-    myOrientationToggle.setCellMargin(new Insets(5, 20, 4, 20));
+      }, JBUI.size(50, 50));
+    myOrientationToggle.setCellMargin(JBUI.insets(5, 20, 4, 20));
     myOrientationToggle.setBackground(JBColor.background());
     myOrientationToggle.setForeground(JBColor.foreground());
     myScalingComboBox = new ComboBox(new EnumComboBoxModel<AvdScaleFactor>(AvdScaleFactor.class));

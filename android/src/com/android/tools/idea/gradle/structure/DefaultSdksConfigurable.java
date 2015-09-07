@@ -46,6 +46,7 @@ import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.Function;
 import com.intellij.util.ui.AsyncProcessIcon;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -104,7 +105,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   public DefaultSdksConfigurable(@Nullable AndroidProjectStructureConfigurable host, @Nullable Project project) {
     myHost = host;
     myProject = project;
-    myWholePanel.setPreferredSize(new Dimension(700, 500));
+    myWholePanel.setPreferredSize(JBUI.size(700, 500));
 
     myDetailsComponent = new DetailsComponent();
     myDetailsComponent.setContent(myWholePanel);

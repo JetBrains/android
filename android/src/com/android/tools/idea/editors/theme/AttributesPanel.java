@@ -95,8 +95,8 @@ public class AttributesPanel {
     myPalette.setShowCheckeredBackground(true);
 
     // Stop the combo box long items from blocking the right panel from being able to be made small.
-    myThemeCombo.setMinimumSize(new Dimension(10, myThemeCombo.getMinimumSize().height));
-    myThemeCombo.setPreferredSize(new Dimension(10, myThemeCombo.getPreferredSize().height));
+    myThemeCombo.setMinimumSize(new Dimension(JBUI.scale(10), myThemeCombo.getMinimumSize().height));
+    myThemeCombo.setPreferredSize(new Dimension(JBUI.scale(10), myThemeCombo.getPreferredSize().height));
 
     myThemeCombo.setMaximumRowCount(MAX_SIZE_THEME_SELECTOR);
 

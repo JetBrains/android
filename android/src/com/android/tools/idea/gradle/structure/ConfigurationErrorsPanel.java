@@ -30,6 +30,7 @@ import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.ui.components.labels.LinkListener;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.BaseButtonBehavior;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.TimedDeadzone;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NonNls;
@@ -289,14 +290,14 @@ class ConfigurationErrorsPanel extends JPanel implements Disposable, ListDataLis
       Window window = SwingUtilities.getWindowAncestor(this);
       if (window != null) {
         Dimension preferredSize = getPreferredSize();
-        setPreferredSize(new Dimension(preferredSize.width, 200));
+        setPreferredSize(new Dimension(preferredSize.width, JBUI.scale(200)));
         setMinimumSize(getPreferredSize());
       }
     }
 
     private JComponent buildToolbar() {
       JPanel result = new JPanel();
-      result.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
+      result.setBorder(JBUI.Borders.empty(5, 0, 0, 0));
       result.setLayout(new BorderLayout());
       result.add(new ToolbarAlikeButton(AllIcons.Actions.Collapseall) {
         {
@@ -462,7 +463,7 @@ class ConfigurationErrorsPanel extends JPanel implements Disposable, ListDataLis
         int maxHeight = Math.max(buttonsPrefSize.height, preferredSize.height);
 
         Insets insets = getInsets();
-        return new Dimension(Math.min(size.width - 20, preferredSize.width), maxHeight + insets.top + insets.bottom);
+        return new Dimension(Math.min(size.width - JBUI.scale(20), preferredSize.width), maxHeight + insets.top + insets.bottom);
       }
 
       return super.getPreferredSize();
