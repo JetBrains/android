@@ -80,13 +80,12 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/dimens/dimens.xml", "res/values/dimens.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/dimens/dimens-sw720dp.xml", "res/values-sw720dp/dimens.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/dimens/dimens-land.xml", "res/values-land/dimens.xml");
-    checkJavadoc("/javadoc/dimens/Activity1.java",
-                 String.format("<html><body><table>" +
-                 "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
-                 "<tr><td %1$s>Default</td><td %1$s>200dp</td></tr>" +
-                 "<tr><td %1$s>land</td><td %1$s>200px</td></tr>" +
-                 "<tr><td %1$s>sw720dp</td><td %1$s>300dip</td></tr>" +
-                 "</table></body></html>", VERTICAL_ALIGN));
+    checkJavadoc("/javadoc/dimens/Activity1.java", String.format("<html><body><table>" +
+                                                                 "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
+                                                                 "<tr><td %1$s>Default</td><td %1$s>200dp</td></tr>" +
+                                                                 "<tr><td %1$s>land</td><td %1$s>200px</td></tr>" +
+                                                                 "<tr><td %1$s>sw720dp</td><td %1$s>300dip</td></tr>" +
+                                                                 "</table></body></html>", VERTICAL_ALIGN));
   }
 
   public void testDrawables() {
@@ -307,6 +306,18 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorLink</B> = #5C5CFF<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHighlight</B> = #FFFF9200<BR/>" +
                  "</body></html>");
+  }
+
+  public void testFrameworkStyleResolution() {
+    // Checks that references in framework styles are always understood to point to framework resources,
+    // even if the android: prefix is not explicitly written.
+    checkJavadoc("/javadoc/styles/styles.xml", "res/values/styles.xml",
+                 "<html><body><BR/>" +
+                 "@android:style/Theme.FrameworkTheme<BR/>" +
+                 "<BR/>" + "" +
+                 "<hr><B>Theme.FrameworkTheme</B>:<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorPrimary</B> = @color/state_list<BR/>" +
+                 "<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></body></html>");
   }
 
   // TODO: Test flavor docs
