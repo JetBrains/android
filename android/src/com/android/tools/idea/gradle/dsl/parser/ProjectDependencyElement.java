@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +28,9 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 
 import java.util.List;
 
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getPathSegments;
+import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
 
 /**
  * A Gradle project dependency. There are two notations supported for declaring a project dependency:
@@ -42,7 +47,10 @@ public class ProjectDependencyElement implements DependencyElement {
   @Nullable GrLiteralContainer myTargetConfigurationElement;
 
   /**
-   * Creates project dependency from the literal form, e.g. compile project("gradlePath");
+   * Creates project dependency from the literal form:
+   * <pre>
+   *   compile project("gradlePath")
+   * </pre>
    */
   @Nullable
   public static ProjectDependencyElement withCompactNotation(@NotNull String configurationName,
@@ -54,9 +62,11 @@ public class ProjectDependencyElement implements DependencyElement {
   }
 
   /**
-   * Creates project dependency from map notation, e.g.
-   * compile project(path: "gradlePath", configuration: "xxx") or
-   * compile project(path: "gradlePath")
+   * Creates project dependency from map notation:
+   * <pre>
+   *   compile project(path: "gradlePath", configuration: "xxx")
+   *   compile project(path: "gradlePath")
+   * </pre>
    */
   @Nullable
   public static ProjectDependencyElement withMapNotation(@NotNull String configurationName, @NotNull GrArgumentList argumentList) {
@@ -102,8 +112,9 @@ public class ProjectDependencyElement implements DependencyElement {
 
   @NotNull
   public String getName() {
-    List<String> pathSegment = getPathSegments(getPath());
-    return pathSegment.get(pathSegment.size() - 1);
+    List<String> pathSegments = getPathSegments(getPath());
+    int segmentCount = pathSegments.size();
+    return segmentCount > 0 ? pathSegments.get(segmentCount - 1) : "";
   }
 
   @Nullable
@@ -112,14 +123,31 @@ public class ProjectDependencyElement implements DependencyElement {
       return null;
     }
     Object value = myTargetConfigurationElement.getValue();
-    if (value == null) {
-      return null;
-    }
-    return value.toString();
+    return value != null ? value.toString() : null;
   }
 
   public void setName(@NotNull String newName) {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
-    myGradlePathElement = myGradlePathElement.updateText(myGradlePathElement.getText().replace(getName(), newName));
+    String newPath;
+
+    // Keep empty spaces, needed when putting the path back together
+    List<String> segments = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(getPath());
+    List<String> modifiableSegments = Lists.newArrayList(segments);
+    int segmentCount = modifiableSegments.size();
+    if (segmentCount == 0) {
+      newPath = GRADLE_PATH_SEPARATOR + newName.trim();
+    }
+    else {
+      modifiableSegments.set(segmentCount - 1, newName);
+      newPath = Joiner.on(GRADLE_PATH_SEPARATOR).join(modifiableSegments);
+    }
+    String currentText = myGradlePathElement.getText();
+    char quote = '\'';
+    if (isQuotedString(currentText)) {
+      // Use same quote as the original text.
+      quote = currentText.charAt(0);
+    }
+    newPath = quote + newPath + quote;
+    myGradlePathElement = myGradlePathElement.updateText(newPath);
   }
 }
