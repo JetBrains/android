@@ -341,12 +341,11 @@ public class ThemeEditorStyle {
   }
 
   /**
-   * Returns the style parent or null if this is a root style.
-   *
    * @param themeResolver theme resolver that would be used to look up parent theme by name
    *                      Pass null if you don't care about resulting ThemeEditorStyle source module (which would be null in that case)
+   * @return the style parent
    */
-  @Nullable
+  @Nullable("if this is a root style")
   public ThemeEditorStyle getParent(@Nullable ThemeResolver themeResolver) {
     ResourceResolver resolver = myConfiguration.getResourceResolver();
     assert resolver != null;
@@ -365,11 +364,10 @@ public class ThemeEditorStyle {
   }
 
   /**
-   * Returns the XmlTag that contains the value for a given attribute in the current style.
    * @param attribute The style attribute name.
-   * @return The {@link XmlTag} or null if the attribute does not exist in this theme.
+   * @return the XmlTag that contains the value for a given attribute in the current style.
    */
-  @Nullable
+  @Nullable("if the attribute does not exist in this theme")
   private XmlTag getValueTag(@NotNull XmlTag sourceTag, @NotNull final String attribute) {
     if (!isProjectStyle()) {
       // Non project styles do not contain local values.
@@ -794,9 +792,8 @@ public class ThemeEditorStyle {
 
   /**
    * Checks all the passed source folders and find an acceptable source to copy to the folder with minAcceptableApi.
-   * If this method returns null, there is no need to copy the folder since it already exists.
    */
-  @Nullable
+  @Nullable("when there is no need to copy the folder since it already exists")
   private static FolderConfiguration findAcceptableSourceFolderConfiguration(@NotNull Module module,
                                                                              int minAcceptableApi,
                                                                              @NotNull Collection<FolderConfiguration> folders) {
