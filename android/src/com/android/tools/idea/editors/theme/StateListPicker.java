@@ -24,13 +24,14 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.attributes.editors.ColorRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
+import com.android.tools.idea.editors.theme.attributes.editors.GraphicalResourceRendererEditor;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -332,10 +333,10 @@ public class StateListPicker extends JPanel {
 
       ResourceType[] allowedTypes;
       if (myStateList.getType() == ResourceFolderType.COLOR) {
-        allowedTypes = ColorRendererEditor.COLORS_ONLY;
+        allowedTypes = GraphicalResourceRendererEditor.COLORS_ONLY;
       }
       else {
-        allowedTypes = ColorRendererEditor.DRAWABLES_ONLY;
+        allowedTypes = GraphicalResourceRendererEditor.DRAWABLES_ONLY;
       }
 
       final ChooseResourceDialog dialog =
@@ -399,6 +400,7 @@ public class StateListPicker extends JPanel {
 
   private void updateComponent(@NotNull StateComponent component, @NotNull String resourceName, @Nullable String alphaValue) {
     component.setValueText(resourceName);
+    component.setAlphaValue(alphaValue);
     component.setAlphaVisible(!StringUtil.isEmpty(alphaValue));
 
     ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
@@ -419,7 +421,6 @@ public class StateListPicker extends JPanel {
       if (!StringUtil.isEmpty(alphaValue)) {
         try {
           float alpha = Float.parseFloat(ResourceHelper.resolveStringValue(resourceResolver, alphaValue));
-          component.getAlphaComponent().setText(alphaValue);
           List<NumericalIcon> list = ImmutableList.of(new NumericalIcon(alpha, getFont()));
           component.getAlphaComponent().setSwatchIcons(list);
         }
@@ -477,6 +478,10 @@ public class StateListPicker extends JPanel {
 
     public void setValueText(@NotNull String value) {
       myResourceComponent.setValueText(value);
+    }
+
+    public void setAlphaValue(@Nullable String alphaValue) {
+      myAlphaComponent.setText(Strings.nullToEmpty(alphaValue));
     }
 
     public void setAlphaVisible(boolean isVisible) {
