@@ -28,7 +28,9 @@ import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.WelcomeScreenProvider;
 import com.intellij.util.net.HttpConfigurable;
@@ -107,6 +109,20 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
         // "Proxy Vole" is a network layer used by Intellij.
         // This layer will throw a RuntimeException instead of an IOException on certain proxy misconfigurations.
         result = promptToRetryFailedConnection();
+      }
+      catch (Throwable e) {
+        // Some other unexpected error related to JRE setup, e.g.
+        // java.lang.NoClassDefFoundError: Could not initialize class javax.crypto.SunJCE_b
+        //     at javax.crypto.KeyGenerator.a(DashoA13*..)
+        //     ....
+        // See http://b.android.com/149270 for more.
+        // This shouldn't cause a crash at startup which prevents starting the IDE!
+        result = ConnectionState.NO_CONNECTION;
+        String message = "Couldn't check internet connection";
+        if (e.toString().contains("crypto")) {
+          message += "; check your JDK/JRE installation / consider running on a newer version.";
+        }
+        Logger.getInstance(AndroidStudioWelcomeScreenProvider.class).warn(message, e);
       }
     }
     return result;
