@@ -17,6 +17,8 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.actions.FramebufferTypeAction;
+import com.android.tools.idea.editors.gfxtrace.actions.FramebufferWireframeAction;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
@@ -25,22 +27,18 @@ import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
-import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBViewport;
-import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.concurrent.CancellationException;
@@ -53,65 +51,90 @@ public class FrameBufferController extends Controller {
 
   private static final int MAX_SIZE = 0xffff;
 
+  public enum BufferType {
+    Color,
+    Depth
+  }
+
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
-
   @NotNull private final JPanel myPanel = new JPanel(new BorderLayout());
-  @NotNull private final BufferTab myColorTab = new BufferTab();
-  @NotNull private final BufferTab myWireframeTab = new BufferTab();
-  @NotNull private final BufferTab myDepthTab = new BufferTab();
-
   @NotNull private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
   @NotNull private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
+  @NotNull private final JBScrollPane myScrollPane = new JBScrollPane();
+  @NotNull private final ImagePanel myImagePanel = new ImagePanel();
+  @NotNull private final RenderSettings mySettings = new RenderSettings();
+  @NotNull private JBLoadingPanel myLoading;
+  @NotNull private BufferType myBufferType = BufferType.Color;
 
-  private final class BufferTab {
-    public final JBScrollPane myScrollPane = new JBScrollPane();
-    public JBLoadingPanel myLoading;
-    public boolean myIsDepth = false;
-    public RenderSettings mySettings = new RenderSettings();
+  private final AtomicInteger imageLoadCount = new AtomicInteger();
+  private ListenableFuture<?> request = Futures.immediateFuture(0);
 
-    private final AtomicInteger imageLoadCount = new AtomicInteger();
-    private ListenableFuture<?> request = Futures.immediateFuture(0);
+  public synchronized int newImageRequest(ListenableFuture<?> request) {
+    this.request.cancel(true);
+    this.request = request;
+    return imageLoadCount.incrementAndGet();
+  }
 
-    public synchronized int newImageRequest(ListenableFuture<?> request) {
-      this.request.cancel(true);
-      this.request = request;
-      return imageLoadCount.incrementAndGet();
-    }
-
-    public boolean isCurrentImageRequest(int request) {
-      return imageLoadCount.get() == request;
-    }
-
-    public BufferTab() {
-      myScrollPane.getVerticalScrollBar().setUnitIncrement(20);
-      myScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
-      myScrollPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-      myLoading = new JBLoadingPanel(null, myEditor.getProject());
-      mySettings.setMaxHeight(MAX_SIZE);
-      mySettings.setMaxWidth(MAX_SIZE);
-      mySettings.setWireframeMode(WireframeMode.noWireframe());
-    }
+  public boolean isCurrentImageRequest(int request) {
+    return imageLoadCount.get() == request;
   }
 
   private FrameBufferController(@NotNull GfxTraceEditor editor) {
     super(editor);
 
-    JBRunnerTabs bufferTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
-    bufferTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
-      .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
+    myScrollPane.getVerticalScrollBar().setUnitIncrement(20);
+    myScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
+    myScrollPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+    myScrollPane.setViewport(myImagePanel.getViewport());
 
-    bufferTabs.addTab(new TabInfo(myColorTab.myScrollPane).setText("Color"));
-    bufferTabs.addTab(new TabInfo(myWireframeTab.myScrollPane).setText("Wireframe"));
-    bufferTabs.addTab(new TabInfo(myDepthTab.myScrollPane).setText("Depth"));
-    bufferTabs.setBorder(JBUI.Borders.empty(0, 2, 0, 0));
+    myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
+    myLoading.add(myScrollPane, BorderLayout.CENTER);
 
-    // Put the buffer views in a panel so a border can be drawn around it.
-    myPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-    myPanel.add(bufferTabs, BorderLayout.CENTER);
+    mySettings.setMaxHeight(MAX_SIZE);
+    mySettings.setMaxWidth(MAX_SIZE);
+    mySettings.setWireframeMode(WireframeMode.noWireframe());
+    myPanel.add(myLoading, BorderLayout.CENTER);
 
-    myColorTab.mySettings.setWireframeMode(WireframeMode.wireframeOverlay());
-    myWireframeTab.mySettings.setWireframeMode(WireframeMode.allWireframe());
-    myDepthTab.myIsDepth = true;
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getToolbarActions(), false);
+    myPanel.add(toolbar.getComponent(), BorderLayout.WEST);
+  }
+
+  public ActionGroup getToolbarActions() {
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new FramebufferTypeAction(this, BufferType.Color, "Color", "Display the color framebuffer", AllIcons.Gutter.Colors));
+    group.add(new FramebufferTypeAction(this, BufferType.Depth, "Depth", "Display the depth framebuffer", AllIcons.Gutter.OverridenMethod));
+    group.add(new Separator());
+    group.add(new FramebufferWireframeAction(this, WireframeMode.noWireframe(), "None", "Display the frambuffer without wireframing",
+                                             AllIcons.Ide.Macro.Recording_1));
+    group.add(new FramebufferWireframeAction(this, WireframeMode.wireframeOverlay(), "Overlay", "Wireframe the last draw call only",
+                                             AllIcons.Gutter.Unique));
+    group.add(new FramebufferWireframeAction(this, WireframeMode.allWireframe(), "All", "Draw the framebuffer with full wireframing",
+                                             AllIcons.Graph.Grid));
+    return group;
+  }
+
+  @NotNull
+  public BufferType getBufferType() {
+    return myBufferType;
+  }
+
+  public void setBufferType(@NotNull BufferType bufferType) {
+    if (!myBufferType.equals(bufferType)) {
+      myBufferType = bufferType;
+      updateBuffer();
+    }
+  }
+
+  @NotNull
+  public WireframeMode getWireframeMode() {
+    return mySettings.getWireframeMode();
+  }
+
+  public void setWireframeMode(@NotNull WireframeMode mode) {
+    if (!mySettings.getWireframeMode().equals(mode)) {
+      mySettings.setWireframeMode(mode);
+      updateBuffer();
+    }
   }
 
   @Override
@@ -125,23 +148,20 @@ public class FrameBufferController extends Controller {
     }
     if (updateTabs && myRenderDevice.getPath() != null && myAtomPath.getPath() != null) {
       // TODO: maybe do the selected tab first, but it's probably not much of a win
-      updateTab(myColorTab);
-      updateTab(myWireframeTab);
-      updateTab(myDepthTab);
+      updateBuffer();
     }
   }
 
-  public void updateTab(final BufferTab tab) {
-    final ListenableFuture<FetchedImage> imageFuture = loadImage(tab);
-    final int imageRequest = tab.newImageRequest(imageFuture);
+  public void updateBuffer() {
+    final ListenableFuture<FetchedImage> imageFuture = loadImage();
+    final int imageRequest = newImageRequest(imageFuture);
 
-    tab.myLoading.startLoading();
-    tab.myScrollPane.setViewportView(tab.myLoading);
+    myLoading.startLoading();
 
     Futures.addCallback(imageFuture, new FutureCallback<FetchedImage>() {
       @Override
       public void onSuccess(@Nullable FetchedImage result) {
-        updateTab(tab, imageRequest, result);
+        updateBuffer(imageRequest, result);
       }
 
       @Override
@@ -153,8 +173,8 @@ public class FrameBufferController extends Controller {
         EdtExecutor.INSTANCE.execute(new Runnable() {
           @Override
           public void run() {
-            if (tab.isCurrentImageRequest(imageRequest)) {
-              tab.myLoading.stopLoading();
+            if (isCurrentImageRequest(imageRequest)) {
+              myLoading.stopLoading();
             }
           }
         });
@@ -162,8 +182,8 @@ public class FrameBufferController extends Controller {
     });
   }
 
-  private ListenableFuture<FetchedImage> loadImage(BufferTab tab) {
-    return Futures.transform(getImageInfoPath(tab), new AsyncFunction<ImageInfoPath, FetchedImage>() {
+  private ListenableFuture<FetchedImage> loadImage() {
+    return Futures.transform(getImageInfoPath(), new AsyncFunction<ImageInfoPath, FetchedImage>() {
       @Override
       public ListenableFuture<FetchedImage> apply(ImageInfoPath imageInfoPath) throws Exception {
         return FetchedImage.load(myEditor.getClient(), imageInfoPath);
@@ -171,24 +191,26 @@ public class FrameBufferController extends Controller {
     });
   }
 
-  private ListenableFuture<ImageInfoPath> getImageInfoPath(BufferTab tab) {
-    if (tab.myIsDepth) {
-      return myEditor.getClient().getFramebufferDepth(myRenderDevice.getPath(), myAtomPath.getPath());
-    }
-    else {
-      return myEditor.getClient().getFramebufferColor(myRenderDevice.getPath(), myAtomPath.getPath(), tab.mySettings);
+  private ListenableFuture<ImageInfoPath> getImageInfoPath() {
+    switch (myBufferType) {
+      case Color:
+        return myEditor.getClient().getFramebufferColor(myRenderDevice.getPath(), myAtomPath.getPath(), mySettings);
+      case Depth:
+        return myEditor.getClient().getFramebufferDepth(myRenderDevice.getPath(), myAtomPath.getPath());
+      default:
+        return null;
     }
   }
 
-  private void updateTab(final BufferTab tab, final int imageRequest, FetchedImage fetchedImage) {
+  private void updateBuffer(final int imageRequest, FetchedImage fetchedImage) {
     final Image image = fetchedImage.icon.getImage();
     EdtExecutor.INSTANCE.execute(new Runnable() {
       @Override
       public void run() {
         // Back in the UI thread here
-        if (tab.isCurrentImageRequest(imageRequest)) {
-          tab.myLoading.stopLoading();
-          tab.myScrollPane.setViewport(ImagePanel.createViewport(image));
+        if (isCurrentImageRequest(imageRequest)) {
+          myLoading.stopLoading();
+          myImagePanel.setImage(image);
         }
       }
     });
@@ -201,14 +223,13 @@ public class FrameBufferController extends Controller {
     private static final int ZOOM_AMOUNT = 5;
     private static final int SCROLL_AMOUNT = 15;
 
-    private final JViewport parent;
-    private final Image image;
+    private final JBViewport parent = new JBViewport();
+    private Image image = null;
     private double zoom;
 
-    private ImagePanel(final JViewport parent, Image image) {
-      this.parent = parent;
-      this.image = image;
+    private ImagePanel() {
       this.zoom = ZOOM_FIT;
+      this.parent.setView(this);
 
       MouseAdapter mouseHandler = new MouseAdapter() {
         private int lastX, lastY;
@@ -300,25 +321,31 @@ public class FrameBufferController extends Controller {
       setFocusable(true);
     }
 
-    public static JBViewport createViewport(Image image) {
-      JBViewport viewport = new JBViewport();
-      viewport.setView(new ImagePanel(viewport, image));
-      return viewport;
+    public JBViewport getViewport() {
+      return parent;
+    }
+
+    public void setImage(Image image) {
+      this.image = image;
+      revalidate();
+      repaint();
     }
 
     @Override
     public Dimension getPreferredSize() {
-      return (zoom == ZOOM_FIT) ? new Dimension(parent.getWidth(), parent.getHeight()) :
-             new Dimension((int) (zoom * image.getWidth(this)), (int) (zoom * image.getHeight(this)));
+      return (zoom == ZOOM_FIT)
+             ? new Dimension(parent.getWidth(), parent.getHeight())
+             : new Dimension((int)(zoom * image.getWidth(this)), (int)(zoom * image.getHeight(this)));
     }
 
     @Override
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
-
-      double scale = (zoom == ZOOM_FIT) ? getFitRatio() : zoom;
-      int w = (int) (image.getWidth(this) * scale), h = (int) (image.getHeight(this) * scale);
-      g.drawImage(image, (getWidth() - w) / 2, (getHeight() - h) / 2, w, h, this);
+      if (image != null) {
+        double scale = (zoom == ZOOM_FIT) ? getFitRatio() : zoom;
+        int w = (int)(image.getWidth(this) * scale), h = (int)(image.getHeight(this) * scale);
+        g.drawImage(image, (getWidth() - w) / 2, (getHeight() - h) / 2, w, h, this);
+      }
     }
 
     private void scrollBy(int dx, int dy) {
@@ -360,7 +387,7 @@ public class FrameBufferController extends Controller {
     }
 
     private double getFitRatio() {
-      return Math.min((double) getWidth() / image.getWidth(this), (double) getHeight() / image.getHeight(this));
+      return Math.min((double)getWidth() / image.getWidth(this), (double)getHeight() / image.getHeight(this));
     }
 
     private double getMinZoom() {
