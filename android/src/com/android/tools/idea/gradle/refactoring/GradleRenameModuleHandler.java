@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle;
+package com.android.tools.idea.gradle.refactoring;
 
 import com.android.tools.idea.gradle.dsl.parser.DependenciesElement;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
@@ -35,7 +35,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -49,12 +48,13 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.gradle.parser.GradleSettingsFile.getModuleGradlePath;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 /**
  * Replaces {@link com.intellij.ide.projectView.impl.RenameModuleHandler}. When renaming the module, the class will:
  * <ol>
  *  <li>change the reference in the root settings.gradle file</li>
- *  <li>change the references in all build.gradle's dependencies</li>
+ *  <li>change the references in all dependencies in build.gradle files</li>
  *  <li>change the directory name of the module</li>
  * </ol>
  */
@@ -62,9 +62,13 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   @Override
   public boolean isAvailableOnDataContext(@NotNull DataContext dataContext) {
     Module module = LangDataKeys.MODULE_CONTEXT.getData(dataContext);
-    return module != null &&
-           LocalFileSystem.getInstance().findFileByIoFile((new File(module.getModuleFilePath())).getParentFile()) !=
-           null;
+    return module != null && getModuleRootDir(module) != null;
+  }
+
+  @Nullable
+  private static VirtualFile getModuleRootDir(@NotNull Module module) {
+    File moduleFilePath = new File(module.getModuleFilePath());
+    return findFileByIoFile(moduleFilePath.getParentFile(), true);
   }
 
   @Override
@@ -81,7 +85,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
     Module module = LangDataKeys.MODULE_CONTEXT.getData(dataContext);
     assert module != null;
     Messages.showInputDialog(project, IdeBundle.message("prompt.enter.new.module.name"), IdeBundle.message("title.rename.module"),
-                             Messages.getQuestionIcon(), module.getName(), new MyInputValidator(project, module));
+                             Messages.getQuestionIcon(), module.getName(), new MyInputValidator(module));
   }
 
   @Override
@@ -91,11 +95,9 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   }
 
   private static class MyInputValidator implements InputValidator {
-    private final Project myProject;
-    private final Module myModule;
+    @NotNull private final Module myModule;
 
-    public MyInputValidator(@NotNull Project project, @NotNull Module module) {
-      myProject = project;
+    public MyInputValidator(@NotNull Module module) {
       myModule = module;
     }
 
@@ -106,22 +108,23 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
 
     @Override
     public boolean canClose(@NotNull final String inputString) {
-      final GradleSettingsFile settingsFile = GradleSettingsFile.get(myProject);
+      final Project project = myModule.getProject();
+
+      final GradleSettingsFile settingsFile = GradleSettingsFile.get(project);
       if (settingsFile == null) {
-        Messages.showErrorDialog(myProject, "settings.gradle file not found", IdeBundle.message("title.rename.module"));
+        Messages.showErrorDialog(project, "settings.gradle file not found", IdeBundle.message("title.rename.module"));
         return true;
       }
-      final VirtualFile moduleRoot =
-        LocalFileSystem.getInstance().findFileByIoFile((new File(myModule.getModuleFilePath())).getParentFile());
+      final VirtualFile moduleRoot = getModuleRootDir(myModule);
       assert moduleRoot != null;
 
       if (myModule.getProject().getBaseDir().equals(moduleRoot)) {
-        Messages.showErrorDialog(myProject, "Can't rename root module", IdeBundle.message("title.rename.module"));
+        Messages.showErrorDialog(project, "Can't rename root module", IdeBundle.message("title.rename.module"));
         return true;
       }
 
       WriteCommandAction<Boolean> action =
-        new WriteCommandAction<Boolean>(myProject, IdeBundle.message("command.renaming.module", myModule.getName()),
+        new WriteCommandAction<Boolean>(project, IdeBundle.message("command.renaming.module", myModule.getName()),
                                         settingsFile.getPsiFile()) {
           @Override
           protected void run(@NotNull Result<Boolean> result) throws Throwable {
@@ -134,7 +137,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
 
             GrLiteral moduleReference = settingsFile.findModuleReference(myModule);
             if (moduleReference == null) {
-              Messages.showErrorDialog(myProject, "Can't find module '" + myModule.getName() + "' in settings.gradle",
+              Messages.showErrorDialog(project, "Can't find module '" + myModule.getName() + "' in settings.gradle",
                                        IdeBundle.message("title.rename.module"));
               return;
             }
@@ -144,7 +147,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
               moduleRoot.rename(this, inputString);
             }
             catch (IOException e) {
-              Messages.showErrorDialog(myProject, "Rename folder failed: " + e.getMessage(), IdeBundle.message("title.rename.module"));
+              Messages.showErrorDialog(project, "Rename folder failed: " + e.getMessage(), IdeBundle.message("title.rename.module"));
               result.setResult(false);
               return;
             }
@@ -153,7 +156,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             moduleReference.updateText(moduleReference.getText().replace(myModule.getName(), inputString));
 
             // Rename all references in build.gradle
-            for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+            for (Module module : ModuleManager.getInstance(project).getModules()) {
               GradleBuildModel buildModel = GradleBuildModel.get(module);
               if (buildModel != null) {
                 for (DependenciesElement elements : buildModel.getDependenciesBlocks()) {
@@ -166,15 +169,15 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
               }
             }
 
-            UndoManager.getInstance(myProject).undoableActionPerformed(new BasicUndoableAction() {
+            UndoManager.getInstance(project).undoableActionPerformed(new BasicUndoableAction() {
               @Override
               public void undo() throws UnexpectedUndoException {
-                GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+                GradleProjectImporter.getInstance().requestProjectSync(project, null);
               }
 
               @Override
               public void redo() throws UnexpectedUndoException {
-                GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+                GradleProjectImporter.getInstance().requestProjectSync(project, null);
               }
             });
             result.setResult(true);
@@ -182,7 +185,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
         };
 
       if (action.execute().getResultObject()) {
-        GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
         return true;
       }
       return false;
