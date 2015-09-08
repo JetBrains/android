@@ -45,7 +45,7 @@ public final class PoolID {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || !(o instanceof PoolID)) return false;
-    return value != ((PoolID)o).value;
+    return value == ((PoolID)o).value;
   }
 
   @Override
