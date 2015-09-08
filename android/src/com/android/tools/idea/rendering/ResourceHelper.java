@@ -377,8 +377,9 @@ public class ResourceHelper {
         return makeColorWithAlpha(resources, stateColor, state.getAlpha());
       }
       catch (NumberFormatException e) {
-        LOG.error(String.format("The alpha attribute in %s/%s does not resolve to a floating point number", stateList.getDirName(),
+        LOG.warn(String.format("The alpha attribute in %s/%s does not resolve to a floating point number", stateList.getDirName(),
                                 stateList.getFileName()));
+        return null;
       }
     }
 
@@ -418,7 +419,7 @@ public class ResourceHelper {
             result.add(makeColorWithAlpha(resources, color, state.getAlpha()));
           }
           catch (NumberFormatException e) {
-            LOG.error(String.format("The alpha attribute in %s/%s does not resolve to a floating point number", stateList.getDirName(),
+            LOG.warn(String.format("The alpha attribute in %s/%s does not resolve to a floating point number", stateList.getDirName(),
                                     stateList.getFileName()));
           }
         }
