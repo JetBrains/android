@@ -204,6 +204,27 @@ public class GradleSettingsFile extends GradleGroovyFile {
     }
   }
 
+
+  /**
+   * Get the reference to the module from the settings file with new name if present.
+   */
+  @Nullable
+  public GrLiteral findModuleReference(@NotNull Module module) {
+    checkInitialized();
+    String moduleGradlePath = getModuleGradlePath(module);
+    if (moduleGradlePath != null) {
+      commitDocumentChanges();
+      for (GrMethodCall includeStatement : getMethodCalls(myGroovyFile, INCLUDE_METHOD)) {
+        for (GrLiteral lit : getLiteralArguments(includeStatement)) {
+          if (moduleGradlePath.equals(lit.getValue())) {
+            return lit;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   private Iterable<Pair<String, GrAssignmentExpression>> getAllProjectLocationStatements() {
     List<PsiElement> allStatements = Arrays.asList(myGroovyFile.getChildren());
     Iterable<GrAssignmentExpression> assignments = Iterables.filter(allStatements, GrAssignmentExpression.class);
