@@ -377,9 +377,10 @@ public class ResourceHelper {
         return makeColorWithAlpha(resources, stateColor, state.getAlpha());
       }
       catch (NumberFormatException e) {
+        // If the alpha value is not valid, Android uses 1.0
         LOG.warn(String.format("The alpha attribute in %s/%s does not resolve to a floating point number", stateList.getDirName(),
-                                stateList.getFileName()));
-        return null;
+                               stateList.getFileName()));
+        return stateColor;
       }
     }
 
@@ -419,8 +420,10 @@ public class ResourceHelper {
             result.add(makeColorWithAlpha(resources, color, state.getAlpha()));
           }
           catch (NumberFormatException e) {
+            // If the alpha value is not valid, Android uses 1.0
+            result.add(color);
             LOG.warn(String.format("The alpha attribute in %s/%s does not resolve to a floating point number", stateList.getDirName(),
-                                    stateList.getFileName()));
+                                   stateList.getFileName()));
           }
         }
       }
