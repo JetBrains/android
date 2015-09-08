@@ -31,6 +31,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
@@ -40,6 +41,7 @@ import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -117,7 +119,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     @NotNull
-    public NodeFixture findExternalLibrariesNode() {
+    private AbstractTreeStructure getTreeStructure() {
       final AtomicReference<AbstractTreeStructure> treeStructureRef = new AtomicReference<AbstractTreeStructure>();
       pause(new Condition("Tree Structure to be built") {
         @Override
@@ -139,7 +141,12 @@ public class ProjectViewFixture extends ToolWindowFixture {
         }
       }, SHORT_TIMEOUT);
 
-      final AbstractTreeStructure treeStructure = treeStructureRef.get();
+      return treeStructureRef.get();
+    }
+
+    @NotNull
+    public NodeFixture findExternalLibrariesNode() {
+      final AbstractTreeStructure treeStructure = getTreeStructure();
 
       ExternalLibrariesNode node = GuiActionRunner.execute(new GuiQuery<ExternalLibrariesNode>() {
         @Nullable
@@ -158,6 +165,65 @@ public class ProjectViewFixture extends ToolWindowFixture {
         return new NodeFixture(node, treeStructure);
       }
       throw new AssertionError("Unable to find 'External Libraries' node");
+    }
+
+    public void selectByPath(@NotNull final String... paths) {
+      final AbstractTreeStructure treeStructure = getTreeStructure();
+
+      final PsiDirectoryNode node = GuiActionRunner.execute(new GuiQuery<PsiDirectoryNode>() {
+        @Nullable
+        @Override
+        protected PsiDirectoryNode executeInEDT() throws Throwable {
+          Object root = treeStructure.getRootElement();
+          final List<Object> treePath = Lists.newArrayList(root);
+
+          for (String path : paths) {
+            Object[] childElements = treeStructure.getChildElements(root);
+            Object newRoot = null;
+            for (Object child : childElements) {
+              if (child instanceof PsiDirectoryNode) {
+                PsiDirectory dir = ((PsiDirectoryNode)child).getValue();
+                if (dir != null && path.equals(dir.getName())) {
+                  newRoot = child;
+                  treePath.add(newRoot);
+                  break;
+                }
+              }
+            }
+            if (newRoot != null) {
+              root = newRoot;
+            }
+            else {
+              return null;
+            }
+          }
+          if (root == treeStructure.getRootElement()) {
+            return null;
+          }
+
+          myPane.expand(treePath.toArray(), true);
+          myPane.select(root, ((PsiDirectoryNode)root).getVirtualFile(), true);
+          return (PsiDirectoryNode)root;
+        }
+      });
+
+      assertNotNull(node);
+
+      pause(new Condition("Node to be selected") {
+        @Override
+        public boolean test() {
+          return node.equals(GuiActionRunner.execute(new GuiQuery<Object>() {
+            @Override
+            protected Object executeInEDT() throws Throwable {
+              DefaultMutableTreeNode selectedNode = myPane.getSelectedNode();
+              if (selectedNode != null) {
+                return selectedNode.getUserObject();
+              }
+              return null;
+            }
+          }));
+        }
+      }, SHORT_TIMEOUT);
     }
   }
 

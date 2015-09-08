@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.tools.idea.gradle.dsl.parser.DependenciesElement;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.parser.ProjectDependencyElement;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
@@ -46,5 +49,26 @@ public class GradleDslTestCase extends GuiTestCase {
 
   protected static GradleBuildModel openAndParseAppBuildFile(@NotNull final IdeFrameFixture projectFrame) {
     return openAndParseBuildFile(APP_BUILD_GRADLE_RELATIVE_PATH, projectFrame);
+  }
+
+  @Nullable
+  protected static ProjectDependencyElement findProjectDependency(@NotNull GradleBuildModel buildModel,
+                                                                  @NotNull String projectName) {
+    return findProjectDependency(buildModel, projectName, null);
+  }
+
+  @Nullable
+  protected static ProjectDependencyElement findProjectDependency(@NotNull GradleBuildModel buildModel,
+                                                                  @NotNull String projectName,
+                                                                  @Nullable String configurationName) {
+    for (DependenciesElement dependenciesElement : buildModel.getDependenciesBlocksView()) {
+      for (ProjectDependencyElement element : dependenciesElement.getProjectDependenciesView()) {
+        if (projectName.equals(element.getName()) &&
+            (configurationName == null || configurationName.equals(element.getConfigurationName()))) {
+          return element;
+        }
+      }
+    }
+    return null;
   }
 }
