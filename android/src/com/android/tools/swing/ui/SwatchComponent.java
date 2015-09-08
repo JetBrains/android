@@ -64,11 +64,14 @@ public class SwatchComponent extends JComponent {
    */
   private static final int SWATCH_HORIZONTAL_ICONS_PADDING = JBUI.scale(2);
   private static final int ARC_SIZE = ThemeEditorConstants.ROUNDED_BORDER_ARC_SIZE;
+  private static final Color DEFAULT_BORDER_COLOR = Gray._170;
+  private static final Color WARNING_BORDER_COLOR = JBColor.ORANGE;
   private String myText = "";
 
   private List<SwatchIcon> myIconList = Collections.emptyList();
   private short myMaxIcons;
   private boolean myHasOverflowIcons;
+  private Color myBorderColor;
 
   /**
    * Constructs a SwatchComponent with a maximum number of icons. If the number of icons is greater than maxIcons
@@ -78,6 +81,7 @@ public class SwatchComponent extends JComponent {
   public SwatchComponent(short maxIcons) {
     myMaxIcons = maxIcons;
     setBorder(null);
+    myBorderColor = DEFAULT_BORDER_COLOR;
 
     addMouseListener(new MouseAdapter() {
       @Override
@@ -99,6 +103,10 @@ public class SwatchComponent extends JComponent {
     myIconList = ImmutableList.copyOf(icons);
   }
 
+  public void setWarningBorder(boolean isWarning) {
+    myBorderColor = isWarning ? WARNING_BORDER_COLOR : DEFAULT_BORDER_COLOR;
+  }
+
   @Override
   protected void paintComponent(Graphics graphics) {
     setupAAPainting(graphics);
@@ -114,7 +122,7 @@ public class SwatchComponent extends JComponent {
     if (getBorder() == null) {
       g.fillRoundRect(0, 0, width - 1, height - 1, ARC_SIZE, ARC_SIZE);
       // Default border
-      g.setColor(Gray._170);
+      g.setColor(myBorderColor);
       g.drawRoundRect(0, 0, width - 1, height - 1, ARC_SIZE, ARC_SIZE);
     } else {
       g.fillRect(0, 0, width - 1, height - 1);
