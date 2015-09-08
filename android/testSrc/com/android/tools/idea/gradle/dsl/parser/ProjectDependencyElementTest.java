@@ -35,11 +35,11 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependenciesView();
+    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependencies();
     assertThat(dependencies).hasSize(1);
 
     ExpectedProjectDependency expected = new ExpectedProjectDependency();
@@ -56,11 +56,11 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependenciesView();
+    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependencies();
     assertThat(dependencies).hasSize(1);
 
     ProjectDependencyElement actual = dependencies.get(0);
@@ -84,11 +84,11 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependenciesView();
+    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependencies();
     assertThat(dependencies).hasSize(3);
 
     ExpectedProjectDependency expected = new ExpectedProjectDependency();
@@ -119,9 +119,9 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependenciesView();
+    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependencies();
 
     final ProjectDependencyElement dependency = dependencies.get(0);
 
@@ -133,11 +133,11 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
     });
     buildModel.reparse();
 
-    dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     dependenciesBlock = dependenciesBlocks.get(0);
-    dependencies = dependenciesBlock.getProjectDependenciesView();
+    dependencies = dependenciesBlock.getProjectDependencies();
     assertThat(dependencies).hasSize(1);
 
     ExpectedProjectDependency expected = new ExpectedProjectDependency();
@@ -155,9 +155,9 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependenciesView();
+    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependencies();
 
     final ProjectDependencyElement dependency = dependencies.get(0);
 
@@ -169,11 +169,11 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
     });
     buildModel.reparse();
 
-    dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     dependenciesBlock = dependenciesBlocks.get(0);
-    dependencies = dependenciesBlock.getProjectDependenciesView();
+    dependencies = dependenciesBlock.getProjectDependencies();
     assertThat(dependencies).hasSize(1);
 
     ExpectedProjectDependency expected = new ExpectedProjectDependency();
@@ -192,9 +192,9 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependenciesView();
+    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependencies();
 
     final ProjectDependencyElement dependency = dependencies.get(0);
 
@@ -206,11 +206,11 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
     });
     buildModel.reparse();
 
-    dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     dependenciesBlock = dependenciesBlocks.get(0);
-    dependencies = dependenciesBlock.getProjectDependenciesView();
+    dependencies = dependenciesBlock.getProjectDependencies();
     assertThat(dependencies).hasSize(1);
 
     ExpectedProjectDependency expected = new ExpectedProjectDependency();
@@ -228,9 +228,9 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependenciesView();
+    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependencies();
 
     final ProjectDependencyElement dependency = dependencies.get(0);
 
@@ -242,11 +242,11 @@ public class ProjectDependencyElementTest extends DslElementParserTestCase {
     });
     buildModel.reparse();
 
-    dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     dependenciesBlock = dependenciesBlocks.get(0);
-    dependencies = dependenciesBlock.getProjectDependenciesView();
+    dependencies = dependenciesBlock.getProjectDependencies();
     assertThat(dependencies).hasSize(1);
 
     ProjectDependencyElement actual = dependencies.get(0);

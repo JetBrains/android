@@ -37,11 +37,11 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
+    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependencies();
     assertThat(dependencies).hasSize(3);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -78,11 +78,11 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
+    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependencies();
     assertThat(dependencies).hasSize(1);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -111,11 +111,11 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
     });
     buildModel.reparse();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
+    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -142,7 +142,7 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
     final GradleBuildModel buildModel = GradleBuildModel.get(myModule);
     assertNotNull(buildModel);
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(0);
 
     runWriteCommandAction(myProject, new Runnable() {
@@ -153,11 +153,11 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
     });
     buildModel.reparse();
 
-    dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
+    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependencies();
     assertThat(dependencies).hasSize(1);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -176,9 +176,9 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
+    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependencies();
 
     final ExternalDependencyElement appCompat = dependencies.get(0);
     runWriteCommandAction(myProject, new Runnable() {
@@ -189,11 +189,11 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
     });
     buildModel.reparse();
 
-    dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     dependenciesBlock = dependenciesBlocks.get(0);
-    dependencies = dependenciesBlock.getExternalDependenciesView();
+    dependencies = dependenciesBlock.getExternalDependencies();
     assertThat(dependencies).hasSize(1);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -212,9 +212,9 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
+    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependencies();
 
     final ExternalDependencyElement guice = dependencies.get(0);
     runWriteCommandAction(myProject, new Runnable() {
@@ -225,11 +225,11 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
     });
     buildModel.reparse();
 
-    dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     dependenciesBlock = dependenciesBlocks.get(0);
-    dependencies = dependenciesBlock.getExternalDependenciesView();
+    dependencies = dependenciesBlock.getExternalDependencies();
     assertThat(dependencies).hasSize(1);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -249,11 +249,11 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
+    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -284,11 +284,11 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
+    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
