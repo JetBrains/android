@@ -59,7 +59,7 @@ public class ScrubberController extends CellController<ScrubberController.Data> 
   private boolean mDisableActivation = false;
 
   private ScrubberController(@NotNull final GfxTraceEditor editor) {
-    super(editor);
+    super(editor, Orientation.HORIZONTAL);
     myRenderSettings.setMaxWidth(CellRenderer.MAX_WIDTH);
     myRenderSettings.setMaxHeight(CellRenderer.MAX_HEIGHT);
     myRenderSettings.setWireframeMode(WireframeMode.noWireframe());
