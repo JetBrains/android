@@ -22,7 +22,6 @@ public final class Factory {
     //<<<Start:Java.FactoryBody:2>>>
     Image.register();
     ImageInfo.register();
-    LazyConverter.register();
     FmtATCRGBAEXPLICITALPHAAMD.register();
     FmtATCRGBAMD.register();
     FmtAlpha.register();
