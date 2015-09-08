@@ -29,7 +29,6 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.BasicUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.command.undo.UnexpectedUndoException;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -60,8 +59,6 @@ import static com.android.tools.idea.gradle.parser.GradleSettingsFile.getModuleG
  * </ol>
  */
 public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
-  private static final Logger LOG = Logger.getInstance(GradleRenameModuleHandler.class);
-
   @Override
   public boolean isAvailableOnDataContext(@NotNull DataContext dataContext) {
     Module module = LangDataKeys.MODULE_CONTEXT.getData(dataContext);
@@ -159,8 +156,8 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             for (Module module : ModuleManager.getInstance(myProject).getModules()) {
               GradleBuildModel buildModel = GradleBuildModel.get(module);
               if (buildModel != null) {
-                for (DependenciesElement elements : buildModel.getDependenciesBlocksView()) {
-                  for (ProjectDependencyElement element : elements.getProjectDependenciesView()) {
+                for (DependenciesElement elements : buildModel.getDependenciesBlocks()) {
+                  for (ProjectDependencyElement element : elements.getProjectDependencies()) {
                     if (oldModuleGradlePath.equals(element.getPath())) {
                       element.setName(inputString);
                     }

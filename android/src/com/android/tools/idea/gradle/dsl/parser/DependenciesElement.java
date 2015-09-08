@@ -51,18 +51,18 @@ public class DependenciesElement implements GradleDslElement {
   }
 
   @NotNull
-  public List<ExternalDependencyElement> getExternalDependenciesView() {
+  public ImmutableList<ExternalDependencyElement> getExternalDependencies() {
     return ImmutableList.copyOf(myExternalDependencies);
   }
 
   @NotNull
-  public List<ProjectDependencyElement> getProjectDependenciesView() {
+  public ImmutableList<ProjectDependencyElement> getProjectDependencies() {
     return ImmutableList.copyOf(myProjectDependencies);
   }
 
   /**
    * Adds a new external dependency to the build.gradle file. Please note the new dependency will <b>not</b> be included in
-   * {@link #getExternalDependenciesView()}, unless you invoke {@link GradleBuildModel#reparse()}.
+   * {@link #getExternalDependencies()}, unless you invoke {@link GradleBuildModel#reparse()}.
    *
    * @param configurationName the name of the configuration (e.g. "compile", "compileTest", "runtime", etc.)
    * @param compactNotation the dependency in "compact" notation: "group:name:version:classifier@extension".

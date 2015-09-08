@@ -18,12 +18,12 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.dsl.parser.DependenciesElement;
 import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyElement;
 import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyElementTest.ExpectedExternalDependency;
-import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.edt.GuiTask;
 import org.junit.Test;
@@ -42,13 +42,13 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
   public void testParseExternalDependenciesWithCompactNotation() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
 
-    GradleBuildModel buildModel = new GradleBuildFileFixture(projectFrame).openAndParseAppBuildFile();
+    GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getTarget().getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
 
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
+    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -70,13 +70,13 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSetVersionOnExternalDependencyWithCompactNotation() throws IOException {
     final IdeFrameFixture projectFrame = importSimpleApplication();
-    final GradleBuildModel buildModel = new GradleBuildFileFixture(projectFrame).openAndParseAppBuildFile();
+    final GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    List<DependenciesElement> dependenciesBlocks = buildModel.getTarget().getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
     DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
 
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependenciesView();
+    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
     final ExternalDependencyElement appCompat = dependencies.get(0);
@@ -99,15 +99,15 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
             appCompat.setVersion("1.2.3");
           }
         });
-        buildModel.reparse();
+        buildModel.getTarget().reparse();
       }
     });
 
-    dependenciesBlocks = buildModel.getDependenciesBlocksView();
+    dependenciesBlocks = buildModel.getTarget().getDependenciesBlocks();
     assertThat(dependenciesBlocks).hasSize(1);
     dependenciesBlock = dependenciesBlocks.get(0);
 
-    dependencies = dependenciesBlock.getExternalDependenciesView();
+    dependencies = dependenciesBlock.getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
     expected.configurationName = "compile";

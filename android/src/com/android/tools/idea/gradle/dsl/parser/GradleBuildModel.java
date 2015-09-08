@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
@@ -43,7 +44,7 @@ public class GradleBuildModel {
   @NotNull private final List<DependenciesElement> myDependenciesBlocks = Lists.newArrayList();
 
   // TODO Get the parsers from an extension point.
-  private final List<? extends GradleDslElementParser> myParsers = Lists.newArrayList(new DependenciesElementParser());
+  private final GradleDslElementParser[] myParsers = {new DependenciesElementParser()};
 
   @Nullable private PsiFile myPsiFile;
 
@@ -70,13 +71,23 @@ public class GradleBuildModel {
    * an already parsed build.gradle file needs to be parsed again (for example, after making changes to the PSI elements.)
    */
   public void reparse() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ApplicationManager.getApplication().assertReadAccessAllowed();
     reset();
     myPsiFile = PsiManager.getInstance(myProject).findFile(myFile);
     if (myPsiFile != null) {
       myPsiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
         @Override
         public void visitMethodCallExpression(GrMethodCallExpression e) {
+          for (GradleDslElementParser parser : myParsers) {
+            // If a parser was able to parse the given PSI element, stop. Otherwise give another parser the chance to parse the PSI element.
+            if (parser.parse(e, GradleBuildModel.this)) {
+              break;
+            }
+          }
+        }
+
+        @Override
+        public void visitAssignmentExpression(GrAssignmentExpression e) {
           for (GradleDslElementParser parser : myParsers) {
             // If a parser was able to parse the given PSI element, stop. Otherwise give another parser the chance to parse the PSI element.
             if (parser.parse(e, GradleBuildModel.this)) {
@@ -97,7 +108,7 @@ public class GradleBuildModel {
   }
 
   @NotNull
-  public ImmutableList<DependenciesElement> getDependenciesBlocksView() {
+  public ImmutableList<DependenciesElement> getDependenciesBlocks() {
     return ImmutableList.copyOf(myDependenciesBlocks);
   }
 
@@ -109,7 +120,7 @@ public class GradleBuildModel {
    * </p>
    * <p>
    * Please note the new dependency will <b>not</b> be included in
-   * {@link DependenciesElement#getExternalDependenciesView()} (obtained through {@link #getDependenciesBlocksView()}, unless you invoke
+   * {@link DependenciesElement#getExternalDependencies()} (obtained through {@link #getDependenciesBlocks()}, unless you invoke
    * {@link GradleBuildModel#reparse()}.
    * </p>
    *
