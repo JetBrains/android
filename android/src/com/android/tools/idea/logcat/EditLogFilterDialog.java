@@ -50,8 +50,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * A dialog which is shown to the user when they request to modify or add a new log filter.
@@ -91,7 +89,7 @@ final class EditLogFilterDialog extends DialogWrapper {
   private JBList myFiltersList;
   private CollectionListModel<String> myFiltersListModel;
 
-  private AndroidConfiguredLogFilters.FilterEntry mySelectedEntry;
+  @Nullable private AndroidConfiguredLogFilters.FilterEntry mySelectedEntry;
   private final List<AndroidConfiguredLogFilters.FilterEntry> myFilterEntries;
 
   private JPanel myFiltersToolbarPanel;
@@ -230,6 +228,10 @@ final class EditLogFilterDialog extends DialogWrapper {
     RegexFilterComponent.Listener rl = new RegexFilterComponent.Listener() {
       @Override
       public void filterChanged(RegexFilterComponent filter) {
+        if (mySelectedEntry == null) {
+          return;
+        }
+
         if (filter == myTagField) {
           mySelectedEntry.setLogTagPattern(filter.getFilter());
           mySelectedEntry.setLogTagIsRegex(filter.isRegex());
@@ -337,12 +339,12 @@ final class EditLogFilterDialog extends DialogWrapper {
 
     myFilterNameField.setText(name != null ? name : "");
     myTagField.setFilter(tag != null ? tag : "");
-    myTagField.setIsRegex(mySelectedEntry.getLogTagIsRegex());
+    myTagField.setIsRegex(mySelectedEntry == null || mySelectedEntry.getLogTagIsRegex());
     myLogMessageField.setFilter(msg != null ? msg : "");
-    myLogMessageField.setIsRegex(mySelectedEntry.getLogMessageIsRegex());
+    myLogMessageField.setIsRegex(mySelectedEntry == null || mySelectedEntry.getLogMessageIsRegex());
     myPidField.setText(pid != null ? pid : "");
     myPackageNameField.setFilter(pkg != null ? pkg : "");
-    myPackageNameField.setIsRegex(mySelectedEntry.getPackageNameIsRegex());
+    myPackageNameField.setIsRegex(mySelectedEntry == null || mySelectedEntry.getPackageNameIsRegex());
     myLogLevelCombo.setSelectedItem(logLevel != null ? logLevel : Log.LogLevel.VERBOSE);
   }
 
