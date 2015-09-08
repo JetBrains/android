@@ -715,7 +715,7 @@
 
     <usageTargetProvider implementation="org.jetbrains.android.AndroidUsagesTargetProvider"/>
     <renameHandler implementation="org.jetbrains.android.AndroidRenameHandler" order="first"/>
-    <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.rename.GradleAwareSourceRootRenameValidator"/>
+    <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
 
     <codeInsight.unresolvedReferenceQuickFixProvider implementation="org.jetbrains.android.inspections.AndroidResourceQuickFixProvider"/>
     <lang.psiAugmentProvider implementation="org.jetbrains.android.augment.AndroidPsiAugmentProvider"/>
@@ -786,7 +786,7 @@
         implementation="com.android.tools.idea.gradle.quickfix.AndroidUnresolvedReferenceQuickFixProvider" order="last"/>
     <!-- Temporarily disabled due to https://code.google.com/p/android/issues/detail?id=183801 -->
     <!--<highlightVisitor implementation="com.android.tools.idea.gradle.highlight.GradleHighlightQuickfixReplacementVisitor" order="last"/>-->
-    <renameHandler implementation="com.android.tools.idea.gradle.GradleRenameModuleHandler" order="last"/>
+    <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
