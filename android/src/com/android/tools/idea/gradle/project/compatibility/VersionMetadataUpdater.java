@@ -95,6 +95,15 @@ public class VersionMetadataUpdater extends ApplicationComponent.Adapter {
                 LOG.info("Failed to parse XML metadata", e);
                 return null;
               }
+              catch (Throwable e) {
+                // Some other unexpected error related to JRE setup, e.g.
+                // java.lang.NoClassDefFoundError: Could not initialize class javax.crypto.SunJCE_b
+                //     at javax.crypto.KeyGenerator.a(DashoA13*..)
+                //     ....
+                // See http://b.android.com/149270 for more.
+                LOG.info("Failed to parse XML metadata", e);
+                return null;
+              }
             }
           });
           if (metadata != null) {
