@@ -31,11 +31,10 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.*;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlTagChild;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -95,7 +94,7 @@ public class StringsWriteUtils {
    * @param value The desired text
    * @return True if the text was successfully set, false otherwise
    */
-  public static boolean setItemText(@NotNull Project project, @NotNull ResourceItem item, @NotNull final String value) {
+  public static boolean setItemText(@NotNull final Project project, @NotNull ResourceItem item, @NotNull final String value) {
     if (value.isEmpty()) {
       // Deletes the tag
       return setAttributeForItems(project, SdkConstants.ATTR_NAME, null, Collections.singletonList(item));
@@ -105,7 +104,15 @@ public class StringsWriteUtils {
       new WriteCommandAction.Simple(project, "Setting value of " + item.getName(), tag.getContainingFile()) {
         @Override
         public void run() {
-          tag.getValue().setEscapedText(value);
+          // First remove the existing value of the tag (any text and possibly other XML nested tags - like xliff:g).
+          for (XmlTagChild child : tag.getValue().getChildren()) {
+            child.delete();
+          }
+          // Encapsulate the value in a dummy tag (see com.intellij.psi.XmlElementFactoryImpl.createDisplayText()).
+          XmlTag text = XmlElementFactory.getInstance(project).createTagFromText("<a>" + value + "</a>");
+          for (PsiElement psiElement : text.getValue().getChildren()) {
+            tag.add(psiElement);
+          }
         }
       }.execute();
       return true;
