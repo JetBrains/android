@@ -55,7 +55,6 @@ import java.util.Set;
  * A dialog which is shown to the user when they request to modify or add a new log filter.
  */
 final class EditLogFilterDialog extends DialogWrapper {
-  @NonNls private static final Key<JComponent> OWNER = new Key<JComponent>("Owner");
   private static final String NEW_FILTER_NAME_PREFIX = "Unnamed-";
   @NonNls private static final String EDIT_FILTER_DIALOG_DIMENSIONS_KEY =
     "edit.logcat.filter.dialog.dimensions";
@@ -197,8 +196,10 @@ final class EditLogFilterDialog extends DialogWrapper {
       }
     });
 
-    myFilterNameField.getDocument().putUserData(OWNER, myFilterNameField);
-    myPidField.getDocument().putUserData(OWNER, myPidField);
+
+    final Key<JComponent> componentKey = new Key<JComponent>("myComponent");
+    myFilterNameField.getDocument().putUserData(componentKey, myFilterNameField);
+    myPidField.getDocument().putUserData(componentKey, myPidField);
 
     DocumentListener l = new DocumentAdapter() {
       @Override
@@ -208,7 +209,7 @@ final class EditLogFilterDialog extends DialogWrapper {
         }
 
         String text = e.getDocument().getText().trim();
-        JComponent src = e.getDocument().getUserData(OWNER);
+        JComponent src = e.getDocument().getUserData(componentKey);
 
         if (src == myPidField) {
           mySelectedEntry.setPid(text);
@@ -338,6 +339,7 @@ final class EditLogFilterDialog extends DialogWrapper {
                                : Log.LogLevel.VERBOSE;
 
     myFilterNameField.setText(name != null ? name : "");
+    myFilterNameField.selectAll();
     myTagField.setFilter(tag != null ? tag : "");
     myTagField.setIsRegex(mySelectedEntry == null || mySelectedEntry.getLogTagIsRegex());
     myLogMessageField.setFilter(msg != null ? msg : "");
@@ -355,7 +357,7 @@ final class EditLogFilterDialog extends DialogWrapper {
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myFilterNameField.getText().length() == 0 ? myFilterNameField : myTagField;
+    return myFilterNameField.getText().startsWith(NEW_FILTER_NAME_PREFIX) ? myFilterNameField : myTagField;
   }
 
   @Override
@@ -472,6 +474,8 @@ final class EditLogFilterDialog extends DialogWrapper {
       mySelectedEntry = createNewFilterEntry();
       myFiltersListModel.add(mySelectedEntry.getName());
       updateConfiguredFilters();
+
+      myFilterNameField.requestFocus();
     }
   }
 
