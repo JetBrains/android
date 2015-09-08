@@ -15,22 +15,24 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.parser.ProjectDependencyElementTest.ExpectedProjectDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
+import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
-public class GradleRenameModuleTest extends GradleDslTestCase {
+public class GradleRenameModuleTest extends GuiTestCase {
   @Test
   @IdeGuiTest
   public void testRenameModule() throws IOException {
@@ -74,14 +76,18 @@ public class GradleRenameModuleTest extends GradleDslTestCase {
     renameModuleDialog.enterTextAndClickOk("newLibrary");
 
     projectFrame.waitForBackgroundTasksToFinish();
-    assertNotNull(projectFrame.getModule("newLibrary"));
+    projectFrame.getModule("newLibrary");
 
     // app module has two references to library module
-    GradleBuildModel buildModel = new GradleBuildFileFixture(projectFrame).openAndParseBuildFile("app/build.gradle");
-    assertNotNull(buildModel);
+    GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
 
-    assertNotNull(findProjectDependency(buildModel, "newLibrary", "debugCompile"));
-    assertNotNull(findProjectDependency(buildModel, "newLibrary", "releaseCompile"));
+    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    expected.configurationName = "debugCompile";
+    expected.path = ":newLibrary";
+    buildModel.requireDependency(expected);
+
+    expected.configurationName = "releaseCompile";
+    buildModel.requireDependency(expected);
   }
 
   @Test

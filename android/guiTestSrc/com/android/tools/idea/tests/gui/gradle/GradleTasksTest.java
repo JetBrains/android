@@ -19,7 +19,7 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.GradleToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
