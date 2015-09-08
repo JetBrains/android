@@ -18,26 +18,21 @@ package com.android.tools.idea.editors.hprof.views;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
 import com.android.tools.idea.actions.PsiFileAndLineNavigation;
 import com.android.tools.idea.editors.allocations.ColumnTreeBuilder;
+import com.android.tools.idea.editors.hprof.views.nodedata.HeapClassObjNode;
+import com.android.tools.idea.editors.hprof.views.nodedata.HeapNode;
+import com.android.tools.idea.editors.hprof.views.nodedata.HeapPackageNode;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
-import com.android.tools.idea.editors.hprof.views.nodedata.HeapNode;
-import com.android.tools.idea.editors.hprof.views.nodedata.HeapClassObjNode;
-import com.android.tools.idea.editors.hprof.views.nodedata.HeapPackageNode;
-import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.PopupHandler;
-import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
-import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.Convertor;
@@ -53,7 +48,9 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class ClassesTreeView implements DataProvider, Disposable {
@@ -101,39 +98,26 @@ public class ClassesTreeView implements DataProvider, Disposable {
       @NotNull
       @Override
       protected DefaultActionGroup createPopupActionGroup(JComponent button) {
-        return new DefaultActionGroup(new CheckboxAction(DisplayMode.LIST.toString()) {
-          @Override
-          public boolean isSelected(AnActionEvent e) {
-            return myDisplayMode == DisplayMode.LIST;
-          }
+        DefaultActionGroup group = new DefaultActionGroup();
+        for (final DisplayMode mode : DisplayMode.values()) {
+          group.add(new AnAction(mode.toString()) {
+            @Override
+            public void actionPerformed(AnActionEvent e) {
+              myDisplayMode = mode;
+              boolean isTreeMode = myDisplayMode == DisplayMode.TREE;
+              myTree.setShowsRootHandles(isTreeMode);
+              if (isTreeMode) {
+                myTreeIndex.buildTree(mySelectedHeapId);
+              }
+              else {
+                myListIndex.buildList(myRoot);
+              }
 
-          @Override
-          public void setSelected(AnActionEvent e, boolean state) {
-            if (state) {
-              myDisplayMode = DisplayMode.LIST;
-              myTree.setShowsRootHandles(false);
-
-              myListIndex.buildList(myRoot);
               restoreViewState(selectionModel);
             }
-          }
-        }, new CheckboxAction(DisplayMode.TREE.toString()) {
-          @Override
-          public boolean isSelected(AnActionEvent e) {
-            return myDisplayMode == DisplayMode.TREE;
-          }
-
-          @Override
-          public void setSelected(AnActionEvent e, boolean state) {
-            if (state) {
-              myDisplayMode = DisplayMode.TREE;
-              myTree.setShowsRootHandles(true);
-
-              myTreeIndex.buildTree(mySelectedHeapId);
-              restoreViewState(selectionModel);
-            }
-          }
-        });
+          });
+        }
+        return group;
       }
 
       @Override
