@@ -463,6 +463,8 @@ final class EditLogFilterDialog extends DialogWrapper {
       super(CommonBundle.message("button.add"),
             AndroidBundle.message("android.logcat.add.logcat.filter.button"),
             IconUtil.getAddIcon());
+
+      registerCustomShortcutSet(CommonShortcuts.INSERT, myFiltersList);
     }
 
     @Override
@@ -478,6 +480,8 @@ final class EditLogFilterDialog extends DialogWrapper {
       super(CommonBundle.message("button.delete"),
             AndroidBundle.message("android.logcat.remove.logcat.filter.button"),
             IconUtil.getRemoveIcon());
+
+      registerCustomShortcutSet(CommonShortcuts.getDelete(), myFiltersList);
     }
 
     @Override
