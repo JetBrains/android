@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -35,6 +36,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpres
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
@@ -42,9 +44,10 @@ public class GradleBuildModel {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
   @NotNull private final List<DependenciesElement> myDependenciesBlocks = Lists.newArrayList();
+  @NotNull private final Map<String, ExtPropertyElement> myExtraProperties = Maps.newLinkedHashMap();
 
   // TODO Get the parsers from an extension point.
-  private final GradleDslElementParser[] myParsers = {new DependenciesElementParser()};
+  private final GradleDslElementParser[] myParsers = {new ExtPropertyElementParser(), new DependenciesElementParser()};
 
   @Nullable private PsiFile myPsiFile;
 
@@ -147,6 +150,15 @@ public class GradleBuildModel {
       DependenciesElement dependenciesBlock = myDependenciesBlocks.get(0);
       dependenciesBlock.addExternalDependency(configurationName, compactNotation);
     }
+  }
+
+  public void addExtProperty(@NotNull ExtPropertyElement extProperty) {
+    myExtraProperties.put(extProperty.getName(), extProperty);
+  }
+
+  @Nullable
+  public ExtPropertyElement getExtProperty(@NotNull String name) {
+    return myExtraProperties.get(name);
   }
 
   /**
