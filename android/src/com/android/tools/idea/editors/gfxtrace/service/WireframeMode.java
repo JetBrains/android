@@ -49,7 +49,7 @@ public final class WireframeMode {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || !(o instanceof WireframeMode)) return false;
-    return value != ((WireframeMode)o).value;
+    return value == ((WireframeMode)o).value;
   }
 
   @Override
