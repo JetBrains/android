@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
@@ -79,7 +80,7 @@ public class HprofViewPanel implements Disposable {
           if ("default".equals(heap.getName()) && heap.getClasses().isEmpty() && heap.getInstances().isEmpty()) {
             continue;
           }
-          group.add(new AnAction(heap.getName() + " heap") {
+          group.add(new AnAction(StringUtil.capitalize(heap.getName() + " heap")) {
             @Override
             public void actionPerformed(AnActionEvent e) {
               mySelectionModel.setHeap(heap);
@@ -92,8 +93,8 @@ public class HprofViewPanel implements Disposable {
       @Override
       public void update(AnActionEvent e) {
         super.update(e);
-        getTemplatePresentation().setText(mySelectionModel.getHeap().getName() + " heap");
-        e.getPresentation().setText(mySelectionModel.getHeap().getName() + " heap");
+        getTemplatePresentation().setText(StringUtil.capitalize(mySelectionModel.getHeap().getName() + " heap"));
+        e.getPresentation().setText(StringUtil.capitalize(mySelectionModel.getHeap().getName() + " heap"));
       }
     });
 
