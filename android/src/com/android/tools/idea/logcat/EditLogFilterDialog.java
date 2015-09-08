@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log;
 import com.android.tools.idea.logcat.AndroidConfiguredLogFilters.FilterEntry;
+import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.openapi.actionSystem.*;
@@ -33,7 +34,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.IconUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -47,7 +47,6 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -99,9 +98,7 @@ final class EditLogFilterDialog extends DialogWrapper {
 
   private boolean myExistingMessagesParsed = false;
 
-  private String[] myUsedTags;
-  private String[] myUsedPids;
-  private String[] myUsedPackageNames;
+  private List<String> myUsedPids;
 
   EditLogFilterDialog(@NotNull final AndroidLogcatView view, @Nullable String selectedFilter) {
     super(view.getProject(), false);
@@ -158,7 +155,7 @@ final class EditLogFilterDialog extends DialogWrapper {
       @Override
       public Collection<String> getItems(String prefix, boolean cached, CompletionParameters parameters) {
         parseExistingMessagesIfNecessary();
-        setItems(Arrays.asList(myUsedPids));
+        setItems(myUsedPids);
         return super.getItems(prefix, cached, parameters);
       }
 
@@ -293,9 +290,7 @@ final class EditLogFilterDialog extends DialogWrapper {
       return;
     }
 
-    final Set<String> tagSet = new HashSet<String>();
     final Set<String> pidSet = new HashSet<String>();
-    final Set<String> pkgSet = new HashSet<String>();
 
     final String[] lines = StringUtil.splitByLines(document.toString());
     for (String line : lines) {
@@ -304,22 +299,10 @@ final class EditLogFilterDialog extends DialogWrapper {
         continue;
       }
 
-      final String tag = result.getHeader().myTag;
-      if (StringUtil.isNotEmpty(tag)) {
-        tagSet.add(tag);
-      }
-
-      final String pkg = result.getHeader().myAppPackage;
-      if (StringUtil.isNotEmpty(pkg)) {
-        pkgSet.add(pkg);
-      }
-
       pidSet.add(Integer.toString(result.getHeader().myPid));
     }
 
-    myUsedTags = ArrayUtil.toStringArray(tagSet);
-    myUsedPids = ArrayUtil.toStringArray(pidSet);
-    myUsedPackageNames = ArrayUtil.toStringArray(pkgSet);
+    myUsedPids = Lists.newArrayList(pidSet);
   }
 
   private void resetFieldEditors() {
