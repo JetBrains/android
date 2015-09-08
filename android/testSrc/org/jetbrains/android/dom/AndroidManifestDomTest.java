@@ -350,11 +350,11 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testNamespaceCompletion() throws Throwable {
-    doTestNamespaceCompletion(true, true);
+    doTestNamespaceCompletion(true, true, true, false);
   }
 
   public void testNamespaceCompletion1() throws Throwable {
-    doTestNamespaceCompletion(true, false);
+    doTestNamespaceCompletion(true, false, true, false);
   }
 
   public void testCompatibleScreensCompletion() throws Throwable {

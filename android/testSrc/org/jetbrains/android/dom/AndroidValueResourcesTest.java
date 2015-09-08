@@ -457,6 +457,10 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     myFixture.checkHighlighting(true, false, false);
   }
 
+  public void testNamespaceCompletion() throws Exception {
+    doTestNamespaceCompletion(false, false, false, true);
+  }
+
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     final List<HighlightInfo> infos = myFixture.doHighlighting();
