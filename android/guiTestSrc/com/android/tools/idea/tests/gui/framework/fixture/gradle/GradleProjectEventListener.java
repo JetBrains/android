@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture;
+package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
 import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -22,7 +22,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class GradleProjectEventListener extends GradleSyncListener.Adapter implements GradleBuildListener {
+public class GradleProjectEventListener extends GradleSyncListener.Adapter implements GradleBuildListener {
   private boolean mySyncStarted;
   private boolean mySyncFinished;
   private boolean mySyncSkipped;
@@ -36,7 +36,9 @@ class GradleProjectEventListener extends GradleSyncListener.Adapter implements G
   @Override
   public void syncStarted(@NotNull Project project) {
     reset();
-    mySyncStarted = true;
+    synchronized (lock) {
+      mySyncStarted = true;
+    }
   }
 
   @Override
@@ -72,7 +74,7 @@ class GradleProjectEventListener extends GradleSyncListener.Adapter implements G
     }
   }
 
-  void reset() {
+  public void reset() {
     synchronized (lock) {
       mySyncError = null;
       mySyncStarted = mySyncSkipped = mySyncFinished = false;
@@ -81,11 +83,13 @@ class GradleProjectEventListener extends GradleSyncListener.Adapter implements G
     }
   }
 
-  boolean isSyncStarted() {
-    return mySyncStarted;
+  public boolean isSyncStarted() {
+    synchronized (lock) {
+      return mySyncStarted;
+    }
   }
 
-  boolean isSyncFinished() {
+  public boolean isSyncFinished() {
     synchronized (lock) {
       return mySyncFinished;
     }
@@ -97,7 +101,7 @@ class GradleProjectEventListener extends GradleSyncListener.Adapter implements G
     }
   }
 
-  boolean hasSyncError() {
+  public boolean hasSyncError() {
     synchronized (lock) {
       return mySyncError != null;
     }
@@ -110,7 +114,7 @@ class GradleProjectEventListener extends GradleSyncListener.Adapter implements G
     }
   }
 
-  boolean isBuildFinished(@NotNull BuildMode mode) {
+  public boolean isBuildFinished(@NotNull BuildMode mode) {
     synchronized (lock) {
       return myBuildFinished && myBuildMode == mode;
     }
