@@ -37,6 +37,7 @@ import com.intellij.notification.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -102,6 +103,7 @@ public class GradleSpecificInitializer implements Runnable {
     setUpNewProjectActions();
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
+    checkInstallPath();
 
     ActionManager actionManager = ActionManager.getInstance();
     // "Configure Plugins..." Not sure why it's called StartupWizard.
@@ -130,6 +132,31 @@ public class GradleSpecificInitializer implements Runnable {
 
     checkAndSetAndroidSdkSources();
     hideUnwantedIntentions();
+  }
+
+  /**
+   * Gradle has an issue when the studio path contains ! (http://b.android.com/184588)
+   */
+  private void checkInstallPath() {
+    if (PathManager.getHomePath().contains("!")) {
+      final Application app = ApplicationManager.getApplication();
+
+      app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
+        @Override
+        public void appStarting(Project project) {
+          app.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              String message = String.format("%1$s must not be installed in a path containing '!' or Gradle sync will fail!",
+                                             ApplicationNamesInfo.getInstance().getProductName());
+              Notification notification = getNotificationGroup().createNotification(message, NotificationType.ERROR);
+              notification.setImportant(true);
+              Notifications.Bus.notify(notification);
+            }
+          });
+        }
+      });
+    }
   }
 
   private static void setUpNewProjectActions() {
@@ -226,19 +253,23 @@ public class GradleSpecificInitializer implements Runnable {
         app.invokeLater(new Runnable() {
           @Override
           public void run() {
-            // Use the system health settings by default
-            NotificationGroup group = NotificationGroup.findRegisteredGroup("System Health");
-            if (group == null) {
-              // This shouldn't happen
-              group = new NotificationGroup("Sdk Validation", NotificationDisplayType.STICKY_BALLOON, true);
-            }
-            Notification notification = group.createNotification("SDK Validation", message, NotificationType.WARNING, listener);
+            Notification notification = getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
             notification.setImportant(true);
             Notifications.Bus.notify(notification);
           }
         });
       }
     });
+  }
+
+  private static NotificationGroup getNotificationGroup() {
+    // Use the system health settings by default
+    NotificationGroup group = NotificationGroup.findRegisteredGroup("System Health");
+    if (group == null) {
+      // This shouldn't happen
+      group = new NotificationGroup("Gradle Initializer", NotificationDisplayType.STICKY_BALLOON, true);
+    }
+    return group;
   }
 
   private static void setupSdks() {
