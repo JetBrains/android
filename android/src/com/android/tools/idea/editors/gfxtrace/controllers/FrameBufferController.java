@@ -35,12 +35,14 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBViewport;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -222,9 +224,10 @@ public class FrameBufferController extends Controller {
     private static final double MIN_ZOOM_WIDTH = 100.0;
     private static final int ZOOM_AMOUNT = 5;
     private static final int SCROLL_AMOUNT = 15;
+    private static final BufferedImage EMPTY_IMAGE = UIUtil.createImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
 
     private final JBViewport parent = new JBViewport();
-    private Image image = null;
+    private Image image = EMPTY_IMAGE;
     private double zoom;
 
     private ImagePanel() {
@@ -326,6 +329,10 @@ public class FrameBufferController extends Controller {
     }
 
     public void setImage(Image image) {
+      if (this.image == EMPTY_IMAGE) {
+        // Ignore any zoom actions that might have happened before the first real image was shown.
+        zoomToFit();
+      }
       this.image = image;
       revalidate();
       repaint();
@@ -341,11 +348,9 @@ public class FrameBufferController extends Controller {
     @Override
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
-      if (image != null) {
-        double scale = (zoom == ZOOM_FIT) ? getFitRatio() : zoom;
-        int w = (int)(image.getWidth(this) * scale), h = (int)(image.getHeight(this) * scale);
-        g.drawImage(image, (getWidth() - w) / 2, (getHeight() - h) / 2, w, h, this);
-      }
+      double scale = (zoom == ZOOM_FIT) ? getFitRatio() : zoom;
+      int w = (int)(image.getWidth(this) * scale), h = (int)(image.getHeight(this) * scale);
+      g.drawImage(image, (getWidth() - w) / 2, (getHeight() - h) / 2, w, h, this);
     }
 
     private void scrollBy(int dx, int dy) {
@@ -392,7 +397,7 @@ public class FrameBufferController extends Controller {
 
     private double getMinZoom() {
       // The smallest zoom factor to see the whole image or that causes the larger dimension to be no less than MIN_ZOOM_WIDTH pixels.
-      return Math.min(getFitRatio(), Math.min(MIN_ZOOM_WIDTH / image.getWidth(this), MIN_ZOOM_WIDTH / image.getHeight(this)));
+      return Math.min(1, Math.min(getFitRatio(), Math.min(MIN_ZOOM_WIDTH / image.getWidth(this), MIN_ZOOM_WIDTH / image.getHeight(this))));
     }
   }
 }
