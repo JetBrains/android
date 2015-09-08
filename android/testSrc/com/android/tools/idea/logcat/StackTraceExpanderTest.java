@@ -146,11 +146,12 @@ public class StackTraceExpanderTest {
     StackTraceExpander expander = new StackTraceExpander(
       StringUtil.repeatSymbol(' ', 9), // 9 spaces before at symbol in standard Java traces, used above
       " "); // 1 space before "Caused by:" in the stack traces used above
+
     List<String> output = new ArrayList<String>();
 
     for (String line: Splitter.on('\n').split(input)) {
-      line = line.trim();
-      for (String s : expander.process(line)) {
+      expander.process(line);
+      for (String s : expander.getProcessedLines()) {
         output.add(s);
       }
     }

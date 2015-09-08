@@ -17,13 +17,11 @@
 package com.android.tools.idea.logcat;
 
 import com.android.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,6 +59,7 @@ class StackTraceExpander {
   @NotNull private final String myStackTracePrefix;
   @NotNull private final String myCauseLinePrefix;
 
+  private List<String> myProcessedLines = new ArrayList<String>();
   private List<String> myCurrentStack = new ArrayList<String>();
   private List<String> myPreviousStack = new ArrayList<String>();
 
@@ -77,8 +76,20 @@ class StackTraceExpander {
     reset();
   }
 
+  /**
+   * Returns the result of calling {@link #process(String)} on a line of input.
+   *
+   * Note that most of the time, one call to {@link #process(String)} results in one line of
+   * processed output, but occasionally, in the case of elided lines (e.g. "... 3 more"), one input
+   * line is expanded into multiple processed lines.
+   */
+  public List<String> getProcessedLines() {
+    return myProcessedLines;
+  }
+
   public void reset() {
     myIsInTrace = false;
+    myProcessedLines.clear();
     myCurrentStack.clear();
     myPreviousStack.clear();
   }
@@ -90,40 +101,43 @@ class StackTraceExpander {
   /**
    * Given a line of output, detect if it's part of a stack trace and, if so, process it. This
    * allows us to keep track of context about outer exceptions as well as prepend lines with
-   * prefix indentation. Lines not part of a stack trace are returned as is.
+   * prefix indentation. Lines not part of a stack trace are left unmodified.
    *
-   * Note that most of the time, this method returns a single line given a single line, but
-   * occasionally, in the case of elided lines (e.g. "... 3 more"), one input line is expanded into
-   * multiple output lines.
+   * Every time after calling this method, you should check {@link #getProcessedLines()} for the
+   * result of processing this line. This list will be cleared every time you call this method.
    *
    * You should process each line of logcat output through this method and echo the result out to
    * the console.
    */
-  @NotNull
-  public List<String> process(@NotNull String line) {
+  public void process(@NotNull String line) {
+    myProcessedLines.clear();
 
     String stackLine = getStackLine(line);
     if (stackLine != null) {
-      return handleStackTraceLine(stackLine);
+      handleStackTraceLine(stackLine);
+      return;
     }
 
     if (!myIsInTrace) {
       // If this line isn't the start of a stack trace, and we aren't currently in a stack trace,
       // then this has to be a normal line. Let's save time by avoiding all later checks.
-      return handleNormalLine(line);
+      handleNormalLine(line);
+      return;
     }
 
     String causeLine = getCauseLine(line);
     if (causeLine != null) {
-      return handleCausedByLine(causeLine);
+      handleCausedByLine(causeLine);
+      return;
     }
 
     int elidedCount = getElidedFrameCount(line);
     if (elidedCount > 0) {
-      return handleElidedLine(line, elidedCount);
+      handleElidedLine(line, elidedCount);
+      return;
     }
 
-    return handleNormalLine(line);
+    handleNormalLine(line);
   }
 
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
@@ -150,12 +164,7 @@ class StackTraceExpander {
     return matcher.matches() ? StringUtil.parseInt(matcher.group(1), -1) : -1;
   }
 
-  private static boolean isCauseLine(@NotNull String line) {
-    return line.startsWith("Caused by:");
-  }
-
-  @NotNull
-  private List<String> handleNormalLine(@NotNull String line) {
+  private void handleNormalLine(@NotNull String line) {
     if (myIsInTrace) {
       myIsInTrace = false;
 
@@ -163,21 +172,20 @@ class StackTraceExpander {
       myPreviousStack.clear();
     }
 
-    return Collections.singletonList(line);
+    myProcessedLines.add(line);
   }
 
-  @NotNull
-  private List<String> handleStackTraceLine(@NotNull String line) {
+  private void handleStackTraceLine(@NotNull String line) {
     if (!myIsInTrace) {
       myIsInTrace = true;
     }
 
     myCurrentStack.add(line);
-    return Collections.singletonList(myStackTracePrefix + line);
+
+    myProcessedLines.add(myStackTracePrefix + line);
   }
 
-  @NotNull
-  private List<String> handleCausedByLine(@NotNull String line) {
+  private void handleCausedByLine(@NotNull String line) {
     assert myIsInTrace : String.format("Unexpected line while parsing stack trace: %s", line);
 
     // if it is a "Caused by:" line, then we're starting a new stack, and our current stack becomes
@@ -187,11 +195,10 @@ class StackTraceExpander {
     myCurrentStack = temp;
     myCurrentStack.clear();
 
-    return Collections.singletonList(myCauseLinePrefix + line);
+    myProcessedLines.add(myCauseLinePrefix + line);
   }
 
-  @NotNull
-  private List<String> handleElidedLine(@NotNull String line, int elidedCount) {
+  private void handleElidedLine(@NotNull String line, int elidedCount) {
     assert myIsInTrace : String.format("Unexpected line while parsing stack trace: %s", line);
 
     assert elidedCount > 0;
@@ -200,21 +207,16 @@ class StackTraceExpander {
     int startIndex = myPreviousStack.size() - elidedCount;
     if (startIndex >= 0) {
 
-      List<String> expandedLines = Lists.newArrayListWithCapacity(elidedCount);
-
       for (int i = 0; i < elidedCount; i++) {
         String frame = myPreviousStack.get(startIndex + i);
-        expandedLines.add(i, myStackTracePrefix + frame + EXPANDED_STACK_TRACE_MARKER);
+        myProcessedLines.add(myStackTracePrefix + frame + EXPANDED_STACK_TRACE_MARKER);
         myCurrentStack.add(frame);
       }
-
-      return expandedLines;
     }
     else {
       // something went wrong: we don't actually have the required number of frames in the outer stack
       // in this case, we don't expand the frames
-      return Collections.singletonList(myStackTracePrefix + line);
+      myProcessedLines.add(myStackTracePrefix + line);
     }
   }
-
 }
