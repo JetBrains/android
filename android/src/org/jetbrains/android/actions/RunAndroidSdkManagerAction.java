@@ -38,6 +38,8 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.io.File;
 
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidSdkManagerEnabled;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -45,6 +47,11 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.actions.RunAndroidSdkManagerAction");
 
   public static void updateInWelcomePage(@Nullable Component component) {
+    if (!isAndroidSdkManagerEnabled()) {
+      // The action is not visible anyway, no need to do anything.
+      return;
+    }
+
     if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectManager.getInstance().getOpenProjects().length == 0) {
       // If there are no open projects, the "SDK Manager" configurable was invoked from the "Welcome Page". We need to update the
       // "SDK Manager" action to enable it.
@@ -132,7 +139,7 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
     private final ProgressWindow myProgressWindow;
     private final Project myProject;
 
-    private SdkManagerRunner(String sdkPath, ProgressWindow progressWindow, Project project) {
+    private SdkManagerRunner(@NotNull String sdkPath, @Nullable ProgressWindow progressWindow, @Nullable Project project) {
       mySdkPath = sdkPath;
       myProgressWindow = progressWindow;
       myProject = project;
@@ -143,12 +150,12 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
       UsageTracker.getInstance()
         .trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_SDK_MANAGER_STANDALONE_LAUNCHED, null, null);
 
-      final String toolPath = mySdkPath + File.separator + AndroidCommonUtils.toolPath(SdkConstants.androidCmdName());
+      String toolPath = mySdkPath + File.separator + AndroidCommonUtils.toolPath(SdkConstants.androidCmdName());
       GeneralCommandLine commandLine = new GeneralCommandLine();
       commandLine.setExePath(toolPath);
       commandLine.addParameter("sdk");
 
-      final StringBuildingOutputProcessor processor = new StringBuildingOutputProcessor();
+      StringBuildingOutputProcessor processor = new StringBuildingOutputProcessor();
       try {
         if (AndroidUtils.executeCommand(commandLine, processor, WaitingStrategies.WaitForTime.getInstance(500)) ==
             ExecutionStatus.TIMEOUT) {
@@ -167,9 +174,9 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
                 Thread.sleep(100);
               }
             }
-            catch(InterruptedException ignore){
+            catch (InterruptedException ignore) {
             }
-            finally{
+            finally {
               myProgressWindow.stop();
             }
           }
