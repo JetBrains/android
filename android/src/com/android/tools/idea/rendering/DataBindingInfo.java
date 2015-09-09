@@ -33,9 +33,13 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A data class that keeps data binding related information that was extracted from a layout file.
@@ -141,8 +145,10 @@ public class DataBindingInfo implements ModificationTracker {
     myPsiClass = psiClass;
   }
 
+  @NotNull
   public List<PsiDataBindingResourceItem> getItems(DataBindingResourceType type) {
-    return myItems.get(type);
+    List<PsiDataBindingResourceItem> items = myItems.get(type);
+    return items != null ? items : Collections.<PsiDataBindingResourceItem>emptyList();
   }
 
   public List<ViewWithId> getViewsWithIds() {

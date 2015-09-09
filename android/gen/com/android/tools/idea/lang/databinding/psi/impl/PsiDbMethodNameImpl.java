@@ -11,21 +11,15 @@ import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
 import com.android.tools.idea.lang.databinding.DataBindingPsiElement;
 import com.android.tools.idea.lang.databinding.psi.*;
 
-public class PsiDbDefaultsImpl extends DataBindingPsiElement implements PsiDbDefaults {
+public class PsiDbMethodNameImpl extends DataBindingPsiElement implements PsiDbMethodName {
 
-  public PsiDbDefaultsImpl(ASTNode node) {
+  public PsiDbMethodNameImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof PsiDbVisitor) ((PsiDbVisitor)visitor).visitDefaults(this);
+    if (visitor instanceof PsiDbVisitor) ((PsiDbVisitor)visitor).visitMethodName(this);
     else super.accept(visitor);
-  }
-
-  @Override
-  @NotNull
-  public PsiDbConstantValue getConstantValue() {
-    return findNotNullChildByClass(PsiDbConstantValue.class);
   }
 
 }
