@@ -22,14 +22,13 @@ import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
@@ -52,15 +51,8 @@ public class GradleRenameModuleTest extends GuiTestCase {
     renameModuleDialog.enterTextAndClickOk("app2");
 
     projectFrame.waitForBackgroundTasksToFinish();
-    projectFrame.getModule("app2");
-
-    Module appModule = null;
-    for (Module module : ModuleManager.getInstance(projectFrame.getProject()).getModules()) {
-      if ("app".equals(module.getName())) {
-        appModule = module;
-      }
-    }
-    assertNull("Module 'app' should not exist", appModule);
+    assertNotNull(projectFrame.findModule("app2"));
+    assertNull("Module 'app' should not exist", projectFrame.findModule("app"));
   }
 
   @Test
@@ -80,7 +72,7 @@ public class GradleRenameModuleTest extends GuiTestCase {
     renameModuleDialog.enterTextAndClickOk("newLibrary");
 
     projectFrame.waitForBackgroundTasksToFinish();
-    projectFrame.getModule("newLibrary");
+    assertNotNull(projectFrame.findModule("newLibrary"));
 
     // app module has two references to library module
     GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
