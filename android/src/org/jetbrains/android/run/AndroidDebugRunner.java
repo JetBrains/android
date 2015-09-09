@@ -99,8 +99,10 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
   @Override
   protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment environment) throws ExecutionException {
-    assert state instanceof AndroidRunningState;
-    final AndroidRunningState runningState = (AndroidRunningState)state;
+    if (!(state instanceof AndroidRunningState)) {
+      return doExecSimple(state, environment);
+    }
+    final AndroidRunningState runningState = (AndroidRunningState) state;
     final RunContentDescriptor[] descriptor = {null};
 
     runningState.addListener(new AndroidRunningStateListener() {
@@ -120,15 +122,22 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     return descriptor[0];
   }
 
-  private RunContentDescriptor doExec(AndroidRunningState state, ExecutionEnvironment environment) throws ExecutionException {
-    if (!(environment.getExecutor() instanceof DefaultDebugExecutor)) {
-      final RunContentDescriptor descriptor = super.doExecute(state, environment);
-
-      if (descriptor != null) {
+  /** Executes states that do not require Android debugging. May set Android tool window to open on launch. */
+  private RunContentDescriptor doExecSimple(
+    @NotNull final RunProfileState state,
+    @NotNull final ExecutionEnvironment environment
+  ) throws ExecutionException {
+    final RunContentDescriptor descriptor = super.doExecute(state, environment);
+    if (descriptor != null) {
         // suppress the run tool window because it takes focus away
         deactivateToolWindowWhenAddedProperty(environment.getProject(), environment.getExecutor(), descriptor, "running");
-      }
-      return descriptor;
+    }
+    return descriptor;
+  }
+
+  private RunContentDescriptor doExec(AndroidRunningState state, ExecutionEnvironment environment) throws ExecutionException {
+    if (!(environment.getExecutor() instanceof DefaultDebugExecutor)) {
+      return doExecSimple(state, environment);
     }
 
     final RunProfile runProfile = environment.getRunProfile();
