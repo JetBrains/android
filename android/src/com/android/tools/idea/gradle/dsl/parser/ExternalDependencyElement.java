@@ -69,7 +69,7 @@ public class ExternalDependencyElement implements DependencyElement {
   }
 
   @Nullable
-  static ExternalDependencyElement withMapNotation(@NotNull String configurationName, @NotNull List<GrNamedArgument> namedArguments) {
+  static ExternalDependencyElement withMapNotation(@NotNull String configurationName, @NotNull GrNamedArgument[] namedArguments) {
     Notation notation = MapNotation.parse(namedArguments);
     if (notation != null) {
       return new ExternalDependencyElement(configurationName, notation);
@@ -236,7 +236,7 @@ public class ExternalDependencyElement implements DependencyElement {
     @NotNull private final DependencySpec mySpec;
 
     @Nullable
-    static MapNotation parse(@NotNull List<GrNamedArgument> namedArguments) {
+    static MapNotation parse(@NotNull GrNamedArgument[] namedArguments) {
       Map<String, GrLiteral> argumentsByName = Maps.newHashMap();
       Map<String, String> argumentValuesByName = Maps.newHashMap();
       for (GrNamedArgument argument : namedArguments) {

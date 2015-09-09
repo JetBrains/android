@@ -22,9 +22,28 @@ import java.io.IOException;
  */
 public class ExtPropertyElementTest extends DslElementParserTestCase {
 
-  public void testParsingOnePropertyPerLine() throws IOException {
+  public void testParsingSimplePropertyPerLine() throws IOException {
     String text = "ext.COMPILE_SDK_VERSION = 21\n" +
                   "ext.srcDirName = 'src/java'";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    ExtPropertyElement compileSdkVersion = buildModel.getExtProperty("COMPILE_SDK_VERSION");
+    assertNotNull(compileSdkVersion);
+    assertEquals(21, compileSdkVersion.getValue());
+
+    ExtPropertyElement srcDirName = buildModel.getExtProperty("srcDirName");
+    assertNotNull(srcDirName);
+    assertEquals("src/java", srcDirName.getValue());
+  }
+
+  public void testParsingSimplePropertyInExtBlock() throws IOException {
+    String text = "ext {\n" +
+                  "   COMPILE_SDK_VERSION = 21\n" +
+                  "   srcDirName = 'src/java'\n" +
+                  "}";
 
     writeToBuildFile(text);
 
