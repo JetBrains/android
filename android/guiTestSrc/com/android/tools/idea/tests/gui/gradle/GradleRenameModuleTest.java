@@ -22,6 +22,8 @@ import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -52,11 +54,13 @@ public class GradleRenameModuleTest extends GuiTestCase {
     projectFrame.waitForBackgroundTasksToFinish();
     projectFrame.getModule("app2");
 
-    try {
-      assertNull("Module 'app' should not exist", projectFrame.getModule("app"));
+    Module appModule = null;
+    for (Module module : ModuleManager.getInstance(projectFrame.getProject()).getModules()) {
+      if ("app".equals(module.getName())) {
+        appModule = module;
+      }
     }
-    catch (AssertionError ignore) {
-    }
+    assertNull("Module 'app' should not exist", appModule);
   }
 
   @Test
