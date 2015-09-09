@@ -19,7 +19,11 @@ package org.jetbrains.android.sdk;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.sdklib.repository.local.LocalPlatformPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -30,6 +34,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
@@ -148,6 +154,24 @@ public class AndroidSdkData {
   @NotNull
   public IAndroidTarget[] getTargets() {
     return myLocalSdk.getTargets();
+  }
+
+  @NotNull
+  public IAndroidTarget[] getTargets(boolean includeAddOns) {
+    if (includeAddOns) {
+      return myLocalSdk.getTargets();
+    }
+    List<IAndroidTarget> result = Lists.newArrayList();
+    LocalPkgInfo[] pkgsInfos = myLocalSdk.getPkgsInfos(EnumSet.of(PkgType.PKG_PLATFORM));
+    for (LocalPkgInfo info : pkgsInfos) {
+      if (info instanceof LocalPlatformPkgInfo) {
+        IAndroidTarget target = ((LocalPlatformPkgInfo) info).getAndroidTarget();
+        if (target != null) {
+          result.add(target);
+        }
+      }
+    }
+    return result.toArray(new IAndroidTarget[result.size()]);
   }
 
   // be careful! target name is NOT unique
