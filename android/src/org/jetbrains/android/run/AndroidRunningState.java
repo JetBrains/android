@@ -89,6 +89,7 @@ import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Consumer;
 import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AvdsNotSupportedException;
@@ -313,8 +314,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       @Override
       public void onTextAvailable(final ProcessEvent event, final Key outputType) {
         if (outputType.equals(ProcessOutputTypes.STDERR)) {
-          ToolWindow window = ToolWindowManager.getInstance(myFacet.getModule().getProject()).getToolWindow(executor.getToolWindowId());
-          window.activate(null, true, false);
+          UIUtil.invokeLaterIfNeeded(new Runnable() {
+            @Override
+            public void run() {
+              ToolWindowManager.getInstance(myFacet.getModule().getProject()).getToolWindow(executor.getToolWindowId())
+                .activate(null, true, false);
+            }
+          });
         }
       }
 
