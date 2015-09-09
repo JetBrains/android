@@ -82,11 +82,10 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
 
   private static final Logger LOG = Logger.getInstance(AddAndroidActivityPath.class);
 
-  @Nullable private final ActivityGalleryStep myGalleryStep;
   private TemplateParameterStep2 myParameterStep;
   private final boolean myIsNewModule;
   private IconStep myAssetStudioStep;
-  private VirtualFile myTargetFolder;
+  private final VirtualFile myTargetFolder;
   @Nullable private File myTemplate;
   private final Map<String, Object> myPredefinedParameterValues;
   private final Disposable myParentDisposable;
@@ -102,13 +101,6 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     myParentDisposable = parentDisposable;
     myIsNewModule = false;
     myTargetFolder = targetFolder != null && !targetFolder.isDirectory() ? targetFolder.getParent() : targetFolder;
-    FormFactorUtils.FormFactor formFactor = getFormFactor(targetFolder);
-    if (template == null) {
-      myGalleryStep = new ActivityGalleryStep(formFactor, false, KEY_SELECTED_TEMPLATE, parentDisposable);
-    }
-    else {
-      myGalleryStep = null;
-    }
   }
 
   private static FormFactorUtils.FormFactor getFormFactor(@Nullable VirtualFile targetFolder) {
@@ -315,11 +307,15 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     myState.put(KEY_PACKAGE_NAME, getInitialPackageName(module, facet));
     myState.put(KEY_OPEN_EDITORS, true);
 
-    if (myGalleryStep != null) {
-      addStep(myGalleryStep);
+    if (myTemplate == null) {
+      FormFactorUtils.FormFactor formFactor = getFormFactor(myTargetFolder);
+      myState.put(FormFactorUtils.getMinApiLevelKey(formFactor), minSdkVersion.getApiLevel());
+      myState.put(FormFactorUtils.getBuildApiLevelKey(formFactor), moduleInfo.getTargetSdkVersion().getApiLevel());
+
+      ActivityGalleryStep galleryStep = new ActivityGalleryStep(formFactor, false, KEY_SELECTED_TEMPLATE, module, myParentDisposable);
+      addStep(galleryStep);
     }
     else {
-      assert myTemplate != null;
       TemplateMetadata templateMetadata = TemplateManager.getInstance().getTemplate(myTemplate);
       assert templateMetadata != null;
       myState.put(KEY_SELECTED_TEMPLATE, new TemplateEntry(myTemplate, templateMetadata));
