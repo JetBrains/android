@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log;
+import com.android.tools.idea.logcat.AndroidConfiguredLogFilters.FilterEntry;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.openapi.actionSystem.*;
@@ -88,8 +89,8 @@ final class EditLogFilterDialog extends DialogWrapper {
   private JBList myFiltersList;
   private CollectionListModel<String> myFiltersListModel;
 
-  @Nullable private AndroidConfiguredLogFilters.FilterEntry mySelectedEntry;
-  private final List<AndroidConfiguredLogFilters.FilterEntry> myFilterEntries;
+  @Nullable private FilterEntry mySelectedEntry;
+  private final List<FilterEntry> myFilterEntries;
 
   private JPanel myFiltersToolbarPanel;
 
@@ -115,7 +116,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     myFilterEntries = AndroidConfiguredLogFilters.getInstance(myProject).getFilterEntries();
 
     if (selectedFilter != null) {
-      for (AndroidConfiguredLogFilters.FilterEntry fe: myFilterEntries) {
+      for (FilterEntry fe: myFilterEntries) {
         if (selectedFilter.equals(fe.getName())) {
           mySelectedEntry = fe;
         }
@@ -265,7 +266,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     });
 
     myFiltersListModel = new CollectionListModel<String>();
-    for (AndroidConfiguredLogFilters.FilterEntry entry : myFilterEntries) {
+    for (FilterEntry entry : myFilterEntries) {
       myFiltersListModel.add(entry.getName());
     }
     myFiltersList.setModel(myFiltersListModel);
@@ -386,10 +387,10 @@ final class EditLogFilterDialog extends DialogWrapper {
       return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.busy.error", name));
     }
 
-    final AndroidConfiguredLogFilters.FilterEntry entry =
-      AndroidConfiguredLogFilters.getInstance(myView.getProject()).findFilterEntryByName(name);
-    if (entry != null && entry != mySelectedEntry) {
-      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.busy.error", name));
+    for (FilterEntry entry : myFilterEntries) {
+      if (entry != mySelectedEntry && name.equals(entry.getName())) {
+        return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.busy.error", name));
+      }
     }
 
     if (myTagField.getParseError() != null) {
@@ -423,7 +424,7 @@ final class EditLogFilterDialog extends DialogWrapper {
   }
 
   @Nullable
-  public AndroidConfiguredLogFilters.FilterEntry getCustomLogFiltersEntry() {
+  public FilterEntry getCustomLogFiltersEntry() {
     return mySelectedEntry;
   }
 
@@ -438,9 +439,8 @@ final class EditLogFilterDialog extends DialogWrapper {
     resetFieldEditors();
   }
 
-  private AndroidConfiguredLogFilters.FilterEntry createNewFilterEntry() {
-    AndroidConfiguredLogFilters.FilterEntry entry =
-      new AndroidConfiguredLogFilters.FilterEntry();
+  private FilterEntry createNewFilterEntry() {
+    FilterEntry entry = new FilterEntry();
     myFilterEntries.add(entry);
     entry.setName(getUniqueName());
     return entry;
@@ -448,7 +448,7 @@ final class EditLogFilterDialog extends DialogWrapper {
 
   private String getUniqueName() {
     Set<String> names = new HashSet<String>(myFilterEntries.size());
-    for (AndroidConfiguredLogFilters.FilterEntry fe : myFilterEntries) {
+    for (FilterEntry fe : myFilterEntries) {
       names.add(fe.getName());
     }
 
