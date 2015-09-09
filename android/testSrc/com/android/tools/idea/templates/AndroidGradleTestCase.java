@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.npw.*;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
@@ -44,6 +45,7 @@ import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -65,6 +67,7 @@ import org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry;
 import org.jetbrains.android.inspections.lint.IntellijLintRequest;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,6 +93,8 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
  * Base class for unit tests that operate on Gradle projects
  */
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
+  private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);
+
   /**
    * The name of the gradle wrapper executable associated with the current OS.
    */
@@ -137,6 +142,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
 
     ensureSdkManagerAvailable();
+
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkData != null) {
+      File location = sdkData.getLocation();
+      LOG.info("sdk @ " + location);
+      LOG.info("IdeSdks: " + IdeSdks.getAndroidSdkPath());
+    }
   }
 
   @Override
