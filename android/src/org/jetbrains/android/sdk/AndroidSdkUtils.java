@@ -342,6 +342,11 @@ public final class AndroidSdkUtils {
                                              @NotNull String sdkName,
                                              @Nullable Sdk jdk,
                                              boolean addRoots) {
+    if (!target.getAdditionalLibraries().isEmpty()) {
+      // Do not create an IntelliJ SDK for add-ons. Add-ons should be handled as module-level library dependencies.
+      return null;
+    }
+
     ProjectJdkTable table = ProjectJdkTable.getInstance();
     String tmpName = createUniqueSdkName(SDK_NAME, Arrays.asList(table.getAllJdks()));
 
@@ -885,7 +890,7 @@ public final class AndroidSdkUtils {
       return String.format("API %d+: %s", target.getVersion().getApiLevel(), target.getName());
     }
     String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
-    if (name != null) {
+    if (isNotEmpty(name)) {
       return name;
     }
     String release = target.getProperty("ro.build.version.release"); //$NON-NLS-1$
