@@ -80,11 +80,12 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   }
 
   @Override
-  public AndroidRunningState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
-    AndroidRunningState state = super.getState(executor, env);
-    if (state != null) {
-      state.setDeploy(DEPLOY);
-      state.setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
+  public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
+    RunProfileState state = super.getState(executor, env);
+    if (state instanceof AndroidRunningState) {
+      AndroidRunningState androidRunningState = (AndroidRunningState) state;
+      androidRunningState.setDeploy(DEPLOY);
+      androidRunningState.setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
     }
     return state;
   }
