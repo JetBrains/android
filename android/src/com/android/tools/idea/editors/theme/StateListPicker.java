@@ -34,6 +34,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -46,6 +47,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
@@ -69,6 +72,16 @@ public class StateListPicker extends JPanel {
   private static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b>";
   private static final String API_ERROR_TEXT = "This resource requires at least an API level of %d";
   private static final ResourceType[] DIMENSIONS_ONLY = {ResourceType.DIMEN};
+  private static final Icon QUESTION_ICON = AllIcons.Actions.Help;
+  private static final SwatchComponent.SwatchIcon WARNING_ICON = new SwatchComponent.SwatchIcon() {
+    @Override
+    public void paint(@Nullable Component c, @NotNull Graphics g, int x, int y, int w, int h) {
+      int horizontalMargin = (w + JBUI.scale(1) - QUESTION_ICON.getIconWidth()) / 2;
+      int verticalMargin = (h + JBUI.scale(3) - QUESTION_ICON.getIconHeight()) / 2;
+      QUESTION_ICON.paintIcon(c, g, x + horizontalMargin, y + verticalMargin);
+    }
+  };
+  private static final ImmutableList<SwatchComponent.SwatchIcon> WARNING_ICON_LIST = ImmutableList.of(WARNING_ICON);
 
   private final Module myModule;
   private final Configuration myConfiguration;
@@ -402,6 +415,7 @@ public class StateListPicker extends JPanel {
     component.setValueText(resourceName);
     component.setAlphaValue(alphaValue);
     component.setAlphaVisible(!StringUtil.isEmpty(alphaValue));
+    component.showAlphaError(false);
 
     ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
     assert resourceResolver != null;
@@ -425,9 +439,8 @@ public class StateListPicker extends JPanel {
           component.getAlphaComponent().setSwatchIcons(list);
         }
         catch (NumberFormatException e) {
-          AndroidUtils.reportError(myModule.getProject(), String
-            .format("The alpha attribute in %s/%s does not resolve to a floating point number", myStateList.getDirName(),
-                    myStateList.getFileName()));
+          component.showAlphaError(true);
+          component.getAlphaComponent().setSwatchIcons(WARNING_ICON_LIST);
         }
       }
     }
@@ -443,6 +456,7 @@ public class StateListPicker extends JPanel {
   private class StateComponent extends Box {
     private final ResourceComponent myResourceComponent;
     private final SwatchComponent myAlphaComponent;
+    private final JBLabel myAlphaErrorLabel;
     private AlphaActionListener myAlphaActionListener;
 
     public StateComponent() {
@@ -460,6 +474,14 @@ public class StateListPicker extends JPanel {
       myAlphaComponent.setForeground(null);
       add(myAlphaComponent);
       myAlphaComponent.setMaximumSize(new Dimension(myAlphaComponent.getMaximumSize().width, myAlphaComponent.getPreferredSize().height));
+
+      Box alphaErrorComponent = new Box(BoxLayout.LINE_AXIS);
+      myAlphaErrorLabel =
+        new JBLabel("This value does not resolve to a floating-point number.", AllIcons.General.BalloonWarning, SwingConstants.LEADING);
+      myAlphaErrorLabel.setVisible(false);
+      alphaErrorComponent.add(myAlphaErrorLabel);
+      alphaErrorComponent.add(Box.createHorizontalGlue());
+      add(alphaErrorComponent);
     }
 
     @NotNull
@@ -470,6 +492,11 @@ public class StateListPicker extends JPanel {
     @NotNull
     public SwatchComponent getAlphaComponent() {
       return myAlphaComponent;
+    }
+
+    public void showAlphaError(boolean hasError) {
+      myAlphaErrorLabel.setVisible(hasError);
+      myAlphaComponent.setWarningBorder(hasError);
     }
 
     public void setNameText(@NotNull String name) {
