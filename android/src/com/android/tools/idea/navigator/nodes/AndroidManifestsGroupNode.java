@@ -65,9 +65,15 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
 
     List<AbstractTreeNode> children = Lists.newArrayList();
     for (VirtualFile manifest : mySources) {
+      if (!manifest.isValid()) {
+        continue;
+      }
+
       PsiFile psiFile = psiManager.findFile(manifest);
       if (psiFile != null) {
-        children.add(new AndroidManifestFileNode(myProject, psiFile, getSettings(), getValue()));
+        AndroidFacet facet = getValue();
+        assert facet != null : "Android Facet for module cannot be null";
+        children.add(new AndroidManifestFileNode(myProject, psiFile, getSettings(), facet));
       }
     }
     return children;
