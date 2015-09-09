@@ -169,6 +169,27 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals(expected, tag.getValue().getText());
   }
 
+  public void testEditingXliff() {
+    VirtualFile res = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
+    ModuleResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res));
+    StringResourceData data = StringResourceParser.parse(myFacet, repository);
+
+    final Locale locale = Locale.create("en-rIN");
+    String key = "key3";
+
+    String currentData = StringResourceData.resourceToString(data.getTranslations().get(key, locale));
+    assertEquals("start <xliff:g>middle1</xliff:g>%s<xliff:g>middle3</xliff:g> end", currentData);
+    assertTrue(data.setTranslation(key, locale, currentData.replace("%s", "%1$s")));
+
+    final String expected = "start<xliff:g>middle1</xliff:g>%1$s\n" +
+                            "      <xliff:g>middle3</xliff:g>\n" +
+                            "      end";
+    assertEquals(expected, StringResourceData.resourceToString(data.getTranslations().get(key, locale)));
+    XmlTag tag = getNthXmlTag(res.findFileByRelativePath("values-en-rIN/strings.xml"), "string", 2);
+    assertEquals("key3", tag.getAttributeValue(SdkConstants.ATTR_NAME));
+    assertEquals(expected, tag.getValue().getText().trim());
+  }
+
   public void testAddingTranslation() {
     final Locale locale = Locale.create("en");
     final String key = "key4";
