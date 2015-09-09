@@ -38,6 +38,9 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.CommonBundle;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
@@ -73,8 +76,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -606,16 +609,16 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     if (myDebugMode) {
       AndroidDebugBridge.addClientChangeListener(this);
     }
-    final DeviceReadyListener[] deviceListener = {null};
+    final Ref<ListenableFuture<IDevice>> deviceFutureRef = Ref.create();
     getProcessHandler().addProcessListener(new ProcessAdapter() {
       @Override
       public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
         if (myDebugMode) {
           AndroidDebugBridge.removeClientChangeListener(AndroidRunningState.this);
         }
-        if (deviceListener[0] != null) {
-          Disposer.dispose(deviceListener[0]);
-          AndroidDebugBridge.removeDeviceChangeListener(deviceListener[0]);
+        if (deviceFutureRef.get() != null) {
+          // If the future hasn't resolved yet, cancel it.
+          deviceFutureRef.get().cancel(true);
         }
         myStopped = true;
         synchronized (myLock) {
@@ -623,7 +626,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         }
       }
     });
-    deviceListener[0] = prepareAndStartAppWhenDeviceIsOnline();
+    deviceFutureRef.set(prepareAndStartAppWhenDeviceIsOnline());
   }
 
   private boolean chooseOrLaunchDevice() {
@@ -786,7 +789,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   @Nullable
-  private DeviceReadyListener prepareAndStartAppWhenDeviceIsOnline() {
+  private ListenableFuture<IDevice> prepareAndStartAppWhenDeviceIsOnline() {
     if (myTargetDevices.length > 0) {
       boolean allDevicesOnline = true;
       for (IDevice targetDevice : myTargetDevices) {
@@ -811,26 +814,32 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         return null;
       }
     }
+
     Predicate<IDevice> deviceFilter = new Predicate<IDevice>() {
       @Override
       public boolean apply(IDevice device) {
         return isMyDevice(device);
       }
     };
-    DeviceReadyListener.Callback callback = new DeviceReadyListener.Callback() {
+
+    ListenableFuture<IDevice> deviceFuture = DeviceReadyListener.getReadyDevice(
+      deviceFilter,
+      new ProcessHandlerSimpleLogger(getProcessHandler()));
+
+    Futures.addCallback(deviceFuture, new FutureCallback<IDevice>() {
       @Override
-      public void onDeviceReady(@NotNull IDevice device) {
+      public void onSuccess(IDevice device) {
         if ((!prepareAndStartApp(device) || !myDebugMode) && !myStopped) {
           getProcessHandler().destroyProcess();
         }
       }
-    };
-    final DeviceReadyListener deviceListener = new DeviceReadyListener(
-      new ProcessHandlerSimpleLogger(getProcessHandler()),
-      deviceFilter,
-      callback);
-    AndroidDebugBridge.addDeviceChangeListener(deviceListener);
-    return deviceListener;
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+      }
+    });
+
+    return deviceFuture;
   }
 
   public synchronized void setProcessHandler(ProcessHandler processHandler) {
