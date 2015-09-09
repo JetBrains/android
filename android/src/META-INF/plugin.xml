@@ -1017,6 +1017,8 @@
     <java.elementFinder implementation="com.android.tools.idea.databinding.BrClassFinder"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingClassFinder"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingComponentClassFinder"/>
+    <psi.referenceContributor implementation="com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor"/>
+    <completion.contributor implementationClass="com.android.tools.idea.lang.databinding.DataBindingCompletionContributor" language="AndroidDataBinding"/>
   </extensions>
 
   <!-- Android IDL support -->

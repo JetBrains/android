@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom.layout;
+package com.android.tools.idea.lang.databinding;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.util.xml.*;
-import org.jetbrains.android.dom.converters.DataBindingConverter;
-import org.jetbrains.android.dom.converters.PackageClassConverter;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
+import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry;
+import org.jetbrains.annotations.NotNull;
 
-@DefinesXml
-public interface Variable extends LayoutElement, DataBindingElement {
-  @Attribute("name")
-  @Required
-  GenericAttributeValue<String> getName();
+public class DataBindingPsiElement extends ASTWrapperPsiElement {
+  public DataBindingPsiElement(@NotNull ASTNode node) {
+    super(node);
+  }
 
-  @Attribute("type")
-  @Required
-  @Convert(value=DataBindingConverter.class, soft=false)
-  GenericAttributeValue<PsiClass> getType();
+  @NotNull
+  @Override
+  public PsiReference[] getReferences() {
+    return ReferenceProvidersRegistry.getReferencesFromProviders(this);
+  }
 }

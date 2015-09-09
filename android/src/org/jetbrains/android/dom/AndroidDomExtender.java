@@ -376,8 +376,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         return;
       }
     }
-    for (String className : map.keySet()) {
-      PsiClass c = map.get(className);
+    for (PsiClass c : map.values()) {
       registerLayoutAttributes(facet, element, c, callback, skipAttrNames);
     }
   }
@@ -389,9 +388,11 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                                Set<XmlName> skipAttrNames) {
     String styleableName = c.getName();
     if (styleableName != null) {
-      for (String suf : LAYOUT_ATTRIBUTES_SUFS) {
-        registerAttributes(facet, element, new String[]{styleableName + suf}, callback, skipAttrNames);
+      String[] styleableNames = new String[LAYOUT_ATTRIBUTES_SUFS.length];
+      for (int i = 0; i < LAYOUT_ATTRIBUTES_SUFS.length; i++) {
+        styleableNames[i] = styleableName + LAYOUT_ATTRIBUTES_SUFS[i];
       }
+      registerAttributes(facet, element, styleableNames, callback, skipAttrNames);
     }
   }
 
@@ -407,6 +408,9 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         PsiClass c = map.get(className);
         registerLayoutAttributes(facet, element, c, callback, skipAttrNames);
       }
+      for (PsiClass c : map.values()) {
+        registerLayoutAttributes(facet, element, c, callback, skipAttrNames);
+      }
       return;
     }
     else if (element instanceof Fragment) {
@@ -415,6 +419,9 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     else if (element instanceof Tag) {
       registerAttributes(facet, element, new String[]{"ViewTag"}, SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
       return;
+    }
+    else if (element instanceof Data) {
+      return;  // don't want view tags inside data.
     }
     else {
       String tagName = tag.getName();
