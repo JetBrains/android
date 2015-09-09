@@ -819,6 +819,8 @@
     <codeInsight.unresolvedReferenceQuickFixProvider
         implementation="com.android.tools.idea.gradle.quickfix.AndroidUnresolvedReferenceQuickFixProvider"/>
     <projectModelModifier implementation="com.android.tools.idea.gradle.AndroidGradleJavaProjectModelModifier"/>
+    <resolveScopeProvider implementation="com.android.tools.idea.gradle.testartifact.TestArtifactResolveScopeProvider" order="first"/>
+    <useScopeOptimizer implementation="com.android.tools.idea.gradle.testartifact.TestArtifactUseScopeOptimizer"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
