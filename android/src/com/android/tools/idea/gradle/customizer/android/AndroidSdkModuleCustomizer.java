@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
@@ -70,6 +71,12 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
     // Android SDK may be not configured in IntelliJ
     if (androidSdkHomePath == null) {
       LOG.warn("Path to Android SDK not set");
+
+      List<Sdk> sdks = IdeSdks.getEligibleAndroidSdks();
+      LOG.warn("# of eligible SDKs: " + sdks.size());
+      for (Sdk sdk : sdks) {
+        LOG.info("sdk: " + sdk.toString());
+      }
       return;
     }
 
