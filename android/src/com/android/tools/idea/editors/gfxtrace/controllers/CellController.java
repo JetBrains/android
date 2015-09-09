@@ -34,6 +34,8 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseWheelEvent;
 import java.util.List;
 
 public abstract class CellController<T extends CellController.Data> extends Controller {
@@ -59,16 +61,45 @@ public abstract class CellController<T extends CellController.Data> extends Cont
     }
   }
 
+  public enum Orientation {
+    HORIZONTAL(JList.HORIZONTAL_WRAP), VERTICAL(JList.VERTICAL_WRAP);
+
+    public final int listWrap;
+
+    Orientation(int listWrap) {
+      this.listWrap = listWrap;
+    }
+
+    @NotNull
+    public JBScrollPane createScrollPane() {
+      return (this == VERTICAL) ? new JBScrollPane() : new JBScrollPane() {{
+        final JScrollBar scrollBar = getHorizontalScrollBar();
+
+        // We will handle mouse wheel scrolling ourselves.
+        setWheelScrollingEnabled(false);
+        addMouseWheelListener(new MouseAdapter() {
+          @Override
+          public void mouseWheelMoved(MouseWheelEvent evt) {
+            int scrollAmount = evt.getScrollAmount() * evt.getWheelRotation() * scrollBar.getBlockIncrement();
+            int position = Math.max(scrollBar.getMinimum(), Math.min(scrollBar.getMaximum(), scrollBar.getValue() + scrollAmount));
+            scrollBar.setValue(position);
+          }
+        });
+      }};
+    }
+  }
+
   @NotNull private static final Logger LOG = Logger.getInstance(CellController.class);
-  @NotNull protected final JBScrollPane myScrollPane = new JBScrollPane();
+  @NotNull protected final JBScrollPane myScrollPane;
   @NotNull protected final JBList myList = new JBList();
   @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull protected final CellRenderer myRenderer;
   @Nullable protected List<T> myData;
 
-  public CellController(@NotNull GfxTraceEditor editor) {
+  public CellController(@NotNull GfxTraceEditor editor, @NotNull Orientation orientation) {
     super(editor);
-    myList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+    myList.setLayoutOrientation(orientation.listWrap);
+    myScrollPane = orientation.createScrollPane();
     myScrollPane.setViewportView(myList);
     myPanel.add(myScrollPane, BorderLayout.CENTER);
     myRenderer = new CellRenderer(this);

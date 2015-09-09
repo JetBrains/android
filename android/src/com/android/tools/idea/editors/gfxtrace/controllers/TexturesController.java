@@ -54,8 +54,7 @@ public class TexturesController extends CellController<TexturesController.Data> 
   @NotNull private Resources myResources;
 
   private TexturesController(@NotNull final GfxTraceEditor editor) {
-    super(editor);
-    myList.setLayoutOrientation(JList.VERTICAL);
+    super(editor, Orientation.VERTICAL);
   }
 
   @Override
