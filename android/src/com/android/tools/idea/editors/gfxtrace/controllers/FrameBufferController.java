@@ -36,6 +36,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBViewport;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -112,6 +113,8 @@ public class FrameBufferController extends Controller {
                                              AllIcons.Gutter.Unique));
     group.add(new FramebufferWireframeAction(this, WireframeMode.allWireframe(), "All", "Draw the framebuffer with full wireframing",
                                              AllIcons.Graph.Grid));
+    group.add(new Separator());
+    myImagePanel.addToolbarActions(group);
     return group;
   }
 
@@ -338,6 +341,33 @@ public class FrameBufferController extends Controller {
       repaint();
     }
 
+    public void addToolbarActions(DefaultActionGroup group) {
+      group.add(new AnAction("Zoom to Fit", "Fit the image to the panel", AndroidIcons.ZoomFit) {
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+          zoomToFit();
+        }
+      });
+      group.add(new AnAction("Actual Size", "Display the image at its actual size", AndroidIcons.ZoomActual) {
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+          zoomToActual();
+        }
+      });
+      group.add(new AnAction("Zoom In", "Zoom In", AndroidIcons.ZoomIn) {
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+          zoom(-ZOOM_AMOUNT, new Point(parent.getWidth() / 2, parent.getHeight() / 2));
+        }
+      });
+      group.add(new AnAction("Zoom Out", "Zoom Out", AndroidIcons.ZoomOut) {
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+          zoom(ZOOM_AMOUNT, new Point(parent.getWidth() / 2, parent.getHeight() / 2));
+        }
+      });
+    }
+
     @Override
     public Dimension getPreferredSize() {
       return (zoom == ZOOM_FIT)
@@ -387,6 +417,12 @@ public class FrameBufferController extends Controller {
 
     private void zoomToFit() {
       zoom = ZOOM_FIT;
+      revalidate();
+      repaint();
+    }
+
+    private void zoomToActual() {
+      zoom = 1;
       revalidate();
       repaint();
     }
