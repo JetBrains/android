@@ -15,39 +15,82 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
+
+import static com.android.tools.idea.gradle.dsl.parser.PsiElements.findClosableBlock;
+import static com.android.tools.idea.gradle.dsl.parser.PsiElements.isNotNullWithText;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.psi.util.PsiTreeUtil.getChildrenOfType;
 
 class ExtPropertyElementParser implements GradleDslElementParser {
+  @NonNls private static final String EXT = "ext";
+
   @Override
-  public boolean parse(@NotNull GroovyPsiElement e, @NotNull GradleBuildModel buildFile) {
+  public boolean parse(@NotNull GroovyPsiElement e, @NotNull GradleBuildModel buildModel) {
     if (e instanceof GrAssignmentExpression) {
-      GrAssignmentExpression expression = (GrAssignmentExpression)e;
-      GrExpression left = expression.getLValue();
-      if (left instanceof GrReferenceExpression) {
-        GrReferenceExpression reference = (GrReferenceExpression)left;
-        GrExpression qualifierExpression = reference.getQualifierExpression();
-        if (qualifierExpression != null && "ext".equals(qualifierExpression.getText())) {
-          // We have found that the left side of the assignment starts with "ext."
-          PsiElement operationToken = expression.getOperationToken();
-          if (operationToken.getText().equals("=")) {
-            GrExpression right = expression.getRValue();
-            if (right != null) {
-              String name = reference.getReferenceName();
-              if (StringUtil.isNotEmpty(name)) {
-                ExtPropertyElement extProperty = new ExtPropertyElement(name, right);
-                buildFile.addExtProperty(extProperty);
-                return true;
-              }
-            }
-          }
-        }
+      return parseQualifiedExtProperty((GrAssignmentExpression)e, buildModel);
+    }
+    if (e instanceof GrMethodCallExpression) {
+      GrMethodCallExpression expression = (GrMethodCallExpression)e;
+      GrClosableBlock closableBlock = findClosableBlock(expression, EXT);
+      if (closableBlock != null) {
+        parseExtProperty(closableBlock, buildModel);
+        return true;
       }
+    }
+    return false;
+  }
+
+  private static boolean parseQualifiedExtProperty(@NotNull GrAssignmentExpression expression, @NotNull GradleBuildModel buildModel) {
+    GrExpression left = expression.getLValue();
+    if (!(left instanceof GrReferenceExpression)) {
+      return false;
+    }
+    GrReferenceExpression reference = (GrReferenceExpression)left;
+    GrExpression qualifierExpression = reference.getQualifierExpression();
+    if (isNotNullWithText(qualifierExpression, EXT)) {
+      return parseExtProperty(expression, buildModel);
+    }
+    return false;
+  }
+
+  private static void parseExtProperty(@NotNull GrClosableBlock closableBlock, @NotNull GradleBuildModel buildModel) {
+    GrAssignmentExpression[] expressions = getChildrenOfType(closableBlock, GrAssignmentExpression.class);
+    if (expressions != null) {
+      for (GrAssignmentExpression expression : expressions) {
+        parseExtProperty(expression, buildModel);
+      }
+    }
+  }
+
+  private static boolean parseExtProperty(@NotNull GrAssignmentExpression expression, @NotNull GradleBuildModel buildModel) {
+    GrExpression left = expression.getLValue();
+    if (!(left instanceof GrReferenceExpression)) {
+      return false;
+    }
+    PsiElement operationToken = expression.getOperationToken();
+    if (operationToken.getText().equals("=")) {
+      // TODO Also support ext.set("xxx", y")
+      GrExpression right = expression.getRValue();
+      if (right == null) {
+        return false;
+      }
+      GrReferenceExpression reference = (GrReferenceExpression)left;
+      String name = reference.getReferenceName();
+      if (isEmpty(name)) {
+        return false;
+      }
+      ExtPropertyElement extProperty = new ExtPropertyElement(name, right);
+      buildModel.addExtProperty(extProperty);
+      return true;
     }
     return false;
   }
