@@ -283,7 +283,9 @@ public final class Projects {
   public static boolean isIdeaAndroidProject(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      if (AndroidFacet.getInstance(module) != null && !isBuildWithGradle(module)) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && !facet.requiresAndroidModel()) {
+        // If a module has the Android facet, but it does not require a model from the build system, it is a legacy IDEA project.
         return true;
       }
     }
