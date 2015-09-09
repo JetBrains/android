@@ -19,6 +19,10 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.google.common.base.Predicate;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -55,6 +59,12 @@ final class DeviceReadyListener implements AndroidDebugBridge.IDeviceChangeListe
   }
 
   @Override
+  public void dispose() {
+    // Do nothing; we are only Disposable so that we can register as the parent of the MergingUpdateQueue,
+    // so clients can dispose us and thus shut down the queue (which otherwise would continue with periodic MyDeviceStateUpdates).
+  }
+
+  @Override
   public void deviceConnected(@NotNull final IDevice device) {
     // avd may be null if usb device is used, or if it didn't set by ddmlib yet
     if (device.getAvdName() == null || myDeviceFilter.apply(device)) {
@@ -88,13 +98,7 @@ final class DeviceReadyListener implements AndroidDebugBridge.IDeviceChangeListe
         return;
       }
 
-      // Devices (esp. emulators) may be reported as online, but may not have services running yet. Attempting to
-      // install at this time would result in an error like "Could not access the Package Manager".
-      // We use the following heuristic to check that the system is in a reasonable state to install apps.
-      if (device.getClients().length < 5 &&
-          device.getClient("android.process.acore") == null &&
-          device.getClient("com.google.android.wearable.app") == null) {
-        myLogger.stdout(String.format("Device %1$s is online, waiting for processes to start up..", device.getName()));
+      if (!isReady(device)) {
         return;
       }
 
@@ -108,10 +112,16 @@ final class DeviceReadyListener implements AndroidDebugBridge.IDeviceChangeListe
     myCallback.onDeviceReady(device);
   }
 
-  @Override
-  public void dispose() {
-    // Do nothing; we are only Disposable so that we can register as the parent of the MergingUpdateQueue,
-    // so clients can dispose us and thus shut down the queue (which otherwise would continue with periodic MyDeviceStateUpdates).
+  private static boolean isReady(@NotNull IDevice device) {
+    if (!device.isOnline()) {
+      return false;
+    }
+    // Devices (esp. emulators) may be reported as online, but may not have services running yet. Attempting to
+    // install at this time would result in an error like "Could not access the Package Manager".
+    // We use the following heuristic to check that the system is in a reasonable state to install apps.
+    return !(device.getClients().length < 5 &&
+             device.getClient("android.process.acore") == null &&
+             device.getClient("com.google.android.wearable.app") == null);
   }
 
   /** An update which checks the device and registers another update, leading to periodic checks. */
@@ -128,5 +138,40 @@ final class DeviceReadyListener implements AndroidDebugBridge.IDeviceChangeListe
       onDeviceChanged(myDevice);
       myQueue.queue(new MyDeviceStateUpdate(myDevice));
     }
+  }
+
+  /** Gets a listenable future which resolves to the first device matching the given filter which is ready to use. */
+  public static ListenableFuture<IDevice> getReadyDevice(@NotNull Predicate<IDevice> deviceFilter, @NotNull SimpleLogger logger) {
+    final SettableFuture<IDevice> future = SettableFuture.create();
+    Callback callback = new Callback() {
+      @Override
+      public void onDeviceReady(@NotNull IDevice device) {
+        future.set(device);
+      }
+    };
+    final DeviceReadyListener deviceReadyListener = new DeviceReadyListener(logger, deviceFilter, callback);
+
+    // Whether resolved or canceled, be sure to shut down.
+    Futures.addCallback(future, new FutureCallback<IDevice>() {
+      @Override
+      public void onSuccess(IDevice result) {
+        shutdown(deviceReadyListener);
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        // Handle cancellation of the future.
+        shutdown(deviceReadyListener);
+      }
+    });
+
+    AndroidDebugBridge.addDeviceChangeListener(deviceReadyListener);
+
+    return future;
+  }
+
+  private static void shutdown(@NotNull DeviceReadyListener listener) {
+    Disposer.dispose(listener);
+    AndroidDebugBridge.removeDeviceChangeListener(listener);
   }
 }
