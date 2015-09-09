@@ -238,13 +238,21 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public Module getModule(@NotNull String name) {
+    Module module = findModule(name);
+    assertNotNull("Unable to find module with name " + quote(name), module);
+    return module;
+  }
+
+  @Nullable
+  public Module findModule(@NotNull String name) {
     for (Module module : getModuleManager().getModules()) {
       if (name.equals(module.getName())) {
         return module;
       }
     }
-    throw new AssertionError("Unable to find module with name " + quote(name));
+    return null;
   }
+
 
   @NotNull
   private ModuleManager getModuleManager() {
