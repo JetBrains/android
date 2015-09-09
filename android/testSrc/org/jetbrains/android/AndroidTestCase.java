@@ -219,7 +219,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   @Override
-  public void tearDown() throws Exception {
+  protected void tearDown() throws Exception {
     myModule = null;
     myAdditionalModules = null;
     myFixture.tearDown();
