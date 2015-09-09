@@ -237,6 +237,14 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("activities", "BlankActivity", true);
   }
 
+  public void testNewEmptyActivity() throws Exception {
+    checkCreateTemplate("activities", "EmptyActivity", false);
+  }
+
+  public void testNewProjectWithEmptyActivity() throws Exception {
+    checkCreateTemplate("activities", "EmptyActivity", true);
+  }
+
   public void testNewTabbedActivity() throws Exception {
     checkCreateTemplate("activities", "TabbedActivity", false);
   }
@@ -251,14 +259,6 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   public void testNewProjectWithNavigationDrawerActivity() throws Exception {
     checkCreateTemplate("activities", "NavigationDrawerActivity", true);
-  }
-
-  public void testNewBlankActivityWithFragment() throws Exception {
-    checkCreateTemplate("activities", "BlankActivityWithFragment", false);
-  }
-
-  public void testNewProjectWithBlankActivityWithFragment() throws Exception {
-    checkCreateTemplate("activities", "BlankActivityWithFragment", true);
   }
 
   public void testNewMasterDetailFlow() throws Exception {
@@ -283,6 +283,14 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   public void testNewProjectWithLoginActivity() throws Exception {
     checkCreateTemplate("activities", "LoginActivity", true);
+  }
+
+  public void testNewScrollActivity() throws Exception {
+    checkCreateTemplate("activities", "ScrollActivity", false);
+  }
+
+  public void testNewProjectWithScrollActivity() throws Exception {
+    checkCreateTemplate("activities", "ScrollActivity", true);
   }
 
   public void testNewSettingsActivity() throws Exception {
