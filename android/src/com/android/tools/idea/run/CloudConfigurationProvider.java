@@ -25,6 +25,7 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.run.AndroidRunningState;
+import org.jetbrains.android.run.CloudMatrixTestRunningState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,7 +76,7 @@ public abstract class CloudConfigurationProvider {
   @NotNull
   public abstract ExecutionResult executeCloudMatrixTests(int selectedConfigurationId,
                                                           @NotNull String cloudProjectId,
-                                                          @NotNull AndroidRunningState runningState,
+                                                          @NotNull CloudMatrixTestRunningState runningState,
                                                           @NotNull Executor executor) throws ExecutionException;
 
   public static boolean isEnabled() {
