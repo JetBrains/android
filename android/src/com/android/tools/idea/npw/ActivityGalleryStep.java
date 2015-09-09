@@ -62,15 +62,6 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
     setBodyComponent(createGallery());
   }
 
-  private static String format(ScopedStateStore state, String formatString, Key<?>... keys) {
-    Object[] arguments = new Object[keys.length];
-    int i = 0;
-    for (Key<?> key : keys) {
-      arguments[i++] = state.get(key);
-    }
-    return String.format(formatString, arguments);
-  }
-
   private JComponent createGallery() {
     myGallery = new ASGallery<Optional<TemplateEntry>>();
     Dimension thumbnailSize = DEFAULT_GALLERY_THUMBNAIL_SIZE;
@@ -147,7 +138,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
     else {
       status = PageStatus.OK;
     }
-    setErrorHtml(status.formatMessage(myState));
+    setErrorHtml(status.formatMessage(template));
     return status.isPageValid();
   }
 
@@ -258,14 +249,14 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
     }
 
     @Nullable
-    public String formatMessage(ScopedStateStore state) {
+    public String formatMessage(TemplateEntry template) {
       switch (this) {
         case OK:
           return null;
         case INCOMPATIBLE_BUILD_API:
-          return format(state, "Selected activity template has a minimum build API level of %d.", AddAndroidActivityPath.KEY_BUILD_SDK);
+          return String.format("Selected activity template has a minimum build API level of %d.", template.getMinBuildApi());
         case INCOMPATIBLE_MAIN_SDK:
-          return format(state, "Selected activity template has a minimum SDK level of %s.", AddAndroidActivityPath.KEY_MIN_SDK);
+          return String.format("Selected activity template has a minimum SDK level of %d.", template.getMinSdk());
         case NOTHING_SELECTED:
           return "No activity template was selected.";
         default:
