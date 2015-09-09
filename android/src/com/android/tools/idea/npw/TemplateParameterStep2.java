@@ -247,7 +247,9 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
 
   @Override
   public boolean isStepVisible() {
-    return !myState.getNotNull(IS_LIBRARY_KEY, false) && super.isStepVisible();
+    return myState.get(AddAndroidActivityPath.KEY_SELECTED_TEMPLATE) != null &&
+           !myState.getNotNull(IS_LIBRARY_KEY, false) &&
+           super.isStepVisible();
   }
 
   @NotNull
