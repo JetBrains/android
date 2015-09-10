@@ -19,14 +19,17 @@ package com.android.tools.idea;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.intellij.ide.impl.NewProjectUtil;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +37,7 @@ import org.junit.Assert;
 
 import java.io.File;
 
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.junit.Assert.assertNotNull;
 
 public class AndroidTestCaseHelper {
@@ -86,12 +90,19 @@ public class AndroidTestCaseHelper {
 
   public static void removeExistingAndroidSdks() {
     final ProjectJdkTable table = ProjectJdkTable.getInstance();
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
-        for (Sdk sdk : table.getAllJdks()) {
-          table.removeJdk(sdk);
-        }
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            for (Sdk sdk : table.getAllJdks()) {
+              table.removeJdk(sdk);
+            }
+            PropertiesComponent component = PropertiesComponent.getInstance(ProjectManager.getInstance().getDefaultProject());
+            component.setValue("android.sdk.path", null);
+          }
+        });
       }
     });
   }
