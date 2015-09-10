@@ -458,7 +458,7 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
   }
 
   public void testNamespaceCompletion() throws Exception {
-    doTestNamespaceCompletion(false, false, false, true);
+    doTestNamespaceCompletion(false, false, true, true);
   }
 
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {
