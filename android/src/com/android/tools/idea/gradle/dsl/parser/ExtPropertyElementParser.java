@@ -19,10 +19,13 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
+import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import static com.android.tools.idea.gradle.dsl.parser.PsiElements.findClosableBlock;
@@ -88,9 +91,33 @@ class ExtPropertyElementParser implements GradleDslElementParser {
       if (isEmpty(name)) {
         return false;
       }
-      ExtPropertyElement extProperty = new ExtPropertyElement(name, right);
-      buildModel.addExtProperty(extProperty);
-      return true;
+      if (right instanceof GrLiteral) {
+        // Simple property: name = value
+        ExtPropertyElement extProperty = new ExtPropertyElement(name, (GrLiteral)right);
+        buildModel.addExtProperty(extProperty);
+        return true;
+      }
+
+      if (right instanceof GrListOrMap) {
+        // Map notation
+        // ext.supportDependencies = [
+        //    design :  "com.android.support:design:22.2.1",
+        // ]
+        GrListOrMap listOrMap = (GrListOrMap)right;
+        if (!listOrMap.isMap()) {
+          return false;
+        }
+        GrNamedArgument[] namedArgs = listOrMap.getNamedArguments();
+        for (GrNamedArgument namedArg : namedArgs) {
+          GrExpression valueExpression = namedArg.getExpression();
+          if (valueExpression instanceof GrLiteral) {
+            String propertyName = name + '.' + namedArg.getLabelName();
+            ExtPropertyElement extProperty = new ExtPropertyElement(propertyName, (GrLiteral)valueExpression);
+            buildModel.addExtProperty(extProperty);
+          }
+        }
+        return true;
+      }
     }
     return false;
   }
