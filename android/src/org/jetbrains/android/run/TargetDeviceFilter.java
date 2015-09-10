@@ -15,27 +15,24 @@
  */
 package org.jetbrains.android.run;
 
-import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.process.ProcessOutputTypes;
+import com.android.ddmlib.IDevice;
+import com.google.common.base.Predicate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * A simple logger which outputs to a process handler.
+ * A convenience class for device predicates based on a {@link TargetChooser}.
  */
-public final class ProcessHandlerSimpleLogger implements SimpleLogger {
-  @NotNull private final ProcessHandler myProcessHandler;
+public class TargetDeviceFilter implements Predicate<IDevice> {
 
-  public ProcessHandlerSimpleLogger(@NotNull ProcessHandler processHandler) {
-    myProcessHandler = processHandler;
+  @NotNull private final TargetChooser myTargetChooser;
+
+  public TargetDeviceFilter(@NotNull TargetChooser targetChooser) {
+    myTargetChooser = targetChooser;
   }
 
   @Override
-  public void stdout(@NotNull String message) {
-    myProcessHandler.notifyTextAvailable(message + "\n", ProcessOutputTypes.STDOUT);
-  }
-
-  @Override
-  public void stderr(@NotNull String message) {
-    myProcessHandler.notifyTextAvailable(message + "\n", ProcessOutputTypes.STDERR);
+  public boolean apply(@Nullable IDevice input) {
+    return input != null && myTargetChooser.matchesDevice(input);
   }
 }
