@@ -44,6 +44,7 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -60,6 +61,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.IntellijLintClient;
@@ -143,11 +145,28 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     ensureSdkManagerAvailable();
 
+    // We seem to have two different locations where the SDK needs to be specified.
+    // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
+    // Gradle import will fail if the global one isn't set.
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     if (sdkData != null) {
-      File location = sdkData.getLocation();
+      final File location = sdkData.getLocation();
       LOG.info("sdk @ " + location);
-      LOG.info("IdeSdks: " + IdeSdks.getAndroidSdkPath());
+      File ideSdkPath = IdeSdks.getAndroidSdkPath();
+      if (ideSdkPath == null) {
+        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+          @Override
+          public void run() {
+            WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+              @Override
+              public void run() {
+                IdeSdks.setAndroidSdkPath(location, getProject());
+                LOG.info("Set IDE Sdk Path to " + location);
+              }
+            });
+          }
+        });
+      }
     }
   }
 
