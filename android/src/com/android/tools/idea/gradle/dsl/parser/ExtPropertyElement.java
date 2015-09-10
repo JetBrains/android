@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 
@@ -31,9 +31,9 @@ import static com.intellij.openapi.util.text.StringUtil.unquoteString;
  */
 public class ExtPropertyElement implements GradleDslElement {
   @NotNull private final String myName;
-  @NotNull private final GrExpression myValueExpression;
+  @NotNull private final GrLiteral myValueExpression;
 
-  public ExtPropertyElement(@NotNull String name, @NotNull GrExpression valueExpression) {
+  public ExtPropertyElement(@NotNull String name, @NotNull GrLiteral valueExpression) {
     myName = name;
     myValueExpression = valueExpression;
   }

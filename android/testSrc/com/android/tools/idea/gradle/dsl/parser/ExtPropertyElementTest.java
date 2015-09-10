@@ -57,4 +57,18 @@ public class ExtPropertyElementTest extends DslElementParserTestCase {
     assertNotNull(srcDirName);
     assertEquals("src/java", srcDirName.getValue());
   }
+
+  public void testParsingListOfProperties() throws IOException {
+    String text = "ext.libraries = [\n" +
+                  "    guava: \"com.google.guava:guava:19.0-rc1\",\n" +
+                  "    design :  \"com.android.support:design:22.2.1\"\n" +
+                  "]";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    ExtPropertyElement guava = buildModel.getExtProperty("libraries.guava");
+    assertNotNull(guava);
+    assertEquals("com.google.guava:guava:19.0-rc1", guava.getValue());
+  }
 }
