@@ -33,6 +33,7 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.notification.NotificationType;
@@ -262,16 +263,20 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     if (AndroidSdkUtils.getDebugBridge(getProject()) == null) return null;
 
+    final boolean supportMultipleDevices = supportMultipleDevices() && executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID);
+
+    ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
     TargetChooser targetChooser = null;
     switch (getTargetSelectionMode()) {
       case SHOW_DIALOG:
-        targetChooser = new ManualTargetChooser();
+        targetChooser = new ManualTargetChooser(this, facet, supportMultipleDevices, computeCommandLine(), executor, printer);
         break;
       case EMULATOR:
-        targetChooser = new EmulatorTargetChooser(PREFERRED_AVD.length() > 0 ? PREFERRED_AVD : null);
+        targetChooser = new EmulatorTargetChooser(facet, supportMultipleDevices, computeCommandLine(), printer,
+                                                  PREFERRED_AVD.length() > 0 ? PREFERRED_AVD : null);
         break;
       case USB_DEVICE:
-        targetChooser = new UsbDeviceTargetChooser();
+        targetChooser = new UsbDeviceTargetChooser(facet, supportMultipleDevices);
         break;
       case CLOUD_DEVICE_DEBUGGING:
         targetChooser = new CloudDebuggingTargetChooser(CLOUD_DEVICE_SERIAL_NUMBER);
@@ -280,10 +285,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         if (executor instanceof DefaultDebugExecutor) {
           // It does not make sense to debug a matrix of devices on the cloud.
           // TODO: Consider making the debug executor unavailable in this case rather than popping the extended chooser dialog.
-          targetChooser = new ManualTargetChooser();
+          targetChooser = new ManualTargetChooser(this, facet, supportMultipleDevices, computeCommandLine(), executor, printer);
           break;
         }
-        return new CloudMatrixTestRunningState(env, facet, this, SELECTED_CLOUD_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_MATRIX_PROJECT_ID);
+        return new CloudMatrixTestRunningState(env, facet, this,
+                                               new CloudMatrixTarget(SELECTED_CLOUD_MATRIX_CONFIGURATION_ID,
+                                                                     SELECTED_CLOUD_MATRIX_PROJECT_ID));
       case CLOUD_DEVICE_LAUNCH:
         return new CloudDeviceLaunchRunningState(facet, SELECTED_CLOUD_DEVICE_CONFIGURATION_ID, SELECTED_CLOUD_DEVICE_PROJECT_ID);
       default:
@@ -291,9 +298,46 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         break;
     }
 
-    final boolean supportMultipleDevices = supportMultipleDevices() && executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID);
-    return new AndroidRunningState(env, facet, getApkProvider(), targetChooser, computeCommandLine(), getApplicationLauncher(facet),
-                                   supportMultipleDevices, CLEAR_LOGCAT, this, nonDebuggableOnDevice);
+    // If there is a session that we will embed to, we need to re-use the devices from that session.
+    DeviceTarget deviceTarget = getOldSessionTarget(project, executor, targetChooser);
+    if (deviceTarget == null) {
+      DeployTarget chosenTarget = targetChooser.getTarget();
+      if (chosenTarget == null) {
+        // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
+        return null;
+      } else if (chosenTarget instanceof CloudMatrixTarget) {
+        return new CloudMatrixTestRunningState(env, facet, this, (CloudMatrixTarget) chosenTarget);
+      } else if (chosenTarget instanceof DeviceTarget) {
+        deviceTarget = (DeviceTarget) chosenTarget;
+      } else {
+        assert false : "Unknown target type: " + chosenTarget.getClass().getCanonicalName();
+      }
+    }
+
+    if (deviceTarget.getDeviceFutures().isEmpty()) {
+      throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
+    }
+
+    return new AndroidRunningState(env, facet, getApkProvider(), deviceTarget, printer, getApplicationLauncher(facet), CLEAR_LOGCAT, this,
+                                   nonDebuggableOnDevice);
+  }
+
+  @Nullable
+  private DeviceTarget getOldSessionTarget(@NotNull Project project,
+                                           @NotNull Executor executor,
+                                           @NotNull TargetChooser targetChooser) {
+    Pair<ProcessHandler, AndroidSessionInfo> sessionInfoPair = AndroidSessionManager.findOldSession(project, executor, this);
+    if (sessionInfoPair != null) {
+      AndroidSessionInfo sessionInfo = sessionInfoPair.getSecond();
+      if (sessionInfo.isEmbeddable()) {
+        Collection<IDevice> oldDevices = sessionInfo.getState().getDevices();
+        Collection<IDevice> currentDevices = DeviceSelectionUtils.getAllCompatibleDevices(new TargetDeviceFilter(targetChooser));
+        if (currentDevices.equals(oldDevices)) {
+          return DeviceTarget.forDevices(oldDevices);
+        }
+      }
+    }
+    return null;
   }
 
   @NotNull

@@ -16,11 +16,7 @@
 package org.jetbrains.android.run;
 
 import com.android.ddmlib.*;
-import com.android.prefs.AndroidLocation;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.ddms.adb.AdbService;
@@ -29,27 +25,19 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectH
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.logcat.AndroidLogcatView;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
-import com.android.tools.idea.run.CloudConfigurationProvider;
-import com.android.tools.idea.run.CloudDebuggingTargetChooser;
 import com.android.tools.idea.run.InstalledApks;
-import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Charsets;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.CommonBundle;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
@@ -63,12 +51,10 @@ import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
@@ -76,53 +62,40 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
-import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Consumer;
-import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AvdsNotSupportedException;
-import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.sdk.AvdManagerLog;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
-import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
 
 /**
  * @author coyote
  */
 public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.IClientChangeListener, AndroidExecutionState {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunningState");
-
-  @NonNls private static final String ANDROID_TARGET_DEVICES_PROPERTY = "AndroidTargetDevices";
-  private static final IDevice[] EMPTY_DEVICE_ARRAY = new IDevice[0];
 
   public static final int WAITING_TIME_SECS = 20;
 
@@ -137,16 +110,14 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   private String myTargetPackageName;
   private final AndroidFacet myFacet;
-  private final String myCommandLine;
   private final AndroidApplicationLauncher myApplicationLauncher;
+  @NotNull private final ProcessHandlerConsolePrinter myPrinter;
   private final AndroidRunConfigurationBase myConfiguration;
 
   private final Object myDebugLock = new Object();
 
-  @NotNull
-  private volatile IDevice[] myTargetDevices = EMPTY_DEVICE_ARRAY;
+  @NotNull private final DeviceTarget myDeviceTarget;
 
-  private volatile String myAvdName;
   private volatile boolean myDebugMode;
   private volatile boolean myOpenLogcatAutomatically;
 
@@ -163,8 +134,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private volatile boolean myApplicationDeployed = false;
 
   private ConsoleView myConsole;
-  private TargetChooser myTargetChooser;
-  private final boolean mySupportMultipleDevices;
   private final boolean myClearLogcatBeforeStart;
   private final List<AndroidRunningStateListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
   private final boolean myNonDebuggableOnDevice;
@@ -186,19 +155,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return myDebugMode;
   }
 
-  private static void runInDispatchedThread(@NotNull Runnable r, boolean blocking) {
-    Application application = ApplicationManager.getApplication();
-    if (application.isDispatchThread()) {
-      r.run();
-    }
-    else if (blocking) {
-      application.invokeAndWait(r, ModalityState.defaultModalityState());
-    }
-    else {
-      application.invokeLater(r);
-    }
-  }
-
   @Override
   public ExecutionResult execute(@NotNull final Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
     Project project = myFacet.getModule().getProject();
@@ -212,96 +168,12 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         console.attachToProcess(myProcessHandler);
       }
     }
-
-    if (myTargetChooser instanceof ManualTargetChooser) {
-      if (myConfiguration.USE_LAST_SELECTED_DEVICE) {
-        DeviceStateAtLaunch lastLaunchState = myConfiguration.getDevicesUsedInLastLaunch();
-
-        if (lastLaunchState != null) {
-          Set<IDevice> onlineDevices = getOnlineDevices();
-          if (lastLaunchState.matchesCurrentAvailableDevices(onlineDevices)) {
-            Collection<IDevice> usedDevices = lastLaunchState.filterByUsed(onlineDevices);
-            myTargetDevices = usedDevices.toArray(new IDevice[usedDevices.size()]);
-          }
-        }
-
-        if (myTargetDevices.length > 1 && !mySupportMultipleDevices) {
-          myTargetDevices = EMPTY_DEVICE_ARRAY;
-        }
-      }
-
-      if (myTargetDevices.length == 0) {
-        AndroidPlatform platform = myFacet.getConfiguration().getAndroidPlatform();
-        if (platform == null) {
-          LOG.error("Android platform not set for module: " + myFacet.getModule().getName());
-          return null;
-        }
-
-        boolean showCloudTarget = getConfiguration() instanceof AndroidTestRunConfiguration && !(executor instanceof DefaultDebugExecutor);
-        final ExtendedDeviceChooserDialog chooser =
-          new ExtendedDeviceChooserDialog(myFacet, platform.getTarget(), mySupportMultipleDevices, true,
-                                          myConfiguration.USE_LAST_SELECTED_DEVICE, showCloudTarget, myCommandLine);
-        chooser.show();
-        if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
-          return null;
-        }
-
-        if (chooser.isToLaunchEmulator()) {
-          final String selectedAvd = chooser.getSelectedAvd();
-          if (selectedAvd == null) {
-            return null;
-          }
-          myTargetChooser = new EmulatorTargetChooser(selectedAvd);
-          myAvdName = selectedAvd;
-        }
-        else if (chooser.isCloudTestOptionSelected()) {
-          // TODO: Delegating to a separate running state here is a temporary measure while we refactor out target selection.
-          CloudMatrixTestRunningState cloudMatrixState = new CloudMatrixTestRunningState(
-            getEnvironment(),
-            getFacet(),
-            getConfiguration(),
-            chooser.getSelectedMatrixConfigurationId(),
-            chooser.getChosenCloudProjectId());
-          myProcessHandler = cloudMatrixState.getProcessHandler();
-          return cloudMatrixState.execute(executor, runner);
-        }
-        else {
-          final IDevice[] selectedDevices = chooser.getSelectedDevices();
-          if (selectedDevices.length == 0) {
-            return null;
-          }
-          myTargetDevices = selectedDevices;
-
-          if (chooser.useSameDevicesAgain()) {
-            myConfiguration.USE_LAST_SELECTED_DEVICE = true;
-            myConfiguration.setDevicesUsedInLaunch(Sets.newHashSet(selectedDevices), getOnlineDevices());
-          } else {
-            myConfiguration.USE_LAST_SELECTED_DEVICE = false;
-            myConfiguration.setDevicesUsedInLaunch(Collections.<IDevice>emptySet(), Collections.<IDevice>emptySet());
-          }
-        }
-      }
-    }
-    else if (myTargetChooser instanceof CloudDebuggingTargetChooser) {
-      final CloudConfigurationProvider provider = CloudConfigurationProvider.getCloudConfigurationProvider();
-      assert provider != null;
-      myTargetDevices = EMPTY_DEVICE_ARRAY;
-      String cloudDeviceSerialNumber = ((CloudDebuggingTargetChooser)myTargetChooser).getCloudDeviceSerialNumber();
-      for (IDevice device : AndroidDebugBridge.getBridge().getDevices()) {
-        if (device.getSerialNumber().equals(cloudDeviceSerialNumber)) {
-          myTargetDevices = new IDevice[] {device};
-          break;
-        }
-      }
-      if (myTargetDevices.length == 0) { // No matching cloud device available.
-        return null;
-      }
-    }
+    myPrinter.setProcessHandler(myProcessHandler);
 
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        start(true);
+        start();
       }
     });
 
@@ -325,6 +197,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
       @Override
       public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
+        for (ListenableFuture<IDevice> deviceFuture : myDeviceTarget.getDeviceFutures()) {
+          deviceFuture.cancel(true);
+        }
         getProcessHandler().removeProcessListener(this);
       }
     });
@@ -332,15 +207,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     myConsole = console;
 
     return new DefaultExecutionResult(console, myProcessHandler);
-  }
-
-  private Set<IDevice> getOnlineDevices() {
-    AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(myFacet.getModule().getProject());
-    if (debugBridge == null) {
-      return Collections.emptySet();
-    }
-
-    return Sets.newHashSet(debugBridge.getDevices());
   }
 
   @Override
@@ -386,9 +252,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return myFacet;
   }
 
+  @Nullable
   @Override
-  public IDevice[] getDevices() {
-    return myTargetDevices;
+  public Collection<IDevice> getDevices() {
+    return myDeviceTarget.getDevicesIfReady();
   }
 
   @Nullable
@@ -437,24 +304,17 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   public AndroidRunningState(@NotNull ExecutionEnvironment environment,
                              @NotNull AndroidFacet facet,
                              @NotNull ApkProvider apkProvider,
-                             @Nullable TargetChooser targetChooser,
-                             @NotNull String commandLine,
+                             @NotNull DeviceTarget deviceTarget,
+                             @NotNull ProcessHandlerConsolePrinter printer,
                              AndroidApplicationLauncher applicationLauncher,
-                             boolean supportMultipleDevices,
                              boolean clearLogcatBeforeStart,
                              @NotNull AndroidRunConfigurationBase configuration,
                              boolean nonDebuggableOnDevice) {
     myFacet = facet;
     myApkProvider = apkProvider;
-    myCommandLine = commandLine;
+    myDeviceTarget = deviceTarget;
+    myPrinter = printer;
     myConfiguration = configuration;
-
-    myTargetChooser = targetChooser;
-    mySupportMultipleDevices = supportMultipleDevices;
-
-    myAvdName = targetChooser instanceof EmulatorTargetChooser
-                ? ((EmulatorTargetChooser)targetChooser).getAvd()
-                : null;
 
     myEnv = environment;
     myApplicationLauncher = applicationLauncher;
@@ -472,142 +332,29 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
   }
 
-  @Nullable
-  private IDevice[] chooseDevicesAutomatically() {
-    final List<IDevice> compatibleDevices = getAllCompatibleDevices();
-
-    if (compatibleDevices.size() == 0) {
-      return EMPTY_DEVICE_ARRAY;
-    }
-    else if (compatibleDevices.size() == 1) {
-      return new IDevice[] {compatibleDevices.get(0)};
-    }
-    else {
-      final IDevice[][] devicesWrapper = {null};
-      ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-        @Override
-        public void run() {
-          devicesWrapper[0] = chooseDevicesManually(new Predicate<IDevice>() {
-            @Override
-            public boolean apply(IDevice device) {
-              return isCompatibleDevice(device) != Boolean.FALSE;
-            }
-          });
-        }
-      }, ModalityState.defaultModalityState());
-      return devicesWrapper[0].length > 0 ? devicesWrapper[0] : null;
-    }
-  }
-
-  @NotNull
-  List<IDevice> getAllCompatibleDevices() {
-    final List<IDevice> compatibleDevices = new ArrayList<IDevice>();
-    final AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
-
-    if (bridge != null) {
-      IDevice[] devices = bridge.getDevices();
-
-      for (IDevice device : devices) {
-        if (isCompatibleDevice(device) != Boolean.FALSE) {
-          compatibleDevices.add(device);
-        }
-      }
-    }
-    return compatibleDevices;
-  }
-
-  private void chooseAvd() {
-    IAndroidTarget buildTarget = myFacet.getConfiguration().getAndroidTarget();
-    assert buildTarget != null;
-    AvdInfo[] avds = myFacet.getValidCompatibleAvds();
-    if (avds.length > 0) {
-      myAvdName = avds[0].getName();
-    }
-    else {
-      final Project project = myFacet.getModule().getProject();
-      AvdManager manager = null;
-      try {
-        manager = myFacet.getAvdManager(new AvdManagerLog() {
-          @Override
-          public void error(Throwable t, String errorFormat, Object... args) {
-            super.error(t, errorFormat, args);
-
-            if (errorFormat != null) {
-              final String msg = String.format(errorFormat, args);
-              message(msg, STDERR);
-            }
-          }
-        });
-      }
-      catch (AvdsNotSupportedException e) {
-        // can't be
-        LOG.error(e);
-      }
-      catch (final AndroidLocation.AndroidLocationException e) {
-        LOG.info(e);
-        runInDispatchedThread(new Runnable() {
-          @Override
-          public void run() {
-            Messages.showErrorDialog(project, e.getMessage(), CommonBundle.getErrorTitle());
-          }
-        }, false);
-        return;
-      }
-      final AvdManager finalManager = manager;
-      assert finalManager != null;
-      runInDispatchedThread(new Runnable() {
-        @Override
-        public void run() {
-          CreateAvdDialog dialog = new CreateAvdDialog(project, myFacet, finalManager, true, true);
-          dialog.show();
-          if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-            AvdInfo createdAvd = dialog.getCreatedAvd();
-            if (createdAvd != null) {
-              myAvdName = createdAvd.getName();
-            }
-          }
-        }
-      }, true);
-    }
-  }
-
-  void start(boolean chooseTargetDevice) {
+  void start() {
     try {
       setTargetPackageName(myApkProvider.getPackageName());
     } catch (ApkProvisionException e) {
-      message(e.getMessage(), STDERR);
+      myPrinter.stderr(e.getMessage());
       LOG.error(e);
       getProcessHandler().destroyProcess();
       return;
-    }
-
-    if (chooseTargetDevice) {
-      //TODO: Why this message sometimes does not show up when a not yet booted device is picked?
-      message("Waiting for device.", STDOUT);
-
-      if (myTargetDevices.length == 0 && !chooseOrLaunchDevice()) {
-        getProcessHandler().destroyProcess();
-        fireExecutionFailed();
-        return;
-      }
     }
     doStart();
   }
 
   private void doStart() {
     if (myDebugMode) {
+      // TODO: Add the client change listener for a specific device once that device is ready.
       AndroidDebugBridge.addClientChangeListener(this);
     }
-    final Ref<ListenableFuture<IDevice>> deviceFutureRef = Ref.create();
+    // TODO: Consolidate with process listener in execute()
     getProcessHandler().addProcessListener(new ProcessAdapter() {
       @Override
       public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
         if (myDebugMode) {
           AndroidDebugBridge.removeClientChangeListener(AndroidRunningState.this);
-        }
-        if (deviceFutureRef.get() != null) {
-          // If the future hasn't resolved yet, cancel it.
-          deviceFutureRef.get().cancel(true);
         }
         myStopped = true;
         synchronized (myLock) {
@@ -615,56 +362,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         }
       }
     });
-    deviceFutureRef.set(prepareAndStartAppWhenDeviceIsOnline());
-  }
-
-  private boolean chooseOrLaunchDevice() {
-    IDevice[] targetDevices = chooseDevicesAutomatically();
-    if (targetDevices == null) {
-      message("Canceled", STDERR);
-      return false;
-    }
-
-    if (targetDevices.length > 0) {
-      myTargetDevices = targetDevices;
-    }
-    else if (myTargetChooser instanceof EmulatorTargetChooser) {
-      if (myAvdName == null) {
-        chooseAvd();
-      }
-      if (myAvdName != null) {
-        myFacet.launchEmulator(myAvdName, myCommandLine);
-      }
-      else if (getProcessHandler().isStartNotified()) {
-        message("Canceled", STDERR);
-        return false;
-      }
-    }
-    else {
-      message("USB device not found", STDERR);
-      return false;
-    }
-    return true;
-  }
-
-  @NotNull
-  private IDevice[] chooseDevicesManually(@Nullable Predicate<IDevice> filter) {
-    final Project project = myFacet.getModule().getProject();
-    String value = PropertiesComponent.getInstance(project).getValue(ANDROID_TARGET_DEVICES_PROPERTY);
-    String[] selectedSerials = value != null ? fromString(value) : null;
-    AndroidPlatform platform = myFacet.getConfiguration().getAndroidPlatform();
-    if (platform == null) {
-      LOG.error("Android platform not set for module: " + myFacet.getModule().getName());
-      return DeviceChooser.EMPTY_DEVICE_ARRAY;
-    }
-    DeviceChooserDialog chooser = new DeviceChooserDialog(myFacet, platform.getTarget(), mySupportMultipleDevices, selectedSerials, filter);
-    chooser.show();
-    IDevice[] devices = chooser.getSelectedDevices();
-    if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE || devices.length == 0) {
-      return DeviceChooser.EMPTY_DEVICE_ARRAY;
-    }
-    PropertiesComponent.getInstance(project).setValue(ANDROID_TARGET_DEVICES_PROPERTY, toString(devices));
-    return devices;
+    prepareAndStartAppWhenDeviceIsOnline();
   }
 
   @NotNull
@@ -680,12 +378,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   @NotNull
-  private static String[] fromString(@NotNull String s) {
-    return s.split(" ");
-  }
-
-  public void message(@NotNull String message, @NotNull Key outputKey) {
-    getProcessHandler().notifyTextAvailable(message + '\n', outputKey);
+  public ConsolePrinter getPrinter() {
+    return myPrinter;
   }
 
   @Override
@@ -699,11 +393,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       }
       IDevice device = client.getDevice();
       if (isMyDevice(device) && device.isOnline()) {
-        if (myTargetDevices.length == 0) {
-          myTargetDevices = new IDevice[]{device};
-        }
         ClientData data = client.getClientData();
-        if (myDebugLauncher != null && isToLaunchDebug(data)) {
+        if (isToLaunchDebug(data)) {
           launchDebug(client);
         }
       }
@@ -728,111 +419,50 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     myDebugLauncher = null;
   }
 
-  @Nullable
-  Boolean isCompatibleDevice(@NotNull IDevice device) {
-    if (myTargetChooser instanceof EmulatorTargetChooser) {
-      if (device.isEmulator()) {
-        String avdName = device.getAvdName();
-        if (myAvdName != null) {
-          return myAvdName.equals(avdName);
-        }
-
-        AndroidPlatform androidPlatform = myFacet.getConfiguration().getAndroidPlatform();
-        if (androidPlatform == null) {
-          LOG.error("Target Android platform not set for module: " + myFacet.getModule().getName());
-          return false;
-        } else {
-          LaunchCompatibility compatibility = LaunchCompatibility.canRunOnDevice(AndroidModuleInfo.get(myFacet).getRuntimeMinSdkVersion(),
-                                                                                 androidPlatform.getTarget(),
-                                                                                 EnumSet.noneOf(IDevice.HardwareFeature.class),
-                                                                                 device,
-                                                                                 null);
-          return compatibility.isCompatible() != ThreeState.NO;
-        }
-      }
-    }
-    else if (myTargetChooser instanceof UsbDeviceTargetChooser) {
-      return !device.isEmulator();
-    }
-    else if (myTargetChooser instanceof ManualTargetChooser && myConfiguration.USE_LAST_SELECTED_DEVICE) {
-      DeviceStateAtLaunch lastLaunchState = myConfiguration.getDevicesUsedInLastLaunch();
-      return lastLaunchState != null && lastLaunchState.usedDevice(device);
-    }
-    return false;
-  }
-
   private boolean isMyDevice(@NotNull IDevice device) {
-    if (myTargetDevices.length > 0) {
-      return ArrayUtilRt.find(myTargetDevices, device) >= 0;
-    }
-    Boolean compatible = isCompatibleDevice(device);
-    return compatible == null || compatible.booleanValue();
-  }
-
-  public void setTargetDevices(@NotNull IDevice[] targetDevices) {
-    myTargetDevices = targetDevices;
+    Collection<IDevice> devices = myDeviceTarget.getDevicesIfReady();
+    return devices != null &&  devices.contains(device);
   }
 
   public void setConsole(@NotNull ConsoleView console) {
     myConsole = console;
   }
 
-  @Nullable
-  private ListenableFuture<IDevice> prepareAndStartAppWhenDeviceIsOnline() {
-    if (myTargetDevices.length > 0) {
-      boolean allDevicesOnline = true;
-      for (IDevice targetDevice : myTargetDevices) {
-        if (targetDevice.isOnline()) {
-          if (!prepareAndStartApp(targetDevice) && !myStopped) {
+  private void prepareAndStartAppWhenDeviceIsOnline() {
+    final AtomicInteger startedCount = new AtomicInteger();
+    for (ListenableFuture<IDevice> targetDevice : myDeviceTarget.getDeviceFutures()) {
+      Futures.addCallback(targetDevice, new FutureCallback<IDevice>() {
+        @Override
+        public void onSuccess(@Nullable IDevice result) {
+          if (myStopped) {
+            return;
+          }
+          if (prepareAndStartApp(result)) {
+            if (startedCount.incrementAndGet() == myDeviceTarget.getDeviceFutures().size() && !myDebugMode) {
+              // All the devices have been started.
+              myStopped = true;
+              getProcessHandler().destroyProcess();
+            }
+          } else {
             // todo: check: it may be we don't need to assign it directly
             // TODO: Why stop completely for a problem potentially affecting only a single device?
             myStopped = true;
             getProcessHandler().destroyProcess();
-            break;
           }
         }
-        else {
-          allDevicesOnline = false;
-        }
-      }
-      // If all target devices are online, we are done.
-      if (allDevicesOnline) {
-        if (!myDebugMode && !myStopped) {
+
+        @Override
+        public void onFailure(@NotNull Throwable t) {
+          myStopped = true;
           getProcessHandler().destroyProcess();
         }
-        return null;
-      }
+      });
     }
-
-    Predicate<IDevice> deviceFilter = new Predicate<IDevice>() {
-      @Override
-      public boolean apply(IDevice device) {
-        return isMyDevice(device);
-      }
-    };
-
-    ListenableFuture<IDevice> deviceFuture = DeviceReadyListener.getReadyDevice(
-      deviceFilter,
-      new ProcessHandlerSimpleLogger(getProcessHandler()));
-
-    Futures.addCallback(deviceFuture, new FutureCallback<IDevice>() {
-      @Override
-      public void onSuccess(IDevice device) {
-        if ((!prepareAndStartApp(device) || !myDebugMode) && !myStopped) {
-          getProcessHandler().destroyProcess();
-        }
-      }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-      }
-    });
-
-    return deviceFuture;
   }
 
   public synchronized void setProcessHandler(ProcessHandler processHandler) {
     myProcessHandler = processHandler;
+    myPrinter.setProcessHandler(processHandler);
   }
 
   public synchronized ProcessHandler getProcessHandler() {
@@ -841,7 +471,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   private boolean prepareAndStartApp(IDevice device) {
     if (myDebugMode && myNonDebuggableOnDevice && !device.isEmulator()) {
-      message(AndroidBundle.message("android.cannot.debug.noDebugPermissions", getPackageName(), device.getName()), STDERR);
+      myPrinter.stderr(AndroidBundle.message("android.cannot.debug.noDebugPermissions", getPackageName(), device.getName()));
       fireExecutionFailed();
       return false;
     }
@@ -867,14 +497,14 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       clearLogcatAndConsole(getModule().getProject(), device);
     }
 
-    message("Target device: " + device.getName(), STDOUT);
+    myPrinter.stdout("Target device: " + device.getName());
     try {
       if (myDeploy) {
         Collection<ApkInfo> apks;
         try {
           apks = myApkProvider.getApks(device);
         } catch (ApkProvisionException e) {
-          message(e.getMessage(), STDERR);
+          myPrinter.stderr(e.getMessage());
           LOG.warn(e);
           return false;
         }
@@ -924,7 +554,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
             launchDebug(client);
           }
           else {
-            message("Waiting for process: " + myTargetPackageName, STDOUT);
+            myPrinter.stdout("Waiting for process: " + myTargetPackageName);
           }
         }
       }
@@ -958,18 +588,18 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
     catch (TimeoutException e) {
       LOG.info(e);
-      message("Error: Connection to ADB failed with a timeout", STDERR);
+      myPrinter.stderr("Error: Connection to ADB failed with a timeout");
       return false;
     }
     catch (AdbCommandRejectedException e) {
       LOG.info(e);
-      message("Error: Adb refused a command", STDERR);
+      myPrinter.stderr("Error: Adb refused a command");
       return false;
     }
     catch (IOException e) {
       LOG.info(e);
       String message = e.getMessage();
-      message("I/O Error" + (message != null ? ": " + message : ""), STDERR);
+      myPrinter.stderr("I/O Error" + (message != null ? ": " + message : ""));
       return false;
     }
   }
@@ -1030,7 +660,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private boolean checkDdms() {
     AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
     if (myDebugMode && bridge != null && AdbService.canDdmsBeCorrupted(bridge)) {
-      message(AndroidBundle.message("ddms.corrupted.error"), STDERR);
+      myPrinter.stderr(AndroidBundle.message("ddms.corrupted.error"));
       JComponent component = myConsole == null ? null : myConsole.getComponent();
       if (component != null) {
         final ExecutionEnvironment environment = LangDataKeys.EXECUTION_ENVIRONMENT.getData(DataManager.getInstance().getDataContext(component));
@@ -1068,13 +698,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     String remotePath = "/data/local/tmp/" + packageName;
     String exceptionMessage;
     String errorMessage;
-    message("Uploading file\n\tlocal path: " + localFile + "\n\tremote path: " + remotePath, STDOUT);
+    myPrinter.stdout("Uploading file\n\tlocal path: " + localFile + "\n\tremote path: " + remotePath);
     try {
       InstalledApks installedApks = ServiceManager.getService(InstalledApks.class);
       if (myConfiguration.SKIP_NOOP_APK_INSTALLATIONS && installedApks.isInstalled(device, localFile, packageName)) {
-        message("No apk changes detected.", STDOUT);
+        myPrinter.stdout("No apk changes detected.");
         if (myConfiguration.FORCE_STOP_RUNNING_APP) {
-          message("Skipping file upload, force stopping package instead.", STDOUT);
+          myPrinter.stdout("Skipping file upload, force stopping package instead.");
           forceStopPackageSilently(device, packageName, true);
         }
         return true;
@@ -1135,10 +765,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       exceptionMessage = e.getMessage();
     }
     if (errorMessage.equals(exceptionMessage) || exceptionMessage == null) {
-      message(errorMessage, STDERR);
+      myPrinter.stderr(errorMessage);
     }
     else {
-      message(errorMessage + '\n' + exceptionMessage, STDERR);
+      myPrinter.stderr(errorMessage + '\n' + exceptionMessage);
     }
     return false;
   }
@@ -1160,25 +790,29 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
                                                     @NotNull String command,
                                                     @NotNull AndroidOutputReceiver receiver)
     throws IOException, TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException {
-    message("DEVICE SHELL COMMAND: " + command, STDOUT);
+    myPrinter.stdout("DEVICE SHELL COMMAND: " + command);
     AndroidUtils.executeCommandOnDevice(device, command, receiver, false);
   }
 
   private boolean installApp(@NotNull IDevice device, @NotNull String remotePath, @NotNull String packageName)
     throws IOException, AdbCommandRejectedException, TimeoutException {
-    message("Installing " + packageName, STDOUT);
+    myPrinter.stdout("Installing " + packageName);
 
     InstallResult result = null;
     boolean retry = true;
     while (!myStopped && retry) {
       result = installApp(device, remotePath);
       if (result.installOutput != null) {
-        message(result.installOutput, result.failureCode == InstallFailureCode.NO_ERROR ? STDOUT : STDERR);
+        if (result.failureCode == InstallFailureCode.NO_ERROR) {
+          myPrinter.stdout(result.installOutput);
+        } else {
+          myPrinter.stderr(result.installOutput);
+        }
       }
 
       switch (result.failureCode) {
         case DEVICE_NOT_RESPONDING:
-          message("Device is not ready. Waiting for " + WAITING_TIME_SECS + " sec.", STDOUT);
+          myPrinter.stdout("Device is not ready. Waiting for " + WAITING_TIME_SECS + " sec.");
           synchronized (myLock) {
             try {
               myLock.wait(WAITING_TIME_SECS * 1000);
@@ -1205,7 +839,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           retry = promptUninstallExistingApp(reason) && uninstallPackage(device, packageName);
           break;
         case NO_CERTIFICATE:
-          message(AndroidBundle.message("deployment.failed.no.certificates.explanation"), STDERR);
+          myPrinter.stderr(AndroidBundle.message("deployment.failed.no.certificates.explanation"));
           showMessageDialog(AndroidBundle.message("deployment.failed.no.certificates.explanation"));
           retry = false;
           break;
@@ -1233,7 +867,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   private boolean uninstallPackage(@NotNull IDevice device, @NotNull String packageName) {
-    message("DEVICE SHELL COMMAND: pm uninstall " + packageName, STDOUT);
+    myPrinter.stdout("DEVICE SHELL COMMAND: pm uninstall " + packageName);
     String output;
     try {
       output = device.uninstallPackage(packageName);
@@ -1243,7 +877,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
 
     if (output != null) {
-      message(output, STDERR);
+      myPrinter.stderr(output);
       return false;
     }
     return true;
@@ -1318,7 +952,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     AndroidVersion deviceVersion = DevicePropertyUtil.getDeviceVersion(device);
     AndroidVersion minSdkVersion = myFacet.getAndroidModuleInfo().getRuntimeMinSdkVersion();
     if (!deviceVersion.canRun(minSdkVersion)) {
-      message("Device API level: " + deviceVersion.toString(), STDERR); // Log the device version to console for easy reference.
+      myPrinter.stderr("Device API level: " + deviceVersion.toString()); // Log the device version to console for easy reference.
       return AndroidBundle.message("deployment.failed.reason.oldersdk", minSdkVersion.toString(), deviceVersion.toString());
     }
     else {
