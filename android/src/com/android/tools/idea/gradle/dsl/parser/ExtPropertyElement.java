@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
-import com.intellij.psi.PsiType;
-import com.intellij.psi.impl.source.PsiClassReferenceType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
-
-import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 
 /**
  * An extra user-defined property.
@@ -44,28 +41,10 @@ public class ExtPropertyElement implements GradleDslElement {
   }
 
   /**
-   * @return the value of this property, using the appropriate data type as defined in the build.gradle file. If the value type is not
-   * supported, this method will return the value as {@code String}.
+   * @return the value of this property, using the appropriate data type as defined in the build.gradle file.
    */
-  @NotNull
+  @Nullable
   public Object getValue() {
-    String valueAsText = myValueExpression.getText();
-
-    PsiType type = myValueExpression.getType();
-    if (type instanceof PsiClassReferenceType) {
-      String qualifiedName = ((PsiClassReferenceType)type).getReference().getQualifiedName();
-      if (isMatchingType(qualifiedName, String.class)) {
-        return unquoteString(valueAsText);
-      }
-      if (isMatchingType(qualifiedName, Integer.class)) {
-        return Integer.parseInt(valueAsText);
-      }
-      // TODO support more data types.
-    }
-    return valueAsText;
-  }
-
-  private static boolean isMatchingType(@NotNull String parsedType, @NotNull Class<?> realType) {
-    return realType.getCanonicalName().equals(parsedType);
+    return myValueExpression.getValue();
   }
 }
