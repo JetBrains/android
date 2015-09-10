@@ -21,21 +21,26 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
 public class ThemeEditorVirtualFileTest extends AndroidTestCase {
-
   /**
    * Tests that the theme editor works with the right virtual file
    * when there are several projects with the same name open.
    */
   public void testRightProject() {
-    Project otherProject = ProjectManagerEx.getInstanceEx().newProject(getProject().getName(), "", true, true);
-    assertNotNull(otherProject);
-    ProjectManagerEx.getInstanceEx().openProject(otherProject);
+    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+    Project otherProject = projectManager.newProject(getProject().getName(), "", true, true);
+    try {
+      assertNotNull(otherProject);
+      projectManager.openProject(otherProject);
 
-    ThemeEditorVirtualFile themeEditorVirtualFile = ThemeEditorVirtualFile.getThemeEditorFile(myModule.getProject());
-    VirtualFile virtualFile = themeEditorVirtualFile.getFileSystem().findFileByPath(themeEditorVirtualFile.getPath());
+      ThemeEditorVirtualFile themeEditorVirtualFile = ThemeEditorVirtualFile.getThemeEditorFile(myModule.getProject());
+      VirtualFile virtualFile = themeEditorVirtualFile.getFileSystem().findFileByPath(themeEditorVirtualFile.getPath());
 
-    assertEquals(themeEditorVirtualFile, virtualFile);
-
-    ProjectManagerEx.getInstanceEx().closeAndDispose(otherProject);
+      assertEquals(themeEditorVirtualFile, virtualFile);
+    }
+    finally {
+      if (otherProject != null) {
+        projectManager.closeAndDispose(otherProject);
+      }
+    }
   }
 }
