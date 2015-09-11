@@ -49,10 +49,10 @@ public class VariantItemListener implements ItemListener {
     VariantsComboItem item = (VariantsComboItem)e.getItem();
     Configuration oldConfiguration = myContext.getConfiguration();
     ConfigurationManager manager = oldConfiguration.getConfigurationManager();
-    Configuration newConfiguration = Configuration.create(manager, null, null, item.getFolderConfiguration());
+    Configuration newConfiguration = Configuration.create(manager, null, null, item.getRestrictedConfiguration());
 
     // Target and locale are global so we need to set them in the configuration manager when updated
-    VersionQualifier newVersionQualifier = item.getFolderConfiguration().getVersionQualifier();
+    VersionQualifier newVersionQualifier = item.getRestrictedConfiguration().getVersionQualifier();
     if (newVersionQualifier != null) {
       IAndroidTarget realTarget = manager.getHighestApiTarget() != null ? manager.getHighestApiTarget() : manager.getTarget();
       assert realTarget != null;
@@ -62,7 +62,7 @@ public class VariantItemListener implements ItemListener {
       manager.setTarget(null);
     }
 
-    LocaleQualifier newLocaleQualifier = item.getFolderConfiguration().getLocaleQualifier();
+    LocaleQualifier newLocaleQualifier = item.getRestrictedConfiguration().getLocaleQualifier();
     manager.setLocale(newLocaleQualifier != null ? Locale.create(newLocaleQualifier) : Locale.ANY);
 
     oldConfiguration.setDevice(null, false);
