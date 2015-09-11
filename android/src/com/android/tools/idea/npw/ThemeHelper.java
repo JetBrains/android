@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.ModuleResourceRepository;
 import com.intellij.openapi.module.Module;
@@ -30,8 +35,9 @@ import java.util.List;
  * Theme utility class for use with templates.
  */
 public class ThemeHelper {
-  private static final String DEFAULT_THEME_NAME = "AppTheme";
-  private static final String APP_COMPAT = "Theme.AppCompat.";
+  private static final String DEFAULT_THEME_NAME = "AppTheme";    //$NON-NLS-1$
+  private static final String ALTERNATE_THEME_NAME = "Theme.App"; //$NON-NLS-1$
+  private static final String APP_COMPAT = "Theme.AppCompat.";    //$NON-NLS-1$
 
   private Module myModule;
   private LocalResourceRepository myRepository;
@@ -41,12 +47,61 @@ public class ThemeHelper {
     myRepository = ModuleResourceRepository.getModuleResources(module, true);
   }
 
-  public Boolean hasDefaultAppCompatTheme() {
-    StyleResourceValue theme = getLocalStyleResource(DEFAULT_THEME_NAME);
+  @Nullable
+  public String getAppThemeName() {
+    String manifestTheme = ManifestInfo.get(myModule, false).getManifestTheme();
+    if (manifestTheme != null) {
+      if (manifestTheme.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX)) {
+        manifestTheme = manifestTheme.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length());
+      }
+      return manifestTheme;
+    }
+    if (getLocalStyleResource(DEFAULT_THEME_NAME) != null) {
+      return DEFAULT_THEME_NAME;
+    }
+    if (getLocalStyleResource(ALTERNATE_THEME_NAME) != null) {
+      return ALTERNATE_THEME_NAME;
+    }
+    return null;
+  }
+
+  public boolean isAppCompatTheme(@NotNull String themeName) {
+    StyleResourceValue theme = getLocalStyleResource(themeName);
+    return isAppCompatTheme(themeName, theme);
+  }
+
+  public static boolean themeExists(@NotNull Configuration configuration, @NotNull String themeName) {
+    return getStyleResource(configuration, themeName) != null;
+  }
+
+  public boolean isLocalTheme(@NotNull String themeName) {
+    return getLocalStyleResource(themeName) != null;
+  }
+
+  public static Boolean hasActionBar(@NotNull Configuration configuration, @NotNull String themeName) {
+    StyleResourceValue theme = getStyleResource(configuration, themeName);
     if (theme == null) {
       return null;
     }
-    return isAppCompatTheme(DEFAULT_THEME_NAME, theme);
+    ResourceResolver resolver = configuration.getResourceResolver();
+    assert resolver != null;
+    ResourceValue value = resolver.findItemInStyle(theme, "windowActionBar", theme.isFramework());
+    if (value == null || value.getValue() == null) {
+      return true;
+    }
+    return SdkConstants.VALUE_TRUE.equals(value.getValue());
+  }
+
+  @Nullable
+  private static StyleResourceValue getStyleResource(@NotNull Configuration configuration, @NotNull String themeName) {
+    configuration.setTheme(themeName);
+    ResourceResolver resolver = configuration.getResourceResolver();
+    assert resolver != null;
+    boolean isFramework = themeName.startsWith(SdkConstants.PREFIX_ANDROID);
+    if (isFramework) {
+      themeName = themeName.substring(SdkConstants.PREFIX_ANDROID.length());
+    }
+    return resolver.getStyle(themeName, isFramework);
   }
 
   @Nullable
