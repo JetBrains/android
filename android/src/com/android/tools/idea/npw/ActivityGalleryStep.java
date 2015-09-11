@@ -123,7 +123,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
     myAppThemeExists = myState.getNotNull(WizardConstants.IS_NEW_PROJECT_KEY, false);
     if (myModule != null) {
       ThemeHelper themeHelper = new ThemeHelper(myModule);
-      myAppThemeExists = themeHelper.hasDefaultAppCompatTheme() != null;
+      myAppThemeExists = themeHelper.getAppThemeName() != null;
     }
   }
 
@@ -275,7 +275,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
         case INCOMPATIBLE_MAIN_SDK:
           return String.format("Selected activity template has a minimum SDK level of %d.", template.getMinSdk());
         case MISSING_THEME:
-          return "Selected activity template requires an existing AppTheme";
+          return "Selected activity template requires an existing Application Theme";
         case NOTHING_SELECTED:
           return "No activity template was selected.";
         default:
