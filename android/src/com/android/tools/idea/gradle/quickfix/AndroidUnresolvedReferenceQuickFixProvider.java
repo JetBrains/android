@@ -107,7 +107,10 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
     }
 
     // Check if it is a JetBrains annotation class reference.
-    if (isAnnotation(psiElement) && AnnotationUtil.isJetbrainsAnnotation(referenceName)) {
+    if (isAnnotation(psiElement) && AnnotationUtil.isJetbrainsAnnotation(referenceName)
+        // Ambiguous with Android Support library; in Android projects prefer the support library
+        // (which will be handled by a different quickfix)
+        && !referenceName.equals(AnnotationUtil.NULLABLE_SIMPLE_NAME)) {
       String className = "org.jetbrains.annotations." + referenceName;
       GlobalSearchScope scope = contextModule.getModuleWithDependenciesAndLibrariesScope(true);
       PsiClass found = JavaPsiFacade.getInstance(project).findClass(className, scope);
