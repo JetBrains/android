@@ -247,7 +247,7 @@ public class GradleSpecificInitializer implements Runnable {
     if (androidHome != null) {
       WizardUtils.ValidationResult sdkValidationResult =
         WizardUtils.validateLocation(androidHome.getAbsolutePath(), "Android SDK location", false);
-      if (!sdkValidationResult.isOk()) {
+      if (sdkValidationResult.isError()) {
         notifyInvalidSdk();
       }
 
