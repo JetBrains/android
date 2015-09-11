@@ -46,28 +46,24 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<JavaP
     }
     LanguageLevel languageLevel = javaProject.getJavaLanguageLevel();
 
-    if (isNotSupported(languageLevel)) {
+    if (languageLevel == null) {
       // Java language 1.8 is not supported, fall back to the minimum Java language level in dependent modules.
       List<Module> dependents = getAllDependentModules(moduleModel.getModule());
       languageLevel = getMinimumLanguageLevelForAndroidModules(dependents.toArray(new Module[dependents.size()]));
     }
 
-    if (isNotSupported(languageLevel)) {
+    if (languageLevel == null) {
       // Java language is still not correct. Most likely this module does not have dependents.
       // Get minimum language level from all Android modules.
       Module[] modules = ModuleManager.getInstance(project).getModules();
       languageLevel = getMinimumLanguageLevelForAndroidModules(modules);
     }
 
-    if (isNotSupported(languageLevel)) {
+    if (languageLevel == null) {
       languageLevel = JDK_1_6; // The minimum safe Java language level.
     }
 
     moduleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
-  }
-
-  private static boolean isNotSupported(@Nullable LanguageLevel languageLevel) {
-    return languageLevel == null || languageLevel.compareTo(JDK_1_8) >= 0;
   }
 
   @Nullable
