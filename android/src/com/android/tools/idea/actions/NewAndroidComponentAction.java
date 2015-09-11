@@ -90,8 +90,8 @@ public class NewAndroidComponentAction extends AnAction {
     }
     if (myRequireAppTheme) {
       ThemeHelper themeHelper = new ThemeHelper(module);
-      if (themeHelper.hasDefaultAppCompatTheme() == null) {
-        presentation.setText(myTemplateName + " (AppTheme not found)");
+      if (themeHelper.getAppThemeName() == null) {
+        presentation.setText(myTemplateName + " (No Application Theme Found)");
         presentation.setEnabled(false);
         return;
       }
