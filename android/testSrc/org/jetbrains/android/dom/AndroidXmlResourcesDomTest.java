@@ -163,6 +163,12 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTest {
     toTestCompletion("deviceAdmin3.xml", "deviceAdmin3_after.xml");
   }
 
+  public void testPoliciesCompletion() throws Throwable {
+    doTestCompletionVarinatsContains("deviceAdmin4.xml", "limit-password", "watch-login", "reset-password", "force-lock", "wipe-data",
+                                     "set-global-proxy", "expire-password", "encrypted-storage", "disable-camera",
+                                     "disable-keyguard-features");
+  }
+
   public void testAccountAuthenticator() throws Throwable {
     toTestCompletion("accountAuthenticator.xml", "accountAuthenticator_after.xml");
   }
