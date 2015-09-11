@@ -110,7 +110,7 @@ public class WizardUtils {
       BAD_SLASHES("Your %1$s contains incorrect slashes ('\\' vs '/')"),
       ILLEGAL_CHARACTER("Illegal character in %1$s path: '%2$c' in filename %3s"),
       ILLEGAL_FILENAME("Illegal filename in %1$s path: %2$s"),
-      WHITESPACE("%1$s cannot contain whitespace."),
+      WHITESPACE("%1$s should not contain whitespace, as this can cause problems with the NDK tools."),
       NON_ASCII_CHARS_WARNING("Your %1$s contains non-ASCII characters, which can cause problems. Proceed with caution."),
       NON_ASCII_CHARS_ERROR("Your %1$s contains non-ASCII characters."),
       PATH_NOT_WRITEABLE("The path '%2$s' is not writeable. Please choose a new location."),
@@ -227,7 +227,7 @@ public class WizardUtils {
         return ValidationResult.error(ValidationResult.Message.ILLEGAL_FILENAME, fieldName, filename);
       }
       if (CharMatcher.WHITESPACE.matchesAnyOf(filename)) {
-        return ValidationResult.error(ValidationResult.Message.WHITESPACE, fieldName);
+        warningResult = ValidationResult.warn(ValidationResult.Message.WHITESPACE, fieldName);
       }
       if (!CharMatcher.ASCII.matchesAllOf(filename)) {
         if (SystemInfo.isWindows) {
