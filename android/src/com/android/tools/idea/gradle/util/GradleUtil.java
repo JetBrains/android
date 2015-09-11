@@ -490,11 +490,6 @@ public final class GradleUtil {
     if (!gradleExecutable.isFile()) {
       throw new FileNotFoundException("Unable to find Gradle executable: " + gradleExecutable.getPath());
     }
-    if (!gradleExecutable.canExecute()) {
-      if (!gradleExecutable.setExecutable(true)) {
-        throw new IOException("Unable to set '" + gradleExecutable.getPath() + "' as executable.");
-      }
-    }
     new ProcessBuilder(gradleExecutable.getPath(), "--stop").start();
   }
 
