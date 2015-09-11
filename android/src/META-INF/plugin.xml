@@ -199,7 +199,12 @@
     <action class="com.android.tools.idea.actions.AndroidShowThemeEditor" id="Android.ShowThemeEditor">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
-    <action id="SendFeedback" class="com.android.tools.idea.actions.SendFeedbackAction" overrides="true"/>
+    <action
+        id="SendFeedback"
+        class="com.android.tools.idea.actions.SendFeedbackAction"
+        overrides="true"
+        text="Submit _Feedback"
+        description="Submit feedback to the Android Studio team"/>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
