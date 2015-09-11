@@ -20,6 +20,8 @@ import com.android.tools.chartlib.EventData;
 import com.android.tools.chartlib.TimelineComponent;
 import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.actions.GfxTraceCaptureAction;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
@@ -27,6 +29,7 @@ import com.android.tools.idea.monitor.gpu.gfxinfohandlers.LHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.MHandler;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
@@ -80,6 +83,11 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
   public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new RecordingAction(this));
+    if (GfxTraceEditor.isEnabled()) {
+      group.add(new Separator());
+      group.add(new GfxTraceCaptureAction.Listen(myProject, myDeviceContext));
+      group.add(new GfxTraceCaptureAction.Relaunch(myProject, myDeviceContext));
+    }
     return group;
   }
 
