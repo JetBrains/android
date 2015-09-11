@@ -18,6 +18,21 @@ package com.android.tools.idea.stats;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
+/**
+ * {@link UsageUploader} provides the APIs to upload analytics events. Currently, there are two possible destinations: GA and Dremel.
+ * In almost all cases, data should go only to GA.
+ *
+ * Note: Do not use this API directly in client code. Use the API as provided by {@link UsageTracker}.
+ */
 public interface UsageUploader {
+  /** Tracks an event as defined by GA. The various parameters match the values that can be provided to a GA Event Hit. */
   void trackEvent(@NotNull String eventCategory, @NotNull String eventAction, @Nullable String eventLabel, @Nullable Integer eventValue);
+
+  /**
+   * Track a set of key-value pairs. This is reported only to tools.google.com.
+   * The parameters will be escaped using {@link java.net.URLEncoder#encode(String, String)}.
+   */
+  void trackEvent(@NotNull String categoryId, @NotNull Map<String, String> parameters);
 }
