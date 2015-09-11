@@ -26,8 +26,8 @@ import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
-import com.android.tools.idea.welcome.wizard.InstallComponentsPath;
 import com.android.tools.idea.welcome.wizard.ConsolidatedProgressStep;
+import com.android.tools.idea.welcome.wizard.InstallComponentsPath;
 import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
@@ -307,9 +307,10 @@ public class SdkUpdaterConfigPanel {
     if (data != null) {
       sdkLocation = data.getLocation();
     }
-    WizardUtils.ValidationResult result = WizardUtils.validateLocation(sdkLocation.getAbsolutePath(), "Android SDK Location", false);
-    myTabPane.setEnabled(result.isOk());
-    myPlatformComponentsPanel.setEnabled(result.isOk());
+    WizardUtils.ValidationResult result =
+      WizardUtils.validateLocation(sdkLocation != null ? sdkLocation.getAbsolutePath() : null, "Android SDK Location", false);
+    myTabPane.setEnabled(!result.isError());
+    myPlatformComponentsPanel.setEnabled(!result.isError());
     mySdkLocationLabel.setForeground(result.isOk() ? JBColor.foreground() : JBColor.RED);
     mySdkErrorLabel.setVisible(!result.isOk());
     if (!result.isOk()) {
