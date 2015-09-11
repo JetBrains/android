@@ -54,9 +54,9 @@ public class QualifierUtils {
     .build();
 
   /**
-   * Returns one enum value that it's not present in the passed set or null if all the values are contained in the set.
+   * @return one enum value that it's not present in the passed set
    */
-  @Nullable
+  @Nullable("if all the values are contained in the set")
   static <T extends Enum<T>> T findIncompatibleEnumValue(EnumSet<T> currentValues) {
     EnumSet<T> complement = EnumSet.complementOf(currentValues);
 
@@ -257,10 +257,8 @@ public class QualifierUtils {
   /**
    * Returns a restricted version of the passed configuration. The value returned will be incompatible with any other configuration in the
    * item. This configuration can be used when we want to make sure that the configuration selected will be displayed.
-   * <p/>
-   * This method can return null if there is no configuration that matches the constraints.
    */
-  @Nullable
+  @Nullable("if there is no configuration that matches the constraints")
   public static <T> FolderConfiguration restrictConfiguration(@NotNull ConfigurationManager manager,
                                                               @NotNull ConfiguredElement<T> selectedItems,
                                                               Collection<ConfiguredElement<T>> allItems) {

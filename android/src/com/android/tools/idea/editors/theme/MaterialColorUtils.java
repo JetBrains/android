@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.annotations.Nullable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.awt.Color;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+import java.util.List;
 
 public class MaterialColorUtils {
 
@@ -219,9 +220,8 @@ public class MaterialColorUtils {
 
   /**
    * Returns the material name for a given color
-   * Returns null if the color is not material
    */
-  @Nullable
+  @Nullable("if the color is not material")
   public static String getMaterialName(@NotNull Color color) {
     return MATERIAL_NAMES_MAP.get(color);
   }

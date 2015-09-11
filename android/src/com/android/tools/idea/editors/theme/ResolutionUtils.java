@@ -74,8 +74,6 @@ public class ResolutionUtils {
     return url == null ? item.getRawXmlValue() : url.toString();
   }
 
-
-
   @Nullable
   private static StyleResourceValue getStyleResourceValue(@NotNull ResourceResolver resolver, @NotNull String qualifiedStyleName) {
     String styleName;
