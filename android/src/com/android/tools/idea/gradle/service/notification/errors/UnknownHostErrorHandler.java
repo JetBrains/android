@@ -34,7 +34,7 @@ public class UnknownHostErrorHandler extends AbstractSyncErrorHandler {
 
   @VisibleForTesting
   static final String GRADLE_PROXY_ACCESS_DOCS_URL =
-    "http://gradle.org/docs/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy";
+    "https://docs.gradle.org/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy";
 
   @Override
   public boolean handleError(@NotNull List<String> message,
