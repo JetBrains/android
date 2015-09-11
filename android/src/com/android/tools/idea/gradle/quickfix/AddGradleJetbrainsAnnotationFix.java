@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.quickfix;
 
-import com.intellij.codeInsight.daemon.QuickFixBundle;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -40,7 +39,7 @@ public class AddGradleJetbrainsAnnotationFix extends AbstractGradleDependencyFix
   @Override
   @NotNull
   public String getText() {
-    return QuickFixBundle.message("orderEntry.fix.add.annotations.jar.to.classpath");
+    return "Add library 'org.jetbrains:annotations:13.0' to classpath";
   }
 
   @Override
