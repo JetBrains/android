@@ -103,6 +103,10 @@ public abstract class UsageTracker {
     return ServiceManager.getService(UsageTracker.class);
   }
 
+  public boolean canTrack() {
+    return AndroidStudioInitializer.isAndroidStudio() && StatisticsUploadAssistant.isSendAllowed();
+  }
+
   /**
    * When tracking events, do NOT include any information that can identify the user
    */
@@ -111,7 +115,8 @@ public abstract class UsageTracker {
                                   @Nullable String eventLabel,
                                   @Nullable Integer eventValue);
 
-  public boolean canTrack() {
-    return AndroidStudioInitializer.isAndroidStudio() && StatisticsUploadAssistant.isSendAllowed();
-  }
+  /**
+   * Track the count of external dependencies (# of jars and # of aars per project). The application Id will be anonymized before upload.
+   */
+  public abstract void trackLibraryCount(@NotNull String applicationId, int jarDependencyCount, int aarDependencyCount);
 }

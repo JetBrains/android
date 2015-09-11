@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.stats;
 
-import com.android.tools.idea.startup.AndroidStudioInitializer;
-import com.intellij.internal.statistic.StatisticsUploadAssistant;
-import com.intellij.openapi.application.ApplicationManager;
+import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.hash.Hashing;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class UsageTrackerAnalyticsImpl extends UsageTracker {
   private static final ExtensionPointName<UsageUploader> EP_NAME = ExtensionPointName.create("com.android.tools.idea.stats.tracker");
+
+  private static final String GLOGS_CATEGORY_LIBCOUNT = "gradlelibs";
 
   private final UsageUploader myUploader;
 
@@ -32,18 +34,35 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
     myUploader = uploaders.length > 0 ? uploaders[0] : null;
   }
 
+  private boolean trackingEnabled() {
+    return myUploader != null && canTrack();
+  }
+
   @Override
   public void trackEvent(@NotNull String eventCategory,
                          @NotNull String eventAction,
                          @Nullable String eventLabel,
                          @Nullable Integer eventValue) {
-    if (ApplicationManager.getApplication().isUnitTestMode()
-      || !AndroidStudioInitializer.isAndroidStudio()
-      || !StatisticsUploadAssistant.isSendAllowed()
-      || myUploader == null) {
+    if (!trackingEnabled()) {
       return;
     }
 
     myUploader.trackEvent(eventCategory, eventAction, eventLabel, eventValue);
+  }
+
+  @Override
+  public void trackLibraryCount(@NotNull String applicationId, int jarDependencyCount, int aarDependencyCount) {
+    if (!trackingEnabled()) {
+      return;
+    }
+
+    // @formatter:off
+    String anonymizedId = Hashing.md5().hashString(applicationId, Charsets.UTF_8).toString();
+    myUploader.trackEvent(GLOGS_CATEGORY_LIBCOUNT,
+                          ImmutableMap.of(
+                            "appId", anonymizedId,
+                            "jars", Integer.toString(jarDependencyCount),
+                            "aars", Integer.toString(aarDependencyCount)));
+    // @formatter:on
   }
 }
