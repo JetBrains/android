@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.parser.java.JavaProjectElementParser;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -25,16 +24,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementVisitor;
-import org.jetbrains.plugins.groovy.lang.psi.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import java.util.List;
@@ -45,12 +41,13 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 public class GradleBuildModel implements GradleDslElement {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
-  @NotNull private final List<DependenciesElement> myDependenciesBlocks = Lists.newArrayList();
+  @NotNull private final DependenciesModel myDependenciesModel = new DependenciesModel();
+
   @NotNull private final Map<String, ExtPropertyElement> myExtraProperties = Maps.newLinkedHashMap();
 
   // TODO Get the parsers from an extension point.
   private final GradleDslElementParser[] myParsers = {
-    new ExtPropertyElementParser(), new DependenciesElementParser(), new JavaProjectElementParser()
+    new ExtPropertyElementParser(), new JavaProjectElementParser()
   };
 
   /**
@@ -84,7 +81,6 @@ public class GradleBuildModel implements GradleDslElement {
    */
   public void reparse() {
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    reset();
     PsiFile psiFile = PsiManager.getInstance(myProject).findFile(myFile);
     if (psiFile instanceof GroovyFile) {
       myPsiFile = (GroovyFile)psiFile;
@@ -92,10 +88,14 @@ public class GradleBuildModel implements GradleDslElement {
       myPsiFile = null;
       return;
     }
+    reset(myPsiFile);
 
     myPsiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
       @Override
       public void visitMethodCallExpression(GrMethodCallExpression e) {
+        if (myDependenciesModel.parse(e)) {
+          return;
+        }
         process(e);
       }
 
@@ -115,55 +115,14 @@ public class GradleBuildModel implements GradleDslElement {
     }));
   }
 
-  private void reset() {
-    myDependenciesBlocks.clear();
+  private void reset(@Nullable PsiFile psiFile) {
+    myDependenciesModel.reset(psiFile);
     myExtendedDslElements.clear();
   }
 
-  void add(@NotNull DependenciesElement dependencies) {
-    myDependenciesBlocks.add(dependencies);
-  }
-
   @NotNull
-  public ImmutableList<DependenciesElement> getDependenciesBlocks() {
-    return ImmutableList.copyOf(myDependenciesBlocks);
-  }
-
-  /**
-   * Adds a new external dependency to the build.gradle file. If there are more than one "dependencies" block, this method will add the new
-   * dependency to the first one. If the build.gradle file does not have a "dependencies" block, this method will create one.
-   * <p>
-   * Check that {@link #hasPsiFile()} returns {@code true} before invoking this method.
-   * </p>
-   * <p>
-   * Please note the new dependency will <b>not</b> be included in
-   * {@link DependenciesElement#getExternalDependencies()} (obtained through {@link #getDependenciesBlocks()}, unless you invoke
-   * {@link GradleBuildModel#reparse()}.
-   * </p>
-   *
-   * @param configurationName the name of the configuration (e.g. "compile", "compileTest", "runtime", etc.)
-   * @param compactNotation the dependency in "compact" notation: "group:name:version:classifier@extension".
-   * @throws AssertionError if this method is invoked and this {@code GradleBuildModel} does not have a {@link PsiFile}.
-   */
-  public void addExternalDependency(@NotNull String configurationName, @NotNull String compactNotation) {
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
-    assert myPsiFile != null;
-    if (myDependenciesBlocks.isEmpty()) {
-      // There are no dependency blocks. Add one.
-      GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(myProject);
-
-      // We need to add line separators, otherwise reformatting won't work.
-      String lineSeparator = SystemProperties.getLineSeparator();
-      String text = "dependencies {" + lineSeparator + configurationName + " '" + compactNotation + "'" + lineSeparator +  "}";
-      GrExpression expression = factory.createExpressionFromText(text);
-
-      myPsiFile.add(expression);
-      CodeStyleManager.getInstance(myProject).reformat(expression);
-    }
-    else {
-      DependenciesElement dependenciesBlock = myDependenciesBlocks.get(0);
-      dependenciesBlock.addExternalDependency(configurationName, compactNotation);
-    }
+  public DependenciesModel getDependenciesModel() {
+    return myDependenciesModel;
   }
 
   public void addExtProperty(@NotNull ExtPropertyElement extProperty) {
