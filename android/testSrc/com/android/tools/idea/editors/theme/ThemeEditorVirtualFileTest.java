@@ -17,17 +17,21 @@ package com.android.tools.idea.editors.theme;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.project.impl.ProjectManagerImpl;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
+
+import java.io.IOException;
 
 public class ThemeEditorVirtualFileTest extends AndroidTestCase {
   /**
    * Tests that the theme editor works with the right virtual file
    * when there are several projects with the same name open.
    */
-  public void testRightProject() {
+  public void testRightProject() throws IOException {
     ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-    Project otherProject = projectManager.newProject(getProject().getName(), "", true, true);
+    Project otherProject = projectManager.newProject(getProject().getName(), FileUtilRt.generateRandomTemporaryPath().getPath(), true, true);
     try {
       assertNotNull(otherProject);
       projectManager.openProject(otherProject);
@@ -39,7 +43,7 @@ public class ThemeEditorVirtualFileTest extends AndroidTestCase {
     }
     finally {
       if (otherProject != null) {
-        projectManager.closeAndDispose(otherProject);
+        ((ProjectManagerImpl)projectManager).closeProject(otherProject, false, true, false);
       }
     }
   }

@@ -55,8 +55,12 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
 
   @Override
   public void tearDown() throws Exception {
-    myWizard.close(DialogWrapper.OK_EXIT_CODE);
-    super.tearDown();
+    try {
+      myWizard.close(DialogWrapper.OK_EXIT_CODE);
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testInit() throws Exception {
