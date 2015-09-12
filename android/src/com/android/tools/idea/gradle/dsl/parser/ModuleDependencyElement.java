@@ -37,14 +37,14 @@ import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
  * <pre> configurationName project("gradlePath") </pre> and
  * <pre> configurationName project(path: "gradlePath", configuration: "configuration") </pre>
  */
-public class ProjectDependencyElement implements DependencyElement {
+public class ModuleDependencyElement implements DependencyElement {
   @NotNull String myConfigurationName;
-  @NotNull GrLiteralContainer myGradlePathElement;
+  @NotNull GrLiteralContainer myPathElement;
   /**
    * Not null if the dependency uses map notation and configuration argument is specified. e.g.
    * compile project(path: "gradlePath", configuration: "configuration")
    */
-  @Nullable GrLiteralContainer myTargetConfigurationElement;
+  @Nullable GrLiteralContainer myConfigurationElement;
 
   /**
    * Creates project dependency from the literal form:
@@ -53,12 +53,11 @@ public class ProjectDependencyElement implements DependencyElement {
    * </pre>
    */
   @Nullable
-  public static ProjectDependencyElement withCompactNotation(@NotNull String configurationName,
-                                                             @NotNull GrLiteralContainer projectNamePsiElement) {
-    if (projectNamePsiElement.getValue() == null) {
+  public static ModuleDependencyElement withCompactNotation(@NotNull String configurationName, @NotNull GrLiteralContainer pathElement) {
+    if (pathElement.getValue() == null) {
       return null;
     }
-    return new ProjectDependencyElement(configurationName, projectNamePsiElement, null);
+    return new ModuleDependencyElement(configurationName, pathElement, null);
   }
 
   /**
@@ -69,13 +68,12 @@ public class ProjectDependencyElement implements DependencyElement {
    * </pre>
    */
   @Nullable
-  public static ProjectDependencyElement withMapNotation(@NotNull String configurationName, @NotNull GrArgumentList argumentList) {
-    GrLiteral projectNamePsiElement = findNamedArgumentLiteralValue(argumentList, "path");
-    if (projectNamePsiElement == null || projectNamePsiElement.getValue() == null) {
+  public static ModuleDependencyElement withMapNotation(@NotNull String configurationName, @NotNull GrArgumentList argumentList) {
+    GrLiteral pathPsiElement = findNamedArgumentLiteralValue(argumentList, "path");
+    if (pathPsiElement == null || pathPsiElement.getValue() == null) {
       return null;
     }
-    return new ProjectDependencyElement(configurationName, projectNamePsiElement,
-                                        findNamedArgumentLiteralValue(argumentList, "configuration"));
+    return new ModuleDependencyElement(configurationName, pathPsiElement, findNamedArgumentLiteralValue(argumentList, "configuration"));
   }
 
   @Nullable
@@ -90,12 +88,12 @@ public class ProjectDependencyElement implements DependencyElement {
     return null;
   }
 
-  private ProjectDependencyElement(@NotNull String configurationName,
-                                   @NotNull GrLiteralContainer projectNamePsiElement,
-                                   @Nullable GrLiteralContainer targetConfigurationElement) {
+  private ModuleDependencyElement(@NotNull String configurationName,
+                                  @NotNull GrLiteralContainer pathElement,
+                                  @Nullable GrLiteralContainer configurationElement) {
     myConfigurationName = configurationName;
-    myGradlePathElement = projectNamePsiElement;
-    myTargetConfigurationElement = targetConfigurationElement;
+    myPathElement = pathElement;
+    myConfigurationElement = configurationElement;
   }
 
   @NotNull
@@ -105,7 +103,7 @@ public class ProjectDependencyElement implements DependencyElement {
 
   @NotNull
   public String getPath() {
-    Object literalValue = myGradlePathElement.getValue();
+    Object literalValue = myPathElement.getValue();
     assert literalValue != null;
     return literalValue.toString();
   }
@@ -119,10 +117,10 @@ public class ProjectDependencyElement implements DependencyElement {
 
   @Nullable
   public String getTargetConfiguration() {
-    if (myTargetConfigurationElement == null) {
+    if (myConfigurationElement == null) {
       return null;
     }
-    Object value = myTargetConfigurationElement.getValue();
+    Object value = myConfigurationElement.getValue();
     return value != null ? value.toString() : null;
   }
 
@@ -141,13 +139,13 @@ public class ProjectDependencyElement implements DependencyElement {
       modifiableSegments.set(segmentCount - 1, newName);
       newPath = Joiner.on(GRADLE_PATH_SEPARATOR).join(modifiableSegments);
     }
-    String currentText = myGradlePathElement.getText();
+    String currentText = myPathElement.getText();
     char quote = '\'';
     if (isQuotedString(currentText)) {
       // Use same quote as the original text.
       quote = currentText.charAt(0);
     }
     newPath = quote + newPath + quote;
-    myGradlePathElement = myGradlePathElement.updateText(newPath);
+    myPathElement = myPathElement.updateText(newPath);
   }
 }

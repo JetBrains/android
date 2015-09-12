@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.parser.DependenciesElement;
-import com.android.tools.idea.gradle.dsl.parser.ProjectDependencyElement;
-import com.android.tools.idea.gradle.dsl.parser.ProjectDependencyElementTest.ExpectedProjectDependency;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyElement;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyElementTest.ExpectedProjectDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -38,7 +37,7 @@ import static org.junit.Assert.assertNotNull;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
-public class GradleDslProjectDependenciesParsingTest extends GuiTestCase {
+public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testParsingProjectDependencies() throws IOException {
@@ -46,11 +45,7 @@ public class GradleDslProjectDependenciesParsingTest extends GuiTestCase {
 
     GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getTarget().getDependenciesBlocks();
-    assertThat(dependenciesBlocks).hasSize(1);
-
-    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependencies();
+    List<ModuleDependencyElement> dependencies = buildModel.getTarget().getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(4);
 
     ExpectedProjectDependency expected = new ExpectedProjectDependency();
@@ -85,11 +80,9 @@ public class GradleDslProjectDependenciesParsingTest extends GuiTestCase {
 
     final GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getTarget().getDependenciesBlocks();
-    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ProjectDependencyElement> dependencies = dependenciesBlock.getProjectDependencies();
+    List<ModuleDependencyElement> dependencies = buildModel.getTarget().getDependenciesModel().getModuleDependencies();
 
-    final ProjectDependencyElement dependency = dependencies.get(0);
+    final ModuleDependencyElement dependency = dependencies.get(0);
     assertNotNull(dependency);
 
     execute(new GuiTask() {
@@ -101,15 +94,10 @@ public class GradleDslProjectDependenciesParsingTest extends GuiTestCase {
             dependency.setName("renamed");
           }
         });
-        buildModel.getTarget().reparse();
       }
     });
 
-    dependenciesBlocks = buildModel.getTarget().getDependenciesBlocks();
-    assertThat(dependenciesBlocks).hasSize(1);
-
-    dependenciesBlock = dependenciesBlocks.get(0);
-    dependencies = dependenciesBlock.getProjectDependencies();
+    dependencies = buildModel.getTarget().getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(4);
 
     ExpectedProjectDependency expected = new ExpectedProjectDependency();

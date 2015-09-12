@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
-import com.android.tools.idea.gradle.dsl.parser.DependenciesElement;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.parser.ProjectDependencyElement;
-import com.android.tools.idea.gradle.dsl.parser.ProjectDependencyElementTest.ExpectedProjectDependency;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyElement;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyElementTest.ExpectedProjectDependency;
 import org.jetbrains.annotations.NotNull;
 
 import static junit.framework.Assert.fail;
@@ -36,11 +35,9 @@ public class GradleBuildModelFixture {
   }
 
   public void requireDependency(@NotNull ExpectedProjectDependency expected) {
-    for (DependenciesElement dependenciesElement : myTarget.getDependenciesBlocks()) {
-      for (ProjectDependencyElement element : dependenciesElement.getProjectDependencies()) {
-        if (expected.path.equals(element.getPath()) && (expected.configurationName.equals(element.getConfigurationName()))) {
-          return;
-        }
+    for (ModuleDependencyElement element : myTarget.getDependenciesModel().getModuleDependencies()) {
+      if (expected.path.equals(element.getPath()) && (expected.configurationName.equals(element.getConfigurationName()))) {
+        return;
       }
     }
     fail("Failed to find dependency '" + expected.path + "'");

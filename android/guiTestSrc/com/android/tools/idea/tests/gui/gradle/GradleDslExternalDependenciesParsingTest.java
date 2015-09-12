@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.parser.DependenciesElement;
 import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyElement;
 import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyElementTest.ExpectedExternalDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
@@ -44,11 +43,7 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
 
     GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getTarget().getDependenciesBlocks();
-    assertThat(dependenciesBlocks).hasSize(1);
-
-    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependencies();
+    List<ExternalDependencyElement> dependencies = buildModel.getTarget().getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -72,11 +67,7 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
     final IdeFrameFixture projectFrame = importSimpleApplication();
     final GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
 
-    List<DependenciesElement> dependenciesBlocks = buildModel.getTarget().getDependenciesBlocks();
-    assertThat(dependenciesBlocks).hasSize(1);
-    DependenciesElement dependenciesBlock = dependenciesBlocks.get(0);
-
-    List<ExternalDependencyElement> dependencies = dependenciesBlock.getExternalDependencies();
+    List<ExternalDependencyElement> dependencies = buildModel.getTarget().getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
     final ExternalDependencyElement appCompat = dependencies.get(0);
@@ -99,15 +90,10 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
             appCompat.setVersion("1.2.3");
           }
         });
-        buildModel.getTarget().reparse();
       }
     });
 
-    dependenciesBlocks = buildModel.getTarget().getDependenciesBlocks();
-    assertThat(dependenciesBlocks).hasSize(1);
-    dependenciesBlock = dependenciesBlocks.get(0);
-
-    dependencies = dependenciesBlock.getExternalDependencies();
+    dependencies = buildModel.getTarget().getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
     expected.configurationName = "compile";
