@@ -240,15 +240,19 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   @Override
   public void tearDown() throws Exception {
-    myModule = null;
-    myAdditionalModules = null;
-    myFixture.tearDown();
-    myFixture = null;
-    myFacet = null;
-    if (RenderSecurityManager.RESTRICT_READS) {
-      RenderSecurityManager.sEnabled = true;
+    try {
+      myModule = null;
+      myAdditionalModules = null;
+      myFixture.tearDown();
+      myFixture = null;
+      myFacet = null;
+      if (RenderSecurityManager.RESTRICT_READS) {
+        RenderSecurityManager.sEnabled = true;
+      }
     }
-    super.tearDown();
+    finally {
+      super.tearDown();
+    }
   }
 
   public static AndroidFacet addAndroidFacet(Module module, String sdkPath, String platformDir) {
