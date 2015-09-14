@@ -271,9 +271,11 @@ public final class RecipeContext {
         public void process(@NotNull String xml) throws TemplateProcessingException {
           try {
             xml = XmlUtils.stripBom(xml);
-
             Recipe recipe = Recipe.parse(new StringReader(xml));
-            recipe.execute(RecipeContext.this);
+
+            // Create a new context such that we do not cause an additional Gradle sync:
+            RecipeContext context = new RecipeContext(myProject, myLoader, myFreemarker, myParamMap, myOutputRoot, myModuleRoot, false);
+            recipe.execute(context);
           }
           catch (JAXBException ex) {
             throw new TemplateProcessingException(ex);
