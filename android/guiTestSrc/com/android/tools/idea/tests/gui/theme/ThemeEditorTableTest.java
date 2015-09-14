@@ -73,9 +73,9 @@ public class ThemeEditorTableTest extends GuiTestCase {
     assertNotNull(parentsList);
     assertThat(parentsList)
       .hasSize(6)
-      .contains("Theme.Holo.Light.DarkActionBar", Index.atIndex(0))
-      .contains("Theme.AppCompat.Light.NoActionBar", Index.atIndex(2))
-      .contains("Theme.AppCompat.NoActionBar", Index.atIndex(3))
+      .contains("@android:style/Theme.Holo.Light.DarkActionBar", Index.atIndex(0))
+      .contains("@style/Theme.AppCompat.Light.NoActionBar", Index.atIndex(2))
+      .contains("@style/Theme.AppCompat.NoActionBar", Index.atIndex(3))
       .contains("Show all themes", Index.atIndex(5));
 
     assertThat(parentsList.get(1)).startsWith("javax.swing.JSeparator");
@@ -90,17 +90,17 @@ public class ThemeEditorTableTest extends GuiTestCase {
     assertTrue(parentEditor instanceof JComponent);
     JComboBoxFixture parentComboBox = new JComboBoxFixture(myRobot, myRobot.finder().findByType((JComponent)parentEditor, JComboBox.class));
     parentComboBox.selectItem(4);
-    assertEquals("Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
+    assertEquals("@android:style/Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     // Selects a new parent
-    final String newParent = "Theme.AppCompat.NoActionBar";
+    final String newParent = "@style/Theme.AppCompat.NoActionBar";
     parentCellFixture.click();
 
     parentComboBox.selectItem(newParent);
     assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
-    assertEquals("Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
+    assertEquals("@android:style/Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     projectFrame.invokeMenuPathRegex("Edit", "Redo.*");
     assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));

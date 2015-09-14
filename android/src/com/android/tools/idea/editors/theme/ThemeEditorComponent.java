@@ -59,6 +59,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.PanelUI;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -77,6 +78,7 @@ public class ThemeEditorComponent extends Splitter {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
 
   private static final JBColor PREVIEW_BACKGROUND = new JBColor(new Color(0xFAFAFA), new Color(0x343739));
+  private static final DefaultTableModel EMPTY_TABLE_MODEL = new DefaultTableModel();
 
   private static final ImmutableMap<String, Integer> SORTING_MAP =
     ImmutableMap.<String, Integer>builder()
@@ -275,11 +277,10 @@ public class ThemeEditorComponent extends Splitter {
     myPanel.getThemeCombo().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        Object selectedItem = myPanel.getThemeCombo().getSelectedItem();
-        if (selectedItem instanceof ThemeEditorStyle) {
-          final ThemeEditorStyle theme = (ThemeEditorStyle)selectedItem;
-
-          myThemeName = theme.getQualifiedName();
+        String selectedItem = (String)myPanel.getThemeCombo().getSelectedItem();
+        if (!ThemesListModel.isSpecialOption(selectedItem)) {
+          myThemeName = selectedItem;
+          myHoverPreviewTheme = null;
           mySubStyleName = null;
           mySubStyleSourceAttribute = null;
 
@@ -287,7 +288,7 @@ public class ThemeEditorComponent extends Splitter {
         }
         else {
           // Keep current theme name in combo box
-          myPanel.setSelectedTheme(getSelectedTheme());
+          myPanel.setSelectedTheme(myThemeName);
 
           if (ThemesListModel.CREATE_NEW_THEME.equals(selectedItem)) {
             createNewTheme();
@@ -571,7 +572,7 @@ public class ThemeEditorComponent extends Splitter {
       loadStyleAttributes();
     }
     else {
-      myPanel.setSelectedTheme(parent);
+      myPanel.setSelectedTheme(parent.getQualifiedName());
     }
   }
 
@@ -741,11 +742,10 @@ public class ThemeEditorComponent extends Splitter {
     mySubStyleSourceAttribute = null;
 
     final ThemeResolver themeResolver = myThemeEditorContext.getThemeResolver();
-    final ThemeEditorStyle defaultTheme = defaultThemeName == null ? null : themeResolver.getTheme(defaultThemeName);
     myPanel.getThemeCombo().setModel(
-      new ThemesListModel(myThemeEditorContext, ThemeEditorUtils.getDefaultThemes(themeResolver), defaultTheme));
-    myThemeName = (myPanel.getSelectedTheme() == null) ? null : myPanel.getSelectedTheme().getQualifiedName();
-    mySubStyleName = (StringUtil.equals(myThemeName,defaultThemeName)) ? defaultSubStyleName : null;
+      new ThemesListModel(myThemeEditorContext, ThemeEditorUtils.getDefaultThemeNames(themeResolver), defaultThemeName));
+    myThemeName = (String)myPanel.getThemeCombo().getSelectedItem();
+    mySubStyleName = (StringUtil.equals(myThemeName, defaultThemeName)) ? defaultSubStyleName : null;
     loadStyleAttributes();
   }
 
@@ -761,8 +761,11 @@ public class ThemeEditorComponent extends Splitter {
       selectedStyle = getCurrentSubStyle();
     }
 
+    myAttributesTable.setRowSorter(null); // Clean any previous row sorters.
+
     if (selectedTheme == null) {
       myPreviewPanel.setError(myThemeName);
+      myAttributesTable.setModel(EMPTY_TABLE_MODEL);
       return;
     }
 
@@ -784,7 +787,6 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    myAttributesTable.setRowSorter(null); // Clean any previous row sorters.
     myAttributesSorter = new TableRowSorter<AttributesTableModel>(myModel);
     // This is only used when the sort keys are set (only set in simple mode).
     myAttributesSorter.setComparator(0, SIMPLE_MODE_COMPARATOR);

@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 import com.android.SdkConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.ThemesListModel;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -47,21 +48,31 @@ public class StyleListCellRenderer extends ColoredListCellRenderer {
     if (value instanceof JSeparator){
       return (JSeparator)value;
     }
+
     return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
   }
 
   @Override
   protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-    if (value instanceof String) {
-      append((String)value, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+    if (!(value instanceof String)) {
       return;
     }
 
-    if (!(value instanceof  ThemeEditorStyle)) {
+    String stringValue = (String)value;
+
+    if (ThemesListModel.isSpecialOption(stringValue)) {
+      append(stringValue, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
       return;
     }
 
-    ThemeEditorStyle style = (ThemeEditorStyle)value;
+    ThemeEditorStyle style = myContext.getThemeResolver().getTheme(stringValue);
+    if (style == null) {
+      String simpleName = StringUtil.substringAfter(stringValue, "/");
+      assert simpleName != null;
+      append(simpleName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+      return;
+    }
+
     ThemeEditorStyle parent = style.getParent();
     String styleName = style.getName();
     String parentName = parent != null ? parent.getName() : null;

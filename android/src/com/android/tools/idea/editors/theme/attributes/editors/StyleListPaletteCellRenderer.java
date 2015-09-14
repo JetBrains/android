@@ -20,6 +20,8 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.ThemeResolver;
+import com.android.tools.idea.editors.theme.ThemesListModel;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.ResourceHelper;
 import org.jetbrains.annotations.NotNull;
@@ -54,12 +56,19 @@ public class StyleListPaletteCellRenderer extends StyleListCellRenderer {
   protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
     super.customizeCellRenderer(list, value, index, selected, hasFocus);
 
-    if (!(value instanceof ThemeEditorStyle)) {
+    if (!(value instanceof String) || ThemesListModel.isSpecialOption((String)value)) {
       myColorPaletteComponent.reset();
       return;
     }
 
-    final ThemeEditorStyle theme = (ThemeEditorStyle)value;
+    ThemeResolver themeResolver = myContext.getThemeResolver();
+    final ThemeEditorStyle theme = themeResolver.getTheme((String)value);
+    if (theme == null) {
+      myColorPaletteComponent.reset();
+      setIcon(null);
+      return;
+    }
+
     final boolean isFrameworkAttr = !ThemeEditorUtils.isAppCompatTheme(theme);
 
     ItemResourceValue primaryResourceValue = ThemeEditorUtils.resolveItemFromParents(theme, PRIMARY_MATERIAL, isFrameworkAttr);
@@ -80,13 +89,15 @@ public class StyleListPaletteCellRenderer extends StyleListCellRenderer {
       if (primaryColor != null && primaryDarkColor != null && accentColor != null) {
         myColorPaletteComponent.setValues(primaryColor, primaryDarkColor, accentColor);
       }
-    }else{
+      setIcon(myColorPaletteComponent);
+    }
+    else{
       myColorPaletteComponent.reset();
+      setIcon(null);
     }
 
     if (selected) {
       myItemHoverListener.itemHovered(theme.getQualifiedName());
     }
-    setIcon(myColorPaletteComponent);
   }
 }
