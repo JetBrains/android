@@ -79,9 +79,9 @@ public class ThemeEditorTest extends GuiTestCase {
     // 7. Rename AppTheme
     assertThat(themeList)
       .hasSize(8)
-      .contains("[AppTheme]", Index.atIndex(0))
-      .contains("Theme.AppCompat.Light.NoActionBar", Index.atIndex(2))
-      .contains("Theme.AppCompat.NoActionBar", Index.atIndex(3))
+      .contains("@style/AppTheme", Index.atIndex(0))
+      .contains("@style/Theme.AppCompat.Light.NoActionBar", Index.atIndex(2))
+      .contains("@style/Theme.AppCompat.NoActionBar", Index.atIndex(3))
       .contains("Show all themes", Index.atIndex(4))
       .contains("Create New Theme", Index.atIndex(6))
       .contains("Rename AppTheme", Index.atIndex(7));

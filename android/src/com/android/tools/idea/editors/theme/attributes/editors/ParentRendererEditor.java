@@ -206,8 +206,8 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
       myItem = null;
     }
     else {
-      ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(myContext.getThemeResolver());
-      myParentComboBox.setModel(new ParentThemesListModel(defaultThemes, parent));
+      ImmutableList<String> defaultThemeNames = ThemeEditorUtils.getDefaultThemeNames(myContext.getThemeResolver());
+      myParentComboBox.setModel(new ParentThemesListModel(defaultThemeNames, parent.getQualifiedName()));
       myItem = (ThemeEditorStyle)value;
     }
     updateVariantsCombo();
@@ -218,8 +218,8 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
   @Override
   public Component getEditorComponent(JTable table, ThemeEditorStyle value, boolean isSelected, int row, int column) {
     ThemeEditorStyle parent = value.getParent();
-    ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(myContext.getThemeResolver());
-    myParentComboBox.setModel(new ParentThemesListModel(defaultThemes, parent));
+    ImmutableList<String> defaultThemeNames = ThemeEditorUtils.getDefaultThemeNames(myContext.getThemeResolver());
+    myParentComboBox.setModel(new ParentThemesListModel(defaultThemeNames, parent.getQualifiedName()));
     myResultValue = parent.getQualifiedName();
     myItem = value;
     updateVariantsCombo();
@@ -235,7 +235,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      Object selectedValue = myParentComboBox.getSelectedItem();
+      String selectedValue = (String)myParentComboBox.getSelectedItem();
       if (ParentThemesListModel.SHOW_ALL_THEMES.equals(selectedValue)) {
         myParentComboBox.hidePopup();
         final ThemeSelectionDialog dialog =
@@ -254,9 +254,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
         }
       }
       else {
-        if (selectedValue instanceof ThemeEditorStyle){
-          myResultValue = ((ThemeEditorStyle)selectedValue).getQualifiedName();
-        }
+        myResultValue = selectedValue;
         stopCellEditing();
       }
     }
