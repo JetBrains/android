@@ -25,6 +25,8 @@ import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,17 +41,20 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.DetailsComponent;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.navigation.History;
+import com.intellij.ui.navigation.Place;
 import com.intellij.util.Function;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,8 +62,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -66,6 +70,7 @@ import java.util.List;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.android.tools.idea.sdk.SdkState.DEFAULT_EXPIRATION_PERIOD_MS;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -76,15 +81,19 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 /**
  * Allows the user set global Android SDK and JDK locations that are used for Gradle-based Android projects.
  */
-public class DefaultSdksConfigurable extends BaseConfigurable {
+public class DefaultSdksConfigurable extends BaseConfigurable implements Place.Navigator {
+  @NonNls private static final String SDKS_PLACE = "sdksPlace";
+
   private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR = "Please choose a valid JDK directory.";
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
   private static final String CHOOSE_VALID_NDK_DIRECTORY_ERR = "Please choose a valid Android NDK directory.";
 
   private static final Logger LOG = Logger.getInstance(DefaultSdksConfigurable.class);
 
-  @Nullable private final AndroidProjectStructureConfigurable myHost;
+  @Nullable private final BaseConfigurable myHost;
   @Nullable private final Project myProject;
+
+  @NotNull private final BiMap<String, Component> myComponentsById = HashBiMap.create();
 
   // These paths are system-dependent.
   private String myOriginalJdkHomePath;
@@ -98,11 +107,16 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   private TextFieldWithBrowseButton myJdkLocationTextField;
   private JPanel myWholePanel;
   private JPanel myNdkDownloadPanel;
+
+  @SuppressWarnings("unused")
   private AsyncProcessIcon myNdkCheckProcessIcon;
 
   private DetailsComponent myDetailsComponent;
+  private History myHistory;
 
-  public DefaultSdksConfigurable(@Nullable AndroidProjectStructureConfigurable host, @Nullable Project project) {
+  private String mySelectedComponentId;
+
+  public DefaultSdksConfigurable(@Nullable BaseConfigurable host, @Nullable Project project) {
     myHost = host;
     myProject = project;
     myWholePanel.setPreferredSize(JBUI.size(700, 500));
@@ -115,10 +129,14 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     if (myProject == null || myProject.isDefault()) {
       myNdkLocationTextField.setEnabled(false);
     }
+
+    showOrHideNdkQuickfixLink();
+
     final CardLayout layout = (CardLayout)myNdkDownloadPanel.getLayout();
     layout.show(myNdkDownloadPanel, "loading");
-    final SdkState sdkState = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
-    sdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, new SdkLoadedCallback(true) {
+
+    final SdkState sdkState = SdkState.getInstance(tryToChooseAndroidSdk());
+    sdkState.loadAsync(DEFAULT_EXPIRATION_PERIOD_MS, false, null, new SdkLoadedCallback(true) {
       @Override
       public void doRun(@NotNull SdkPackages packages) {
         if (!sdkState.getPackages().getRemotePkgInfos().get(PkgType.PKG_NDK).isEmpty()) {
@@ -134,6 +152,28 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
         myNdkDownloadPanel.setVisible(false);
       }
     }, false);
+
+    FocusListener historyUpdater = new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        if (myHistory != null) {
+          String id = myComponentsById.inverse().get(e.getComponent());
+          mySelectedComponentId = id;
+          if (id != null) {
+            myHistory.pushQueryPlace();
+          }
+        }
+      }
+    };
+
+    addHistoryUpdater("mySdkLocationTextField", mySdkLocationTextField.getTextField(), historyUpdater);
+    addHistoryUpdater("myJdkLocationTextField", myJdkLocationTextField.getTextField(), historyUpdater);
+    addHistoryUpdater("myNdkLocationTextField", myNdkLocationTextField.getTextField(), historyUpdater);
+  }
+
+  private void addHistoryUpdater(@NotNull String id, @NotNull Component c, @NotNull FocusListener historyUpdater) {
+    myComponentsById.put(id, c);
+    c.addFocusListener(historyUpdater);
   }
 
   @Override
@@ -223,8 +263,10 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       });
   }
 
-  private TextFieldWithBrowseButton createTextFieldWithBrowseButton(String title, final String errorMessagae, final Function<File,
-    ValidationResult> validation) {
+  @NotNull
+  private TextFieldWithBrowseButton createTextFieldWithBrowseButton(@NotNull String title,
+                                                                    @NotNull final String errorMessage,
+                                                                    @NotNull final Function<File, ValidationResult> validation) {
     final FileChooserDescriptor descriptor = createSingleFolderDescriptor(title, new Function<File, Void>() {
       @Override
       public Void fun(File file) {
@@ -232,7 +274,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
         if (!validationResult.success) {
           String msg = validationResult.message;
           if (isEmpty(msg)) {
-            msg = errorMessagae;
+            msg = errorMessage;
           }
           throw new IllegalArgumentException(msg);
         }
@@ -266,8 +308,9 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
         // known non-null since otherwise we won't show the link
-        //noinspection ConstantConditions
-        myNdkLocationTextField.setText(IdeSdks.getAndroidNdkPath().getPath());
+        File androidNdkPath = IdeSdks.getAndroidNdkPath();
+        assert androidNdkPath != null;
+        myNdkLocationTextField.setText(androidNdkPath.getPath());
       }
     });
   }
@@ -331,11 +374,11 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   }
 
   private void installValidationListener(@NotNull JTextField textField) {
-    if (myHost != null) {
+    if (myHost instanceof AndroidProjectStructureConfigurable) {
       textField.getDocument().addDocumentListener(new DocumentAdapter() {
         @Override
         protected void textChanged(DocumentEvent e) {
-          myHost.requestValidation();
+          ((AndroidProjectStructureConfigurable)myHost).requestValidation();
         }
       });
     }
@@ -556,7 +599,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     if (!myNdkLocationTextField.getText().isEmpty()) {
       ValidationResult validationResult = validateAndroidNdk(getNdkLocation(), false);
       if (!validationResult.success) {
-        showNdkQuickfixLink();
+        showOrHideNdkQuickfixLink();
         String msg = validationResult.message;
         if (isEmpty(msg)) {
           msg = CHOOSE_VALID_NDK_DIRECTORY_ERR;
@@ -565,18 +608,15 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       }
     }
     else if (myNdkLocationTextField.isVisible()) {
-      showNdkQuickfixLink();
+      showOrHideNdkQuickfixLink();
     }
     return null;
   }
 
-  private void showNdkQuickfixLink() {
-    if (IdeSdks.getAndroidNdkPath() == null) {
-      myNdkDownloadPanel.setVisible(true);
-    }
-    else {
-      myNdkResetHyperlinkLabel.setVisible(true);
-    }
+  private void showOrHideNdkQuickfixLink() {
+    boolean hasNdk = IdeSdks.getAndroidNdkPath() != null;
+    myNdkDownloadPanel.setVisible(!hasNdk);
+    myNdkResetHyperlinkLabel.setVisible(hasNdk);
   }
 
   private void hideNdkQuickfixLink() {
@@ -613,5 +653,29 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     boolean validJdk = !jdkPath.isEmpty() && JavaSdk.checkForJdk(new File(jdkPath));
     boolean validSdk = !sdkPath.isEmpty() && IdeSdks.isValidAndroidSdkPath(new File(sdkPath));
     return !validJdk || !validSdk;
+  }
+
+  @Override
+  public void setHistory(History history) {
+    myHistory = history;
+  }
+
+  @Override
+  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
+    if (place != null) {
+      Object path = place.getPath(SDKS_PLACE);
+      if (path instanceof String) {
+        Component c = myComponentsById.get(path);
+        if (c != null) {
+          c.requestFocusInWindow();
+        }
+      }
+    }
+    return ActionCallback.DONE;
+  }
+
+  @Override
+  public void queryPlace(@NotNull Place place) {
+    place.putPath(SDKS_PLACE, mySelectedComponentId);
   }
 }
