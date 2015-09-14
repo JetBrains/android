@@ -699,6 +699,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.messages.ProjectSyncMessages"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable"/>
+    <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.run.DeviceStateAtLaunchService" />
 
@@ -870,6 +871,10 @@
     <extensionPoint qualifiedName="com.android.run.deployTarget" interface="com.android.tools.idea.run.editor.DeployTarget" />
     <extensionPoint qualifiedName="com.android.run.deviceNameRenderer"
                     interface="com.android.tools.idea.ddms.DeviceNameRendererEx"/>
+    <extensionPoint qualifiedName="com.android.ide.projectStructureItemsContributor"
+                    interface="com.android.tools.idea.structure.dialog.ProjectStructureItemsContributor"/>
+    <extensionPoint qualifiedName="com.android.ide.moduleStructureConfigurableContributor"
+                    interface="com.android.tools.idea.structure.dialog.ModuleStructureConfigurableContributor"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
@@ -923,6 +928,7 @@
   <extensions defaultExtensionNs="com.android.ide">
     <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
     <developerServiceBuildSystemOperations implementation="com.android.tools.idea.gradle.structure.services.GradleOperations"/>
+    <moduleStructureConfigurableContributor implementation="com.android.tools.idea.gradle.structure.configurables.GradleModuleStructureConfigurableContributor"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.run">
