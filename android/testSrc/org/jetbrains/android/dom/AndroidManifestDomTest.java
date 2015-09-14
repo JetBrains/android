@@ -179,7 +179,6 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
-    myFixture.type('\n');
     myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
   }
 
@@ -191,6 +190,14 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testUsesPermissionCompletion4() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type('\n');
+    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+  }
+
+  public void testUsesPermissionCompletion5() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
