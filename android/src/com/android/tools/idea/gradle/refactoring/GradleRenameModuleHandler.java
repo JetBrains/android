@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.refactoring;
 
-import com.android.tools.idea.gradle.dsl.parser.DependenciesElement;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.parser.ProjectDependencyElement;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyElement;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.intellij.ide.IdeBundle;
@@ -159,11 +158,9 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             for (Module module : ModuleManager.getInstance(project).getModules()) {
               GradleBuildModel buildModel = GradleBuildModel.get(module);
               if (buildModel != null) {
-                for (DependenciesElement elements : buildModel.getDependenciesBlocks()) {
-                  for (ProjectDependencyElement element : elements.getProjectDependencies()) {
-                    if (oldModuleGradlePath.equals(element.getPath())) {
-                      element.setName(inputString);
-                    }
+                for (ModuleDependencyElement dependency : buildModel.getDependenciesModel().getModuleDependencies()) {
+                  if (oldModuleGradlePath.equals(dependency.getPath())) {
+                    dependency.setName(inputString);
                   }
                 }
               }
