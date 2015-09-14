@@ -21,11 +21,13 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -52,7 +54,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -100,17 +101,6 @@ public class ThemeEditorUtils {
     "/plugins/android/lib/androidWidgets/theme-editor-widgets.jar",
     // Development path
     "/../adt/idea/android/lib/androidWidgets/theme-editor-widgets.jar"
-  };
-
-  public static final Comparator<ThemeEditorStyle> STYLE_COMPARATOR = new Comparator<ThemeEditorStyle>() {
-    @Override
-    public int compare(ThemeEditorStyle o1, ThemeEditorStyle o2) {
-      if (o1.isProjectStyle() == o2.isProjectStyle()) {
-        return o1.getQualifiedName().compareToIgnoreCase(o2.getQualifiedName());
-      }
-
-      return o1.isProjectStyle() ? -1 : 1;
-    }
   };
 
   private ThemeEditorUtils() {
@@ -377,7 +367,7 @@ public class ThemeEditorUtils {
   }
 
   @NotNull
-  public static ImmutableList<ThemeEditorStyle> getDefaultThemes(@NotNull ThemeResolver themeResolver) {
+  public static ImmutableList<String> getDefaultThemeNames(@NotNull ThemeResolver themeResolver) {
     Collection<ThemeEditorStyle> readOnlyLibThemes = themeResolver.getExternalLibraryThemes();
 
     Collection<ThemeEditorStyle> foundThemes = new HashSet<ThemeEditorStyle>();
@@ -393,8 +383,10 @@ public class ThemeEditorUtils {
         foundThemes.addAll(readOnlyFrameworkThemes);
       }
     }
-    Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(STYLE_COMPARATOR);
-    temporarySet.addAll(foundThemes);
+    Set<String> temporarySet = Sets.newTreeSet(String.CASE_INSENSITIVE_ORDER);
+    for (ThemeEditorStyle theme : foundThemes) {
+      temporarySet.add(theme.getQualifiedName());
+    }
     return ImmutableList.copyOf(temporarySet);
   }
 
@@ -487,9 +479,15 @@ public class ThemeEditorUtils {
                                                 boolean isTheme,
                                                 @Nullable final String message) {
     // if isTheme is true, defaultParentStyle shouldn't be null
-    assert !isTheme || defaultParentStyle != null;
+    String defaultParentStyleName = null;
+    if (isTheme && defaultParentStyle == null) {
+      defaultParentStyleName = getDefaultThemeNames(themeEditorContext.getThemeResolver()).get(0);
+    }
+    else if (defaultParentStyle != null) {
+      defaultParentStyleName = defaultParentStyle.getQualifiedName();
+    }
 
-    final NewStyleDialog dialog = new NewStyleDialog(isTheme, themeEditorContext, (defaultParentStyle == null) ? null : defaultParentStyle.getQualifiedName(),
+    final NewStyleDialog dialog = new NewStyleDialog(isTheme, themeEditorContext, defaultParentStyleName,
                          (defaultParentStyle == null) ? null : defaultParentStyle.getName(), message);
 
     boolean createStyle = dialog.showAndGet();
@@ -677,7 +675,7 @@ public class ThemeEditorUtils {
           visitor.visitResourceFolder(resourceRepository, dependency.getName(), provider.getName(), true);
         }
       } else {
-        // For gradle modules, get all source providers and go through themu
+        // For gradle modules, get all source providers and go through them
         // We need to iterate the providers in the returned to make sure that they correctly override each other
         List<SourceProvider> activeProviders = androidModel.getActiveSourceProviders();
         for (SourceProvider provider : activeProviders) {
@@ -697,6 +695,52 @@ public class ThemeEditorUtils {
         }
       }
     }
+  }
+
+  /**
+   * Returns the list of the qualified names of all the user-defined themes available from a given module
+   */
+  @NotNull
+  public static ImmutableList<String> getModuleThemeQualifiedNamesList(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null;
+    ConfigurationManager manager = facet.getConfigurationManager();
+    // We create a new ResourceResolverCache instead of using cache from myConfiguration to optimize memory instead of time/speed,
+    // because we are about to create a lot of instances of ResourceResolver here that won't be used outside of this method
+    final ResourceResolverCache resolverCache = new ResourceResolverCache(manager);
+    final IAndroidTarget target = manager.getTarget();
+    final Map<ResourceValue, Boolean> cache = new HashMap<ResourceValue, Boolean>();
+    final Set<String> themeNamesSet = Sets.newTreeSet(String.CASE_INSENSITIVE_ORDER);
+
+    ResourceFolderVisitor visitor = new ResourceFolderVisitor() {
+      @Override
+      public void visitResourceFolder(@NotNull LocalResourceRepository resources,
+                                      String moduleName,
+                                      @NotNull String variantName,
+                                      boolean isSelected) {
+        if (!isSelected) {
+          return;
+        }
+        for (String simpleThemeName : resources.getItemsOfType(ResourceType.STYLE)) {
+          String themeQualifiedName = SdkConstants.STYLE_RESOURCE_PREFIX + simpleThemeName;
+          List<ResourceItem> themeItems = resources.getResourceItem(ResourceType.STYLE, simpleThemeName);
+          assert themeItems != null;
+          for (ResourceItem themeItem : themeItems) {
+            ResourceResolver resolver = resolverCache.getResourceResolver(target, themeQualifiedName, themeItem.getConfiguration());
+            ResourceValue themeItemResourceValue = themeItem.getResourceValue(false);
+            assert themeItemResourceValue != null;
+            if (resolver.isTheme(themeItemResourceValue, cache)) {
+              themeNamesSet.add(themeQualifiedName);
+              break;
+            }
+          }
+        }
+      }
+    };
+
+    acceptResourceResolverVisitor(facet, visitor);
+
+    return ImmutableList.copyOf(themeNamesSet);
   }
 
   @NotNull
