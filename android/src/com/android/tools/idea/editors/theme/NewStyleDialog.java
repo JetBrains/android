@@ -80,45 +80,32 @@ public class NewStyleDialog extends DialogWrapper {
     myStyleNameTextField.setText(getNewStyleNameSuggestion(defaultParentName, currentThemeName));
 
     final ThemeResolver themeResolver = context.getThemeResolver();
-    final ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(themeResolver);
-    ThemeEditorStyle defaultParent = null;
-    if (defaultParentName != null) {
-      defaultParent = ResolutionUtils.getStyle(configuration, defaultParentName, null);
-    }
+    final ImmutableList<String> defaultThemeNames = ThemeEditorUtils.getDefaultThemeNames(themeResolver);
 
     myParentStyleComboBox.setRenderer(new StyleListCellRenderer(context, myParentStyleComboBox));
-    final ParentThemesListModel parentThemesListModel = new ParentThemesListModel(defaultThemes, defaultParent);
+    final ParentThemesListModel parentThemesListModel = new ParentThemesListModel(defaultThemeNames, defaultParentName);
     myParentStyleComboBox.setModel(parentThemesListModel);
     myParentStyleComboBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        Object selectedValue = myParentStyleComboBox.getSelectedItem();
-        ThemeEditorStyle selectedParent = null;
+        String selectedValue = (String)myParentStyleComboBox.getSelectedItem();
         if (ParentThemesListModel.SHOW_ALL_THEMES.equals(selectedValue)) {
           myParentStyleComboBox.hidePopup();
           final ThemeSelectionDialog dialog = new ThemeSelectionDialog(configuration);
 
           dialog.show();
 
-          if (dialog.isOK()) {
-            String myStyleParentName = dialog.getTheme();
-            if (myStyleParentName != null) {
-              selectedParent = themeResolver.getTheme(myStyleParentName);
-            }
-          }
+          selectedValue = dialog.isOK() ? dialog.getTheme() : null;
         }
-        else if (selectedValue instanceof ThemeEditorStyle) {
-          selectedParent = (ThemeEditorStyle)selectedValue;
+        if (selectedValue == null) {
+          selectedValue = (String)parentThemesListModel.getElementAt(0);
         }
-        if (selectedParent == null) {
-          selectedParent = (ThemeEditorStyle)parentThemesListModel.getElementAt(0);
+        else if (!defaultThemeNames.contains(selectedValue)) {
+            parentThemesListModel.removeElement(selectedValue);
+            parentThemesListModel.insertElementAt(selectedValue, 0);
         }
-        else if (!defaultThemes.contains(selectedParent)) {
-            parentThemesListModel.removeElement(selectedParent);
-            parentThemesListModel.insertElementAt(selectedParent, 0);
-        }
-        myParentStyleComboBox.setSelectedItem(selectedParent);
-        myStyleNameTextField.setText(getNewStyleNameSuggestion(selectedParent.getQualifiedName(), currentThemeName));
+        myParentStyleComboBox.setSelectedItem(selectedValue);
+        myStyleNameTextField.setText(getNewStyleNameSuggestion(selectedValue, currentThemeName));
       }
     });
 
@@ -159,7 +146,7 @@ public class NewStyleDialog extends DialogWrapper {
   }
 
   public String getStyleParentName() {
-    return ((ThemeEditorStyle)myParentStyleComboBox.getSelectedItem()).getQualifiedName();
+    return (String)myParentStyleComboBox.getSelectedItem();
   }
 
   private static final String[] COMMON_THEME_NAMES = {"Material", "Holo", "Leanback", "Micro", "DeviceDefault", "AppCompat"};
