@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import com.android.tools.idea.gradle.dsl.android.AndroidElement;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
+import com.android.tools.idea.gradle.dsl.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaProjectElementParser;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -31,25 +32,21 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import java.util.List;
-import java.util.Map;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
-public class GradleBuildModel extends GradleDslElement {
+public class GradleBuildModel extends GradleDslPropertiesElement {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
   @NotNull private final Dependencies myDependencies = new Dependencies(this);
 
-  @NotNull private final Map<String, ExtPropertyElement> myExtraProperties = Maps.newLinkedHashMap();
-
   // TODO Get the parsers from an extension point.
-  private final GradleDslElementParser[] myParsers = {
-    new ExtPropertyElementParser(), new JavaProjectElementParser()
-  };
+  private final GradleDslElementParser[] myParsers = {new GradleDslParser(), new JavaProjectElementParser()};
 
   /**
    * Extra DSL elements in addition to dependencies provided by extension, e.g. Java extension and Android extension.
@@ -115,6 +112,11 @@ public class GradleBuildModel extends GradleDslElement {
         process(e);
       }
 
+      @Override
+      public void visitApplicationStatement(GrApplicationStatement e) {
+        process(e);
+      }
+
       void process(GroovyPsiElement e) {
         for (GradleDslElementParser parser : myParsers) {
           // If a parser was able to parse the given PSI element, stop. Otherwise give another parser the chance to parse the PSI element.
@@ -128,22 +130,24 @@ public class GradleBuildModel extends GradleDslElement {
 
   @Override
   protected void reset() {
+    super.reset();
     myDependencies.resetState();
     myExtendedDslElements.clear();
+  }
+
+  @Nullable
+  public AndroidElement android() {
+    return getProperty(AndroidElement.NAME, AndroidElement.class);
+  }
+
+  @Nullable
+  public ExtModel ext() {
+    return getProperty(ExtModel.NAME, ExtModel.class);
   }
 
   @NotNull
   public Dependencies dependencies() {
     return myDependencies;
-  }
-
-  public void addExtProperty(@NotNull ExtPropertyElement extProperty) {
-    myExtraProperties.put(extProperty.getName(), extProperty);
-  }
-
-  @Nullable
-  public ExtPropertyElement getExtProperty(@NotNull String name) {
-    return myExtraProperties.get(name);
   }
 
   /**
@@ -184,6 +188,7 @@ public class GradleBuildModel extends GradleDslElement {
 
   @Override
   protected void apply() {
+    super.apply();
     myDependencies.applyChanges();
   }
 
