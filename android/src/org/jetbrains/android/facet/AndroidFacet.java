@@ -779,7 +779,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     if (aClass == null) {
       return false;
     }
-    String[] tagNames = constructor.getTagNamesByClass(aClass);
+    String[] tagNames = constructor.getTagNamesByClass(aClass, -1);
     return find(tagNames, tagName) >= 0;
   }
 
@@ -827,7 +827,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
     });
     if (baseClass != null) {
-      String[] baseClassTagNames = constructor.getTagNamesByClass(baseClass);
+      String[] baseClassTagNames = constructor.getTagNamesByClass(baseClass, getModuleMinApi());
       for (String tagName : baseClassTagNames) {
         map.put(tagName, baseClass);
       }
@@ -838,7 +838,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
             if (libClassesOnly && c.getManager().isInProject(c)) {
               return true;
             }
-            String[] tagNames = constructor.getTagNamesByClass(c);
+            String[] tagNames = constructor.getTagNamesByClass(c, getModuleMinApi());
             for (String tagName : tagNames) {
               map.put(tagName, c);
             }
@@ -854,6 +854,12 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return map.size() > 0;
   }
 
+  /**
+   * Returns minimum SDK version for current Android module
+   */
+  public int getModuleMinApi() {
+    return getAndroidModuleInfo().getMinSdkVersion().getApiLevel();
+  }
 
   public void scheduleSourceRegenerating(@NotNull AndroidAutogeneratorMode mode) {
     synchronized (myDirtyModes) {
