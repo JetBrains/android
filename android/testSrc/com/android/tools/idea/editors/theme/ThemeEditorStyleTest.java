@@ -70,11 +70,11 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
 
     FolderConfiguration defaultConfig = new FolderConfiguration();
     ConfiguredElement<ItemResourceValue> hasItem =
-      ConfiguredElement.create(defaultConfig, new ItemResourceValue("myColor", false, "?android:attr/colorBackground", false), theme);
+      ConfiguredElement.create(defaultConfig, new ItemResourceValue("myColor", false, "?android:attr/colorBackground", false));
     ConfiguredElement<ItemResourceValue> hasNotItem =
-      ConfiguredElement.create(defaultConfig, new ItemResourceValue("myHasNot", false, "?android:attr/colorBackground", false), theme);
+      ConfiguredElement.create(defaultConfig, new ItemResourceValue("myHasNot", false, "?android:attr/colorBackground", false));
     ConfiguredElement<ItemResourceValue> hasInParent =
-      ConfiguredElement.create(defaultConfig, new ItemResourceValue("editTextStyle", true, "?android:attr/colorBackground", true), theme);
+      ConfiguredElement.create(defaultConfig, new ItemResourceValue("editTextStyle", true, "?android:attr/colorBackground", true));
     assertTrue(theme.hasItem(new EditedStyleItem(hasItem, theme)));
     assertFalse(theme.hasItem(new EditedStyleItem(hasNotItem, theme)));
     assertTrue(theme.getParent().hasItem(new EditedStyleItem(hasInParent, parent)));

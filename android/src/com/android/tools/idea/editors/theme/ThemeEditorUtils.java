@@ -272,7 +272,7 @@ public class ThemeEditorUtils {
             inheritanceSet = new AttributeInheritanceSet();
             configuredAttributes.put(attributeName, inheritanceSet);
           }
-          inheritanceSet.add(ConfiguredElement.create(folderConfiguration, (ItemResourceValue)value, style));
+          inheritanceSet.add(ConfiguredElement.create(folderConfiguration, (ItemResourceValue)value));
         }
       }
     }
