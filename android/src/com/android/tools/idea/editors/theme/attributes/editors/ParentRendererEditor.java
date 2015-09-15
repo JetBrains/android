@@ -180,13 +180,15 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
 
       if (configuredParent.getConfiguration().equals(selectedElement.getConfiguration())) {
         // This is the selected parent
-        variants.add(0, new VariantsComboItem(
-          String.format(ThemeEditorConstants.CURRENT_VARIANT_TEMPLATE, currentVariantColor, configuredParent.getConfiguration().toShortDisplayString()), restrictedConfig));
+        variants.add(0, new VariantsComboItem(String.format(ThemeEditorConstants.CURRENT_VARIANT_TEMPLATE, currentVariantColor,
+                                                            configuredParent.getConfiguration().toShortDisplayString()), restrictedConfig,
+                                              configuredParent.getConfiguration()));
       }
       else {
         variants.add(new VariantsComboItem(String.format(ThemeEditorConstants.NOT_SELECTED_VARIANT_TEMPLATE, notSelectedVariantColor,
                                                          configuredParent.getConfiguration().toShortDisplayString(), " - " + parentName),
-                                           restrictedConfig));
+                                           restrictedConfig,
+                                           configuredParent.getConfiguration()));
       }
     }
 
