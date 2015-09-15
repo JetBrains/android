@@ -166,8 +166,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
     }
 
     for (ConfiguredElement<String> configuredParent : allParents) {
-      FolderConfiguration restrictedConfig =
-        QualifierUtils.restrictConfiguration(manager, configuredParent, allParents);
+      FolderConfiguration restrictedConfig = QualifierUtils.restrictConfiguration(configuredParent, allParents);
       String parentName = configuredParent.getElement();
 
       if (restrictedConfig == null) {
