@@ -44,9 +44,7 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
 
   @Override
   public boolean isString() {
-    return myValueData != null &&
-           ((Instance)myValueData).getClassObj() != null &&
-           "java.lang.String".equals(((Instance)myValueData).getClassObj().getClassName());
+    return myValueData != null && myValueData instanceof ClassInstance && ((ClassInstance)myValueData).isStringInstance();
   }
 
   @Override
@@ -97,31 +95,8 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
       myTruncatedValueText = String.format(" \"class %s\"", ((ClassObj)myValueData).getClassName());
     }
     else if (isString()) {
-      int count = -1;
-      int offset = 0;
-      ArrayInstance charBufferArray = null;
-      assert (myValueData instanceof ClassInstance);
-      ClassInstance classInstance = (ClassInstance)myValueData;
-      for (ClassInstance.FieldValue entry : classInstance.getValues()) {
-        if (charBufferArray == null && "value".equals(entry.getField().getName())) {
-          if (entry.getValue() instanceof ArrayInstance && ((ArrayInstance)entry.getValue()).getArrayType() == Type.CHAR) {
-            charBufferArray = (ArrayInstance)entry.getValue();
-          }
-        }
-        else if ("count".equals(entry.getField().getName())) {
-          if (entry.getValue() instanceof Integer) {
-            count = (Integer)entry.getValue();
-          }
-        }
-        else if ("offset".equals(entry.getField().getName())) {
-          if (entry.getValue() instanceof Integer) {
-            offset = (Integer)entry.getValue();
-          }
-        }
-      }
-
-      if (charBufferArray != null) {
-        char[] stringChars = charBufferArray.asCharArray(offset >= 0 ? offset : 0, Math.max(Math.min(count, MAX_VALUE_TEXT_LENGTH), 0));
+      char[] stringChars = ((ClassInstance)myValueData).getStringChars(MAX_VALUE_TEXT_LENGTH);
+      if (stringChars != null) {
         int charLength = stringChars.length;
         StringBuilder builder = new StringBuilder(6 + charLength);
         builder.append(" \"");
