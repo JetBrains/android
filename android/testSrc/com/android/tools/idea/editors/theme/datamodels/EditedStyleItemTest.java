@@ -37,13 +37,14 @@ public class EditedStyleItemTest extends AndroidTestCase {
     assertNotNull(fakeTheme);
 
     //noinspection ConstantConditions
-    List<ConfiguredElement<ItemResourceValue>> items = ImmutableList.of(
-      ConfiguredElement.create(FolderConfiguration.getConfigForFolder("values-v21"),
-                                               new ItemResourceValue("attribute", false, "otherValue", false), fakeTheme));
+    List<ConfiguredElement<ItemResourceValue>> items = ImmutableList.of(ConfiguredElement
+                                                                          .create(FolderConfiguration.getConfigForFolder("values-v21"),
+                                                                                  new ItemResourceValue("attribute", false, "otherValue",
+                                                                                                        false)));
 
     EditedStyleItem editedStyleItem = new EditedStyleItem(
-      ConfiguredElement.create(new FolderConfiguration(), new ItemResourceValue("attribute", false, "selectedValue", false),
-                                               fakeTheme), items, fakeTheme);
+      ConfiguredElement.create(new FolderConfiguration(), new ItemResourceValue("attribute", false, "selectedValue", false)), items,
+      fakeTheme);
 
     assertEquals("selectedValue", editedStyleItem.getValue());
     assertEquals("selectedValue", editedStyleItem.getSelectedValue().getValue());

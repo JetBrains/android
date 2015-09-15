@@ -27,12 +27,10 @@ import org.jetbrains.annotations.NotNull;
 public class ConfiguredElement<T> implements Configurable {
   final FolderConfiguration myFolderConfiguration;
   final T myValue;
-  final ThemeEditorStyle mySourceStyle;
 
-  private ConfiguredElement(@NotNull FolderConfiguration folderConfiguration, @NotNull T value, @NotNull ThemeEditorStyle sourceStyle) {
+  private ConfiguredElement(@NotNull FolderConfiguration folderConfiguration, @NotNull T value) {
     myFolderConfiguration = folderConfiguration;
     myValue = value;
-    mySourceStyle = sourceStyle;
   }
 
   /**
@@ -44,26 +42,21 @@ public class ConfiguredElement<T> implements Configurable {
     return myFolderConfiguration;
   }
 
-  /** Returns the configured element */
+  /**
+   * Returns the configured element
+   */
   @NotNull
   public T getElement() {
     return myValue;
   }
 
-  @NotNull
-  public ThemeEditorStyle getSourceStyle() {
-    return mySourceStyle;
-  }
-
   /**
    * Factory method to create new ConfiguredElement instances
+   *
    * @param folderConfiguration the {@link FolderConfiguration} associated to the given value
-   * @param value the value for this element
-   * @param sourceStyle the source style of this element
+   * @param value               the value for this element
    */
-  public static <T> ConfiguredElement<T> create(@NotNull FolderConfiguration folderConfiguration,
-                                                @NotNull T value,
-                                                @NotNull ThemeEditorStyle sourceStyle) {
-    return new ConfiguredElement<T>(folderConfiguration, value, sourceStyle);
+  public static <T> ConfiguredElement<T> create(@NotNull FolderConfiguration folderConfiguration, @NotNull T value) {
+    return new ConfiguredElement<T>(folderConfiguration, value);
   }
 }
