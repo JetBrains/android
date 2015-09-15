@@ -23,15 +23,31 @@ import org.jetbrains.annotations.NotNull;
  */
 public class VariantsComboItem {
   final String myLabel;
-  final FolderConfiguration myFolderConfiguration;
+  final FolderConfiguration myRestrictedConfiguration;
+  final FolderConfiguration myOriginalConfiguration;
 
-  public VariantsComboItem(@NotNull String label, @NotNull FolderConfiguration folderConfiguration) {
+  public VariantsComboItem(@NotNull String label,
+                           @NotNull FolderConfiguration restrictedConfiguration,
+                           @NotNull FolderConfiguration originalConfiguration) {
     myLabel = label;
-    myFolderConfiguration = folderConfiguration;
+    myRestrictedConfiguration = restrictedConfiguration;
+    myOriginalConfiguration = originalConfiguration;
   }
 
-  public FolderConfiguration getFolderConfiguration() {
-    return myFolderConfiguration;
+  /**
+   * Returns the item configuration
+   */
+  @NotNull
+  public FolderConfiguration getOriginalConfiguration() {
+    return myOriginalConfiguration;
+  }
+
+  /**
+   * Returns the configuration that should be selected in order to be able to select elements present in the element configuration
+   */
+  @NotNull
+  public FolderConfiguration getRestrictedConfiguration() {
+    return myRestrictedConfiguration;
   }
 
   @Override

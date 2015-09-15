@@ -35,7 +35,7 @@ import com.android.tools.idea.editors.theme.ui.VariantsComboBox;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.ui.JBMenuItem;
@@ -53,6 +53,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.TreeSet;
 
 /**
  * Abstract class that implements a {@link JTable} renderer and editor for attributes based on the {@link ResourceComponent} component.
@@ -70,8 +71,8 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
   private static final Comparator<VariantsComboItem> VARIANTS_COMBO_ITEM_COMPARATOR = new Comparator<VariantsComboItem>() {
     @Override
     public int compare(VariantsComboItem o1, VariantsComboItem o2) {
-      FolderConfiguration o1FolderConfiguration = o1.getFolderConfiguration();
-      FolderConfiguration o2FolderConfiguration = o2.getFolderConfiguration();
+      FolderConfiguration o1FolderConfiguration = o1.getOriginalConfiguration();
+      FolderConfiguration o2FolderConfiguration = o2.getOriginalConfiguration();
 
       if (o1FolderConfiguration.isDefault() && !o2FolderConfiguration.isDefault()) {
         return -1;
@@ -150,15 +151,15 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
     final ConfigurationManager manager = context.getConfiguration().getConfigurationManager();
     final String currentVariantColor = ColorUtil.toHex(ThemeEditorConstants.CURRENT_VARIANT_COLOR);
     final String notSelectedVariantColor = ColorUtil.toHex(ThemeEditorConstants.NOT_SELECTED_VARIANT_COLOR);
-    final ImmutableList.Builder<VariantsComboItem> variantsListBuilder = new ImmutableList.Builder<VariantsComboItem>();
 
     FolderConfiguration restrictedConfig = restrictConfiguration(manager, item, item.getSelectedValueConfiguration());
     String description = String.format(ThemeEditorConstants.CURRENT_VARIANT_TEMPLATE, currentVariantColor,
                                        item.getSelectedValueConfiguration().toShortDisplayString());
     VariantsComboItem selectedItem =
-      new VariantsComboItem(description, restrictedConfig != null ? restrictedConfig : item.getSelectedValueConfiguration());
-    variantsListBuilder.add(selectedItem);
+      new VariantsComboItem(description, restrictedConfig != null ? restrictedConfig : item.getSelectedValueConfiguration(), item.getSelectedValueConfiguration());
 
+    // All the not selected elements are sorted alphabetically
+    TreeSet<VariantsComboItem> notSelectedItems = Sets.newTreeSet(VARIANTS_COMBO_ITEM_COMPARATOR);
     for (ConfiguredElement<ItemResourceValue> configuredItem : item.getNonSelectedItemResourceValues()) {
       restrictedConfig =
         restrictConfiguration(context.getConfiguration().getConfigurationManager(), item, configuredItem.getConfiguration());
@@ -173,11 +174,13 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
 
       description = String.format(ThemeEditorConstants.NOT_SELECTED_VARIANT_TEMPLATE, notSelectedVariantColor,
                                   configuredItem.getConfiguration().toShortDisplayString(), " - " + configuredItem.getElement().getValue());
-      variantsListBuilder.add(new VariantsComboItem(description, restrictedConfig));
+      notSelectedItems.add(new VariantsComboItem(description, restrictedConfig, configuredItem.getConfiguration()));
     }
 
-    ImmutableList<VariantsComboItem> variantStrings =
-      Ordering.from(VARIANTS_COMBO_ITEM_COMPARATOR).immutableSortedCopy(variantsListBuilder.build());
+    ImmutableList<VariantsComboItem> variantStrings = ImmutableList.<VariantsComboItem>builder()
+      .add(selectedItem)
+      .addAll(notSelectedItems)
+      .build();
     component.setVariantsModel(new CollectionComboBoxModel(variantStrings, selectedItem));
   }
 
