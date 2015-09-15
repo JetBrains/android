@@ -129,15 +129,13 @@ public class QualifierUtils {
 
   /**
    * Returns a version qualifier that is lower than any of the version qualifiers found in the passed list.
-   * @param maxInstalledApiLevel the maximum available API level. This method can not return a version that is higher than this.
    * @param qualifiers the list of version qualifiers.
    */
-  static ResourceQualifier getIncompatibleVersionQualifier(int maxInstalledApiLevel, @NotNull Collection<ResourceQualifier> qualifiers) {
-    // We start at maxInstalledApiLevel + 1 because this method always return one version lower than the API level found.
-    int minApiLevel = maxInstalledApiLevel + 1;
+  static ResourceQualifier getIncompatibleVersionQualifier(@NotNull Collection<ResourceQualifier> qualifiers) {
+    assert !qualifiers.isEmpty();
+    int minApiLevel = Integer.MAX_VALUE;
     for (ResourceQualifier qualifier : qualifiers) {
       VersionQualifier versionQualifier = (VersionQualifier)qualifier;
-
       minApiLevel = Math.min(versionQualifier.getVersion(), minApiLevel);
     }
 
@@ -176,9 +174,7 @@ public class QualifierUtils {
    * returns null.
    * Note: qualifiers shouldn't be empty and all elements from qualifiers should have same qualifier type, f.e all should be LocaleQualifier
    */
-  public static ResourceQualifier getIncompatibleQualifier(@NotNull ConfigurationManager configurationManager,
-                                                           @NotNull Collection<ResourceQualifier> qualifiers) {
-
+  public static ResourceQualifier getIncompatibleQualifier(@NotNull Collection<ResourceQualifier> qualifiers) {
     assert !qualifiers.isEmpty();
     Class type = qualifiers.iterator().next().getClass();
     // Check all qualifiers are the same type inside the collection
@@ -187,12 +183,7 @@ public class QualifierUtils {
     }
 
     if (type == VersionQualifier.class) {
-      if (configurationManager.getHighestApiTarget() == null) {
-        return null;
-      }
-
-      int maxApi = configurationManager.getHighestApiTarget().getVersion().getApiLevel();
-      return getIncompatibleVersionQualifier(maxApi, qualifiers);
+      return getIncompatibleVersionQualifier(qualifiers);
     } else if (type == LocaleQualifier.class) {
       // The FAKE_VALUE doesn't match any real locales
       return new LocaleQualifier(LocaleQualifier.FAKE_VALUE);
@@ -213,8 +204,7 @@ public class QualifierUtils {
    * item. This configuration can be used when we want to make sure that the configuration selected will be displayed.
    */
   @Nullable("if there is no configuration that matches the constraints")
-  public static <T> FolderConfiguration restrictConfiguration(@NotNull ConfigurationManager manager,
-                                                              @NotNull ConfiguredElement<T> selectedItems,
+  public static <T> FolderConfiguration restrictConfiguration(@NotNull ConfiguredElement<T> selectedItems,
                                                               Collection<ConfiguredElement<T>> allItems) {
     ArrayList<FolderConfiguration> incompatibleConfigurations = Lists.newArrayListWithCapacity(allItems.size() - 1);
 
@@ -227,7 +217,7 @@ public class QualifierUtils {
       incompatibleConfigurations.add(configuration);
     }
 
-    return restrictConfiguration(manager, selectedItems.getConfiguration(), incompatibleConfigurations);
+    return restrictConfiguration(selectedItems.getConfiguration(), incompatibleConfigurations);
   }
 
   /**
@@ -237,8 +227,7 @@ public class QualifierUtils {
    * Backward implementation to the <a href="http://developer.android.com/guide/topics/resources/providing-resources.html">algorithm</a>.
    */
   @Nullable("if there is no configuration that matches the constraints")
-  public static FolderConfiguration restrictConfiguration(@NotNull ConfigurationManager configurationManager,
-                                                          @NotNull FolderConfiguration compatible,
+  public static FolderConfiguration restrictConfiguration(@NotNull FolderConfiguration compatible,
                                                           @NotNull Collection<FolderConfiguration> incompatibles) {
     ArrayList<FolderConfiguration> matchingIncompatibles = Lists.newArrayList();
     // Find all 'incompatibles' that are matches for all of the qualifiers of the 'compatible'.
@@ -276,7 +265,7 @@ public class QualifierUtils {
 
         // This qualifier is in the 'incompatible', but not in 'compatible',
         // so we need to get one that's incompatible with our 'incompatibles', and add to our result.
-        ResourceQualifier qualifier = getIncompatibleQualifier(configurationManager, incompatibleQualifiers);
+        ResourceQualifier qualifier = getIncompatibleQualifier(incompatibleQualifiers);
 
         // Couldn't find any incompatible, so we can't avoid matching to incompatibles
         if (qualifier == null) {
