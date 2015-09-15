@@ -34,7 +34,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.impl.ApplicationImpl;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -65,6 +67,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.containers.SmartHashSet;
 import icons.AndroidIcons;
 import org.gradle.StartParameter;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.wrapper.PathAssembler;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
@@ -481,107 +484,14 @@ public final class GradleUtil {
     return null;
   }
 
-  public static void stopAllGradleDaemons(boolean interactive) throws IOException {
-    File gradleHome = findAnyGradleHome(interactive);
-    if (gradleHome == null) {
-      throw new FileNotFoundException("Unable to find path to Gradle home directory");
+  public static void stopAllGradleDaemonsAndRestart() throws IOException {
+    DefaultGradleConnector.close();
+    Application application = ApplicationManager.getApplication();
+    if (application instanceof ApplicationImpl) {
+      ((ApplicationImpl)application).restart(true);
+    } else {
+      application.restart();
     }
-    File gradleExecutable = new File(gradleHome, join("bin", isWindows ? FN_GRADLE_WIN : FN_GRADLE_UNIX));
-    if (!gradleExecutable.isFile()) {
-      throw new FileNotFoundException("Unable to find Gradle executable: " + gradleExecutable.getPath());
-    }
-    new ProcessBuilder(gradleExecutable.getPath(), "--stop").start();
-  }
-
-  @Nullable
-  public static File findAnyGradleHome(boolean interactive) {
-    // Try cheapest option first:
-    String lastUsedGradleHome = getLastUsedGradleHome();
-    if (!lastUsedGradleHome.isEmpty()) {
-      File path = new File(lastUsedGradleHome);
-      if (isValidGradleHome(path)) {
-        return path;
-      }
-    }
-
-    ProjectManager projectManager = ProjectManager.getInstance();
-    for (Project project : projectManager.getOpenProjects()) {
-      File gradleHome = findGradleHome(project);
-      if (gradleHome != null) {
-        return gradleHome;
-      }
-    }
-
-    if (interactive) {
-      ChooseGradleHomeDialog chooseGradleHomeDialog = new ChooseGradleHomeDialog();
-      chooseGradleHomeDialog.setTitle("Choose Gradle Installation");
-      String description = "A Gradle installation is necessary to stop all daemons.\n" +
-                           "Please select the home directory of a Gradle installation, otherwise the project won't be closed.";
-      chooseGradleHomeDialog.setDescription(description);
-      if (!chooseGradleHomeDialog.showAndGet()) {
-        return null;
-      }
-      String enteredPath = chooseGradleHomeDialog.getEnteredGradleHomePath();
-      File gradleHomePath = new File(enteredPath);
-      if (isValidGradleHome(gradleHomePath)) {
-        chooseGradleHomeDialog.storeLastUsedGradleHomePath();
-        return gradleHomePath;
-      }
-    }
-
-    return null;
-  }
-
-  @Nullable
-  private static File findGradleHome(@NotNull Project project) {
-    GradleExecutionSettings settings = getGradleExecutionSettings(project);
-    if (settings != null) {
-      String gradleHome = settings.getGradleHome();
-      if (isNotEmpty(gradleHome)) {
-        File path = new File(gradleHome);
-        if (isValidGradleHome(path)) {
-          return path;
-        }
-      }
-    }
-
-    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
-    if (wrapperPropertiesFile != null) {
-      WrapperExecutor wrapperExecutor = forWrapperPropertiesFile(wrapperPropertiesFile, new StringBuilder());
-      WrapperConfiguration configuration = wrapperExecutor.getConfiguration();
-      File gradleHome = getGradleHome(project, configuration);
-      if (gradleHome != null) {
-        return gradleHome;
-      }
-    }
-
-    return null;
-  }
-
-  @Nullable
-  private static File getGradleHome(@NotNull Project project, @NotNull WrapperConfiguration configuration) {
-    File systemHomePath = StartParameter.DEFAULT_GRADLE_USER_HOME;
-    if ("PROJECT".equals(configuration.getDistributionBase())) {
-      systemHomePath = new File(getBaseDirPath(project), DOT_GRADLE);
-    }
-    if (!systemHomePath.isDirectory()) {
-      return null;
-    }
-    PathAssembler.LocalDistribution localDistribution = new PathAssembler(systemHomePath).getDistribution(configuration);
-    File distributionPath = localDistribution.getDistributionDir();
-    if (distributionPath != null) {
-      File[] children = notNullize(distributionPath.listFiles());
-      for (File child : children) {
-        if (child.isDirectory() && child.getName().startsWith("gradle-") && isValidGradleHome(child)) {
-          return child;
-        }
-      }
-    }
-    return null;
-  }
-
-  private static boolean isValidGradleHome(@NotNull File path) {
-    return path.isDirectory() && ServiceManager.getService(GradleInstallationManager.class).isGradleSdkHome(path);
   }
 
   /**
