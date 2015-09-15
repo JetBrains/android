@@ -97,7 +97,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     // The object that needs to be created is the content manager of the execution manager for this project.
     ExecutionManager.getInstance(project).getContentManager();
 
-    RunnerLayoutUi layoutUi = RunnerLayoutUi.Factory.getInstance(project).create("Android", "Android", "Android", project);
+    RunnerLayoutUi layoutUi = RunnerLayoutUi.Factory.getInstance(project).create("Android", TOOL_WINDOW_ID, "Profiling Tools", project);
 
     toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
     toolWindow.setAvailable(true, null);
