@@ -58,7 +58,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.importing.FacetImporter;
-import org.jetbrains.idea.maven.importing.MavenModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import org.jetbrains.idea.maven.importing.MavenModuleImporter;
 import org.jetbrains.idea.maven.importing.MavenRootModelAdapter;
 import org.jetbrains.idea.maven.model.MavenArtifact;
@@ -154,7 +154,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   }
 
   @Override
-  protected void reimportFacet(MavenModifiableModelsProvider modelsProvider,
+  protected void reimportFacet(IdeModifiableModelsProvider modelsProvider,
                                Module module,
                                MavenRootModelAdapter rootModel,
                                AndroidFacet facet,
@@ -204,7 +204,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     }
   }
 
-  private static void removeAttachedJarDependency(MavenModifiableModelsProvider modelsProvider,
+  private static void removeAttachedJarDependency(IdeModifiableModelsProvider modelsProvider,
                                                   MavenProjectsTree mavenTree,
                                                   MavenProject mavenProject) {
     for (MavenArtifact depArtifact : mavenProject.getDependencies()) {
@@ -217,7 +217,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       final Library attachedJarsLib = modelsProvider.getLibraryByName(attachedJarsLibName);
 
       if (attachedJarsLib != null) {
-        final Library.ModifiableModel attachedJarsLibModel = modelsProvider.getLibraryModel(attachedJarsLib);
+        final Library.ModifiableModel attachedJarsLibModel = modelsProvider.getModifiableLibraryModel(attachedJarsLib);
 
         if (attachedJarsLibModel != null) {
           final String targetJarPath = depProject.getBuildDirectory() + "/" + depProject.getFinalName() + ".jar";
@@ -277,7 +277,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
   private static void importExternalAndroidLibDependencies(Project project,
                                                            MavenRootModelAdapter rootModelAdapter,
-                                                           MavenModifiableModelsProvider modelsProvider,
+                                                           IdeModifiableModelsProvider modelsProvider,
                                                            MavenProjectsTree mavenTree,
                                                            MavenProject mavenProject,
                                                            Map<MavenProject, String> mavenProject2ModuleName,
@@ -332,7 +332,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                                                   @NotNull MavenProject mavenProject,
                                                   @NotNull MavenProjectsTree mavenTree,
                                                   @NotNull MavenRootModelAdapter rootModelAdapter,
-                                                  @NotNull MavenModifiableModelsProvider modelsProvider,
+                                                  @NotNull IdeModifiableModelsProvider modelsProvider,
                                                   @NotNull Project project,
                                                   @NotNull List<MavenProjectsProcessorTask> postTasks) {
     final Library aarLibrary = rootModelAdapter.findLibrary(artifact);
@@ -373,7 +373,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       importedAarArtifacts.put(mavenId, aarDirPath);
       extractArtifact(artifact.getPath(), aarDirPath, project, mavenProject.getName());
     }
-    final Library.ModifiableModel aarLibModel = modelsProvider.getLibraryModel(aarLibrary);
+    final Library.ModifiableModel aarLibModel = modelsProvider.getModifiableLibraryModel(aarLibrary);
     final String classesJarPath = aarDirPath + "/" + SdkConstants.FN_CLASSES_JAR;
     final String classesJarUrl = VirtualFileManager.constructUrl(JarFileSystem.PROTOCOL, classesJarPath) +
                                  JarFileSystem.JAR_SEPARATOR;
@@ -411,14 +411,14 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   }
 
   private static String doImportExternalApklibDependency(Project project,
-                                                         MavenModifiableModelsProvider modelsProvider,
+                                                         IdeModifiableModelsProvider modelsProvider,
                                                          MavenProjectsTree mavenTree,
                                                          MavenProject mavenProject,
                                                          Map<MavenProject, String> mavenProject2ModuleName,
                                                          List<MavenProjectsProcessorTask> tasks,
                                                          AndroidExternalApklibDependenciesManager.MavenDependencyInfo depInfo) {
     final MavenId depArtifactMavenId = new MavenId(depInfo.getGroupId(), depInfo.getArtifactId(), depInfo.getVersion());
-    final ModifiableModuleModel moduleModel = modelsProvider.getModuleModel();
+    final ModifiableModuleModel moduleModel = modelsProvider.getModifiableModuleModel();
     final String apklibModuleName = AndroidMavenUtil.getModuleNameForExtApklibArtifact(depArtifactMavenId);
     Module apklibModule = moduleModel.findModuleByName(apklibModuleName);
 
@@ -481,7 +481,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   }
 
   private static void removeUselessDependencies(ModifiableRootModel modifiableRootModel,
-                                                MavenModifiableModelsProvider modelsProvider, MavenProject mavenProject) {
+                                                IdeModifiableModelsProvider modelsProvider, MavenProject mavenProject) {
     for (OrderEntry entry : modifiableRootModel.getOrderEntries()) {
       if (entry instanceof ModuleOrderEntry) {
         final Module depModule = ((ModuleOrderEntry)entry).getModule();
@@ -501,14 +501,14 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   }
 
   private static boolean pointsIntoUnpackedLibsDir(@NotNull LibraryOrderEntry entry,
-                                                   @NotNull MavenModifiableModelsProvider provider,
+                                                   @NotNull IdeModifiableModelsProvider provider,
                                                    @NotNull MavenProject mavenProject) {
     final Library library = entry.getLibrary();
 
     if (library == null) {
       return false;
     }
-    final Library.ModifiableModel libraryModel = provider.getLibraryModel(library);
+    final Library.ModifiableModel libraryModel = provider.getModifiableLibraryModel(library);
     final String[] urls = libraryModel.getUrls(OrderRootType.CLASSES);
     final String unpackedLibsDir = FileUtil.toCanonicalPath(mavenProject.getBuildDirectory()) + "/unpacked-libs";
 
@@ -521,13 +521,13 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   }
 
   private static boolean containsDependencyOnApklibFile(@NotNull LibraryOrderEntry libraryOrderEntry,
-                                                        @NotNull MavenModifiableModelsProvider modelsProvider) {
+                                                        @NotNull IdeModifiableModelsProvider modelsProvider) {
     final Library library = libraryOrderEntry.getLibrary();
 
     if (library == null) {
       return false;
     }
-    final Library.ModifiableModel libraryModel = modelsProvider.getLibraryModel(library);
+    final Library.ModifiableModel libraryModel = modelsProvider.getModifiableLibraryModel(library);
     final String[] urls = libraryModel.getUrls(OrderRootType.CLASSES);
 
     for (String url : urls) {
@@ -540,7 +540,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     return false;
   }
 
-  private static void addModuleDependency(@NotNull MavenModifiableModelsProvider modelsProvider,
+  private static void addModuleDependency(@NotNull IdeModifiableModelsProvider modelsProvider,
                                           @NotNull ModifiableRootModel rootModel,
                                           @NotNull final String moduleName,
                                           @NotNull DependencyScope compile) {
@@ -548,7 +548,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       return;
     }
 
-    final Module module = modelsProvider.getModuleModel().findModuleByName(moduleName);
+    final Module module = modelsProvider.getModifiableModuleModel().findModuleByName(moduleName);
 
     final ModuleOrderEntry entry = module != null
                                    ? rootModel.addModuleOrderEntry(module)
@@ -579,7 +579,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   @Nullable
   private static Module importExternalApklibArtifact(Project project,
                                                      Module apklibModule,
-                                                     MavenModifiableModelsProvider modelsProvider,
+                                                     IdeModifiableModelsProvider modelsProvider,
                                                      MavenProject mavenProject,
                                                      MavenProjectsTree mavenTree,
                                                      MavenId artifactMavenId,
@@ -632,7 +632,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       apklibModule = moduleModel.newModule(genModuleFilePath, StdModuleTypes.JAVA.getId());
     }
 
-    final ModifiableRootModel apklibModuleModel = modelsProvider.getRootModel(apklibModule);
+    final ModifiableRootModel apklibModuleModel = modelsProvider.getModifiableRootModel(apklibModule);
     final ContentEntry contentEntry = apklibModuleModel.addContentEntry(vApklibDir);
 
     final VirtualFile sourceRoot = vApklibDir.findChild(AndroidMavenUtil.APK_LIB_ARTIFACT_SOURCE_ROOT);
@@ -698,7 +698,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
   private static void importSdkAndDependenciesForApklibArtifact(Project project,
                                                                 ModifiableRootModel apklibModuleModel,
-                                                                MavenModifiableModelsProvider modelsProvider,
+                                                                IdeModifiableModelsProvider modelsProvider,
                                                                 MavenProjectsTree mavenTree,
                                                                 MavenId artifactMavenId,
                                                                 Map<MavenProject, String> mavenProject2ModuleName) {
@@ -769,7 +769,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
   private static void addLibraryDependency(@NotNull String libraryName,
                                            @NotNull DependencyScope scope,
-                                           @NotNull MavenModifiableModelsProvider provider,
+                                           @NotNull IdeModifiableModelsProvider provider,
                                            @NotNull ModifiableRootModel model,
                                            @NotNull String path) {
     Library library = provider.getLibraryByName(libraryName);
@@ -777,7 +777,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     if (library == null) {
       library = provider.createLibrary(libraryName);
     }
-    Library.ModifiableModel libraryModel = provider.getLibraryModel(library);
+    Library.ModifiableModel libraryModel = provider.getModifiableLibraryModel(library);
     updateUrl(libraryModel, path);
     final LibraryOrderEntry entry = model.addLibraryEntry(library);
     entry.setScope(scope);
@@ -958,8 +958,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     info.setDependencies(dependencies);
   }
 
-  private void configureAndroidPlatform(AndroidFacet facet, MavenProject project, MavenModifiableModelsProvider modelsProvider) {
-    final ModifiableRootModel model = modelsProvider.getRootModel(facet.getModule());
+  private void configureAndroidPlatform(AndroidFacet facet, MavenProject project, IdeModifiableModelsProvider modelsProvider) {
+    final ModifiableRootModel model = modelsProvider.getModifiableRootModel(facet.getModule());
     configureAndroidPlatform(project, model);
   }
 

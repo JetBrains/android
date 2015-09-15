@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
@@ -53,7 +55,8 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
    */
   @Override
   public void customizeModule(@NotNull Project project,
-                              @NotNull ModifiableRootModel ideaModuleModel,
+                              @NotNull Module module,
+                              @NotNull IdeModifiableModelsProvider modelsProvider,
                               @Nullable IdeaAndroidProject androidProject) {
     if (androidProject == null) {
       return;
@@ -64,6 +67,7 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
       return;
     }
 
+    final ModifiableRootModel ideaModuleModel = modelsProvider.getModifiableRootModel(module);
     LanguageLevel languageLevel = androidProject.getJavaLanguageLevel();
     if (languageLevel != null) {
       ideaModuleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
@@ -81,7 +85,7 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
       return;
     }
 
-    String text = String.format("Module '%1$s': platform '%2$s' not found.", ideaModuleModel.getModule().getName(), compileTarget);
+    String text = String.format("Module '%1$s': platform '%2$s' not found.", module.getName(), compileTarget);
     LOG.info(text);
 
     Message msg = new Message(FAILED_TO_SET_UP_SDK, Message.Type.ERROR, text);

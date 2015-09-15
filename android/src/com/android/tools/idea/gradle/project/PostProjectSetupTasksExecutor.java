@@ -52,6 +52,8 @@ import com.google.common.collect.Sets;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -66,6 +68,7 @@ import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
+import com.intellij.util.ExceptionUtil;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -202,29 +205,31 @@ public class PostProjectSetupTasksExecutor {
   }
 
   private void adjustModuleStructures() {
+    final IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     Set<Sdk> androidSdks = Sets.newHashSet();
 
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
-      ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+    try {
+      for (Module module : modelsProvider.getModules()) {
+        ModifiableRootModel model = modelsProvider.getModifiableRootModel(module);
+        adjustInterModuleDependencies(module, modelsProvider);
 
-      adjustInterModuleDependencies(moduleRootManager);
-
-      Sdk sdk = moduleRootManager.getSdk();
-      if (sdk != null) {
-        if (isAndroidSdk(sdk)) {
-          androidSdks.add(sdk);
+        Sdk sdk = model.getSdk();
+        if (sdk != null) {
+          if (isAndroidSdk(sdk)) {
+            androidSdks.add(sdk);
+          }
+          continue;
         }
-        continue;
-      }
-      ModifiableRootModel model = moduleRootManager.getModifiableModel();
-      try {
+
         Sdk jdk = IdeSdks.getJdk();
         model.setSdk(jdk);
       }
-      finally {
-        model.commit();
-      }
+
+      modelsProvider.commit();
+    }
+    catch (Throwable t) {
+      modelsProvider.dispose();
+      ExceptionUtil.rethrowAllAsUnchecked(t);
     }
 
     for (Sdk sdk: androidSdks) {
@@ -234,30 +239,25 @@ public class PostProjectSetupTasksExecutor {
     removeAllModuleCompiledArtifacts(myProject);
   }
 
-  private static void adjustInterModuleDependencies(@NotNull ModuleRootManager moduleRootManager) {
+  private static void adjustInterModuleDependencies(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
     // Verifies that inter-module dependencies between Android modules are correctly set. If module A depends on module B, and module B
     // does not contain sources but exposes an AAR as an artifact, the IDE should set the dependency in the 'exploded AAR' instead of trying
     // to find the library in module B. The 'exploded AAR' is in the 'build' folder of module A.
     // See: https://code.google.com/p/android/issues/detail?id=162634
-    AndroidProject androidProject = getAndroidProject(moduleRootManager.getModule());
+    AndroidProject androidProject = getAndroidProject(module);
     if (androidProject == null) {
       return;
     }
 
-    ModifiableRootModel modifiableModel = moduleRootManager.getModifiableModel();
-    try {
-      for (Module dependency : moduleRootManager.getModuleDependencies()) {
-        AndroidProject dependencyAndroidProject = getAndroidProject(dependency);
-        if (dependencyAndroidProject == null) {
-          LibraryDependency backup = getModuleCompiledArtifact(dependency);
-          if (backup != null) {
-            DependenciesModuleCustomizer.updateLibraryDependency(modifiableModel, backup, androidProject);
-          }
+    ModifiableRootModel modifiableModel = modelsProvider.getModifiableRootModel(module);
+    for (Module dependency : modifiableModel.getModuleDependencies()) {
+      AndroidProject dependencyAndroidProject = getAndroidProject(dependency);
+      if (dependencyAndroidProject == null) {
+        LibraryDependency backup = getModuleCompiledArtifact(dependency);
+        if (backup != null) {
+          DependenciesModuleCustomizer.updateLibraryDependency(module, modelsProvider, backup, androidProject);
         }
       }
-    }
-    finally {
-      modifiableModel.commit();
     }
   }
 

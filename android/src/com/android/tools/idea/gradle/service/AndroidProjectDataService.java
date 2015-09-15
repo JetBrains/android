@@ -45,16 +45,15 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.pom.java.LanguageLevel;
@@ -85,7 +84,7 @@ import static java.util.Collections.sort;
 /**
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
-public class AndroidProjectDataService implements ProjectDataService<IdeaAndroidProject, Void> {
+public class AndroidProjectDataService extends AbstractProjectDataService<IdeaAndroidProject, Void> {
   private static final Logger LOG = Logger.getInstance(AndroidProjectDataService.class);
 
   private final List<ModuleCustomizer<IdeaAndroidProject>> myCustomizers;
@@ -116,10 +115,13 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
    * @param synchronous indicates whether this operation is synchronous.
    */
   @Override
-  public void importData(@NotNull Collection<DataNode<IdeaAndroidProject>> toImport, @NotNull Project project, boolean synchronous) {
+  public void importData(@NotNull Collection<DataNode<IdeaAndroidProject>> toImport,
+                         @Nullable final ProjectData projectData,
+                         @NotNull final Project project,
+                         @NotNull final IdeModifiableModelsProvider modelsProvider) {
     if (!toImport.isEmpty()) {
       try {
-        doImport(toImport, project);
+        doImport(toImport, project, modelsProvider);
       }
       catch (Throwable e) {
         LOG.error(String.format("Failed to set up Android modules in project '%1$s'", project.getName()), e);
@@ -132,7 +134,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     }
   }
 
-  private void doImport(final Collection<DataNode<IdeaAndroidProject>> toImport, final Project project) throws Throwable {
+  private void doImport(final Collection<DataNode<IdeaAndroidProject>> toImport, final Project project, final IdeModifiableModelsProvider modelsProvider) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
@@ -152,11 +154,10 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         // Module name, build
         List<String> modulesUsingBuildTools23rc1 = Lists.newArrayList();
 
-        ModuleManager moduleManager = ModuleManager.getInstance(project);
-        for (Module module : moduleManager.getModules()) {
+        for (Module module : modelsProvider.getModules()) {
           IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
 
-          customizeModule(module, project, androidProject);
+          customizeModule(module, project, modelsProvider, androidProject);
           if (androidProject != null) {
             AndroidProject delegate = androidProject.getDelegate();
 
@@ -322,20 +323,12 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     return index;
   }
 
-  private void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
-    try {
-      for (ModuleCustomizer<IdeaAndroidProject> customizer : myCustomizers) {
-        customizer.customizeModule(project, rootModel, ideaAndroidProject);
-      }
+  private void customizeModule(@NotNull Module module,
+                               @NotNull Project project,
+                               @NotNull IdeModifiableModelsProvider modelsProvider,
+                               @Nullable IdeaAndroidProject ideaAndroidProject) {
+    for (ModuleCustomizer<IdeaAndroidProject> customizer : myCustomizers) {
+      customizer.customizeModule(project, module, modelsProvider, ideaAndroidProject);
     }
-    finally {
-      rootModel.commit();
-    }
-  }
-
-  @Override
-  public void removeData(@NotNull Collection<? extends Void> toRemove, @NotNull Project project, boolean synchronous) {
   }
 }

@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
@@ -97,18 +98,20 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
 
     assertEquals(key, service.getTargetDataKey());
 
+    final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     // ModuleCustomizers should be called.
     //noinspection ConstantConditions
-    myCustomizer1.customizeModule(eq(myProject), rootModelOfModule(myModule), eq(myIdeaAndroidProject));
+    myCustomizer1.customizeModule(eq(myProject), myModule, modelsProvider, eq(myIdeaAndroidProject));
     expectLastCall();
 
     //noinspection ConstantConditions
-    myCustomizer2.customizeModule(eq(myProject), rootModelOfModule(myModule), eq(myIdeaAndroidProject));
+    myCustomizer2.customizeModule(eq(myProject), myModule, modelsProvider, eq(myIdeaAndroidProject));
     expectLastCall();
 
     replay(myCustomizer1, myCustomizer2);
 
-    service.importData(nodes, myProject, true);
+    service.importData(nodes, null, myProject, modelsProvider);
+    modelsProvider.commit();
 
     verify(myCustomizer1, myCustomizer2);
   }

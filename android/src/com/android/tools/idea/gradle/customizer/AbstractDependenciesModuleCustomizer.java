@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.libraries.LibraryTable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,16 +41,22 @@ import static java.io.File.separatorChar;
 
 public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleCustomizer<T> {
   @Override
-  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel ideaModuleModel, @Nullable T externalProjectModel) {
+  public void customizeModule(@NotNull Project project,
+                              @NotNull Module module,
+                              @NotNull IdeModifiableModelsProvider modelsProvider,
+                              @Nullable T externalProjectModel) {
     if (externalProjectModel == null) {
       return;
     }
 
+    final ModifiableRootModel ideaModuleModel = modelsProvider.getModifiableRootModel(module);
     removeExistingDependencies(ideaModuleModel);
-    setUpDependencies(ideaModuleModel, externalProjectModel);
+    setUpDependencies(module, modelsProvider, externalProjectModel);
   }
 
-  protected abstract void setUpDependencies(@NotNull ModifiableRootModel rootModel, @NotNull T model);
+  protected abstract void setUpDependencies(@NotNull Module module,
+                                            @NotNull IdeModifiableModelsProvider modelsProvider,
+                                            @NotNull T model);
 
   @NotNull
   protected DependencySetupErrors getSetupErrors(@NotNull Project project) {
@@ -69,32 +75,27 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     }
   }
 
-  protected static void setUpLibraryDependency(@NotNull ModifiableRootModel model,
+  protected static void setUpLibraryDependency(@NotNull Module module,
+                                               @NotNull IdeModifiableModelsProvider modelsProvider,
                                                @NotNull String libraryName,
                                                @NotNull DependencyScope scope,
                                                @NotNull Collection<String> binaryPaths) {
     Collection<String> empty = Collections.emptyList();
-    setUpLibraryDependency(model, libraryName, scope, binaryPaths, empty, empty);
+    setUpLibraryDependency(module, modelsProvider, libraryName, scope, binaryPaths, empty, empty);
   }
 
-  protected static void setUpLibraryDependency(@NotNull ModifiableRootModel model,
+  protected static void setUpLibraryDependency(@NotNull Module module,
+                                               @NotNull IdeModifiableModelsProvider modelsProvider,
                                                @NotNull String libraryName,
                                                @NotNull DependencyScope scope,
                                                @NotNull Collection<String> binaryPaths,
                                                @NotNull Collection<String> sourcePaths,
                                                @NotNull Collection<String> documentationPaths) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(model.getProject());
-    Library library = libraryTable.getLibraryByName(libraryName);
+    Library library = modelsProvider.getLibraryByName(libraryName);
     if (library == null) {
       // Create library.
-      LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
-      try {
-        library = libraryTableModel.createLibrary(libraryName);
-        updateLibraryBinaryPaths(library, binaryPaths);
-      }
-      finally {
-        libraryTableModel.commit();
-      }
+      library = modelsProvider.createLibrary(libraryName);
+      updateLibraryBinaryPaths(library, binaryPaths);
     }
 
     // It is common that the same dependency is used by more than one module. Here we update the "sources" and "documentation" paths if they
@@ -122,7 +123,7 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
       }
     }
 
-    LibraryOrderEntry orderEntry = model.addLibraryEntry(library);
+    LibraryOrderEntry orderEntry = modelsProvider.getModifiableRootModel(module).addLibraryEntry(library);
     orderEntry.setScope(scope);
     orderEntry.setExported(true);
   }

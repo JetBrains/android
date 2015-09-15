@@ -25,10 +25,9 @@ import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.base.Objects;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,37 +49,39 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
 
   @Override
-  protected void setUpDependencies(@NotNull ModifiableRootModel moduleModel, @NotNull IdeaAndroidProject androidProject) {
+  protected void setUpDependencies(@NotNull Module module,
+                                   @NotNull IdeModifiableModelsProvider modelsProvider,
+                                   @NotNull IdeaAndroidProject androidProject) {
     DependencySet dependencies = Dependency.extractFrom(androidProject);
     for (LibraryDependency dependency : dependencies.onLibraries()) {
-      updateLibraryDependency(moduleModel, dependency, androidProject.getDelegate());
+      updateLibraryDependency(module, modelsProvider, dependency, androidProject.getDelegate());
     }
     for (ModuleDependency dependency : dependencies.onModules()) {
-      updateModuleDependency(moduleModel, dependency, androidProject.getDelegate());
+      updateModuleDependency(module, modelsProvider, dependency, androidProject.getDelegate());
     }
 
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(moduleModel.getProject());
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
     Collection<SyncIssue> syncIssues = androidProject.getSyncIssues();
     if (syncIssues != null) {
-      messages.reportSyncIssues(syncIssues, moduleModel.getModule());
+      messages.reportSyncIssues(syncIssues, module);
     }
     else {
       Collection<String> unresolvedDependencies = androidProject.getDelegate().getUnresolvedDependencies();
-      messages.reportUnresolvedDependencies(unresolvedDependencies, moduleModel.getModule());
+      messages.reportUnresolvedDependencies(unresolvedDependencies, module);
     }
   }
 
-  private void updateModuleDependency(@NotNull ModifiableRootModel moduleModel,
+  private void updateModuleDependency(@NotNull Module module,
+                                      @NotNull IdeModifiableModelsProvider modelsProvider,
                                       @NotNull ModuleDependency dependency,
                                       @NotNull AndroidProject androidProject) {
-    ModuleManager moduleManager = ModuleManager.getInstance(moduleModel.getProject());
     Module moduleDependency = null;
-    for (Module module : moduleManager.getModules()) {
-      AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
+    for (Module m : modelsProvider.getModules()) {
+      AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(m);
       if (androidGradleFacet != null) {
         String gradlePath = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
         if (Objects.equal(gradlePath, dependency.getGradlePath())) {
-          moduleDependency = module;
+          moduleDependency = m;
           break;
         }
       }
@@ -88,7 +89,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     LibraryDependency compiledArtifact = dependency.getBackupDependency();
 
     if (moduleDependency != null) {
-      ModuleOrderEntry orderEntry = moduleModel.addModuleOrderEntry(moduleDependency);
+      ModuleOrderEntry orderEntry = modelsProvider.getModifiableRootModel(module).addModuleOrderEntry(moduleDependency);
       orderEntry.setExported(true);
 
       if (compiledArtifact != null) {
@@ -99,26 +100,27 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     String backupName = compiledArtifact != null ? compiledArtifact.getName() : null;
 
-    DependencySetupErrors setupErrors = getSetupErrors(moduleModel.getProject());
-    setupErrors.addMissingModule(dependency.getGradlePath(), moduleModel.getModule().getName(), backupName);
+    DependencySetupErrors setupErrors = getSetupErrors(module.getProject());
+    setupErrors.addMissingModule(dependency.getGradlePath(), module.getName(), backupName);
 
     // fall back to library dependency, if available.
     if (compiledArtifact != null) {
-      updateLibraryDependency(moduleModel, compiledArtifact, androidProject);
+      updateLibraryDependency(module, modelsProvider, compiledArtifact, androidProject);
     }
   }
 
-  public static void updateLibraryDependency(@NotNull ModifiableRootModel moduleModel,
+  public static void updateLibraryDependency(@NotNull Module module,
+                                             @NotNull IdeModifiableModelsProvider modelsProvider,
                                              @NotNull LibraryDependency dependency,
                                              @NotNull AndroidProject androidProject) {
     Collection<String> binaryPaths = dependency.getPaths(BINARY);
-    setUpLibraryDependency(moduleModel, dependency.getName(), dependency.getScope(), binaryPaths);
+    setUpLibraryDependency(module, modelsProvider, dependency.getName(), dependency.getScope(), binaryPaths);
 
     File buildFolder = androidProject.getBuildFolder();
 
     // Exclude jar files that are in "jars" folder in "build" folder.
     // see https://code.google.com/p/android/issues/detail?id=123788
-    ContentEntry[] contentEntries = moduleModel.getContentEntries();
+    ContentEntry[] contentEntries = modelsProvider.getModifiableRootModel(module).getContentEntries();
     for (String binaryPath : binaryPaths) {
       File parent = new File(binaryPath).getParentFile();
       if (parent != null && FD_JARS.equals(parent.getName()) && isAncestor(buildFolder, parent, true)) {
