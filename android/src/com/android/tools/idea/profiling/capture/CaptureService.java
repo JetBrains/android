@@ -361,9 +361,16 @@ public class CaptureService {
    * Synchronously appends to the file referenced by {@code captureHandle}.
    */
   static void appendDataSynchronous(@NotNull CaptureHandle captureHandle, @NotNull byte[] data) throws IOException {
+    appendDataSynchronous(captureHandle, data, 0, data.length);
+  }
+
+  /**
+   * Synchronously appends to the file referenced by {@code captureHandle}.
+   */
+  public static void appendDataSynchronous(@NotNull CaptureHandle captureHandle, @NotNull byte[] data, int offset, int length) throws IOException {
     FileOutputStream localFileOutputStream = captureHandle.getFileOutputStream();
     assert localFileOutputStream != null;
-    localFileOutputStream.write(data, 0, data.length);
+    localFileOutputStream.write(data, offset, length);
   }
 
   /**
