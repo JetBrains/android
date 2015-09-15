@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.controllers.MainController;
 import com.android.tools.idea.editors.gfxtrace.service.*;
@@ -58,6 +60,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
+
 public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull public static final String SELECT_CAPTURE = "Select a capture";
   @NotNull public static final String SELECT_ATOM = "Select an atom";
@@ -71,6 +75,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private static final int SERVER_LAUNCH_TIMEOUT_MS = 2000;
   private static final int SERVER_LAUNCH_SLEEP_INCREMENT_MS = 10;
 
+  private static final Object myPathLock = new Object();
+  private static File myGapisRoot;
+  private static File myServerDirectory;
+  private static File myGapisPath;
+
   @NotNull private final Project myProject;
   @NotNull private LoadingDecorator myLoadingDecorator;
   @NotNull private JBPanel myView = new JBPanel(new BorderLayout());
@@ -80,6 +89,14 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private ServiceClient myClient;
 
   @NotNull private List<PathListener> myPathListeners = new ArrayList<PathListener>();
+
+  public static boolean isEnabled() {
+    if (!Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
+      return false;
+    }
+    updatePath();
+    return myGapisPath != null;
+  }
 
   public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
     myProject = project;
@@ -309,24 +326,17 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
     // The connection failed, so try to start a new instance of the server.
     try {
-      File androidPluginDirectory = PluginPathManager.getPluginHome("android");
-      String pathOverride = System.getProperty(OVERRIDE_PATH_GAPIS, "");
-      if (pathOverride.length() > 0) {
-        androidPluginDirectory = new File(pathOverride);
-      }
-      File serverDirectory = new File(androidPluginDirectory, SERVER_RELATIVE_PATH);
-      File serverExecutable = new File(serverDirectory, SERVER_EXECUTABLE_NAME);
-      LOG.info("launch gapis: \"" + serverExecutable.getAbsolutePath() + "\"");
-      ProcessBuilder pb = new ProcessBuilder(serverExecutable.getAbsolutePath());
+      LOG.info("launch gapis: \"" + myGapisPath.getAbsolutePath() + "\"");
+      ProcessBuilder pb = new ProcessBuilder(myGapisPath.getAbsolutePath());
 
       // Add the server's directory to the path.  This allows the server to find and launch the replayd.
       Map<String, String> env = pb.environment();
       String path = env.get("PATH");
-      path = serverDirectory.getAbsolutePath() + File.pathSeparator + path;
+      path = myServerDirectory.getAbsolutePath() + File.pathSeparator + path;
       env.put("PATH", path);
 
       // Use the plugin directory as the working directory for the server.
-      pb.directory(androidPluginDirectory);
+      pb.directory(myGapisRoot);
 
       // This will throw IOException if the server executable is not found.
       myServerProcess = pb.start();
@@ -388,4 +398,28 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
     myExecutor.shutdown();
   }
+
+  static File getBinaryPath() {
+    updatePath();
+    return myServerDirectory;
+  }
+
+  private static void updatePath() {
+    synchronized (myPathLock) {
+      if (myGapisPath != null) {
+        return;
+      }
+      myGapisRoot = PluginPathManager.getPluginHome("android");
+      String pathOverride = System.getProperty(OVERRIDE_PATH_GAPIS, "");
+      if (pathOverride.length() > 0) {
+        myGapisRoot = new File(pathOverride);
+      }
+      myServerDirectory = new File(myGapisRoot, SERVER_RELATIVE_PATH);
+      myGapisPath = new File(myServerDirectory, SERVER_EXECUTABLE_NAME);
+      if (!myGapisPath.exists()) {
+        myGapisPath = null;
+      }
+    }
+  }
+
 }
