@@ -444,11 +444,11 @@ public class RenderTask implements IImageFactory {
       params.setLocale("ur");
     } else {
       params.setLocale(myLocale.toLocaleId());
-      try {
-        params.setRtlSupport(manifestInfo.isRtlSupported());
-      } catch (Exception e) {
-        // ignore.
-      }
+    }
+    try {
+      params.setRtlSupport(manifestInfo.isRtlSupported());
+    } catch (Exception e) {
+      // ignore.
     }
 
     // Don't show navigation buttons on older platforms
