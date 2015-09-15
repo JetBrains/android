@@ -31,15 +31,17 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -48,7 +50,7 @@ import java.util.Map;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.PROJECT_STRUCTURE_ISSUES;
 import static com.android.tools.idea.gradle.messages.Message.Type.ERROR;
 
-public class JavaProjectDataService implements ProjectDataService<IdeaJavaProject, Void> {
+public class JavaProjectDataService extends AbstractProjectDataService<IdeaJavaProject, Void> {
   private static final Logger LOG = Logger.getInstance(JavaProjectDataService.class);
 
   private final List<ModuleCustomizer<IdeaJavaProject>> myCustomizers =
@@ -62,10 +64,13 @@ public class JavaProjectDataService implements ProjectDataService<IdeaJavaProjec
   }
 
   @Override
-  public void importData(@NotNull Collection<DataNode<IdeaJavaProject>> toImport, @NotNull Project project, boolean synchronous) {
+  public void importData(@NotNull Collection<DataNode<IdeaJavaProject>> toImport,
+                         @Nullable final ProjectData projectData,
+                         @NotNull final Project project,
+                         @NotNull final IdeModifiableModelsProvider modelsProvider) {
     if (!toImport.isEmpty()) {
       try {
-        doImport(toImport, project);
+        doImport(toImport, project, modelsProvider);
       } catch (Throwable e) {
         LOG.error(String.format("Failed to set up Java modules in project '%1$s'", project.getName()), e);
         GradleSyncState.getInstance(project).syncFailed(e.getMessage());
@@ -73,17 +78,17 @@ public class JavaProjectDataService implements ProjectDataService<IdeaJavaProjec
     }
   }
 
-  private void doImport(final Collection<DataNode<IdeaJavaProject>> toImport, final Project project) throws Throwable {
+  private void doImport(final Collection<DataNode<IdeaJavaProject>> toImport, final Project project, final IdeModifiableModelsProvider modelsProvider)
+    throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
         if (!project.isDisposed()) {
-          ModuleManager moduleManager = ModuleManager.getInstance(project);
           Map<String, IdeaJavaProject> gradleProjectsByName = indexByModuleName(toImport);
-          for (Module module : moduleManager.getModules()) {
+          for (Module module : modelsProvider.getModules()) {
             IdeaJavaProject javaProject = gradleProjectsByName.get(module.getName());
             if (javaProject != null) {
-              customizeModule(module, javaProject);
+              customizeModule(module, modelsProvider, javaProject);
             }
           }
         }
@@ -105,7 +110,7 @@ public class JavaProjectDataService implements ProjectDataService<IdeaJavaProjec
     return javaProjectsByModuleName;
   }
 
-  private void customizeModule(@NotNull Module module, @NotNull IdeaJavaProject javaProject) {
+  private void customizeModule(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider, @NotNull IdeaJavaProject javaProject) {
     if (javaProject.isAndroidProjectWithoutVariants()) {
       // See https://code.google.com/p/android/issues/detail?id=170722
       ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
@@ -119,15 +124,9 @@ public class JavaProjectDataService implements ProjectDataService<IdeaJavaProjec
       // happen due to a project configuration error and there is a lot of module configuration missng, there is no point on even trying.
       return;
     }
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
-    try{
-      for (ModuleCustomizer<IdeaJavaProject> customizer : myCustomizers) {
-        customizer.customizeModule(module.getProject(), rootModel, javaProject);
-      }
-    }
-    finally {
-      rootModel.commit();
+
+    for (ModuleCustomizer<IdeaJavaProject> customizer : myCustomizers) {
+      customizer.customizeModule(module.getProject(), module, modelsProvider, javaProject);
     }
   }
 
@@ -150,9 +149,5 @@ public class JavaProjectDataService implements ProjectDataService<IdeaJavaProjec
     }
 
     rootModel.commit();
-  }
-
-  @Override
-  public void removeData(@NotNull Collection<? extends Void> toRemove, @NotNull Project project, boolean synchronous) {
   }
 }

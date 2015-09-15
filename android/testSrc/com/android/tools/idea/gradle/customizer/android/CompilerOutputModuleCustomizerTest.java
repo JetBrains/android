@@ -19,13 +19,13 @@ import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.roots.CompilerModuleExtension;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.util.ExceptionUtil;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
@@ -57,15 +57,16 @@ public class CompilerOutputModuleCustomizerTest extends IdeaTestCase {
     IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myModule.getName(), rootDir, androidProject,
                                                                    "debug", AndroidProject.ARTIFACT_ANDROID_TEST);
     String compilerOutputPath = "";
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
-    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {
-      customizer.customizeModule(myProject, rootModel, ideaAndroidProject);
-      CompilerModuleExtension compilerSettings = rootModel.getModuleExtension(CompilerModuleExtension.class);
+      customizer.customizeModule(myProject, myModule, modelsProvider, ideaAndroidProject);
+      CompilerModuleExtension compilerSettings = modelsProvider.getModifiableRootModel(myModule).getModuleExtension(CompilerModuleExtension.class);
       compilerOutputPath = compilerSettings.getCompilerOutputUrl();
+      modelsProvider.commit();
     }
-    finally {
-      rootModel.commit();
+    catch (Throwable t) {
+      modelsProvider.dispose();
+      ExceptionUtil.rethrowAllAsUnchecked(t);
     }
 
     File classesFolder = ideaAndroidProject.getSelectedVariant().getMainArtifact().getClassesFolder();

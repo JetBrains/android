@@ -28,11 +28,14 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -43,7 +46,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 /**
  * Service that stores the "Gradle project paths" of an imported Android-Gradle project.
  */
-public class GradleProjectDataService implements ProjectDataService<IdeaGradleProject, Void> {
+public class GradleProjectDataService extends AbstractProjectDataService<IdeaGradleProject, Void> {
   private static final Logger LOG = Logger.getInstance(GradleProjectDataService.class);
 
   @NotNull
@@ -53,7 +56,10 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
   }
 
   @Override
-  public void importData(@NotNull Collection<DataNode<IdeaGradleProject>> toImport, @NotNull Project project, boolean synchronous) {
+  public void importData(@NotNull Collection<DataNode<IdeaGradleProject>> toImport,
+                         @Nullable final ProjectData projectData,
+                         @NotNull final Project project,
+                         @NotNull final IdeModifiableModelsProvider modelsProvider) {
     if (!toImport.isEmpty()) {
       try {
         doImport(toImport, project);
@@ -135,9 +141,5 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
       model.commit();
     }
     return facet;
-  }
-
-  @Override
-  public void removeData(@NotNull Collection<? extends Void> toRemove, @NotNull Project project, boolean synchronous) {
   }
 }

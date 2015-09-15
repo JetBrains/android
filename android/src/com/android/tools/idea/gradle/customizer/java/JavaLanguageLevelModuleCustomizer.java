@@ -19,11 +19,10 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
-import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +39,10 @@ import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
  */
 public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<IdeaJavaProject> {
   @Override
-  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel ideaModuleModel, @Nullable IdeaJavaProject javaProject) {
+  public void customizeModule(@NotNull Project project,
+                              @NotNull Module module,
+                              @NotNull IdeModifiableModelsProvider modelsProvider,
+                              @Nullable IdeaJavaProject javaProject) {
     if (javaProject == null) {
       return;
     }
@@ -48,14 +50,14 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<IdeaJ
 
     if (isNotSupported(languageLevel)) {
       // Java language 1.8 is not supported, fall back to the minimum Java language level in dependent modules.
-      List<Module> dependents = getAllDependentModules(ideaModuleModel.getModule());
+      List<Module> dependents = getAllDependentModules(module);
       languageLevel = getMinimumLanguageLevelForAndroidModules(dependents.toArray(new Module[dependents.size()]));
     }
 
     if (isNotSupported(languageLevel)) {
       // Java language is still not correct. Most likely this module does not have dependents.
       // Get minimum language level from all Android modules.
-      Module[] modules = ModuleManager.getInstance(project).getModules();
+      Module[] modules = modelsProvider.getModules();
       languageLevel = getMinimumLanguageLevelForAndroidModules(modules);
     }
 
@@ -63,7 +65,7 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<IdeaJ
       languageLevel = JDK_1_6; // The minimum safe Java language level.
     }
 
-    ideaModuleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
+    modelsProvider.getModifiableRootModel(module).getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
   }
 
   private static boolean isNotSupported(@Nullable LanguageLevel languageLevel) {
