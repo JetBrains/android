@@ -279,15 +279,6 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   }
 
   public void testAttributeInheritanceSet() {
-    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_resolve_all.xml", "res/values/styles.xml");
-
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
-
-    ThemeEditorStyle theme = ResolutionUtils.getStyle(configuration, "@android:style/Theme", null);
-    ThemeEditorStyle appTheme = ResolutionUtils.getStyle(configuration, "AppTheme", null);
-    assertNotNull(theme);
-    assertNotNull(appTheme);
-
     FolderConfiguration defaultFolder = new FolderConfiguration();
     FolderConfiguration v21Folder = FolderConfiguration.getConfigForQualifierString("v21");
     assertNotNull(v21Folder);
@@ -295,22 +286,22 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     assertFalse(inheritanceSet.iterator().hasNext());
     ItemResourceValue value = new ItemResourceValue("android:windowBackground", true, "0", true);
-    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value, theme));
+    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value));
     assertEquals(1, Iterables.size(inheritanceSet));
 
     // This shouldn't add the attribute again
-    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value, theme));
+    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value));
     assertEquals(1, Iterables.size(inheritanceSet));
 
     // Even when the source theme is different, it shouldn't be added
-    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value, appTheme));
+    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value));
     assertEquals(1, Iterables.size(inheritanceSet));
 
-    inheritanceSet.add(ConfiguredElement.create(v21Folder, value, appTheme));
+    inheritanceSet.add(ConfiguredElement.create(v21Folder, value));
     assertEquals(2, Iterables.size(inheritanceSet));
 
     value = new ItemResourceValue("android:colorForeground", true, "0", true);
-    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value, theme));
+    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value));
     assertEquals(3, Iterables.size(inheritanceSet));
   }
 
