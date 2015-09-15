@@ -20,6 +20,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadComponentVisitor;
 import com.intellij.lang.LanguageNamesValidation;
@@ -37,8 +38,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.SdkConstants.*;
 
@@ -71,19 +72,44 @@ public class IdManager {
   private static Collection<String> getIds(RadViewComponent component) {
     XmlTag tag = component.getTag();
     Module module = AndroidPsiUtils.getModuleSafely(tag);
-    return getIds(module);
+    return getIds(module, component.getRoot());
   }
 
-  /** Looks up the existing set of id's reachable from the given module */
-  private static Collection<String> getIds(@Nullable Module module) {
+  /**
+   * Looks up the existing set of id's reachable from the given module, and if provided,
+   * also includes any id's <b>just</b> added to to the component tree hierarchy (which may not
+   * yet have been included)
+   */
+  private static Collection<String> getIds(@Nullable Module module, @Nullable RadComponent root) {
+    Set<String> ids = Sets.newHashSet();
+
+    if (root != null) {
+      addIdsFromChildren(root, ids);
+    }
+
     if (module != null) {
       AppResourceRepository resources = AppResourceRepository.getAppResources(module, true);
       if (resources != null) {
-        return resources.getItemsOfType(ResourceType.ID);
+        ids.addAll(resources.getItemsOfType(ResourceType.ID));
       }
     }
 
-    return Collections.emptyList();
+    return ids;
+  }
+
+  private static void addIdsFromChildren(@NotNull RadComponent root, final Set<String> ids) {
+    root.accept(new RadComponentVisitor() {
+      @Override
+      public void endVisit(RadComponent component) {
+        if (component instanceof RadViewComponent) {
+          RadViewComponent viewComponent = (RadViewComponent)component;
+          String id = getIdName(viewComponent.getId());
+          if (id != null) {
+            ids.add(id);
+          }
+        }
+      }
+    }, true);
   }
 
   /**
@@ -92,7 +118,7 @@ public class IdManager {
   @NotNull
   public String assignId(RadViewComponent component) {
     XmlTag tag = component.getTag();
-    Collection<String> idList = getIds(AndroidPsiUtils.getModuleSafely(tag));
+    Collection<String> idList = getIds(AndroidPsiUtils.getModuleSafely(tag), component.getRoot());
     return assignId(component, idList);
   }
 
