@@ -311,8 +311,7 @@ public class ThemeEditorStyle {
         });
       // folderConfiguration is the FolderConfiguration that needs to be selected in order to the current item
       // to be resolved.
-      FolderConfiguration folderConfiguration =
-        QualifierUtils.restrictConfiguration(manager, item.getConfiguration(), notSelectedConfigurations);
+      FolderConfiguration folderConfiguration = QualifierUtils.restrictConfiguration(item.getConfiguration(), notSelectedConfigurations);
       if (folderConfiguration == null) {
         LOG.warn(String.format(
           "For item '%1$s': Folder configuration '%2$s' can never be selected. There are no qualifiers combination that would allow selecting it.",
