@@ -58,10 +58,7 @@ public class QualifierUtilsTest extends AndroidTestCase {
       new VersionQualifier(21),
       new VersionQualifier(19),
       new VersionQualifier(16));
-
-    assertEquals(15, ((VersionQualifier)QualifierUtils.getIncompatibleVersionQualifier(21, versionQualifiers)).getVersion());
-    assertEquals(15, ((VersionQualifier)QualifierUtils.getIncompatibleVersionQualifier(22, versionQualifiers)).getVersion());
-    assertEquals(14, ((VersionQualifier)QualifierUtils.getIncompatibleVersionQualifier(14, versionQualifiers)).getVersion());
+    assertEquals(15, ((VersionQualifier)QualifierUtils.getIncompatibleVersionQualifier(versionQualifiers)).getVersion());
   }
 
   public void testDensityQualifiers() {
@@ -93,7 +90,7 @@ public class QualifierUtilsTest extends AndroidTestCase {
 
     FolderConfiguration compatible = FolderConfiguration.getConfigForQualifierString("land");
 
-    assertEquals("-land", QualifierUtils.restrictConfiguration(myConfigurationManager, compatible, incompatible).getUniqueKey());
+    assertEquals("-land", QualifierUtils.restrictConfiguration(compatible, incompatible).getUniqueKey());
   }
 
   /**
@@ -128,7 +125,7 @@ public class QualifierUtilsTest extends AndroidTestCase {
     // default config
     FolderConfiguration compatible = FolderConfiguration.getConfigForQualifierString("");
 
-    assertEquals("-square", QualifierUtils.restrictConfiguration(myConfigurationManager, compatible, incompatible).getUniqueKey());
+    assertEquals("-square", QualifierUtils.restrictConfiguration(compatible, incompatible).getUniqueKey());
   }
 
   private void checkRestrictConfigurationFor(String compatibleQualifier, String answerQualifier, String... incompatibleQualifiers) {
@@ -139,7 +136,7 @@ public class QualifierUtilsTest extends AndroidTestCase {
     }
     final FolderConfiguration compatible = FolderConfiguration.getConfigForQualifierString(compatibleQualifier);
     assertNotNull(compatible);
-    FolderConfiguration folderConfiguration = QualifierUtils.restrictConfiguration(myConfigurationManager, compatible, incompatibles);
+    FolderConfiguration folderConfiguration = QualifierUtils.restrictConfiguration(compatible, incompatibles);
     assertNotNull(folderConfiguration);
 
     // folderConfiguration.getUniqueKey() returns with a "-"

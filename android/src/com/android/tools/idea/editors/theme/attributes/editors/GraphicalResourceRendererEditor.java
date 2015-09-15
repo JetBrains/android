@@ -126,7 +126,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
    * This configuration can be used when we want to make sure that the configuration selected will be displayed.
    */
   @Nullable("if there is no configuration that matches the constraints")
-  static FolderConfiguration restrictConfiguration(@NotNull ConfigurationManager manager, @NotNull EditedStyleItem item, @NotNull final FolderConfiguration compatibleConfiguration) {
+  static FolderConfiguration restrictConfiguration(@NotNull EditedStyleItem item, @NotNull final FolderConfiguration compatibleConfiguration) {
     ArrayList<FolderConfiguration> incompatibleConfigurations = Lists.newArrayListWithCapacity(
       item.getNonSelectedItemResourceValues().size() + 1);
 
@@ -139,20 +139,18 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
       incompatibleConfigurations.add(configuration);
     }
 
-    return QualifierUtils.restrictConfiguration(manager, compatibleConfiguration, incompatibleConfigurations);
+    return QualifierUtils.restrictConfiguration(compatibleConfiguration, incompatibleConfigurations);
   }
 
   /**
    * Sets the UI state of the passed {@link ResourceComponent} based on the given {@link EditedStyleItem}
    */
-  private static void updateComponentInternal(final @NotNull ThemeEditorContext context,
-                                              @NotNull ResourceComponent component,
+  private static void updateComponentInternal(@NotNull ResourceComponent component,
                                               final @NotNull EditedStyleItem item) {
-    final ConfigurationManager manager = context.getConfiguration().getConfigurationManager();
     final String currentVariantColor = ColorUtil.toHex(ThemeEditorConstants.CURRENT_VARIANT_COLOR);
     final String notSelectedVariantColor = ColorUtil.toHex(ThemeEditorConstants.NOT_SELECTED_VARIANT_COLOR);
 
-    FolderConfiguration restrictedConfig = restrictConfiguration(manager, item, item.getSelectedValueConfiguration());
+    FolderConfiguration restrictedConfig = restrictConfiguration(item, item.getSelectedValueConfiguration());
     String description = String.format(ThemeEditorConstants.CURRENT_VARIANT_TEMPLATE, currentVariantColor,
                                        item.getSelectedValueConfiguration().toShortDisplayString());
     VariantsComboItem selectedItem =
@@ -161,8 +159,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
     // All the not selected elements are sorted alphabetically
     TreeSet<VariantsComboItem> notSelectedItems = Sets.newTreeSet(VARIANTS_COMBO_ITEM_COMPARATOR);
     for (ConfiguredElement<ItemResourceValue> configuredItem : item.getNonSelectedItemResourceValues()) {
-      restrictedConfig =
-        restrictConfiguration(context.getConfiguration().getConfigurationManager(), item, configuredItem.getConfiguration());
+      restrictedConfig = restrictConfiguration(item, configuredItem.getConfiguration());
 
       if (restrictedConfig == null) {
         // This type is not visible
@@ -195,7 +192,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
     myItem = (EditedStyleItem)obj;
 
     myComponent.setSize(table.getCellRect(row, column, false).getSize());
-    updateComponentInternal(myContext, myComponent, (EditedStyleItem)obj);
+    updateComponentInternal(myComponent, (EditedStyleItem)obj);
     updateComponent(myContext, myComponent, (EditedStyleItem)obj);
 
     return myComponent;
@@ -207,7 +204,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
     myItem = value;
 
     myComponent.setSize(table.getCellRect(row, column, false).getSize());
-    updateComponentInternal(myContext, myComponent, value);
+    updateComponentInternal(myComponent, value);
     updateComponent(myContext, myComponent, value);
     myEditorValue = null; // invalidate stored editor value
 
