@@ -51,7 +51,7 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
   private static final float TIMELINE_INITIAL_MARKER_SEPARATION = 3.0f;
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
 
-  private static final String NEEDS_NEWER_API_LABEL = "This device does not support the minimum API level (16) for GPU monitor.";
+  private static final String NEEDS_NEWER_API_LABEL = "This device does not support the minimum API level (16) to monitor rendering.";
   private static final String NEEDS_PROFILING_ENABLED_LABEL = "GPU Profiling needs to be enabled in the device's developer options. " +
                                                               "<a href='https://developer.android.com/preview/testing/performance.html#timing-dump'>Learn more</a>.";
 
