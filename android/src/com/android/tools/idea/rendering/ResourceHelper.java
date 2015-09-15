@@ -36,8 +36,11 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -47,13 +50,10 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.Color;
+import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
@@ -330,15 +330,82 @@ public class ResourceHelper {
   }
 
   /**
+   * Package prefixes used in {@link #isViewPackageNeeded(String, int)}
+   */
+  private static final String[] NO_PREFIX_PACKAGES =
+    new String[]{ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PKG, ANDROID_WEBKIT_PKG};
+
+  /**
    * Returns true if views with the given fully qualified class name need to include
-   * their package in the layout XML tag
+   * their package in the layout XML tag. Package prefixes that allow class name to be
+   * unqualified are specified in {@link #NO_PREFIX_PACKAGES} and should reflect a list
+   * of prefixes from framework's LayoutInflater and PhoneLayoutInflater.
    *
-   * @param fqcn the fully qualified class name, such as android.widget.Button
+   * @param qualifiedName the fully qualified class name, such as android.widget.Button
+   * @param apiLevel The API level for the calling context. This is the max of the
+   *                 project's minSdkVersion and the layout file's version qualifier, if any.
+   *                 You can pass -1 if this is not known, which will force fully qualified
+   *                 names on some packages which recently no longer require it.
    * @return true if the full package path should be included in the layout XML element
    *         tag
    */
-  public static boolean viewNeedsPackage(String fqcn) {
-    return !(fqcn.startsWith(ANDROID_WIDGET_PREFIX) || fqcn.startsWith(ANDROID_VIEW_PKG) || fqcn.startsWith(ANDROID_WEBKIT_PKG));
+  public static boolean isViewPackageNeeded(@NotNull String qualifiedName, int apiLevel) {
+    for (String noPrefixPackage : NO_PREFIX_PACKAGES) {
+      // We need to check not only if prefix is a "whitelisted" package, but if the class
+      // is stored in that package directly, as opposed to be stored in a subpackage.
+      // For example, view with FQCN android.view.MyView can be abbreviated to "MyView",
+      // but android.view.custom.MyView can not.
+      if (isDirectlyInPackage(qualifiedName, noPrefixPackage)) {
+        return false;
+      }
+    }
+
+    if (apiLevel >= 20) {
+      // Special case: starting from API level 20, classes from "android.app" also inflated
+      // without fully qualified names
+      return !isDirectlyInPackage(qualifiedName, ANDROID_APP_PKG);
+    }
+    return true;
+  }
+
+  /**
+   * XML tags associated with classes usually can come either with fully-qualified names, which can be shortened
+   * in case of common packages, which is handled by various inflaters in Android framework. This method checks
+   * whether a class with given qualified name can be shortened to a simple name, or is required to have
+   * a package qualifier.
+   * <p/>
+   * Accesses JavaPsiFacade, and thus should be run inside read action.
+   *
+   * @see #isViewPackageNeeded(String, int)
+   */
+  public static boolean isClassPackageNeeded(@NotNull String qualifiedName, @NotNull PsiClass baseClass, int apiLevel) {
+    final PsiClass viewClass =
+      JavaPsiFacade.getInstance(baseClass.getProject()).findClass(CLASS_VIEW, GlobalSearchScope.allScope(baseClass.getProject()));
+
+    if (viewClass != null && baseClass.isInheritor(viewClass, true)) {
+      return isViewPackageNeeded(qualifiedName, apiLevel);
+    } else if (CLASS_PREFERENCE.equals(baseClass.getQualifiedName())) {
+      // Handled by PreferenceInflater in Android framework
+      return !isDirectlyInPackage(qualifiedName, "android.preference.");
+    } else {
+      // TODO: removing that makes some of unit tests fail, but leaving it as it is can introduce buggy XML validation
+      // Issue with further information: http://b.android.com/186559
+      return !qualifiedName.startsWith(ANDROID_PKG_PREFIX);
+    }
+  }
+
+  /**
+   * Returns whether a class with given qualified name resides directly in a package with
+   * given prefix (as opposed to reside in a subpackage).
+   * <p/>
+   * For example,
+   * <ul>
+   *   <li>isDirectlyInPackage("android.view.View", "android.view.") -> true</li>
+   *   <li>isDirectlyInPackage("android.view.internal.View", "android.view.") -> false</li>
+   * </ul>
+   */
+  public static boolean isDirectlyInPackage(@NotNull String qualifiedName, @NotNull String packagePrefix) {
+    return qualifiedName.startsWith(packagePrefix) && qualifiedName.indexOf('.', packagePrefix.length() + 1) == -1;
   }
 
   /**

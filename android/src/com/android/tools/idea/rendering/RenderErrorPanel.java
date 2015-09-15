@@ -110,7 +110,7 @@ import static com.android.tools.idea.configurations.RenderContext.UsageType.LAYO
 import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
 import static com.android.tools.idea.rendering.HtmlLinkManager.URL_ACTION_CLOSE;
 import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
-import static com.android.tools.idea.rendering.ResourceHelper.viewNeedsPackage;
+import static com.android.tools.idea.rendering.ResourceHelper.isViewPackageNeeded;
 import static com.android.tools.lint.detector.api.LintUtils.editDistance;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 import static com.intellij.openapi.util.SystemInfo.JAVA_VERSION;
@@ -356,7 +356,7 @@ public class RenderErrorPanel extends JPanel {
           customViews = Lists.newArrayListWithExpectedSize(Math.max(10, views.size() - 80)); // most will be framework views
           androidViewClassNames = Lists.newArrayListWithExpectedSize(views.size());
           for (String fqcn : views) {
-            if (fqcn.startsWith("android.") && !viewNeedsPackage(fqcn)) {
+            if (fqcn.startsWith("android.") && !isViewPackageNeeded(fqcn, -1)) {
               androidViewClassNames.add(fqcn);
             } else {
               customViews.add(fqcn);
@@ -449,7 +449,7 @@ public class RenderErrorPanel extends JPanel {
           if (!sameBase) {
             // If they differ in the base name, handled by separate call with !compareWithPackage
             continue;
-          } else if (actualBase.equals(actual) && !actualBase.equals(suggested) && viewNeedsPackage(suggested)) {
+          } else if (actualBase.equals(actual) && !actualBase.equals(suggested) && isViewPackageNeeded(suggested, -1)) {
             // Custom view needs to be specified with a fully qualified path
             builder.addLink(String.format("Change to %1$s", suggested),
                             myLinkManager.createReplaceTagsUrl(actual, suggested));
@@ -475,7 +475,7 @@ public class RenderErrorPanel extends JPanel {
                           myLinkManager.createReplaceTagsUrl(actual,
                           // Only show full package name if class name
                           // is the same
-                          (viewNeedsPackage(suggested) ? suggested : suggestedBase)));
+                          (isViewPackageNeeded(suggested, -1) ? suggested : suggestedBase)));
           builder.add(", ");
         }
       }
