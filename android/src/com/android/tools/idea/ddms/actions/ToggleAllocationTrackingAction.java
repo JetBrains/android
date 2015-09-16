@@ -21,10 +21,13 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.tools.chartlib.EventData;
 import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.allocations.AllocationCaptureType;
 import com.android.tools.idea.monitor.memory.MemoryMonitorView;
 import com.android.tools.idea.profiling.capture.Capture;
+import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
+import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
@@ -96,9 +99,20 @@ public class ToggleAllocationTrackingAction extends AbstractClientToggleAction {
                   return;
                 }
 
-                CaptureService service = CaptureService.getInstance(myProject);
-                Capture capture = service.createCapture(AllocationCaptureType.class, data);
-                service.notifyCaptureReady(capture);
+                final CaptureService service = CaptureService.getInstance(myProject);
+                CaptureHandle handle = service.startCaptureFile(AllocationCaptureType.class);
+                service.appendDataCopy(handle, data);
+                service.finalizeCaptureFileAsynchronous(handle, new FutureCallback<Capture>() {
+                  @Override
+                  public void onSuccess(Capture result) {
+                    service.notifyCaptureReady(result);
+                  }
+
+                  @Override
+                  public void onFailure(Throwable t) {
+                    throw new RuntimeException(t);
+                  }
+                }, EdtExecutor.INSTANCE);
               }
               catch (IOException e) {
                 throw new RuntimeException(e);
