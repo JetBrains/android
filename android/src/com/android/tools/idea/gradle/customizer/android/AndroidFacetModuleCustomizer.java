@@ -52,7 +52,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
                               @NotNull IdeModifiableModelsProvider modelsProvider,
                               @Nullable IdeaAndroidProject androidProject) {
     if (androidProject == null) {
-      removeAllFacetsOfType(module, AndroidFacet.ID);
+      removeAllFacetsOfType(AndroidFacet.ID, modelsProvider.getModifiableFacetModel(module));
     }
     else {
       AndroidFacet facet = AndroidFacet.getInstance(module);

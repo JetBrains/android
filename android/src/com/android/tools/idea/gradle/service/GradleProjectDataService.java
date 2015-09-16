@@ -19,9 +19,9 @@ import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacetType;
 import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.collect.Maps;
-import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -32,7 +32,6 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +61,7 @@ public class GradleProjectDataService extends AbstractProjectDataService<IdeaGra
                          @NotNull final IdeModifiableModelsProvider modelsProvider) {
     if (!toImport.isEmpty()) {
       try {
-        doImport(toImport, project);
+        doImport(toImport, project, modelsProvider);
       } catch (Throwable e) {
         LOG.error(String.format("Failed to set up modules in project '%1$s'", project.getName()), e);
         GradleSyncState.getInstance(project).syncFailed(e.getMessage());
@@ -70,27 +69,28 @@ public class GradleProjectDataService extends AbstractProjectDataService<IdeaGra
     }
   }
 
-  private static void doImport(final Collection<DataNode<IdeaGradleProject>> toImport, final Project project) throws Throwable {
+  private static void doImport(@NotNull final Collection<DataNode<IdeaGradleProject>> toImport,
+                               @NotNull final Project project,
+                               @NotNull final IdeModifiableModelsProvider modelsProvider) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
         if (!project.isDisposed()) {
-          ModuleManager moduleManager = ModuleManager.getInstance(project);
           Map<String, IdeaGradleProject> gradleProjectsByName = indexByModuleName(toImport);
-          for (Module module : moduleManager.getModules()) {
+          for (Module module : modelsProvider.getModules()) {
             IdeaGradleProject gradleProject = gradleProjectsByName.get(module.getName());
             if (gradleProject == null) {
               // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
               // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides not
               // to delete the orphan module when Studio prompts to do so.
-              Facets.removeAllFacetsOfType(module, AndroidGradleFacet.TYPE_ID);
+              Facets.removeAllFacetsOfType(AndroidGradleFacet.TYPE_ID, modelsProvider.getModifiableFacetModel(module));
             }
             else {
               String gradleVersion = gradleProject.getGradleVersion();
               if (isNotEmpty(gradleVersion)) {
                 setGradleVersionUsed(project, gradleVersion);
               }
-              customizeModule(module, gradleProject);
+              customizeModule(module, gradleProject, modelsProvider);
             }
           }
         }
@@ -112,8 +112,10 @@ public class GradleProjectDataService extends AbstractProjectDataService<IdeaGra
     return gradleProjectsByModuleName;
   }
 
-  private static void customizeModule(@NotNull Module module, @NotNull IdeaGradleProject gradleProject) {
-    AndroidGradleFacet androidGradleFacet = setAndGetAndroidGradleFacet(module);
+  private static void customizeModule(@NotNull Module module,
+                                      @NotNull IdeaGradleProject gradleProject,
+                                      @NotNull IdeModifiableModelsProvider modelsProvider) {
+    AndroidGradleFacet androidGradleFacet = setAndGetAndroidGradleFacet(module, modelsProvider);
     androidGradleFacet.setGradleProject(gradleProject);
   }
 
@@ -121,25 +123,21 @@ public class GradleProjectDataService extends AbstractProjectDataService<IdeaGra
    * Retrieves the Android-Gradle facet from the given module. If the given module does not have it, this method will create a new one.
    *
    * @param module the given module.
+   * @param modelsProvider platform modifiable models provider
    * @return the Android-Gradle facet from the given module.
    */
   @NotNull
-  private static AndroidGradleFacet setAndGetAndroidGradleFacet(Module module) {
+  private static AndroidGradleFacet setAndGetAndroidGradleFacet(Module module, IdeModifiableModelsProvider modelsProvider) {
     AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
     if (facet != null) {
       return facet;
     }
 
     // Module does not have Android-Gradle facet. Create one and add it.
-    FacetManager facetManager = FacetManager.getInstance(module);
-    ModifiableFacetModel model = facetManager.createModifiableModel();
-    try {
-      facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
-      model.addFacet(facet);
-    }
-    finally {
-      model.commit();
-    }
+    ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
+    final AndroidGradleFacetType facetType = AndroidGradleFacet.getFacetType();
+    facet = facetType.createFacet(module, AndroidGradleFacet.NAME, facetType.createDefaultConfiguration(), null);
+    model.addFacet(facet);
     return facet;
   }
 }
