@@ -962,7 +962,7 @@ public class AndroidResourceUtil {
         for (Resources resources : resourcesElements) {
           for (ScalarResourceElement colorElement : resources.getColors()) {
             String colorValue = colorElement.getName().getStringValue();
-            if (StringUtil.equalsIgnoreCase(colorValue, colorName)) {
+            if (colorName.equals(colorValue)) {
               colorElement.setStringValue(newValue);
               result.setResult(true);
             }
