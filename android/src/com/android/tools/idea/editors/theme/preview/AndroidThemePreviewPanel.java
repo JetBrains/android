@@ -217,6 +217,11 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     myErrorPanel.add(Box.createVerticalGlue());
     myErrorPanel.setVisible(false);
 
+    StyledDocument document = myErrorLabel.getStyledDocument();
+    SimpleAttributeSet attributes = new SimpleAttributeSet();
+    StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_CENTER);
+    document.setParagraphAttributes(0, document.getLength(), attributes, false);
+
     add(Box.createRigidArea(JBUI.size(0, 5)));
     add(myBreadcrumbs);
     add(Box.createRigidArea(JBUI.size(0, 10)));
@@ -432,11 +437,9 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   }
 
   public void showError(@Nullable String themeName) {
-    StyledDocument document = myErrorLabel.getStyledDocument();
-    SimpleAttributeSet attributes = new SimpleAttributeSet();
-    StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_CENTER);
-    document.setParagraphAttributes(0, document.getLength(), attributes, false);
-    myErrorLabel.setText("The theme " + themeName + " cannot be rendered in the current configuration");
+    if (themeName != null) {
+      myErrorLabel.setText("The theme " + themeName + " cannot be rendered in the current configuration");
+    }
     myErrorPanel.setVisible(themeName != null);
     myScrollPane.setVisible(themeName == null);
   }
