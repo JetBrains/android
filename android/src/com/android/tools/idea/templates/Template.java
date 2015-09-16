@@ -42,6 +42,7 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -79,7 +80,6 @@ public class Template {
   public static final String ATTR_ID = "id";
   public static final String ATTR_NAME = "name";
   public static final String ATTR_DESCRIPTION = "description";
-  public static final String ATTR_VERSION = "version";
   public static final String ATTR_TYPE = "type";
   public static final String ATTR_HELP = "help";
   public static final String ATTR_FILE = "file";
@@ -88,11 +88,10 @@ public class Template {
   public static final String ATTR_ENABLED = "enabled";
   public static final String ATTR_SOURCE_URL = "href";
   public static final String CATEGORY_ACTIVITIES = "activities";
-  public static final String CATEGORY_ACTIVITY = "Activity";
   public static final String CATEGORY_PROJECTS = "gradle-projects";
   public static final String CATEGORY_OTHER = "other";
   public static final String CATEGORY_APPLICATION = "Application";
-  public static final String BLOCK_DEPENDENCIES = "dependencies";
+
   /**
    * Highest supported format; templates with a higher number will be skipped
    * <p/>
@@ -115,16 +114,22 @@ public class Template {
    * instantiation recorded a failure.
    */
   @VisibleForTesting public static Exception ourMostRecentException;
-  /**
-   * List of files to open after the wizard has been created (these are
-   * identified by {@link #TAG_OPEN} elements in the recipe file
-   */
-  private final List<File> myFilesToOpen = Lists.newArrayList();
 
   /**
    * Path to the directory containing the templates
    */
   private final File myTemplateRoot;
+
+  /**
+   * The list of template outputs.
+   */
+  private final Collection<File> myTargetFiles;
+
+  /**
+   * List of files to open after the wizard has been created (these are
+   * identified by TAG_OPEN elements in the recipe file)
+   */
+  private final List<File> myFilesToOpen = Lists.newArrayList();
 
   /**
    * The template loader which is responsible for finding (and sharing) template files
@@ -134,9 +139,11 @@ public class Template {
   private TemplateMetadata myMetadata;
   private Project myProject;
 
-  private Template(@NotNull File rootPath) {
-    myTemplateRoot = rootPath;
-    myLoader = new StudioTemplateLoader(myTemplateRoot);
+  private Template(@NotNull File templateRoot) {
+    myTemplateRoot = templateRoot;
+
+    myTargetFiles = Lists.newArrayList();
+    myLoader = new StudioTemplateLoader(templateRoot);
   }
 
   /**
@@ -291,8 +298,7 @@ public class Template {
 
     String title = myMetadata.getTitle();
     if (title != null) {
-      UsageTracker.getInstance()
-        .trackEvent(UsageTracker.CATEGORY_TEMPLATE, UsageTracker.ACTION_TEMPLATE_RENDER, title, null);
+      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_TEMPLATE, UsageTracker.ACTION_TEMPLATE_RENDER, title, null);
     }
   }
 
@@ -301,7 +307,9 @@ public class Template {
                         @NotNull Map<String, Object> args,
                         @Nullable Project project,
                         boolean gradleSyncIfNeeded) {
+    myTargetFiles.clear();
     myFilesToOpen.clear();
+
     if (project == null) {
       // Project creation: no current project to read code style settings from yet, so use defaults
       project = ProjectManagerEx.getInstanceEx().getDefaultProject();
@@ -309,7 +317,11 @@ public class Template {
     myProject = project;
 
     Map<String, Object> paramMap = createParameterMap(args);
-    enforceParameterTypes(getMetadata(), args);
+
+    TemplateMetadata metadata = getMetadata();
+    assert metadata != null;
+
+    enforceParameterTypes(metadata, args);
     Configuration freemarker = new FreemarkerConfiguration();
     freemarker.setTemplateLoader(myLoader);
 
@@ -328,6 +340,11 @@ public class Template {
     }
 
     return myMetadata;
+  }
+
+  @NotNull
+  public Collection<File> getTargetFiles() {
+    return myTargetFiles;
   }
 
   @NotNull
@@ -457,11 +474,14 @@ public class Template {
             xml = XmlUtils.stripBom(xml);
 
             Recipe recipe = Recipe.parse(new StringReader(xml));
-            myFilesToOpen.addAll(recipe.getFilesToOpen());
 
             RecipeContext recipeContext =
-              new RecipeContext(myProject, myLoader, freemarker, paramMap, outputRoot, moduleRoot, gradleSyncIfNeeded);
+              new RecipeContext(myProject, paramMap, freemarker, myLoader, gradleSyncIfNeeded, outputRoot, moduleRoot);
+
             recipe.execute(recipeContext);
+
+            myTargetFiles.addAll(recipe.getTargetFiles());
+            myFilesToOpen.addAll(recipe.getFilesToOpen());
           }
           catch (JAXBException ex) {
             throw new TemplateProcessingException(ex);
