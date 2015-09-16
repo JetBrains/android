@@ -20,9 +20,7 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTableFixture;
 import org.fest.assertions.Index;
@@ -196,7 +194,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
 
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
     Color color = new Color(200, 0, 0, 200);
-    dialog.setColorWithIntegers(color);
+    dialog.getColorPicker().setColorWithIntegers(color);
     dialog.clickOK();
 
     cellFont = themeEditorTable.valueFontAt(cell);
@@ -210,5 +208,38 @@ public class ThemeEditorTableTest extends GuiTestCase {
     editor.moveTo(editor.findOffset(null, "holo", true));
     assertEquals("<color name=\"^holo_light_primary\">" + ResourceHelper.colorToString(color) + "</color>",
                  editor.getCurrentLineContents(true, true, 0));
+  }
+
+  /**
+   * Test that the alpha slider and the textfield are hidden when we are not in ARGB.
+   */
+  @Test @IdeGuiTest
+  public void testColorPickerAlpha() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+
+    TableCell cell = row(1).column(0);
+
+    JTableCellFixture colorCell = themeEditorTable.cell(cell);
+    colorCell.requireEditable();
+    colorCell.click();
+
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
+    ColorPickerFixture colorPicker = dialog.getColorPicker();
+    Color color = new Color(200, 0, 0, 200);
+    colorPicker.setFormat("ARGB");
+    colorPicker.setColorWithIntegers(color);
+    JTextComponentFixture alphaLabel = colorPicker.getLabel("A:");
+    SlideFixture alphaSlide = colorPicker.getAlphaSlide();
+    alphaLabel.requireVisible();
+    alphaSlide.requireVisible();
+    colorPicker.setFormat("RGB");
+    alphaLabel.requireNotVisible();
+    alphaSlide.requireNotVisible();
+    colorPicker.setFormat("HSB");
+    alphaLabel.requireNotVisible();
+    alphaSlide.requireNotVisible();
+    dialog.clickOK();
   }
 }
