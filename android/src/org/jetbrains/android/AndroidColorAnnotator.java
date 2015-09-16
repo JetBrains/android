@@ -283,6 +283,9 @@ public class AndroidColorAnnotator implements Annotator {
         return smallest;
       }
 
+      // TODO: For XML drawables, look in the rendered output to see if there's a DPI version we can use:
+      // These are found in  ${module}/build/generated/res/pngs/debug/drawable-*dpi
+
       long length = bitmap.length();
       if (length < MAX_ICON_SIZE) {
         return bitmap;
