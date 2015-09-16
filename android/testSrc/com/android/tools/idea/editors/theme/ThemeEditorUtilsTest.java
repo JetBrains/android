@@ -32,6 +32,7 @@ import com.android.tools.idea.tests.gui.theme.ThemeEditorTestUtils;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -45,8 +46,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 public class ThemeEditorUtilsTest extends AndroidTestCase {
 
@@ -221,6 +225,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/attributeResolution/styles_base.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v17.xml", "res/values-v17/styles.xml");
     myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v20.xml", "res/values-v20/styles.xml");
+    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-port.xml", "res/values-port/styles.xml");
 
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
     assertNotNull(configuration.getTarget());
@@ -236,10 +241,14 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     assertEquals("V20", myAttribute.getValue());
     assertEquals("V20", myBaseAttribute.getValue());
-    // This wil contain v19 and default as other configs
+    // This wil contain v17 and default as other configs
     assertSize(2, myBaseAttribute.getNonSelectedItemResourceValues());
-    ConfiguredElement<ItemResourceValue> value = Iterables.getFirst(myBaseAttribute.getNonSelectedItemResourceValues(), null);
-    assertEquals("V17", value.getElement().getValue());
+
+    HashSet<String> values = Sets.newHashSet();
+    for (ConfiguredElement<ItemResourceValue> item : myBaseAttribute.getNonSelectedItemResourceValues()) {
+      values.add(item.getElement().getValue());
+    }
+    assertThat(values).containsOnly("V20", "V17");
 
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 17, null));
     themeResolver = new ThemeResolver(configuration);
@@ -253,6 +262,15 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     assertEquals("V17", myAttribute.getValue());
     assertEquals("V17", myBaseAttribute.getValue());
+
+    configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 20, null));
+    themeResolver = new ThemeResolver(configuration);
+
+    style = themeResolver.getTheme("@style/PortraitOnlyTheme");
+    assertNotNull(style);
+    attributes = ThemeEditorUtils.resolveAllAttributes(style, themeResolver);
+    myAttribute = findAttribute("myAttribute", attributes);
+    assertEquals("V20", myAttribute.getValue());
   }
 
   /**
@@ -275,7 +293,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     Collection<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(style, new ThemeResolver(configuration));
 
     EditedStyleItem myAttribute = findAttribute("myAttribute", attributes);
-    System.out.println(myAttribute);
+    assertNotNull(myAttribute);
   }
 
   public void testAttributeInheritanceSet() {
