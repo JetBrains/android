@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.hprof.views.InstancesTreeView;
 import com.android.tools.idea.editors.hprof.views.SelectionModel;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Snapshot;
+import com.intellij.designer.LightFillLayout;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
@@ -111,16 +112,16 @@ public class HprofViewPanel implements Disposable {
     JBPanel classPanel = new JBPanel(new BorderLayout());
     classPanel.add(splitter, BorderLayout.CENTER);
 
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
-    toolbar.getComponent().setName(TOOLBAR_NAME);
-    classPanel.add(toolbar.getComponent(), BorderLayout.NORTH);
-
     JBSplitter mainSplitter = new JBSplitter(true);
     mainSplitter.setFirstComponent(classPanel);
     mainSplitter.setSecondComponent(treePanel);
     mainSplitter.setDividerWidth(DIVIDER_WIDTH);
 
-    myContainer = new JPanel(new BorderLayout());
+    myContainer = new JPanel(new LightFillLayout());
+
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
+    toolbar.getComponent().setName(TOOLBAR_NAME);
+    myContainer.add(toolbar.getComponent(), BorderLayout.NORTH);
     myContainer.add(mainSplitter);
   }
 
@@ -149,6 +150,11 @@ public class HprofViewPanel implements Disposable {
   @NotNull
   public JPanel getComponent() {
     return myContainer;
+  }
+
+  @NotNull
+  public SelectionModel getSelectionModel() {
+    return mySelectionModel;
   }
 
   @Override
