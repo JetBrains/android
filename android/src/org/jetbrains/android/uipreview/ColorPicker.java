@@ -135,6 +135,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       @Override
       public void actionPerformed(ActionEvent e) {
         PropertiesComponent.getInstance().setValue(HSB_PROPERTY, String.valueOf(!isRGBMode()));
+        myColorSelectionPanel.myOpacityComponent.setVisible(isARGBMode());
         myA.setVisible(isARGBMode());
         myAlpha.setVisible(isARGBMode());
         myR.setText(isRGBMode() ? "R:" : "H:");
@@ -146,6 +147,9 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         myG_after.setVisible(!isRGBMode());
         myB_after.setText(isRGBMode() ? "" : "%");
         myB_after.setVisible(!isRGBMode());
+        if (!isARGBMode() && myColor.getAlpha() != 255) {
+          updatePreview(ColorUtil.toAlpha(myColor, 255), false);
+        }
         applyColor(myColor);
         applyColorToHEX(myColor);
       }
@@ -297,8 +301,6 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       myColorSelectionPanel.myOpacityComponent.setColor(color);
       if (myAlpha.hasFocus() || (isARGBMode() && myHex.hasFocus())) {
         myColorSelectionPanel.myOpacityComponent.setValue(color.getAlpha());
-      } else if (myColorSelectionPanel.myOpacityComponent != null && !isARGBMode()) {
-        color = ColorUtil.toAlpha(color, myColorSelectionPanel.myOpacityComponent.getValue());
       }
       myColorSelectionPanel.myOpacityComponent.repaint();
       updatePreview(color, src == myHex);
@@ -390,8 +392,11 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       final int g = Integer.parseInt(myGreen.getText());
       final int b = Integer.parseInt(myBlue.getText());
       final int a = Integer.parseInt(myAlpha.getText());
-      if (isRGBMode()) {
+      if (isARGBMode()) {
         return new Color(r, g, b, a);
+      }
+      else if (isRGBMode()) {
+        return new Color(r, g, b);
       }
       else if (fromTextFields) {
         return Color.getHSBColor(r / 360.0f, g / 100.0f, b / 100.0f);
@@ -1335,337 +1340,339 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       }
     });
   }
+
+  public static class SlideComponent extends JComponent {
+    protected static final int MARGIN = JBUI.scale(5);
+    protected int myPointerValue = 0;
+    private int myValue = 0;
+    private final boolean myVertical;
+    private final String myTitle;
+
+    private final List<Consumer<Integer>> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
+    private LightweightHint myTooltipHint;
+    private final JLabel myLabel = new JLabel();
+    private Unit myUnit = Unit.LEVEL;
+
+    private Color myColor;
+
+    enum Unit {
+      PERCENT,
+      LEVEL;
+
+      private static final float PERCENT_MAX_VALUE = 100f;
+      private static final float LEVEL_MAX_VALUE = 255f;
+
+      private static float getMaxValue(Unit unit) {
+        return LEVEL.equals(unit) ? LEVEL_MAX_VALUE : PERCENT_MAX_VALUE;
+      }
+
+      private static String formatValue(int value, Unit unit) {
+        return String.format("%d%s", (int) (getMaxValue(unit) / LEVEL_MAX_VALUE * value),
+                             unit.equals(PERCENT) ? "%" : "");
+      }
+    }
+
+    void setUnits(Unit unit) {
+      myUnit = unit;
+    }
+
+    SlideComponent(String title, boolean vertical) {
+      myTitle = title;
+      myVertical = vertical;
+
+      addMouseMotionListener(new MouseAdapter() {
+        @Override
+        public void mouseDragged(MouseEvent e) {
+          processMouse(e);
+        }
+      });
+
+      addMouseListener(new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) {
+          processMouse(e);
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          updateBalloonText();
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+          updateBalloonText();
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+          updateBalloonText();
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+          if (myTooltipHint != null) {
+            myTooltipHint.hide();
+            myTooltipHint = null;
+          }
+        }
+      });
+
+      addMouseWheelListener(new MouseWheelListener() {
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e) {
+          final int amount = e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL ? e.getUnitsToScroll() * e.getScrollAmount() :
+                             e.getWheelRotation() < 0 ? -e.getScrollAmount() : e.getScrollAmount();
+          int pointerValue = myPointerValue + amount;
+          pointerValue = pointerValue < MARGIN ? MARGIN : pointerValue;
+          int size = myVertical ? getHeight() : getWidth();
+          pointerValue = pointerValue > (size - MARGIN) ? size - MARGIN : pointerValue;
+
+          myPointerValue = pointerValue;
+          myValue = pointerValueToValue(myPointerValue);
+
+          repaint();
+          fireValueChanged();
+        }
+      });
+
+      addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentResized(ComponentEvent e) {
+          setValue(getValue());
+          fireValueChanged();
+          repaint();
+        }
+      });
+    }
+
+    public void setColor(Color color) {
+      myColor = color;
+    }
+
+    public void setHue(float hue) {
+      float[] hsv = Color.RGBtoHSB(myColor.getRed(), myColor.getGreen(), myColor.getBlue(), null);
+      if (Math.abs(hue - hsv[0]) > 0.01) {
+        setColor(Color.getHSBColor(hue, hsv[1], hsv[2]));
+      }
+    }
+
+
+    private void updateBalloonText() {
+      final Point point = myVertical ? new Point(0, myPointerValue) : new Point(myPointerValue, 0);
+      myLabel.setText(myTitle + ": " + Unit.formatValue(myValue, myUnit));
+      if (myTooltipHint == null) {
+        myTooltipHint = new LightweightHint(myLabel);
+        myTooltipHint.setCancelOnClickOutside(false);
+        myTooltipHint.setCancelOnOtherWindowOpen(false);
+
+        final HintHint hint = new HintHint(this, point)
+          .setPreferredPosition(myVertical ? Balloon.Position.atLeft : Balloon.Position.above)
+          .setBorderColor(Color.BLACK)
+          .setAwtTooltip(true)
+          .setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD))
+          .setTextBg(HintUtil.INFORMATION_COLOR)
+          .setShowImmediately(true);
+
+        final Component owner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        myTooltipHint.show(this, point.x, point.y, owner instanceof JComponent ? (JComponent)owner : null, hint);
+      }
+      else {
+        myTooltipHint.setLocation(new RelativePoint(this, point));
+      }
+    }
+
+    @Override
+    protected void processMouseMotionEvent(MouseEvent e) {
+      super.processMouseMotionEvent(e);
+      updateBalloonText();
+    }
+
+    private void processMouse(MouseEvent e) {
+      int pointerValue = myVertical ? e.getY() : e.getX();
+      pointerValue = pointerValue < MARGIN ? MARGIN : pointerValue;
+      int size = myVertical ? getHeight() : getWidth();
+      pointerValue = pointerValue > (size - MARGIN) ? size - MARGIN : pointerValue;
+
+      setValue(pointerValueToValue(pointerValue));
+
+      repaint();
+      fireValueChanged();
+    }
+
+    public void addListener(Consumer<Integer> listener) {
+      myListeners.add(listener);
+    }
+
+    private void fireValueChanged() {
+      for (Consumer<Integer> listener : myListeners) {
+        listener.consume(myValue);
+      }
+    }
+
+    // 0 - 255
+    public void setValue(int value) {
+      myPointerValue = valueToPointerValue(value);
+      myValue = value;
+    }
+
+    public int getValue() {
+      return myValue;
+    }
+
+    protected int pointerValueToValue(int pointerValue) {
+      pointerValue -= MARGIN;
+      final int size = myVertical ? getHeight() : getWidth();
+      float proportion = (size - 2 * MARGIN) / 255f;
+      return (int)(pointerValue / proportion);
+    }
+
+    protected int valueToPointerValue(int value) {
+      final int size = myVertical ? getHeight() : getWidth();
+      float proportion = (size - 2 * MARGIN) / 255f;
+      return MARGIN + (int)(value * proportion);
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+      return myVertical ? JBUI.size(22, 100) : JBUI.size(100, 22);
+    }
+
+    @Override
+    public Dimension getMinimumSize() {
+      return myVertical ? JBUI.size(22, 50) : JBUI.size(50, 22);
+    }
+
+    @Override
+    public Dimension getMaximumSize() {
+      return myVertical
+             ? new Dimension(JBUI.scale(getPreferredSize().width), Integer.MAX_VALUE)
+             : new Dimension(Integer.MAX_VALUE, JBUI.scale(getPreferredSize().height));
+    }
+
+    @Override
+    public final void setToolTipText(String text) {
+      //disable tooltips
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      final Graphics2D g2d = (Graphics2D)g;
+      Color color = new Color(myColor.getRGB());
+      Color transparent = ColorUtil.toAlpha(Color.WHITE, 0);
+
+      if (myVertical) {
+        g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, transparent, 0f, getHeight(), color));
+        g.fillRect(JBUI.scale(7), MARGIN, JBUI.scale(12), getHeight() - 2 * MARGIN);
+      }
+      else {
+        g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, transparent, getWidth(), 0f, color));
+        g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
+      }
+
+      drawKnob(g2d, myVertical ? JBUI.scale(7) : myPointerValue, myVertical ? myPointerValue : JBUI.scale(7), myVertical);
+    }
+
+    protected static void drawKnob(Graphics2D g2d, int x, int y, boolean vertical) {
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+      if (vertical) {
+        y -= JBUI.scale(6);
+
+        Polygon arrowShadow = new Polygon();
+        arrowShadow.addPoint(x - JBUI.scale(5), y + JBUI.scale(1));
+        arrowShadow.addPoint(x + JBUI.scale(7), y + JBUI.scale(7));
+        arrowShadow.addPoint(x - JBUI.scale(5), y + JBUI.scale(13));
+
+        g2d.setColor(new Color(0, 0, 0, 70));
+        g2d.fill(arrowShadow);
+
+        Polygon arrowHead = new Polygon();
+        arrowHead.addPoint(x - JBUI.scale(6), y);
+        arrowHead.addPoint(x + JBUI.scale(6), y + JBUI.scale(6));
+        arrowHead.addPoint(x - JBUI.scale(6), y + JBUI.scale(12));
+
+        g2d.setColor(new Color(153, 51, 0));
+        g2d.fill(arrowHead);
+      }
+      else {
+        x -= JBUI.scale(6);
+
+        Polygon arrowShadow = new Polygon();
+        arrowShadow.addPoint(x + JBUI.scale(1), y - JBUI.scale(5));
+        arrowShadow.addPoint(x + JBUI.scale(13), y - JBUI.scale(5));
+        arrowShadow.addPoint(x + JBUI.scale(7), y + JBUI.scale(7));
+
+        g2d.setColor(new Color(0, 0, 0, 70));
+        g2d.fill(arrowShadow);
+
+        Polygon arrowHead = new Polygon();
+        arrowHead.addPoint(x, y - JBUI.scale(6));
+        arrowHead.addPoint(x + JBUI.scale(12), y - JBUI.scale(6));
+        arrowHead.addPoint(x + JBUI.scale(6), y + JBUI.scale(6));
+
+        g2d.setColor(new Color(153, 51, 0));
+        g2d.fill(arrowHead);
+      }
+    }
+  }
+
+  public static class HueSlideComponent extends SlideComponent {
+    private final Color[] myColors = {Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.RED};
+    private final float[] myPoints = new float[myColors.length];
+    private float myHue;
+
+    HueSlideComponent(String title) {
+      super(title, false);
+      int i = 0;
+      for (Color color : myColors) {
+        if (color.equals(Color.RED) && i != 0) {
+          myPoints[i++] = 1.0f;
+        }
+        else {
+          myPoints[i++] = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null)[0];
+        }
+      }
+    }
+
+    @Override
+    protected int pointerValueToValue(int pointerValue) {
+      pointerValue -= MARGIN;
+      float proportion = (getWidth() - 2 * MARGIN) / 360f;
+      return (int)(pointerValue / proportion);
+    }
+
+    @Override
+     protected int valueToPointerValue(int value) {
+      float proportion = (getWidth() - 2 * MARGIN) / 360f;
+      return MARGIN + (int)(value * proportion);
+    }
+
+    public void setHueValue(float hue) {
+      if (Math.abs(hue - myHue) > 0.01) {
+        myHue = hue;
+        super.setValue(Math.round(360 * hue));
+      }
+    }
+
+    @Override
+    public void setValue(int value) {
+      super.setValue(value);
+      setHueValue(value / 360.0f);
+    }
+
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      final Graphics2D g2d = (Graphics2D)g;
+
+      g2d.setPaint(new LinearGradientPaint(new Point2D.Double(0, 0), new Point2D.Double(getWidth() - 2 * MARGIN, 0), myPoints, myColors));
+      g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
+      drawKnob(g2d, valueToPointerValue(Math.round(myHue * 360)), JBUI.scale(7), false);
+    }
+  }
 }
+
 interface ColorListener {
   void colorChanged(Color color, Object source);
 }
 
-class SlideComponent extends JComponent {
-  protected static final int MARGIN = JBUI.scale(5);
-  protected int myPointerValue = 0;
-  private int myValue = 0;
-  private final boolean myVertical;
-  private final String myTitle;
-
-  private final List<Consumer<Integer>> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
-  private LightweightHint myTooltipHint;
-  private final JLabel myLabel = new JLabel();
-  private Unit myUnit = Unit.LEVEL;
-
-  private Color myColor;
-
-  enum Unit {
-    PERCENT,
-    LEVEL;
-
-    private static final float PERCENT_MAX_VALUE = 100f;
-    private static final float LEVEL_MAX_VALUE = 255f;
-
-    private static float getMaxValue(Unit unit) {
-      return LEVEL.equals(unit) ? LEVEL_MAX_VALUE : PERCENT_MAX_VALUE;
-    }
-
-    private static String formatValue(int value, Unit unit) {
-      return String.format("%d%s", (int) (getMaxValue(unit) / LEVEL_MAX_VALUE * value),
-                           unit.equals(PERCENT) ? "%" : "");
-    }
-  }
-
-  void setUnits(Unit unit) {
-    myUnit = unit;
-  }
-
-  SlideComponent(String title, boolean vertical) {
-    myTitle = title;
-    myVertical = vertical;
-
-    addMouseMotionListener(new MouseAdapter() {
-      @Override
-      public void mouseDragged(MouseEvent e) {
-        processMouse(e);
-      }
-    });
-
-    addMouseListener(new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent e) {
-        processMouse(e);
-      }
-
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        updateBalloonText();
-      }
-
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        updateBalloonText();
-      }
-
-      @Override
-      public void mouseMoved(MouseEvent e) {
-        updateBalloonText();
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-        if (myTooltipHint != null) {
-          myTooltipHint.hide();
-          myTooltipHint = null;
-        }
-      }
-    });
-
-    addMouseWheelListener(new MouseWheelListener() {
-      @Override
-      public void mouseWheelMoved(MouseWheelEvent e) {
-        final int amount = e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL ? e.getUnitsToScroll() * e.getScrollAmount() :
-                           e.getWheelRotation() < 0 ? -e.getScrollAmount() : e.getScrollAmount();
-        int pointerValue = myPointerValue + amount;
-        pointerValue = pointerValue < MARGIN ? MARGIN : pointerValue;
-        int size = myVertical ? getHeight() : getWidth();
-        pointerValue = pointerValue > (size - MARGIN) ? size - MARGIN : pointerValue;
-
-        myPointerValue = pointerValue;
-        myValue = pointerValueToValue(myPointerValue);
-
-        repaint();
-        fireValueChanged();
-      }
-    });
-
-    addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        setValue(getValue());
-        fireValueChanged();
-        repaint();
-      }
-    });
-  }
-
-  public void setColor(Color color) {
-    myColor = color;
-  }
-
-  public void setHue(float hue) {
-    float[] hsv = Color.RGBtoHSB(myColor.getRed(), myColor.getGreen(), myColor.getBlue(), null);
-    if (Math.abs(hue - hsv[0]) > 0.01) {
-      setColor(Color.getHSBColor(hue, hsv[1], hsv[2]));
-    }
-  }
-
-
-  private void updateBalloonText() {
-    final Point point = myVertical ? new Point(0, myPointerValue) : new Point(myPointerValue, 0);
-    myLabel.setText(myTitle + ": " + Unit.formatValue(myValue, myUnit));
-    if (myTooltipHint == null) {
-      myTooltipHint = new LightweightHint(myLabel);
-      myTooltipHint.setCancelOnClickOutside(false);
-      myTooltipHint.setCancelOnOtherWindowOpen(false);
-
-      final HintHint hint = new HintHint(this, point)
-        .setPreferredPosition(myVertical ? Balloon.Position.atLeft : Balloon.Position.above)
-        .setBorderColor(Color.BLACK)
-        .setAwtTooltip(true)
-        .setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD))
-        .setTextBg(HintUtil.INFORMATION_COLOR)
-        .setShowImmediately(true);
-
-      final Component owner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-      myTooltipHint.show(this, point.x, point.y, owner instanceof JComponent ? (JComponent)owner : null, hint);
-    }
-    else {
-      myTooltipHint.setLocation(new RelativePoint(this, point));
-    }
-  }
-
-  @Override
-  protected void processMouseMotionEvent(MouseEvent e) {
-    super.processMouseMotionEvent(e);
-    updateBalloonText();
-  }
-
-  private void processMouse(MouseEvent e) {
-    int pointerValue = myVertical ? e.getY() : e.getX();
-    pointerValue = pointerValue < MARGIN ? MARGIN : pointerValue;
-    int size = myVertical ? getHeight() : getWidth();
-    pointerValue = pointerValue > (size - MARGIN) ? size - MARGIN : pointerValue;
-
-    setValue(pointerValueToValue(pointerValue));
-
-    repaint();
-    fireValueChanged();
-  }
-
-  public void addListener(Consumer<Integer> listener) {
-    myListeners.add(listener);
-  }
-
-  private void fireValueChanged() {
-    for (Consumer<Integer> listener : myListeners) {
-      listener.consume(myValue);
-    }
-  }
-
-  // 0 - 255
-  public void setValue(int value) {
-    myPointerValue = valueToPointerValue(value);
-    myValue = value;
-  }
-
-  public int getValue() {
-    return myValue;
-  }
-
-  protected int pointerValueToValue(int pointerValue) {
-    pointerValue -= MARGIN;
-    final int size = myVertical ? getHeight() : getWidth();
-    float proportion = (size - 2 * MARGIN) / 255f;
-    return (int)(pointerValue / proportion);
-  }
-
-  protected int valueToPointerValue(int value) {
-    final int size = myVertical ? getHeight() : getWidth();
-    float proportion = (size - 2 * MARGIN) / 255f;
-    return MARGIN + (int)(value * proportion);
-  }
-
-  @Override
-  public Dimension getPreferredSize() {
-    return myVertical ? JBUI.size(22, 100) : JBUI.size(100, 22);
-  }
-
-  @Override
-  public Dimension getMinimumSize() {
-    return myVertical ? JBUI.size(22, 50) : JBUI.size(50, 22);
-  }
-
-  @Override
-  public Dimension getMaximumSize() {
-    return myVertical
-           ? new Dimension(JBUI.scale(getPreferredSize().width), Integer.MAX_VALUE)
-           : new Dimension(Integer.MAX_VALUE, JBUI.scale(getPreferredSize().height));
-  }
-
-  @Override
-  public final void setToolTipText(String text) {
-    //disable tooltips
-  }
-
-  @Override
-  protected void paintComponent(Graphics g) {
-    final Graphics2D g2d = (Graphics2D)g;
-    Color color = new Color(myColor.getRGB());
-    Color transparent = ColorUtil.toAlpha(Color.WHITE, 0);
-
-    if (myVertical) {
-      g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, transparent, 0f, getHeight(), color));
-      g.fillRect(JBUI.scale(7), MARGIN, JBUI.scale(12), getHeight() - 2 * MARGIN);
-    }
-    else {
-      g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, transparent, getWidth(), 0f, color));
-      g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
-    }
-
-    drawKnob(g2d, myVertical ? JBUI.scale(7) : myPointerValue, myVertical ? myPointerValue : JBUI.scale(7), myVertical);
-  }
-
-  protected static void drawKnob(Graphics2D g2d, int x, int y, boolean vertical) {
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-    if (vertical) {
-      y -= JBUI.scale(6);
-
-      Polygon arrowShadow = new Polygon();
-      arrowShadow.addPoint(x - JBUI.scale(5), y + JBUI.scale(1));
-      arrowShadow.addPoint(x + JBUI.scale(7), y + JBUI.scale(7));
-      arrowShadow.addPoint(x - JBUI.scale(5), y + JBUI.scale(13));
-
-      g2d.setColor(new Color(0, 0, 0, 70));
-      g2d.fill(arrowShadow);
-
-      Polygon arrowHead = new Polygon();
-      arrowHead.addPoint(x - JBUI.scale(6), y);
-      arrowHead.addPoint(x + JBUI.scale(6), y + JBUI.scale(6));
-      arrowHead.addPoint(x - JBUI.scale(6), y + JBUI.scale(12));
-
-      g2d.setColor(new Color(153, 51, 0));
-      g2d.fill(arrowHead);
-    }
-    else {
-      x -= JBUI.scale(6);
-
-      Polygon arrowShadow = new Polygon();
-      arrowShadow.addPoint(x + JBUI.scale(1), y - JBUI.scale(5));
-      arrowShadow.addPoint(x + JBUI.scale(13), y - JBUI.scale(5));
-      arrowShadow.addPoint(x + JBUI.scale(7), y + JBUI.scale(7));
-
-      g2d.setColor(new Color(0, 0, 0, 70));
-      g2d.fill(arrowShadow);
-
-      Polygon arrowHead = new Polygon();
-      arrowHead.addPoint(x, y - JBUI.scale(6));
-      arrowHead.addPoint(x + JBUI.scale(12), y - JBUI.scale(6));
-      arrowHead.addPoint(x + JBUI.scale(6), y + JBUI.scale(6));
-
-      g2d.setColor(new Color(153, 51, 0));
-      g2d.fill(arrowHead);
-    }
-  }
-}
-
-class HueSlideComponent extends SlideComponent {
-  private final Color[] myColors = {Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.RED};
-  private final float[] myPoints = new float[myColors.length];
-  private float myHue;
-
-  HueSlideComponent(String title) {
-    super(title, false);
-    int i = 0;
-    for (Color color : myColors) {
-      if (color.equals(Color.RED) && i != 0) {
-        myPoints[i++] = 1.0f;
-      }
-      else {
-        myPoints[i++] = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null)[0];
-      }
-    }
-  }
-
-  @Override
-  protected int pointerValueToValue(int pointerValue) {
-    pointerValue -= MARGIN;
-    float proportion = (getWidth() - 2 * MARGIN) / 360f;
-    return (int)(pointerValue / proportion);
-  }
-
-  @Override
-   protected int valueToPointerValue(int value) {
-    float proportion = (getWidth() - 2 * MARGIN) / 360f;
-    return MARGIN + (int)(value * proportion);
-  }
-
-  public void setHueValue(float hue) {
-    if (Math.abs(hue - myHue) > 0.01) {
-      myHue = hue;
-      super.setValue(Math.round(360 * hue));
-    }
-  }
-
-  @Override
-  public void setValue(int value) {
-    super.setValue(value);
-    setHueValue(value / 360.0f);
-  }
-
-
-  @Override
-  protected void paintComponent(Graphics g) {
-    final Graphics2D g2d = (Graphics2D)g;
-
-    g2d.setPaint(new LinearGradientPaint(new Point2D.Double(0, 0), new Point2D.Double(getWidth() - 2 * MARGIN, 0), myPoints, myColors));
-    g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
-    drawKnob(g2d, valueToPointerValue(Math.round(myHue * 360)), JBUI.scale(7), false);
-  }
-}
