@@ -89,10 +89,6 @@ public class ResourceResolverCache {
     myFrameworkResourceMap = Maps.newHashMap();
   }
 
-  public static ResourceResolverCache create(ConfigurationManager manager) {
-    return new ResourceResolverCache(manager);
-  }
-
   @NotNull
   public ResourceResolver getResourceResolver(@Nullable IAndroidTarget target,
                                               @NotNull String themeStyle,
