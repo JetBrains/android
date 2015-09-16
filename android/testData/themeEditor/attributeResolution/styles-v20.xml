@@ -12,5 +12,4 @@
   <style name="AppThemeParent" parent="@style/AppTheme">
     <item name="myAttribute">parent</item>
   </style>
-
 </resources>

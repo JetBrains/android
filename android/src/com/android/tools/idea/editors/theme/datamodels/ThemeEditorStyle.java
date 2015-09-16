@@ -295,6 +295,7 @@ public class ThemeEditorStyle {
     // Get the configuration associated to each version of the style
     Collection<FolderConfiguration> allConfigurations = getFolderConfigurationsFromResourceItems(allStyleDefinitions);
 
+    FolderConfiguration fullBaseConfiguration = myConfiguration.getFullConfig();
     ImmutableList.Builder<ConfiguredElement<String>> parents = ImmutableList.builder();
     // For every version of the style, get the parent
     for (final ResourceItem item : allStyleDefinitions) {
@@ -317,8 +318,13 @@ public class ThemeEditorStyle {
         continue;
       }
 
+      // We apply the folderConfiguration to the full configuration that we get from the current theme resolver. We use Sthe full
+      // configuration to simulate what the device would do when resolving attributes and match more specific folders.
+      FolderConfiguration fullFolderConfiguration = FolderConfiguration.copyOf(fullBaseConfiguration);
+      fullFolderConfiguration.add(folderConfiguration);
+
       // Get a ResourceResolver configured with the item FolderConfiguration
-      ResourceResolver resolver = resolverCache.getResourceResolver(myConfiguration.getTarget(), getQualifiedName(), folderConfiguration);
+      ResourceResolver resolver = resolverCache.getResourceResolver(myConfiguration.getTarget(), getQualifiedName(), fullFolderConfiguration);
       // Resolve the parent of the current theme, using that configuration
       StyleResourceValue parent = resolver.getParent(myStyleResourceValue);
       if (parent != null) {
