@@ -791,6 +791,7 @@ public class ThemeEditorComponent extends Splitter {
 
     configureFilter();
 
+    myAttributesTable.removeEditor();
     myAttributesTable.setModel(myModel);
     myAttributesTable.setRowSorter(myAttributesSorter);
     myAttributesTable.updateRowHeights();
