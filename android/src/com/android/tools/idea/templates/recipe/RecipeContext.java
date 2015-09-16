@@ -26,19 +26,13 @@ import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
-import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.util.Consumer;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
@@ -69,45 +63,31 @@ public final class RecipeContext {
   private static final String GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle";
 
   @NotNull private final Project myProject;
-  @NotNull private final StudioTemplateLoader myLoader;
-  @NotNull private final Configuration myFreemarker;
+
   @NotNull private final Map<String, Object> myParamMap;
+  @NotNull private final Configuration myFreemarker;
+  @NotNull private final StudioTemplateLoader myLoader;
+  private final boolean mySyncGradleIfNeeded; // User can disable gradle syncing if they know they're going to sync themselves anyway
   @NotNull private final File myOutputRoot;
   @NotNull private final File myModuleRoot;
-  private final boolean mySyncGradleIfNeeded; // User can disable gradle syncing if they know they're going to sync themselves anyway
 
   private boolean myNeedsGradleSync;
 
   public RecipeContext(@NotNull Project project,
-                       @NotNull StudioTemplateLoader loader,
-                       @NotNull Configuration freemarker,
                        @NotNull Map<String, Object> paramMap,
+                       @NotNull Configuration freemarker,
+                       @NotNull StudioTemplateLoader loader,
+                       boolean syncGradleIfNeeded,
                        @NotNull File outputRoot,
-                       @NotNull File moduleRoot,
-                       boolean syncGradleIfNeeded) {
+                       @NotNull File moduleRoot) {
     myProject = project;
-    myLoader = loader;
-    myFreemarker = freemarker;
+
     myParamMap = paramMap;
+    myFreemarker = freemarker;
+    myLoader = loader;
+    mySyncGradleIfNeeded = syncGradleIfNeeded;
     myOutputRoot = outputRoot;
     myModuleRoot = moduleRoot;
-    mySyncGradleIfNeeded = syncGradleIfNeeded;
-  }
-
-  public RecipeContext(@NotNull Module module,
-                       @NotNull StudioTemplateLoader loader,
-                       @NotNull Configuration freemarker,
-                       @NotNull Map<String, Object> paramMap,
-                       boolean syncGradleIfNeeded) {
-    File moduleRoot = new File(module.getModuleFilePath()).getParentFile();
-
-    myProject = module.getProject();
-    myLoader = loader;
-    myFreemarker = freemarker;
-    myParamMap = paramMap;
-    myOutputRoot = moduleRoot;
-    myModuleRoot = moduleRoot;
-    mySyncGradleIfNeeded = syncGradleIfNeeded;
   }
 
   /**
@@ -147,12 +127,10 @@ public final class RecipeContext {
         copyTemplateResource(from, to);
       }
       else {
-        String contents = processFreemarkerTemplate(myFreemarker, myParamMap, from, null);
-
-        contents = format(contents, to);
         File targetFile = getTargetFile(to);
+
         VfsUtil.createDirectories(targetFile.getParentFile().getAbsolutePath());
-        writeFile(this, contents, targetFile);
+        writeFile(this, processFreemarkerTemplate(myFreemarker, myParamMap, from, null), targetFile);
       }
     }
     catch (IOException e) {
@@ -255,27 +233,18 @@ public final class RecipeContext {
   }
 
   /**
-   * Open the target file in the editor.
+   * Parse a recipe nested within the current recipe.
    */
-  public void open(@NotNull File file) {
-    // Do nothing - it is up to an external class to query this recipe for files it should open
-  }
-
-  /**
-   * Execute another recipe file.
-   */
-  public void execute(@NotNull File file) {
+  void parseRecipe(@NotNull File file, @NotNull final Consumer<Recipe> callback) {
     try {
       processFreemarkerTemplate(myFreemarker, myParamMap, file, new FreemarkerUtils.TemplatePostProcessor() {
         @Override
         public void process(@NotNull String xml) throws TemplateProcessingException {
           try {
-            xml = XmlUtils.stripBom(xml);
-            Recipe recipe = Recipe.parse(new StringReader(xml));
+            Recipe child = Recipe.parse(new StringReader(XmlUtils.stripBom(xml)));
+            child.execute(RecipeContext.this);
 
-            // Create a new context such that we do not cause an additional Gradle sync:
-            RecipeContext context = new RecipeContext(myProject, myLoader, myFreemarker, myParamMap, myOutputRoot, myModuleRoot, false);
-            recipe.execute(context);
+            callback.consume(child);
           }
           catch (JAXBException ex) {
             throw new TemplateProcessingException(ex);
@@ -333,7 +302,11 @@ public final class RecipeContext {
    */
   private void mergeDependenciesIntoGradle() throws Exception {
     File gradleBuildFile = GradleUtil.getGradleBuildFilePath(myModuleRoot);
-    String templateRoot = TemplateManager.getTemplateRootFolder().getPath();
+
+    File templateRootFolder = TemplateManager.getTemplateRootFolder();
+    assert templateRootFolder != null;
+
+    String templateRoot = templateRootFolder.getPath();
     File gradleTemplate = new File(templateRoot, FileUtil.join("gradle", "utils", "dependencies.gradle.ftl"));
     String contents = processFreemarkerTemplate(myFreemarker, myParamMap, gradleTemplate, null);
     String destinationContents = null;
@@ -367,13 +340,6 @@ public final class RecipeContext {
         }
       }
     }, IOException.class);
-  }
-
-  private String format(@NotNull String contents, File to) {
-    FileType type = FileTypeRegistry.getInstance().getFileTypeByFileName(to.getName());
-    PsiFile file = PsiFileFactory.getInstance(myProject).createFileFromText(to.getName(), type, StringUtil.convertLineSeparators(contents));
-    CodeStyleManager.getInstance(myProject).reformat(file);
-    return file.getText();
   }
 
   private void copyTemplateResource(@NotNull File from, @NotNull File to) throws IOException {

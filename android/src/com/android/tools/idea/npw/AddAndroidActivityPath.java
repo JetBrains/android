@@ -93,7 +93,8 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   /**
    * Creates a new instance of the wizard path.
    */
-  public AddAndroidActivityPath(@Nullable VirtualFile targetFolder, @Nullable File template,
+  public AddAndroidActivityPath(@Nullable VirtualFile targetFolder,
+                                @Nullable File template,
                                 Map<String, Object> predefinedParameterValues,
                                 Disposable parentDisposable) {
     myTemplate = template;
@@ -169,7 +170,8 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   @Nullable
   public static String getPackageFromDirectory(@NotNull VirtualFile directory,
                                                @NotNull SourceProvider sourceProvider,
-                                               @NotNull Module module, @NotNull String srcDir) {
+                                               @NotNull Module module,
+                                               @NotNull String srcDir) {
     File javaSourceRoot;
     File javaDir = findSrcDirectory(sourceProvider);
     if (javaDir == null) {
@@ -240,8 +242,9 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       paths.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
     if (testDir == null) {
-      String absolutePath = Joiner.on('/').join(androidModel.getRootDir().getPath(), TemplateWizard.TEST_SOURCE_PATH,
-                                                TemplateWizard.JAVA_SOURCE_PATH);
+      @SuppressWarnings("deprecation") VirtualFile rootDir = androidModel.getRootDir();
+
+      String absolutePath = Joiner.on('/').join(rootDir.getPath(), TemplateWizard.TEST_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
       testDir = new File(FileUtil.toSystemDependentName(absolutePath));
     }
     assert javaPath != null;
@@ -321,8 +324,9 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       myState.put(KEY_SELECTED_TEMPLATE, new TemplateEntry(myTemplate, templateMetadata));
     }
     SourceProvider[] sourceProviders = getSourceProviders(module, myTargetFolder);
-    myParameterStep = new TemplateParameterStep2(getFormFactor(myTargetFolder), myPredefinedParameterValues,
-                                                 myParentDisposable, KEY_PACKAGE_NAME, sourceProviders);
+    myParameterStep =
+      new TemplateParameterStep2(getFormFactor(myTargetFolder), myPredefinedParameterValues, myParentDisposable, KEY_PACKAGE_NAME,
+                                 sourceProviders);
     myAssetStudioStep = new IconStep(KEY_SELECTED_TEMPLATE, KEY_SOURCE_PROVIDER, myParentDisposable);
 
     addStep(myParameterStep);
@@ -391,14 +395,18 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     saveRecentValues(project, parameterMap);
     template.render(VfsUtilCore.virtualToIoFile(project.getBaseDir()), moduleRoot, parameterMap, project);
     myAssetStudioStep.createAssets();
-    if (Boolean.TRUE.equals(myState.get(KEY_OPEN_EDITORS))) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
+
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        TemplateUtils.reformatAndRearrange(project, template.getTargetFiles());
+
+        if (Boolean.TRUE.equals(myState.get(KEY_OPEN_EDITORS))) {
           TemplateUtils.openEditors(project, template.getFilesToOpen(), true);
         }
-      });
-    }
+      }
+    });
+
     return true;
   }
 
@@ -476,9 +484,12 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       templateParameters.put(ATTR_DEBUG_KEYSTORE_SHA1, "");
     }
 
+    @SuppressWarnings("deprecation") String projectLocation = NewModuleWizardState.ATTR_PROJECT_LOCATION;
+
     Project project = getProject();
     assert project != null;
-    templateParameters.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
+
+    templateParameters.put(projectLocation, project.getBasePath());
     // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
     // name as its containing project.
     String moduleName = new File(module.getModuleFilePath()).getParentFile().getName();

@@ -25,6 +25,7 @@ import com.google.common.io.Files;
 import com.intellij.ide.impl.ProjectPaneSelectInTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -37,8 +38,11 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
@@ -51,23 +55,26 @@ import org.w3c.dom.NodeList;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-
-/** Utility methods for ADT */
+/**
+ * Static utility methods pertaining to templates for projects, modules, and activities.
+ */
 @SuppressWarnings("restriction") // WST API
 public class TemplateUtils {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.DomUtilities");
 
   /**
-  * Creates a Java class name out of the given string, if possible. For
-  * example, "My Project" becomes "MyProject", "hello" becomes "Hello",
-  * "Java's" becomes "Java", and so on.
-  *
-  * @param string the string to be massaged into a Java class
-  * @return the string as a Java class, or null if a class name could not be
-  *         extracted
-  */
+   * Creates a Java class name out of the given string, if possible. For
+   * example, "My Project" becomes "MyProject", "hello" becomes "Hello",
+   * "Java's" becomes "Java", and so on.
+   *
+   * @param string the string to be massaged into a Java class
+   * @return the string as a Java class, or null if a class name could not be
+   * extracted
+   */
   @Nullable
   public static String extractClassName(@NotNull String string) {
     StringBuilder sb = new StringBuilder(string.length());
@@ -97,26 +104,10 @@ public class TemplateUtils {
   }
 
   /**
-  * Strips the given suffix from the given string, provided that the string ends with
-  * the suffix.
-  *
-  * @param string the full string to strip from
-  * @param suffix the suffix to strip out
-  * @return the string without the suffix at the end
-  */
-  public static String stripSuffix(@NotNull String string, @NotNull String suffix) {
-    if (string.endsWith(suffix)) {
-      return string.substring(0, string.length() - suffix.length());
-    }
-
-    return string;
-  }
-
-  /**
    * Strips the given suffix from the given file, provided that the file name ends with
    * the suffix.
    *
-   * @param file the file to strip from
+   * @param file   the file to strip from
    * @param suffix the suffix to strip out
    * @return the file without the suffix at the end
    */
@@ -127,7 +118,8 @@ public class TemplateUtils {
       File parent = file.getParentFile();
       if (parent != null) {
         return new File(parent, name);
-      } else {
+      }
+      else {
         return new File(name);
       }
     }
@@ -136,11 +128,11 @@ public class TemplateUtils {
   }
 
   /**
-  * Converts a CamelCase word into an underlined_word
-  *
-  * @param string the CamelCase version of the word
-  * @return the underlined version of the word
-  */
+   * Converts a CamelCase word into an underlined_word
+   *
+   * @param string the CamelCase version of the word
+   * @return the underlined version of the word
+   */
   public static String camelCaseToUnderlines(String string) {
     if (string.isEmpty()) {
       return string;
@@ -164,11 +156,11 @@ public class TemplateUtils {
   }
 
   /**
-  * Converts an underlined_word into a CamelCase word
-  *
-  * @param string the underlined word to convert
-  * @return the CamelCase version of the word
-  */
+   * Converts an underlined_word into a CamelCase word
+   *
+   * @param string the underlined word to convert
+   * @return the CamelCase version of the word
+   */
   public static String underlinesToCamelCase(String string) {
     StringBuilder sb = new StringBuilder(string.length());
     int n = string.length();
@@ -179,7 +171,8 @@ public class TemplateUtils {
       char c = string.charAt(i);
       if (c == '_') {
         upcaseNext = true;
-      } else {
+      }
+      else {
         if (upcaseNext) {
           c = Character.toUpperCase(c);
         }
@@ -192,11 +185,12 @@ public class TemplateUtils {
   }
 
   /**
-  * Returns a list of known API names
-  *
-  * @return a list of string API names, starting from 1 and up through the
-  *         maximum known versions (with no gaps)
-  */
+   * Returns a list of known API names
+   *
+   * @return a list of string API names, starting from 1 and up through the
+   * maximum known versions (with no gaps)
+   */
+  @NotNull
   public static String[] getKnownVersions() {
     final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     assert sdkData != null;
@@ -222,6 +216,8 @@ public class TemplateUtils {
     String[] versions = new String[max];
     for (int api = 1; api <= max; api++) {
       String name = SdkVersionInfo.getAndroidName(api);
+
+      // noinspection ConstantConditions
       if (name == null) {
         if (apiTargets != null) {
           IAndroidTarget target = apiTargets.get(api);
@@ -233,33 +229,33 @@ public class TemplateUtils {
           name = String.format("API %1$d", api);
         }
       }
-      versions[api-1] = name;
+      versions[api - 1] = name;
     }
 
     return versions;
   }
 
   /**
-  * Lists the files of the given directory and returns them as an array which
-  * is never null. This simplifies processing file listings from for each
-  * loops since {@link File#listFiles} can return null. This method simply
-  * wraps it and makes sure it returns an empty array instead if necessary.
-  *
-  * @param dir the directory to list
-  * @return the children, or empty if it has no children, is not a directory,
-  *         etc.
-  */
+   * Lists the files of the given directory and returns them as an array which
+   * is never null. This simplifies processing file listings from for each
+   * loops since {@link File#listFiles} can return null. This method simply
+   * wraps it and makes sure it returns an empty array instead if necessary.
+   *
+   * @param dir the directory to list
+   * @return the children, or empty if it has no children, is not a directory,
+   * etc.
+   */
   @NotNull
   public static File[] listFiles(@Nullable File dir) {
     return WizardUtils.listFiles(dir);
   }
 
   /**
-  * Returns the element children of the given element
-  *
-  * @param element the parent element
-  * @return a list of child elements, possibly empty but never null
-  */
+   * Returns the element children of the given element
+   *
+   * @param element the parent element
+   * @return a list of child elements, possibly empty but never null
+   */
   @NotNull
   public static List<Element> getChildren(@NotNull Element element) {
     // Convenience to avoid lots of ugly DOM access casting
@@ -270,12 +266,51 @@ public class TemplateUtils {
     for (int i = 0, n = children.getLength(); i < n; i++) {
       Node node = children.item(i);
       if (node.getNodeType() == Node.ELEMENT_NODE) {
-        Element child = (Element) node;
+        Element child = (Element)node;
         result.add(child);
       }
     }
 
     return result;
+  }
+
+  public static void reformatAndRearrange(@NotNull final Project project, @NotNull final Iterable<File> files) {
+    WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+      @Override
+      public void run() {
+        LocalFileSystem localFileSystem = LocalFileSystem.getInstance();
+
+        for (File file : files) {
+          if (file.isFile()) {
+            VirtualFile virtualFile = localFileSystem.findFileByIoFile(file);
+            assert virtualFile != null;
+
+            reformatAndRearrange(project, virtualFile);
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Note: reformatting the PSI file requires that this be wrapped in a write command.
+   */
+  public static void reformatAndRearrange(@NotNull Project project, @NotNull VirtualFile virtualFile) {
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
+    PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
+
+    Document document = FileDocumentManager.getInstance().getDocument(virtualFile);
+    assert document != null;
+
+    psiDocumentManager.commitDocument(document);
+
+    PsiFile psiFile = psiDocumentManager.getPsiFile(document);
+    assert psiFile != null;
+
+    CodeStyleManager.getInstance(project).reformat(psiFile);
+
+    psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
+    ServiceManager.getService(project, ArrangementEngine.class).arrange(psiFile, Collections.singleton(psiFile.getTextRange()));
   }
 
   /**
@@ -286,7 +321,7 @@ public class TemplateUtils {
    * @param select  If true, select the last (topmost) file in the project view
    * @return true if all files were opened
    */
-  public static boolean openEditors(@NotNull Project project, @NotNull List<File> files, boolean select) {
+  public static boolean openEditors(@NotNull Project project, @NotNull Collection<File> files, boolean select) {
     if (files.size() > 0) {
       boolean result = true;
       VirtualFile last = null;
@@ -324,7 +359,8 @@ public class TemplateUtils {
     OpenFileDescriptor descriptor;
     if (vFile.getFileType() == StdFileTypes.XML && AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {
       descriptor = new OpenFileDescriptor(project, vFile, 0);
-    } else {
+    }
+    else {
       descriptor = new OpenFileDescriptor(project, vFile);
     }
     return !FileEditorManager.getInstance(project).openEditor(descriptor, true).isEmpty();
@@ -348,7 +384,8 @@ public class TemplateUtils {
 
   /**
    * Reads the given file as text.
-   * @param file The file to read. Must be an absolute reference.
+   *
+   * @param file            the file to read. Must be an absolute reference.
    * @param warnIfNotExists if true, logs a warning if the file does not exist.
    * @return the contents of the file as text
    */
@@ -357,7 +394,8 @@ public class TemplateUtils {
     assert file.isAbsolute();
     try {
       return Files.toString(file, Charsets.UTF_8);
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       if (warnIfNotExists) {
         LOG.warn(e);
       }
@@ -367,6 +405,7 @@ public class TemplateUtils {
 
   /**
    * Reads the given file as text.
+   *
    * @param file The file to read. Must be an absolute reference.
    * @return the contents of the file as text
    */
@@ -377,6 +416,7 @@ public class TemplateUtils {
 
   /**
    * Reads the given file as text (or the current contents of the edited buffer of the file, if open and not saved.)
+   *
    * @param file The file to read.
    * @return the contents of the file as text, or null if for some reason it couldn't be read
    */
