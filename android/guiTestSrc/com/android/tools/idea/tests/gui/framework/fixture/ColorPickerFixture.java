@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.timing.Condition;
 import org.jetbrains.android.uipreview.ColorPicker;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.JComboBox;
-import javax.swing.JTextField;
-import java.awt.Color;
+import javax.swing.*;
+import java.awt.*;
+
+import static org.fest.swing.timing.Pause.pause;
 
 public class ColorPickerFixture extends JPanelFixture {
   JComboBoxFixture myFormat;
@@ -69,7 +73,38 @@ public class ColorPickerFixture extends JPanelFixture {
   }
 
   @NotNull
+  public ColorPickerFixture setColorWithIntegers(final Color color) {
+    setColor(color);
+    pause(new Condition("Waiting for the color picker to update") {
+      @Override
+      public boolean test() {
+        return String.format("%08X", color.getRGB()).equals(getHexField().text());
+      }
+    }, GuiTests.SHORT_TIMEOUT);
+    return this;
+  }
+
+  @NotNull
   public JTextComponentFixture getHexField() {
     return new JTextComponentFixture(robot(), robot().finder().findByLabel(this.target(), "#", JTextField.class));
+  }
+
+  /**
+   * @param labelName the label name. The name depends on the format selected. For RGB, labels will be "R:", "G:" and "B:"
+   */
+  @NotNull
+  public JTextComponentFixture getLabel(String labelName) {
+    return new JTextComponentFixture(robot(), robot().finder().findByLabel(this.target(), labelName, JTextField.class));
+  }
+
+  @NotNull
+  public SlideFixture getAlphaSlide() {
+    return new SlideFixture(robot(), robot().finder()
+      .find(this.target(), new GenericTypeMatcher<ColorPicker.SlideComponent>(ColorPicker.SlideComponent.class) {
+        @Override
+        protected boolean isMatching(@NotNull ColorPicker.SlideComponent component) {
+          return !(component instanceof ColorPicker.HueSlideComponent);
+        }
+      }));
   }
 }
