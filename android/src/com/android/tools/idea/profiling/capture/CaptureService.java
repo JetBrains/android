@@ -386,10 +386,17 @@ public class CaptureService {
     }
 
     CaptureType type = captureHandle.getCaptureType();
+
+    // Attempt to find an existing Capture that symbolizes the file.
+    for (Capture capture : myCaptures.get(type)) {
+      if (vf.equals(capture.getFile())) {
+        return capture;
+      }
+    }
+
+    // If we can't find a Capture that symbolizes the file, we'll create a capture instead.
     Capture capture = type.createCapture(vf);
     myCaptures.put(type, capture);
-    update();
-
     return capture;
   }
 
