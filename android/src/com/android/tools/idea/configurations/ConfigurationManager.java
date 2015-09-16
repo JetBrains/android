@@ -608,7 +608,7 @@ public class ConfigurationManager implements Disposable {
 
   public ResourceResolverCache getResolverCache() {
     if (myResolverCache == null) {
-      myResolverCache = ResourceResolverCache.create(this);
+      myResolverCache = new ResourceResolverCache(this);
     }
 
     return myResolverCache;
