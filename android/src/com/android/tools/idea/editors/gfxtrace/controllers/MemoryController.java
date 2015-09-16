@@ -172,21 +172,30 @@ public class MemoryController extends Controller {
 
       MouseAdapter mouseHandler = new MouseAdapter() {
         private final Point mySelectionInitiation = new Point();
+        private boolean mySelecting;
 
         @Override
         public void mousePressed(MouseEvent e) {
           requestFocus();
           if (isSelectionButton(e)) {
-            startSelecting(e);
+            if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0 && mySelectionRange != null) {
+              mySelecting = true;
+              updateSelection(e);
+            } else {
+              startSelecting(e);
+            }
             repaint();
           }
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
-          if (mySelectionRange != null && mySelectionStart.equals(mySelectionEnd)) {
-            mySelectionRange = null;
-            repaint();
+          if (!isSelectionButton(e)) {
+            mySelecting = false;
+            if (mySelectionRange != null && mySelectionStart.equals(mySelectionEnd)) {
+              mySelectionRange = null;
+              repaint();
+            }
           }
         }
 
@@ -202,7 +211,28 @@ public class MemoryController extends Controller {
           }
         }
 
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e) {
+          if (mySelecting) {
+            if (mySelectionRange == null) {
+              startSelecting(e);
+            } else {
+              updateSelection(e);
+            }
+          }
+
+          // Bubble the event.
+          JScrollPane ancestor = (JBScrollPane) SwingUtilities.getAncestorOfClass(JBScrollPane.class, MemoryPanel.this);
+          if (ancestor != null) {
+            MouseWheelEvent converted = (MouseWheelEvent) SwingUtilities.convertMouseEvent(MemoryPanel.this, e, ancestor);
+            for (MouseWheelListener listener : ancestor.getMouseWheelListeners()) {
+              listener.mouseWheelMoved(converted);
+            }
+          }
+        }
+
         private void startSelecting(MouseEvent e) {
+          mySelecting = true;
           int y = e.getY() / getLineHeight();
           if (y < 0 || y >= myModel.getLineCount()) {
             mySelectionRange = null;
@@ -245,6 +275,7 @@ public class MemoryController extends Controller {
       };
       addMouseListener(mouseHandler);
       addMouseMotionListener(mouseHandler);
+      addMouseWheelListener(mouseHandler);
     }
 
     public void setModel(MemoryModel model) {
@@ -307,8 +338,8 @@ public class MemoryController extends Controller {
 
       int lineHeight = getLineHeight();
       int charWidth = getCharWidth();
-      int startRow = Math.max(0, clip.y / lineHeight);
-      int endRow = Math.min(myModel.getLineCount(), (clip.y + clip.height + lineHeight - 1) / lineHeight);
+      int startRow = Math.max(0, Math.min(myModel.getLineCount() - 1, clip.y / lineHeight));
+      int endRow = Math.max(0, Math.min(myModel.getLineCount(), (clip.y + clip.height + lineHeight - 1) / lineHeight));
       boolean selectionVisible = false;
 
       if (mySelectionRange != null && startRow <= mySelectionEnd.y && mySelectionStart.y <= endRow) {
