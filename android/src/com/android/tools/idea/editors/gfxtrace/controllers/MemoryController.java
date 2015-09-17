@@ -33,6 +33,7 @@ import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Range;
@@ -45,9 +46,7 @@ import javax.swing.text.Segment;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -63,11 +62,33 @@ public class MemoryController extends Controller {
   @NotNull private final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull private final JBLoadingPanel myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject(), 50);
   @NotNull private final JScrollPane myScrollPane = new JBScrollPane();
+  @NotNull private DataType myDataType = DataType.Bytes;
+  private long myAddress;
+  private byte[] myData;
 
   private MemoryController(@NotNull GfxTraceEditor editor) {
     super(editor);
     myLoading.add(myScrollPane, BorderLayout.CENTER);
+    myPanel.add(new ComboBox(DataType.values()) {{
+      addItemListener(new ItemListener() {
+        @Override
+        public void itemStateChanged(ItemEvent e) {
+          setDataType((DataType)e.getItem());
+        }
+      });
+    }}, BorderLayout.NORTH);
     myPanel.add(myLoading, BorderLayout.CENTER);
+  }
+
+  private void setDataType(DataType dataType) {
+    if (myDataType != dataType) {
+      myDataType = dataType;
+
+      Component component = myScrollPane.getViewport().getView();
+      if (component instanceof MemoryPanel) {
+        ((MemoryPanel)component).setModel(dataType.getMemoryModel(myAddress, myData));
+      }
+    }
   }
 
   @Override
@@ -91,7 +112,10 @@ public class MemoryController extends Controller {
   }
 
   private void update(long address, MemoryInfo info) {
-    final MemoryPanel contents = new MemoryPanel(new MemoryModel(address, info.getData()));
+    myAddress = address;
+    myData = info.getData();
+
+    final MemoryPanel contents = new MemoryPanel(myDataType.getMemoryModel(address, info.getData()));
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -101,14 +125,45 @@ public class MemoryController extends Controller {
     });
   }
 
+  private enum DataType {
+    Bytes() {
+      @Override
+      public MemoryModel getMemoryModel(long address, byte[] data) {
+        return new BytesMemoryModel(address, data);
+      }
+    }, Shorts() {
+      @Override
+      public MemoryModel getMemoryModel(long address, byte[] data) {
+        return new ShortsMemoryModel(address, data);
+      }
+    }, Ints() {
+      @Override
+      public MemoryModel getMemoryModel(long address, byte[] data) {
+        return new IntsMemoryModel(address, data);
+      }
+    }, Floats() {
+      @Override
+      public MemoryModel getMemoryModel(long address, byte[] data) {
+        return new FloatsMemoryModel(address, data);
+      }
+    }, Doubles() {
+      @Override
+      public MemoryModel getMemoryModel(long address, byte[] data) {
+        return new DoublesMemoryModel(address, data);
+      }
+    };
+
+    public abstract MemoryModel getMemoryModel(long address, byte[] data);
+  }
+
   private static class MemoryPanel extends JComponent implements Scrollable, DataProvider, CopyProvider {
-    private final MemoryModel myModel;
+    private MemoryModel myModel;
     private final EditorColorsScheme myTheme;
     private Range<Integer> mySelectionRange = null;
     private final Point mySelectionStart = new Point();
     private final Point mySelectionEnd = new Point();
 
-    public MemoryPanel(final MemoryModel model) {
+    public MemoryPanel(MemoryModel model) {
       myModel = model;
       myTheme = EditorColorsManager.getInstance().getGlobalScheme();
 
@@ -149,21 +204,21 @@ public class MemoryController extends Controller {
 
         private void startSelecting(MouseEvent e) {
           int y = e.getY() / getLineHeight();
-          if (y < 0 || y >= model.getLineCount()) {
+          if (y < 0 || y >= myModel.getLineCount()) {
             mySelectionRange = null;
             return;
           }
           mySelectionInitiation.setLocation(getX(e), e.getY() / getLineHeight());
           mySelectionStart.setLocation(mySelectionInitiation);
           mySelectionEnd.setLocation(mySelectionStart);
-          mySelectionRange = model.getSelectableRegion(mySelectionStart.x);
+          mySelectionRange = myModel.getSelectableRegion(mySelectionStart.x);
         }
 
         private void updateSelection(MouseEvent e) {
           int x = Math.max(mySelectionRange.getFrom(), Math.min(mySelectionRange.getTo(), getX(e)));
           int y = Math.max(0, e.getY() / getLineHeight());
-          if (y >= model.getLineCount()) {
-            y = model.getLineCount() - 1;
+          if (y >= myModel.getLineCount()) {
+            y = myModel.getLineCount() - 1;
             x = mySelectionRange.getTo();
           }
 
@@ -190,6 +245,13 @@ public class MemoryController extends Controller {
       };
       addMouseListener(mouseHandler);
       addMouseMotionListener(mouseHandler);
+    }
+
+    public void setModel(MemoryModel model) {
+      myModel = model;
+      mySelectionRange = null;
+      revalidate();
+      repaint();
     }
 
     @Nullable
@@ -391,46 +453,27 @@ public class MemoryController extends Controller {
     }
   }
 
-  private static class MemoryModel {
-    private static final int BYTES_PER_ROW = 16; // If this is changed, Formatter.increment needs to be fixed.
-    private static final int CHARS_PER_ADDRESS = 16; // 8 byte addresses
-    private static final int CHARS_PER_BYTE = 2; //* 2 hex chars per byte
+  private static abstract class MemoryModel {
+    protected static final int BYTES_PER_ROW = 16; // If this is changed, Formatter.increment needs to be fixed.
 
-    private static final int ADDRESS_SEPARATOR = 1;
-    private static final int BYTE_SEPARATOR = 1;
-    private static final int ASCII_SEPARATOR = 2;
+    protected final byte[] myData;
+    protected final int myRows;
 
-    private static final int ADDRESS_CHARS = CHARS_PER_ADDRESS + ADDRESS_SEPARATOR;
-    private static final int BYTES_CHARS = (CHARS_PER_BYTE + BYTE_SEPARATOR) * BYTES_PER_ROW;
-    private static final int ASCII_CHARS = BYTES_PER_ROW + ASCII_SEPARATOR;
-    private static final int CHARS_PER_ROW = ADDRESS_CHARS + BYTES_CHARS + ASCII_CHARS;
+    public MemoryModel(byte[] data, int align) {
+      myData = aligned(data, align);
+      myRows = (myData.length + BYTES_PER_ROW - 1) / BYTES_PER_ROW;
+    }
 
-    private static final Range<Integer> ADDRESS_RANGE = new Range<Integer>(0, CHARS_PER_ADDRESS);
-    private static final Range<Integer> BYTES_RANGE = new Range<Integer>(ADDRESS_CHARS + BYTE_SEPARATOR, ADDRESS_CHARS + BYTES_CHARS);
-    private static final Range<Integer> ASCII_RANGE = new Range<Integer>(ADDRESS_CHARS + BYTES_CHARS + ASCII_SEPARATOR, CHARS_PER_ROW);
-
-    private final byte[] myData;
-    private final char[] myCharData;
-    private final int myRows;
-
-    public MemoryModel(long address, byte[] data) {
-      myData = data;
-      myRows = (data.length + BYTES_PER_ROW - 1) / BYTES_PER_ROW;
-      myCharData = new char[myRows * CHARS_PER_ROW];
-
-      Arrays.fill(myCharData, ' ');
-      Formatter.initAddrData(address, myCharData, myRows);
-      Formatter.initMemoryData(data, myCharData);
-      Formatter.initAsciiData(data, myCharData);
+    private static byte[] aligned(byte[] data, int align) {
+      int remainder = data.length % align;
+      return (remainder == 0) ? data : Arrays.copyOf(data, data.length + align - remainder);
     }
 
     public int getLineCount() {
       return myRows;
     }
 
-    public int getLineLength() {
-      return CHARS_PER_ROW;
-    }
+    public abstract int getLineLength();
 
     public Iterator<Segment> getLines(final int start, final int end) {
       if (start < 0 || end < start || end > getLineCount()) {
@@ -438,7 +481,7 @@ public class MemoryController extends Controller {
       }
       return new Iterator<Segment>() {
         private int pos = start;
-        private final Segment segment = new Segment(myCharData, 0, CHARS_PER_ROW);
+        private final Segment segment = new Segment(null, 0, 0);
 
         @Override
         public boolean hasNext() {
@@ -450,7 +493,7 @@ public class MemoryController extends Controller {
           if (!hasNext()) {
             throw new NoSuchElementException();
           }
-          segment.offset = pos++ * CHARS_PER_ROW;
+          getLine(segment, pos++);
           return segment;
         }
 
@@ -461,105 +504,305 @@ public class MemoryController extends Controller {
       };
     }
 
+    protected abstract void getLine(Segment segment, int line);
+
+    public abstract Range<Integer> getSelectableRegion(int column);
+
+    public abstract Transferable getTransferable(Range<Integer> selectionRange, Point start, Point end);
+  }
+
+  private static abstract class CharBufferMemoryModel extends MemoryModel {
+    protected static final int CHARS_PER_ADDRESS = 16; // 8 byte addresses
+    protected static final int ADDRESS_SEPARATOR = 1;
+    protected static final int ADDRESS_CHARS = CHARS_PER_ADDRESS + ADDRESS_SEPARATOR;
+    protected static final Range<Integer> ADDRESS_RANGE = new Range<Integer>(0, CHARS_PER_ADDRESS);
+    protected static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
+
+    protected final int myCharsPerRow;
+    protected final char[] myCharData;
+    protected final Range<Integer> myMemoryRange;
+
+    public CharBufferMemoryModel(long address, byte[] data, int align, int charsPerRow, Range<Integer> memoryRange) {
+      super(data, align);
+      myCharsPerRow = charsPerRow;
+      myCharData = new char[myRows * charsPerRow];
+      myMemoryRange = memoryRange;
+
+      Arrays.fill(myCharData, ' ');
+      initAddrData(address);
+      initMemoryData();
+    }
+
+    protected abstract void initMemoryData();
+
+    @Override
+    public int getLineLength() {
+      return myCharsPerRow;
+    }
+
+
+    @Override
+    protected void getLine(Segment segment, int line) {
+      segment.array = myCharData;
+      segment.offset = line * myCharsPerRow;
+      segment.count = myCharsPerRow;
+    }
+
+    @Override
     public Range<Integer> getSelectableRegion(int column) {
       if (ADDRESS_RANGE.isWithin(column)) {
         return ADDRESS_RANGE;
       }
-      else if (BYTES_RANGE.isWithin(column)) {
-        return BYTES_RANGE;
+      else if (myMemoryRange.isWithin(column)) {
+        return myMemoryRange;
       }
-      else if (ASCII_RANGE.isWithin(column)) {
-        return ASCII_RANGE;
+      return null;
+    }
+
+    @Override
+    public Transferable getTransferable(Range<Integer> selectionRange, Point start, Point end) {
+      StringBuilder buffer = new StringBuilder();
+      if (start.y == end.y) {
+        buffer.append(myCharData, start.y * myCharsPerRow + start.x, end.x - start.x);
       }
       else {
-        return null;
+        buffer.append(myCharData, start.y * myCharsPerRow + start.x, selectionRange.getTo() - start.x).append('\n');
+        int rangeWidth = selectionRange.getTo() - selectionRange.getFrom();
+        for (int y = start.y + 1; y < end.y; y++) {
+          buffer.append(myCharData, y * myCharsPerRow + selectionRange.getFrom(), rangeWidth).append('\n');
+        }
+        buffer.append(myCharData, end.y * myCharsPerRow + selectionRange.getFrom(), end.x - selectionRange.getFrom()).append('\n');
+      }
+      return new StringSelection(buffer.toString());
+    }
+
+    private void initAddrData(long address) {
+      int[] digits = new int[CHARS_PER_ADDRESS];
+      char[] chars = new char[CHARS_PER_ADDRESS];
+      initDigitsAndChars(digits, chars, address);
+      for (int i = 0, j = 0; i < myRows; i++, j += myCharsPerRow) {
+        System.arraycopy(chars, 0, myCharData, j, CHARS_PER_ADDRESS);
+        myCharData[j + CHARS_PER_ADDRESS] = ':';
+        increment(digits, chars);
       }
     }
 
-    public Transferable getTransferable(final Range<Integer> selectionRange, final Point start, final Point end) {
-      String result;
+    private static void initDigitsAndChars(int[] digits, char[] chars, long address) {
+      Arrays.fill(chars, '0');
+      for (int i = digits.length - 1; i >= 0 && address != 0; i--) {
+        int digit = (int)address & 0xF;
+        digits[i] = digit;
+        chars[i] = HEX_DIGITS[digit];
+        address >>>= 4;
+      }
+    }
+
+    private static void increment(int[] digits, char[] chars) {
+      int pos = digits.length - 2; // We increment by values of 16.
+      while (pos >= 0) {
+        int digit = digits[pos] + 1;
+        if (digit < 16) {
+          digits[pos] = digit;
+          chars[pos] = HEX_DIGITS[digit];
+          return;
+        }
+        digits[pos] = 0;
+        chars[pos] = '0';
+        pos--;
+      }
+    }
+  }
+
+  private static class BytesMemoryModel extends CharBufferMemoryModel {
+    private static final int CHARS_PER_BYTE = 2; // 2 hex chars per byte
+
+    private static final int BYTE_SEPARATOR = 1;
+    private static final int ASCII_SEPARATOR = 2;
+
+    private static final int BYTES_CHARS = (CHARS_PER_BYTE + BYTE_SEPARATOR) * BYTES_PER_ROW;
+    private static final int ASCII_CHARS = BYTES_PER_ROW + ASCII_SEPARATOR;
+    private static final int CHARS_PER_ROW = ADDRESS_CHARS + BYTES_CHARS + ASCII_CHARS;
+
+    private static final Range<Integer> BYTES_RANGE = new Range<Integer>(ADDRESS_CHARS + BYTE_SEPARATOR, ADDRESS_CHARS + BYTES_CHARS);
+    private static final Range<Integer> ASCII_RANGE = new Range<Integer>(ADDRESS_CHARS + BYTES_CHARS + ASCII_SEPARATOR, CHARS_PER_ROW);
+
+    public BytesMemoryModel(long address, byte[] data) {
+      super(address, data, 1, CHARS_PER_ROW, BYTES_RANGE);
+    }
+
+    @Override
+    public Range<Integer> getSelectableRegion(int column) {
+      if (ASCII_RANGE.isWithin(column)) {
+        return ASCII_RANGE;
+      }
+      else {
+        return super.getSelectableRegion(column);
+      }
+    }
+
+    @Override
+    public Transferable getTransferable(Range<Integer> selectionRange, Point start, Point end) {
       if (selectionRange == ASCII_RANGE) {
         // Copy the actual myData, rather than the display.
         int startPos = start.y * BYTES_PER_ROW + start.x - ASCII_RANGE.getFrom();
         int endPos = Math.min(myData.length, end.y * BYTES_PER_ROW + end.x - ASCII_RANGE.getFrom());
-        result = new String(myData, startPos, endPos - startPos, Charset.forName("US-ASCII"));
+        return new StringSelection(new String(myData, startPos, endPos - startPos, Charset.forName("US-ASCII")));
       }
       else {
-        StringBuilder buffer = new StringBuilder();
-        if (start.y == end.y) {
-          buffer.append(myCharData, start.y * CHARS_PER_ROW + start.x, end.x - start.x);
-        }
-        else {
-          buffer.append(myCharData, start.y * CHARS_PER_ROW + start.x, selectionRange.getTo() - start.x).append('\n');
-          int rangeWidth = selectionRange.getTo() - selectionRange.getFrom();
-          for (int y = start.y + 1; y < end.y; y++) {
-            buffer.append(myCharData, y * CHARS_PER_ROW + selectionRange.getFrom(), rangeWidth).append('\n');
-          }
-          buffer.append(myCharData, end.y * CHARS_PER_ROW + selectionRange.getFrom(), end.x - selectionRange.getFrom()).append('\n');
-        }
-        result = buffer.toString();
+        return super.getTransferable(selectionRange, start, end);
       }
-      return new StringSelection(result);
     }
 
-    private static class Formatter {
-      private static void initAddrData(long address, char[] buffer, int rows) {
-        int[] digits = new int[CHARS_PER_ADDRESS];
-        char[] chars = new char[CHARS_PER_ADDRESS];
-        initDigitsAndChars(digits, chars, address);
-        for (int i = 0, j = 0; i < rows; i++, j += CHARS_PER_ROW) {
-          System.arraycopy(chars, 0, buffer, j, CHARS_PER_ADDRESS);
-          buffer[j + CHARS_PER_ADDRESS] = ':';
-          increment(digits, chars);
+    @Override
+    protected void initMemoryData() {
+      for (int i = 0, j = ADDRESS_CHARS; i < myData.length; i++, j += CHARS_PER_BYTE + BYTE_SEPARATOR) {
+        myCharData[j + 1] = HEX_DIGITS[(myData[i] >> 4) & 0xF];
+        myCharData[j + 2] = HEX_DIGITS[myData[i] & 0xF];
+        if ((i % BYTES_PER_ROW) == BYTES_PER_ROW - 1) {
+          j += ASCII_CHARS + ADDRESS_CHARS;
         }
       }
 
-      private static void initMemoryData(byte[] data, char[] result) {
-        for (int i = 0, j = ADDRESS_CHARS; i < data.length; i++, j += CHARS_PER_BYTE + BYTE_SEPARATOR) {
-          // result[j + 0] = ' ';
-          result[j + 1] = HEX_DIGITS[(data[i] >> 4) & 0xF];
-          result[j + 2] = HEX_DIGITS[data[i] & 0xF];
-          if ((i % BYTES_PER_ROW) == BYTES_PER_ROW - 1) {
-            j += ASCII_CHARS + ADDRESS_CHARS;
-          }
-        }
-      }
-
-      private static void initAsciiData(byte[] data, char[] result) {
-        for (int i = 0, j = ADDRESS_CHARS + BYTES_CHARS + ASCII_SEPARATOR; i < data.length; i++, j++) {
-          result[j] = (data[i] >= 32 && data[i] < 127) ? (char)data[i] : '.';
-          if ((i % BYTES_PER_ROW) == BYTES_PER_ROW - 1) {
-            j += ADDRESS_CHARS + BYTES_CHARS + ASCII_SEPARATOR;
-          }
-        }
-      }
-
-      private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
-
-      private static void initDigitsAndChars(int[] digits, char[] chars, long address) {
-        Arrays.fill(chars, '0');
-        for (int i = digits.length - 1; i >= 0 && address != 0; i--) {
-          int digit = (int)address & 0xF;
-          digits[i] = digit;
-          chars[i] = HEX_DIGITS[digit];
-          address >>>= 4;
-        }
-      }
-
-      private static void increment(int[] digits, char[] chars) {
-        int pos = digits.length - 2; // We increment by values of 16.
-        while (pos >= 0) {
-          int digit = digits[pos] + 1;
-          if (digit < 16) {
-            digits[pos] = digit;
-            chars[pos] = HEX_DIGITS[digit];
-            return;
-          }
-          digits[pos] = 0;
-          chars[pos] = '0';
-          pos--;
+      for (int i = 0, j = ADDRESS_CHARS + BYTES_CHARS + ASCII_SEPARATOR; i < myData.length; i++, j++) {
+        myCharData[j] = (myData[i] >= 32 && myData[i] < 127) ? (char)myData[i] : '.';
+        if ((i % BYTES_PER_ROW) == BYTES_PER_ROW - 1) {
+          j += ADDRESS_CHARS + BYTES_CHARS + ASCII_SEPARATOR;
         }
       }
     }
+  }
+
+  private static class ShortsMemoryModel extends CharBufferMemoryModel {
+    private static final int SHORTS_PER_ROW = BYTES_PER_ROW / 2;
+    private static final int CHARS_PER_SHORT = 4; // 4 hex chars per short
+
+    private static final int SHORT_SEPARATOR = 1;
+
+    private static final int SHORTS_CHARS = (CHARS_PER_SHORT + SHORT_SEPARATOR) * SHORTS_PER_ROW;
+    private static final int CHARS_PER_ROW = ADDRESS_CHARS + SHORTS_CHARS;
+
+    private static final Range<Integer> SHORTS_RANGE = new Range<Integer>(ADDRESS_CHARS + SHORT_SEPARATOR, ADDRESS_CHARS + SHORTS_CHARS);
+
+    public ShortsMemoryModel(long address, byte[] data) {
+      super(address, data, 2, CHARS_PER_ROW, SHORTS_RANGE);
+    }
+
+    @Override
+    protected void initMemoryData() {
+      for (int i = 0, j = 0; i < myData.length; i += 2, j += CHARS_PER_SHORT + SHORT_SEPARATOR) {
+        if ((i % BYTES_PER_ROW) == 0) {
+          j += ADDRESS_CHARS;
+        }
+        // TODO: figure out BigEndian vs LittleEndian.
+        myCharData[j + 1] = HEX_DIGITS[(myData[i + 1] >> 4) & 0xF];
+        myCharData[j + 2] = HEX_DIGITS[myData[i + 1] & 0xF];
+        myCharData[j + 3] = HEX_DIGITS[(myData[i + 0] >> 4) & 0xF];
+        myCharData[j + 4] = HEX_DIGITS[myData[i + 0] & 0xF];
+      }
+    }
+  }
+
+  private static class IntsMemoryModel extends CharBufferMemoryModel {
+    private static final int INTS_PER_ROW = BYTES_PER_ROW / 4;
+    private static final int CHARS_PER_INT = 8; // 8 hex chars per int
+
+    private static final int INT_SEPARATOR = 1;
+
+    private static final int INTS_CHARS = (CHARS_PER_INT + INT_SEPARATOR) * INTS_PER_ROW;
+    private static final int CHARS_PER_ROW = ADDRESS_CHARS + INTS_CHARS;
+
+    private static final Range<Integer> INTS_RANGE = new Range<Integer>(ADDRESS_CHARS + INT_SEPARATOR, ADDRESS_CHARS + INTS_CHARS);
+
+    public IntsMemoryModel(long address, byte[] data) {
+      super(address, data, 4, CHARS_PER_ROW, INTS_RANGE);
+    }
+
+    @Override
+    protected void initMemoryData() {
+      for (int i = 0, j = 0; i < myData.length; i += 4, j += CHARS_PER_INT + INT_SEPARATOR) {
+        if ((i % BYTES_PER_ROW) == 0) {
+          j += ADDRESS_CHARS;
+        }
+        // TODO: figure out BigEndian vs LittleEndian.
+        myCharData[j + 1] = HEX_DIGITS[(myData[i + 3] >> 4) & 0xF];
+        myCharData[j + 2] = HEX_DIGITS[myData[i + 3] & 0xF];
+        myCharData[j + 3] = HEX_DIGITS[(myData[i + 2] >> 4) & 0xF];
+        myCharData[j + 4] = HEX_DIGITS[myData[i + 2] & 0xF];
+        myCharData[j + 5] = HEX_DIGITS[(myData[i + 1] >> 4) & 0xF];
+        myCharData[j + 6] = HEX_DIGITS[myData[i + 1] & 0xF];
+        myCharData[j + 7] = HEX_DIGITS[(myData[i + 0] >> 4) & 0xF];
+        myCharData[j + 8] = HEX_DIGITS[myData[i + 0] & 0xF];
+      }
+    }
+  }
+
+  private static class FloatsMemoryModel extends CharBufferMemoryModel {
+    private static final int FLOATS_PER_ROW = BYTES_PER_ROW / 4;
+    private static final int CHARS_PER_FLOAT = 15;
+
+    private static final int FLOAT_SEPARATOR = 1;
+
+    private static final int FLOATS_CHARS = (CHARS_PER_FLOAT + FLOAT_SEPARATOR) * FLOATS_PER_ROW;
+    private static final int CHARS_PER_ROW = ADDRESS_CHARS + FLOATS_CHARS;
+
+    private static final Range<Integer> FLOATS_RANGE = new Range<Integer>(ADDRESS_CHARS + FLOAT_SEPARATOR, ADDRESS_CHARS + FLOATS_CHARS);
+
+    public FloatsMemoryModel(long address, byte[] data) {
+      super(address, data, 4, CHARS_PER_ROW, FLOATS_RANGE);
+    }
+
+    @Override
+    protected void initMemoryData() {
+      StringBuilder sb = new StringBuilder(50);
+      for (int i = 0, j = 0; i < myData.length; i += 4, j += CHARS_PER_FLOAT + FLOAT_SEPARATOR) {
+        if ((i % BYTES_PER_ROW) == 0) {
+          j += ADDRESS_CHARS;
+        }
+        sb.setLength(0);
+        sb.append(Float.intBitsToFloat(getInt(myData, i)));
+        int count = Math.min(CHARS_PER_FLOAT, sb.length());
+        sb.getChars(0, count, myCharData, j + CHARS_PER_FLOAT - count + 1);
+      }
+    }
+  }
+
+  private static class DoublesMemoryModel extends CharBufferMemoryModel {
+    private static final int DOUBLES_PER_ROW = BYTES_PER_ROW / 8;
+    private static final int CHARS_PER_DOUBLE = 24;
+
+    private static final int DOUBLE_SEPARATOR = 1;
+
+    private static final int DOUBLES_CHARS = (CHARS_PER_DOUBLE + DOUBLE_SEPARATOR) * DOUBLES_PER_ROW;
+    private static final int CHARS_PER_ROW = ADDRESS_CHARS + DOUBLES_CHARS;
+
+    private static final Range<Integer> DOUBLES_RANGE = new Range<Integer>(ADDRESS_CHARS + DOUBLE_SEPARATOR, ADDRESS_CHARS + DOUBLES_CHARS);
+
+    public DoublesMemoryModel(long address, byte[] data) {
+      super(address, data, 8, CHARS_PER_ROW, DOUBLES_RANGE);
+    }
+
+    @Override
+    protected void initMemoryData() {
+      StringBuilder sb = new StringBuilder(50);
+      for (int i = 0, j = 0; i < myData.length; i += 8, j += CHARS_PER_DOUBLE + DOUBLE_SEPARATOR) {
+        if ((i % BYTES_PER_ROW) == 0) {
+          j += ADDRESS_CHARS;
+        }
+        sb.setLength(0);
+        sb.append(Double.longBitsToDouble(getLong(myData, i)));
+        int count = Math.min(CHARS_PER_DOUBLE, sb.length());
+        sb.getChars(0, count, myCharData, j + CHARS_PER_DOUBLE - count + 1);
+      }
+    }
+  }
+
+  private static int getInt(byte[] data, int off) {
+    // TODO: figure out BigEndian vs LittleEndian.
+    return (data[off + 0] & 0xFF) | ((data[off + 1] & 0xFF) << 8) | ((data[off + 2] & 0xFF) << 16) | (data[off + 3] << 24);
+  }
+
+  private static long getLong(byte[] data, int off) {
+    // TODO: figure out BigEndian vs LittleEndian.
+    return (getInt(data, off) & 0xFFFFFFFFL) | ((long)getInt(data, off + 4) << 32);
   }
 }
