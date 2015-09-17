@@ -46,6 +46,7 @@ public final class Factory {
     CallGetSchema.register();
     CallGetTimingInfo.register();
     CallImportCapture.register();
+    CallLoadCapture.register();
     CallSet.register();
     ResultFollow.register();
     ResultGet.register();
@@ -56,6 +57,7 @@ public final class Factory {
     ResultGetSchema.register();
     ResultGetTimingInfo.register();
     ResultImportCapture.register();
+    ResultLoadCapture.register();
     ResultSet.register();
     //<<<End:Java.FactoryBody:2>>>
   }
