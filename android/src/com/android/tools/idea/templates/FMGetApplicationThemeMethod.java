@@ -50,9 +50,13 @@ public class FMGetApplicationThemeMethod implements TemplateMethodModelEx {
     }
     ThemeHelper helper = new ThemeHelper(module);
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
+    if (facet == null) {
+      return null;
+    }
     VirtualFile projectFile = module.getProject().getProjectFile();
-    assert projectFile != null;
+    if (projectFile == null) {
+      return null;
+    }
     ConfigurationManager manager = facet.getConfigurationManager();
     Configuration configuration = manager.getConfiguration(projectFile);
 
