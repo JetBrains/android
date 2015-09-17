@@ -37,10 +37,10 @@ public abstract class Atom {
     Observations observations = getObservations();
     if (observations != null) {
       for (Observation read : observations.getReads()) {
-        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(read, true), false));
+        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(index, read, true), false));
       }
       for (Observation write : observations.getWrites()) {
-        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(write, false), false));
+        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(index, write, false), false));
       }
     }
   }
