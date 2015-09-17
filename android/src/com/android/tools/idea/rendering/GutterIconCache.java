@@ -23,6 +23,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.Gray;
 import com.intellij.util.RetinaImage;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -40,8 +41,8 @@ import static com.android.SdkConstants.DOT_XML;
 
 public class GutterIconCache {
   private static final Logger LOG = Logger.getInstance(GutterIconCache.class);
-  private static final int MAX_WIDTH = 16;
-  private static final int MAX_HEIGHT = 16;
+  private static final int MAX_WIDTH = JBUI.scale(16);
+  private static final int MAX_HEIGHT = JBUI.scale(16);
   private static final Icon NONE = AndroidIcons.Android; // placeholder
 
   private static final GutterIconCache ourInstance = new GutterIconCache();
