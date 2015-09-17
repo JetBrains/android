@@ -57,6 +57,9 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import javax.swing.*;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -88,6 +91,16 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   /** Enable the component drill down that allows to see only selected groups of components on click */
   private static final boolean ENABLE_COMPONENTS_DRILL_DOWN = false;
 
+  private final Box myErrorPanel;
+  private final JTextPane myErrorLabel = new JTextPane() {
+    @Override
+    public Dimension getMaximumSize() {
+      // Ensures this pane will always be only as big as the text it contains.
+      // Necessary to vertically center it inside a Box.
+      return super.getPreferredSize();
+    }
+  };
+
   /** Current search term to use for filtering. If empty, no search term is being used */
   private String mySearchTerm = "";
   /** Cache of the custom components found on the project */
@@ -95,7 +108,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   /** List of components on the support library (if available) */
   private List<ComponentDefinition> mySupportLibraryComponents = Collections.emptyList();
 
-  /** List of component names that shouldn't be displayed. This is used in the case where a support component superseeds a framework one. */
+  /** List of component names that shouldn't be displayed. This is used in the case where a support component supersedes a framework one. */
   private List<String> myDisabledComponents = new ArrayList<String>();
 
   private final ThemeEditorContext myContext;
@@ -198,9 +211,16 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
     myBreadcrumbs.setRootItem(new Breadcrumb("All components"));
 
+    myErrorPanel = new Box(BoxLayout.PAGE_AXIS);
+    myErrorPanel.add(Box.createVerticalGlue());
+    myErrorPanel.add(myErrorLabel);
+    myErrorPanel.add(Box.createVerticalGlue());
+    myErrorPanel.setVisible(false);
+
     add(Box.createRigidArea(JBUI.size(0, 5)));
     add(myBreadcrumbs);
     add(Box.createRigidArea(JBUI.size(0, 10)));
+    add(myErrorPanel);
     add(myScrollPane);
 
     setBackground(background);
@@ -276,6 +296,8 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     myAndroidPreviewPanel.setBackground(bg);
     myScrollPane.getViewport().setBackground(bg);
     myBreadcrumbs.setBackground(bg);
+    myErrorPanel.setBackground(bg);
+    myErrorLabel.setBackground(bg);
   }
 
   /**
@@ -373,7 +395,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
           .addAllComponents(mySupportLibraryComponents);
 
         // sometimes we come here when the mySupportLibraryComponents and the mySupportReplacementsFilter are not ready yet
-        // thats not too bad, as when they are ready, we will call reload again, and then the components list will be correct.
+        // that is not too bad, as when they are ready, we will call reload again, and then the components list will be correct.
       }
       myAndroidPreviewPanel.setDocument(builder.build());
 
@@ -407,6 +429,16 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     else {
       LOG.error("Configuration getDeviceState returned null. Unable to set preview scale.");
     }
+  }
+
+  public void showError(@Nullable String themeName) {
+    StyledDocument document = myErrorLabel.getStyledDocument();
+    SimpleAttributeSet attributes = new SimpleAttributeSet();
+    StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_CENTER);
+    document.setParagraphAttributes(0, document.getLength(), attributes, false);
+    myErrorLabel.setText("The theme " + themeName + " cannot be rendered in the current configuration");
+    myErrorPanel.setVisible(themeName != null);
+    myScrollPane.setVisible(themeName == null);
   }
 
   /**
