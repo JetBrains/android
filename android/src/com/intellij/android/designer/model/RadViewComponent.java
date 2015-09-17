@@ -339,7 +339,13 @@ public class RadViewComponent extends RadVisualComponent {
 
   @Override
   public boolean canDelete() {
-    return !isBackground() && super.canDelete();
+    // Can't delete root component (isBackground specifically returns false to let
+    // you select these so we can't rely on just isBackground() as before)
+    RadComponent parent = getParent();
+    if (parent == null || parent.getParent() == null && !parent.getMetaModel().isTag(VIEW_MERGE)) {
+      return false;
+    }
+    return super.canDelete();
   }
 
   @Override
