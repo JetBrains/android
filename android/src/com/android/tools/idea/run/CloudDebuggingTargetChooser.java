@@ -16,17 +16,32 @@
 package com.android.tools.idea.run;
 
 
+import com.android.ddmlib.IDevice;
+import org.jetbrains.android.run.DeviceSelectionUtils;
+import org.jetbrains.android.run.DeviceTarget;
 import org.jetbrains.android.run.TargetChooser;
+import org.jetbrains.android.run.TargetDeviceFilter;
 import org.jetbrains.annotations.NotNull;
 
 public class CloudDebuggingTargetChooser implements TargetChooser {
+  @NotNull
   private final String myCloudDeviceSerialNumber;
 
   public CloudDebuggingTargetChooser(@NotNull String cloudDeviceSerialNumber) {
     myCloudDeviceSerialNumber = cloudDeviceSerialNumber;
   }
 
-  public String getCloudDeviceSerialNumber() {
-    return myCloudDeviceSerialNumber;
+
+  @Override
+  public boolean matchesDevice(@NotNull IDevice device) {
+    return device.getSerialNumber().equals(myCloudDeviceSerialNumber);
+  }
+
+  @NotNull
+  @Override
+  public DeviceTarget getTarget() {
+    // TODO: Prompt the user to launch a cloud device if none found.
+    // TODO: Assert that we don't get multiple devices out here?
+    return DeviceTarget.forDevices(DeviceSelectionUtils.getAllCompatibleDevices(new TargetDeviceFilter(this)));
   }
 }
