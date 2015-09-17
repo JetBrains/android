@@ -275,32 +275,29 @@ public class ThemeEditorComponent extends Splitter {
     myPanel.getThemeCombo().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (myPanel.isCreateNewThemeSelected()) {
-          if (!createNewTheme()) {
-            // User clicked "cancel", restore previously selected item in themes combo.
-            myPanel.setSelectedTheme(getSelectedTheme());
-          }
-        }
-        else if (myPanel.isShowAllThemesSelected()) {
-          if (!selectNewTheme()) {
-            myPanel.setSelectedTheme(getSelectedTheme());
-          }
-        }
-        else if (myPanel.isRenameSelected()) {
-          if (!renameTheme()) {
-            myPanel.setSelectedTheme(getSelectedTheme());
-          }
-        }
-        else {
-          Object item = myPanel.getThemeCombo().getSelectedItem();
-          final ThemeEditorStyle theme = (ThemeEditorStyle)item;
-          assert theme != null;
+        Object selectedItem = myPanel.getThemeCombo().getSelectedItem();
+        if (selectedItem instanceof ThemeEditorStyle) {
+          final ThemeEditorStyle theme = (ThemeEditorStyle)selectedItem;
 
           myThemeName = theme.getQualifiedName();
           mySubStyleName = null;
           mySubStyleSourceAttribute = null;
 
           loadStyleAttributes();
+        }
+        else {
+          // Keep current theme name in combo box
+          myPanel.setSelectedTheme(getSelectedTheme());
+
+          if (ThemesListModel.CREATE_NEW_THEME.equals(selectedItem)) {
+            createNewTheme();
+          }
+          else if (ThemesListModel.SHOW_ALL_THEMES.equals(selectedItem)) {
+            selectNewTheme();
+          }
+          else {
+            renameTheme();
+          }
         }
       }
     });
@@ -745,7 +742,8 @@ public class ThemeEditorComponent extends Splitter {
 
     final ThemeResolver themeResolver = myThemeEditorContext.getThemeResolver();
     final ThemeEditorStyle defaultTheme = defaultThemeName == null ? null : themeResolver.getTheme(defaultThemeName);
-    myPanel.getThemeCombo().setModel(new ThemesListModel(myThemeEditorContext, ThemeEditorUtils.getDefaultThemes(themeResolver), defaultTheme));
+    myPanel.getThemeCombo().setModel(
+      new ThemesListModel(myThemeEditorContext, ThemeEditorUtils.getDefaultThemes(themeResolver), defaultTheme));
     myThemeName = (myPanel.getSelectedTheme() == null) ? null : myPanel.getSelectedTheme().getQualifiedName();
     mySubStyleName = (StringUtil.equals(myThemeName,defaultThemeName)) ? defaultSubStyleName : null;
     loadStyleAttributes();

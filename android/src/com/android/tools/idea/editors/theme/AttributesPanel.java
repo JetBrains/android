@@ -117,28 +117,11 @@ public class AttributesPanel {
   /**
    * @param theme Does not have to be one of the items in the combo box list.
    */
-  public void setSelectedTheme(final ThemeEditorStyle theme) {
+  public void setSelectedTheme(@Nullable final ThemeEditorStyle theme) {
     // we set the theme on the model and not the actual combo box
     // as the model allows setting a theme that is not contained in the list, but the combo box does not.
     myThemeCombo.getModel().setSelectedItem(theme);
-  }
-
-  public boolean isCreateNewThemeSelected() {
-    return ThemesListModel.CREATE_NEW_THEME.equals(myThemeCombo.getSelectedItem());
-  }
-
-  public boolean isShowAllThemesSelected() {
-    return ThemesListModel.SHOW_ALL_THEMES.equals(myThemeCombo.getSelectedItem());
-  }
-
-  public boolean isRenameSelected() {
-    Object selectedItem = myThemeCombo.getSelectedItem();
-    if (!(selectedItem instanceof String)) {
-      // Selected themes are instances of EditedStyleItem
-      // So this method will return false on selecting a theme
-      return false;
-    }
-    return ((String)selectedItem).startsWith(ThemesListModel.RENAME);
+    myThemeCombo.hidePopup();
   }
 
   public ThemeEditorStyle getSelectedTheme() {
