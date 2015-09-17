@@ -60,8 +60,8 @@ public class AndroidVectorAssetStudioAction extends AndroidAssetStudioAction {
       FullRevision revision = PreciseRevision.parseRevision(version);
 
       if (revision.compareTo(VECTOR_ASSET_GENERATION_REVISION, FullRevision.PreviewComparison.IGNORE) < 0
-          && minSdkVersion.getApiLevel() < VECTOR_DRAWABLE_API_LEVEL) {
-        Messages.showErrorDialog(project, updateMessage, "Need newer Android plugin for Gradle");
+          && (minSdkVersion == null || minSdkVersion.getApiLevel() < VECTOR_DRAWABLE_API_LEVEL)) {
+        Messages.showErrorDialog(project, updateMessage, "Need Newer Android Plugin for Gradle");
         return;
       }
     }
