@@ -42,6 +42,7 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.util.UserDataHolderBase;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
@@ -92,7 +93,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     return myGapisPath != null;
   }
 
-  public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
+  public GfxTraceEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
     myProject = project;
     myLoadingDecorator = new LoadingDecorator(myView, this, 0);
     myLoadingDecorator.setLoadingText("Initializing GFX Trace System");
@@ -139,11 +140,16 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
         });
 
         try {
-          byte[] data = file.contentsToByteArray();
-
-          // Upload the trace file
-          LOG.info("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
-          final ListenableFuture<CapturePath> captureF = myClient.importCapture(file.getPresentableName(), data);
+          final ListenableFuture<CapturePath> captureF;
+          if (file.getFileSystem().getProtocol().equals(StandardFileSystems.FILE_PROTOCOL)) {
+            LOG.info("Load gfxtrace in " + file.getPresentableName());
+            captureF = myClient.loadCapture(file.getCanonicalPath());
+          } else {
+            // Upload the trace file
+            byte[] data = file.contentsToByteArray();
+            LOG.info("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
+            captureF = myClient.importCapture(file.getPresentableName(), data);
+          }
 
           // When both steps are complete, activate the capture path
           Futures.addCallback(Futures.allAsList(schemaF, captureF), new LoadingCallback<List<BinaryObject>>(LOG) {

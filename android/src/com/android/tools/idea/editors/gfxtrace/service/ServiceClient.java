@@ -36,6 +36,7 @@ public abstract class ServiceClient {
   public abstract ListenableFuture<Schema> getSchema();
   public abstract ListenableFuture<TimingInfoPath> getTimingInfo(DevicePath device, CapturePath capture, TimingFlags flags);
   public abstract ListenableFuture<CapturePath> importCapture(String name, byte[] Data);
+  public abstract ListenableFuture<CapturePath> loadCapture(String path);
   public abstract ListenableFuture<Path> set(Path p, Object v);
   //<<<End:Java.ClientBody:1>>>
 
