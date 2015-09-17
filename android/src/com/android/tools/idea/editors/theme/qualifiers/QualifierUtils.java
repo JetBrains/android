@@ -209,52 +209,6 @@ public class QualifierUtils {
   }
 
   /**
-   * Finds a configuration that matches with compatible and doesn't match with any of the incompatible ones.
-   */
-  public static FolderConfiguration restrictConfiguration(@NotNull ConfigurationManager configurationManager,
-                                                          @NotNull FolderConfiguration compatible,
-                                                          @NotNull Collection<FolderConfiguration> incompatible) {
-    FolderConfiguration finalConfiguration = FolderConfiguration.copyOf(compatible);
-
-    if (incompatible.isEmpty()) {
-      return finalConfiguration;
-    }
-
-    // Sort qualifiers based on their type
-    Multimap<Class<? extends ResourceQualifier>, ResourceQualifier> qualifiers = HashMultimap.create();
-
-    for (FolderConfiguration incompatibleConfiguration : incompatible) {
-      if (incompatibleConfiguration == null) {
-        continue;
-      }
-      for (ResourceQualifier qualifier : incompatibleConfiguration.getQualifiers()) {
-        if (qualifier != null) {
-          qualifiers.put(qualifier.getClass(), qualifier);
-        }
-      }
-    }
-
-    HashSet<String> existingQualifiers = Sets.newHashSetWithExpectedSize(finalConfiguration.getQualifiers().length);
-    for (ResourceQualifier existingQualifier : finalConfiguration.getQualifiers()) {
-      existingQualifiers.add(existingQualifier.getName());
-    }
-
-    for (Class<? extends ResourceQualifier> qualifier : qualifiers.keySet()) {
-      ResourceQualifier incompatibleQualifier = getIncompatibleQualifier(configurationManager, qualifiers.get(qualifier));
-
-      if (incompatibleQualifier == null) {
-        return null;
-      }
-
-      if (!existingQualifiers.contains(incompatibleQualifier.getName())) {
-        finalConfiguration.addQualifier(incompatibleQualifier);
-      }
-    }
-
-    return finalConfiguration;
-  }
-
-  /**
    * Returns a restricted version of the passed configuration. The value returned will be incompatible with any other configuration in the
    * item. This configuration can be used when we want to make sure that the configuration selected will be displayed.
    * <p/>
@@ -277,4 +231,86 @@ public class QualifierUtils {
 
     return restrictConfiguration(manager, selectedItems.getConfiguration(), incompatibleConfigurations);
   }
+
+  /**
+   * @param compatible FolderConfiguration that needs to be matching
+   * @param incompatibles Collection of FolderConfigurations need to avoid matching
+   * @return FolderConfiguration that matches with compatible, but doesn't match with any from incompatibles.
+   * Backward implementation to the <a href="http://developer.android.com/guide/topics/resources/providing-resources.html">algorithm</a>.
+   */
+  @Nullable("if there is no configuration that matches the constraints")
+  public static FolderConfiguration restrictConfiguration(@NotNull ConfigurationManager configurationManager,
+                                                          @NotNull FolderConfiguration compatible,
+                                                          @NotNull Collection<FolderConfiguration> incompatibles) {
+    ArrayList<FolderConfiguration> matchingIncompatibles = Lists.newArrayList();
+    // Find all 'incompatibles' that are matches for all of the qualifiers of the 'compatible'.
+    for (FolderConfiguration incompatible : incompatibles) {
+      if (incompatible.isMatchFor(compatible)) {
+        matchingIncompatibles.add(incompatible);
+      }
+    }
+
+    // If none of the 'incompatibles' is a match for 'compatible', return the 'compatible'.
+    if (matchingIncompatibles.isEmpty()) {
+      return compatible;
+    }
+
+    FolderConfiguration restrictedConfiguration = FolderConfiguration.copyOf(compatible);
+    // Starting from highest priority qualifier according to the table from above link,
+    // tries to eliminate items of matchingIncompatibles.
+    for (int qualifierIndex = 0; qualifierIndex < FolderConfiguration.getQualifierCount(); ++qualifierIndex) {
+      ResourceQualifier compatibleQualifier = compatible.getQualifier(qualifierIndex);
+
+      // No such qualifier: try to find incompatible qualifier, that will eliminate matchingIncompatibles having this type of qualifier
+      if (compatibleQualifier == null) {
+        ArrayList<ResourceQualifier> incompatibleQualifiers = Lists.newArrayList();
+        for (FolderConfiguration incompatible : matchingIncompatibles) {
+          ResourceQualifier incompatibleQualifier = incompatible.getQualifier(qualifierIndex);
+          if (incompatibleQualifier != null) {
+            incompatibleQualifiers.add(incompatibleQualifier);
+          }
+        }
+
+        // Current qualifier does not feature in any of compatible or incompatible qualifiers, so skip it.
+        if (incompatibleQualifiers.isEmpty()) {
+          continue;
+        }
+
+        // This qualifier is in the 'incompatible', but not in 'compatible',
+        // so we need to get one that's incompatible with our 'incompatibles', and add to our result.
+        ResourceQualifier qualifier = getIncompatibleQualifier(configurationManager, incompatibleQualifiers);
+
+        // Couldn't find any incompatible, so we can't avoid matching to incompatibles
+        if (qualifier == null) {
+          return null;
+        }
+        restrictedConfiguration.addQualifier(qualifier);
+      }
+
+      // Now we will find and remove all FolderConfiguration that now do not match.
+      Iterator<FolderConfiguration> matchingIterator = matchingIncompatibles.iterator();
+      while (matchingIterator.hasNext()) {
+        ResourceQualifier incompatibleQualifier = matchingIterator.next().getQualifier(qualifierIndex);
+
+        if (compatibleQualifier != null && !compatibleQualifier.equals(incompatibleQualifier)) {
+          // If 'compatible' has such qualifier, we eliminate any qualifier that isn't equal to it
+          matchingIterator.remove();
+        }
+        else if (compatibleQualifier == null && incompatibleQualifier != null) {
+          // if 'compatible' hasn't such qualifier, it means that we have found incompatible qualifier.
+          // So, if this has a such qualifier then it contradicts to incompatible, so remove it.
+          assert !incompatibleQualifier.isMatchFor(restrictedConfiguration.getQualifier(qualifierIndex));
+          matchingIterator.remove();
+        }
+      }
+
+      // If there are no more 'incompatibles' that can match our 'restrictedConfiguration' then we are done, and return the result.
+      if (matchingIncompatibles.isEmpty()) {
+        return restrictedConfiguration;
+      }
+    }
+
+    return null;
+  }
+
 }
