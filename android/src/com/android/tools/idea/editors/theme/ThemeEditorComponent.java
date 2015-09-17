@@ -762,11 +762,11 @@ public class ThemeEditorComponent extends Splitter {
     }
 
     if (selectedTheme == null) {
-      myPreviewPanel.showError(myThemeName);
+      myPreviewPanel.setError(myThemeName);
       return;
     }
 
-    myPreviewPanel.showError(null);
+    myPreviewPanel.setError(null);
     myThemeEditorContext.setCurrentTheme(selectedTheme);
     myPanel.setSubstyleName(mySubStyleName);
     myPanel.getBackButton().setVisible(mySubStyleName != null);
@@ -856,6 +856,7 @@ public class ThemeEditorComponent extends Splitter {
     // First remove the table editor so that it won't be called after
     // objects it relies on, like the module, have themselves been disposed
     myAttributesTable.removeEditor();
+    myPreviewPanel.dispose();
     myThemeEditorContext.dispose();
     super.dispose();
   }
