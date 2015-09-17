@@ -17,6 +17,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
+import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,6 +36,10 @@ public final class AtomPath extends Path {
 
   public ResourcePath resourceAfter(BinaryID id) {
     return new ResourcePath().setAfter(this).setID(id);
+  }
+
+  public MemoryRangePath memoryAfter(PoolID pool, MemoryRange range) {
+    return new MemoryRangePath().setAfter(this).setPool(pool.value).setAddress(range.getBase()).setSize(range.getSize());
   }
 
   //<<<Start:Java.ClassBody:1>>>

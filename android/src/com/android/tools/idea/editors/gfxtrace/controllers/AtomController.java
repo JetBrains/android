@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Observation;
+import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.google.common.util.concurrent.Futures;
@@ -57,10 +58,12 @@ public class AtomController extends TreeController {
   }
 
   public static class Memory {
+    public final long index;
     public final Observation observation;
     public final boolean isRead;
 
-    public Memory(Observation observation, boolean isRead) {
+    public Memory(long index, Observation observation, boolean isRead) {
+      this.index = index;
       this.observation = observation;
       this.isRead = isRead;
     }
@@ -81,6 +84,11 @@ public class AtomController extends TreeController {
         }
         else if (object instanceof Node) {
           myEditor.activatePath(myAtomsPath.getPath().index(((Node)object).index));
+        }
+        else if (object instanceof Memory) {
+          Memory memory = (Memory) object;
+          myEditor.activatePath(myAtomsPath.getPath().index(memory.index)
+                                  .memoryAfter(PoolID.applicationPool(), memory.observation.getRange()));
         }
       }
     });
