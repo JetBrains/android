@@ -1,4 +1,4 @@
-<<error descr="View requires API level 14 (current min is 1): `<GridLayout>`">Grid<caret>Layout</error>
+<error descr="The SDK platform-tools version ((16.0.2)) is too old  to check APIs compiled with API 17; please update"><<error descr="View requires API level 14 (current min is 1): `<GridLayout>`">Grid<caret>Layout</error></error>
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
