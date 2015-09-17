@@ -107,7 +107,7 @@ public class RadFragment extends RadViewComponent implements IConfigurableCompon
 
   @Override
   public void setProperties(List<Property> properties) {
-    if (!properties.isEmpty()) {
+    if (!properties.contains(CLASS_PROPERTY)) {
       properties = new ArrayList<Property>(properties);
       properties.add(NAME_PROPERTY);
       properties.add(CLASS_PROPERTY);
