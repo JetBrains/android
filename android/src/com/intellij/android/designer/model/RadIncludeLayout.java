@@ -67,7 +67,7 @@ public class RadIncludeLayout extends RadViewComponent implements IConfigurableC
 
   @Override
   public void setProperties(List<Property> properties) {
-    if (!properties.isEmpty()) {
+    if (!properties.contains(IncludeLayoutProperty.INSTANCE)) {
       properties = new ArrayList<Property>(properties);
       properties.add(IncludeLayoutProperty.INSTANCE);
       properties.add(IdProperty.INSTANCE);
