@@ -34,10 +34,12 @@ import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -48,6 +50,8 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.Query;
+import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -74,7 +78,7 @@ import java.util.List;
  * for all devices.
  * Implements RenderContext to support Configuration toolbar in Theme Editor.
  */
-public class AndroidThemePreviewPanel extends Box implements RenderContext {
+public class AndroidThemePreviewPanel extends Box implements RenderContext, Disposable {
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class);
 
   private static final Map<String, ComponentDefinition> SUPPORT_LIBRARY_COMPONENTS =
@@ -90,16 +94,17 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     ImmutableMap.of("android.support.v7.widget.Toolbar", "Toolbar");
   /** Enable the component drill down that allows to see only selected groups of components on click */
   private static final boolean ENABLE_COMPONENTS_DRILL_DOWN = false;
+  private static final String ERROR = "Error";
+  private static final String PROGRESS = "Progress";
+  private static final String PREVIEW = "Preview";
 
-  private final Box myErrorPanel;
-  private final JTextPane myErrorLabel = new JTextPane() {
-    @Override
-    public Dimension getMaximumSize() {
-      // Ensures this pane will always be only as big as the text it contains.
-      // Necessary to vertically center it inside a Box.
-      return super.getPreferredSize();
-    }
-  };
+  private final MessageBusConnection myConnection;
+
+  private final JPanel myMainPanel;
+  private Box myErrorPanel;
+  private JTextPane myErrorLabel;
+  private Box myProgressPanel;
+  private AsyncProcessIcon myProgressIcon;
 
   /** Current search term to use for filtering. If empty, no search term is being used */
   private String mySearchTerm = "";
@@ -143,6 +148,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
   private float myScale = 1;
   private boolean myIsAppCompatTheme = false;
+  private boolean myShowError = false;
 
   static class Breadcrumb extends NavigationComponent.Item {
     private final ThemePreviewBuilder.ComponentGroup myGroup;
@@ -188,6 +194,19 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     setMinimumSize(JBUI.size(200, 0));
 
     myContext = context;
+    myConnection = myContext.getProject().getMessageBus().connect();
+    myConnection.subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
+      @Override
+      public void enteredDumbMode() {
+        updateMainPanel();
+      }
+
+      @Override
+      public void exitDumbMode() {
+        updateMainPanel();
+      }
+    });
+
     myAndroidPreviewPanel = new AndroidPreviewPanel(myContext.getConfiguration());
     myContext.addChangeListener(new ThemeEditorContext.ChangeListener() {
       @Override
@@ -211,22 +230,18 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
     myBreadcrumbs.setRootItem(new Breadcrumb("All components"));
 
-    myErrorPanel = new Box(BoxLayout.PAGE_AXIS);
-    myErrorPanel.add(Box.createVerticalGlue());
-    myErrorPanel.add(myErrorLabel);
-    myErrorPanel.add(Box.createVerticalGlue());
-    myErrorPanel.setVisible(false);
-
-    StyledDocument document = myErrorLabel.getStyledDocument();
-    SimpleAttributeSet attributes = new SimpleAttributeSet();
-    StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_CENTER);
-    document.setParagraphAttributes(0, document.getLength(), attributes, false);
+    createErrorPanel();
+    createProgressPanel();
 
     add(Box.createRigidArea(JBUI.size(0, 5)));
     add(myBreadcrumbs);
     add(Box.createRigidArea(JBUI.size(0, 10)));
-    add(myErrorPanel);
-    add(myScrollPane);
+
+    myMainPanel = new JPanel(new CardLayout());
+    myMainPanel.add(myErrorPanel, ERROR);
+    myMainPanel.add(myProgressPanel, PROGRESS);
+    myMainPanel.add(myScrollPane, PREVIEW);
+    add(myMainPanel);
 
     setBackground(background);
     reloadComponents();
@@ -281,6 +296,22 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
         return true;
       }
     });
+
+    updateMainPanel();
+  }
+
+  /**
+   * Chooses the correct panel to display between the progress panel, the error panel or the preview panel
+   */
+  private void updateMainPanel() {
+    if (myDumbService.isDumb()) {
+      myProgressIcon.resume();
+      ((CardLayout)myMainPanel.getLayout()).show(myMainPanel, PROGRESS);
+    }
+    else {
+      myProgressIcon.suspend();
+      ((CardLayout)myMainPanel.getLayout()).show(myMainPanel, myShowError ? ERROR : PREVIEW);
+    }
   }
 
   /**
@@ -301,8 +332,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     myAndroidPreviewPanel.setBackground(bg);
     myScrollPane.getViewport().setBackground(bg);
     myBreadcrumbs.setBackground(bg);
-    myErrorPanel.setBackground(bg);
-    myErrorLabel.setBackground(bg);
+    myMainPanel.setBackground(bg);
   }
 
   /**
@@ -436,12 +466,60 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     }
   }
 
-  public void showError(@Nullable String themeName) {
+  private void createProgressPanel() {
+    myProgressIcon = new AsyncProcessIcon("Indexing");
+    JLabel progressMessage = new JLabel("Waiting for indexing...");
+    JPanel progressBlock = new JPanel() {
+      @Override
+      public Dimension getMaximumSize() {
+        // Ensures this pane will always be only as big as the text it contains.
+        // Necessary to vertically center it inside a Box.
+        return super.getPreferredSize();
+      }
+    };
+
+    progressBlock.add(myProgressIcon);
+    progressBlock.add(progressMessage);
+    progressBlock.setOpaque(false);
+
+    myProgressPanel = new Box(BoxLayout.PAGE_AXIS);
+    myProgressPanel.add(Box.createVerticalGlue());
+    myProgressPanel.add(progressBlock);
+    myProgressPanel.add(Box.createVerticalGlue());
+
+    myProgressPanel.setOpaque(false);
+  }
+
+  private void createErrorPanel() {
+    myErrorLabel = new JTextPane() {
+      @Override
+      public Dimension getMaximumSize() {
+        // Ensures this pane will always be only as big as the text it contains.
+        // Necessary to vertically center it inside a Box.
+        return super.getPreferredSize();
+      }
+    };
+    myErrorLabel.setOpaque(false);
+
+    myErrorPanel = new Box(BoxLayout.PAGE_AXIS);
+    myErrorPanel.add(Box.createVerticalGlue());
+    myErrorPanel.add(myErrorLabel);
+    myErrorPanel.add(Box.createVerticalGlue());
+
+    myErrorPanel.setOpaque(false);
+
+    StyledDocument document = myErrorLabel.getStyledDocument();
+    SimpleAttributeSet attributes = new SimpleAttributeSet();
+    StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_CENTER);
+    document.setParagraphAttributes(0, document.getLength(), attributes, false);
+  }
+
+  public void setError(@Nullable String themeName) {
+    myShowError = themeName != null;
     if (themeName != null) {
       myErrorLabel.setText("The theme " + themeName + " cannot be rendered in the current configuration");
     }
-    myErrorPanel.setVisible(themeName != null);
-    myScrollPane.setVisible(themeName == null);
+    updateMainPanel();
   }
 
   /**
@@ -457,6 +535,12 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
    */
   public void invalidateGraphicsRenderer() {
     myAndroidPreviewPanel.invalidateGraphicsRenderer();
+  }
+
+  @Override
+  public void dispose() {
+    Disposer.dispose(myProgressIcon);
+    myConnection.disconnect();
   }
 
   // Implements RenderContext
