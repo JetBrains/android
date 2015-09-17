@@ -16,6 +16,8 @@
 package com.android.tools.idea.editors.gfxtrace;
 
 import com.android.ddmlib.*;
+import com.android.tools.chartlib.EventData;
+import com.android.tools.idea.monitor.render.RenderMonitorView;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
@@ -57,11 +59,12 @@ public class GfxTracer {
   @NotNull private final IDevice myDevice;
   @NotNull final CaptureService myCaptureService;
   @NotNull final CaptureHandle myCapture;
+  @NotNull final EventData myEvents;
 
   private volatile boolean myStopped = false;
 
-  public static GfxTracer launch(@NotNull final Project project, @NotNull final Client client) {
-    final GfxTracer tracer = new GfxTracer(project, client.getDevice());
+  public static GfxTracer launch(@NotNull final Project project, @NotNull final Client client, @NotNull EventData events) {
+    final GfxTracer tracer = new GfxTracer(project, client.getDevice(), events);
     final String pkg = client.getClientData().getClientDescription();
     final String pid = Integer.toString(client.getClientData().getPid());
     final String abi = client.getClientData().getAbi();
@@ -75,8 +78,8 @@ public class GfxTracer {
     return tracer;
   }
 
-  public static GfxTracer listen(@NotNull final Project project, @NotNull final IDevice device) {
-    final GfxTracer tracer = new GfxTracer(project, device);
+  public static GfxTracer listen(@NotNull final Project project, @NotNull final IDevice device, @NotNull EventData events) {
+    final GfxTracer tracer = new GfxTracer(project, device, events);
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
@@ -86,9 +89,10 @@ public class GfxTracer {
     return tracer;
   }
 
-  private GfxTracer(@NotNull Project project, @NotNull IDevice device) {
+  private GfxTracer(@NotNull Project project, @NotNull IDevice device, @NotNull EventData events) {
     myCaptureService = CaptureService.getInstance(project);
     myDevice = device;
+    myEvents = events;
     try {
       myCapture = myCaptureService.startCaptureFile(GfxTraceCaptureType.class);
     }
@@ -98,6 +102,7 @@ public class GfxTracer {
   }
 
   private void relaunchAndCapture(String pkg, String pid, String abi) {
+    EventData.Event event = myEvents.start(System.currentTimeMillis(), RenderMonitorView.EVENT_LAUNCH);
     try {
       final File myGapii = findTraceLibrary(abi);
       // Find out the full activity name from the package name
@@ -145,6 +150,7 @@ public class GfxTracer {
         try {
           // Relaunch the app with the spy enabled
           captureAdbShell(myDevice, "am start -S -W -n " + component);
+          event.stop(System.currentTimeMillis());
           capture();
         }
         finally {
@@ -163,6 +169,11 @@ public class GfxTracer {
     }
     catch (Exception e) {
       throw new RuntimeException(e);
+    }
+    finally {
+      if (event.to == -1) {
+        event.stop(System.currentTimeMillis());
+      }
     }
   }
 
@@ -210,21 +221,26 @@ public class GfxTracer {
 
   private void captureFromSocket(String host, int port) throws IOException, InterruptedException {
     Socket socket = null;
+    EventData.Event event = null;
+    long total = 0;
     byte[] buffer = new byte[4096];
     try {
       // Now loop until we get a connection
       int len = 0;
-      int total = 0;
       while (!myStopped) {
         if (socket == null) {
+          //noinspection SocketOpenedButNotSafelyClosed
           socket = new Socket(host, port);
           socket.setSoTimeout(500);
         }
         len = copyBlock(socket, myCapture, buffer);
-        if (len >= 0) {
+        if (len > 0) {
+          if (event == null) {
+            event = myEvents.start(System.currentTimeMillis(), RenderMonitorView.EVENT_TRACING);
+          }
           total += len;
         }
-        else {
+        else if (len < 0) {
           socket.close();
           socket = null;
           if (total == 0) {
@@ -238,6 +254,9 @@ public class GfxTracer {
       }
     }
     finally {
+      if (event != null) {
+        event.stop(System.currentTimeMillis());
+      }
       if (socket != null) {
         socket.close();
       }
