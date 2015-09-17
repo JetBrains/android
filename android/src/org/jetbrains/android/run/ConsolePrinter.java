@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A simple interface for printing output to the user.
  */
-public interface SimpleLogger {
+public interface ConsolePrinter {
   /** Print a line of normal output to the user. */
   void stdout(@NotNull String message);
 

@@ -25,8 +25,6 @@ import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
-import com.intellij.execution.process.ProcessAdapter;
-import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -40,7 +38,6 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
@@ -58,6 +55,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
+import java.util.Collection;
 import java.util.List;
 
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
@@ -74,28 +72,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidDebugRunner");
 
   private static NotificationGroup ourNotificationGroup; // created and accessed only in EDT
-
-  private static void tryToCloseOldSessions(final Executor executor, Project project) {
-    final ExecutionManager manager = ExecutionManager.getInstance(project);
-    ProcessHandler[] processes = manager.getRunningProcesses();
-    for (ProcessHandler process : processes) {
-      final AndroidSessionInfo info = process.getUserData(ANDROID_SESSION_INFO);
-      if (info != null) {
-        process.addProcessListener(new ProcessAdapter() {
-          @Override
-          public void processTerminated(ProcessEvent event) {
-            ApplicationManager.getApplication().invokeLater(new Runnable() {
-              @Override
-              public void run() {
-                manager.getContentManager().removeRunContent(executor, info.getDescriptor());
-              }
-            });
-          }
-        });
-        process.detachProcess();
-      }
-    }
-  }
 
   @Override
   protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment environment) throws ExecutionException {
@@ -168,7 +144,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     if (runDescriptor == null) {
       return null;
     }
-    tryToCloseOldSessions(environment.getExecutor(), environment.getProject());
+    AndroidSessionManager.tryToCloseOldSessions(environment.getExecutor(), environment.getProject());
     final ProcessHandler handler = state.getProcessHandler();
     handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(runDescriptor, state, environment.getExecutor().getId()));
     deactivateToolWindowWhenAddedProperty(environment.getProject(), environment.getExecutor(), runDescriptor, "running");
@@ -186,63 +162,24 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   }
 
   @Nullable
-  private static Pair<ProcessHandler, AndroidSessionInfo> findOldSession(Project project,
-                                                                         Executor executor,
-                                                                         AndroidRunConfigurationBase configuration) {
-    for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
-      final AndroidSessionInfo info = handler.getUserData(ANDROID_SESSION_INFO);
-
-      if (info != null &&
-          info.getState().getConfiguration().equals(configuration) &&
-          executor.getId().equals(info.getExecutorId())) {
-        return Pair.create(handler, info);
-      }
-    }
-    return null;
-  }
-
-  @Nullable
   protected static RunContentDescriptor embedToExistingSession(final Project project,
                                                                final Executor executor,
                                                                final AndroidRunningState state) {
-    final Pair<ProcessHandler, AndroidSessionInfo> pair = findOldSession(project, executor, state.getConfiguration());
+    final Pair<ProcessHandler, AndroidSessionInfo> pair = AndroidSessionManager.findOldSession(project, executor, state.getConfiguration());
     final AndroidSessionInfo oldSessionInfo = pair != null ? pair.getSecond() : null;
     final ProcessHandler oldProcessHandler = pair != null ? pair.getFirst() : null;
 
-    if (oldSessionInfo == null || oldProcessHandler == null) {
+    if (oldSessionInfo == null || oldProcessHandler == null || !oldSessionInfo.isEmbeddable()) {
       return null;
     }
     final AndroidExecutionState oldState = oldSessionInfo.getState();
-    final IDevice[] oldDevices = oldState.getDevices();
     final ConsoleView oldConsole = oldState.getConsoleView();
 
-    if (oldDevices == null ||
-        oldConsole == null ||
-        oldDevices.length == 0 ||
-        oldDevices.length > 1) {
+    if (oldState.getDevices() == null || !oldState.getDevices().equals(state.getDevices())) {
       return null;
     }
-    final Ref<List<IDevice>> devicesRef = Ref.create();
 
-    final boolean result = ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
-      @Override
-      public void run() {
-        devicesRef.set(state.getAllCompatibleDevices());
-      }
-    }, "Scanning available devices", false, project);
-
-    if (!result) {
-      return null;
-    }
-    final List<IDevice> devices = devicesRef.get();
-
-    if (devices.size() == 0 ||
-        devices.size() > 1 ||
-        devices.get(0) != oldDevices[0]) {
-      return null;
-    }
     oldProcessHandler.detachProcess();
-    state.setTargetDevices(devices.toArray(new IDevice[devices.size()]));
     state.setConsole(oldConsole);
     final RunContentDescriptor oldDescriptor = oldSessionInfo.getDescriptor();
     ProcessHandler newProcessHandler;
@@ -274,7 +211,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        state.start(false);
+        state.start();
       }
     });
     return oldDescriptor;
