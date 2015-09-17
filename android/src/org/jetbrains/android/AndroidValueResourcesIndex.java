@@ -2,15 +2,14 @@ package org.jetbrains.android;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.resources.ResourceType;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.DataExternalizer;
 import com.intellij.util.io.KeyDescriptor;
@@ -27,23 +26,24 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidValueResourcesIndex extends FileBasedIndexExtension<ResourceEntry, Set<AndroidValueResourcesIndex.MyResourceInfo>> {
-  public static final ID<ResourceEntry, Set<MyResourceInfo>> INDEX_ID = ID.create("android.value.resources.index");
+public class AndroidValueResourcesIndex
+  extends FileBasedIndexExtension<ResourceEntry, ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo>> {
+
+  public static final ID<ResourceEntry, ImmutableSet<MyResourceInfo>> INDEX_ID = ID.create("android.value.resources.index");
 
   @NonNls private static final String RESOURCES_ROOT_TAG = "resources";
   @NonNls private static final String NAME_ATTRIBUTE_VALUE = "name";
   @NonNls private static final String TYPE_ATTRIBUTE_VALUE = "type";
 
-  private final DataIndexer<ResourceEntry, Set<MyResourceInfo>, FileContent> myIndexer =
-    new DataIndexer<ResourceEntry, Set<MyResourceInfo>, FileContent>() {
+  private final DataIndexer<ResourceEntry, ImmutableSet<MyResourceInfo>, FileContent> myIndexer =
+    new DataIndexer<ResourceEntry, ImmutableSet<MyResourceInfo>, FileContent>() {
       @Override
       @NotNull
-      public Map<ResourceEntry, Set<MyResourceInfo>> map(@NotNull FileContent inputData) {
+      public Map<ResourceEntry, ImmutableSet<MyResourceInfo>> map(@NotNull FileContent inputData) {
         if (!isSimilarFile(inputData)) {
           return Collections.emptyMap();
         }
@@ -52,7 +52,7 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
         if (!(file instanceof XmlFile)) {
           return Collections.emptyMap();
         }
-        final Map<ResourceEntry, Set<MyResourceInfo>> result = new HashMap<ResourceEntry, Set<MyResourceInfo>>();
+        final Map<ResourceEntry, ImmutableSet.Builder<MyResourceInfo>> resultBuilder = Maps.newHashMap();
 
         file.accept(new XmlRecursiveElementVisitor() {
           @Override
@@ -82,13 +82,18 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
             if (resType == ResourceType.ATTR) {
               final XmlTag parentTag = tag.getParentTag();
               final String contextName = parentTag != null ? parentTag.getAttributeValue(NAME_ATTRIBUTE_VALUE) : null;
-              processResourceEntry(new ResourceEntry(resTypeStr, resName, contextName != null ? contextName : ""), result, offset);
+              processResourceEntry(new ResourceEntry(resTypeStr, resName, contextName != null ? contextName : ""), resultBuilder, offset);
             }
             else {
-              processResourceEntry(new ResourceEntry(resTypeStr, resName, ""), result, offset);
+              processResourceEntry(new ResourceEntry(resTypeStr, resName, ""), resultBuilder, offset);
             }
           }
         });
+
+        Map<ResourceEntry, ImmutableSet<MyResourceInfo>> result = Maps.newHashMap();
+        for (Map.Entry<ResourceEntry, ImmutableSet.Builder<MyResourceInfo>> entry : resultBuilder.entrySet()) {
+          result.put(entry.getKey(), entry.getValue().build());
+        }
 
         return result;
       }
@@ -112,22 +117,23 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
   }
 
   private static void processResourceEntry(@NotNull ResourceEntry entry,
-                                           @NotNull Map<ResourceEntry, Set<MyResourceInfo>> result,
+                                           @NotNull Map<ResourceEntry, ImmutableSet.Builder<MyResourceInfo>> resultBuilder,
                                            int offset) {
     final MyResourceInfo info = new MyResourceInfo(entry, offset);
-    result.put(entry, Collections.singleton(info));
-    addEntryToMap(info, createTypeMarkerKey(entry.getType()), result);
-    addEntryToMap(info, createTypeNameMarkerKey(entry.getType(), entry.getName()), result);
+    resultBuilder.put(entry, ImmutableSet.<MyResourceInfo>builder().add(info));
+    addEntryToMap(info, createTypeMarkerKey(entry.getType()), resultBuilder);
+    addEntryToMap(info, createTypeNameMarkerKey(entry.getType(), entry.getName()), resultBuilder);
   }
 
-  private static void addEntryToMap(MyResourceInfo info, ResourceEntry marker, Map<ResourceEntry, Set<MyResourceInfo>> result) {
-    Set<MyResourceInfo> set = result.get(marker);
+  private static void addEntryToMap(MyResourceInfo info, ResourceEntry marker,
+                                    Map<ResourceEntry, ImmutableSet.Builder<MyResourceInfo>> resultBuilder) {
+    ImmutableSet.Builder<MyResourceInfo> setBuilder = resultBuilder.get(marker);
 
-    if (set == null) {
-      set = new HashSet<MyResourceInfo>();
-      result.put(marker, set);
+    if (setBuilder == null) {
+      setBuilder = ImmutableSet.builder();
+      resultBuilder.put(marker, setBuilder);
     }
-    set.add(info);
+    setBuilder.add(info);
   }
 
   @NotNull
@@ -190,9 +196,9 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
     }
   };
   
-  private final DataExternalizer<Set<MyResourceInfo>> myValueExternalizer = new DataExternalizer<Set<MyResourceInfo>>() {
+  private final DataExternalizer<ImmutableSet<MyResourceInfo>> myValueExternalizer = new DataExternalizer<ImmutableSet<MyResourceInfo>>() {
     @Override
-    public void save(@NotNull DataOutput out, Set<MyResourceInfo> value) throws IOException {
+    public void save(@NotNull DataOutput out, ImmutableSet<MyResourceInfo> value) throws IOException {
       out.writeInt(value.size());
 
       for (MyResourceInfo entry : value) {
@@ -205,7 +211,7 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
 
     @Nullable
     @Override
-    public Set<MyResourceInfo> read(@NotNull DataInput in) throws IOException {
+    public ImmutableSet<MyResourceInfo> read(@NotNull DataInput in) throws IOException {
       final int size = in.readInt();
 
       if (size < 0 || size > 65535) {
@@ -214,9 +220,9 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
       }
 
       if (size == 0) {
-        return Collections.emptySet();
+        return ImmutableSet.of();
       }
-      final Set<MyResourceInfo> result = Sets.newHashSetWithExpectedSize(size);
+      final ImmutableSet.Builder<MyResourceInfo> result = ImmutableSet.builder();
 
       for (int i = 0; i < size; i++) {
         final String type = in.readUTF();
@@ -225,19 +231,19 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
         final int offset = in.readInt();
         result.add(new MyResourceInfo(new ResourceEntry(type, name, context), offset));
       }
-      return result;
+      return result.build();
     }
   };
 
   @NotNull
   @Override
-  public ID<ResourceEntry, Set<MyResourceInfo>> getName() {
+  public ID<ResourceEntry, ImmutableSet<MyResourceInfo>> getName() {
     return INDEX_ID;
   }
 
   @NotNull
   @Override
-  public DataIndexer<ResourceEntry, Set<MyResourceInfo>, FileContent> getIndexer() {
+  public DataIndexer<ResourceEntry, ImmutableSet<MyResourceInfo>, FileContent> getIndexer() {
     return myIndexer;  
   }
 
@@ -249,7 +255,7 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
 
   @NotNull
   @Override
-  public DataExternalizer<Set<MyResourceInfo>> getValueExternalizer() {
+  public DataExternalizer<ImmutableSet<MyResourceInfo>> getValueExternalizer() {
     return myValueExternalizer;
   }
 
