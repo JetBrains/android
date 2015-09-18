@@ -1,6 +1,7 @@
 package org.jetbrains.android.run;
 
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentDescriptor;
 import org.jetbrains.annotations.NotNull;
 
@@ -8,16 +9,24 @@ import org.jetbrains.annotations.NotNull;
  * @author Eugene.Kudelevsky
  */
 public class AndroidSessionInfo {
+  @NotNull private final ProcessHandler myProcessHandler;
   private final RunContentDescriptor myDescriptor;
   private final AndroidExecutionState myState;
   private final String myExecutorId;
 
-  public AndroidSessionInfo(@NotNull RunContentDescriptor descriptor,
+  public AndroidSessionInfo(@NotNull ProcessHandler processHandler,
+                            @NotNull RunContentDescriptor descriptor,
                             @NotNull AndroidExecutionState state,
                             @NotNull String executorId) {
+    myProcessHandler = processHandler;
     myDescriptor = descriptor;
     myState = state;
     myExecutorId = executorId;
+  }
+
+  @NotNull
+  public ProcessHandler getProcessHandler() {
+    return myProcessHandler;
   }
 
   @NotNull
