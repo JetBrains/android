@@ -37,7 +37,7 @@ public class DynamicAtom extends Atom {
 
   @Override
   public String getName() {
-    return myValue.type().getName();
+    return myMetadata.getDisplayName();
   }
 
   @Override
