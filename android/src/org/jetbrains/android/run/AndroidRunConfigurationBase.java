@@ -66,7 +66,7 @@ import java.util.*;
 import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunConfigurationBase");
+  private static final Logger LOG = Logger.getInstance(AndroidRunConfigurationBase.class);
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
 
@@ -111,13 +111,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public final void checkConfiguration() throws RuntimeConfigurationException {
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     configurationModule.checkForWarning();
-    Module module = configurationModule.getModule();
+    final Module module = configurationModule.getModule();
 
     if (module == null) {
       return;
     }
 
-    Project project = module.getProject();
+    final Project project = module.getProject();
     if (requiredAndroidModelMissing(project)) {
       // This only shows an error message on the "Run Configuration" dialog, but does not prevent user from running app.
       throw new RuntimeConfigurationException(GRADLE_SYNC_FAILED_ERR_MSG);
@@ -155,11 +155,45 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         throw new RuntimeConfigurationError(message);
       }
     }
+
+    validateApkSigning(facet);
+
     checkConfiguration(facet);
+  }
+
+  private static void validateApkSigning(@NotNull final AndroidFacet facet) throws RuntimeConfigurationError {
+    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
+    if (androidGradleModel == null) {
+      return;
+    }
+
+    if (androidGradleModel.getMainArtifact().isSigned()) {
+      return;
+    }
+
+    AndroidArtifactOutput output = GradleUtil.getOutput(androidGradleModel.getMainArtifact());
+    final String message = AndroidBundle.message("run.error.apk.not.signed", output.getMainOutputFile().getOutputFile().getName(),
+                                                 androidGradleModel.getSelectedVariant().getDisplayName());
+
+    Runnable quickFix = new Runnable() {
+      @Override
+      public void run() {
+        Module module = facet.getModule();
+        ProjectSettingsService service = ProjectSettingsService.getInstance(module.getProject());
+        if (service instanceof AndroidProjectSettingsService) {
+          ((AndroidProjectSettingsService)service).openSigningConfiguration(module);
+        }
+        else {
+          service.openModuleSettings(module);
+        }
+      }
+    };
+    throw new RuntimeConfigurationError(message, quickFix);
   }
 
   /** Returns whether the configuration supports running library projects, and if it doesn't, then an explanation as to why it doesn't. */
   protected abstract Pair<Boolean,String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet);
+
   protected abstract void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException;
 
   @Override
@@ -214,30 +248,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (requiredAndroidModelMissing(project)) {
       // This prevents user from running the app.
       throw new ExecutionException(GRADLE_SYNC_FAILED_ERR_MSG);
-    }
-
-    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
-    if (androidGradleModel != null) {
-      if (!androidGradleModel.getMainArtifact().isSigned()) {
-        AndroidArtifactOutput output = GradleUtil.getOutput(androidGradleModel.getMainArtifact());
-        String message = AndroidBundle.message("run.error.apk.not.signed", output.getMainOutputFile().getOutputFile().getName());
-        String title = CommonBundle.getErrorTitle();
-        NotificationHyperlink quickfix =
-          new NotificationHyperlink("open.sign.configuration", "Open Project Structure Dialog") {
-            @Override
-            protected void execute(@NotNull Project project) {
-              ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-              if (service instanceof AndroidProjectSettingsService) {
-                ((AndroidProjectSettingsService)service).openSigningConfiguration(module);
-              }
-              else {
-                service.openModuleSettings(module);
-              }
-            }
-          };
-        AndroidGradleNotification.getInstance(project).showBalloon(title, message, NotificationType.ERROR, quickfix);
-        return null;
-      }
     }
 
     AndroidFacetConfiguration configuration = facet.getConfiguration();
