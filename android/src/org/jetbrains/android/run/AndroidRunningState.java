@@ -94,7 +94,7 @@ import java.util.regex.Pattern;
 /**
  * @author coyote
  */
-public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.IClientChangeListener, AndroidExecutionState {
+public class AndroidRunningState implements RunProfileState, AndroidExecutionState {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunningState");
 
   public static final int WAITING_TIME_SECS = 20;
@@ -199,6 +199,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
         for (ListenableFuture<IDevice> deviceFuture : myDeviceTarget.getDeviceFutures()) {
           deviceFuture.cancel(true);
+        }
+        myStopped = true;
+        synchronized (myLock) {
+          myLock.notifyAll();
         }
         getProcessHandler().removeProcessListener(this);
       }
@@ -341,27 +345,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       getProcessHandler().destroyProcess();
       return;
     }
-    doStart();
-  }
-
-  private void doStart() {
-    if (myDebugMode) {
-      // TODO: Add the client change listener for a specific device once that device is ready.
-      AndroidDebugBridge.addClientChangeListener(this);
-    }
-    // TODO: Consolidate with process listener in execute()
-    getProcessHandler().addProcessListener(new ProcessAdapter() {
-      @Override
-      public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
-        if (myDebugMode) {
-          AndroidDebugBridge.removeClientChangeListener(AndroidRunningState.this);
-        }
-        myStopped = true;
-        synchronized (myLock) {
-          myLock.notifyAll();
-        }
-      }
-    });
     prepareAndStartAppWhenDeviceIsOnline();
   }
 
@@ -382,20 +365,29 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return myPrinter;
   }
 
-  @Override
-  public void clientChanged(Client client, int changeMask) {
-    synchronized (myDebugLock) {
-      if (myDebugLauncher == null) {
-        return;
-      }
-      if (myDeploy && !myApplicationDeployed) {
-        return;
-      }
-      IDevice device = client.getDevice();
-      if (isMyDevice(device) && device.isOnline()) {
-        ClientData data = client.getClientData();
-        if (isToLaunchDebug(data)) {
-          launchDebug(client);
+  /** Listener which launches the debugger once the target device is ready. */
+  private class MyClientChangeListener implements AndroidDebugBridge.IClientChangeListener {
+    @NotNull private final IDevice myDevice;
+
+    MyClientChangeListener(@NotNull IDevice device) {
+      myDevice = device;
+    }
+
+    @Override
+    public void clientChanged(Client client, int changeMask) {
+      synchronized (myDebugLock) {
+        if (myDebugLauncher == null) {
+          return;
+        }
+        if (myDeploy && !myApplicationDeployed) {
+          return;
+        }
+        IDevice device = client.getDevice();
+        if (myDevice.equals(device) && device.isOnline()) {
+          ClientData data = client.getClientData();
+          if (isToLaunchDebug(data)) {
+            launchDebug(client);
+          }
         }
       }
     }
@@ -419,11 +411,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     myDebugLauncher = null;
   }
 
-  private boolean isMyDevice(@NotNull IDevice device) {
-    Collection<IDevice> devices = myDeviceTarget.getDevicesIfReady();
-    return devices != null &&  devices.contains(device);
-  }
-
   public void setConsole(@NotNull ConsoleView console) {
     myConsole = console;
   }
@@ -433,13 +420,24 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     for (ListenableFuture<IDevice> targetDevice : myDeviceTarget.getDeviceFutures()) {
       Futures.addCallback(targetDevice, new FutureCallback<IDevice>() {
         @Override
-        public void onSuccess(@Nullable IDevice result) {
-          if (myStopped) {
+        public void onSuccess(@Nullable IDevice device) {
+          if (myStopped || device == null) {
             return;
           }
-          if (prepareAndStartApp(result)) {
+          if (myDebugMode) {
+            // Listen for when the installed app is ready for debugging.
+            final MyClientChangeListener listener = new MyClientChangeListener(device);
+            AndroidDebugBridge.addClientChangeListener(listener);
+            getProcessHandler().addProcessListener(new ProcessAdapter() {
+              @Override
+              public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
+                AndroidDebugBridge.removeClientChangeListener(listener);
+              }
+            });
+          }
+          if (prepareAndStartApp(device)) {
             if (startedCount.incrementAndGet() == myDeviceTarget.getDeviceFutures().size() && !myDebugMode) {
-              // All the devices have been started.
+              // All the devices have been started, and we don't need to wait to attach the debugger. We're done.
               myStopped = true;
               getProcessHandler().destroyProcess();
             }
@@ -469,7 +467,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return myProcessHandler;
   }
 
-  private boolean prepareAndStartApp(IDevice device) {
+  private boolean prepareAndStartApp(@NotNull IDevice device) {
     if (myDebugMode && myNonDebuggableOnDevice && !device.isEmulator()) {
       myPrinter.stderr(AndroidBundle.message("android.cannot.debug.noDebugPermissions", getPackageName(), device.getName()));
       fireExecutionFailed();
