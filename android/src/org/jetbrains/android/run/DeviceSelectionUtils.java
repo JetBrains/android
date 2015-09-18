@@ -100,7 +100,7 @@ public class DeviceSelectionUtils {
                                                  boolean supportMultipleDevices) {
     final Project project = facet.getModule().getProject();
     String value = PropertiesComponent.getInstance(project).getValue(ANDROID_TARGET_DEVICES_PROPERTY);
-    String[] selectedSerials = value != null ? fromString(value) : null;
+    String[] selectedSerials = value != null ? deserialize(value) : null;
     AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
     if (platform == null) {
       LOG.error("Android platform not set for module: " + facet.getModule().getName());
@@ -112,12 +112,12 @@ public class DeviceSelectionUtils {
     if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE || devices.length == 0) {
       return DeviceChooser.EMPTY_DEVICE_ARRAY;
     }
-    PropertiesComponent.getInstance(project).setValue(ANDROID_TARGET_DEVICES_PROPERTY, toString(devices));
+    PropertiesComponent.getInstance(project).setValue(ANDROID_TARGET_DEVICES_PROPERTY, serialize(devices));
     return devices;
   }
 
   @NotNull
-  private static String toString(@NotNull IDevice[] devices) {
+  public static String serialize(@NotNull IDevice[] devices) {
     StringBuilder builder = new StringBuilder();
     for (int i = 0, n = devices.length; i < n; i++) {
       builder.append(devices[i].getSerialNumber());
@@ -129,7 +129,7 @@ public class DeviceSelectionUtils {
   }
 
   @NotNull
-  private static String[] fromString(@NotNull String s) {
+  private static String[] deserialize(@NotNull String s) {
     return s.split(" ");
   }
 }

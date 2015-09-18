@@ -349,18 +349,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   }
 
   @NotNull
-  public static String toString(@NotNull IDevice[] devices) {
-    StringBuilder builder = new StringBuilder();
-    for (int i = 0, n = devices.length; i < n; i++) {
-      builder.append(devices[i].getSerialNumber());
-      if (i < n - 1) {
-        builder.append(' ');
-      }
-    }
-    return builder.toString();
-  }
-
-  @NotNull
   public ConsolePrinter getPrinter() {
     return myPrinter;
   }
