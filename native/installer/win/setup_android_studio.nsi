@@ -709,7 +709,7 @@ Function fnc_ValidPath
     ${If} $validPath_includeSpace == 0
         StrCpy $validPath_badChars '${BAD_CHARS}'
     ${Else}
-        StrCpy $validPath_badChars ' {$BAD_CHARS}'
+        StrCpy $validPath_badChars ' ${BAD_CHARS}'
     ${EndIf}
     ${StrContainsAnyOf} $R0 $validPath_path $validPath_badChars
     Exch $R0
