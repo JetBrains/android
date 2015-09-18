@@ -77,7 +77,7 @@ public final class AtomList implements BinaryObject {
       AtomList o = (AtomList)obj;
       e.uint32(o.myAtoms.length);
       for (int i = 0; i < o.myAtoms.length; i++) {
-        e.object(o.myAtoms[i].unwrap());
+        e.variant(o.myAtoms[i].unwrap());
       }
     }
 
@@ -86,7 +86,7 @@ public final class AtomList implements BinaryObject {
       AtomList o = (AtomList)obj;
       o.myAtoms = new Atom[d.uint32()];
       for (int i = 0; i <o.myAtoms.length; i++) {
-        o.myAtoms[i] = Atom.wrap(d.object());
+        o.myAtoms[i] = Atom.wrap(d.variant());
       }
     }
     //<<<End:Java.KlassBody:2>>>
