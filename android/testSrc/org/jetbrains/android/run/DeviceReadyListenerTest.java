@@ -59,7 +59,7 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
+    myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
     // When there are more than 5 clients, the device myListener believes the device is ready.
@@ -72,7 +72,7 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
+    myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
     // When there are more than 5 clients, the device myListener believes the device is ready.
@@ -86,7 +86,7 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysFalse();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
+    myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
     // When there are more than 5 clients, the device myListener believes the device is ready.
@@ -99,7 +99,7 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
+    myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", false /* isOnline */);
     // When there are more than 5 clients, the device myListener believes the device is ready.
@@ -112,7 +112,7 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
+    myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
     // When there are fewer than 5 clients, and the myListener can't find certain clients, device is not ready.
@@ -125,7 +125,7 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
+    myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
 
@@ -139,7 +139,7 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
+    myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
 
