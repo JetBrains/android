@@ -33,7 +33,6 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.notification.NotificationType;
@@ -326,9 +325,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private DeviceTarget getOldSessionTarget(@NotNull Project project,
                                            @NotNull Executor executor,
                                            @NotNull TargetChooser targetChooser) {
-    Pair<ProcessHandler, AndroidSessionInfo> sessionInfoPair = AndroidSessionManager.findOldSession(project, executor, this);
-    if (sessionInfoPair != null) {
-      AndroidSessionInfo sessionInfo = sessionInfoPair.getSecond();
+    AndroidSessionInfo sessionInfo = AndroidSessionManager.findOldSession(project, executor, this);
+    if (sessionInfo != null) {
       if (sessionInfo.isEmbeddable()) {
         Collection<IDevice> oldDevices = sessionInfo.getState().getDevices();
         Collection<IDevice> currentDevices = DeviceSelectionUtils.getAllCompatibleDevices(new TargetDeviceFilter(targetChooser));
