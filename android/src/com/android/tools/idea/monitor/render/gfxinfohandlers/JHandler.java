@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.gpu.gfxinfohandlers;
+package com.android.tools.idea.monitor.render.gfxinfohandlers;
 
 import com.android.ddmlib.*;
 import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
-import com.android.tools.idea.monitor.gpu.GpuSampler;
+import com.android.tools.idea.monitor.render.RenderSampler;
 import com.intellij.util.ThreeState;
 import gnu.trove.TFloatArrayList;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,7 @@ public final class JHandler implements GfxinfoHandler {
 
   @Override
   public boolean accept(@NotNull Client client) {
-    return GpuSampler.decodeApiLevel(client) >= MIN_API_LEVEL;
+    return RenderSampler.decodeApiLevel(client) >= MIN_API_LEVEL;
   }
 
   @Override
@@ -160,7 +160,7 @@ public final class JHandler implements GfxinfoHandler {
     }
 
     /**
-     * Get the time the system took to execute the rendering commands on the gpu.
+     * Get the time the system took to execute the rendering commands on the render thread.
      */
     @Nullable
     public Float getExecuteTime(int index) {
