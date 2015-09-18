@@ -588,6 +588,15 @@ public class ThemeEditorUtils {
   }
 
   /**
+   * Returns version qualifier of FolderConfiguration.
+   * Returns -1, if FolderConfiguration has default version
+   */
+  public static int getVersionFromConfiguration(@NotNull FolderConfiguration configuration) {
+    VersionQualifier qualifier = configuration.getVersionQualifier();
+    return (qualifier != null) ? qualifier.getVersion() : -1;
+  }
+
+  /**
    * Returns the smallest api level of the folders in folderNames.
    * Returns Integer.MAX_VALUE if folderNames is empty.
    */
