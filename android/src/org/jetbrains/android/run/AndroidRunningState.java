@@ -138,6 +138,27 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   private final List<AndroidRunningStateListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
   private final boolean myNonDebuggableOnDevice;
 
+  public AndroidRunningState(@NotNull ExecutionEnvironment environment,
+                             @NotNull AndroidFacet facet,
+                             @NotNull ApkProvider apkProvider,
+                             @NotNull DeviceTarget deviceTarget,
+                             @NotNull ProcessHandlerConsolePrinter printer,
+                             AndroidApplicationLauncher applicationLauncher,
+                             boolean clearLogcatBeforeStart,
+                             @NotNull AndroidRunConfigurationBase configuration,
+                             boolean nonDebuggableOnDevice) {
+    myFacet = facet;
+    myApkProvider = apkProvider;
+    myDeviceTarget = deviceTarget;
+    myPrinter = printer;
+    myConfiguration = configuration;
+
+    myEnv = environment;
+    myApplicationLauncher = applicationLauncher;
+    myClearLogcatBeforeStart = clearLogcatBeforeStart;
+    myNonDebuggableOnDevice = nonDebuggableOnDevice;
+  }
+
   public void setDebugMode(boolean debugMode) {
     myDebugMode = debugMode;
   }
@@ -153,64 +174,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
   public boolean isDebugMode() {
     return myDebugMode;
-  }
-
-  @Override
-  public ExecutionResult execute(@NotNull final Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
-    Project project = myFacet.getModule().getProject();
-    myProcessHandler = new DefaultDebugProcessHandler();
-    AndroidProcessText.attach(myProcessHandler);
-    ConsoleView console = null;
-    if (isDebugMode()) {
-      final TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
-      console = builder.getConsole();
-      if (console != null) {
-        console.attachToProcess(myProcessHandler);
-      }
-    }
-    myPrinter.setProcessHandler(myProcessHandler);
-
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        start();
-      }
-    });
-
-    if (console == null) { //Will not be null in debug mode or if additional option was chosen.
-      console = myConfiguration.attachConsole(this, executor);
-    }
-
-    getProcessHandler().addProcessListener(new ProcessAdapter() {
-      @Override
-      public void onTextAvailable(final ProcessEvent event, final Key outputType) {
-        if (outputType.equals(ProcessOutputTypes.STDERR)) {
-          UIUtil.invokeLaterIfNeeded(new Runnable() {
-            @Override
-            public void run() {
-              ToolWindowManager.getInstance(myFacet.getModule().getProject()).getToolWindow(executor.getToolWindowId())
-                .activate(null, true, false);
-            }
-          });
-        }
-      }
-
-      @Override
-      public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
-        for (ListenableFuture<IDevice> deviceFuture : myDeviceTarget.getDeviceFutures()) {
-          deviceFuture.cancel(true);
-        }
-        myStopped = true;
-        synchronized (myLock) {
-          myLock.notifyAll();
-        }
-        getProcessHandler().removeProcessListener(this);
-      }
-    });
-
-    myConsole = console;
-
-    return new DefaultExecutionResult(console, myProcessHandler);
   }
 
   @Override
@@ -305,27 +268,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     }
   }
 
-  public AndroidRunningState(@NotNull ExecutionEnvironment environment,
-                             @NotNull AndroidFacet facet,
-                             @NotNull ApkProvider apkProvider,
-                             @NotNull DeviceTarget deviceTarget,
-                             @NotNull ProcessHandlerConsolePrinter printer,
-                             AndroidApplicationLauncher applicationLauncher,
-                             boolean clearLogcatBeforeStart,
-                             @NotNull AndroidRunConfigurationBase configuration,
-                             boolean nonDebuggableOnDevice) {
-    myFacet = facet;
-    myApkProvider = apkProvider;
-    myDeviceTarget = deviceTarget;
-    myPrinter = printer;
-    myConfiguration = configuration;
-
-    myEnv = environment;
-    myApplicationLauncher = applicationLauncher;
-    myClearLogcatBeforeStart = clearLogcatBeforeStart;
-    myNonDebuggableOnDevice = nonDebuggableOnDevice;
-  }
-
   public void setDeploy(boolean deploy) {
     myDeploy = deploy;
   }
@@ -334,18 +276,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     synchronized (myDebugLock) {
       myTargetPackageName = targetPackageName;
     }
-  }
-
-  void start() {
-    try {
-      setTargetPackageName(myApkProvider.getPackageName());
-    } catch (ApkProvisionException e) {
-      myPrinter.stderr(e.getMessage());
-      LOG.error(e);
-      getProcessHandler().destroyProcess();
-      return;
-    }
-    prepareAndStartAppWhenDeviceIsOnline();
   }
 
   @NotNull
@@ -415,7 +345,73 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     myConsole = console;
   }
 
-  private void prepareAndStartAppWhenDeviceIsOnline() {
+  @Override
+  public ExecutionResult execute(@NotNull final Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
+    Project project = myFacet.getModule().getProject();
+    myProcessHandler = new DefaultDebugProcessHandler();
+    AndroidProcessText.attach(myProcessHandler);
+    ConsoleView console = null;
+    if (isDebugMode()) {
+      final TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
+      console = builder.getConsole();
+      if (console != null) {
+        console.attachToProcess(myProcessHandler);
+      }
+    }
+    myPrinter.setProcessHandler(myProcessHandler);
+
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+      @Override
+      public void run() {
+        start();
+      }
+    });
+
+    if (console == null) { //Will not be null in debug mode or if additional option was chosen.
+      console = myConfiguration.attachConsole(this, executor);
+    }
+
+    getProcessHandler().addProcessListener(new ProcessAdapter() {
+      @Override
+      public void onTextAvailable(final ProcessEvent event, final Key outputType) {
+        if (outputType.equals(ProcessOutputTypes.STDERR)) {
+          UIUtil.invokeLaterIfNeeded(new Runnable() {
+            @Override
+            public void run() {
+              ToolWindowManager.getInstance(myFacet.getModule().getProject()).getToolWindow(executor.getToolWindowId())
+                .activate(null, true, false);
+            }
+          });
+        }
+      }
+
+      @Override
+      public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
+        for (ListenableFuture<IDevice> deviceFuture : myDeviceTarget.getDeviceFutures()) {
+          deviceFuture.cancel(true);
+        }
+        myStopped = true;
+        synchronized (myLock) {
+          myLock.notifyAll();
+        }
+        getProcessHandler().removeProcessListener(this);
+      }
+    });
+
+    myConsole = console;
+
+    return new DefaultExecutionResult(console, myProcessHandler);
+  }
+
+  void start() {
+    try {
+      setTargetPackageName(myApkProvider.getPackageName());
+    } catch (ApkProvisionException e) {
+      myPrinter.stderr(e.getMessage());
+      LOG.error(e);
+      getProcessHandler().destroyProcess();
+      return;
+    }
     final AtomicInteger startedCount = new AtomicInteger();
     for (ListenableFuture<IDevice> targetDevice : myDeviceTarget.getDeviceFutures()) {
       Futures.addCallback(targetDevice, new FutureCallback<IDevice>() {
