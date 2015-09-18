@@ -707,9 +707,7 @@ public class ThemeEditorComponent extends Splitter {
       }
     }
     else {
-      // The theme pointing to the new style is writable, so go ahead.
-      FolderConfiguration configurationToModify = selectedTheme.findBestConfiguration(myThemeEditorContext.getConfiguration().getFullConfig());
-      selectedTheme.setValue(configurationToModify, sourcePropertyName, newStyleName);
+      selectedTheme.setValue(sourcePropertyName, newStyleName);
       // We don't need to call reload, because myResourceChangeListener will take care of it
       mySubStyleName = newStyleName;
     }
