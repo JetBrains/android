@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.gpu.gfxinfohandlers;
+package com.android.tools.idea.monitor.render.gfxinfohandlers;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
@@ -21,7 +21,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.MultiLineReceiver;
 import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
-import com.android.tools.idea.monitor.gpu.GpuSampler;
+import com.android.tools.idea.monitor.render.RenderSampler;
 import com.intellij.util.ThreeState;
 import gnu.trove.TLongArrayList;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +51,7 @@ public final class MHandler implements GfxinfoHandler {
 
   @Override
   public boolean accept(@NotNull Client client) {
-    return GpuSampler.decodeApiLevel(client) >= MIN_API_LEVEL;
+    return RenderSampler.decodeApiLevel(client) >= MIN_API_LEVEL;
   }
 
   @Override

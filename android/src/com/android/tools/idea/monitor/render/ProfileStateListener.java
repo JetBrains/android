@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.gpu;
+package com.android.tools.idea.monitor.render;
 
 import com.android.ddmlib.Client;
 import org.jetbrains.annotations.NotNull;
