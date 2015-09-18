@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.gpu;
+package com.android.tools.idea.monitor.render;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
-import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
-import com.android.tools.idea.monitor.gpu.gfxinfohandlers.LHandler;
-import com.android.tools.idea.monitor.gpu.gfxinfohandlers.MHandler;
-import com.android.tools.idea.monitor.gpu.gfxinfohandlers.GfxinfoHandler;
+import com.android.tools.idea.monitor.render.gfxinfohandlers.JHandler;
+import com.android.tools.idea.monitor.render.gfxinfohandlers.LHandler;
+import com.android.tools.idea.monitor.render.gfxinfohandlers.MHandler;
+import com.android.tools.idea.monitor.render.gfxinfohandlers.GfxinfoHandler;
 import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GpuSampler extends DeviceSampler {
+public class RenderSampler extends DeviceSampler {
   private final GfxinfoHandler[] myGfxinfoHandlers = new GfxinfoHandler[]{new JHandler(), new LHandler(), new MHandler()};
   private GfxinfoHandler myCurrentGfxinfoHandler;
   private int myApiLevel = JHandler.MIN_API_LEVEL;
@@ -36,14 +36,14 @@ public class GpuSampler extends DeviceSampler {
   @Nullable protected ProfileStateListener myProfileStateListener;
   private boolean myGpuProfileSetting = true; // Flag to determine if the GPU profiling setting on the device is enabled.
 
-  public GpuSampler(int sampleFrequencyMs) {
+  public RenderSampler(int sampleFrequencyMs) {
     super(new TimelineData(3, GfxinfoHandler.SAMPLE_BUFFER_SIZE), sampleFrequencyMs); // Use a dummy TimelineData.
   }
 
   @NotNull
   @Override
   public String getName() {
-    return "GPU Sampler";
+    return "Render Sampler";
   }
 
   public int getApiLevel() {

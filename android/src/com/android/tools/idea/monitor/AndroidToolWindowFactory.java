@@ -26,7 +26,7 @@ import com.android.tools.idea.ddms.actions.TerminateVMAction;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.monitor.cpu.CpuMonitorView;
-import com.android.tools.idea.monitor.gpu.GpuMonitorView;
+import com.android.tools.idea.monitor.render.RenderMonitorView;
 import com.android.tools.idea.monitor.memory.MemoryMonitorView;
 import com.android.tools.idea.monitor.network.NetworkMonitorView;
 import com.google.common.util.concurrent.FutureCallback;
@@ -225,8 +225,8 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
   private static Content createGpuContent(@NotNull RunnerLayoutUi layoutUi,
                                           @NotNull Project project,
                                           @NotNull DeviceContext deviceContext) {
-    GpuMonitorView view = new GpuMonitorView(project, deviceContext);
-    Content content = layoutUi.createContent("Render", view.createComponent(), "Render", AndroidIcons.GpuMonitor, null);
+    RenderMonitorView view = new RenderMonitorView(project, deviceContext);
+    Content content = layoutUi.createContent("Render", view.createComponent(), "Render", AndroidIcons.RenderMonitor, null);
     content.setCloseable(false);
     return content;
   }
