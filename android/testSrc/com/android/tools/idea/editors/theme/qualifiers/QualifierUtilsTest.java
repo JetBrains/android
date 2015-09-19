@@ -17,8 +17,8 @@ package com.android.tools.idea.editors.theme.qualifiers;
 
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.Density;
-import com.android.resources.ScreenOrientation;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
@@ -53,18 +53,9 @@ public class QualifierUtilsTest extends AndroidTestCase {
     }
   }
 
-  public void testVersionQualifiers() {
-    List<ResourceQualifier> versionQualifiers = ImmutableList.<ResourceQualifier>of(
-      new VersionQualifier(21),
-      new VersionQualifier(19),
-      new VersionQualifier(16));
-    assertEquals(15, ((VersionQualifier)QualifierUtils.getIncompatibleVersionQualifier(versionQualifiers)).getVersion());
-  }
-
   public void testDensityQualifiers() {
-    List<ResourceQualifier> densityQualifiers = ImmutableList.<ResourceQualifier>of(
-      new DensityQualifier(Density.XXXHIGH),
-      new DensityQualifier(Density.LOW));
+    List<ResourceQualifier> densityQualifiers = ImmutableList.<ResourceQualifier>of(new DensityQualifier(Density.XXXHIGH),
+                                                                                    new DensityQualifier(Density.LOW));
 
     assertEquals(Density.NODPI, ((DensityQualifier)QualifierUtils.getIncompatibleDensityQualifier(densityQualifiers)).getValue());
 
@@ -80,54 +71,6 @@ public class QualifierUtilsTest extends AndroidTestCase {
     assertNull(QualifierUtils.getIncompatibleDensityQualifier(densityQualifiers));
   }
 
-  /**
-   * This method checks the version qualifiers and also the combination with the passed "compatible" folder
-   */
-  public void testVersionQualifiersFromFolders() {
-    List<FolderConfiguration> incompatible = ImmutableList.of(
-      FolderConfiguration.getConfigForQualifierString("v21"),
-      FolderConfiguration.getConfigForQualifierString("v19"));
-
-    FolderConfiguration compatible = FolderConfiguration.getConfigForQualifierString("land");
-
-    assertEquals("-land", QualifierUtils.restrictConfiguration(compatible, incompatible).getUniqueKey());
-  }
-
-  /**
-   * Tests a basic enum type like ScreenOrientation
-   */
-  public void testScreenOrientationQualifiers() {
-    List<ResourceQualifier> orientationQualifiers = ImmutableList.<ResourceQualifier>of(
-      new ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE), new ScreenOrientationQualifier(ScreenOrientation.PORTRAIT));
-
-    ResourceQualifier result = QualifierUtils.getIncompatibleEnum(ScreenOrientation.class, ScreenOrientationQualifier.class, orientationQualifiers);
-    assertEquals(ScreenOrientation.SQUARE, ((ScreenOrientationQualifier)result).getValue());
-
-    orientationQualifiers = ImmutableList.<ResourceQualifier>of(
-      new ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE),
-      new ScreenOrientationQualifier(ScreenOrientation.PORTRAIT),
-      new ScreenOrientationQualifier(ScreenOrientation.SQUARE));
-    result = QualifierUtils.getIncompatibleEnum(ScreenOrientation.class, ScreenOrientationQualifier.class, orientationQualifiers);
-
-    // There are not incompatible qualifiers left
-    assertNull(result);
-  }
-
-  /**
-   * Tests the same as {@link #testScreenOrientationQualifiers()} but makes sure that the enum is correctly detected
-   * in the restrictConfiguration method.
-   */
-  public void testScreenOrientationQualifiersFromFolder() {
-    List<FolderConfiguration> incompatible = ImmutableList.of(
-      FolderConfiguration.getConfigForQualifierString("port"),
-      FolderConfiguration.getConfigForQualifierString("land"));
-
-    // default config
-    FolderConfiguration compatible = FolderConfiguration.getConfigForQualifierString("");
-
-    assertEquals("-square", QualifierUtils.restrictConfiguration(compatible, incompatible).getUniqueKey());
-  }
-
   private void checkRestrictConfigurationFor(String compatibleQualifier, String answerQualifier, String... incompatibleQualifiers) {
     ArrayList<FolderConfiguration> incompatibles = Lists.newArrayList();
     for (int i = 0; i < incompatibleQualifiers.length; ++i) {
@@ -136,14 +79,25 @@ public class QualifierUtilsTest extends AndroidTestCase {
     }
     final FolderConfiguration compatible = FolderConfiguration.getConfigForQualifierString(compatibleQualifier);
     assertNotNull(compatible);
-    FolderConfiguration folderConfiguration = QualifierUtils.restrictConfiguration(compatible, incompatibles);
-    assertNotNull(folderConfiguration);
+    FolderConfiguration restrictedConfiguration = QualifierUtils.restrictConfiguration(compatible, incompatibles);
+    assertNotNull(restrictedConfiguration);
 
     // folderConfiguration.getUniqueKey() returns with a "-"
     if (!answerQualifier.isEmpty()) {
       answerQualifier = "-" + answerQualifier;
     }
-    assertEquals(answerQualifier, folderConfiguration.getUniqueKey());
+    assertEquals(answerQualifier, restrictedConfiguration.getUniqueKey());
+
+    // Making sure that 'restrictedConfiguration' matches only with 'compatible'
+    List<ConfiguredElement<String>> allConfigurations = Lists.newArrayList();
+    allConfigurations.add(ConfiguredElement.create(compatible, ""));
+    for (FolderConfiguration incompatible : incompatibles) {
+      allConfigurations.add(ConfiguredElement.create(incompatible, ""));
+    }
+
+    List<Configurable> matches = restrictedConfiguration.findMatchingConfigurables(allConfigurations);
+    assertEquals(1, matches.size());
+    assertEquals(compatible, matches.get(0).getConfiguration());
   }
 
   /**
@@ -160,7 +114,20 @@ public class QualifierUtilsTest extends AndroidTestCase {
     checkRestrictConfigurationFor("land-hdpi", "land-hdpi", "land");
     checkRestrictConfigurationFor("en", "en-port", "en-land", "port");
     checkRestrictConfigurationFor("en", "en-night-v19", "en-notnight-v21", "en-notnight-v21", "en-v20",  "fr-night-v18");
+    checkRestrictConfigurationFor("land", "land", "v21", "v19");
     // TODO (Madiyar): find an answer
     // checkRestrictConfigurationFor("", "", "v21", "de", "sw600dp", "ar", "v15", "pt-rPT", "pt-rBR", "v16");
+
+    checkRestrictConfigurationFor("", "__", "en", "fr", "kz", "ru"); // LocaleQualifier
+    checkRestrictConfigurationFor("", "ldltr", "ldrtl", "ldrtl"); // LayoutDirectionQualifier
+    checkRestrictConfigurationFor("", "long", "notlong"); // ScreenRationQualifier
+    checkRestrictConfigurationFor("", "notround", "round", "round"); // ScreenRoundQualifier
+    checkRestrictConfigurationFor("", "land", "port", "port"); // ScreenOrientationQualifier
+    checkRestrictConfigurationFor("", "notnight", "night"); // NightModeQualifier
+    checkRestrictConfigurationFor("", "finger", "notouch", "stylus"); // TouchScreenQualifier
+    checkRestrictConfigurationFor("", "keysexposed", "keyshidden", "keyssoft"); // KeyboardStateQualifier
+    checkRestrictConfigurationFor("", "nokeys", "qwerty", "12key"); // TextInputMethodQualifier
+    checkRestrictConfigurationFor("", "nonav", "dpad", "trackball", "wheel"); // NavigationMethodQualifier
+    checkRestrictConfigurationFor("", "v14", "v21", "v16", "v15", "v16"); // VersionQualifier
   }
 }
