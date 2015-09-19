@@ -624,8 +624,10 @@ public class ResourceHelper {
     StateList stateList = resolveStateList(resources, drawable, project);
     if (stateList != null) {
       List<StateListState> states = stateList.getStates();
-      StateListState state = states.get(states.size() - 1);
-      result = state.getValue();
+      if (!states.isEmpty()) {
+        StateListState state = states.get(states.size() - 1);
+        result = state.getValue();
+      }
     }
 
     final File file = new File(result);
