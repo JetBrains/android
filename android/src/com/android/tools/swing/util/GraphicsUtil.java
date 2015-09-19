@@ -65,10 +65,8 @@ public class GraphicsUtil {
   public static void drawCenteredString(Graphics g, Rectangle rect, String str, boolean horzCentered, boolean vertCentered) {
     FontMetrics fm = g.getFontMetrics(g.getFont());
     int textWidth = fm.stringWidth(str);
-    int textHeight = fm.getHeight();
     int x = horzCentered ? Math.max(rect.x, rect.x + (rect.width - textWidth) / 2) : rect.x;
-    int y = vertCentered ? Math.max(rect.y, rect.y + (rect.height - textHeight) / 2 + fm.getAscent()) : rect.y;
-
+    int y = vertCentered ? Math.max(rect.y, rect.y + rect.height / 2 + fm.getAscent() * 2 / 5) : rect.y;
     g.drawString(str, x, y);
   }
 
