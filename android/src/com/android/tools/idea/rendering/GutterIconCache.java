@@ -124,8 +124,8 @@ public class GutterIconCache {
           return new ImageIcon(image);
         }
       }
-    } catch (IOException e) {
-      LOG.warn(String.format("Could not read icon image %1$s", path), e);
+    } catch (Throwable e) {
+      LOG.warn(String.format("Could not read/render icon image %1$s", path), e);
     }
 
     return null;
