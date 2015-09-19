@@ -30,5 +30,6 @@ public class RadRequestFocus extends RadViewComponent {
 
   @Override
   public void setProperties(List<Property> properties) {
+    // Deliberately not calling super; <requestFocus/> shouldn't have any properties, including default view ones
   }
 }
