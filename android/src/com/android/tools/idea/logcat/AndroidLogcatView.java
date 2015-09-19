@@ -59,7 +59,6 @@ public abstract class AndroidLogcatView implements Disposable {
   static final String SELECTED_APP_FILTER = AndroidBundle.message("android.logcat.filters.selected");
   static final String NO_FILTERS = AndroidBundle.message("android.logcat.filters.none");
   static final String EDIT_FILTER_CONFIGURATION = AndroidBundle.message("android.logcat.filters.edit");
-  static final String REGEX = "Re&gex";
 
   private final Project myProject;
   private final DeviceContext myDeviceContext;
@@ -308,22 +307,22 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  private volatile @Nullable AndroidLogcatReceiver myReciever;
+  private volatile @Nullable AndroidLogcatReceiver myReceiver;
 
   private void updateLogConsole() {
     IDevice device = getSelectedDevice();
     if (myDevice != device) {
       myDevice = device;
-      AndroidLogcatReceiver reciever = myReciever;
-      if (reciever != null) {
-        reciever.cancel();
+      AndroidLogcatReceiver receiver = myReceiver;
+      if (receiver != null) {
+        receiver.cancel();
       }
       if (device != null) {
         final ConsoleView console = myLogConsole.getConsole();
         if (console != null) {
           console.clear();
         }
-        myReciever = AndroidLogcatUtils.startLoggingThread(myProject, device, false, myLogConsole);
+        myReceiver = AndroidLogcatUtils.startLoggingThread(myProject, device, false, myLogConsole);
       }
     }
   }

@@ -50,10 +50,10 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
                     Pattern.DOTALL);
 
   /** Prefix to use for stack trace lines. */
-  public static final String STACK_TRACE_LINE_PREFIX = StringUtil.repeatSymbol(' ', 4);
+  private static final String STACK_TRACE_LINE_PREFIX = StringUtil.repeatSymbol(' ', 4);
 
   /** Prefix to use for the stack trace "Caused by:" lines. */
-  public static final String STACK_TRACE_CAUSE_LINE_PREFIX = Character.toString(' ');
+  private static final String STACK_TRACE_CAUSE_LINE_PREFIX = Character.toString(' ');
 
   private volatile boolean myCanceled = false;
   private final AndroidConsoleWriter myWriter;
@@ -63,14 +63,9 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
   @Nullable private LogMessageHeader myActiveHeader;
 
   public AndroidLogcatReceiver(@NotNull IDevice device, @NotNull AndroidConsoleWriter writer) {
-    this(device, writer, new StackTraceExpander(STACK_TRACE_LINE_PREFIX, STACK_TRACE_CAUSE_LINE_PREFIX));
-  }
-
-  @VisibleForTesting
-  AndroidLogcatReceiver(@NotNull IDevice device, @NotNull AndroidConsoleWriter writer, StackTraceExpander expander) {
     myDevice = device;
     myWriter = writer;
-    myStackTraceExpander = expander;
+    myStackTraceExpander = new StackTraceExpander(STACK_TRACE_LINE_PREFIX, STACK_TRACE_CAUSE_LINE_PREFIX);
   }
 
   @Override
