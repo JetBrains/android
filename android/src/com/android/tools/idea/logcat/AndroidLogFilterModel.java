@@ -37,7 +37,7 @@ import java.util.regex.PatternSyntaxException;
 
 /**
  * A filter which plugs into {@link LogConsoleBase} for custom logcat filtering.
- * This deliberatly drops the custom pattern behaviour of LogFilterModel, replacing it with a new version that allows regex support.
+ * This deliberately drops the custom pattern behaviour of LogFilterModel, replacing it with a new version that allows regex support.
  */
 public abstract class AndroidLogFilterModel extends LogFilterModel {
   private final List<LogFilterListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
@@ -243,7 +243,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     myPrevPid = null;
     myFullMessageApplicable = false;
     myFullMessageApplicableByCustomFilter = false;
-    myMessageBuilder = new StringBuilder();
+    myMessageBuilder.setLength(0);
   }
 
   @Override
@@ -277,8 +277,8 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
     if (hasHeader) {
       messagePrefix = null;
-      myMessageBuilder = new StringBuilder(line);
-      myMessageBuilder.append('\n');
+      myMessageBuilder.setLength(0);
+      myMessageBuilder.append(line).append('\n');
       myFullMessageApplicable = applicable;
       myFullMessageApplicableByCustomFilter = applicableByCustomFilter;
     }
