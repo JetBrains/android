@@ -36,17 +36,15 @@ public class CloudMatrixTestRunningState implements RunProfileState {
 
   @NotNull private final ExecutionEnvironment myEnvironment;
   @NotNull private final AndroidFacet myFacet;
+  @NotNull private final CloudMatrixTarget myTarget;
   @NotNull private final AndroidTestRunConfiguration myConfiguration;
-  private final int myCloudConfigurationId;
-  @NotNull private final String myCloudProjectId;
   @NotNull private final ProcessHandler myProcessHandler = new DefaultDebugProcessHandler();
 
   public CloudMatrixTestRunningState(
     @NotNull ExecutionEnvironment environment,
     @NotNull AndroidFacet facet,
     @NotNull AndroidRunConfigurationBase configuration,
-    int cloudConfigurationId,
-    @NotNull String cloudProjectId
+    @NotNull CloudMatrixTarget target
   ) {
     myEnvironment = environment;
     myFacet = facet;
@@ -55,8 +53,7 @@ public class CloudMatrixTestRunningState implements RunProfileState {
       throw new IllegalArgumentException("Cloud matrix tests require a test configuration.");
     }
     myConfiguration = (AndroidTestRunConfiguration) configuration;
-    myCloudConfigurationId = cloudConfigurationId;
-    myCloudProjectId = cloudProjectId;
+    myTarget = target;
   }
 
   @Nullable
@@ -65,7 +62,7 @@ public class CloudMatrixTestRunningState implements RunProfileState {
     AndroidProcessText.attach(myProcessHandler);
     final CloudConfigurationProvider provider = CloudConfigurationProvider.getCloudConfigurationProvider();
     assert provider != null;
-    return provider.executeCloudMatrixTests(myCloudConfigurationId, myCloudProjectId, this, executor);
+    return provider.executeCloudMatrixTests(myTarget.getMatrixConfigurationId(), myTarget.getCloudProjectId(), this, executor);
   }
 
   @NotNull

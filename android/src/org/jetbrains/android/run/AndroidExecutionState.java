@@ -5,12 +5,14 @@ import com.intellij.execution.ui.ConsoleView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+
 /**
  * @author Eugene.Kudelevsky
  */
 public interface AndroidExecutionState {
   @Nullable
-  IDevice[] getDevices();
+  Collection<IDevice> getDevices();
 
   @Nullable
   ConsoleView getConsoleView();
