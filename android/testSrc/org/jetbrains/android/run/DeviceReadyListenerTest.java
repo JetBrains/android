@@ -56,26 +56,26 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
   }
 
   public void testDeviceChangedReadyAndMatchingFiresCallback() {
-    SimpleLogger logger = mock(SimpleLogger.class);
+    ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    myListener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
-    // When there are more than 5 clients, the device listener believes the device is ready.
+    // When there are more than 5 clients, the device myListener believes the device is ready.
     when(device.getClients()).thenReturn(new Client[5]);
     myListener.deviceChanged(device, 0);
     verify(callback).onDeviceReady(device);
   }
 
   public void testDeviceChangedFiresCallbackOnlyOnce() {
-    SimpleLogger logger = mock(SimpleLogger.class);
+    ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    myListener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
-    // When there are more than 5 clients, the device listener believes the device is ready.
+    // When there are more than 5 clients, the device myListener believes the device is ready.
     when(device.getClients()).thenReturn(new Client[5]);
     myListener.deviceChanged(device, 0);
     myListener.deviceChanged(device, 0);
@@ -83,49 +83,49 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
   }
 
   public void testDeviceChangedNotMatchingPredicateDoesNothing() {
-    SimpleLogger logger = mock(SimpleLogger.class);
+    ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysFalse();
     Callback callback = mock(Callback.class);
-    myListener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
-    // When there are more than 5 clients, the device listener believes the device is ready.
+    // When there are more than 5 clients, the device myListener believes the device is ready.
     when(device.getClients()).thenReturn(new Client[5]);
     myListener.deviceChanged(device, 0);
     verifyZeroInteractions(callback);
   }
 
   public void testDeviceChangedNotOnlineDoesNothing() {
-    SimpleLogger logger = mock(SimpleLogger.class);
+    ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    myListener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", false /* isOnline */);
-    // When there are more than 5 clients, the device listener believes the device is ready.
+    // When there are more than 5 clients, the device myListener believes the device is ready.
     when(device.getClients()).thenReturn(new Client[5]);
     myListener.deviceChanged(device, 0);
     verifyZeroInteractions(callback);
   }
 
   public void testDeviceChangedNotReadyDoesNothing() {
-    SimpleLogger logger = mock(SimpleLogger.class);
+    ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    myListener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
-    // When there are fewer than 5 clients, and the listener can't find certain clients, device is not ready.
+    // When there are fewer than 5 clients, and the myListener can't find certain clients, device is not ready.
     when(device.getClients()).thenReturn(new Client[0]);
     myListener.deviceChanged(device, 0);
     verifyZeroInteractions(callback);
   }
 
   public void testDeviceDisconnectedDoesNothing() {
-    SimpleLogger logger = mock(SimpleLogger.class);
+    ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    myListener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
 
@@ -136,14 +136,14 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
   }
 
   public void testDeviceConnectedRepeatedlyChecksIfReady() {
-    SimpleLogger logger = mock(SimpleLogger.class);
+    ConsolePrinter printer = mock(ConsolePrinter.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    myListener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener myListener = new DeviceReadyListener(printer, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
 
-    // After device connection, the listener will periodically check whether the device is ready.
+    // After device connection, the myListener will periodically check whether the device is ready.
     // Watch out! In unit test mode the periodic-queueing mechanism reduces to recursion,
     // so if the device doesn't eventually become ready in tests you will get a stack overflow error.
     when(device.getClients())

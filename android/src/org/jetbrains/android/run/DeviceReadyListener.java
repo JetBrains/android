@@ -42,18 +42,18 @@ final class DeviceReadyListener implements AndroidDebugBridge.IDeviceChangeListe
   private final MergingUpdateQueue myQueue =
     new MergingUpdateQueue("ANDROID_DEVICE_STATE_UPDATE_QUEUE", 1000, true, null, this, null, false);
 
-  @NotNull private final SimpleLogger myLogger;
+  @NotNull private final ConsolePrinter myPrinter;
   @NotNull private final Predicate<IDevice> myDeviceFilter;
   @NotNull private final Callback myCallback;
   @NotNull private final Object myFinishedLock = new Object();
   @GuardedBy("finishedLock") private boolean myFinished;
 
   public DeviceReadyListener(
-    @NotNull SimpleLogger logger,
+    @NotNull ConsolePrinter printer,
     @NotNull Predicate<IDevice> deviceFilter,
     @NotNull Callback callback
   ) {
-    myLogger = logger;
+    myPrinter = printer;
     myDeviceFilter = deviceFilter;
     myCallback = callback;
   }
@@ -68,7 +68,7 @@ final class DeviceReadyListener implements AndroidDebugBridge.IDeviceChangeListe
   public void deviceConnected(@NotNull final IDevice device) {
     // avd may be null if usb device is used, or if it didn't set by ddmlib yet
     if (device.getAvdName() == null || myDeviceFilter.apply(device)) {
-      myLogger.stdout("Device connected: " + device.getSerialNumber());
+      myPrinter.stdout("Device connected: " + device.getSerialNumber());
 
       // we need this, because deviceChanged is not triggered if avd is set to the emulator
       myQueue.queue(new MyDeviceStateUpdate(device));
@@ -78,7 +78,7 @@ final class DeviceReadyListener implements AndroidDebugBridge.IDeviceChangeListe
   @Override
   public void deviceDisconnected(@NotNull IDevice device) {
     if (myDeviceFilter.apply(device)) {
-      myLogger.stdout("Device disconnected: " + device.getSerialNumber());
+      myPrinter.stdout("Device disconnected: " + device.getSerialNumber());
     }
   }
 
@@ -102,7 +102,7 @@ final class DeviceReadyListener implements AndroidDebugBridge.IDeviceChangeListe
         return;
       }
 
-      myLogger.stdout("Device is ready: " + device.getName());
+      myPrinter.stdout("Device is ready: " + device.getName());
       myFinished = true;
     }
     // The client is generally responsible for disposing us when they remove us as a listener from the debug bridge,
@@ -141,7 +141,7 @@ final class DeviceReadyListener implements AndroidDebugBridge.IDeviceChangeListe
   }
 
   /** Gets a listenable future which resolves to the first device matching the given filter which is ready to use. */
-  public static ListenableFuture<IDevice> getReadyDevice(@NotNull Predicate<IDevice> deviceFilter, @NotNull SimpleLogger logger) {
+  public static ListenableFuture<IDevice> getReadyDevice(@NotNull Predicate<IDevice> deviceFilter, @NotNull ConsolePrinter logger) {
     final SettableFuture<IDevice> future = SettableFuture.create();
     Callback callback = new Callback() {
       @Override

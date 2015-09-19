@@ -16,6 +16,7 @@
 package org.jetbrains.android.run;
 
 import com.android.ddmlib.IDevice;
+import com.google.common.collect.ImmutableList;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
@@ -28,6 +29,8 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 public class AndroidDebugState implements RemoteState, AndroidExecutionState {
   private final Project myProject;
@@ -60,9 +63,10 @@ public class AndroidDebugState implements RemoteState, AndroidExecutionState {
     return myConnection;
   }
 
+  @NotNull
   @Override
-  public IDevice[] getDevices() {
-    return new IDevice[]{myDevice};
+  public Collection<IDevice> getDevices() {
+    return ImmutableList.of(myDevice);
   }
 
   @Nullable
