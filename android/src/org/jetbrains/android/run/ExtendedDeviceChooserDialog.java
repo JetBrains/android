@@ -48,7 +48,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -382,7 +381,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     myDeviceChooser.finish();
 
     final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
-    properties.setValue(SELECTED_SERIALS_PROPERTY, AndroidRunningState.toString(getSelectedDevices()));
+    properties.setValue(SELECTED_SERIALS_PROPERTY, DeviceSelectionUtils.serialize(getSelectedDevices()));
 
     final IdDisplay selectedAvd = (IdDisplay)myAvdCombo.getComboBox().getSelectedItem();
     if (selectedAvd != null) {
