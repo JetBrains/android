@@ -85,7 +85,7 @@ abstract class AbstractGradleDependencyFix extends AbstractGradleAwareFix {
     return location != null && ModuleRootManager.getInstance(module).getFileIndex().isInTestSourceContent(location);
   }
 
-  void addDependency(@NotNull Module module, @NotNull String configurationName, @NotNull String compactNotation) {
+  void addExternalDependency(@NotNull Module module, @NotNull String configurationName, @NotNull String compactNotation) {
     GradleBuildModel buildModel = GradleBuildModel.get(module);
     if (buildModel != null) {
       buildModel.getDependenciesModel().addExternalDependency(configurationName, compactNotation);
