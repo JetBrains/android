@@ -33,7 +33,6 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,11 +55,9 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
   }
 
-  @NotNull
   @Override
-  protected List<Throwable> checkForSettingsDamage() throws Exception {
-    // For this test we don't care for this check. This method does nothing.
-    return Collections.emptyList();
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
   }
 
   public void testPopulateJvmArgsWithGradleExecutionSettings() {

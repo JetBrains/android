@@ -39,7 +39,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
@@ -89,20 +88,22 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    Project[] projects = myProjectManager.getOpenProjects();
-    for (Project project : projects) {
-      if (project != getProject()) {
-        myProjectManager.closeAndDispose(project);
+    try {
+      Project[] projects = myProjectManager.getOpenProjects();
+      for (Project project : projects) {
+        if (project != getProject()) {
+          myProjectManager.closeAndDispose(project);
+        }
       }
     }
-    super.tearDown();
+    finally {
+      super.tearDown();
+    }
   }
 
-  @NotNull
   @Override
-  protected List<Throwable> checkForSettingsDamage() throws Exception {
-    // For this test we don't care for this check. This method does nothing.
-    return Collections.emptyList();
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
   }
 
   public void testImportNewlyCreatedProject() throws Exception {

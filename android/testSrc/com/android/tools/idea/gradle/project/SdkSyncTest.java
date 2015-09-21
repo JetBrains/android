@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,11 +43,9 @@ public class SdkSyncTest extends IdeaTestCase {
     assertNull(IdeSdks.getAndroidSdkPath());
   }
 
-  @NotNull
   @Override
-  protected List<Throwable> checkForSettingsDamage() throws Exception {
-    // For this test we don't care for this check. This method does nothing.
-    return Collections.emptyList();
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
   }
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndNoProjectSdk() throws Exception {
