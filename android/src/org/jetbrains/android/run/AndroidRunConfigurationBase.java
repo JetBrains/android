@@ -44,10 +44,7 @@ import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
 import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.DefaultJDOMExternalizer;
-import com.intellij.openapi.util.InvalidDataException;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.util.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtil;
@@ -78,6 +75,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
    * We want this list of devices persisted across launches, but not across invocations of studio, so we use a static variable.
    */
   private static Map<String, DeviceStateAtLaunch> ourLastUsedDevices = ContainerUtil.newConcurrentMap();
+
+  /** The key used to store the selected deploy target as copyable user data on each execution environment. */
+  public static final Key<DeployTarget> DEPLOY_TARGET_KEY = Key.create("android.deploy.target");
 
   public String TARGET_SELECTION_MODE = TargetSelectionMode.EMULATOR.name();
   public boolean USE_LAST_SELECTED_DEVICE = false;
@@ -304,7 +304,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       if (chosenTarget == null) {
         // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
         return null;
-      } else if (chosenTarget instanceof CloudMatrixTarget) {
+      }
+
+      // Store the chosen target on the execution environment so before-run tasks can access it.
+      env.putCopyableUserData(DEPLOY_TARGET_KEY, chosenTarget);
+
+      if (chosenTarget instanceof CloudMatrixTarget) {
         return new CloudMatrixTestRunningState(env, facet, this, (CloudMatrixTarget) chosenTarget);
       } else if (chosenTarget instanceof DeviceTarget) {
         deviceTarget = (DeviceTarget) chosenTarget;
