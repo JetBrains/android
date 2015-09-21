@@ -99,16 +99,16 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
     // Android device templates are shown first, with less important templates following
     for (ModuleTemplateProvider provider : myModuleTypesProviders) {
       for (ModuleTemplate moduleTemplate : provider.getModuleTemplates()) {
-        boolean isAndroidDeviceTemplate = moduleTemplate.getFormFactor() != null;
-        if (isAndroidDeviceTemplate) {
-          deviceTemplates.add(moduleTemplate);
+        FormFactorUtils.FormFactor formFactor = moduleTemplate.getFormFactor();
+        if (formFactor != null) {
+          if (formFactor != FormFactorUtils.FormFactor.CAR) {
+            // Auto is not a standalone module (but rather a modification to a mobile module):
+            deviceTemplates.add(moduleTemplate);
+            formFactorSet.add(formFactor);
+          }
         }
         else {
           extrasTemplates.add(moduleTemplate);
-        }
-        FormFactorUtils.FormFactor formFactor = moduleTemplate.getFormFactor();
-        if (formFactor != null) {
-          formFactorSet.add(formFactor);
         }
       }
     }
