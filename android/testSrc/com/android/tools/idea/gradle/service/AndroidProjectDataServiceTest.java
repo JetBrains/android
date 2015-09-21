@@ -31,7 +31,6 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
@@ -76,11 +75,9 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     super.tearDown();
   }
 
-  @NotNull
   @Override
-  protected List<Throwable> checkForSettingsDamage() throws Exception {
-    // For this test we don't care for this check. This method does nothing.
-    return Collections.emptyList();
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
   }
 
   public void testImportData() {
