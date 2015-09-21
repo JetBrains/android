@@ -38,6 +38,7 @@ import spantable.CellSpanModel;
 import spantable.CellSpanTable;
 
 import javax.swing.*;
+import javax.swing.plaf.ColorUIResource;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
@@ -190,7 +191,7 @@ public class ThemeEditorTable extends CellSpanTable {
     AttributesTableModel.RowContents contents = model.getRowContents(this.convertRowIndexToModel(row));
 
     if (contents instanceof AttributesTableModel.AttributeContents) {
-      final AttributesTableModel.AttributeContents attribute = (AttributesTableModel.AttributeContents) contents;
+      final AttributesTableModel.AttributeContents attribute = (AttributesTableModel.AttributeContents)contents;
 
       final EditedStyleItem item = attribute.getValueAt(1);
       if (item == null) {
@@ -260,5 +261,16 @@ public class ThemeEditorTable extends CellSpanTable {
     }
 
     return null;
+  }
+
+  /**
+   * Prevents the automatic setting of a background color by the L&F
+   */
+  @Override
+  public void setBackground(Color color) {
+    if (color instanceof ColorUIResource) {
+      color = null;
+    }
+    super.setBackground(color);
   }
 }
