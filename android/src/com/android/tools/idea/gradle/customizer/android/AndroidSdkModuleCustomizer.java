@@ -64,7 +64,6 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
                               @NotNull ModifiableRootModel moduleModel,
                               @Nullable AndroidGradleModel androidModel) {
     if (androidModel == null) {
-      LOG.warn("Null android model");
       return;
     }
     File androidSdkHomePath = IdeSdks.getAndroidSdkPath();
