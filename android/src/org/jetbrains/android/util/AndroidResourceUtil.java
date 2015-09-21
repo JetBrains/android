@@ -18,6 +18,7 @@ package org.jetbrains.android.util;
 
 import com.android.SdkConstants;
 import com.android.ide.common.res2.ValueXmlHelper;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ResourceHelper;
@@ -35,7 +36,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModulePackageIndex;
@@ -106,7 +106,7 @@ public class AndroidResourceUtil {
   static final String LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT";
 
   /**
-   * Comparator which orders {@link com.intellij.psi.PsiElement} items into a priority order most suitable for presentation
+   * Comparator which orders {@link PsiElement} items into a priority order most suitable for presentation
    * to the user; for example, it prefers base resource folders such as {@code values/} over resource
    * folders such as {@code values-en-rUS}
    */
@@ -170,7 +170,7 @@ public class AndroidResourceUtil {
   }
 
   /**
-   * Like {@link #findResourceFields(org.jetbrains.android.facet.AndroidFacet, String, String, boolean)} but
+   * Like {@link #findResourceFields(AndroidFacet, String, String, boolean)} but
    * can match than more than a single field name
    */
   @NotNull
@@ -700,7 +700,7 @@ public class AndroidResourceUtil {
   }
 
   public static boolean isLocalResourceDirectory(@NotNull VirtualFile dir, @NotNull Project project) {
-    final Module module = ModuleUtil.findModuleForFile(dir, project);
+    final Module module = ModuleUtilCore.findModuleForFile(dir, project);
 
     if (module != null) {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -1093,7 +1093,11 @@ public class AndroidResourceUtil {
    * XML files higher than non-XML files.
    */
   public static int compareResourceFiles(@Nullable VirtualFile file1, @Nullable VirtualFile file2) {
-    if (file1 != null && file2 != null && file1 != file2) {
+    //noinspection UseVirtualFileEquals
+    if (file1 != null && file1.equals(file2) || file1 == file2) {
+      return 0;
+    }
+    else if (file1 != null && file2 != null) {
       boolean xml1 = file1.getFileType() == StdFileTypes.XML;
       boolean xml2 = file2.getFileType() == StdFileTypes.XML;
       if (xml1 != xml2) {
@@ -1101,31 +1105,55 @@ public class AndroidResourceUtil {
       }
       VirtualFile parent1 = file1.getParent();
       VirtualFile parent2 = file2.getParent();
-      if (parent1 != null && parent2 != null && parent1 != parent2) {
-        boolean qualifier1 = parent1.getName().indexOf('-') != -1;
-        boolean qualifier2 = parent2.getName().indexOf('-') != -1;
+      if (parent1 != null && parent2 != null && !parent1.equals(parent2)) {
+        String parentName1 = parent1.getName();
+        String parentName2 = parent2.getName();
+        boolean qualifier1 = parentName1.indexOf('-') != -1;
+        boolean qualifier2 = parentName2.indexOf('-') != -1;
         if (qualifier1 != qualifier2) {
           return qualifier1 ? 1 : -1;
+        }
+
+        if (qualifier1) {
+          // Sort in FolderConfiguration order
+          FolderConfiguration config1 = FolderConfiguration.getConfigForFolder(parentName1);
+          FolderConfiguration config2 = FolderConfiguration.getConfigForFolder(parentName2);
+          if (config1 != null && config2 != null) {
+            return config1.compareTo(config2);
+          } else if (config1 != null) {
+            return -1;
+          } else if (config2 != null) {
+            return 1;
+          }
+
+          int delta = parentName1.compareTo(parentName2);
+          if (delta != 0) {
+            return delta;
+          }
         }
       }
 
       return file1.getPath().compareTo(file2.getPath());
-    } else if (file1 != null) {
+    }
+    else if (file1 != null) {
       return -1;
-    } else if (file2 != null) {
+    }
+    else {
       return 1;
     }
-
-    return 0;
   }
 
   /**
    * Utility method suitable for Comparator implementations which order resource files,
    * which will sort files by base folder followed by alphabetical configurations. Prioritizes
-   * XML files higher than non-XML files.
+   * XML files higher than non-XML files. (Resource file folders are sorted by folder configuration
+   * order.)
    */
   public static int compareResourceFiles(@Nullable PsiFile file1, @Nullable PsiFile file2) {
-    if (file1 != null && file2 != null && file1 != file2) {
+    if (file1 == file2) {
+      return 0;
+    }
+    else if (file1 != null && file2 != null) {
       boolean xml1 = file1.getFileType() == StdFileTypes.XML;
       boolean xml2 = file2.getFileType() == StdFileTypes.XML;
       if (xml1 != xml2) {
@@ -1134,27 +1162,42 @@ public class AndroidResourceUtil {
       PsiDirectory parent1 = file1.getParent();
       PsiDirectory parent2 = file2.getParent();
       if (parent1 != null && parent2 != null && parent1 != parent2) {
-        boolean qualifier1 = parent1.getName().indexOf('-') != -1;
-        boolean qualifier2 = parent2.getName().indexOf('-') != -1;
-
-        // TODO: Sort in FolderConfiguration order!
+        String parentName1 = parent1.getName();
+        String parentName2 = parent2.getName();
+        boolean qualifier1 = parentName1.indexOf('-') != -1;
+        boolean qualifier2 = parentName2.indexOf('-') != -1;
 
         if (qualifier1 != qualifier2) {
           return qualifier1 ? 1 : -1;
         }
+
+        if (qualifier1) {
+          // Sort in FolderConfiguration order
+          FolderConfiguration config1 = FolderConfiguration.getConfigForFolder(parentName1);
+          FolderConfiguration config2 = FolderConfiguration.getConfigForFolder(parentName2);
+          if (config1 != null && config2 != null) {
+            return config1.compareTo(config2);
+          } else if (config1 != null) {
+            return -1;
+          } else if (config2 != null) {
+            return 1;
+          }
+
+          int delta = parentName1.compareTo(parentName2);
+          if (delta != 0) {
+            return delta;
+          }
+        }
       }
 
-      int delta = file1.getName().compareTo(file2.getName());
-      if (delta != 0) {
-        return delta;
-      }
-    } else if (file1 != null) {
+      return file1.getName().compareTo(file2.getName());
+    }
+    else if (file1 != null) {
       return -1;
-    } else if (file2 != null) {
+    }
+    else {
       return 1;
     }
-
-    return 0;
   }
 
   public static boolean ensureFilesWritable(@NotNull Project project, @NotNull Collection<VirtualFile> files) {
