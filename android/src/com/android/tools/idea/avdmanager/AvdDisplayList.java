@@ -33,6 +33,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -324,7 +325,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         };
       }
     },
-    new AvdColumnInfo("API", 50) {
+    new AvdColumnInfo("API", JBUI.scale(50)) {
       @NotNull
       @Override
       public String valueOf(AvdInfo avdInfo) {
@@ -362,7 +363,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         return target.getName();
       }
     },
-    new AvdColumnInfo("CPU/ABI", 60) {
+    new AvdColumnInfo("CPU/ABI", JBUI.scale(60)) {
       @Nullable
       @Override
       public String valueOf(AvdInfo avdInfo) {
@@ -405,7 +406,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     }
 
     public AvdIconColumnInfo(@NotNull String name) {
-      this(name, 50);
+      this(name, JBUI.scale(50));
     }
 
     @Nullable
@@ -514,7 +515,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     public AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
       super(name);
       myNumVisibleActions = numVisibleActions;
-      myWidth = numVisibleActions == -1 ? -1 : 45 * numVisibleActions + 75;
+      myWidth = numVisibleActions == -1 ? -1 : JBUI.scale(45) * numVisibleActions + JBUI.scale(75);
     }
 
     public AvdActionsColumnInfo(@NotNull String name) {

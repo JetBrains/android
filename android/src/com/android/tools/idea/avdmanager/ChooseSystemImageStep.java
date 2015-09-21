@@ -19,6 +19,7 @@ import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
+import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.Disposable;
@@ -46,6 +47,9 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
 
   public ChooseSystemImageStep(@Nullable Project project, @Nullable Disposable parentDisposable) {
     super(parentDisposable);
+    setBodyComponent(myPanel);
+    FormScalingUtil.scaleComponentTree(this.getClass(), createStepBody());
+
     mySystemImageList.addSelectionListener(this);
     // We want to filter out any system images which are incompatible with our device
     Predicate<SystemImageDescription> filter = new Predicate<SystemImageDescription>() {
@@ -56,7 +60,6 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
     };
     mySystemImageList.setFilter(filter);
     mySystemImageList.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
-    setBodyComponent(myPanel);
   }
 
   public static boolean systemImageMatchesDevice(SystemImageDescription image, Device device) {
