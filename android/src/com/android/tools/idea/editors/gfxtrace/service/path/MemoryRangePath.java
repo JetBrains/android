@@ -25,7 +25,7 @@ import java.io.IOException;
 public final class MemoryRangePath extends Path {
   @Override
   public StringBuilder stringPath(StringBuilder builder) {
-    return myAfter.stringPath(builder).append("<").append(myPool).append(">")
+    return myAfter.stringPath(builder).append(".MemoryRange<").append(myPool).append(">")
       .append("[").append(Long.toHexString(myAddress)).append(":").append(Long.toHexString(getEndAddress())).append("]");
   }
 
