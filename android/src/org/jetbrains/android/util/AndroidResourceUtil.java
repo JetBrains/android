@@ -24,13 +24,10 @@ import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
-import com.intellij.execution.ExecutionException;
 import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -72,8 +69,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.Future;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 import static com.android.resources.ResourceType.ATTR;
 import static com.android.resources.ResourceType.STYLEABLE;
@@ -146,7 +150,23 @@ public class AndroidResourceUtil {
                                               @NotNull String resClassName,
                                               @NotNull String resourceName,
                                               boolean onlyInOwnPackages) {
-    return findResourceFields(facet, resClassName, Collections.singleton(resourceName), onlyInOwnPackages);
+    resourceName = getRJavaFieldName(resourceName);
+    final List<PsiJavaFile> rClassFiles = findRJavaFiles(facet, onlyInOwnPackages);
+    final List<PsiField> result = new ArrayList<PsiField>();
+
+    for (PsiJavaFile rClassFile : rClassFiles) {
+      if (rClassFile == null) {
+        continue;
+      }
+      final PsiClass rClass = findClass(rClassFile.getClasses(), AndroidUtils.R_CLASS_NAME);
+      findResourceFieldsFromClass(rClass, resClassName, Collections.singleton(resourceName), result);
+    }
+    PsiClass inMemoryRClass = facet.getLightRClass();
+    if (inMemoryRClass != null) {
+      findResourceFieldsFromClass(inMemoryRClass, resClassName, Collections.singleton(resourceName), result);
+    }
+
+    return result.toArray(new PsiField[result.size()]);
   }
 
   /**
@@ -155,55 +175,22 @@ public class AndroidResourceUtil {
    */
   @NotNull
   public static PsiField[] findResourceFields(@NotNull AndroidFacet facet,
-                                              @NotNull final String resClassName,
-                                              @NotNull final Collection<String> resourceNames,
+                                              @NotNull String resClassName,
+                                              @NotNull Collection<String> resourceNames,
                                               boolean onlyInOwnPackages) {
     final List<PsiJavaFile> rClassFiles = findRJavaFiles(facet, onlyInOwnPackages);
-    final Collection<PsiField> result = Sets.newConcurrentHashSet();
-    List<Future<?>> jobs = Lists.newArrayList();
-    final Application application = ApplicationManager.getApplication();
+    final List<PsiField> result = new ArrayList<PsiField>();
 
-    for (final PsiJavaFile rClassFile : rClassFiles) {
+    for (PsiJavaFile rClassFile : rClassFiles) {
       if (rClassFile == null) {
         continue;
       }
-      jobs.add(application.executeOnPooledThread(new Runnable() {
-        @Override
-        public void run() {
-          application.runReadAction(new Runnable() {
-            @Override
-            public void run() {
-              findResourceFieldsFromClass(findClass(rClassFile.getClasses(), AndroidUtils.R_CLASS_NAME),
-                  resClassName, resourceNames, result);
-            }
-          });
-        }
-      }));
+      findResourceFieldsFromClass(findClass(rClassFile.getClasses(), AndroidUtils.R_CLASS_NAME),
+          resClassName, resourceNames, result);
     }
-
-    final PsiClass inMemoryRClass = facet.getLightRClass();
+    PsiClass inMemoryRClass = facet.getLightRClass();
     if (inMemoryRClass != null) {
-      jobs.add(application.executeOnPooledThread(new Runnable() {
-        @Override
-        public void run() {
-          application.runReadAction(new Runnable() {
-            @Override
-            public void run() {
-              findResourceFieldsFromClass(inMemoryRClass, resClassName, resourceNames, result);
-            }
-          });
-        }
-      }));
-    }
-
-    try {
-      for (Future<?> job : jobs) {
-        Futures.get(job, ExecutionException.class);
-      }
-    }
-    catch (ExecutionException e) {
-      LOG.error(e);
-      return PsiField.EMPTY_ARRAY;
+      findResourceFieldsFromClass(inMemoryRClass, resClassName, resourceNames, result);
     }
 
     return result.toArray(new PsiField[result.size()]);
@@ -211,7 +198,7 @@ public class AndroidResourceUtil {
 
   private static void findResourceFieldsFromClass(@Nullable PsiClass rClass,
       @NotNull String resClassName, @NotNull Collection<String> resourceNames,
-      Collection<PsiField> result) {
+      @NotNull List<PsiField> result) {
 
     if (rClass != null) {
       final PsiClass resourceTypeClass = findClass(rClass.getInnerClasses(), resClassName);
