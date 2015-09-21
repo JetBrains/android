@@ -203,7 +203,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
           assert filesToOpen != null; // Always initialized in initState
           return TemplateUtils.openEditors(project, filesToOpen, true);
         }
-      }, null, initialLanguageLevel);
+      }, myProject, initialLanguageLevel);
     }
     catch (IOException e) {
       Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
