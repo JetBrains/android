@@ -22,22 +22,20 @@ import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidSessionManager {
-  // TODO: Don't use Pair here - defeats compiler nullability checking.
   @Nullable
-  public static Pair<ProcessHandler, AndroidSessionInfo> findOldSession(Project project,
-                                                                        Executor executor,
-                                                                        AndroidRunConfigurationBase configuration) {
+  public static AndroidSessionInfo findOldSession(Project project,
+                                                  Executor executor,
+                                                  AndroidRunConfigurationBase configuration) {
     for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
       final AndroidSessionInfo info = handler.getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
 
       if (info != null &&
           info.getState().getConfiguration().equals(configuration) &&
           executor.getId().equals(info.getExecutorId())) {
-        return Pair.create(handler, info);
+        return info;
       }
     }
     return null;

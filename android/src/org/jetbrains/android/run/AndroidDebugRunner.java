@@ -19,7 +19,9 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
-import com.intellij.execution.*;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.ExecutionManager;
+import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RemoteConnection;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
@@ -40,8 +42,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiClass;
@@ -55,8 +55,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
-import java.util.Collection;
-import java.util.List;
 
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
@@ -146,7 +144,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     }
     AndroidSessionManager.tryToCloseOldSessions(environment.getExecutor(), environment.getProject());
     final ProcessHandler handler = state.getProcessHandler();
-    handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(runDescriptor, state, environment.getExecutor().getId()));
+    handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(handler, runDescriptor, state, environment.getExecutor().getId()));
     deactivateToolWindowWhenAddedProperty(environment.getProject(), environment.getExecutor(), runDescriptor, "running");
     return runDescriptor;
   }
@@ -165,11 +163,9 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   protected static RunContentDescriptor embedToExistingSession(final Project project,
                                                                final Executor executor,
                                                                final AndroidRunningState state) {
-    final Pair<ProcessHandler, AndroidSessionInfo> pair = AndroidSessionManager.findOldSession(project, executor, state.getConfiguration());
-    final AndroidSessionInfo oldSessionInfo = pair != null ? pair.getSecond() : null;
-    final ProcessHandler oldProcessHandler = pair != null ? pair.getFirst() : null;
+    final AndroidSessionInfo oldSessionInfo = AndroidSessionManager.findOldSession(project, executor, state.getConfiguration());
 
-    if (oldSessionInfo == null || oldProcessHandler == null || !oldSessionInfo.isEmbeddable()) {
+    if (oldSessionInfo == null || !oldSessionInfo.isEmbeddable()) {
       return null;
     }
     final AndroidExecutionState oldState = oldSessionInfo.getState();
@@ -179,7 +175,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       return null;
     }
 
-    oldProcessHandler.detachProcess();
+    oldSessionInfo.getProcessHandler().detachProcess();
     state.setConsole(oldConsole);
     final RunContentDescriptor oldDescriptor = oldSessionInfo.getDescriptor();
     ProcessHandler newProcessHandler;
@@ -365,8 +361,8 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
             oldText.printTo(newProcessHandler);
           }
 
-          myRunningState.getProcessHandler().putUserData(ANDROID_SESSION_INFO,
-                                                         new AndroidSessionInfo(debugDescriptor, st, myExecutor.getId()));
+          ProcessHandler handler = myRunningState.getProcessHandler();
+          handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(handler, debugDescriptor, st, myExecutor.getId()));
           deactivateToolWindowWhenAddedProperty(myProject, myExecutor, debugDescriptor, "debugger connected");
         }
       });
