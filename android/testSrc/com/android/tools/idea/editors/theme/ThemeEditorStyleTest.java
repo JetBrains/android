@@ -28,13 +28,18 @@ import com.android.tools.idea.tests.gui.theme.ThemeEditorTestUtils;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertNotEquals;
@@ -277,8 +282,8 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
    * Tests with attribute api < value api
    */
   public void testSmallerAttribute() {
-    doTestForAttributeValuePairApi("android:mediaRouteButtonStyle",
-                                   "@android:style/Theme.Holo.NoActionBar.TranslucentDecor", "apiPairTestAfter1");
+    doTestForAttributeValuePairApi("android:mediaRouteButtonStyle", "@android:style/Theme.Holo.NoActionBar.TranslucentDecor",
+                                   "apiPairTestAfter1");
   }
 
   /**
@@ -463,4 +468,47 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     );
     assertContainsElements(parentNames, "@style/Base.V20", "@style/Base.V17");
   }
+
+  @Override
+  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+                                            @NotNull List<MyAdditionalModuleData> modules) {
+    final String testName = getTestName(true);
+
+    // Add moduleA for the tests below
+    if (testName.equals("getParentNamesWithDependency") || testName.equals("themeOverride")) {
+      addModuleWithAndroidFacet(projectBuilder, modules, "moduleA", true);
+    }
+  }
+
+  public void testGetParentNamesWithDependency() {
+    VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles.xml", "res/values/styles.xml");
+    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_1.xml", "additionalModules/moduleA/res/values-v19/styles.xml");
+
+    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    Configuration configuration = configurationManager.getConfiguration(virtualFile);
+    ThemeResolver resolver = new ThemeResolver(configuration);
+    ThemeEditorStyle theme = resolver.getTheme("@style/AppTheme");
+
+    assertNotNull(theme);
+    assertEquals(2, theme.getParentNames().size());
+  }
+
+  /**
+   * Test that the main theme will override the one from the library
+   */
+  public void testThemeOverride() {
+    VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles.xml", "res/values/styles.xml");
+    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_1.xml", "additionalModules/moduleA/res/values/styles.xml");
+
+    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    Configuration configuration = configurationManager.getConfiguration(virtualFile);
+    ThemeResolver resolver = new ThemeResolver(configuration);
+    ThemeEditorStyle theme = resolver.getTheme("@style/AppTheme");
+
+    assertNotNull(theme);
+    assertEquals(1, theme.getParentNames().size());
+    // We expect only the main app parent to be available
+    assertEquals("@style/ATheme", theme.getParentNames().iterator().next().getElement());
+  }
+
 }
