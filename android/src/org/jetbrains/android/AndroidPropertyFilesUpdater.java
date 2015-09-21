@@ -68,19 +68,12 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
   private static final Key<List<Object>> ANDROID_PROPERTIES_STATE_KEY = Key.create("ANDROID_PROPERTIES_STATE");
   private Notification myNotification;
 
-  private Disposable myDisposable;
-
   protected AndroidPropertyFilesUpdater(Project project) {
     super(project);
   }
 
   @Override
   public void initComponent() {
-    myDisposable = new Disposable() {
-      @Override
-      public void dispose() {
-      }
-    };
     if (!ApplicationManager.getApplication().isUnitTestMode() &&
         !ApplicationManager.getApplication().isHeadlessEnvironment()) {
       addProjectPropertiesUpdatingListener();
@@ -92,12 +85,10 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     if (myNotification != null && !myNotification.isExpired()) {
       myNotification.expire();
     }
-
-    Disposer.dispose(myDisposable);
   }
 
   private void addProjectPropertiesUpdatingListener() {
-    myProject.getMessageBus().connect(myDisposable).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
+    myProject.getMessageBus().connect(myProject).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
       public void rootsChanged(final ModuleRootEvent event) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
