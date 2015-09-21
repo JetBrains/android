@@ -210,4 +210,9 @@ public class ThemeResolver {
   public int getThemesCount() {
     return myFrameworkThemes.size() + myExternalLibraryThemes.size() + myLocalThemes.size();
   }
+
+  @NotNull
+  Configuration getConfiguration() {
+    return myConfiguration;
+  }
 }
