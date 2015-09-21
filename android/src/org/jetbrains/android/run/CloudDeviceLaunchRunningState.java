@@ -37,13 +37,11 @@ import org.jetbrains.annotations.Nullable;
 public class CloudDeviceLaunchRunningState implements RunProfileState {
 
   @NotNull private final AndroidFacet myFacet;
-  private final int myCloudConfigurationId;
-  @NotNull private final String myCloudProjectId;
+  @NotNull private final CloudDeviceLaunchTarget myTarget;
 
-  public CloudDeviceLaunchRunningState(@NotNull AndroidFacet facet, int cloudConfigurationId, @NotNull String cloudProjectId) {
+  public CloudDeviceLaunchRunningState(@NotNull AndroidFacet facet, @NotNull CloudDeviceLaunchTarget target) {
     myFacet = facet;
-    myCloudConfigurationId = cloudConfigurationId;
-    myCloudProjectId = cloudProjectId;
+    myTarget = target;
   }
 
   @Nullable
@@ -54,7 +52,7 @@ public class CloudDeviceLaunchRunningState implements RunProfileState {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        provider.launchCloudDevice(myCloudConfigurationId, myCloudProjectId, myFacet);
+        provider.launchCloudDevice(myTarget.getCloudDeviceConfigurationId(), myTarget.getCloudDeviceProjectId(), myFacet);
       }
     });
     // This duplicates what previously happened in AndroidRunningState, but may not be necessary.

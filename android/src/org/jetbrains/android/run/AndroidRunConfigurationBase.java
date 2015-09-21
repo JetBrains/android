@@ -262,40 +262,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     if (AndroidSdkUtils.getDebugBridge(getProject()) == null) return null;
 
-    final boolean supportMultipleDevices = supportMultipleDevices() && executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID);
-
     ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
-    TargetChooser targetChooser = null;
-    switch (getTargetSelectionMode()) {
-      case SHOW_DIALOG:
-        targetChooser = new ManualTargetChooser(this, facet, supportMultipleDevices, computeCommandLine(), executor, printer);
-        break;
-      case EMULATOR:
-        targetChooser = new EmulatorTargetChooser(facet, supportMultipleDevices, computeCommandLine(), printer,
-                                                  PREFERRED_AVD.length() > 0 ? PREFERRED_AVD : null);
-        break;
-      case USB_DEVICE:
-        targetChooser = new UsbDeviceTargetChooser(facet, supportMultipleDevices);
-        break;
-      case CLOUD_DEVICE_DEBUGGING:
-        targetChooser = new CloudDebuggingTargetChooser(CLOUD_DEVICE_SERIAL_NUMBER);
-        break;
-      case CLOUD_MATRIX_TEST:
-        if (executor instanceof DefaultDebugExecutor) {
-          // It does not make sense to debug a matrix of devices on the cloud.
-          // TODO: Consider making the debug executor unavailable in this case rather than popping the extended chooser dialog.
-          targetChooser = new ManualTargetChooser(this, facet, supportMultipleDevices, computeCommandLine(), executor, printer);
-          break;
-        }
-        return new CloudMatrixTestRunningState(env, facet, this,
-                                               new CloudMatrixTarget(SELECTED_CLOUD_MATRIX_CONFIGURATION_ID,
-                                                                     SELECTED_CLOUD_MATRIX_PROJECT_ID));
-      case CLOUD_DEVICE_LAUNCH:
-        return new CloudDeviceLaunchRunningState(facet, SELECTED_CLOUD_DEVICE_CONFIGURATION_ID, SELECTED_CLOUD_DEVICE_PROJECT_ID);
-      default:
-        assert false : "Unknown target selection mode " + TARGET_SELECTION_MODE;
-        break;
-    }
+    TargetChooser targetChooser = getTargetChooser(facet, executor, printer);
 
     // If there is a session that we will embed to, we need to re-use the devices from that session.
     DeviceTarget deviceTarget = getOldSessionTarget(project, executor, targetChooser);
@@ -311,6 +279,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
       if (chosenTarget instanceof CloudMatrixTarget) {
         return new CloudMatrixTestRunningState(env, facet, this, (CloudMatrixTarget) chosenTarget);
+      } else if (chosenTarget instanceof CloudDeviceLaunchTarget) {
+        return new CloudDeviceLaunchRunningState(facet, (CloudDeviceLaunchTarget) chosenTarget);
       } else if (chosenTarget instanceof DeviceTarget) {
         deviceTarget = (DeviceTarget) chosenTarget;
       } else {
@@ -341,6 +311,33 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
     return null;
+  }
+
+  @NotNull
+  protected TargetChooser getTargetChooser(@NotNull AndroidFacet facet, @NotNull Executor executor, @NotNull ConsolePrinter printer) {
+    final boolean supportMultipleDevices = supportMultipleDevices() && executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID);
+    switch (getTargetSelectionMode()) {
+      case SHOW_DIALOG:
+        return new ManualTargetChooser(this, facet, supportMultipleDevices, computeCommandLine(), executor, printer);
+      case EMULATOR:
+        return new EmulatorTargetChooser(facet, supportMultipleDevices, computeCommandLine(), printer,
+                                         PREFERRED_AVD.length() > 0 ? PREFERRED_AVD : null);
+      case USB_DEVICE:
+        return new UsbDeviceTargetChooser(facet, supportMultipleDevices);
+      case CLOUD_DEVICE_DEBUGGING:
+        return new CloudDebuggingTargetChooser(CLOUD_DEVICE_SERIAL_NUMBER);
+      case CLOUD_MATRIX_TEST:
+        if (executor instanceof DefaultDebugExecutor) {
+          // It does not make sense to debug a matrix of devices on the cloud.
+          // TODO: Consider making the debug executor unavailable in this case rather than popping the extended chooser dialog.
+          return new ManualTargetChooser(this, facet, supportMultipleDevices, computeCommandLine(), executor, printer);
+        }
+        return new CloudMatrixTargetChooser(SELECTED_CLOUD_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_MATRIX_PROJECT_ID);
+      case CLOUD_DEVICE_LAUNCH:
+        return new CloudDeviceTargetChooser(SELECTED_CLOUD_DEVICE_CONFIGURATION_ID, SELECTED_CLOUD_DEVICE_PROJECT_ID);
+      default:
+        throw new IllegalStateException("Unknown target selection mode " + TARGET_SELECTION_MODE);
+    }
   }
 
   @NotNull
