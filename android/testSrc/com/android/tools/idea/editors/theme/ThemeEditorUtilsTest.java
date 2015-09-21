@@ -167,6 +167,35 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     myFixture.checkResultByFile("res/values-v19/styles.xml", "themeEditor/testCopyTheme/styles-v19.xml", true);
   }
 
+  /**
+   * Tests copyTheme method for following cases:
+   * 1. copyTheme(21, "values-en-night")
+   * 2. copyTheme(21, "values-v19")
+   */
+  public void testCopyThemeVersionOverride() {
+    myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-en-night/styles.xml");
+    myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-v19/styles.xml");
+
+    LocalResourceRepository repository = AppResourceRepository.getAppResources(myModule, true);
+    assertNotNull(repository);
+    final List<ResourceItem> styleItems = repository.getResourceItem(ResourceType.STYLE, "AppTheme");
+    assertNotNull(styleItems);
+    assertEquals(2, styleItems.size());
+
+    new WriteCommandAction.Simple(myModule.getProject(), "Copy a theme") {
+      @Override
+      protected void run() throws Throwable {
+        for (ResourceItem styleItem : styleItems) {
+          XmlTag styleTag = LocalResourceRepository.getItemTag(getProject(), styleItem);
+          assertNotNull(styleTag);
+          ThemeEditorUtils.copyTheme(21, styleTag);
+        }
+      }
+    }.execute();
+    myFixture.checkResultByFile("res/values-en-night-v21/styles.xml", "themeEditor/styles_1.xml", true);
+    myFixture.checkResultByFile("res/values-v21/styles.xml", "themeEditor/styles_1.xml", true);
+  }
+
   public void testResourceResolverVisitor() {
     myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v14.xml", "res/values-v14/styles.xml");
     myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
