@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
@@ -37,14 +36,18 @@ import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
  * <pre> configurationName project("gradlePath") </pre> and
  * <pre> configurationName project(path: "gradlePath", configuration: "configuration") </pre>
  */
-public class ModuleDependencyElement implements DependencyElement {
-  @NotNull String myConfigurationName;
+public class ModuleDependencyModel extends AbstractDependencyModel {
   @NotNull GrLiteralContainer myPathElement;
+
   /**
-   * Not null if the dependency uses map notation and configuration argument is specified. e.g.
-   * compile project(path: "gradlePath", configuration: "configuration")
+   * Not {@code null} if the dependency uses map notation and configuration argument is specified.
+   * <pre>
+   *   compile project(path: "gradlePath", configuration: "configuration")
+   * </pre>
    */
   @Nullable GrLiteralContainer myConfigurationElement;
+
+  @Nullable private String myNewName;
 
   /**
    * Creates project dependency from the literal form:
@@ -53,11 +56,13 @@ public class ModuleDependencyElement implements DependencyElement {
    * </pre>
    */
   @Nullable
-  public static ModuleDependencyElement withCompactNotation(@NotNull String configurationName, @NotNull GrLiteralContainer pathElement) {
+  public static ModuleDependencyModel withCompactNotation(@NotNull DependenciesModel parent,
+                                                          @NotNull String configurationName,
+                                                          @NotNull GrLiteralContainer pathElement) {
     if (pathElement.getValue() == null) {
       return null;
     }
-    return new ModuleDependencyElement(configurationName, pathElement, null);
+    return new ModuleDependencyModel(parent, configurationName, pathElement, null);
   }
 
   /**
@@ -68,12 +73,15 @@ public class ModuleDependencyElement implements DependencyElement {
    * </pre>
    */
   @Nullable
-  public static ModuleDependencyElement withMapNotation(@NotNull String configurationName, @NotNull GrArgumentList argumentList) {
+  public static ModuleDependencyModel withMapNotation(@NotNull DependenciesModel parent,
+                                                      @NotNull String configurationName,
+                                                      @NotNull GrArgumentList argumentList) {
     GrLiteral pathPsiElement = findNamedArgumentLiteralValue(argumentList, "path");
     if (pathPsiElement == null || pathPsiElement.getValue() == null) {
       return null;
     }
-    return new ModuleDependencyElement(configurationName, pathPsiElement, findNamedArgumentLiteralValue(argumentList, "configuration"));
+    return new ModuleDependencyModel(parent, configurationName, pathPsiElement,
+                                     findNamedArgumentLiteralValue(argumentList, "configuration"));
   }
 
   @Nullable
@@ -88,17 +96,13 @@ public class ModuleDependencyElement implements DependencyElement {
     return null;
   }
 
-  private ModuleDependencyElement(@NotNull String configurationName,
-                                  @NotNull GrLiteralContainer pathElement,
-                                  @Nullable GrLiteralContainer configurationElement) {
-    myConfigurationName = configurationName;
+  private ModuleDependencyModel(@NotNull DependenciesModel parent,
+                                @NotNull String configurationName,
+                                @NotNull GrLiteralContainer pathElement,
+                                @Nullable GrLiteralContainer configurationElement) {
+    super(parent, configurationName);
     myPathElement = pathElement;
     myConfigurationElement = configurationElement;
-  }
-
-  @NotNull
-  public String getConfigurationName() {
-    return myConfigurationName;
   }
 
   @NotNull
@@ -125,7 +129,19 @@ public class ModuleDependencyElement implements DependencyElement {
   }
 
   public void setName(@NotNull String newName) {
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
+    myNewName = newName;
+    setModified(true);
+  }
+
+  @Override
+  protected void apply() {
+    applyNameChange();
+  }
+
+  private void applyNameChange() {
+    if (myNewName == null) {
+      return;
+    }
     String newPath;
 
     // Keep empty spaces, needed when putting the path back together
@@ -133,10 +149,10 @@ public class ModuleDependencyElement implements DependencyElement {
     List<String> modifiableSegments = Lists.newArrayList(segments);
     int segmentCount = modifiableSegments.size();
     if (segmentCount == 0) {
-      newPath = GRADLE_PATH_SEPARATOR + newName.trim();
+      newPath = GRADLE_PATH_SEPARATOR + myNewName.trim();
     }
     else {
-      modifiableSegments.set(segmentCount - 1, newName);
+      modifiableSegments.set(segmentCount - 1, myNewName);
       newPath = Joiner.on(GRADLE_PATH_SEPARATOR).join(modifiableSegments);
     }
     String currentText = myPathElement.getText();

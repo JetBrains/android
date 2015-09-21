@@ -15,5 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+/**
+ * @deprecated Use {@link GradleDslModel} instead.
+ */
+@Deprecated
 public interface GradleDslElement {
 }

@@ -86,7 +86,7 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
     runWriteCommandActionAndSync(project, new Runnable() {
       @Override
       public void run() {
-        addDependency(myModule, configurationName, myLibraryGradleEntry);
+        addExternalDependency(myModule, configurationName, myLibraryGradleEntry);
       }
     }, new Computable<PsiClass[]>() {
       @Override
