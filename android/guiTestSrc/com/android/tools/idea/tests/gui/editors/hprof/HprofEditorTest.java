@@ -54,7 +54,7 @@ public class HprofEditorTest extends GuiTestCase {
   public void testInitialState() throws IOException {
     init();
 
-    myDefaultEditor.assertCurrentHeapName("app heap");
+    myDefaultEditor.assertCurrentHeapName("App heap");
     myDefaultEditor.assertCurrentClassesViewMode("Class List View");
     JTreeFixture classesTree = myDefaultEditor.getClassesTree().requireNotEditable().requireNoSelection();
     assertNotNull(classesTree.node(0));
