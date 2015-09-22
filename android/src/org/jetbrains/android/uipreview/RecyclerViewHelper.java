@@ -118,7 +118,7 @@ public class RecyclerViewHelper {
       mv.visitMethodInsn(INVOKESPECIAL, "android/widget/TextView", "<init>", "(Landroid/content/Context;)V", false);
       mv.visitVarInsn(ASTORE, 3);
       mv.visitLabel(l1);
-      mv.visitFrame(Opcodes.F_APPEND,1, new Object[] {"android/view/View"}, 0, null);
+      mv.visitFrame(Opcodes.F_APPEND, 1, new Object[]{"android/view/View"}, 0, null);
       mv.visitTypeInsn(NEW, "com/android/layoutlib/bridge/android/support/Adapter$ViewHolder");
       mv.visitInsn(DUP);
       mv.visitVarInsn(ALOAD, 3);
@@ -244,7 +244,8 @@ public class RecyclerViewHelper {
       mv.visitTypeInsn(CHECKCAST, "android/view/ViewGroup");
       mv.visitVarInsn(ILOAD, 4);
       mv.visitMethodInsn(INVOKEVIRTUAL, "android/view/ViewGroup", "getChildAt", "(I)Landroid/view/View;", false);
-      mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/LinkedList", "add", "(Ljava/lang/Object;)V", false);
+      mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/LinkedList", "add", "(Ljava/lang/Object;)Z", false);
+      mv.visitInsn(POP);
       mv.visitIincInsn(4, 1);
       mv.visitJumpInsn(GOTO, l2);
       mv.visitLabel(l1);
