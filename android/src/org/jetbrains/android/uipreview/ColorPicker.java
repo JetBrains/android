@@ -576,7 +576,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       add(myHueComponent);
 
       if (enableOpacity) {
-        myOpacityComponent = new SlideComponent("Opacity", false);
+        myOpacityComponent = new SlideComponent("Opacity");
         myOpacityComponent.setUnits(opacityInPercent ? SlideComponent.Unit.PERCENT : SlideComponent.Unit.LEVEL);
         myOpacityComponent.setToolTipText("Opacity");
         myOpacityComponent.addListener(new Consumer<Integer>() {
@@ -1341,11 +1341,15 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     });
   }
 
+  // SlideComponent uses a lot of plain colors because it's a color-manipulating component.
+  // Thus, warning about using JBColor doesn't apply.
+  @SuppressWarnings("UseJBColor")
   public static class SlideComponent extends JComponent {
     protected static final int MARGIN = JBUI.scale(5);
+    private static final Color SHADOW_COLOR = new Color(0, 0, 0, 70);
+    private static final Color HEAD_COLOR = new Color(153, 51, 0);
     protected int myPointerValue = 0;
     private int myValue = 0;
-    private final boolean myVertical;
     private final String myTitle;
 
     private final List<Consumer<Integer>> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
@@ -1376,9 +1380,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       myUnit = unit;
     }
 
-    SlideComponent(String title, boolean vertical) {
+    SlideComponent(String title) {
       myTitle = title;
-      myVertical = vertical;
 
       addMouseMotionListener(new MouseAdapter() {
         @Override
@@ -1424,7 +1427,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
                              e.getWheelRotation() < 0 ? -e.getScrollAmount() : e.getScrollAmount();
           int pointerValue = myPointerValue + amount;
           pointerValue = pointerValue < MARGIN ? MARGIN : pointerValue;
-          int size = myVertical ? getHeight() : getWidth();
+          int size = getWidth();
           pointerValue = pointerValue > (size - MARGIN) ? size - MARGIN : pointerValue;
 
           myPointerValue = pointerValue;
@@ -1458,7 +1461,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
 
     private void updateBalloonText() {
-      final Point point = myVertical ? new Point(0, myPointerValue) : new Point(myPointerValue, 0);
+      final Point point = new Point(myPointerValue, 0);
       myLabel.setText(myTitle + ": " + Unit.formatValue(myValue, myUnit));
       if (myTooltipHint == null) {
         myTooltipHint = new LightweightHint(myLabel);
@@ -1466,7 +1469,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         myTooltipHint.setCancelOnOtherWindowOpen(false);
 
         final HintHint hint = new HintHint(this, point)
-          .setPreferredPosition(myVertical ? Balloon.Position.atLeft : Balloon.Position.above)
+          .setPreferredPosition(Balloon.Position.above)
           .setBorderColor(Color.BLACK)
           .setAwtTooltip(true)
           .setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD))
@@ -1488,9 +1491,9 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
 
     private void processMouse(MouseEvent e) {
-      int pointerValue = myVertical ? e.getY() : e.getX();
+      int pointerValue = e.getX();
       pointerValue = pointerValue < MARGIN ? MARGIN : pointerValue;
-      int size = myVertical ? getHeight() : getWidth();
+      int size = getWidth();
       pointerValue = pointerValue > (size - MARGIN) ? size - MARGIN : pointerValue;
 
       setValue(pointerValueToValue(pointerValue));
@@ -1521,37 +1524,33 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     protected int pointerValueToValue(int pointerValue) {
       pointerValue -= MARGIN;
-      final int size = myVertical ? getHeight() : getWidth();
-      float proportion = (size - 2 * MARGIN) / 255f;
+      float proportion = (getWidth() - 2 * MARGIN) / 255f;
       return (int)(pointerValue / proportion);
     }
 
     protected int valueToPointerValue(int value) {
-      final int size = myVertical ? getHeight() : getWidth();
-      float proportion = (size - 2 * MARGIN) / 255f;
+      float proportion = (getWidth() - 2 * MARGIN) / 255f;
       return MARGIN + (int)(value * proportion);
     }
 
     @Override
     public Dimension getPreferredSize() {
-      return myVertical ? JBUI.size(22, 100) : JBUI.size(100, 22);
+      return JBUI.size(100, 22);
     }
 
     @Override
     public Dimension getMinimumSize() {
-      return myVertical ? JBUI.size(22, 50) : JBUI.size(50, 22);
+      return JBUI.size(50, 22);
     }
 
     @Override
     public Dimension getMaximumSize() {
-      return myVertical
-             ? new Dimension(JBUI.scale(getPreferredSize().width), Integer.MAX_VALUE)
-             : new Dimension(Integer.MAX_VALUE, JBUI.scale(getPreferredSize().height));
+      return new Dimension(Integer.MAX_VALUE, JBUI.scale(getPreferredSize().height));
     }
 
     @Override
     public final void setToolTipText(String text) {
-      //disable tooltips
+      // disable tooltips
     }
 
     @Override
@@ -1560,69 +1559,43 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       Color color = new Color(myColor.getRGB());
       Color transparent = ColorUtil.toAlpha(Color.WHITE, 0);
 
-      if (myVertical) {
-        g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, transparent, 0f, getHeight(), color));
-        g.fillRect(JBUI.scale(7), MARGIN, JBUI.scale(12), getHeight() - 2 * MARGIN);
-      }
-      else {
-        g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, transparent, getWidth(), 0f, color));
-        g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
-      }
+      g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, transparent, getWidth(), 0f, color));
+      g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
 
-      drawKnob(g2d, myVertical ? JBUI.scale(7) : myPointerValue, myVertical ? myPointerValue : JBUI.scale(7), myVertical);
+      drawKnob(g2d, myPointerValue, JBUI.scale(7));
     }
 
-    protected static void drawKnob(Graphics2D g2d, int x, int y, boolean vertical) {
+    protected static void drawKnob(Graphics2D g2d, int x, int y) {
       g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-      if (vertical) {
-        y -= JBUI.scale(6);
+      x -= JBUI.scale(6);
 
-        Polygon arrowShadow = new Polygon();
-        arrowShadow.addPoint(x - JBUI.scale(5), y + JBUI.scale(1));
-        arrowShadow.addPoint(x + JBUI.scale(7), y + JBUI.scale(7));
-        arrowShadow.addPoint(x - JBUI.scale(5), y + JBUI.scale(13));
+      Polygon polygon = new Polygon();
+      polygon.addPoint(x + JBUI.scale(1), y - JBUI.scale(5));
+      polygon.addPoint(x + JBUI.scale(13), y - JBUI.scale(5));
+      polygon.addPoint(x + JBUI.scale(7), y + JBUI.scale(7));
 
-        g2d.setColor(new Color(0, 0, 0, 70));
-        g2d.fill(arrowShadow);
+      g2d.setColor(SHADOW_COLOR);
+      g2d.fill(polygon);
 
-        Polygon arrowHead = new Polygon();
-        arrowHead.addPoint(x - JBUI.scale(6), y);
-        arrowHead.addPoint(x + JBUI.scale(6), y + JBUI.scale(6));
-        arrowHead.addPoint(x - JBUI.scale(6), y + JBUI.scale(12));
+      polygon.reset();
+      polygon.addPoint(x, y - JBUI.scale(6));
+      polygon.addPoint(x + JBUI.scale(12), y - JBUI.scale(6));
+      polygon.addPoint(x + JBUI.scale(6), y + JBUI.scale(6));
 
-        g2d.setColor(new Color(153, 51, 0));
-        g2d.fill(arrowHead);
-      }
-      else {
-        x -= JBUI.scale(6);
-
-        Polygon arrowShadow = new Polygon();
-        arrowShadow.addPoint(x + JBUI.scale(1), y - JBUI.scale(5));
-        arrowShadow.addPoint(x + JBUI.scale(13), y - JBUI.scale(5));
-        arrowShadow.addPoint(x + JBUI.scale(7), y + JBUI.scale(7));
-
-        g2d.setColor(new Color(0, 0, 0, 70));
-        g2d.fill(arrowShadow);
-
-        Polygon arrowHead = new Polygon();
-        arrowHead.addPoint(x, y - JBUI.scale(6));
-        arrowHead.addPoint(x + JBUI.scale(12), y - JBUI.scale(6));
-        arrowHead.addPoint(x + JBUI.scale(6), y + JBUI.scale(6));
-
-        g2d.setColor(new Color(153, 51, 0));
-        g2d.fill(arrowHead);
-      }
+      g2d.setColor(HEAD_COLOR);
+      g2d.fill(polygon);
     }
   }
 
+  @SuppressWarnings("UseJBColor")
   public static class HueSlideComponent extends SlideComponent {
     private final Color[] myColors = {Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.RED};
     private final float[] myPoints = new float[myColors.length];
     private float myHue;
 
     HueSlideComponent(String title) {
-      super(title, false);
+      super(title);
       int i = 0;
       for (Color color : myColors) {
         if (color.equals(Color.RED) && i != 0) {
@@ -1667,7 +1640,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
       g2d.setPaint(new LinearGradientPaint(new Point2D.Double(0, 0), new Point2D.Double(getWidth() - 2 * MARGIN, 0), myPoints, myColors));
       g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
-      drawKnob(g2d, valueToPointerValue(Math.round(myHue * 360)), JBUI.scale(7), false);
+      drawKnob(g2d, valueToPointerValue(Math.round(myHue * 360)), JBUI.scale(7));
     }
   }
 }
