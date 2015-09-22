@@ -318,14 +318,6 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
       setToolTipText(!tooltip.isEmpty() ? tooltip : null);
     }
 
-    @Override
-    public void updateUI() {
-      super.updateUI();
-      if (!UIUtil.isUnderGTKLookAndFeel()) {
-        setBorder(UIUtil.getButtonBorder());
-      }
-    }
-
     protected class MyButtonModel extends DefaultButtonModel {
       @Override
       public boolean isPressed() {
