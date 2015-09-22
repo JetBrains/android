@@ -290,7 +290,9 @@ public class ThemeEditorStyle {
 
     // Load the current style from all the folders where it exists
     ConfigurationManager manager = myConfiguration.getConfigurationManager();
-    ResourceResolverCache resolverCache = manager.getResolverCache();
+    // We create new ResourceResolverCache instead of using cache from myConfiguration to optimize memory instead of time/speed
+    // Because, it creates a lot of instances of ResourceResolver here, that won't be used outside of ThemeEditor
+    ResourceResolverCache resolverCache = new ResourceResolverCache(manager);
     List<ResourceItem> allStyleDefinitions = getStyleResourceItems();
     // Get the configuration associated to each version of the style
     Collection<FolderConfiguration> allConfigurations = getFolderConfigurationsFromResourceItems(allStyleDefinitions);

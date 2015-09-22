@@ -249,7 +249,9 @@ public class ThemeEditorUtils {
     ImmutableSet<FolderConfiguration> allConfigurations = ImmutableSet.copyOf(attributes.values());
 
     Configuration configuration = style.getConfiguration();
-    ResourceResolverCache resolverCache = ResourceResolverCache.create(configuration.getConfigurationManager());
+    // We create new ResourceResolverCache instead of using cache from myConfiguration to optimize memory instead of time/speed
+    // Because, it creates a lot of instances of ResourceResolver here, that won't be used outside of ThemeEditor
+    ResourceResolverCache resolverCache = new ResourceResolverCache(configuration.getConfigurationManager());
 
     // Go over all the existing configurations and resolve each attribute
     Map<String, AttributeInheritanceSet> configuredAttributes = Maps.newHashMap();
@@ -276,7 +278,6 @@ public class ThemeEditorUtils {
         }
       }
     }
-    resolverCache.reset();
 
     // Now build the EditedStyleItems from the resolved attributes
     final ImmutableList.Builder<EditedStyleItem> allValues = ImmutableList.builder();
