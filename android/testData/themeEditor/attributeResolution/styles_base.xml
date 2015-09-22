@@ -8,4 +8,6 @@
     <item name="myBase">V20</item>
   </style>
 
+  <style name="AllVariants" parent="@android:style/Theme">
+  </style>
 </resources>

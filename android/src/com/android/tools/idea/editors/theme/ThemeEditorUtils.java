@@ -255,8 +255,13 @@ public class ThemeEditorUtils {
 
     // Go over all the existing configurations and resolve each attribute
     Map<String, AttributeInheritanceSet> configuredAttributes = Maps.newHashMap();
+    FolderConfiguration fullBaseConfiguration = themeResolver.getConfiguration().getFullConfig();
     for (FolderConfiguration folderConfiguration : allConfigurations) {
-      ResourceResolver resolver = resolverCache.getResourceResolver(configuration.getTarget(), style.getQualifiedName(), folderConfiguration);
+      // We apply the folderConfiguration to the full configuration that we get from the current theme resolver. We use the full
+      // configuration to simulate what the device would do when resolving attributes and match more specific folders.
+      FolderConfiguration fullFolderConfiguration = FolderConfiguration.copyOf(fullBaseConfiguration);
+      fullFolderConfiguration.add(folderConfiguration);
+      ResourceResolver resolver = resolverCache.getResourceResolver(configuration.getTarget(), style.getQualifiedName(), fullFolderConfiguration);
       StyleResourceValue resolvedStyle = resolver.getStyle(style.getName(), style.isFramework());
 
       if (resolvedStyle == null) {
