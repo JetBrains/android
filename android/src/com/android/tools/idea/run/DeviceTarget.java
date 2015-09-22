@@ -59,13 +59,13 @@ public final class DeviceTarget implements DeployTarget {
 
   /** @return the device futures, which resolve when each device is ready. */
   @NotNull
-  Collection<ListenableFuture<IDevice>> getDeviceFutures() {
+  public Collection<ListenableFuture<IDevice>> getDeviceFutures() {
     return myDeviceFutures;
   }
 
   /** @return the target devices, if all are now ready. Otherwise, null. */
   @Nullable
-  Collection<IDevice> getDevicesIfReady() {
+  public Collection<IDevice> getDevicesIfReady() {
     for (ListenableFuture<IDevice> deviceFuture : myDeviceFutures) {
       if (!deviceFuture.isDone() || deviceFuture.isCancelled()) {
         return null;
