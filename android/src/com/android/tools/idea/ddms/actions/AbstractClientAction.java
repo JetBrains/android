@@ -44,7 +44,7 @@ public abstract class AbstractClientAction extends AnAction {
 
   protected final boolean isEnabled() {
     Client c = myDeviceContext.getSelectedClient();
-    return (c != null && c.isValid());
+    return (c != null && c.isValid() && canPerformAction());
   }
 
   @Override
@@ -54,5 +54,6 @@ public abstract class AbstractClientAction extends AnAction {
     }
   }
 
+  protected boolean canPerformAction() { return true; }
   protected abstract void performAction(@NotNull Client c);
 }
