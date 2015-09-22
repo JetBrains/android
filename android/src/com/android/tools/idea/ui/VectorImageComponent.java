@@ -43,8 +43,10 @@ public class VectorImageComponent extends ImageComponent {
     // Then draw the icon to the center.
     if (myIcon == null) return;
 
-    final BufferedImage image = UIUtil.createImage(myIcon.getIconWidth(), myIcon.getIconHeight(),
-                                                   BufferedImage.TYPE_INT_ARGB);
+    // We don't want Retina double-resolution icons here (http://b.android.com/187153)
+    //noinspection UndesirableClassUsage
+    final BufferedImage image = new BufferedImage(myIcon.getIconWidth(), myIcon.getIconHeight(),
+                                                  BufferedImage.TYPE_INT_ARGB);
     final Graphics2D imageGraphics = image.createGraphics();
     myIcon.paintIcon(this, imageGraphics, 0, 0);
 
