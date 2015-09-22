@@ -101,7 +101,6 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.dsl.parser.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
@@ -966,26 +965,28 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public GradleBuildModelFixture openAndParseBuildFileForModule(@NotNull String moduleName) {
+  public GradleBuildModelFixture parseBuildFileForModule(@NotNull String moduleName, boolean openInEditor) {
     Module module = getModule(moduleName);
-    return openAndParseBuildFile(module);
+    return parseBuildFile(module, openInEditor);
   }
 
   @NotNull
-  public GradleBuildModelFixture openAndParseBuildFile(@NotNull Module module) {
+  public GradleBuildModelFixture parseBuildFile(@NotNull Module module, boolean openInEditor) {
     VirtualFile buildFile = getGradleBuildFile(module);
     assertNotNull(buildFile);
-    return openAndParseBuildFile(buildFile);
+    return parseBuildFile(buildFile, openInEditor);
   }
 
   @NotNull
-  public GradleBuildModelFixture openAndParseBuildFile(@NotNull final VirtualFile buildFile) {
-    getEditor().open(buildFile, Tab.DEFAULT).getCurrentFile();
+  public GradleBuildModelFixture parseBuildFile(@NotNull final VirtualFile buildFile, boolean openInEditor) {
+    if (openInEditor) {
+      getEditor().open(buildFile, Tab.DEFAULT).getCurrentFile();
+    }
     final Ref<GradleBuildModel> buildModelRef = new Ref<GradleBuildModel>();
     new ReadAction() {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
-        buildModelRef.set(parseBuildFile(buildFile, getProject()));
+        buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject()));
       }
     }.execute();
     GradleBuildModel buildModel = buildModelRef.get();

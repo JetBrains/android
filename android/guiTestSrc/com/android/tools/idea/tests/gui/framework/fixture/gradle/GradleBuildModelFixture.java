@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
+import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyModel;
+import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyModelTest.ExpectedExternalDependency;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModel;
-import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModelTest.ExpectedProjectDependency;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModelTest.ExpectedModuleDependency;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
@@ -37,9 +39,18 @@ public class GradleBuildModelFixture {
     return myTarget;
   }
 
-  public void requireDependency(@NotNull ExpectedProjectDependency expected) {
-    for (ModuleDependencyModel element : myTarget.getDependenciesModel().getModuleDependencies()) {
-      if (expected.path.equals(element.getPath()) && (expected.configurationName.equals(element.getConfigurationName()))) {
+  public void requireDependency(@NotNull ExpectedExternalDependency expected) {
+    for (ExternalDependencyModel dependency : myTarget.getDependenciesModel().getExternalDependencies()) {
+      if (expected.matches(dependency)) {
+        return;
+      }
+    }
+    fail("Failed to find dependency '" + expected.name + "'");
+  }
+
+  public void requireDependency(@NotNull ExpectedModuleDependency expected) {
+    for (ModuleDependencyModel dependency : myTarget.getDependenciesModel().getModuleDependencies()) {
+      if (expected.path.equals(dependency.getPath()) && expected.configurationName.equals(dependency.getConfigurationName())) {
         return;
       }
     }
