@@ -472,7 +472,7 @@ class IntellijLintProject extends Project {
 
     @NonNull
     @Override
-    public List<File> getJavaLibraries() {
+    public List<File> getJavaLibraries(boolean includeProvided) {
       if (SUPPORT_CLASS_FILES) {
         if (mJavaLibraries == null) {
           mJavaLibraries = Lists.newArrayList();
@@ -773,22 +773,40 @@ class IntellijLintProject extends Project {
       return Collections.emptyList();
     }
 
+    private static boolean sProvidedAvailable = true;
+
     @NonNull
     @Override
-    public List<File> getJavaLibraries() {
+    public List<File> getJavaLibraries(boolean includeProvided) {
       if (SUPPORT_CLASS_FILES) {
         if (mJavaLibraries == null) {
           if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
             Collection<JavaLibrary> libs = myAndroidGradleModel.getMainArtifact().getDependencies().getJavaLibraries();
             mJavaLibraries = Lists.newArrayListWithExpectedSize(libs.size());
             for (JavaLibrary lib : libs) {
+              if (!includeProvided) {
+                if (sProvidedAvailable) {
+                  // Method added in 1.4-rc1; gracefully handle running with
+                  // older plugins
+                  try {
+                    if (lib.isProvided()) {
+                      continue;
+                    }
+                  }
+                  catch (Throwable t) {
+                    //noinspection AssignmentToStaticFieldFromInstanceMethod
+                    sProvidedAvailable = false; // don't try again
+                  }
+                }
+              }
+
               File jar = lib.getJarFile();
               if (jar.exists()) {
                 mJavaLibraries.add(jar);
               }
             }
           } else {
-            mJavaLibraries = super.getJavaLibraries();
+            mJavaLibraries = super.getJavaLibraries(includeProvided);
           }
         }
         return mJavaLibraries;
@@ -998,10 +1016,28 @@ class IntellijLintProject extends Project {
       return Collections.emptyList();
     }
 
+    private static boolean sOptionalAvailable = true;
+
     @NonNull
     @Override
-    public List<File> getJavaLibraries() {
+    public List<File> getJavaLibraries(boolean includeProvided) {
       if (SUPPORT_CLASS_FILES) {
+        if (!includeProvided) {
+          if (sOptionalAvailable) {
+            // Method added in 1.4-rc1; gracefully handle running with
+            // older plugins
+            try {
+              if (myLibrary.isOptional()) {
+                return Collections.emptyList();
+              }
+            }
+            catch (Throwable t) {
+              //noinspection AssignmentToStaticFieldFromInstanceMethod
+              sOptionalAvailable = false; // don't try again
+            }
+          }
+        }
+
         if (mJavaLibraries == null) {
           mJavaLibraries = Lists.newArrayList();
           File jarFile = myLibrary.getJarFile();
