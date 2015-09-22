@@ -113,6 +113,11 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
   }
 
   @NotNull
+  public ConfiguredElement<ItemResourceValue> getSelectedItemResourceValue() {
+    return mySelectedValue;
+  }
+
+  @NotNull
   public Collection<ConfiguredElement<ItemResourceValue>> getAllConfiguredItems() {
     return ImmutableList.<ConfiguredElement<ItemResourceValue>>builder()
       .add(mySelectedValue)
