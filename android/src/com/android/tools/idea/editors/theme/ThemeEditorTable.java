@@ -192,7 +192,7 @@ public class ThemeEditorTable extends CellSpanTable {
     if (contents instanceof AttributesTableModel.AttributeContents) {
       final AttributesTableModel.AttributeContents attribute = (AttributesTableModel.AttributeContents) contents;
 
-      final EditedStyleItem item = attribute.getValueAt(1);
+      final EditedStyleItem item = attribute.getValue();
       if (item == null) {
         return null;
       }
