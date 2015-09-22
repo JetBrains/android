@@ -255,7 +255,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
 
   @NonNull
   @Override
-  public List<File> getJavaLibraries(@NonNull com.android.tools.lint.detector.api.Project project) {
+  public List<File> getJavaLibraries(@NonNull com.android.tools.lint.detector.api.Project project, boolean includeProvided) {
     // todo: implement
     return Collections.emptyList();
   }
