@@ -74,10 +74,10 @@ public class AndroidGotoDeclarationHandlerTest extends AndroidTestCase {
     assertEquals("values/strings.xml:2:\n" +
                  "  <string name=\"hello\">hello</string>\n" +
                  "               ~|~~~~~~              \n" +
-                 "values-en-rUS/strings.xml:2:\n" +
+                 "values-en/strings.xml:2:\n" +
                  "  <string name=\"hello\">hello</string>\n" +
                  "               ~|~~~~~~              \n" +
-                 "values-en/strings.xml:2:\n" +
+                 "values-en-rUS/strings.xml:2:\n" +
                  "  <string name=\"hello\">hello</string>\n" +
                  "               ~|~~~~~~              \n" +
                  "values-no/strings.xml:2:\n" +
