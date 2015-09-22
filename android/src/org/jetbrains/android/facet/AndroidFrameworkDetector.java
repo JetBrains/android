@@ -40,7 +40,7 @@ import com.intellij.patterns.ElementPattern;
 import com.intellij.util.indexing.FileContent;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.importDependencies.ImportDependenciesUtil;
-import org.jetbrains.android.run.DefaultActivityLocator;
+import com.android.tools.idea.run.activity.DefaultActivityLocator;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
