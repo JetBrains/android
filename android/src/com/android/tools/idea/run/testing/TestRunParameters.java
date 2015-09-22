@@ -16,8 +16,6 @@
 
 package com.android.tools.idea.run.testing;
 
-import com.android.tools.idea.run.AndroidInheritingClassBrowser;
-import com.android.tools.idea.run.AndroidInheritingClassVisibilityChecker;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.configuration.BrowseModuleValueActionListener;
