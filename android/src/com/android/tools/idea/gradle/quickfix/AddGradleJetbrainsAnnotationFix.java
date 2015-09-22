@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.quickfix;
 
+import com.android.tools.idea.gradle.dsl.parser.NewExternalDependency;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -45,14 +46,11 @@ public class AddGradleJetbrainsAnnotationFix extends AbstractGradleDependencyFix
   @Override
   public void invoke(@NotNull final Project project, @Nullable final Editor editor, @Nullable PsiFile file) {
     boolean testScope = isTestScope(myModule, myReference);
-    final String configurationName = getConfigurationName(myModule, testScope);
+    String configurationName = getConfigurationName(myModule, testScope);
 
-    runWriteCommandActionAndSync(project, new Runnable() {
-      @Override
-      public void run() {
-        addExternalDependency(myModule, configurationName, "org.jetbrains:annotations:13.0");
-      }
-    }, new Computable<PsiClass[]>() {
+    NewExternalDependency newDependency = new NewExternalDependency(configurationName, "org.jetbrains", "annotations", "13.0");
+
+    addDependencyAndSync(newDependency, new Computable<PsiClass[]>() {
       @Override
       public PsiClass[] compute() {
         PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(myClassName, moduleWithLibrariesScope(myModule));

@@ -38,7 +38,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
     List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(1);
 
-    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":javalib1";
     expected.assertMatches(dependencies.get(0));
@@ -57,7 +57,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
 
     ModuleDependencyModel actual = dependencies.get(0);
 
-    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":";
     expected.assertMatches(actual);
@@ -79,7 +79,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
     List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(3);
 
-    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":androidlib1";
     expected.configuration = "flavor1Release";
@@ -125,7 +125,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
     dependencies = buildModel.getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(1);
 
-    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":newName";
     expected.assertMatches(dependency);
@@ -158,7 +158,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
     dependencies = buildModel.getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(1);
 
-    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":newName";
     expected.configuration = "flavor1Release";
@@ -192,7 +192,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
     dependencies = buildModel.getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(1);
 
-    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":newName";
     expected.assertMatches(dependency);
@@ -227,7 +227,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
 
     ModuleDependencyModel actual = dependencies.get(0);
 
-    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":name:helloWorld";
     expected.assertMatches(actual);
@@ -235,7 +235,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
     assertEquals("helloWorld", actual.getName());
   }
 
-  public static class ExpectedProjectDependency {
+  public static class ExpectedModuleDependency {
     public String configurationName;
     public String path;
     public String configuration;

@@ -87,13 +87,18 @@ public class GradleBuildModel extends GradleDslModel {
   public void reparse() {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     PsiFile psiFile = PsiManager.getInstance(myProject).findFile(myFile);
+
+    myPsiFile = null;
     if (psiFile instanceof GroovyFile) {
       myPsiFile = (GroovyFile)psiFile;
-    } else {
-      myPsiFile = null;
+    }
+
+    myDependenciesModel.setPsiFile(psiFile);
+    if (myPsiFile == null) {
       return;
     }
-    reset(myPsiFile);
+
+    reset();
 
     myPsiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
       @Override
@@ -120,8 +125,7 @@ public class GradleBuildModel extends GradleDslModel {
     }));
   }
 
-  private void reset(@Nullable PsiFile psiFile) {
-    myDependenciesModel.reset(psiFile);
+  private void reset() {
     myExtendedDslElements.clear();
   }
 
