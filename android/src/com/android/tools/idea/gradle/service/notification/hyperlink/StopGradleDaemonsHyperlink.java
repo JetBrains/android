@@ -46,8 +46,7 @@ public class StopGradleDaemonsHyperlink extends NotificationHyperlink {
     int answer = Messages.showYesNoDialog(project, message, title, Messages.getQuestionIcon());
     if (answer == Messages.YES) {
       try {
-        GradleUtil.stopAllGradleDaemons(true);
-        ApplicationManager.getApplication().restart();
+        GradleUtil.stopAllGradleDaemonsAndRestart();
       }
       catch (IOException error) {
         Messages.showErrorDialog("Failed to stop Gradle daemons. Please run 'gradle --stop' from the command line.\n\n" +
