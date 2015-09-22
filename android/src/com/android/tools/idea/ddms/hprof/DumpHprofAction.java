@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 public class DumpHprofAction extends AbstractClientAction {
   @NotNull private final Project myProject;
   @NotNull private EventData myEvents;
+  private boolean isCollectingHprofDump;
 
   public DumpHprofAction(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull EventData events) {
     super(deviceContext, AndroidBundle.message("android.ddms.actions.dump.hprof"),
@@ -52,10 +53,16 @@ public class DumpHprofAction extends AbstractClientAction {
 
   @Override
   protected void performAction(@NotNull Client c) {
+    isCollectingHprofDump = true;
     ApplicationManager.getApplication().executeOnPooledThread(new HprofRequest(c, myEvents));
   }
 
-  class HprofRequest implements Runnable, AndroidDebugBridge.IClientChangeListener {
+  @Override
+  protected boolean canPerformAction() {
+    return !isCollectingHprofDump;
+  }
+
+  private class HprofRequest implements Runnable, AndroidDebugBridge.IClientChangeListener {
 
     private final Client myClient;
     private CountDownLatch myResponse;
@@ -72,24 +79,29 @@ public class DumpHprofAction extends AbstractClientAction {
     public void run() {
       AndroidDebugBridge.addClientChangeListener(this);
 
-      myClient.dumpHprof();
-      synchronized (myEvents) {
-        myEvent = myEvents.start(System.currentTimeMillis(), MemoryMonitorView.EVENT_HPROF);
-      }
       try {
-        myResponse.await(1, TimeUnit.MINUTES);
-        // TODO Handle cases where it fails or times out.
-      }
-      catch (InterruptedException e) {
-        // Interrupted
-      }
-      // If the event had not finished, finish it now
-      synchronized (myEvents) {
-        if (myEvent != null) {
-          myEvent.stop(System.currentTimeMillis());
+        myClient.dumpHprof();
+        synchronized (myEvents) {
+          myEvent = myEvents.start(System.currentTimeMillis(), MemoryMonitorView.EVENT_HPROF);
+        }
+        try {
+          myResponse.await(1, TimeUnit.MINUTES);
+          // TODO Handle cases where it fails or times out.
+        }
+        catch (InterruptedException e) {
+          // Interrupted
+        }
+        // If the event had not finished, finish it now
+        synchronized (myEvents) {
+          if (myEvent != null) {
+            myEvent.stop(System.currentTimeMillis());
+          }
         }
       }
-      AndroidDebugBridge.removeClientChangeListener(this);
+      finally {
+        isCollectingHprofDump = false;
+        AndroidDebugBridge.removeClientChangeListener(this);
+      }
     }
 
     @Override
