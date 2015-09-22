@@ -21,7 +21,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -50,41 +49,41 @@ import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
  * </pre>
  * For more details, visit:
  * <ol>
- *   <li><a href="https://docs.gradle.org/2.4/userguide/dependency_management.html">Gradle Dependency Management</a></li>
- *   <li><a href="https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.dsl.DependencyHandler.html">Gradle
- *   DependencyHandler</a></li>
+ * <li><a href="https://docs.gradle.org/2.4/userguide/dependency_management.html">Gradle Dependency Management</a></li>
+ * <li><a href="https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.dsl.DependencyHandler.html">Gradle
+ * DependencyHandler</a></li>
  * </ol>
  */
-public class ExternalDependencyElement implements DependencyElement {
-  @NotNull private final String myConfigurationName;
+public class ExternalDependencyModel extends AbstractDependencyModel {
   @NotNull private final Notation myNotation;
 
+  @Nullable private String myNewVersion;
+
   @Nullable
-  static ExternalDependencyElement withCompactNotation(@NotNull String configurationName, @NotNull GrLiteral literal) {
+  static ExternalDependencyModel withCompactNotation(@NotNull DependenciesModel parent,
+                                                     @NotNull String configurationName,
+                                                     @NotNull GrLiteral literal) {
     Notation notation = CompactNotation.parse(literal);
     if (notation != null) {
-      return new ExternalDependencyElement(configurationName, notation);
+      return new ExternalDependencyModel(parent, configurationName, notation);
     }
     return null;
   }
 
   @Nullable
-  static ExternalDependencyElement withMapNotation(@NotNull String configurationName, @NotNull GrNamedArgument[] namedArguments) {
+  static ExternalDependencyModel withMapNotation(@NotNull DependenciesModel parent,
+                                                 @NotNull String configurationName,
+                                                 @NotNull GrNamedArgument[] namedArguments) {
     Notation notation = MapNotation.parse(namedArguments);
     if (notation != null) {
-      return new ExternalDependencyElement(configurationName, notation);
+      return new ExternalDependencyModel(parent, configurationName, notation);
     }
     return null;
   }
 
-  private ExternalDependencyElement(@NotNull String configurationName, @NotNull Notation notation) {
-    myConfigurationName = configurationName;
+  private ExternalDependencyModel(@NotNull DependenciesModel parent, @NotNull String configurationName, @NotNull Notation notation) {
+    super(parent, configurationName);
     myNotation = notation;
-  }
-
-  @NotNull
-  public String getConfigurationName() {
-    return myConfigurationName;
   }
 
   @Nullable
@@ -103,8 +102,8 @@ public class ExternalDependencyElement implements DependencyElement {
   }
 
   public void setVersion(@NotNull String version) {
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
-    myNotation.setVersion(version);
+    myNewVersion = version;
+    setModified(true);
   }
 
   @Nullable
@@ -120,9 +119,21 @@ public class ExternalDependencyElement implements DependencyElement {
   @Override
   public String toString() {
     return "ExternalDependencyElement{" +
-           "configurationName='" + myConfigurationName + '\'' +
+           "configurationName='" + getConfigurationName() + '\'' +
            ", spec='" + myNotation.getSpec() + '\'' +
            '}';
+  }
+
+  @Override
+  protected void apply() {
+    applyVersionChange();
+  }
+
+  private void applyVersionChange() {
+    if (myNewVersion == null) {
+      return;
+    }
+    myNotation.setVersion(myNewVersion);
   }
 
   private interface Notation {
