@@ -1354,7 +1354,7 @@ public class GradleSyncTest extends GuiTestCase {
   public void testModuleLanguageLevelWithJdk8() throws IOException {
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     Module javaLib = projectFrame.getModule("javaLib");
-    assertEquals(JDK_1_7, getJavaLanguageLevel(javaLib));
+    assertEquals(JDK_1_8, getJavaLanguageLevel(javaLib));
   }
 
   @Test @IdeGuiTest
