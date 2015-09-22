@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -45,7 +44,7 @@ import java.util.HashSet;
  * Renderer and Editor for attributes that take flags as values.
  * When editing, opens a dialog with checkboxes for all the possible flags to choose from.
  */
-public class FlagRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
+public class FlagRendererEditor extends TypedCellRendererEditor<EditedStyleItem, String> {
   private final Box myBox = new Box(BoxLayout.LINE_AXIS);
   /** Renderer component, with isShowing overridden because of the use of a {@link CellRendererPane} */
   private final JLabel myLabel = new JLabel() {
@@ -89,12 +88,8 @@ public class FlagRendererEditor extends TypedCellEditor<EditedStyleItem, String>
   }
 
   @Override
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    if (!(value instanceof EditedStyleItem)) {
-      return null;
-    }
-
-    myItem = (EditedStyleItem)value;
+  public Component getRendererComponent(JTable table, EditedStyleItem value, boolean isSelected, boolean hasFocus, int row, int column) {
+    myItem = value;
     final Component component;
     if (column == 0) {
       component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, ThemeEditorUtils.getDisplayHtml(myItem), isSelected, hasFocus, row, column);
