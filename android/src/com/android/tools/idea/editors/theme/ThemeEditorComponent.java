@@ -753,7 +753,6 @@ public class ThemeEditorComponent extends Splitter {
    * Loads the theme attributes table for the current selected theme or substyle.
    */
   private void loadStyleAttributes() {
-    myPreviewPanel.showError(null);
     ThemeEditorStyle selectedTheme = getHoveredTheme();
     ThemeEditorStyle selectedStyle = null;
 
@@ -767,6 +766,7 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
 
+    myPreviewPanel.showError(null);
     myThemeEditorContext.setCurrentTheme(selectedTheme);
     myPanel.setSubstyleName(mySubStyleName);
     myPanel.getBackButton().setVisible(mySubStyleName != null);
