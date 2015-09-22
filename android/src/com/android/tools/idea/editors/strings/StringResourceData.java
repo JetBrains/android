@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
@@ -83,8 +82,8 @@ public class StringResourceData {
 
   @NotNull
   public static String resourceToString(@NotNull ResourceItem item) {
-    ResourceValue value = item.getResourceValue(false);
-    return value == null ? "" : value.getRawXmlValue().trim();
+    XmlTag tag = ((PsiResourceItem)item).getTag();
+    return tag == null ? "" : XmlTagUtils.unescape(tag).trim();
   }
 
   @Nullable
