@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
-import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyElement.DependencySpec;
-import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyElement.MapNotation;
+import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyModel.DependencySpec;
+import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyModel.MapNotation;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

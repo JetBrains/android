@@ -41,20 +41,34 @@ import static com.android.tools.idea.gradle.dsl.parser.PsiElements.findClosableB
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.psi.util.PsiTreeUtil.*;
 
-public class DependenciesModel implements GradleDslElement {
+public class DependenciesModel extends GradleDslModel {
   @Nullable private PsiFile myPsiFile;
   @Nullable private GrClosableBlock myPsiElement;
 
-  @NotNull private final List<ExternalDependencyElement> myExternalDependencies = Lists.newArrayList();
-  @NotNull private final List<ModuleDependencyElement> myModuleDependencies = Lists.newArrayList();
+  @NotNull private final List<ExternalDependencyModel> myExternalDependencies = Lists.newArrayList();
+  @NotNull private final List<ModuleDependencyModel> myModuleDependencies = Lists.newArrayList();
+
+  DependenciesModel(@NotNull GradleDslModel parent) {
+    super(parent);
+  }
+
+  @Override
+  protected void apply() {
+    for (ExternalDependencyModel dependency : myExternalDependencies) {
+      dependency.applyChanges();
+    }
+    for (ModuleDependencyModel dependency : myModuleDependencies) {
+      dependency.applyChanges();
+    }
+  }
 
   @NotNull
-  public ImmutableList<ExternalDependencyElement> getExternalDependencies() {
+  public ImmutableList<ExternalDependencyModel> getExternalDependencies() {
     return ImmutableList.copyOf(myExternalDependencies);
   }
 
   @NotNull
-  public ImmutableList<ModuleDependencyElement> getModuleDependencies() {
+  public ImmutableList<ModuleDependencyModel> getModuleDependencies() {
     return ImmutableList.copyOf(myModuleDependencies);
   }
 
@@ -140,7 +154,7 @@ public class DependenciesModel implements GradleDslElement {
       }
       GrNamedArgument[] namedArgs = listOrMap.getNamedArguments();
       if (namedArgs.length > 0) {
-        ExternalDependencyElement dependency = ExternalDependencyElement.withMapNotation(configurationName, namedArgs);
+        ExternalDependencyModel dependency = ExternalDependencyModel.withMapNotation(this, configurationName, namedArgs);
         if (dependency != null) {
           myExternalDependencies.add(dependency);
         }
@@ -176,7 +190,7 @@ public class DependenciesModel implements GradleDslElement {
       for (GroovyPsiElement argument : arguments) {
         if (argument instanceof GrLiteral) {
           GrLiteral literal = (GrLiteral)argument;
-          ExternalDependencyElement dependency = ExternalDependencyElement.withCompactNotation(configurationName, literal);
+          ExternalDependencyModel dependency = ExternalDependencyModel.withCompactNotation(this, configurationName, literal);
           if (dependency != null) {
             myExternalDependencies.add(dependency);
           }
@@ -197,7 +211,7 @@ public class DependenciesModel implements GradleDslElement {
         return;
       }
       GrNamedArgument[] namedArgumentArray = namedArguments.toArray(new GrNamedArgument[namedArguments.size()]);
-      ExternalDependencyElement dependency = ExternalDependencyElement.withMapNotation(configurationName, namedArgumentArray);
+      ExternalDependencyModel dependency = ExternalDependencyModel.withMapNotation(this, configurationName, namedArgumentArray);
       if (dependency != null) {
         myExternalDependencies.add(dependency);
       }
@@ -222,13 +236,13 @@ public class DependenciesModel implements GradleDslElement {
     GrArgumentList argumentList = expression.getArgumentList();
     GroovyPsiElement[] arguments = argumentList.getAllArguments();
     if (arguments.length == 1 && arguments[0] instanceof GrLiteral) {
-      ModuleDependencyElement moduleDependency = ModuleDependencyElement.withCompactNotation(configurationName, (GrLiteral)arguments[0]);
+      ModuleDependencyModel moduleDependency = ModuleDependencyModel.withCompactNotation(this, configurationName, (GrLiteral)arguments[0]);
       if (moduleDependency != null) {
         myModuleDependencies.add(moduleDependency);
       }
       return;
     }
-    ModuleDependencyElement moduleDependency = ModuleDependencyElement.withMapNotation(configurationName, argumentList);
+    ModuleDependencyModel moduleDependency = ModuleDependencyModel.withMapNotation(this, configurationName, argumentList);
     if (moduleDependency != null) {
       myModuleDependencies.add(moduleDependency);
     }

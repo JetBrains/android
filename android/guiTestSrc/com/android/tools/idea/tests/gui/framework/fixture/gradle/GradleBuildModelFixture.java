@@ -16,11 +16,14 @@
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyElement;
-import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyElementTest.ExpectedProjectDependency;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModelTest.ExpectedProjectDependency;
+import com.intellij.openapi.command.WriteCommandAction;
+import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 
 import static junit.framework.Assert.fail;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class GradleBuildModelFixture {
   @NotNull private final GradleBuildModel myTarget;
@@ -35,11 +38,26 @@ public class GradleBuildModelFixture {
   }
 
   public void requireDependency(@NotNull ExpectedProjectDependency expected) {
-    for (ModuleDependencyElement element : myTarget.getDependenciesModel().getModuleDependencies()) {
+    for (ModuleDependencyModel element : myTarget.getDependenciesModel().getModuleDependencies()) {
       if (expected.path.equals(element.getPath()) && (expected.configurationName.equals(element.getConfigurationName()))) {
         return;
       }
     }
     fail("Failed to find dependency '" + expected.path + "'");
+  }
+
+  public void applyChanges() {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        WriteCommandAction.runWriteCommandAction(myTarget.getProject(), new Runnable() {
+          @Override
+          public void run() {
+            myTarget.applyChanges();
+          }
+        });
+      }
+    });
+
   }
 }

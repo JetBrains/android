@@ -24,9 +24,9 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Tests for {@link ExternalDependencyElement}.
+ * Tests for {@link ExternalDependencyModel}.
  */
-public class ExternalDependencyElementTest extends DslElementParserTestCase {
+public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase {
   public void testParsingWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
@@ -37,7 +37,7 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ExternalDependencyElement> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(3);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -74,7 +74,7 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ExternalDependencyElement> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(1);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -102,7 +102,7 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
       }
     });
 
-    List<ExternalDependencyElement> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -136,7 +136,7 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
       }
     });
 
-    List<ExternalDependencyElement> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(1);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -153,17 +153,22 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
                   "}";
     writeToBuildFile(text);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
+    final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ExternalDependencyElement> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
 
-    final ExternalDependencyElement appCompat = dependencies.get(0);
+    ExternalDependencyModel appCompat = dependencies.get(0);
+    appCompat.setVersion("1.2.3");
+
+    assertTrue(buildModel.isModified());
     runWriteCommandAction(myProject, new Runnable() {
       @Override
       public void run() {
-        appCompat.setVersion("1.2.3");
+        buildModel.applyChanges();
       }
     });
+
+    assertFalse(buildModel.isModified());
 
     dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(1);
@@ -182,17 +187,23 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
                   "}";
     writeToBuildFile(text);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
+    final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ExternalDependencyElement> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
 
-    final ExternalDependencyElement guice = dependencies.get(0);
+    ExternalDependencyModel guice = dependencies.get(0);
+    guice.setVersion("1.2.3");
+
+    assertTrue(buildModel.isModified());
+
     runWriteCommandAction(myProject, new Runnable() {
       @Override
       public void run() {
-        guice.setVersion("1.2.3");
+        buildModel.applyChanges();
       }
     });
+
+    assertFalse(buildModel.isModified());
 
     dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(1);
@@ -214,7 +225,7 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ExternalDependencyElement> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -245,7 +256,7 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ExternalDependencyElement> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency();
@@ -272,7 +283,7 @@ public class ExternalDependencyElementTest extends DslElementParserTestCase {
     public String classifier;
     public String extension;
 
-    public void assertMatches(@NotNull ExternalDependencyElement actual) {
+    public void assertMatches(@NotNull ExternalDependencyModel actual) {
       assertEquals("configurationName", configurationName, actual.getConfigurationName());
       assertEquals("group", group, actual.getGroup());
       assertEquals("name", name, actual.getName());

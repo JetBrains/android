@@ -38,10 +38,10 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
-public class GradleBuildModel implements GradleDslElement {
+public class GradleBuildModel extends GradleDslModel {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
-  @NotNull private final DependenciesModel myDependenciesModel = new DependenciesModel();
+  @NotNull private final DependenciesModel myDependenciesModel = new DependenciesModel(this);
 
   @NotNull private final Map<String, ExtPropertyElement> myExtraProperties = Maps.newLinkedHashMap();
 
@@ -71,6 +71,11 @@ public class GradleBuildModel implements GradleDslElement {
   }
 
   private GradleBuildModel(@NotNull VirtualFile file, @NotNull Project project) {
+    this(null, file, project);
+  }
+
+  private GradleBuildModel(@Nullable GradleDslModel parent, @NotNull VirtualFile file, @NotNull Project project) {
+    super(parent);
     myFile = file;
     myProject = project;
   }
@@ -168,5 +173,15 @@ public class GradleBuildModel implements GradleDslElement {
 
   public void addExtendedDslElement(@NotNull GradleDslElement element) {
     myExtendedDslElements.add(element);
+  }
+
+  @Override
+  protected void apply() {
+    myDependenciesModel.applyChanges();
+  }
+
+  @NotNull
+  public Project getProject() {
+    return myProject;
   }
 }
