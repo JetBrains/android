@@ -23,12 +23,15 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.AsyncProcessIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
+import java.awt.*;
 import java.util.Locale;
 import java.util.Set;
 
@@ -48,15 +51,19 @@ final class FormFactorSdkControls {
   private final FormFactorUtils.FormFactor myFormFactor;
   private final int myMinApi;
   private static final ScopedStateStore.Key<String> API_FEEDBACK_KEY = createKey("API Feedback", STEP, String.class);
-  private JBLabel myHelpMeChooseLabel;
+  private JBLabel myHelpMeChooseLabel2;
   private HyperlinkLabel myHelpMeChooseLink;
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
   private final ScopedDataBinder myBinder;
   private JCheckBox myInclusionCheckBox;
   private JPanel myRootPanel;
   private JLabel myNotAvailableLabel;
+  private JPanel myStatsPanel;
+  private JPanel myLoadingStatsPanel;
   private final Disposable myDisposable;
   private final ScopedStateStore.Key<Boolean> myInclusionKey;
+  private JBLabel myStatsLoadFailedLabel;
+  private JBLabel myHelpMeChooseLabel1;
 
   /**
    * Creates a new FormFactorSdkControls.
@@ -76,7 +83,7 @@ final class FormFactorSdkControls {
     myInclusionCheckBox.setText(formFactor.toString());
     myDisposable = disposable;
     myInclusionKey = FormFactorUtils.getInclusionKey(myFormFactor);
-    myHelpMeChooseLabel.setText(getApiHelpText(0, ""));
+    myHelpMeChooseLabel2.setText(getApiHelpText(0, ""));
     myHelpMeChooseLink.setHyperlinkText("Help me choose");
     // Only show SDK selector for base form factors.
     if (myFormFactor.baseFormFactor != null) {
@@ -85,12 +92,12 @@ final class FormFactorSdkControls {
     }
 
     if (!myFormFactor.equals(MOBILE)) {
-      myHelpMeChooseLabel.setVisible(false);
-      myHelpMeChooseLink.setVisible(false);
+      myHelpMeChooseLabel1.setVisible(false);
+      myStatsPanel.setVisible(false);
     }
 
     myMinSdkCombobox.setName(myFormFactor.id + ".minSdk");
-
+    myStatsLoadFailedLabel.setForeground(JBColor.GRAY);
   }
 
   /**
@@ -121,7 +128,7 @@ final class FormFactorSdkControls {
       }
     });
 
-    myBinder.register(API_FEEDBACK_KEY, myHelpMeChooseLabel, new ScopedDataBinder.ComponentBinding<String, JBLabel>() {
+    myBinder.register(API_FEEDBACK_KEY, myHelpMeChooseLabel2, new ScopedDataBinder.ComponentBinding<String, JBLabel>() {
       @Override
       public void setValue(@Nullable String newValue, @NotNull JBLabel label) {
         final JBLabel referenceLabel = label;
@@ -173,6 +180,33 @@ final class FormFactorSdkControls {
     myMinSdkCombobox.registerWith(myBinder);
 
     myMinSdkCombobox.loadSavedApi();
+
+    if (myStatsPanel.isVisible()) {
+      DistributionService.getInstance().refresh(new Runnable() {
+        @Override
+        public void run() {
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              ((CardLayout)myStatsPanel.getLayout()).show(myStatsPanel, "stats");
+              myBinder.invokeUpdate(getTargetComboBoxKey(MOBILE));
+            }
+          });
+        }
+      }, new Runnable() {
+        @Override
+        public void run() {
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              ((CardLayout)myStatsPanel.getLayout()).show(myStatsPanel, "stats");
+              myBinder.invokeUpdate(getTargetComboBoxKey(MOBILE));
+              myStatsLoadFailedLabel.setVisible(true);
+            }
+          });
+        }
+      });
+    }
   }
 
   public JComponent getComponent() {
@@ -188,10 +222,18 @@ final class FormFactorSdkControls {
 
   private static String getApiHelpText(int selectedApi, String selectedApiName) {
     float percentage = (float)(DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100);
-    return String.format(Locale.getDefault(), "<html>Lower API levels target more devices, but have fewer features available. " +
-                                              "By targeting API %1$s<br>and later, your app will run on %2$s of the devices that are " +
-                                              "active on the<br>Google Play Store.</html>",
+    return String.format(Locale.getDefault(), "<html>By targeting API %1$s and later, your app will run on %2$s of the devices<br>that are " +
+                                              "active on the Google Play Store.</html>",
                          selectedApiName,
                          percentage < 1 ? "&lt; 1%" : String.format(Locale.getDefault(), "approximately <b>%.1f%%</b>", percentage));
+  }
+
+  private void createUIComponents() {
+    myLoadingStatsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    AsyncProcessIcon refreshIcon = new AsyncProcessIcon("loading");
+    JLabel refreshingLabel = new JLabel("Loading Stats...");
+    refreshingLabel.setForeground(JBColor.GRAY);
+    myLoadingStatsPanel.add(refreshIcon);
+    myLoadingStatsPanel.add(refreshingLabel);
   }
 }
