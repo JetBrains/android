@@ -225,7 +225,9 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
                                                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     myScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-    myScrollPane.setBorder(null);
+    // We use an empty border instead of null, because a null border will be overridden by a change of UI,
+    // while an empty border will stay an empty border.
+    myScrollPane.setBorder(BorderFactory.createEmptyBorder());
     myScrollPane.setViewportBorder(null);
 
     myBreadcrumbs.setRootItem(new Breadcrumb("All components"));
@@ -333,6 +335,12 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
     myScrollPane.getViewport().setBackground(bg);
     myBreadcrumbs.setBackground(bg);
     myMainPanel.setBackground(bg);
+  }
+
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    rebuild();
   }
 
   /**
