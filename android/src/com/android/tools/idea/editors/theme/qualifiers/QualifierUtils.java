@@ -202,22 +202,23 @@ public class QualifierUtils {
   /**
    * Returns a restricted version of the passed configuration. The value returned will be incompatible with any other configuration in the
    * item. This configuration can be used when we want to make sure that the configuration selected will be displayed.
+   * Note: allItems should contain compatible
    */
   @Nullable("if there is no configuration that matches the constraints")
-  public static <T> FolderConfiguration restrictConfiguration(@NotNull ConfiguredElement<T> selectedItems,
+  public static <T> FolderConfiguration restrictConfiguration(@NotNull ConfiguredElement<T> compatible,
                                                               Collection<ConfiguredElement<T>> allItems) {
-    ArrayList<FolderConfiguration> incompatibleConfigurations = Lists.newArrayListWithCapacity(allItems.size() - 1);
-
+    ArrayList<FolderConfiguration> incompatibleConfigurations = Lists.newArrayListWithCapacity(allItems.size());
+    boolean found = false;
     for (ConfiguredElement configuredItem : allItems) {
       FolderConfiguration configuration = configuredItem.getConfiguration();
-      if (configuredItem == selectedItems) {
+      if (configuredItem.equals(compatible)) {
+        found = true;
         continue;
       }
-
       incompatibleConfigurations.add(configuration);
     }
-
-    return restrictConfiguration(selectedItems.getConfiguration(), incompatibleConfigurations);
+    assert found;
+    return restrictConfiguration(compatible.getConfiguration(), incompatibleConfigurations);
   }
 
   /**
