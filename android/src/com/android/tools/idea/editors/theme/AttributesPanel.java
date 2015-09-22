@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColorUtil;
@@ -115,23 +114,13 @@ public class AttributesPanel {
   }
 
   /**
-   * @param theme Does not have to be one of the items in the combo box list.
+   * @param themeName Does not have to be one of the items in the combo box list.
    */
-  public void setSelectedTheme(@Nullable final ThemeEditorStyle theme) {
+  public void setSelectedTheme(@Nullable final String themeName) {
     // we set the theme on the model and not the actual combo box
     // as the model allows setting a theme that is not contained in the list, but the combo box does not.
-    myThemeCombo.getModel().setSelectedItem(theme);
+    myThemeCombo.getModel().setSelectedItem(themeName);
     myThemeCombo.hidePopup();
-  }
-
-  public ThemeEditorStyle getSelectedTheme() {
-    Object item = myThemeCombo.getSelectedItem();
-
-    ThemeEditorStyle style = ThemesListModel.getStyle(item);
-    if (style == null) {
-      throw new IllegalStateException("getSelectedTheme() is requested on themes combo while selected item is not theme");
-    }
-    return style;
   }
 
   public void setAdvancedMode(final boolean isAdvanced) {
