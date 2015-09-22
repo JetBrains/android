@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.run;
+package com.android.tools.idea.run.testing;
 
 import com.intellij.CommonBundle;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
