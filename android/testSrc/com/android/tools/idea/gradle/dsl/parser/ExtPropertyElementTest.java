@@ -20,7 +20,7 @@ import java.io.IOException;
 /**
  * Tests for {@link ExtPropertyElement}.
  */
-public class ExtPropertyElementTest extends DslElementParserTestCase {
+public class ExtPropertyElementTest extends GradleBuildModelParserTestCase {
 
   public void testParsingSimplePropertyPerLine() throws IOException {
     String text = "ext.COMPILE_SDK_VERSION = 21\n" +

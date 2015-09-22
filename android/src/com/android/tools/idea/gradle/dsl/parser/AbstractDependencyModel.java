@@ -15,5 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
-public interface DependencyElement extends GradleDslElement {
+import org.jetbrains.annotations.NotNull;
+
+public abstract class AbstractDependencyModel extends GradleDslModel {
+  @NotNull private final String myConfigurationName;
+
+  protected AbstractDependencyModel(@NotNull DependenciesModel parent, @NotNull String configurationName) {
+    super(parent);
+    myConfigurationName = configurationName;
+  }
+
+  @NotNull
+  public String getConfigurationName() {
+    return myConfigurationName;
+  }
 }
