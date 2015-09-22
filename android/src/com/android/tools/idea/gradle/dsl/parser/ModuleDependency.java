@@ -36,7 +36,7 @@ import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
  * <pre> configurationName project("gradlePath") </pre> and
  * <pre> configurationName project(path: "gradlePath", configuration: "configuration") </pre>
  */
-public class ModuleDependencyModel extends AbstractDependencyModel {
+public class ModuleDependency extends AbstractDependency {
   @NotNull GrLiteralContainer myPathElement;
 
   /**
@@ -56,13 +56,13 @@ public class ModuleDependencyModel extends AbstractDependencyModel {
    * </pre>
    */
   @Nullable
-  public static ModuleDependencyModel withCompactNotation(@NotNull DependenciesModel parent,
+  public static ModuleDependency withCompactNotation(@NotNull Dependencies parent,
                                                           @NotNull String configurationName,
                                                           @NotNull GrLiteralContainer pathElement) {
     if (pathElement.getValue() == null) {
       return null;
     }
-    return new ModuleDependencyModel(parent, configurationName, pathElement, null);
+    return new ModuleDependency(parent, configurationName, pathElement, null);
   }
 
   /**
@@ -73,14 +73,14 @@ public class ModuleDependencyModel extends AbstractDependencyModel {
    * </pre>
    */
   @Nullable
-  public static ModuleDependencyModel withMapNotation(@NotNull DependenciesModel parent,
+  public static ModuleDependency withMapNotation(@NotNull Dependencies parent,
                                                       @NotNull String configurationName,
                                                       @NotNull GrArgumentList argumentList) {
     GrLiteral pathPsiElement = findNamedArgumentLiteralValue(argumentList, "path");
     if (pathPsiElement == null || pathPsiElement.getValue() == null) {
       return null;
     }
-    return new ModuleDependencyModel(parent, configurationName, pathPsiElement,
+    return new ModuleDependency(parent, configurationName, pathPsiElement,
                                      findNamedArgumentLiteralValue(argumentList, "configuration"));
   }
 
@@ -96,10 +96,10 @@ public class ModuleDependencyModel extends AbstractDependencyModel {
     return null;
   }
 
-  private ModuleDependencyModel(@NotNull DependenciesModel parent,
-                                @NotNull String configurationName,
-                                @NotNull GrLiteralContainer pathElement,
-                                @Nullable GrLiteralContainer configurationElement) {
+  private ModuleDependency(@NotNull Dependencies parent,
+                           @NotNull String configurationName,
+                           @NotNull GrLiteralContainer pathElement,
+                           @Nullable GrLiteralContainer configurationElement) {
     super(parent, configurationName);
     myPathElement = pathElement;
     myConfigurationElement = configurationElement;

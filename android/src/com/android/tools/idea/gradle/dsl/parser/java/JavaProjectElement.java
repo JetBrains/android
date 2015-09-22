@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.java;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.OldGradleDslElement;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +28,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpres
 /**
  * Holds the data in addition to the project element, which added by Java plugin
  */
-public class JavaProjectElement implements GradleDslElement {
+public class JavaProjectElement implements OldGradleDslElement {
   public static String SOURCE_COMPATIBILITY_FIELD = "sourceCompatibility";
   public static String TARGET_COMPATIBILITY_FIELD = "targetCompatibility";
   @NotNull private GroovyPsiElement myPsiElement;
