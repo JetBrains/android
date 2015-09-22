@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.*;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.attributes.variants.VariantItemListener;
@@ -34,7 +33,6 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.editors.theme.ui.VariantsComboBox;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
@@ -46,12 +44,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.TreeSet;
 
@@ -61,7 +57,7 @@ import java.util.TreeSet;
  * {@link #updateComponent(ThemeEditorContext, ResourceComponent, EditedStyleItem)} to allow subclasses to set their own labels
  * and styles on the {@link ResourceComponent}.
  */
-public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
+public abstract class GraphicalResourceRendererEditor extends TypedCellRendererEditor<EditedStyleItem, String> {
   public static final ResourceType[] COLORS_ONLY = {ResourceType.COLOR};
   public static final ResourceType[] DRAWABLES_ONLY = {ResourceType.DRAWABLE, ResourceType.MIPMAP};
   public static final ResourceType[] COLORS_AND_DRAWABLES = {ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP};
@@ -166,14 +162,12 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
                                           @NotNull EditedStyleItem item);
 
   @Override
-  public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected, boolean hasFocus, int row, int column) {
-    assert obj instanceof EditedStyleItem : "Object passed to GraphicalResourceRendererEditor.getTableCellRendererComponent must be instance of EditedStyleItem";
-
-    myItem = (EditedStyleItem)obj;
+  public Component getRendererComponent(JTable table, EditedStyleItem obj, boolean isSelected, boolean hasFocus, int row, int column) {
+    myItem = obj;
 
     myComponent.setSize(table.getCellRect(row, column, false).getSize());
-    updateComponentInternal(myComponent, (EditedStyleItem)obj);
-    updateComponent(myContext, myComponent, (EditedStyleItem)obj);
+    updateComponentInternal(myComponent, obj);
+    updateComponent(myContext, myComponent, obj);
 
     return myComponent;
   }

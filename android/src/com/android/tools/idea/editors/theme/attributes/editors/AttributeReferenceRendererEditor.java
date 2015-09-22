@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.List;
@@ -31,7 +30,7 @@ import java.util.List;
 /**
  * Cell editor that allows editing references in styles. It also allows providing auto-complete suggestions.
  */
-public class AttributeReferenceRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
+public class AttributeReferenceRendererEditor extends TypedCellRendererEditor<EditedStyleItem, String> {
   protected final Box myBox = new Box(BoxLayout.LINE_AXIS);
   /** Renderer component, with isShowing overridden because of the use of a {@link CellRendererPane} */
   protected final JLabel myLabel = new JLabel() {
@@ -77,20 +76,15 @@ public class AttributeReferenceRendererEditor extends TypedCellEditor<EditedStyl
   }
 
   @Override
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    if (!(value instanceof EditedStyleItem)) {
-      return null;
-    }
-
-    EditedStyleItem item = (EditedStyleItem)value;
+  public Component getRendererComponent(JTable table, EditedStyleItem value, boolean isSelected, boolean hasFocus, int row, int column) {
     final Component component;
     if (column == 0) {
       component = table.getDefaultRenderer(String.class)
-        .getTableCellRendererComponent(table, ThemeEditorUtils.getDisplayHtml(item), isSelected, hasFocus, row, column);
+        .getTableCellRendererComponent(table, ThemeEditorUtils.getDisplayHtml(value), isSelected, hasFocus, row, column);
     }
     else {
       myLabel.setFont(table.getFont());
-      myLabel.setText(item.getValue());
+      myLabel.setText(value.getValue());
       myLabel.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
       component = myLabel;
     }
