@@ -175,7 +175,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     // With only one source set, this should be called just once.
     ThemeEditorUtils.acceptResourceResolverVisitor(myFacet, new ThemeEditorUtils.ResourceFolderVisitor() {
       @Override
-      public void visitResourceFolder(@NotNull LocalResourceRepository resources, @NotNull String variantName, boolean isSelected) {
+      public void visitResourceFolder(@NotNull LocalResourceRepository resources, String moduleName, @NotNull String variantName, boolean isSelected) {
         assertEquals("main", variantName);
         visitedRepos.incrementAndGet();
       }

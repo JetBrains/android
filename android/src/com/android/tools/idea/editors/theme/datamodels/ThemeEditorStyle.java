@@ -62,10 +62,7 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Wrapper for style configurations that allows modifying attributes directly in the XML file.
@@ -114,17 +111,20 @@ public class ThemeEditorStyle {
    * different resource folders.
    */
   @NotNull
-  private List<ResourceItem> getStyleResourceItems() {
+  private Collection<ResourceItem> getStyleResourceItems() {
     assert !isFramework();
 
-    final ImmutableList.Builder<ResourceItem> resourceItems = ImmutableList.builder();
+    Collection<ResourceItem> resultItems;
     if (isProjectStyle()) {
       final Module module = getModuleForAcquiringResources();
       AndroidFacet facet = AndroidFacet.getInstance(module);
       assert facet != null : module.getName() + " module doesn't have AndroidFacet";
+
+      // We need to keep a Set of ResourceItems to override them. The key is the folder configuration + the name
+      final HashMap<String, ResourceItem> resourceItems = Maps.newHashMap();
       ThemeEditorUtils.acceptResourceResolverVisitor(facet, new ThemeEditorUtils.ResourceFolderVisitor() {
         @Override
-        public void visitResourceFolder(@NotNull LocalResourceRepository resources, @NotNull String variantName, boolean isSourceSelected) {
+        public void visitResourceFolder(@NotNull LocalResourceRepository resources, String moduleName, @NotNull String variantName, boolean isSourceSelected) {
           if (!isSourceSelected) {
             // Currently we ignore the source sets that are not active
             // TODO: Process all source sets
@@ -135,18 +135,26 @@ public class ThemeEditorStyle {
           if (items == null) {
             return;
           }
-          resourceItems.addAll(items);
+
+          for (ResourceItem item : items) {
+            String key = item.getConfiguration().toShortDisplayString() + "/" + item.getName();
+            resourceItems.put(key, item);
+          }
         }
       });
+
+      resultItems = ImmutableList.copyOf(resourceItems.values());
     } else {
       LocalResourceRepository resourceRepository = AppResourceRepository.getAppResources(getModuleForAcquiringResources(), true);
       assert resourceRepository != null;
       List<ResourceItem> items = resourceRepository.getResourceItem(ResourceType.STYLE, getName());
       if (items != null) {
-        resourceItems.addAll(items);
+        resultItems = items;
+      } else {
+        resultItems = Collections.emptyList();
       }
     }
-    return resourceItems.build();
+    return resultItems;
   }
 
   /**
@@ -290,10 +298,12 @@ public class ThemeEditorStyle {
 
     // Load the current style from all the folders where it exists
     ConfigurationManager manager = myConfiguration.getConfigurationManager();
+
     // We create new ResourceResolverCache instead of using cache from myConfiguration to optimize memory instead of time/speed
     // Because, it creates a lot of instances of ResourceResolver here, that won't be used outside of ThemeEditor
     ResourceResolverCache resolverCache = new ResourceResolverCache(manager);
-    List<ResourceItem> allStyleDefinitions = getStyleResourceItems();
+    Collection<ResourceItem> allStyleDefinitions = getStyleResourceItems();
+
     // Get the configuration associated to each version of the style
     Collection<FolderConfiguration> allConfigurations = getFolderConfigurationsFromResourceItems(allStyleDefinitions);
 
@@ -519,7 +529,7 @@ public class ThemeEditorStyle {
 
     final int minProjectApi = ThemeEditorUtils.getMinApiLevel(myConfiguration.getModule());
     final int minAcceptableApi = attributeDefinitionApi != -1 ? attributeDefinitionApi : 1;
-    final List<ResourceItem> styleResourceItems = getStyleResourceItems();
+    final Collection<ResourceItem> styleResourceItems = getStyleResourceItems();
     final FolderConfiguration sourceConfiguration = findAcceptableSourceFolderConfiguration(myConfiguration.getModule(), minAcceptableApi,
                                                                                             getFolderConfigurationsFromResourceItems(
                                                                                               styleResourceItems));
@@ -586,7 +596,7 @@ public class ThemeEditorStyle {
             }
           }
 
-          List<ResourceItem> newResources = getStyleResourceItems();
+          Collection<ResourceItem> newResources = getStyleResourceItems();
           for (ResourceItem resourceItem : newResources) {
             if (resourceItem.getQualifiers().contains(qualifier.getFolderSegment())) {
               final XmlTag sourceXml = LocalResourceRepository.getItemTag(myProject, resourceItem);
@@ -641,7 +651,7 @@ public class ThemeEditorStyle {
     final int minAcceptableApi = ResolutionUtils.getOriginalApiLevel(newParent, myProject);
     final FolderConfiguration sourceConfiguration = findAcceptableSourceFolderConfiguration(myConfiguration.getModule(), minAcceptableApi,
                                                                                             getFolderConfigurations());
-    List<ResourceItem> styleResourceItems = getStyleResourceItems();
+    Collection<ResourceItem> styleResourceItems = getStyleResourceItems();
 
     // Find a valid source style that we can copy to the new API level
     final ResourceItem sourceStyle = Iterables.find(styleResourceItems, new Predicate<ResourceItem>() {
@@ -677,7 +687,7 @@ public class ThemeEditorStyle {
           if (facet != null) {
             facet.refreshResources();
           }
-          List<ResourceItem> newResources = getStyleResourceItems();
+          Collection<ResourceItem> newResources = getStyleResourceItems();
           VersionQualifier qualifier = new VersionQualifier(minAcceptableApi);
           for (ResourceItem resourceItem : newResources) {
             if (resourceItem.getQualifiers().contains(qualifier.getFolderSegment())) {
@@ -761,12 +771,12 @@ public class ThemeEditorStyle {
    */
   @Nullable
   public PsiElement getNamePsiElement() {
-    List<ResourceItem> resources = getStyleResourceItems();
+    Collection<ResourceItem> resources = getStyleResourceItems();
     if (resources.isEmpty()){
       return null;
     }
     // Any sourceXml will do to get the name attribute from
-    final XmlTag sourceXml = LocalResourceRepository.getItemTag(myProject, resources.get(0));
+    final XmlTag sourceXml = LocalResourceRepository.getItemTag(myProject, resources.iterator().next());
     assert sourceXml != null;
     final XmlAttribute nameAttribute = sourceXml.getAttribute("name");
     if (nameAttribute == null) {

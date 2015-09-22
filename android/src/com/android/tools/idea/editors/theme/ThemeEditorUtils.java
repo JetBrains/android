@@ -16,9 +16,6 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.RenderResources;
@@ -55,6 +52,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -74,6 +72,7 @@ import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -606,6 +605,23 @@ public class ThemeEditorUtils {
     return minFolderApi;
   }
 
+  @NotNull
+  public static Configuration getConfigurationForModule(@NotNull Module module) {
+    Project project = module.getProject();
+    final AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null : "moduleComboModel must contain only Android modules";
+
+    ConfigurationManager configurationManager = facet.getConfigurationManager();
+
+    // Using the project virtual file to set up configuration for the theme editor
+    // That fact is hard-coded in computeBestDevice() method in Configuration.java
+    // BEWARE if attempting to modify to use a different virtual file
+    final VirtualFile projectFile = project.getProjectFile();
+    assert projectFile != null;
+
+    return configurationManager.getConfiguration(projectFile);
+  }
+
   /**
    * Given a {@link SourceProvider}, it returns a list of all the available ResourceFolderRepositories
    */
@@ -630,73 +646,55 @@ public class ThemeEditorUtils {
     return folders;
   }
 
-  @NotNull
-  public static Configuration getConfigurationForModule(@NotNull Module module) {
-    Project project = module.getProject();
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null : "moduleComboModel must contain only Android modules";
-
-    ConfigurationManager configurationManager = facet.getConfigurationManager();
-
-    // Using the project virtual file to set up configuration for the theme editor
-    // That fact is hard-coded in computeBestDevice() method in Configuration.java
-    // BEWARE if attempting to modify to use a different virtual file
-    final VirtualFile projectFile = project.getProjectFile();
-    assert projectFile != null;
-
-    return configurationManager.getConfiguration(projectFile);
-  }
-
   /**
    * Interface to visit all the available {@link LocalResourceRepository}
    */
   public interface ResourceFolderVisitor {
     /**
      * @param resources a repository containing resources
+     * @param moduleName the module name
      * @param variantName string that identifies the variant used to obtain the resources
      * @param isSelected true if the current passed repository is in an active source set
      */
-    void visitResourceFolder(@NotNull LocalResourceRepository resources, @NotNull String variantName, boolean isSelected);
+    void visitResourceFolder(@NotNull LocalResourceRepository resources, String moduleName, @NotNull String variantName, boolean isSelected);
   }
 
   /**
-   * Visits every ResourceFolderRepository
+   * Visits every ResourceFolderRepository. It visits every resource in order, meaning that the later calls may override resources from
+   * previous ones.
    */
-  public static void acceptResourceResolverVisitor(@NotNull AndroidFacet facet, @NotNull ResourceFolderVisitor visitor) {
-    // Set of the SourceProviders for the current selected configuration
-    Set<SourceProvider> selectedProviders = Sets.newHashSet();
-    // Set of the SourceProviders that are not active in the current selected configuration
-    Set<SourceProvider> inactiveProviders = Sets.newHashSet();
-    selectedProviders.add(facet.getMainSourceProvider());
+  public static void acceptResourceResolverVisitor(final @NotNull AndroidFacet mainFacet, final @NotNull ResourceFolderVisitor visitor) {
+    // Get all the dependencies of the module in reverse order (first one is the lowest priority one)
+    List<AndroidFacet> dependencies =  Lists.reverse(AndroidUtils.getAllAndroidDependencies(mainFacet.getModule(), true));
 
-    // TODO: b/23031626
-    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
-    if (androidModel != null) {
-      assert facet.requiresAndroidModel();
+    // The order of iteration here is important since the resources from the mainFacet will override those in the dependencies.
+    for (AndroidFacet dependency : Iterables.concat(dependencies, ImmutableList.of(mainFacet))) {
+      AndroidGradleModel androidModel = AndroidGradleModel.get(dependency);
+      if (androidModel == null) {
+        // For non gradle module, get the main source provider
+        SourceProvider provider = dependency.getMainSourceProvider();
+        for (LocalResourceRepository resourceRepository : getResourceFolderRepositoriesFromSourceSet(dependency, provider)) {
+          visitor.visitResourceFolder(resourceRepository, dependency.getName(), provider.getName(), true);
+        }
+      } else {
+        // For gradle modules, get all source providers and go through themu
+        // We need to iterate the providers in the returned to make sure that they correctly override each other
+        List<SourceProvider> activeProviders = androidModel.getActiveSourceProviders();
+        for (SourceProvider provider : activeProviders) {
+          for (LocalResourceRepository resourceRepository : getResourceFolderRepositoriesFromSourceSet(dependency, provider)) {
+            visitor.visitResourceFolder(resourceRepository, dependency.getName(), provider.getName(), true);
+          }
+        }
 
-      selectedProviders.add(androidModel.getBuildTypeSourceProvider());
-      selectedProviders.add(androidModel.getMultiFlavorSourceProvider());
-
-      // Add inactive SourceSets
-      AndroidProject project = androidModel.getAndroidProject();
-      for (BuildTypeContainer buildType : project.getBuildTypes()) {
-        inactiveProviders.add(buildType.getSourceProvider());
-      }
-
-      for (ProductFlavorContainer productFlavor : project.getProductFlavors()) {
-        inactiveProviders.add(productFlavor.getSourceProvider());
-      }
-    }
-
-    for (SourceProvider provider : selectedProviders) {
-      for (ResourceFolderRepository resourceRepository : getResourceFolderRepositoriesFromSourceSet(facet, provider)) {
-        visitor.visitResourceFolder(resourceRepository, provider.getName(), true);
-      }
-    }
-
-    for (SourceProvider provider : inactiveProviders) {
-      for (ResourceFolderRepository resourceRepository : getResourceFolderRepositoriesFromSourceSet(facet, provider)) {
-        visitor.visitResourceFolder(resourceRepository, provider.getName(), false);
+        // Not go through all the providers that are not in the activeProviders
+        ImmutableSet<SourceProvider> selectedProviders = ImmutableSet.copyOf(activeProviders);
+        for (SourceProvider provider : androidModel.getAllSourceProviders()) {
+          if (!selectedProviders.contains(provider)) {
+            for (LocalResourceRepository resourceRepository : getResourceFolderRepositoriesFromSourceSet(dependency, provider)) {
+              visitor.visitResourceFolder(resourceRepository, dependency.getName(), provider.getName(), false);
+            }
+          }
+        }
       }
     }
   }
