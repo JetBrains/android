@@ -44,7 +44,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.util.concurrency.Semaphore;
 import icons.AndroidIcons;
-import org.jetbrains.android.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
