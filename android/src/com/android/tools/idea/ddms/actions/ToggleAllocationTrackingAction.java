@@ -42,7 +42,11 @@ public class ToggleAllocationTrackingAction extends AbstractClientToggleAction {
   private EventData.Event myEvent;
 
   public ToggleAllocationTrackingAction(@NotNull Project project, @NotNull DeviceContext context, @NotNull EventData events) {
-    super(context, AndroidBundle.message("android.ddms.actions.allocationtracker.start"), null, AndroidIcons.Ddms.AllocationTracker);
+    super(context,
+          AndroidBundle.message("android.ddms.actions.allocationtracker.start"),
+          AndroidBundle.message("android.ddms.actions.allocationtracker.description"),
+          AndroidIcons.Ddms.AllocationTracker);
+
     myProject = project;
     myEvents = events;
   }
