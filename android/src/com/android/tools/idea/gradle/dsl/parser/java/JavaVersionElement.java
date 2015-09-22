@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.java;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.OldGradleDslElement;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpres
 import static com.android.tools.idea.gradle.dsl.parser.GradleLanguageLevel.convertToGradleString;
 import static com.android.tools.idea.gradle.dsl.parser.GradleLanguageLevel.parseFromGradleString;
 
-public class JavaVersionElement implements GradleDslElement {
+public class JavaVersionElement implements OldGradleDslElement {
   @NotNull private GrExpression myPsiElement;
   @NotNull private String text; // Cached text of the element
 

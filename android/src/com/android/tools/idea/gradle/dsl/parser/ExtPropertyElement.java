@@ -26,7 +26,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
  * <a href="https://docs.gradle.org/current/userguide/writing_build_scripts.html#sec:extra_properties">Extra Properties</a>.
  * </p>
  */
-public class ExtPropertyElement implements GradleDslElement {
+public class ExtPropertyElement implements OldGradleDslElement {
   @NotNull private final String myName;
   @NotNull private final GrLiteral myValueExpression;
 

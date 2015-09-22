@@ -54,34 +54,34 @@ import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
  * DependencyHandler</a></li>
  * </ol>
  */
-public class ExternalDependencyModel extends AbstractDependencyModel {
+public class ExternalDependency extends AbstractDependency {
   @NotNull private final Notation myNotation;
 
   @Nullable private String myNewVersion;
 
   @Nullable
-  static ExternalDependencyModel withCompactNotation(@NotNull DependenciesModel parent,
+  static ExternalDependency withCompactNotation(@NotNull Dependencies parent,
                                                      @NotNull String configurationName,
                                                      @NotNull GrLiteral literal) {
     Notation notation = CompactNotation.parse(literal);
     if (notation != null) {
-      return new ExternalDependencyModel(parent, configurationName, notation);
+      return new ExternalDependency(parent, configurationName, notation);
     }
     return null;
   }
 
   @Nullable
-  static ExternalDependencyModel withMapNotation(@NotNull DependenciesModel parent,
+  static ExternalDependency withMapNotation(@NotNull Dependencies parent,
                                                  @NotNull String configurationName,
                                                  @NotNull GrNamedArgument[] namedArguments) {
     Notation notation = MapNotation.parse(namedArguments);
     if (notation != null) {
-      return new ExternalDependencyModel(parent, configurationName, notation);
+      return new ExternalDependency(parent, configurationName, notation);
     }
     return null;
   }
 
-  private ExternalDependencyModel(@NotNull DependenciesModel parent, @NotNull String configurationName, @NotNull Notation notation) {
+  private ExternalDependency(@NotNull Dependencies parent, @NotNull String configurationName, @NotNull Notation notation) {
     super(parent, configurationName);
     myNotation = notation;
   }

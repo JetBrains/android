@@ -108,7 +108,7 @@ abstract class AbstractGradleDependencyFix extends AbstractGradleAwareFix {
     if (buildModel == null) {
       return;
     }
-    buildModel.getDependenciesModel().add(newDependency);
+    buildModel.getDependencies().add(newDependency);
     GradleSyncListener listener = new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
