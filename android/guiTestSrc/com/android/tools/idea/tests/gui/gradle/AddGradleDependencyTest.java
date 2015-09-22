@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyModelTest.ExpectedExternalDependency;
-import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModelTest.ExpectedModuleDependency;
+import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyTest.ExpectedExternalDependency;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -99,7 +99,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
     GradleBuildModelFixture library3BuildModel = myProjectFrame.parseBuildFileForModule("library3", false);
     ExpectedExternalDependency guava = new ExpectedExternalDependency(COMPILE, "com.google.guava", "guava", "18.0");
-    library3BuildModel.getTarget().getDependenciesModel().add(guava);
+    library3BuildModel.getTarget().getDependencies().add(guava);
     library3BuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -126,7 +126,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
     ExpectedExternalDependency guava = new ExpectedExternalDependency(COMPILE, "com.google.guava", "guava", "18.0");
-    appBuildModel.getTarget().getDependenciesModel().add(guava);
+    appBuildModel.getTarget().getDependencies().add(guava);
     appBuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 

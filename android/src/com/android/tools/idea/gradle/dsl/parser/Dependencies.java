@@ -42,25 +42,25 @@ import static com.android.tools.idea.gradle.dsl.parser.PsiElements.findClosableB
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.psi.util.PsiTreeUtil.*;
 
-public class DependenciesModel extends GradleDslModel {
+public class Dependencies extends GradleDslElement {
   @Nullable private PsiFile myPsiFile;
   @Nullable private GrClosableBlock myPsiElement;
 
-  @NotNull private final List<ExternalDependencyModel> myExternalDependencies = Lists.newArrayList();
-  @NotNull private final List<ModuleDependencyModel> myModuleDependencies = Lists.newArrayList();
+  @NotNull private final List<ExternalDependency> myExternal = Lists.newArrayList();
+  @NotNull private final List<ModuleDependency> myToModules = Lists.newArrayList();
 
   @NotNull private final Set<NewExternalDependency> myNewExternalDependencies = Sets.newLinkedHashSet();
 
-  DependenciesModel(@NotNull GradleDslModel parent) {
+  Dependencies(@NotNull GradleDslElement parent) {
     super(parent);
   }
 
   @Override
   protected void apply() {
-    for (ExternalDependencyModel dependency : myExternalDependencies) {
+    for (ExternalDependency dependency : myExternal) {
       dependency.applyChanges();
     }
-    for (ModuleDependencyModel dependency : myModuleDependencies) {
+    for (ModuleDependency dependency : myToModules) {
       dependency.applyChanges();
     }
     applyNewExternalDependencies();
@@ -102,13 +102,13 @@ public class DependenciesModel extends GradleDslModel {
   }
 
   @NotNull
-  public ImmutableList<ExternalDependencyModel> getExternalDependencies() {
-    return ImmutableList.copyOf(myExternalDependencies);
+  public ImmutableList<ExternalDependency> getExternal() {
+    return ImmutableList.copyOf(myExternal);
   }
 
   @NotNull
-  public ImmutableList<ModuleDependencyModel> getModuleDependencies() {
-    return ImmutableList.copyOf(myModuleDependencies);
+  public ImmutableList<ModuleDependency> getToModules() {
+    return ImmutableList.copyOf(myToModules);
   }
 
   public void add(@NotNull NewExternalDependency dependency) {
@@ -163,9 +163,9 @@ public class DependenciesModel extends GradleDslModel {
       }
       GrNamedArgument[] namedArgs = listOrMap.getNamedArguments();
       if (namedArgs.length > 0) {
-        ExternalDependencyModel dependency = ExternalDependencyModel.withMapNotation(this, configurationName, namedArgs);
+        ExternalDependency dependency = ExternalDependency.withMapNotation(this, configurationName, namedArgs);
         if (dependency != null) {
-          myExternalDependencies.add(dependency);
+          myExternal.add(dependency);
         }
       }
     }
@@ -199,9 +199,9 @@ public class DependenciesModel extends GradleDslModel {
       for (GroovyPsiElement argument : arguments) {
         if (argument instanceof GrLiteral) {
           GrLiteral literal = (GrLiteral)argument;
-          ExternalDependencyModel dependency = ExternalDependencyModel.withCompactNotation(this, configurationName, literal);
+          ExternalDependency dependency = ExternalDependency.withCompactNotation(this, configurationName, literal);
           if (dependency != null) {
-            myExternalDependencies.add(dependency);
+            myExternal.add(dependency);
           }
         }
       }
@@ -220,9 +220,9 @@ public class DependenciesModel extends GradleDslModel {
         return;
       }
       GrNamedArgument[] namedArgumentArray = namedArguments.toArray(new GrNamedArgument[namedArguments.size()]);
-      ExternalDependencyModel dependency = ExternalDependencyModel.withMapNotation(this, configurationName, namedArgumentArray);
+      ExternalDependency dependency = ExternalDependency.withMapNotation(this, configurationName, namedArgumentArray);
       if (dependency != null) {
-        myExternalDependencies.add(dependency);
+        myExternal.add(dependency);
       }
       return;
 
@@ -245,15 +245,15 @@ public class DependenciesModel extends GradleDslModel {
     GrArgumentList argumentList = expression.getArgumentList();
     GroovyPsiElement[] arguments = argumentList.getAllArguments();
     if (arguments.length == 1 && arguments[0] instanceof GrLiteral) {
-      ModuleDependencyModel moduleDependency = ModuleDependencyModel.withCompactNotation(this, configurationName, (GrLiteral)arguments[0]);
+      ModuleDependency moduleDependency = ModuleDependency.withCompactNotation(this, configurationName, (GrLiteral)arguments[0]);
       if (moduleDependency != null) {
-        myModuleDependencies.add(moduleDependency);
+        myToModules.add(moduleDependency);
       }
       return;
     }
-    ModuleDependencyModel moduleDependency = ModuleDependencyModel.withMapNotation(this, configurationName, argumentList);
+    ModuleDependency moduleDependency = ModuleDependency.withMapNotation(this, configurationName, argumentList);
     if (moduleDependency != null) {
-      myModuleDependencies.add(moduleDependency);
+      myToModules.add(moduleDependency);
     }
   }
 

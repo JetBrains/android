@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
-import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyModel.CompactNotation;
-import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyModel.DependencySpec;
+import com.android.tools.idea.gradle.dsl.parser.ExternalDependency.CompactNotation;
+import com.android.tools.idea.gradle.dsl.parser.ExternalDependency.DependencySpec;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
@@ -29,7 +29,7 @@ import java.util.Collection;
 import static org.junit.Assert.*;
 
 /**
- * Tests for {@link ExternalDependencyModel.CompactNotation}.
+ * Tests for {@link ExternalDependency.CompactNotation}.
  */
 @RunWith(Parameterized.class)
 public class CompactNotationTest {
