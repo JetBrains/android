@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModel;
-import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModelTest.ExpectedProjectDependency;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModelTest.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -39,12 +39,12 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
   public void testParsingProjectDependencies() throws IOException {
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
-    GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
+    GradleBuildModelFixture buildModel = projectFrame.parseBuildFileForModule("app", true);
 
     List<ModuleDependencyModel> dependencies = buildModel.getTarget().getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(4);
 
-    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":androidlib1";
     expected.configuration = "flavor1Release";
@@ -74,7 +74,7 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
   public void testRenameProjectDependency() throws IOException {
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
-    GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
+    GradleBuildModelFixture buildModel = projectFrame.parseBuildFileForModule("app", true);
 
     List<ModuleDependencyModel> dependencies = buildModel.getTarget().getDependenciesModel().getModuleDependencies();
     ModuleDependencyModel dependency = dependencies.get(0);
@@ -85,7 +85,7 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
     dependencies = buildModel.getTarget().getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(4);
 
-    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":renamed";
     expected.configuration = "flavor1Release";
