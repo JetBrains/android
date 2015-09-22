@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.text.Document;
 import java.util.Set;
 
 import static com.android.tools.idea.npw.ConfigureAndroidProjectStep.PACKAGE_NAME_DERIVER;
@@ -61,8 +60,8 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     CreateModuleTemplate template = getFormfactorModuleTemplate();
     assert template != null;
     register(FormFactorUtils.getModuleNameKey(template.getFormFactor()), myModuleName);
-    mySdkControls.init(template.getFormFactor(), template.getMetadata().getMinSdk());
-    mySdkControls.register(this);
+    mySdkControls.init(template.getFormFactor(), template.getMetadata().getMinSdk(), null, null, null);
+    mySdkControls.registerWith(this);
 
     register(WizardConstants.APPLICATION_NAME_KEY, myAppName);
     register(WizardConstants.PACKAGE_NAME_KEY, myPackageName);
