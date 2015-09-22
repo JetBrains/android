@@ -255,13 +255,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    boolean debug = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId());
-    boolean nonDebuggableOnDevice = false;
-
-    if (debug) {
-      Boolean isDebuggable = AndroidModuleInfo.get(facet).isDebuggable();
-      nonDebuggableOnDevice = isDebuggable != null && !isDebuggable;
-
+    if (executor instanceof DefaultDebugExecutor) {
       if (!AndroidSdkUtils.activateDdmsIfNecessary(facet.getModule().getProject())) {
         return null;
       }
@@ -299,8 +293,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
-    return new AndroidRunningState(env, facet, getApkProvider(), deviceTarget, printer, getApplicationLauncher(facet), CLEAR_LOGCAT, this,
-                                   nonDebuggableOnDevice);
+    return new AndroidRunningState(env, facet, getApkProvider(), deviceTarget, printer, getApplicationLauncher(facet), CLEAR_LOGCAT, this);
   }
 
   @Nullable
