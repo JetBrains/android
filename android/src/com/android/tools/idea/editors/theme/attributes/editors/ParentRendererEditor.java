@@ -39,7 +39,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -56,7 +55,7 @@ import java.util.List;
  * Uses a dropdown to offer the choice between Material Dark, Material Light or Other.
  * Deals with Other through a separate dialog window.
  */
-public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, String> implements TableCellRenderer {
+public class ParentRendererEditor extends TypedCellRendererEditor<ThemeEditorStyle, String> {
   private static final Logger LOG = Logger.getInstance(ParentRendererEditor.class);
 
   private static final String NO_PARENT = "[no parent]";
@@ -193,9 +192,9 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
   }
 
   @Override
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+  public Component getRendererComponent(JTable table, ThemeEditorStyle value, boolean isSelected, boolean hasFocus, int row, int column) {
     final TableModel model = table.getModel();
-    final ThemeEditorStyle parent = ((ThemeEditorStyle)value).getParent();
+    final ThemeEditorStyle parent = value.getParent();
 
     myParentComboBox.setEnabled(model.isCellEditable(row, column));
 
@@ -206,7 +205,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
     else {
       ImmutableList<String> defaultThemeNames = ThemeEditorUtils.getDefaultThemeNames(myContext.getThemeResolver());
       myParentComboBox.setModel(new ParentThemesListModel(defaultThemeNames, parent.getQualifiedName()));
-      myItem = (ThemeEditorStyle)value;
+      myItem = value;
     }
     updateVariantsCombo();
 
