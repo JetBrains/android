@@ -549,6 +549,8 @@ public class ThemeEditorUtils {
    * @param toBeCopied theme to be copied
    */
   public static void copyTheme(int apiLevel, @NotNull final XmlTag toBeCopied) {
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
+
     PsiFile file = toBeCopied.getContainingFile();
     assert file instanceof XmlFile : file;
     ResourceFolderType folderType = ResourceHelper.getFolderType(file);
