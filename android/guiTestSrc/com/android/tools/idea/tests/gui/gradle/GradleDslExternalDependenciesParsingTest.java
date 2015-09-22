@@ -28,6 +28,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.parser.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -38,45 +39,30 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
   public void testParseExternalDependenciesWithCompactNotation() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
 
-    GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
+    GradleBuildModelFixture buildModel = projectFrame.parseBuildFileForModule("app", true);
 
     List<ExternalDependencyModel> dependencies = buildModel.getTarget().getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency();
-    expected.configurationName = "compile";
-    expected.group = "com.android.support";
-    expected.name = "appcompat-v7";
-    expected.version = "22.1.1";
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
     expected.assertMatches(dependencies.get(0));
 
-    expected.reset();
-
-    expected.configurationName = "compile";
-    expected.group = "com.google.guava";
-    expected.name = "guava";
-    expected.version = "18.0";
+    expected = new ExpectedExternalDependency(COMPILE, "com.google.guava", "guava", "18.0");
     expected.assertMatches(dependencies.get(1));
   }
 
   @Test @IdeGuiTest
   public void testSetVersionOnExternalDependencyWithCompactNotation() throws IOException {
     final IdeFrameFixture projectFrame = importSimpleApplication();
-    final GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
+    final GradleBuildModelFixture buildModel = projectFrame.parseBuildFileForModule("app", true);
 
     List<ExternalDependencyModel> dependencies = buildModel.getTarget().getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
     final ExternalDependencyModel appCompat = dependencies.get(0);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency();
-    expected.configurationName = "compile";
-    expected.group = "com.android.support";
-    expected.name = "appcompat-v7";
-    expected.version = "22.1.1";
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
     expected.assertMatches(appCompat);
-
-    expected.reset();
 
     appCompat.setVersion("1.2.3");
     buildModel.applyChanges();
