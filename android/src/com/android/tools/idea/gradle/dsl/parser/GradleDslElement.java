@@ -15,9 +15,34 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
-/**
- * @deprecated Use {@link GradleDslModel} instead.
- */
-@Deprecated
-public interface GradleDslElement {
+import com.intellij.openapi.application.ApplicationManager;
+import org.jetbrains.annotations.Nullable;
+
+public abstract class GradleDslElement {
+  @Nullable protected final GradleDslElement myParent;
+
+  private volatile boolean myModified;
+
+  protected GradleDslElement(@Nullable GradleDslElement parent) {
+    myParent = parent;
+  }
+
+  protected void setModified(boolean modified) {
+    myModified = modified;
+    if (myParent != null && modified) {
+      myParent.setModified(true);
+    }
+  }
+
+  public boolean isModified() {
+    return myModified;
+  }
+
+  public final void applyChanges() {
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
+    apply();
+    setModified(false);
+  }
+
+  protected abstract void apply();
 }

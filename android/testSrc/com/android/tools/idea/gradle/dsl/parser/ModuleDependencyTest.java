@@ -24,9 +24,9 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Tests for {@link ModuleDependencyModel}.
+ * Tests for {@link ModuleDependency}.
  */
-public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
+public class ModuleDependencyTest extends GradleBuildModelParserTestCase {
   public void testParsingWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(':javalib1')\n" +
@@ -35,7 +35,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    List<ModuleDependency> dependencies = buildModel.getDependencies().getToModules();
     assertThat(dependencies).hasSize(1);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
@@ -52,10 +52,10 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    List<ModuleDependency> dependencies = buildModel.getDependencies().getToModules();
     assertThat(dependencies).hasSize(1);
 
-    ModuleDependencyModel actual = dependencies.get(0);
+    ModuleDependency actual = dependencies.get(0);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
@@ -76,7 +76,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    List<ModuleDependency> dependencies = buildModel.getDependencies().getToModules();
     assertThat(dependencies).hasSize(3);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
@@ -107,8 +107,8 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
 
     final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
-    ModuleDependencyModel dependency = dependencies.get(0);
+    List<ModuleDependency> dependencies = buildModel.getDependencies().getToModules();
+    ModuleDependency dependency = dependencies.get(0);
     dependency.setName("newName");
 
     assertTrue(buildModel.isModified());
@@ -122,7 +122,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
 
     assertFalse(buildModel.isModified());
 
-    dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    dependencies = buildModel.getDependencies().getToModules();
     assertThat(dependencies).hasSize(1);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
@@ -140,8 +140,8 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
 
     final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
-    ModuleDependencyModel dependency = dependencies.get(0);
+    List<ModuleDependency> dependencies = buildModel.getDependencies().getToModules();
+    ModuleDependency dependency = dependencies.get(0);
     dependency.setName("newName");
 
     assertTrue(buildModel.isModified());
@@ -155,7 +155,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
 
     assertFalse(buildModel.isModified());
 
-    dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    dependencies = buildModel.getDependencies().getToModules();
     assertThat(dependencies).hasSize(1);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
@@ -174,8 +174,8 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
 
     final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
-    ModuleDependencyModel dependency = dependencies.get(0);
+    List<ModuleDependency> dependencies = buildModel.getDependencies().getToModules();
+    ModuleDependency dependency = dependencies.get(0);
     dependency.setName("newName");
 
     assertTrue(buildModel.isModified());
@@ -189,7 +189,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
 
     assertFalse(buildModel.isModified());
 
-    dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    dependencies = buildModel.getDependencies().getToModules();
     assertThat(dependencies).hasSize(1);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
@@ -207,8 +207,8 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
 
     final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
-    ModuleDependencyModel dependency = dependencies.get(0);
+    List<ModuleDependency> dependencies = buildModel.getDependencies().getToModules();
+    ModuleDependency dependency = dependencies.get(0);
     dependency.setName("helloWorld");
 
     assertTrue(buildModel.isModified());
@@ -222,10 +222,10 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
 
     assertFalse(buildModel.isModified());
 
-    dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    dependencies = buildModel.getDependencies().getToModules();
     assertThat(dependencies).hasSize(1);
 
-    ModuleDependencyModel actual = dependencies.get(0);
+    ModuleDependency actual = dependencies.get(0);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
@@ -240,7 +240,7 @@ public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
     public String path;
     public String configuration;
 
-    public void assertMatches(@NotNull ModuleDependencyModel actual) {
+    public void assertMatches(@NotNull ModuleDependency actual) {
       assertEquals("configurationName", configurationName, actual.getConfigurationName());
       assertEquals("path", path, actual.getPath());
       assertEquals("configuration", configuration, actual.getTargetConfiguration());
