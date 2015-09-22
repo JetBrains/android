@@ -49,6 +49,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.Balloon;
+import com.intellij.openapi.ui.popup.BalloonBuilder;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
@@ -112,7 +113,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
 
   /** Build resources changes with Gradle rather than IDE hooks? */
   @SuppressWarnings("SimplifiableConditionalExpression")
-  public static final boolean REBUILD_RESOURCES_WITH_GRADLE = System.getProperty("fd.resources") != null ? Boolean.getBoolean("fd.resources") : false;
+  public static final boolean REBUILD_RESOURCES_WITH_GRADLE = System.getProperty("fd.resources") != null ? Boolean.getBoolean("fd.resources") : true;
 
   /** Local port on the desktop machine that we tunnel to the Android device via */
   public static final int STUDIO_PORT = 8888;
@@ -460,6 +461,20 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     return null;
   }
 
+  @Nullable
+  private static File findResourceArscFolder(@NotNull AndroidFacet facet) {
+    File intermediates = findIntermediatesFolder(facet);
+    if (intermediates != null) {
+      String variantName = getVariantName(facet);
+      File resourceClassFolder = new File(intermediates, "res" + File.separator + "resources-" + variantName + ".ap_");
+      if (resourceClassFolder.exists()) {
+        return resourceClassFolder;
+      }
+    }
+
+    return null;
+  }
+
   // TODO: This should be provided as part of the model!
   @NotNull
   private static String getIncrementalDexTask(@NotNull AndroidGradleModel model) {
@@ -497,13 +512,15 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
                           Collection<VirtualFile> files) {
     List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(4);
 
+    File arsc = findResourceArscFolder(facet);
+    long arscBefore = arsc != null ? arsc.lastModified() : 0L;
     if (REBUILD_CODE_WITH_GRADLE) {
       gatherGradleCodeChanges(model, changes);
     } else {
       computeCodeChangesDirectly(model, changes, facet, files);
     }
     if (REBUILD_RESOURCES_WITH_GRADLE) {
-      gatherGradleResourceChanges(model, facet, changes);
+      gatherGradleResourceChanges(model, facet, changes, arscBefore);
     } else {
       computeResourceChangesDirectly(facet, files, changes);
     }
@@ -513,9 +530,20 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
 
   @SuppressWarnings({"MethodMayBeStatic", "UnusedParameters"}) // won't be as soon as it really calls Gradle
   private void gatherGradleResourceChanges(AndroidGradleModel model, AndroidFacet facet,
-                                           List<ApplicationPatch> changes) {
+                                           List<ApplicationPatch> changes, long arscBefore) {
     assert REBUILD_RESOURCES_WITH_GRADLE;
-    throw new UnsupportedOperationException("Not yet implemented");
+
+    File arsc = findResourceArscFolder(facet);
+    if (arsc != null && arsc.lastModified() > arscBefore) {
+      String path = RESOURCE_FILE_NAME;
+      try {
+        byte[] bytes = Files.toByteArray(arsc);
+        changes.add(new ApplicationPatch(path, bytes));
+      }
+      catch (IOException e) {
+        LOG.warn("Couldn't read resource file file " + arsc);
+      }
+    }
   }
 
   private void computeResourceChangesDirectly(AndroidFacet facet, Collection<VirtualFile> files, List<ApplicationPatch> changes) {
@@ -1107,20 +1135,30 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     return "debug";
   }
 
-  private void postBalloon(MessageType type, String message) {
-    JFrame frame = WindowManager.getInstance().getFrame(myProject.isDefault() ? null : myProject);
-    if (frame != null) {
-      JComponent component = frame.getRootPane();
-      if (component != null) {
-        Rectangle rect = component.getVisibleRect();
-        Point p = new Point(rect.x + rect.width - 10, rect.y + 10);
-        RelativePoint point = new RelativePoint(component, p);
-        JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(
-          message,
-          type.getDefaultIcon(),
-          type.getPopupBackground(), null).setShowCallout(false).setCloseButtonEnabled(true).createBalloon().show(point, Balloon.Position.atLeft);
+  private void postBalloon(final MessageType type, final String message) {
+    postBalloon(type, message, myProject);
+  }
+
+  private static void postBalloon(final MessageType type, final String message, final Project project) {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        JFrame frame = WindowManager.getInstance().getFrame(project.isDefault() ? null : project);
+        if (frame != null) {
+          JComponent component = frame.getRootPane();
+          if (component != null) {
+            Rectangle rect = component.getVisibleRect();
+            Point p = new Point(rect.x + rect.width - 10, rect.y + 10);
+            RelativePoint point = new RelativePoint(component, p);
+            BalloonBuilder builder =
+              JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(message, type.getDefaultIcon(), type.getPopupBackground(), null);
+            builder.setShowCallout(false);
+            builder.setCloseButtonEnabled(true);
+            builder.createBalloon().show(point, Balloon.Position.atLeft);
+          }
+        }
       }
-    }
+    });
   }
 
   // Based on NodeUtils#duplicateNode, but that code is package private and not complete (it doesn
@@ -1186,6 +1224,9 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
 
   private void push(@NotNull Project project, @NotNull List<ApplicationPatch> changes, boolean forceRestart) {
     if (changes.isEmpty()) {
+      if (DISPLAY_STATISTICS) {
+        postBalloon(MessageType.INFO, "Instant Run: No Changes", project);
+      }
       return;
     }
 
@@ -1330,27 +1371,6 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
   public static void notifyEnd(Project project) {
     long end = System.currentTimeMillis();
     final String message = "Instant Run: " + (end - ourBeginTime) + "ms";
-    JFrame frame = WindowManager.getInstance().getFrame(project.isDefault() ? null : project);
-    if (frame == null) {
-      return;
-    }
-    final JComponent component = frame.getRootPane();
-    if (component == null) {
-      LOG.info(message);
-      return;
-    }
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        Rectangle rect = component.getVisibleRect();
-        Point p = new Point(rect.x + rect.width - 10, rect.y + 10);
-        RelativePoint point = new RelativePoint(component, p);
-        JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(message,
-                                                                  MessageType.WARNING.getDefaultIcon(),
-                                                                  MessageType.WARNING.getPopupBackground(), null)
-          .setShowCallout(false).setCloseButtonEnabled(true)
-          .createBalloon().show(point, Balloon.Position.atLeft);
-      }
-    });
+    postBalloon(MessageType.INFO, message, project);
   }
 }
