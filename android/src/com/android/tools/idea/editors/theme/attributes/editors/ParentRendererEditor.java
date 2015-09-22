@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
 import com.android.tools.idea.editors.theme.ParentThemesListModel;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
@@ -152,7 +151,6 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
     final String notSelectedVariantColor = ColorUtil.toHex(ThemeEditorConstants.NOT_SELECTED_VARIANT_COLOR);
     final ArrayList<VariantsComboItem> variants = Lists.newArrayListWithCapacity(allParents.size());
 
-    ConfigurationManager manager = myContext.getConfiguration().getConfigurationManager();
     ThemeEditorStyle currentParent = myItem.getParent(myContext.getThemeResolver());
 
     ConfiguredElement<String> selectedElement = null;
