@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyElement;
-import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyElementTest.ExpectedProjectDependency;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModelTest.ExpectedProjectDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
-import com.intellij.openapi.command.WriteCommandAction;
-import org.fest.swing.edt.GuiTask;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -32,8 +30,6 @@ import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.assertNotNull;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
@@ -45,7 +41,7 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
 
     GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
 
-    List<ModuleDependencyElement> dependencies = buildModel.getTarget().getDependenciesModel().getModuleDependencies();
+    List<ModuleDependencyModel> dependencies = buildModel.getTarget().getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(4);
 
     ExpectedProjectDependency expected = new ExpectedProjectDependency();
@@ -76,26 +72,15 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testRenameProjectDependency() throws IOException {
-    final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
-    final GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
+    GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
 
-    List<ModuleDependencyElement> dependencies = buildModel.getTarget().getDependenciesModel().getModuleDependencies();
+    List<ModuleDependencyModel> dependencies = buildModel.getTarget().getDependenciesModel().getModuleDependencies();
+    ModuleDependencyModel dependency = dependencies.get(0);
+    dependency.setName("renamed");
 
-    final ModuleDependencyElement dependency = dependencies.get(0);
-    assertNotNull(dependency);
-
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        WriteCommandAction.runWriteCommandAction(projectFrame.getProject(), new Runnable() {
-          @Override
-          public void run() {
-            dependency.setName("renamed");
-          }
-        });
-      }
-    });
+    buildModel.applyChanges();
 
     dependencies = buildModel.getTarget().getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(4);

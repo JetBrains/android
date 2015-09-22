@@ -50,7 +50,7 @@ public class AddGradleJetbrainsAnnotationFix extends AbstractGradleDependencyFix
     runWriteCommandActionAndSync(project, new Runnable() {
       @Override
       public void run() {
-        addDependency(myModule, configurationName, "org.jetbrains:annotations:13.0");
+        addExternalDependency(myModule, configurationName, "org.jetbrains:annotations:13.0");
       }
     }, new Computable<PsiClass[]>() {
       @Override

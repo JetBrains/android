@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.refactoring;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyElement;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModel;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.google.common.collect.Lists;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -45,6 +46,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.parser.GradleSettingsFile.getModuleGradlePath;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -122,17 +124,33 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
         return true;
       }
 
+      String oldModuleGradlePath = getModuleGradlePath(myModule);
+      if (oldModuleGradlePath == null) {
+        return true;
+      }
+
+      // Rename all references in build.gradle
+      final List<GradleBuildModel> modifiedBuildModels = Lists.newArrayList();
+      for (Module module : ModuleManager.getInstance(project).getModules()) {
+        GradleBuildModel buildModel = GradleBuildModel.get(module);
+        if (buildModel != null) {
+          for (ModuleDependencyModel dependency : buildModel.getDependenciesModel().getModuleDependencies()) {
+            if (oldModuleGradlePath.equals(dependency.getPath())) {
+              dependency.setName(inputString);
+            }
+          }
+          if (buildModel.isModified()) {
+            modifiedBuildModels.add(buildModel);
+          }
+        }
+      }
+
       WriteCommandAction<Boolean> action =
         new WriteCommandAction<Boolean>(project, IdeBundle.message("command.renaming.module", myModule.getName()),
                                         settingsFile.getPsiFile()) {
           @Override
           protected void run(@NotNull Result<Boolean> result) throws Throwable {
             result.setResult(true);
-
-            String oldModuleGradlePath = getModuleGradlePath(myModule);
-            if (oldModuleGradlePath == null) {
-              return;
-            }
 
             GrLiteral moduleReference = settingsFile.findModuleReference(myModule);
             if (moduleReference == null) {
@@ -155,15 +173,8 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             moduleReference.updateText(moduleReference.getText().replace(myModule.getName(), inputString));
 
             // Rename all references in build.gradle
-            for (Module module : ModuleManager.getInstance(project).getModules()) {
-              GradleBuildModel buildModel = GradleBuildModel.get(module);
-              if (buildModel != null) {
-                for (ModuleDependencyElement dependency : buildModel.getDependenciesModel().getModuleDependencies()) {
-                  if (oldModuleGradlePath.equals(dependency.getPath())) {
-                    dependency.setName(inputString);
-                  }
-                }
-              }
+            for (GradleBuildModel buildModel : modifiedBuildModels) {
+              buildModel.applyChanges();
             }
 
             UndoManager.getInstance(project).undoableActionPerformed(new BasicUndoableAction() {

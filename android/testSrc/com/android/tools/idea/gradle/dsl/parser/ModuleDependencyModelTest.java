@@ -24,9 +24,9 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Tests for {@link ModuleDependencyElement}.
+ * Tests for {@link ModuleDependencyModel}.
  */
-public class ModuleDependencyElementTest extends DslElementParserTestCase {
+public class ModuleDependencyModelTest extends GradleBuildModelParserTestCase {
   public void testParsingWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(':javalib1')\n" +
@@ -35,7 +35,7 @@ public class ModuleDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyElement> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(1);
 
     ExpectedProjectDependency expected = new ExpectedProjectDependency();
@@ -52,10 +52,10 @@ public class ModuleDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyElement> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(1);
 
-    ModuleDependencyElement actual = dependencies.get(0);
+    ModuleDependencyModel actual = dependencies.get(0);
 
     ExpectedProjectDependency expected = new ExpectedProjectDependency();
     expected.configurationName = "compile";
@@ -76,7 +76,7 @@ public class ModuleDependencyElementTest extends DslElementParserTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyElement> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(3);
 
     ExpectedProjectDependency expected = new ExpectedProjectDependency();
@@ -105,17 +105,22 @@ public class ModuleDependencyElementTest extends DslElementParserTestCase {
                   "}";
     writeToBuildFile(text);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
+    final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyElement> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
-    final ModuleDependencyElement dependency = dependencies.get(0);
+    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    ModuleDependencyModel dependency = dependencies.get(0);
+    dependency.setName("newName");
+
+    assertTrue(buildModel.isModified());
 
     runWriteCommandAction(myProject, new Runnable() {
       @Override
       public void run() {
-        dependency.setName("newName");
+        buildModel.applyChanges();
       }
     });
+
+    assertFalse(buildModel.isModified());
 
     dependencies = buildModel.getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(1);
@@ -133,17 +138,22 @@ public class ModuleDependencyElementTest extends DslElementParserTestCase {
 
     writeToBuildFile(text);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
+    final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyElement> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
-    final ModuleDependencyElement dependency = dependencies.get(0);
+    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    ModuleDependencyModel dependency = dependencies.get(0);
+    dependency.setName("newName");
+
+    assertTrue(buildModel.isModified());
 
     runWriteCommandAction(myProject, new Runnable() {
       @Override
       public void run() {
-        dependency.setName("newName");
+        buildModel.applyChanges();
       }
     });
+
+    assertFalse(buildModel.isModified());
 
     dependencies = buildModel.getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(1);
@@ -162,17 +172,22 @@ public class ModuleDependencyElementTest extends DslElementParserTestCase {
 
     writeToBuildFile(text);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
+    final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyElement> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
-    final ModuleDependencyElement dependency = dependencies.get(0);
+    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    ModuleDependencyModel dependency = dependencies.get(0);
+    dependency.setName("newName");
+
+    assertTrue(buildModel.isModified());
 
     runWriteCommandAction(myProject, new Runnable() {
       @Override
       public void run() {
-        dependency.setName("newName");
+        buildModel.applyChanges();
       }
     });
+
+    assertFalse(buildModel.isModified());
 
     dependencies = buildModel.getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(1);
@@ -190,22 +205,27 @@ public class ModuleDependencyElementTest extends DslElementParserTestCase {
 
     writeToBuildFile(text);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
+    final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyElement> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
-    final ModuleDependencyElement dependency = dependencies.get(0);
+    List<ModuleDependencyModel> dependencies = buildModel.getDependenciesModel().getModuleDependencies();
+    ModuleDependencyModel dependency = dependencies.get(0);
+    dependency.setName("helloWorld");
+
+    assertTrue(buildModel.isModified());
 
     runWriteCommandAction(myProject, new Runnable() {
       @Override
       public void run() {
-        dependency.setName("helloWorld");
+        buildModel.applyChanges();
       }
     });
+
+    assertFalse(buildModel.isModified());
 
     dependencies = buildModel.getDependenciesModel().getModuleDependencies();
     assertThat(dependencies).hasSize(1);
 
-    ModuleDependencyElement actual = dependencies.get(0);
+    ModuleDependencyModel actual = dependencies.get(0);
 
     ExpectedProjectDependency expected = new ExpectedProjectDependency();
     expected.configurationName = "compile";
@@ -220,7 +240,7 @@ public class ModuleDependencyElementTest extends DslElementParserTestCase {
     public String path;
     public String configuration;
 
-    public void assertMatches(@NotNull ModuleDependencyElement actual) {
+    public void assertMatches(@NotNull ModuleDependencyModel actual) {
       assertEquals("configurationName", configurationName, actual.getConfigurationName());
       assertEquals("path", path, actual.getPath());
       assertEquals("configuration", configuration, actual.getTargetConfiguration());

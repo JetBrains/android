@@ -56,7 +56,7 @@ public class AddGradleJUnitDependencyFix extends AbstractGradleDependencyFix {
       @Override
       public void run() {
         String dependency = myIsJunit4 ? "junit:junit:4.12" : "junit:junit:3.8.1";
-        addDependency(myModule, configurationName, dependency);
+        addExternalDependency(myModule, configurationName, dependency);
       }
     }, new Computable<PsiClass[]>() {
       @Override

@@ -27,7 +27,7 @@ import static com.intellij.openapi.util.io.FileUtil.ensureCanCreateFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.fest.assertions.Assertions.assertThat;
 
-public abstract class DslElementParserTestCase extends PlatformTestCase {
+public abstract class GradleBuildModelParserTestCase extends PlatformTestCase {
   protected File myBuildFile;
 
   @Override
