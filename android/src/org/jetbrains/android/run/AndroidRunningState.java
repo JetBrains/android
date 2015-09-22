@@ -88,8 +88,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -99,13 +97,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunningState");
 
   public static final int WAITING_TIME_SECS = 20;
-
-  private static final Pattern FAILURE = Pattern.compile("Failure\\s+\\[(.*)\\]");
-  private static final Pattern TYPED_ERROR = Pattern.compile("Error\\s+[Tt]ype\\s+(\\d+).*");
-  private static final String ERROR_PREFIX = "Error";
-
-  public static final int NO_ERROR = -2;
-  public static final int UNTYPED_ERROR = -1;
 
   private final ApkProvider myApkProvider;
 
@@ -126,7 +117,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
   private final ExecutionEnvironment myEnv;
 
-  private volatile boolean myStopped;
+  private final AtomicBoolean myStopped = new AtomicBoolean(false);
   private volatile ProcessHandler myProcessHandler;
   private final Object myLock = new Object();
 
@@ -188,6 +179,10 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   }
 
   public boolean isStopped() {
+    return myStopped.get();
+  }
+
+  public AtomicBoolean getStoppedRef() {
     return myStopped;
   }
 
@@ -230,43 +225,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   @Override
   public ConsoleView getConsoleView() {
     return myConsole;
-  }
-
-  public class MyReceiver extends AndroidOutputReceiver {
-    private int errorType = NO_ERROR;
-    private String failureMessage = null;
-    private final StringBuilder output = new StringBuilder();
-
-    @Override
-    protected void processNewLine(String line) {
-      if (line.length() > 0) {
-        Matcher failureMatcher = FAILURE.matcher(line);
-        if (failureMatcher.matches()) {
-          failureMessage = failureMatcher.group(1);
-        }
-        Matcher errorMatcher = TYPED_ERROR.matcher(line);
-        if (errorMatcher.matches()) {
-          errorType = Integer.parseInt(errorMatcher.group(1));
-        }
-        else if (line.startsWith(ERROR_PREFIX) && errorType == NO_ERROR) {
-          errorType = UNTYPED_ERROR;
-        }
-      }
-      output.append(line).append('\n');
-    }
-
-    public int getErrorType() {
-      return errorType;
-    }
-
-    @Override
-    public boolean isCancelled() {
-      return myStopped;
-    }
-
-    public StringBuilder getOutput() {
-      return output;
-    }
   }
 
   public void setDeploy(boolean deploy) {
@@ -379,7 +337,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
         for (ListenableFuture<IDevice> deviceFuture : myDeviceTarget.getDeviceFutures()) {
           deviceFuture.cancel(true);
         }
-        myStopped = true;
+        myStopped.set(true);
         synchronized (myLock) {
           myLock.notifyAll();
         }
@@ -406,7 +364,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
       Futures.addCallback(targetDevice, new FutureCallback<IDevice>() {
         @Override
         public void onSuccess(@Nullable IDevice device) {
-          if (myStopped || device == null) {
+          if (myStopped.get() || device == null) {
             return;
           }
           if (myDebugMode) {
@@ -423,20 +381,20 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
           if (prepareAndStartApp(device)) {
             if (startedCount.incrementAndGet() == myDeviceTarget.getDeviceFutures().size() && !myDebugMode) {
               // All the devices have been started, and we don't need to wait to attach the debugger. We're done.
-              myStopped = true;
+              myStopped.set(true);
               getProcessHandler().destroyProcess();
             }
           } else {
             // todo: check: it may be we don't need to assign it directly
             // TODO: Why stop completely for a problem potentially affecting only a single device?
-            myStopped = true;
+            myStopped.set(true);
             getProcessHandler().destroyProcess();
           }
         }
 
         @Override
         public void onFailure(@NotNull Throwable t) {
-          myStopped = true;
+          myStopped.set(true);
           getProcessHandler().destroyProcess();
         }
       });
@@ -677,7 +635,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   private boolean uploadAndInstallApk(@NotNull IDevice device, @NotNull String packageName, @NotNull File localFile)
     throws IOException, AdbCommandRejectedException, TimeoutException {
 
-    if (myStopped) return false;
+    if (myStopped.get()) return false;
     String remotePath = "/data/local/tmp/" + packageName;
     String exceptionMessage;
     String errorMessage;
@@ -759,7 +717,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   /** Attempts to force stop package running on given device. */
   private void forceStopPackageSilently(@NotNull IDevice device, @NotNull String packageName, boolean ignoreErrors) {
     try {
-      executeDeviceCommandAndWriteToConsole(device, "am force-stop " + packageName, new MyReceiver());
+      executeDeviceCommandAndWriteToConsole(device, "am force-stop " + packageName, new ErrorMatchingReceiver(myStopped));
     }
     catch (Exception e) {
       if (!ignoreErrors) {
@@ -783,10 +741,10 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
     InstallResult result = null;
     boolean retry = true;
-    while (!myStopped && retry) {
+    while (!myStopped.get() && retry) {
       result = installApp(device, remotePath);
       if (result.installOutput != null) {
-        if (result.failureCode == InstallFailureCode.NO_ERROR) {
+        if (result.failureCode == InstallResult.FailureCode.NO_ERROR) {
           myPrinter.stdout(result.installOutput);
         } else {
           myPrinter.stderr(result.installOutput);
@@ -846,7 +804,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
       }
     }
 
-    return result != null && result.failureCode == InstallFailureCode.NO_ERROR;
+    return result != null && result.failureCode == InstallResult.FailureCode.NO_ERROR;
   }
 
   private boolean uninstallPackage(@NotNull IDevice device, @NotNull String packageName) {
@@ -891,33 +849,10 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     });
   }
 
-  private enum InstallFailureCode {
-    NO_ERROR,
-    DEVICE_NOT_RESPONDING,
-    INCONSISTENT_CERTIFICATES,
-    INSTALL_FAILED_VERSION_DOWNGRADE,
-    INSTALL_FAILED_DEXOPT,
-    NO_CERTIFICATE,
-    INSTALL_FAILED_OLDER_SDK,
-    UNTYPED_ERROR
-  }
-
-  private static class InstallResult {
-    public final InstallFailureCode failureCode;
-    @Nullable public final String failureMessage;
-    @Nullable public final String installOutput;
-
-    public InstallResult(InstallFailureCode failureCode, @Nullable String failureMessage, @Nullable String installOutput) {
-      this.failureCode = failureCode;
-      this.failureMessage = failureMessage;
-      this.installOutput = installOutput;
-    }
-  }
-
   private InstallResult installApp(@NotNull IDevice device, @NotNull String remotePath)
     throws AdbCommandRejectedException, TimeoutException, IOException {
 
-    MyReceiver receiver = new MyReceiver();
+    ErrorMatchingReceiver receiver = new ErrorMatchingReceiver(myStopped);
     try {
       // Wipe any previous cached app data, if any
       FastDeployManager.wipeData(this, device, remotePath, receiver);
@@ -926,12 +861,10 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     }
     catch (ShellCommandUnresponsiveException e) {
       LOG.info(e);
-      return new InstallResult(InstallFailureCode.DEVICE_NOT_RESPONDING, null, null);
+      return new InstallResult(InstallResult.FailureCode.DEVICE_NOT_RESPONDING, null, null);
     }
 
-    return new InstallResult(getFailureCode(receiver),
-                             receiver.failureMessage,
-                             receiver.output.toString());
+    return InstallResult.forLaunchOutput(receiver);
   }
 
   private String validateSdkVersion(@NotNull IDevice device) {
@@ -975,26 +908,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
       });
     }
     return false;
-  }
-
-  private InstallFailureCode getFailureCode(MyReceiver receiver) {
-    if (receiver.errorType == NO_ERROR && receiver.failureMessage == null) {
-      return InstallFailureCode.NO_ERROR;
-    }
-
-    if ("INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES".equals(receiver.failureMessage)) {
-      return InstallFailureCode.INCONSISTENT_CERTIFICATES;
-    } else if ("INSTALL_PARSE_FAILED_NO_CERTIFICATES".equals(receiver.failureMessage)) {
-      return InstallFailureCode.NO_CERTIFICATE;
-    } else if ("INSTALL_FAILED_VERSION_DOWNGRADE".equals(receiver.failureMessage)) {
-      return InstallFailureCode.INSTALL_FAILED_VERSION_DOWNGRADE;
-    } else if ("INSTALL_FAILED_DEXOPT".equals(receiver.failureMessage)) {
-      return InstallFailureCode.INSTALL_FAILED_DEXOPT;
-    } else if ("INSTALL_FAILED_OLDER_SDK".equals(receiver.failureMessage)) {
-      return InstallFailureCode.INSTALL_FAILED_OLDER_SDK;
-    }
-
-    return InstallFailureCode.UNTYPED_ERROR;
   }
 
   public void addListener(@NotNull AndroidRunningStateListener listener) {
