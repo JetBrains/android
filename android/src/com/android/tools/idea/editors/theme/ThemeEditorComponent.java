@@ -77,7 +77,7 @@ import java.util.concurrent.TimeUnit;
 public class ThemeEditorComponent extends Splitter {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
 
-  private static final JBColor PREVIEW_BACKGROUND = new JBColor(new Color(0xFAFAFA), new Color(0x343739));
+  private static final JBColor PREVIEW_BACKGROUND = new JBColor(new Color(0xFFFFFF), new Color(0x343739));
   private static final DefaultTableModel EMPTY_TABLE_MODEL = new DefaultTableModel();
 
   private static final ImmutableMap<String, Integer> SORTING_MAP =
