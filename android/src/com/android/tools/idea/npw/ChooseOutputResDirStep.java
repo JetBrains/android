@@ -22,10 +22,12 @@ import com.android.tools.idea.ui.FileTreeCellRenderer;
 import com.android.tools.idea.ui.FileTreeModel;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -41,6 +43,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -87,21 +90,31 @@ public class ChooseOutputResDirStep extends TemplateWizardStep {
 
   public void init() {
     if (myTargetFile != null) {
+      VirtualFile target = myTargetFile;
+      if (!target.isDirectory()) {
+        // We're not interested in the source provider for an individual file (which may not be a source file).
+        target = target.getParent();
+      }
       AndroidFacet facet = AndroidFacet.getInstance(myModule);
       if (facet != null) {
-        Iterator<SourceProvider> sourceProvidersIter = IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFile, null).iterator();
+        Iterator<SourceProvider> sourceProvidersIter = IdeaSourceProvider.getSourceProvidersForFile(facet, target, null).iterator();
+        String path;
         if (sourceProvidersIter.hasNext()) {
           SourceProvider provider = sourceProvidersIter.next();
           File resDir = NewTemplateObjectWizard.findResDirectory(provider);
-          String path;
           if (resDir == null) {
             // No res dir exists, infer one
             path = provider.getManifestFile().getParent() + facet.getProperties().RES_FOLDER_RELATIVE_PATH;
-          } else {
+          }
+          else {
             path = resDir.getPath();
           }
-          myTemplateState.put(ATTR_OUTPUT_FOLDER, FileUtil.toSystemIndependentName(path));
         }
+        else {
+          // Somehow there wasn't a source provider available. Just get the default one from the facet.
+          path = VfsUtil.virtualToIoFile(facet.getPrimaryResourceDir()).getPath();
+        }
+        myTemplateState.put(ATTR_OUTPUT_FOLDER, FileUtil.toSystemIndependentName(path));
       }
     }
     setUpUiComponents();
@@ -133,7 +146,15 @@ public class ChooseOutputResDirStep extends TemplateWizardStep {
 
   private void setUpUiComponents() {
     // Populate the Module chooser list
-    myModuleArray = ModuleManager.getInstance(myProject).getModules();
+    List<Module> modules = Lists.newArrayList();
+    for (Module m : ModuleManager.getInstance(myProject).getModules()) {
+      if (AndroidFacet.getInstance(m) != null) {
+        modules.add(m);
+      }
+    }
+    myModuleArray = new Module[modules.size()];
+    modules.toArray(myModuleArray);
+
     populateComboBox(myModuleComboBox, myModuleArray);
     register(ATTR_TARGET_MODULE, myModuleComboBox);
     register(ATTR_TARGET_VARIANT, myVariantComboBox);
