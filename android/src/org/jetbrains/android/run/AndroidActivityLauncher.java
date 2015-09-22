@@ -102,7 +102,7 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
     final String activityPath = getLauncherActivityPath(state.getPackageName(), activityName);
     if (state.isStopped()) return LaunchResult.STOP;
     processHandler.notifyTextAvailable("Launching application: " + activityPath + ".\n", STDOUT);
-    AndroidRunningState.MyReceiver receiver = state.new MyReceiver();
+    ErrorMatchingReceiver receiver = new ErrorMatchingReceiver(state.getStoppedRef());
 
     while (true) {
       if (state.isStopped()) return LaunchResult.STOP;
@@ -115,6 +115,7 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
         LOG.info(e);
         deviceNotResponding = true;
       }
+      // TODO: What is error type 2?
       if (!deviceNotResponding && receiver.getErrorType() != 2) {
         break;
       }
@@ -126,10 +127,10 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
         catch (InterruptedException e) {
         }
       }
-      receiver = state.new MyReceiver();
+      receiver = new ErrorMatchingReceiver(state.getStoppedRef());
     }
 
-    boolean success = receiver.getErrorType() == AndroidRunningState.NO_ERROR;
+    boolean success = !receiver.hasError();
     if (success) {
       processHandler.notifyTextAvailable(receiver.getOutput().toString(), STDOUT);
       return LaunchResult.SUCCESS;
