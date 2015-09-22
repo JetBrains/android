@@ -60,7 +60,7 @@ public class StyleListCellRenderer extends ColoredListCellRenderer {
 
     String stringValue = (String)value;
 
-    if (ThemesListModel.isSpecialOption(stringValue)) {
+    if (ThemesListModel.isSpecialOption(stringValue) || ParentRendererEditor.NO_PARENT.equals(stringValue)) {
       append(stringValue, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
       return;
     }
