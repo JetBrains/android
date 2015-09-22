@@ -38,10 +38,10 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
-public class GradleBuildModel extends GradleDslModel {
+public class GradleBuildModel extends GradleDslElement {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
-  @NotNull private final DependenciesModel myDependenciesModel = new DependenciesModel(this);
+  @NotNull private final Dependencies myDependencies = new Dependencies(this);
 
   @NotNull private final Map<String, ExtPropertyElement> myExtraProperties = Maps.newLinkedHashMap();
 
@@ -53,7 +53,7 @@ public class GradleBuildModel extends GradleDslModel {
   /**
    * Extra DSL elements in addition to dependencies provided by extension, e.g. Java extension and Android extension.
    */
-  private final List<GradleDslElement> myExtendedDslElements = Lists.newArrayList();
+  private final List<OldGradleDslElement> myExtendedDslElements = Lists.newArrayList();
 
   @Nullable private GroovyFile myPsiFile;
 
@@ -74,7 +74,7 @@ public class GradleBuildModel extends GradleDslModel {
     this(null, file, project);
   }
 
-  private GradleBuildModel(@Nullable GradleDslModel parent, @NotNull VirtualFile file, @NotNull Project project) {
+  private GradleBuildModel(@Nullable GradleDslElement parent, @NotNull VirtualFile file, @NotNull Project project) {
     super(parent);
     myFile = file;
     myProject = project;
@@ -93,7 +93,7 @@ public class GradleBuildModel extends GradleDslModel {
       myPsiFile = (GroovyFile)psiFile;
     }
 
-    myDependenciesModel.setPsiFile(psiFile);
+    myDependencies.setPsiFile(psiFile);
     if (myPsiFile == null) {
       return;
     }
@@ -103,7 +103,7 @@ public class GradleBuildModel extends GradleDslModel {
     myPsiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
       @Override
       public void visitMethodCallExpression(GrMethodCallExpression e) {
-        if (myDependenciesModel.parse(e)) {
+        if (myDependencies.parse(e)) {
           return;
         }
         process(e);
@@ -130,8 +130,8 @@ public class GradleBuildModel extends GradleDslModel {
   }
 
   @NotNull
-  public DependenciesModel getDependenciesModel() {
-    return myDependenciesModel;
+  public Dependencies getDependencies() {
+    return myDependencies;
   }
 
   public void addExtProperty(@NotNull ExtPropertyElement extProperty) {
@@ -164,8 +164,8 @@ public class GradleBuildModel extends GradleDslModel {
    * @return the extension data
    */
   @Nullable
-  public <T extends GradleDslElement> T getExtendedDslElement(@NotNull Class<T> clazz) {
-    for (GradleDslElement element : myExtendedDslElements) {
+  public <T extends OldGradleDslElement> T getExtendedDslElement(@NotNull Class<T> clazz) {
+    for (OldGradleDslElement element : myExtendedDslElements) {
       if (element.getClass().equals(clazz)) {
         @SuppressWarnings("unchecked")
         T result = (T)element;
@@ -175,13 +175,13 @@ public class GradleBuildModel extends GradleDslModel {
     return null;
   }
 
-  public void addExtendedDslElement(@NotNull GradleDslElement element) {
+  public void addExtendedDslElement(@NotNull OldGradleDslElement element) {
     myExtendedDslElements.add(element);
   }
 
   @Override
   protected void apply() {
-    myDependenciesModel.applyChanges();
+    myDependencies.applyChanges();
   }
 
   @NotNull

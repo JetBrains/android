@@ -27,9 +27,9 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Tests for {@link ExternalDependencyModel}.
+ * Tests for {@link ExternalDependency}.
  */
-public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase {
+public class ExternalDependencyTest extends GradleBuildModelParserTestCase {
   public void testParsingWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
@@ -40,7 +40,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependency> dependencies = buildModel.getDependencies().getExternal();
     assertThat(dependencies).hasSize(3);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
@@ -63,7 +63,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependency> dependencies = buildModel.getDependencies().getExternal();
     assertThat(dependencies).hasSize(1);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency(RUNTIME, "org.gradle.test.classifiers", "service", "1.0");
@@ -80,7 +80,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
 
     final GradleBuildModel buildModel = getGradleBuildModel();
     NewExternalDependency newDependency = new NewExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
-    buildModel.getDependenciesModel().add(newDependency);
+    buildModel.getDependencies().add(newDependency);
 
     assertTrue(buildModel.isModified());
 
@@ -93,7 +93,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
 
     assertFalse(buildModel.isModified());
 
-    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependency> dependencies = buildModel.getDependencies().getExternal();
     assertThat(dependencies).hasSize(2);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency(RUNTIME, "org.gradle.test.classifiers", "service", "1.0");
@@ -110,7 +110,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
 
     final GradleBuildModel buildModel = getGradleBuildModel();
     NewExternalDependency newDependency = new NewExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
-    buildModel.getDependenciesModel().add(newDependency);
+    buildModel.getDependencies().add(newDependency);
 
     assertTrue(buildModel.isModified());
 
@@ -123,7 +123,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
 
     assertFalse(buildModel.isModified());
 
-    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependency> dependencies = buildModel.getDependencies().getExternal();
     assertThat(dependencies).hasSize(1);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
@@ -138,9 +138,9 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
 
     final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependency> dependencies = buildModel.getDependencies().getExternal();
 
-    ExternalDependencyModel appCompat = dependencies.get(0);
+    ExternalDependency appCompat = dependencies.get(0);
     appCompat.setVersion("1.2.3");
 
     assertTrue(buildModel.isModified());
@@ -153,7 +153,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
 
     assertFalse(buildModel.isModified());
 
-    dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    dependencies = buildModel.getDependencies().getExternal();
     assertThat(dependencies).hasSize(1);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "1.2.3");
@@ -168,9 +168,9 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
 
     final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependency> dependencies = buildModel.getDependencies().getExternal();
 
-    ExternalDependencyModel guice = dependencies.get(0);
+    ExternalDependency guice = dependencies.get(0);
     guice.setVersion("1.2.3");
 
     assertTrue(buildModel.isModified());
@@ -184,7 +184,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
 
     assertFalse(buildModel.isModified());
 
-    dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    dependencies = buildModel.getDependencies().getExternal();
     assertThat(dependencies).hasSize(1);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.google.code.guice", "guice", "1.2.3");
@@ -200,7 +200,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependency> dependencies = buildModel.getDependencies().getExternal();
     assertThat(dependencies).hasSize(2);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency(RUNTIME, "org.springframework", "spring-core", "2.5");
@@ -222,7 +222,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
+    List<ExternalDependency> dependencies = buildModel.getDependencies().getExternal();
     assertThat(dependencies).hasSize(2);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency(RUNTIME, "org.springframework", "spring-core", "2.5");
@@ -240,7 +240,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
       super(configurationName, group, name, version);
     }
 
-    public void assertMatches(@NotNull ExternalDependencyModel actual) {
+    public void assertMatches(@NotNull ExternalDependency actual) {
       assertEquals("configurationName", configurationName, actual.getConfigurationName());
       assertEquals("group", group, actual.getGroup());
       assertEquals("name", name, actual.getName());
@@ -249,7 +249,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
       assertEquals("extension", extension, actual.getExtension());
     }
 
-    public boolean matches(@NotNull ExternalDependencyModel model) {
+    public boolean matches(@NotNull ExternalDependency model) {
       return configurationName.equals(model.getConfigurationName()) &&
              group.equals(model.getGroup()) &&
              name.equals(model.getName()) &&
