@@ -38,6 +38,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import org.apache.commons.io.FileUtils;
+import org.fest.assertions.Index;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -175,7 +176,10 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     // With only one source set, this should be called just once.
     ThemeEditorUtils.acceptResourceResolverVisitor(myFacet, new ThemeEditorUtils.ResourceFolderVisitor() {
       @Override
-      public void visitResourceFolder(@NotNull LocalResourceRepository resources, String moduleName, @NotNull String variantName, boolean isSelected) {
+      public void visitResourceFolder(@NotNull LocalResourceRepository resources,
+                                      String moduleName,
+                                      @NotNull String variantName,
+                                      boolean isSelected) {
         assertEquals("main", variantName);
         visitedRepos.incrementAndGet();
       }
@@ -332,5 +336,15 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertEquals("Material Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("@style/Theme.Material.Light")));
     assertEquals("Theme Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme("@android:style/Theme")));
     assertEquals("Theme Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("@style/Theme.Light")));
+  }
+
+  public void testThemeNamesListOrder() {
+    myFixture.copyFileToProject("themeEditor/styles_alphabetical.xml", "res/values/styles.xml");
+    List<String> themeNames = ThemeEditorUtils.getModuleThemeQualifiedNamesList(myModule);
+    assertThat(themeNames).hasSize(4)
+      .contains("@style/aTheme", Index.atIndex(0))
+      .contains("@style/BTheme", Index.atIndex(1))
+      .contains("@style/cTheme", Index.atIndex(2))
+      .contains("@style/DTheme", Index.atIndex(3));
   }
 }
