@@ -22,17 +22,14 @@ import com.intellij.ui.components.JBTabbedPane;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTabbedPaneFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.android.uipreview.ColorPicker;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.JLabel;
 import javax.swing.text.JTextComponent;
-import java.awt.Color;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static org.fest.swing.timing.Pause.pause;
 
 public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourceDialog> {
   JTabbedPaneFixture myTabbedPane;
@@ -71,15 +68,8 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
     return error.getText();
   }
 
-  public ChooseResourceDialogFixture setColorWithIntegers(final Color color) {
-    myColorPicker.setColor(color);
-    pause(new Condition("Waiting for the color picker to update") {
-      @Override
-      public boolean test() {
-        return String.format("%08X", color.getRGB()).equals(myColorPicker.getHexField().text());
-      }
-    }, GuiTests.SHORT_TIMEOUT);
-    return this;
+  public ColorPickerFixture getColorPicker() {
+    return myColorPicker;
   }
 
   public void clickOK() {
