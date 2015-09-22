@@ -27,10 +27,10 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.progress.util.ProgressWindow;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.concurrency.Semaphore;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -146,7 +146,14 @@ public class SdkState {
       return true;
     }
 
-    ProgressManager.getInstance().run(myTask);
+    if (!sync && ProjectManager.getInstance().getOpenProjects().length == 0) {
+      // There are no open projects, so we don't have a status bar and thus BackgroundableProgressIndicator
+      // won't actually run in the background. Here we assume that there will be some custom progress
+      // indicator shown in the UI, and run with an empty progress indicator as a workaround.
+      ProgressManager.getInstance().runProcessWithProgressAsynchronously(myTask, new EmptyProgressIndicator());
+    } else {
+      ProgressManager.getInstance().run(myTask);
+    }
 
     return true;
   }
@@ -278,7 +285,6 @@ public class SdkState {
     private final List<Runnable> myOnErrors = Lists.newArrayList();
     private final List<SdkLoadedCallback> myOnLocalCompletes = Lists.newArrayList();
     private final boolean myForceRefresh;
-    private ProgressWindow myProgress;
 
     public LoadTask(boolean canBeCancelled,
                     @NonNull List<SdkLoadedCallback> onLocalComplete,
@@ -292,20 +298,11 @@ public class SdkState {
       myForceRefresh = forceRefresh;
     }
 
-    public void setProgress(ProgressWindow progress) {
-      assert myProgress == null;
-      myProgress = progress;
-    }
-
     public void addCallbacks(@NonNull List<SdkLoadedCallback> onLocalComplete, @NonNull List<SdkLoadedCallback> onSuccess,
                              @NonNull List<Runnable> onError) {
       myOnLocalCompletes.addAll(onLocalComplete);
       myOnSuccesses.addAll(onSuccess);
       myOnErrors.addAll(onError);
-    }
-
-    public ProgressWindow getProgress() {
-      return myProgress;
     }
 
     @Override
