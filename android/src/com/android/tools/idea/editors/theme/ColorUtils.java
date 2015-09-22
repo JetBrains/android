@@ -23,11 +23,11 @@ import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import java.awt.Color;
+import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.util.Collections;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
 
 public class ColorUtils {
 
@@ -61,7 +61,7 @@ public class ColorUtils {
    */
   @NotNull
   public static Set<String> getLowContrastColors(@NotNull ThemeEditorContext context, @NotNull EditedStyleItem item) {
-    ImmutableSet.Builder<String> builder = ImmutableSet.<String>builder();
+    ImmutableSet.Builder<String> builder = ImmutableSet.builder();
     ResourceResolver styleResourceResolver = context.getConfiguration().getResourceResolver();
     ThemeEditorStyle currentTheme = context.getCurrentTheme();
     Set<String> contrastColorSet = CONTRAST_MAP.get(item.getName());
