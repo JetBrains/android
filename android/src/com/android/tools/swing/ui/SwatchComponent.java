@@ -27,15 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Rectangle;
-import java.awt.Shape;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -144,7 +136,11 @@ public class SwatchComponent extends JComponent {
     }
 
     for (SwatchIcon icon : myIconList) {
-      if (iconsToPaint-- <= 0) {
+      if (iconsToPaint == 0) {
+        // Paint the overflow icon
+        icon = new TextIcon("+" + (nIcons - myMaxIcons), getFont());
+      }
+      else if (iconsToPaint < 0) {
         // Do not paint more icons
         break;
       }
@@ -156,23 +152,16 @@ public class SwatchComponent extends JComponent {
       g.setClip(savedClip);
       g.drawRoundRect(xOffset, PADDING, iconSize, iconSize, ARC_SIZE, ARC_SIZE);
       xOffset += iconSize + SWATCH_HORIZONTAL_ICONS_PADDING;
-    }
 
-    Rectangle textRectangle = new Rectangle();
-    // Should we paint the overflow icon?
-    if (myHasOverflowIcons) {
-      int overFlowIcons = nIcons - myMaxIcons;
-      g.setColor(JBColor.LIGHT_GRAY);
-      textRectangle.setBounds(xOffset, PADDING, iconSize, iconSize);
-      GraphicsUtil.drawCenteredString(g, textRectangle, "+" + overFlowIcons);
-      xOffset += iconSize + SWATCH_HORIZONTAL_ICONS_PADDING;
+      iconsToPaint--;
     }
 
     xOffset += SWATCH_HORIZONTAL_ICONS_PADDING * 2;
 
     // Text is centered vertically so we do not need to use TEXT_PADDING here, only in the preferred size.
-    textRectangle.setBounds(xOffset, 0, width - xOffset, height);
+    Rectangle textRectangle = new Rectangle(xOffset, 0, width - xOffset, height);
     g.setColor(getForeground());
+    g.setFont(getFont());
     GraphicsUtil.drawCenteredString(g, textRectangle, myText, false, true);
     g.dispose();
   }
@@ -235,6 +224,25 @@ public class SwatchComponent extends JComponent {
       Image image = myImageIcon.getImage();
       GraphicsUtil.paintCheckeredBackground(g, new Rectangle(x, y, w, h));
       g.drawImage(image, x, y, w, h, c);
+    }
+  }
+
+  public static class TextIcon implements SwatchIcon {
+    private final Font myFont;
+    private final String myText;
+
+    public TextIcon(String text, @NotNull Font font) {
+      myText = text;
+      myFont = font;
+    }
+
+    @Override
+    public void paint(@Nullable Component c, @NotNull Graphics g, int x, int y, int w, int h) {
+      g.setColor(JBColor.LIGHT_GRAY);
+      g.fillRect(x, y, w, h);
+      g.setColor(JBColor.DARK_GRAY);
+      g.setFont(myFont);
+      GraphicsUtil.drawCenteredString(g, new Rectangle(x, y, w, h), myText);
     }
   }
 
