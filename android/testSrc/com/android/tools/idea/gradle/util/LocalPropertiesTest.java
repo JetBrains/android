@@ -156,7 +156,12 @@ public class LocalPropertiesTest extends IdeaTestCase {
     // Next write properties using the UTF-8 encoding. Chars will no longer be escaped.
     // Confirm that we read these in properly too.
     Writer writer = new OutputStreamWriter(new FileOutputStream(localPropertiesFile), Charsets.UTF_8);
-    outProperties.store(writer, null);
+    try {
+      outProperties.store(writer, null);
+    }
+    finally {
+      writer.close();
+    }
 
     // Read back platform default version of string; confirm that it gets converted properly
     LocalProperties properties2 = new LocalProperties(myProject);
