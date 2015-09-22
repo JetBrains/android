@@ -27,7 +27,6 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.Collections;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
@@ -38,6 +37,7 @@ import spantable.CellSpanModel;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -144,7 +144,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
   @Override
   public Object getValueAt(int rowIndex, int columnIndex) {
-    return getRowContents(rowIndex).getValueAt(columnIndex);
+    return getRowContents(rowIndex).getValue();
   }
 
   /**
@@ -184,11 +184,13 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
   /**
    * Basically a union type, RowContents = LabelContents | AttributeContents | ParentAttribute
+   *
+   * @param <T> type of a value stored in a row
    */
   public interface RowContents<T> {
     int getColumnSpan(int column);
 
-    T getValueAt(int column);
+    T getValue();
 
     void setValueAt(int column, String value);
 
@@ -205,7 +207,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     }
 
     @Override
-    public Object getValueAt(int column) {
+    public Object getValue() {
        return mySelectedStyle;
     }
 
@@ -243,7 +245,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     }
 
     @Override
-    public TableLabel getValueAt(int column) {
+    public TableLabel getValue() {
       return myLabel;
     }
 
@@ -283,7 +285,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     }
 
     @Override
-    public EditedStyleItem getValueAt(int column) {
+    public EditedStyleItem getValue() {
       return myAttributes.get(myRowIndex);
     }
 
@@ -352,7 +354,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
       if (mySelectedStyle.isReadOnly()) {
         for (ThemePropertyChangedListener listener : myThemePropertyChangedListeners) {
-          listener.attributeChangedOnReadOnlyTheme(getValueAt(1), value);
+          listener.attributeChangedOnReadOnlyTheme(getValue(), value);
         }
         return;
       }
