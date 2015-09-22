@@ -42,7 +42,7 @@ public class GradleDslJavaProjectParsingTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSetSourceCompatibility() throws IOException {
     final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
-    final GradleBuildModel buildModel = projectFrame.openAndParseBuildFileForModule("library2").getTarget();
+    final GradleBuildModel buildModel = projectFrame.parseBuildFileForModule("library2", true).getTarget();
 
     final JavaProjectElement javaProject = buildModel.getExtendedDslElement(JavaProjectElement.class);
     assertNotNull(javaProject);
@@ -80,7 +80,7 @@ public class GradleDslJavaProjectParsingTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testAddNonExistedTargetCompatibility() throws IOException {
     final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
-    final GradleBuildModel buildModel = projectFrame.openAndParseBuildFileForModule("library2").getTarget();
+    final GradleBuildModel buildModel = projectFrame.parseBuildFileForModule("library2", true).getTarget();
 
     final JavaProjectElement javaProject = buildModel.getExtendedDslElement(JavaProjectElement.class);
     assertNotNull(javaProject);

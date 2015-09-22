@@ -15,189 +15,244 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyModelTest.ExpectedExternalDependency;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModelTest.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.intellij.lang.annotation.HighlightSeverity;
+import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
+import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.gradle.dsl.parser.CommonConfigurationNames.*;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
-import static com.intellij.openapi.util.io.FileUtil.appendToFile;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.vcsUtil.VcsUtil.getFileContent;
+import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS;
+import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.UNDO;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class AddGradleDependencyTest extends GuiTestCase {
+  private IdeFrameFixture myProjectFrame;
+
   @Test @IdeGuiTest
   public void testAddProdModuleDependency() throws IOException {
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
-    EditorFixture editor = projectFrame.getEditor();
-    editor.open("app/src/main/java/com/android/multimodule/MainActivity.java");
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    typeImportAndInvokeAction(projectFrame, "com.android.multimodule;\n^", "import com.example.MyLib^rary;",
-                              "Add dependency on module 'library3'");
+    EditorFixture editor = myProjectFrame.getEditor().open("app/src/main/java/com/android/multimodule/MainActivity.java");
 
-    assertBuildFileContains(projectFrame, "app/build.gradle", "compile project(':library3')");
+    String classToImport = "com.example.MyLibrary";
+    addImport(editor, classToImport);
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
+    moveCaretToClassName(editor, classToImport);
 
-    undo(projectFrame);
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
+    editor.invokeIntentionAction("Add dependency on module 'library3'");
+    myProjectFrame.waitForGradleProjectSyncToFinish();
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
+
+    ExpectedModuleDependency dependencyOnLibrary3 = new ExpectedModuleDependency();
+    dependencyOnLibrary3.configurationName = COMPILE;
+    dependencyOnLibrary3.path = ":library3";
+
+    GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", false);
+    buildModel.requireDependency(dependencyOnLibrary3);
+
+    verifyUndo(editor, 1);
   }
 
   @Test @IdeGuiTest
   public void testAddTestModuleDependency() throws IOException {
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
-    EditorFixture editor = projectFrame.getEditor();
-    editor.open("app/src/androidTest/java/com/android/multimodule/ApplicationTest.java");
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    typeImportAndInvokeAction(projectFrame, "com.android.multimodule;\n^", "import com.example.MyLib^rary;",
-                              "Add dependency on module 'library3'");
+    EditorFixture editor = myProjectFrame.getEditor().open("app/src/androidTest/java/com/android/multimodule/ApplicationTest.java");
 
-    assertBuildFileContains(projectFrame, "app/build.gradle", "androidTestCompile project(':library3')");
+    String classToImport = "com.example.MyLibrary";
+    addImport(editor, classToImport);
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
+    moveCaretToClassName(editor, classToImport);
 
-    undo(projectFrame);
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
+    editor.invokeIntentionAction("Add dependency on module 'library3'");
+    myProjectFrame.waitForGradleProjectSyncToFinish();
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
+
+    ExpectedModuleDependency dependencyOnLibrary3 = new ExpectedModuleDependency();
+    dependencyOnLibrary3.configurationName = ANDROID_TEST_COMPILE;
+    dependencyOnLibrary3.path = ":library3";
+
+    GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", false);
+    buildModel.requireDependency(dependencyOnLibrary3);
+
+    verifyUndo(editor, 1);
   }
 
   @Test @IdeGuiTest
   public void testAddLibDependencyDeclaredInJavaProject() throws IOException {
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
-    File buildFile = new File(projectFrame.getProjectPath(), join("library3", FN_BUILD_GRADLE));
-    assertThat(buildFile).isFile();
-    appendToFile(buildFile, "dependencies { compile 'com.google.guava:guava:18.0' }");
-    projectFrame.requestProjectSync().waitForBackgroundTasksToFinish();
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    EditorFixture editor = projectFrame.getEditor();
-    editor.open("app/src/androidTest/java/com/android/multimodule/ApplicationTest.java");
-    typeImportAndInvokeAction(projectFrame, "com.android.multimodule;\n^", "import com.google.common.base.Obje^cts;",
-                              "Add library 'com.google.guava:guava:18.0' to classpath");
+    GradleBuildModelFixture library3BuildModel = myProjectFrame.parseBuildFileForModule("library3", false);
+    ExpectedExternalDependency guava = new ExpectedExternalDependency(COMPILE, "com.google.guava", "guava", "18.0");
+    library3BuildModel.getTarget().getDependenciesModel().add(guava);
+    library3BuildModel.applyChanges();
+    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
-    assertBuildFileContains(projectFrame, "app/build.gradle", "compile 'com.google.guava:guava:18.0'");
+    EditorFixture editor = myProjectFrame.getEditor().open("app/src/main/java/com/android/multimodule/MainActivity.java");
 
-    undo(projectFrame);
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
+    String classToImport = "com.google.common.base.Objects";
+    addImport(editor, classToImport);
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
+    moveCaretToClassName(editor, classToImport);
+
+    editor.invokeIntentionAction("Add library 'com.google.guava:guava:18.0' to classpath");
+    myProjectFrame.waitForGradleProjectSyncToFinish();
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
+
+    GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
+    appBuildModel.requireDependency(guava);
+
+    verifyUndo(editor, 1);
   }
 
   @Test @IdeGuiTest
   public void testAddLibDependencyDeclaredInAndroidProject() throws IOException {
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
-    File buildFile = new File(projectFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
-    assertThat(buildFile).isFile();
-    appendToFile(buildFile, "dependencies { compile 'com.google.guava:guava:18.0' }");
-    projectFrame.requestProjectSync().waitForBackgroundTasksToFinish();
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    EditorFixture editor = projectFrame.getEditor();
-    editor.open("library3/src/main/java/com/example/MyLibrary.java");
-    typeImportAndInvokeAction(projectFrame, "package com.example;\n^", "import com.google.common.base.Obje^cts;",
-                              "Add library 'com.google.guava:guava:18.0' to classpath");
+    GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
+    ExpectedExternalDependency guava = new ExpectedExternalDependency(COMPILE, "com.google.guava", "guava", "18.0");
+    appBuildModel.getTarget().getDependenciesModel().add(guava);
+    appBuildModel.applyChanges();
+    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
-    assertBuildFileContains(projectFrame, "app/build.gradle", "compile 'com.google.guava:guava:18.0'");
+    EditorFixture editor = myProjectFrame.getEditor().open("library3/src/main/java/com/example/MyLibrary.java");
 
-    undo(projectFrame);
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
+    String classToImport = "com.google.common.base.Objects";
+    addImport(editor, classToImport);
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
+    moveCaretToClassName(editor, classToImport);
+
+    editor.invokeIntentionAction("Add library 'com.google.guava:guava:18.0' to classpath");
+    myProjectFrame.waitForGradleProjectSyncToFinish();
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
+
+    verifyUndo(editor, 1);
   }
 
   @Test @IdeGuiTest
   public void testNoModuleDependencyQuickfixFromJavaToAndroid() throws IOException {
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
-    EditorFixture editor = projectFrame.getEditor();
-    editor.open("library3/src/main/java/com/example/MyLibrary.java");
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    try {
-      typeImportAndInvokeAction(projectFrame, "package com.example;\n^", "import com.android.multimodule.Main^Activity;",
-                                "Add dependency on module");
-      fail();
-    } catch (AssertionError e) {
-      assertTrue(e.getMessage().startsWith("Did not find menu item with prefix"));
-    }
+    EditorFixture editor = myProjectFrame.getEditor().open("library3/src/main/java/com/example/MyLibrary.java");
+    String classToImport = "com.android.multimodule.MainActivity;";
+    addImport(editor, classToImport);
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
+    moveCaretToClassName(editor, classToImport);
+
+    assertIntentionNotIncluded(editor, "Add dependency on module");
   }
 
   @Test @IdeGuiTest
   public void testNoModuleDependencyQuickfixFromAndroidLibToApplication() throws IOException {
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
-    EditorFixture editor = projectFrame.getEditor();
-    editor.open("library/src/main/java/com/android/library/MainActivity.java");
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    try {
-      typeImportAndInvokeAction(projectFrame, "package com.android.mylibrary;\n^", "import com.android.multimodule.Main^Activity;",
-                                "Add dependency on module");
-      fail();
-    } catch (AssertionError e) {
-      assertTrue(e.getMessage().startsWith("Did not find menu item with prefix"));
-    }
+    EditorFixture editor = myProjectFrame.getEditor().open("library/src/main/java/com/android/library/MainActivity.java");
+    String classToImport = "com.android.multimodule.MainActivity;";
+    addImport(editor, classToImport);
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
+    moveCaretToClassName(editor, classToImport);
+
+    assertIntentionNotIncluded(editor, "Add dependency on module");
+  }
+
+  private void assertIntentionNotIncluded(@NotNull EditorFixture editor, @NotNull String intention) {
+    editor.invokeAction(SHOW_INTENTION_ACTIONS);
+    Robot robot = myProjectFrame.robot();
+    JListFixture popup = new JListFixture(robot, waitForPopup(robot));
+    String[] intentions = popup.contents();
+    assertThat(intentions).excludes(intention);
   }
 
   @Test @IdeGuiTest
   public void testAddJUnitDependency() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    BuildVariantsToolWindowFixture buildVariants = projectFrame.getBuildVariantsWindow();
+    myProjectFrame = importSimpleApplication();
+    BuildVariantsToolWindowFixture buildVariants = myProjectFrame.getBuildVariantsWindow();
     buildVariants.activate();
     buildVariants.selectUnitTests();
-    EditorFixture editor = projectFrame.getEditor();
-    editor.open("app/src/test/java/google/simpleapplication/UnitTest.java");
 
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 6);
+    EditorFixture editor = myProjectFrame.getEditor().open("app/src/test/java/google/simpleapplication/UnitTest.java");
+
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 6);
     editor.moveTo(editor.findOffset("@^Test"));
     editor.invokeIntentionAction("Add JUnit to classpath");
 
-    projectFrame.waitForGradleProjectSyncToFinish();
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
+    myProjectFrame.waitForGradleProjectSyncToFinish();
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
-    assertBuildFileContains(projectFrame, "app/build.gradle", "testCompile 'junit:junit:4.12'");
+    GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(TEST_COMPILE, "junit", "junit", "4.12");
+    appBuildModel.requireDependency(expected);
 
-    undo(projectFrame);
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 6);
+    verifyUndo(editor, 6);
   }
 
   @Test @IdeGuiTest
   public void testAddJetbrainsAnnotationDependency() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    EditorFixture editor = projectFrame.getEditor();
-    editor.open("app/src/main/java/google/simpleapplication/MyActivity.java");
+    myProjectFrame = importSimpleApplication();
 
-    typeImportAndInvokeAction(projectFrame, "onCreate(^Bundle savedInstanceState) {", "@Not^Null ", "Add 'annotations.jar' to classpath");
+    EditorFixture editor = myProjectFrame.getEditor().open("app/src/main/java/google/simpleapplication/MyActivity.java");
+    editor.moveTo(editor.findOffset("onCreate(^Bundle savedInstanceState) {"));
+    editor.enterText("\n@NotNull ");
 
-    assertBuildFileContains(projectFrame, "app/build.gradle", "compile 'org.jetbrains:annotations:13.0'");
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
 
-    projectFrame.getEditor().invokeAction(EditorFixture.EditorAction.UNDO); // Undo the import statement first
-    undo(projectFrame);
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
+    editor.moveTo(editor.findOffset("@Not^Null "));
+    editor.invokeIntentionAction("Add library 'org.jetbrains:annotations:13.0' to classpath");
+
+    myProjectFrame.waitForGradleProjectSyncToFinish();
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
+
+    GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "org.jetbrains", "annotations", "13.0");
+    appBuildModel.requireDependency(expected);
+
+    editor.invokeAction(UNDO); // Undo the import statement first
+    verifyUndo(editor, 1);
   }
 
-  private static void typeImportAndInvokeAction(@NotNull IdeFrameFixture projectFrame, @NotNull String lineToType,
-                                                @NotNull String testImportStatement, @NotNull String intention) {
-    EditorFixture editor = projectFrame.getEditor();
-    editor.moveTo(editor.findOffset(lineToType));
-    editor.enterText("\n" + testImportStatement.replace("^", ""));
-
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
-
-    editor.moveTo(editor.findOffset(testImportStatement));
-    editor.invokeIntentionAction(intention);
-
-    projectFrame.waitForGradleProjectSyncToFinish();
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
+  private static void addImport(@NotNull EditorFixture editor, @NotNull String classFqn) {
+    String importStatement = createImportStatement(classFqn);
+    // Move caret to second line (first line has 'package' declaration).
+    editor.moveToLine(1);
+    editor.enterText("\n" + importStatement);
   }
 
-  private static void assertBuildFileContains(@NotNull IdeFrameFixture projectFrame, @NotNull String relativePath,
-                                              @NotNull String content) {
-    String newBuildFileContent = getFileContent(new File(projectFrame.getProjectPath(), relativePath).getPath());
-    assertTrue(newBuildFileContent.contains(content));
+  private static void moveCaretToClassName(@NotNull EditorFixture editor, @NotNull String classFqn) {
+    String importStatement = createImportStatement(classFqn);
+    int statementLength = importStatement.length();
+    int position = statementLength - 4;
+    String line = importStatement.substring(0, position) + '^' + importStatement.substring(position, statementLength);
+    editor.moveTo(editor.findOffset(line));
   }
 
-  private static void undo(@NotNull IdeFrameFixture projectFrame) {
-    projectFrame.getEditor().invokeAction(EditorFixture.EditorAction.UNDO);
-    projectFrame.waitForGradleProjectSyncToFinish();
-    projectFrame.findMessageDialog("Undo").clickOk();
+  @NotNull
+  private static String createImportStatement(@NotNull String classFqn) {
+    return "import " + classFqn + ';';
+  }
+
+  private void verifyUndo(@NotNull EditorFixture editor, int expectedErrorCount) {
+    editor.invokeAction(UNDO);
+    findAndCloseUndoDialog();
+    myProjectFrame.waitForGradleProjectSyncToFinish();
+    editor.waitForCodeAnalysisHighlightCount(ERROR, expectedErrorCount);
+  }
+
+  private void findAndCloseUndoDialog() {
+    myProjectFrame.findMessageDialog("Undo").clickOk();
   }
 }
