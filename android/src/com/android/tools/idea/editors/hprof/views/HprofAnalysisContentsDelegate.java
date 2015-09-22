@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.editors.hprof.views;
 
+import com.android.tools.idea.editors.hprof.HprofEditor;
+import com.android.tools.idea.editors.hprof.HprofView;
 import com.android.tools.idea.profiling.view.AnalysisContentsDelegate;
+import com.android.tools.idea.profiling.view.CaptureEditor;
 import com.android.tools.idea.profiling.view.CapturePanel;
 import com.android.tools.perflib.analyzer.AnalysisResultEntry;
-import com.android.tools.perflib.heap.ArrayInstance;
-import com.android.tools.perflib.heap.ClassInstance;
-import com.android.tools.perflib.heap.ClassObj;
-import com.android.tools.perflib.heap.Instance;
+import com.android.tools.perflib.heap.*;
 import com.android.tools.perflib.heap.memoryanalyzer.MemoryAnalysisResultEntry;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.JavaHighlightingColors;
@@ -34,7 +34,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 
 import static com.android.tools.perflib.heap.memoryanalyzer.DuplicatedStringsAnalyzerTask.DuplicatedStringsEntry;
 import static com.android.tools.perflib.heap.memoryanalyzer.LeakedActivityAnalyzerTask.LeakedActivityEntry;
@@ -42,8 +45,38 @@ import static com.android.tools.perflib.heap.memoryanalyzer.LeakedActivityAnalyz
 public class HprofAnalysisContentsDelegate extends AnalysisContentsDelegate {
   @NotNull private static final Logger LOG = Logger.getInstance(HprofAnalysisContentsDelegate.class);
 
-  public HprofAnalysisContentsDelegate(@NotNull CapturePanel capturePanel) {
-    super(capturePanel);
+  public HprofAnalysisContentsDelegate(@NotNull HprofEditor editor) {
+    super(editor.getCapturePanel());
+
+    HprofView hprofView = editor.getView();
+    assert hprofView != null;
+
+    final SelectionModel selectionModel = hprofView.getSelectionModel();
+    myResultsTree.addTreeSelectionListener(new TreeSelectionListener() {
+      @Override
+      public void valueChanged(TreeSelectionEvent treeSelectionEvent) {
+        TreePath path = treeSelectionEvent.getPath();
+        if (path.getPath().length <= 1) {
+          return; // Early out if the user selects a category node.
+        }
+
+        Object component = path.getLastPathComponent();
+        if (component instanceof DefaultMutableTreeNode) {
+          component = ((DefaultMutableTreeNode)component).getUserObject();
+        }
+
+        if (component instanceof InstanceListItem) {
+          Instance instance = ((InstanceListItem)component).myInstance;
+          Heap heap = instance.getHeap();
+          ClassObj classObj = instance instanceof ClassObj ? (ClassObj)instance : instance.getClassObj();
+          selectionModel.setHeap(heap);
+          selectionModel.setClassObj(classObj);
+          if (instance instanceof ClassInstance || instance instanceof ArrayInstance) {
+            selectionModel.setInstance(instance);
+          }
+        }
+      }
+    });
   }
 
   @Override
