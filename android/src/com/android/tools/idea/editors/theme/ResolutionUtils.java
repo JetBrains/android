@@ -145,17 +145,6 @@ public class ResolutionUtils {
     if (name == null) {
       return -1;
     }
-    boolean isAttribute;
-    if (name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
-      isAttribute = true;
-    }
-    else if (name.startsWith(SdkConstants.ANDROID_PREFIX)) {
-      isAttribute = false;
-    }
-    else {
-      // Not a framework attribute or resource
-      return -1;
-    }
 
     ApiLookup apiLookup = IntellijLintClient.getApiLookup(project);
     if (apiLookup == null) {
@@ -164,15 +153,20 @@ public class ResolutionUtils {
       return -1;
     }
 
-    if (isAttribute) {
+    ResourceUrl resUrl = ResourceUrl.parse(name);
+    if (resUrl == null) {
+      // It is an attribute
+      if (!name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
+        // not an android attribute
+        return -1;
+      }
       return apiLookup.getFieldVersion("android/R$attr", name.substring(SdkConstants.ANDROID_NS_NAME_PREFIX_LEN));
+    } else {
+      if (!resUrl.framework) {
+        // not an android value
+        return -1;
+      }
+      return apiLookup.getFieldVersion("android/R$" + resUrl.type, AndroidResourceUtil.getFieldNameByResourceName(resUrl.name));
     }
-
-    String[] namePieces = name.substring(SdkConstants.ANDROID_PREFIX.length()).split("/");
-    if (namePieces.length == 2) {
-      // If dealing with a value, it should be of the form "type/value"
-      return apiLookup.getFieldVersion("android/R$" + namePieces[0], AndroidResourceUtil.getFieldNameByResourceName(namePieces[1]));
-    }
-    return -1;
   }
 }
