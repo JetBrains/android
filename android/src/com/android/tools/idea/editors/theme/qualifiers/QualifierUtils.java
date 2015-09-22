@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.theme.qualifiers;
 
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.*;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.google.common.collect.*;
 import com.intellij.openapi.diagnostic.Logger;
@@ -51,19 +50,20 @@ public class QualifierUtils {
     .put(UiModeQualifier.class, UiMode.class)
     .put(TextInputMethodQualifier.class, Keyboard.class)
     .put(ScreenRatioQualifier.class, ScreenRatio.class)
+    .put(ScreenRoundQualifier.class, ScreenRound.class)
     .build();
 
   /**
    * @return one enum value that it's not present in the passed set
    */
   @Nullable("if all the values are contained in the set")
-  static <T extends Enum<T>> T findIncompatibleEnumValue(EnumSet<T> currentValues) {
+  private static <T extends Enum<T>> T findIncompatibleEnumValue(EnumSet<T> currentValues) {
     EnumSet<T> complement = EnumSet.complementOf(currentValues);
 
     return Iterables.getFirst(complement, null);
   }
 
-  static <E extends Enum<E>, Q extends ResourceQualifier> ResourceQualifier getIncompatibleEnum(Class<E> enumType, Class<Q> resourceQualifierType, Collection<ResourceQualifier> resourceQualifiers) {
+  private static <E extends Enum<E>, Q extends ResourceQualifier> ResourceQualifier getIncompatibleEnum(Class<E> enumType, Class<Q> resourceQualifierType, Collection<ResourceQualifier> resourceQualifiers) {
     List<E> currentValues = Lists.newArrayList();
 
     // TODO: Remove the use of reflection here by improving the Qualifiers hierarchy
@@ -131,7 +131,7 @@ public class QualifierUtils {
    * Returns a version qualifier that is lower than any of the version qualifiers found in the passed list.
    * @param qualifiers the list of version qualifiers.
    */
-  static ResourceQualifier getIncompatibleVersionQualifier(@NotNull Collection<ResourceQualifier> qualifiers) {
+  private static ResourceQualifier getIncompatibleVersionQualifier(@NotNull Collection<ResourceQualifier> qualifiers) {
     assert !qualifiers.isEmpty();
     int minApiLevel = Integer.MAX_VALUE;
     for (ResourceQualifier qualifier : qualifiers) {
@@ -174,7 +174,7 @@ public class QualifierUtils {
    * returns null.
    * Note: qualifiers shouldn't be empty and all elements from qualifiers should have same qualifier type, f.e all should be LocaleQualifier
    */
-  public static ResourceQualifier getIncompatibleQualifier(@NotNull Collection<ResourceQualifier> qualifiers) {
+  private static ResourceQualifier getIncompatibleQualifier(@NotNull Collection<ResourceQualifier> qualifiers) {
     assert !qualifiers.isEmpty();
     Class type = qualifiers.iterator().next().getClass();
     // Check all qualifiers are the same type inside the collection
