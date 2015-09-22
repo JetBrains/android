@@ -65,7 +65,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemons;
+import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemonsAndRestart
+    ;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
@@ -427,7 +428,7 @@ public class GradleSpecificInitializer implements Runnable {
       @Override
       public void appClosing() {
         try {
-          stopAllGradleDaemons(false);
+          stopAllGradleDaemonsAndRestart();
         }
         catch (IOException e) {
           LOG.info("Failed to stop Gradle daemons", e);
