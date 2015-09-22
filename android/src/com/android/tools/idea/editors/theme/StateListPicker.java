@@ -46,6 +46,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -125,7 +126,7 @@ public class StateListPicker extends JPanel {
     }
 
     String stateDescription = attributeDescriptions.size() == 0 ? "Default" : Joiner.on(", ").join(attributeDescriptions);
-    stateComponent.setNameText(String.format(LABEL_TEMPLATE, ThemeEditorConstants.RESOURCE_ITEM_COLOR.toString(), stateDescription));
+    stateComponent.setNameText(String.format(LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), stateDescription));
 
     stateComponent.setComponentPopupMenu(createAlphaPopupMenu(state, stateComponent));
 
@@ -435,7 +436,8 @@ public class StateListPicker extends JPanel {
       if (!StringUtil.isEmpty(alphaValue)) {
         try {
           float alpha = Float.parseFloat(ResourceHelper.resolveStringValue(resourceResolver, alphaValue));
-          List<NumericalIcon> list = ImmutableList.of(new NumericalIcon(alpha, getFont()));
+          Font iconFont = JBUI.Fonts.smallFont().asBold();
+          List<SwatchComponent.TextIcon> list = ImmutableList.of(new SwatchComponent.TextIcon(String.format("%.2f", alpha), iconFont));
           component.getAlphaComponent().setSwatchIcons(list);
         }
         catch (NumberFormatException e) {
@@ -548,34 +550,6 @@ public class StateListPicker extends JPanel {
       super.setComponentPopupMenu(popup);
       myResourceComponent.setComponentPopupMenu(popup);
       myAlphaComponent.setComponentPopupMenu(popup);
-    }
-  }
-
-  private static class NumericalIcon implements SwatchComponent.SwatchIcon {
-    private final Font myAlphaFont;
-    private final String myString;
-    private final Font myStateListFont;
-
-    public NumericalIcon(float f, @NotNull Font stateListFont) {
-      myString = String.format("%.2f", f);
-      myStateListFont = stateListFont;
-      myAlphaFont = new Font(myStateListFont.getName(), Font.BOLD, myStateListFont.getSize() - 2);
-    }
-
-    @Override
-    public void paint(@Nullable Component c, @NotNull Graphics g, int x, int y, int w, int h) {
-      g.setColor(JBColor.LIGHT_GRAY);
-      g.fillRect(x, y, w, h);
-
-      g.setColor(JBColor.DARK_GRAY);
-      g.setFont(myAlphaFont);
-
-      FontMetrics fm = g.getFontMetrics();
-      int horizontalMargin = (w + 1 - fm.stringWidth(myString)) / 2;
-      int verticalMargin = (h + 3 - fm.getAscent()) / 2;
-      g.drawString(myString, x + horizontalMargin, y + h - verticalMargin);
-
-      g.setFont(myStateListFont);
     }
   }
 }
