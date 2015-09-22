@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.parser.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.parser.CommonConfigurationNames.RUNTIME;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -40,27 +43,13 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
     List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(3);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency();
-    expected.configurationName = "compile";
-    expected.group = "com.android.support";
-    expected.name = "appcompat-v7";
-    expected.version = "22.1.1";
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
     expected.assertMatches(dependencies.get(0));
 
-    expected.reset();
-
-    expected.configurationName = "runtime";
-    expected.group = "com.google.guava";
-    expected.name = "guava";
-    expected.version = "18.0";
+    expected = new ExpectedExternalDependency(RUNTIME, "com.google.guava", "guava", "18.0");
     expected.assertMatches(dependencies.get(1));
 
-    expected.reset();
-
-    expected.configurationName = "test";
-    expected.group = "org.gradle.test.classifiers";
-    expected.name = "service";
-    expected.version = "1.0";
+    expected = new ExpectedExternalDependency("test", "org.gradle.test.classifiers", "service", "1.0");
     expected.classifier = "jdk15";
     expected.extension = "jar";
     expected.assertMatches(dependencies.get(2));
@@ -77,11 +66,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
     List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(1);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency();
-    expected.configurationName = "runtime";
-    expected.group = "org.gradle.test.classifiers";
-    expected.name = "service";
-    expected.version = "1.0";
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(RUNTIME, "org.gradle.test.classifiers", "service", "1.0");
     expected.classifier = "jdk14";
     expected.extension = "jar";
     expected.assertMatches(dependencies.get(0));
@@ -94,56 +79,54 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
+    NewExternalDependency newDependency = new NewExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
+    buildModel.getDependenciesModel().add(newDependency);
+
+    assertTrue(buildModel.isModified());
 
     runWriteCommandAction(myProject, new Runnable() {
       @Override
       public void run() {
-        buildModel.getDependenciesModel().addExternalDependency("compile", "com.android.support:appcompat-v7:22.1.1");
+        buildModel.applyChanges();
       }
     });
+
+    assertFalse(buildModel.isModified());
 
     List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency();
-    expected.configurationName = "runtime";
-    expected.group = "org.gradle.test.classifiers";
-    expected.name = "service";
-    expected.version = "1.0";
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(RUNTIME, "org.gradle.test.classifiers", "service", "1.0");
     expected.classifier = "jdk14";
     expected.extension = "jar";
     expected.assertMatches(dependencies.get(0));
 
-    expected.reset();
-
-    expected.configurationName = "compile";
-    expected.group = "com.android.support";
-    expected.name = "appcompat-v7";
-    expected.version = "22.1.1";
+    expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
     expected.assertMatches(dependencies.get(1));
   }
 
   public void testAddDependencyToBuildFileWithoutDependenciesBlock() throws IOException {
     writeToBuildFile("");
 
-    final GradleBuildModel buildModel = GradleBuildModel.get(myModule);
-    assertNotNull(buildModel);
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    NewExternalDependency newDependency = new NewExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
+    buildModel.getDependenciesModel().add(newDependency);
+
+    assertTrue(buildModel.isModified());
 
     runWriteCommandAction(myProject, new Runnable() {
       @Override
       public void run() {
-        buildModel.getDependenciesModel().addExternalDependency("compile", "com.android.support:appcompat-v7:22.1.1");
+        buildModel.applyChanges();
       }
     });
+
+    assertFalse(buildModel.isModified());
 
     List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(1);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency();
-    expected.configurationName = "compile";
-    expected.group = "com.android.support";
-    expected.name = "appcompat-v7";
-    expected.version = "22.1.1";
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
     expected.assertMatches(dependencies.get(0));
   }
 
@@ -173,11 +156,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
     dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(1);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency();
-    expected.configurationName = "compile";
-    expected.group = "com.android.support";
-    expected.name = "appcompat-v7";
-    expected.version = "1.2.3";
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "1.2.3");
     expected.assertMatches(dependencies.get(0));
   }
 
@@ -208,11 +187,7 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
     dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(1);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency();
-    expected.configurationName = "compile";
-    expected.group = "com.google.code.guice";
-    expected.name = "guice";
-    expected.version = "1.2.3";
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.google.code.guice", "guice", "1.2.3");
     expected.assertMatches(dependencies.get(0));
   }
 
@@ -228,19 +203,10 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
     List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency();
-    expected.configurationName = "runtime";
-    expected.group = "org.springframework";
-    expected.name = "spring-core";
-    expected.version = "2.5";
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(RUNTIME, "org.springframework", "spring-core", "2.5");
     expected.assertMatches(dependencies.get(0));
 
-    expected.reset();
-
-    expected.configurationName = "runtime";
-    expected.group = "org.springframework";
-    expected.name = "spring-aop";
-    expected.version = "2.5";
+    expected = new ExpectedExternalDependency(RUNTIME, "org.springframework", "spring-aop", "2.5");
     expected.assertMatches(dependencies.get(1));
   }
 
@@ -259,29 +225,20 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
     List<ExternalDependencyModel> dependencies = buildModel.getDependenciesModel().getExternalDependencies();
     assertThat(dependencies).hasSize(2);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency();
-    expected.configurationName = "runtime";
-    expected.group = "org.springframework";
-    expected.name = "spring-core";
-    expected.version = "2.5";
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(RUNTIME, "org.springframework", "spring-core", "2.5");
     expected.assertMatches(dependencies.get(0));
 
-    expected.reset();
-
-    expected.configurationName = "runtime";
-    expected.group = "org.springframework";
-    expected.name = "spring-aop";
-    expected.version = "2.5";
+    expected = new ExpectedExternalDependency(RUNTIME, "org.springframework", "spring-aop", "2.5");
     expected.assertMatches(dependencies.get(1));
   }
 
-  public static class ExpectedExternalDependency {
-    public String configurationName;
-    public String group;
-    public String name;
-    public String version;
-    public String classifier;
-    public String extension;
+  public static class ExpectedExternalDependency extends NewExternalDependency {
+    public ExpectedExternalDependency(@NotNull String configurationName,
+                                      @NotNull String group,
+                                      @NotNull String name,
+                                      @NotNull String version) {
+      super(configurationName, group, name, version);
+    }
 
     public void assertMatches(@NotNull ExternalDependencyModel actual) {
       assertEquals("configurationName", configurationName, actual.getConfigurationName());
@@ -292,8 +249,13 @@ public class ExternalDependencyModelTest extends GradleBuildModelParserTestCase 
       assertEquals("extension", extension, actual.getExtension());
     }
 
-    public void reset() {
-      configurationName = group = name = version = classifier = extension = null;
+    public boolean matches(@NotNull ExternalDependencyModel model) {
+      return configurationName.equals(model.getConfigurationName()) &&
+             group.equals(model.getGroup()) &&
+             name.equals(model.getName()) &&
+             version.equals(model.getVersion()) &&
+             Objects.equal(classifier, model.getClassifier()) &&
+             Objects.equal(extension, model.getExtension());
     }
   }
 }

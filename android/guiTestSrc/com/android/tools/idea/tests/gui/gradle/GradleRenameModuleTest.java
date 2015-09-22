@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModelTest.ExpectedProjectDependency;
+import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyModelTest.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -75,9 +75,9 @@ public class GradleRenameModuleTest extends GuiTestCase {
     assertNotNull(projectFrame.findModule("newLibrary"));
 
     // app module has two references to library module
-    GradleBuildModelFixture buildModel = projectFrame.openAndParseBuildFileForModule("app");
+    GradleBuildModelFixture buildModel = projectFrame.parseBuildFileForModule("app", true);
 
-    ExpectedProjectDependency expected = new ExpectedProjectDependency();
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "debugCompile";
     expected.path = ":newLibrary";
     buildModel.requireDependency(expected);

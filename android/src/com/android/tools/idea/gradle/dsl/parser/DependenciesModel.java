@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
+import com.google.common.collect.Sets;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -36,6 +36,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.dsl.parser.PsiElements.findClosableBlock;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -47,6 +48,8 @@ public class DependenciesModel extends GradleDslModel {
 
   @NotNull private final List<ExternalDependencyModel> myExternalDependencies = Lists.newArrayList();
   @NotNull private final List<ModuleDependencyModel> myModuleDependencies = Lists.newArrayList();
+
+  @NotNull private final Set<NewExternalDependency> myNewExternalDependencies = Sets.newLinkedHashSet();
 
   DependenciesModel(@NotNull GradleDslModel parent) {
     super(parent);
@@ -60,30 +63,21 @@ public class DependenciesModel extends GradleDslModel {
     for (ModuleDependencyModel dependency : myModuleDependencies) {
       dependency.applyChanges();
     }
+    applyNewExternalDependencies();
   }
 
-  @NotNull
-  public ImmutableList<ExternalDependencyModel> getExternalDependencies() {
-    return ImmutableList.copyOf(myExternalDependencies);
+  private void applyNewExternalDependencies() {
+    for (NewExternalDependency newExternalDependency : myNewExternalDependencies) {
+      apply(newExternalDependency);
+    }
+    myNewExternalDependencies.clear();
   }
 
-  @NotNull
-  public ImmutableList<ModuleDependencyModel> getModuleDependencies() {
-    return ImmutableList.copyOf(myModuleDependencies);
-  }
-
-  /**
-   * Adds a new external dependency to the build.gradle file. If there are more than one "dependencies" block, this method will add the new
-   * dependency to the first one. If the build.gradle file does not have a "dependencies" block, this method will create one.
-   *
-   * @param configurationName the name of the configuration (e.g. "compile", "compileTest", "runtime", etc.)
-   * @param compactNotation the dependency in "compact" notation: "group:name:version:classifier@extension".
-   * @throws AssertionError if this method is invoked and this {@code GradleBuildFile} does not have a {@link PsiFile}.
-   */
-  public void addExternalDependency(@NotNull String configurationName, @NotNull String compactNotation) {
+  private void apply(@NotNull NewExternalDependency dependency) {
     assert myPsiFile != null;
 
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
+    String configurationName = dependency.configurationName;
+    String compactNotation = dependency.getCompactNotation();
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(myPsiFile.getProject());
     if (myPsiElement == null) {
@@ -105,6 +99,21 @@ public class DependenciesModel extends GradleDslModel {
     assert added instanceof GrApplicationStatement;
     parseExternalOrModuleDependency((GrApplicationStatement)added);
     CodeStyleManager.getInstance(myPsiFile.getProject()).reformat(added);
+  }
+
+  @NotNull
+  public ImmutableList<ExternalDependencyModel> getExternalDependencies() {
+    return ImmutableList.copyOf(myExternalDependencies);
+  }
+
+  @NotNull
+  public ImmutableList<ModuleDependencyModel> getModuleDependencies() {
+    return ImmutableList.copyOf(myModuleDependencies);
+  }
+
+  public void add(@NotNull NewExternalDependency dependency) {
+    myNewExternalDependencies.add(dependency);
+    setModified(true);
   }
 
   boolean parse(@NotNull GrMethodCallExpression methodCallExpression) {
@@ -248,19 +257,16 @@ public class DependenciesModel extends GradleDslModel {
     }
   }
 
-  void reset(@Nullable PsiFile psiFile) {
-    myPsiFile = psiFile;
-    setPsiElement(null);
-    myExternalDependencies.clear();
-    myModuleDependencies.clear();
-  }
-
   @Nullable
   public GrClosableBlock getPsiElement() {
     return myPsiElement;
   }
 
-  void setPsiElement(@Nullable GrClosableBlock psiElement) {
+  private void setPsiElement(@Nullable GrClosableBlock psiElement) {
     myPsiElement = psiElement;
+  }
+
+  void setPsiFile(@Nullable PsiFile psiFile) {
+    myPsiFile = psiFile;
   }
 }
