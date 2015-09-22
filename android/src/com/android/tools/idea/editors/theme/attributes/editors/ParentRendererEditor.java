@@ -60,7 +60,7 @@ import java.util.List;
 public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, String> implements TableCellRenderer {
   private static final Logger LOG = Logger.getInstance(ParentRendererEditor.class);
 
-  private static final String NO_PARENT = "[no parent]";
+  public static final String NO_PARENT = "[no parent]";
   private static final CollectionComboBoxModel NO_PARENT_MODEL = new CollectionComboBoxModel(ImmutableList.of(NO_PARENT), NO_PARENT);
 
   private final JComboBox myParentComboBox;
