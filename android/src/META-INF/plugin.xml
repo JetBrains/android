@@ -312,11 +312,11 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorProvider"/>
 
-    <runConfigurationProducer implementation="org.jetbrains.android.run.AndroidConfigurationProducer"/>
-    <runConfigurationProducer implementation="org.jetbrains.android.run.testing.AndroidTestConfigurationProducer" order="first"/>
-    <configurationType implementation="org.jetbrains.android.run.AndroidRunConfigurationType"/>
-    <configurationType implementation="org.jetbrains.android.run.testing.AndroidTestRunConfigurationType"/>
-    <programRunner implementation="org.jetbrains.android.run.AndroidDebugRunner" order="first"/>
+    <runConfigurationProducer implementation="com.android.tools.idea.run.AndroidConfigurationProducer"/>
+    <runConfigurationProducer implementation="com.android.tools.idea.run.testing.AndroidTestConfigurationProducer" order="first"/>
+    <configurationType implementation="com.android.tools.idea.run.AndroidRunConfigurationType"/>
+    <configurationType implementation="com.android.tools.idea.run.testing.AndroidTestRunConfigurationType"/>
+    <programRunner implementation="com.android.tools.idea.run.AndroidDebugRunner" order="first"/>
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.facet.AndroidGradleFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.facet.JavaGradleFacetType"/>
@@ -333,7 +333,7 @@
     <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaCompletionContributor" order="first"/>
     <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.inspections.ResourceTypeCompletionContributor"
                             id="resourceTypeCompletion" order="after javaBasic2ClassName"/>
-    <completion.contributor language="TEXT" implementationClass="org.jetbrains.android.run.AndroidActivityAliasCompletionContributor" order="first"/>
+    <completion.contributor language="TEXT" implementationClass="com.android.tools.idea.run.AndroidActivityAliasCompletionContributor" order="first"/>
     <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor" />
 
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidResourceRenameResourceProcessor" order="first"/>
@@ -696,7 +696,7 @@
                     serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
 
-    <applicationConfigurable id="cloud.testing" groupId="build" groupWeight="200" instance="com.android.tools.idea.run.CloudTestingConfigurable"/>
+    <applicationConfigurable id="cloud.testing" groupId="build" groupWeight="200" instance="com.android.tools.idea.run.cloud.CloudTestingConfigurable"/>
 
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
@@ -780,7 +780,7 @@
     <spellchecker.support language="Properties" implementationClass="org.jetbrains.android.spellchecker.AndroidTextSpellcheckingStrategy" order="first"/>
     <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
-    <testSrcLocator implementation="org.jetbrains.android.run.testing.AndroidTestLocationProvider"/>
+    <testSrcLocator implementation="com.android.tools.idea.run.testing.AndroidTestLocationProvider"/>
     <junitPatcher implementation="com.android.tools.idea.gradle.AndroidJunitPatcher" />
 
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapRenderer" />
@@ -823,7 +823,7 @@
     <extensionPoint qualifiedName="com.android.gradle.gradleEditorEntityUi"
                     interface="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUi"/>
     <extensionPoint qualifiedName="com.android.tools.idea.run.cloudConfigurationProvider"
-                    interface="com.android.tools.idea.run.CloudConfigurationProvider"/>
+                    interface="com.android.tools.idea.run.cloud.CloudConfigurationProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.structure.services.developerServiceCreators"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceCreators"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"

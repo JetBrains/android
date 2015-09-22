@@ -20,7 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.run.CloudConfigurationProvider;
+import com.android.tools.idea.run.cloud.CloudConfigurationProvider;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.ColoredTextContainer;
