@@ -100,11 +100,14 @@ public class HprofAnalysisContentsDelegate extends AnalysisContentsDelegate {
       else if (userObject instanceof String) {
         append((String)userObject, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       }
-      else {
+      else if (userObject != null) {
         LOG.warn("Unhandled user object type: " + userObject.getClass().getSimpleName());
       }
+      else {
+        LOG.warn("Empty user object");
+      }
     }
-    else {
+    else if (value != null) {
       LOG.warn("Invalid tree node type: " + value.getClass().getSimpleName());
     }
   }
