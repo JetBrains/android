@@ -182,28 +182,21 @@ abstract class AbstractGradleDependencyFix extends AbstractGradleAwareFix {
             LOG.assertTrue(isNotEmpty(myAddedDependency) && isNotEmpty(myAddedDependencyConfiguration),
                            "Dependency is not recorded correctly by the quickfix: " + this.getClass().getName());
 
-            OpenFileHyperlink buildFileHyperlink =
-              new OpenFileHyperlink(gradleBuildFile.getFile().getPath(), gradleBuildFile.getFile().getName(), -1, -1);
+            OpenFileHyperlink buildFileHyperlink = new OpenFileHyperlink(gradleBuildFile.getFile().getPath(),
+                                                                         gradleBuildFile.getFile().getName(), -1, -1);
             OpenFileHyperlink javaFileHyperlink = new OpenFileHyperlink(myCurrentFile.getPath(), myCurrentFile.getName(), -1, -1);
 
             String referenceName = myReference.getRangeInElement().substring(myReference.getElement().getText());
 
             NotificationListener notificationListener = new CustomNotificationListener(project, buildFileHyperlink, javaFileHyperlink);
 
-            AndroidGradleNotification.getInstance(project)
-              .showBalloon("Quick Fix Error", "Failed to add dependency. To manually fix this, please do the following:\n<ul>" +
-                                              "<li>Add dependency '" +
-                                              myAddedDependency +
-                                              "' for configuration '" +
-                                              myAddedDependencyConfiguration +
-                                              "' in '" +
-                                              buildFileHyperlink.toHtml() +
-                                              "'.</li>\n" +
-                                              "<li>Import class '" +
-                                              referenceName +
-                                              "' to '" +
-                                              javaFileHyperlink.toHtml() +
-                                              "'. </li></ul>", NotificationType.ERROR, notificationListener);
+            AndroidGradleNotification.getInstance(project).showBalloon(
+              "Quick Fix Error",
+              "Failed to add dependency. To manually fix this, please do the following:\n<ul>" +
+              "<li>Add dependency '" + myAddedDependency + "' for configuration '" + myAddedDependencyConfiguration + "' in '" +
+              buildFileHyperlink.toHtml() + "'.</li>\n" +
+              "<li>Import class '" + referenceName + "' to '" + javaFileHyperlink.toHtml() + "'. </li></ul>",
+              NotificationType.ERROR, notificationListener);
           }
         }
       });
