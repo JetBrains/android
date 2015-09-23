@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui;
 
+import com.android.tools.idea.rendering.ImageUtils;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Objects;
@@ -27,6 +28,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.containers.Convertor;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -38,6 +40,7 @@ import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -253,31 +256,17 @@ public class ASGallery<E> extends JBList {
       @Nullable
       @Override
       public Image apply(@Nullable E input) {
-        Image image = imageProvider.apply(input);
-        if (image == null)
+        Image img = imageProvider.apply(input);
+        if (img == null) {
           return null;
-
-        // Determine image scaling option:
-        // * "default" if image has to be scaled up (so scaled image is not blurry)
-        // * "smooth" if image has to be scaled down
-        int scalingHints = Image.SCALE_SMOOTH;
-        ImageObserver observer = new ImageObserver() {
-          @Override
-          public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
-            return true;
-          }
-        };
-        int height = image.getHeight(observer);
-        int width =  image.getWidth(observer);
-        if (height >= 0 && width >= 0) {
-          if (height <= myThumbnailSize.height || width <= myThumbnailSize.width) {
-            scalingHints = Image.SCALE_DEFAULT;
-          }
         }
-
-        // Return image scaled up/down to thumbnail size, so scaling occurs only once per image (i.e not
-        // for every paint).
-        return image.getScaledInstance(myThumbnailSize.width, myThumbnailSize.height, scalingHints);
+        BufferedImage image = ImageUtil.toBufferedImage(img);
+        if (image.getHeight() <= 0 || image.getWidth() <= 0) {
+          return null;
+        }
+        double xScale = (double) myThumbnailSize.width / image.getWidth();
+        double yScale = (double) myThumbnailSize.height / image.getHeight();
+        return ImageUtils.scale(image, xScale, yScale);
       }
     };
     CacheLoader<? super E, Optional<Image>> cacheLoader = CacheLoader.from(ToOptionalFunction.wrap(scaledImageProvider));
