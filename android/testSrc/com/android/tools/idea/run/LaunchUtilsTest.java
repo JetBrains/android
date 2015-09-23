@@ -17,34 +17,34 @@ package com.android.tools.idea.run;
 
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 
-public class AndroidRunConfigurationTest extends AndroidGradleTestCase {
+public class LaunchUtilsTest extends AndroidGradleTestCase {
   public void testActivity() throws Exception {
     if (!CAN_SYNC_PROJECTS) {
-      System.err.println("AndroidRunConfigurationTest.testActivity temporarily disabled");
+      System.err.println("LaunchUtilsTest.testActivity temporarily disabled");
       return;
     }
 
     loadProject("projects/runConfig/activity");
-    assertFalse(AndroidRunConfiguration.isWatchFaceApp(myAndroidFacet));
+    assertFalse(LaunchUtils.isWatchFaceApp(myAndroidFacet));
   }
 
   public void testActivityAlias() throws Exception {
     if (!CAN_SYNC_PROJECTS) {
-      System.err.println("AndroidRunConfigurationTest.testActivityAlias temporarily disabled");
+      System.err.println("LaunchUtilsTest.testActivityAlias temporarily disabled");
       return;
     }
 
     loadProject("projects/runConfig/alias");
-    assertFalse(AndroidRunConfiguration.isWatchFaceApp(myAndroidFacet));
+    assertFalse(LaunchUtils.isWatchFaceApp(myAndroidFacet));
   }
 
   public void testWatchFaceService() throws Exception {
     if (!CAN_SYNC_PROJECTS) {
-      System.err.println("AndroidRunConfigurationTest.testWatchFaceService temporarily disabled");
+      System.err.println("LaunchUtilsTest.testWatchFaceService temporarily disabled");
       return;
     }
 
     loadProject("projects/runConfig/watchface");
-    assertTrue(AndroidRunConfiguration.isWatchFaceApp(myAndroidFacet));
+    assertTrue(LaunchUtils.isWatchFaceApp(myAndroidFacet));
   }
 }

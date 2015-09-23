@@ -17,8 +17,17 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.ManifestInfo;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
+import org.jetbrains.android.dom.AndroidDomUtil;
+import org.jetbrains.android.dom.manifest.IntentFilter;
+import org.jetbrains.android.dom.manifest.Service;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class LaunchUtils {
   /** Returns whether the given application can be debugged on the given device. */
@@ -38,5 +47,33 @@ public class LaunchUtils {
     }
 
     return false;
+  }
+
+  /**
+   * Returns whether the given module corresponds to a watch face app.
+   * A module is considered to be a watch face app if there are no activities, and a single service with
+   * a specific intent filter. This definition is likely stricter than it needs to be to but we are only
+   * interested in matching the watch face template application.
+   */
+  public static boolean isWatchFaceApp(@NotNull AndroidFacet facet) {
+    ManifestInfo info = ManifestInfo.get(facet.getModule(), true);
+    if (!info.getActivities().isEmpty()) {
+      return false;
+    }
+
+    final List<Service> services = info.getServices();
+    if (services.size() != 1) {
+      return false;
+    }
+
+    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
+      public Boolean compute() {
+        List<IntentFilter> filters = services.get(0).getIntentFilters();
+        return filters.size() == 1 &&
+               AndroidDomUtil.containsAction(filters.get(0), AndroidUtils.WALLPAPER_SERVICE_ACTION_NAME) &&
+               AndroidDomUtil.containsCategory(filters.get(0), AndroidUtils.WATCHFACE_CATEGORY_NAME);
+      }
+    });
   }
 }
