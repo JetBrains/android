@@ -66,6 +66,7 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ThemeEditorSty
   private final JPanel myPanel;
   private final ThemeParentChangedListener myThemeParentChangedListener;
   private ThemeEditorStyle myItem;
+  private final JLabel myLabel;
 
   public interface ThemeParentChangedListener extends ThemeSelectionPanel.ThemeChangedListener {
     /**
@@ -108,9 +109,9 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ThemeEditorSty
     myParentComboBox.setMinimumSize(ThemeEditorConstants.ATTRIBUTES_PANEL_COMBO_MIN_SIZE);
 
     JPanel topLine = new JPanel(new BorderLayout());
-    JLabel label = new JLabel(String.format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE,
+    myLabel = new JLabel(String.format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE,
                                             ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), "Theme parent"));
-    topLine.add(label, BorderLayout.WEST);
+    topLine.add(myLabel, BorderLayout.WEST);
     topLine.add(myVariantsComboBox, BorderLayout.EAST);
 
     myPanel.add(topLine, BorderLayout.PAGE_START);
@@ -203,6 +204,10 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ThemeEditorSty
     final TableModel model = table.getModel();
     final ThemeEditorStyle parent = value.getParent();
 
+    Font font = table.getFont();
+    Font scaledFont = font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE);
+    myParentComboBox.setFont(scaledFont);
+    myLabel.setFont(scaledFont);
     myParentComboBox.setEnabled(model.isCellEditable(row, column));
 
     if (parent == null) {
@@ -221,6 +226,11 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ThemeEditorSty
 
   @Override
   public Component getEditorComponent(JTable table, ThemeEditorStyle value, boolean isSelected, int row, int column) {
+    Font font = table.getFont();
+    Font scaledFont = font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE);
+    myParentComboBox.setFont(scaledFont);
+    myLabel.setFont(scaledFont);
+
     ThemeEditorStyle parent = value.getParent();
     ImmutableList<String> defaultThemeNames = ThemeEditorUtils.getDefaultThemeNames(myContext.getThemeResolver());
     myParentComboBox.setModel(new ParentThemesListModel(defaultThemeNames, parent.getQualifiedName()));

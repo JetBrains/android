@@ -16,8 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
+import com.android.tools.swing.ui.ClickableLabel;
 import com.android.tools.swing.ui.SwatchComponent;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JButtonFixture;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -33,7 +35,16 @@ public class SwatchComponentFixture extends JComponentFixture<SwatchComponentFix
   }
 
   @NotNull
+  public JButtonFixture getSwatchButton() {
+    return new JButtonFixture(robot(), robot().finder().findByType(target(), ClickableLabel.class));
+  }
+
+  @NotNull
   public String getText() {
     return target().getText();
+  }
+
+  public boolean hasWarningIcon() {
+    return target().hasWarningIcon();
   }
 }
