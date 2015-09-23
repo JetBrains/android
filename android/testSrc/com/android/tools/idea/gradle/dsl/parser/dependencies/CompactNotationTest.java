@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser;
+package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
-import com.android.tools.idea.gradle.dsl.parser.ExternalDependency.CompactNotation;
-import com.android.tools.idea.gradle.dsl.parser.ExternalDependency.DependencySpec;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependency;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependency.CompactNotation;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependency.DependencySpec;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;

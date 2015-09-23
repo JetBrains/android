@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyTest.ExpectedExternalDependency;
-import com.android.tools.idea.gradle.dsl.parser.ModuleDependencyTest.ExpectedModuleDependency;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependencyTest.ExpectedExternalDependency;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -31,7 +31,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import static com.android.tools.idea.gradle.dsl.parser.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS;
@@ -99,7 +99,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
     GradleBuildModelFixture library3BuildModel = myProjectFrame.parseBuildFileForModule("library3", false);
     ExpectedExternalDependency guava = new ExpectedExternalDependency(COMPILE, "com.google.guava", "guava", "18.0");
-    library3BuildModel.getTarget().getDependencies().add(guava);
+    library3BuildModel.getTarget().dependencies().add(guava);
     library3BuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -126,7 +126,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
     ExpectedExternalDependency guava = new ExpectedExternalDependency(COMPILE, "com.google.guava", "guava", "18.0");
-    appBuildModel.getTarget().getDependencies().add(guava);
+    appBuildModel.getTarget().dependencies().add(guava);
     appBuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
