@@ -29,23 +29,25 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.intellij.ide.projectView.impl.ProjectRootsUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.RecentsManager;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
@@ -163,37 +165,6 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     return null;
   }
 
-  /**
-   * Calculate the package name from the given target directory. Returns the package name or null if no package name could
-   * be calculated.
-   */
-  @Nullable
-  public static String getPackageFromDirectory(@NotNull VirtualFile directory,
-                                               @NotNull SourceProvider sourceProvider,
-                                               @NotNull Module module,
-                                               @NotNull String srcDir) {
-    File javaSourceRoot;
-    File javaDir = findSrcDirectory(sourceProvider);
-    if (javaDir == null) {
-      javaSourceRoot = new File(AndroidRootUtil.getModuleDirPath(module), srcDir);
-    }
-    else {
-      javaSourceRoot = new File(javaDir.getPath());
-    }
-
-    File javaSourcePackageRoot = VfsUtilCore.virtualToIoFile(directory);
-    if (!FileUtil.isAncestor(javaSourceRoot, javaSourcePackageRoot, true)) {
-      return null;
-    }
-
-    String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
-    String packageName = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
-    if (packageName == null || !AndroidUtils.isValidJavaPackageName(packageName)) {
-      return null;
-    }
-    return packageName;
-  }
-
   @Nullable
   private static File getModuleRoot(@Nullable Module module) {
     if (module == null) {
@@ -248,9 +219,13 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       testDir = new File(FileUtil.toSystemDependentName(absolutePath));
     }
     assert javaPath != null;
+
+    String sourceRootPackagePrefix = getSourceDirectoryPackagePrefix(module, javaDir);
+    String relativePackageName = removeCommonPackagePrefix(sourceRootPackagePrefix, packageName);
+
     // Calculate package name
     paths.put(TemplateMetadata.ATTR_PACKAGE_NAME, packageName);
-    String relativePackageDir = packageName.replace('.', File.separatorChar);
+    String relativePackageDir = relativePackageName.replace('.', File.separatorChar);
     File srcOut = new File(javaDir, relativePackageDir);
     File testOut = new File(testDir, relativePackageDir);
     paths.put(ATTR_TEST_DIR, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
@@ -258,6 +233,45 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     paths.put(ATTR_APPLICATION_PACKAGE, ManifestInfo.get(module, false).getPackage());
     paths.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcOut.getAbsolutePath()));
     return paths;
+  }
+
+  /**
+   * Returns the package prefix of the module's content root if it can be found.
+   */
+  @NotNull
+  private static String getSourceDirectoryPackagePrefix(@NotNull Module module, File javaDir) {
+    VirtualFile javaVirtualFile = LocalFileSystem.getInstance().findFileByIoFile(javaDir);
+    if (javaVirtualFile == null) {
+      return "";
+    }
+    SourceFolder sourceFolder = ProjectRootsUtil.findSourceFolder(module, javaVirtualFile);
+    if (sourceFolder == null) {
+      return "";
+    }
+    return sourceFolder.getPackagePrefix();
+  }
+
+  /**
+   * Makes the package name relative to a package prefix.
+   *
+   * Examples:
+   * getRelativePackageName("com.google", "com.google.android") -> "android"
+   * getRelativePackageName("com.google.android", "com.google.android") -> ""
+   * getRelativePackageName("com.google.android", "not.google.android") -> "not.google.android"
+   */
+  @NotNull
+  static String removeCommonPackagePrefix(
+      @NotNull String packagePrefix,
+      @NotNull String packageName) {
+    String relativePackageName = packageName;
+    if (packageName.equals(packagePrefix)) {
+      relativePackageName = "";
+    } else if (packageName.length() > packagePrefix.length()
+        && packageName.startsWith(packagePrefix)
+        && packageName.charAt(packagePrefix.length()) == '.') {
+      relativePackageName = relativePackageName.substring(packagePrefix.length() + 1);
+    }
+    return relativePackageName;
   }
 
   @Nullable
@@ -363,7 +377,9 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       if (sourceProviders.size() > 0 && IdeaSourceProvider.containsFile(sourceProviders.get(0), targetDirectoryFile)) {
         File srcDirectory = findSrcDirectory(sourceProviders.get(0));
         if (srcDirectory != null) {
-          String packageName = getPackageFromDirectory(myTargetFolder, sourceProviders.get(0), module, srcDirectory.toString());
+          String packageName = ProjectRootManager.getInstance(module.getProject())
+            .getFileIndex()
+            .getPackageNameByDirectory(myTargetFolder);
           if (packageName != null) {
             return packageName;
           }
