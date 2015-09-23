@@ -43,6 +43,11 @@ public class JavaLibraryStub implements JavaLibrary {
   }
 
   @Override
+  public boolean isProvided() {
+    return false;
+  }
+
+  @Override
   @Nullable
   public MavenCoordinates getRequestedCoordinates() {
     throw new UnsupportedOperationException();
