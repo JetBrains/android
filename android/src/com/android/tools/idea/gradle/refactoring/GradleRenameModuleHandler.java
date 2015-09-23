@@ -156,6 +156,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             if (moduleReference == null) {
               Messages.showErrorDialog(project, "Can't find module '" + myModule.getName() + "' in settings.gradle",
                                        IdeBundle.message("title.rename.module"));
+              reset(modifiedBuildModels);
               return;
             }
 
@@ -166,6 +167,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             catch (IOException e) {
               Messages.showErrorDialog(project, "Rename folder failed: " + e.getMessage(), IdeBundle.message("title.rename.module"));
               result.setResult(false);
+              reset(modifiedBuildModels);
               return;
             }
 
@@ -200,4 +202,9 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
     }
   }
 
+  private static void reset(@NotNull List<GradleBuildModel> buildModels) {
+    for (GradleBuildModel buildModel : buildModels) {
+      buildModel.resetState();
+    }
+  }
 }
