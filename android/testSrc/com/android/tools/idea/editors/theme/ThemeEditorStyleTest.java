@@ -439,6 +439,10 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     if (testName.equals("getParentNamesWithDependency") || testName.equals("themeOverride")) {
       addModuleWithAndroidFacet(projectBuilder, modules, "moduleA", true);
     }
+    else if (testName.equals("getConfiguredValues")) {
+      addModuleWithAndroidFacet(projectBuilder, modules, "moduleA", true);
+      addModuleWithAndroidFacet(projectBuilder, modules, "moduleB", true);
+    }
   }
 
   public void testGetParentNamesWithDependency() {
@@ -470,6 +474,24 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     assertEquals(1, theme.getParentNames().size());
     // We expect only the main app parent to be available
     assertEquals("@style/ATheme", theme.getParentNames().iterator().next().getElement());
+  }
+
+  /**
+   * Tests {@link ThemeEditorStyle#getConfiguredValues()}
+   * Tests values coming from different modules.
+   * Dependency used in the test: mainModule -> moduleA, mainModule -> moduleB
+   */
+  public void testGetConfiguredValues() {
+
+    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_4.xml", "additionalModules/moduleB/res/values-v19/styles.xml");
+    VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml",
+                                                          "additionalModules/moduleA/res/values/styles.xml");
+    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    Configuration configuration = configurationManager.getConfiguration(virtualFile);
+    ThemeResolver resolver = new ThemeResolver(configuration);
+    ThemeEditorStyle theme = resolver.getTheme("@style/AppTheme");
+
+    assertEquals(3, theme.getConfiguredValues().values().size());
   }
 
 }

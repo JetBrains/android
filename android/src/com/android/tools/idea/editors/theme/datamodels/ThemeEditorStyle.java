@@ -250,7 +250,7 @@ public class ThemeEditorStyle {
       }
     }
     else {
-      LocalResourceRepository repository = AppResourceRepository.getAppResources(getModuleForAcquiringResources(), true);
+      LocalResourceRepository repository = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
       assert repository != null;
       // Find every definition of this style and get all the attributes defined
       List<ResourceItem> styleDefinitions = repository.getResourceItem(ResourceType.STYLE, myStyleResourceValue.getName());
