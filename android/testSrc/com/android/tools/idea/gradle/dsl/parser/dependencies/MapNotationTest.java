@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser;
+package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
-import com.android.tools.idea.gradle.dsl.parser.ExternalDependency.DependencySpec;
-import com.android.tools.idea.gradle.dsl.parser.ExternalDependency.MapNotation;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependency.DependencySpec;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependency.MapNotation;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

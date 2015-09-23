@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.parser.ExternalDependency;
-import com.android.tools.idea.gradle.dsl.parser.ExternalDependencyTest.ExpectedExternalDependency;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependency;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependencyTest.ExpectedExternalDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -28,7 +28,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.parser.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -41,7 +41,7 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
 
     GradleBuildModelFixture buildModel = projectFrame.parseBuildFileForModule("app", true);
 
-    List<ExternalDependency> dependencies = buildModel.getTarget().getDependencies().getExternal();
+    List<ExternalDependency> dependencies = buildModel.getTarget().dependencies().external();
     assertThat(dependencies).hasSize(2);
 
     ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
@@ -56,7 +56,7 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
     final IdeFrameFixture projectFrame = importSimpleApplication();
     final GradleBuildModelFixture buildModel = projectFrame.parseBuildFileForModule("app", true);
 
-    List<ExternalDependency> dependencies = buildModel.getTarget().getDependencies().getExternal();
+    List<ExternalDependency> dependencies = buildModel.getTarget().dependencies().external();
     assertThat(dependencies).hasSize(2);
 
     final ExternalDependency appCompat = dependencies.get(0);
@@ -67,7 +67,7 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
     appCompat.setVersion("1.2.3");
     buildModel.applyChanges();
 
-    dependencies = buildModel.getTarget().getDependencies().getExternal();
+    dependencies = buildModel.getTarget().dependencies().external();
     assertThat(dependencies).hasSize(2);
 
     expected.configurationName = "compile";

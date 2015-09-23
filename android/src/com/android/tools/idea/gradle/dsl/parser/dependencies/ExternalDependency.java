@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser;
+package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
 import com.android.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -60,9 +60,9 @@ public class ExternalDependency extends AbstractDependency {
   @Nullable private String myNewVersion;
 
   @Nullable
-  static ExternalDependency withCompactNotation(@NotNull Dependencies parent,
-                                                     @NotNull String configurationName,
-                                                     @NotNull GrLiteral literal) {
+  public static ExternalDependency withCompactNotation(@NotNull Dependencies parent,
+                                                       @NotNull String configurationName,
+                                                       @NotNull GrLiteral literal) {
     Notation notation = CompactNotation.parse(literal);
     if (notation != null) {
       return new ExternalDependency(parent, configurationName, notation);
@@ -71,9 +71,9 @@ public class ExternalDependency extends AbstractDependency {
   }
 
   @Nullable
-  static ExternalDependency withMapNotation(@NotNull Dependencies parent,
-                                                 @NotNull String configurationName,
-                                                 @NotNull GrNamedArgument[] namedArguments) {
+  public static ExternalDependency withMapNotation(@NotNull Dependencies parent,
+                                                   @NotNull String configurationName,
+                                                   @NotNull GrNamedArgument[] namedArguments) {
     Notation notation = MapNotation.parse(namedArguments);
     if (notation != null) {
       return new ExternalDependency(parent, configurationName, notation);
