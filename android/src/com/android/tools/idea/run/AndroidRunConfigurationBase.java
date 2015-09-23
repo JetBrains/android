@@ -255,13 +255,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    boolean debug = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId());
-    boolean nonDebuggableOnDevice = false;
-
-    if (debug) {
-      Boolean isDebuggable = AndroidModuleInfo.get(facet).isDebuggable();
-      nonDebuggableOnDevice = isDebuggable != null && !isDebuggable;
-
+    if (executor instanceof DefaultDebugExecutor) {
       if (!AndroidSdkUtils.activateDdmsIfNecessary(facet.getModule().getProject())) {
         return null;
       }
@@ -273,34 +267,32 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     TargetChooser targetChooser = getTargetChooser(facet, executor, printer);
 
     // If there is a session that we will embed to, we need to re-use the devices from that session.
-    DeviceTarget deviceTarget = getOldSessionTarget(project, executor, targetChooser);
-    if (deviceTarget == null) {
-      DeployTarget chosenTarget = targetChooser.getTarget();
-      if (chosenTarget == null) {
+    DeployTarget deployTarget = getOldSessionTarget(project, executor, targetChooser);
+    if (deployTarget == null) {
+      deployTarget = targetChooser.getTarget();
+      if (deployTarget == null) {
         // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
         return null;
       }
-
-      // Store the chosen target on the execution environment so before-run tasks can access it.
-      env.putCopyableUserData(DEPLOY_TARGET_KEY, chosenTarget);
-
-      if (chosenTarget instanceof CloudMatrixTarget) {
-        return new CloudMatrixTestRunningState(env, facet, this, (CloudMatrixTarget) chosenTarget);
-      } else if (chosenTarget instanceof CloudDeviceLaunchTarget) {
-        return new CloudDeviceLaunchRunningState(facet, (CloudDeviceLaunchTarget) chosenTarget);
-      } else if (chosenTarget instanceof DeviceTarget) {
-        deviceTarget = (DeviceTarget) chosenTarget;
-      } else {
-        assert false : "Unknown target type: " + chosenTarget.getClass().getCanonicalName();
-      }
     }
 
+    // Store the chosen target on the execution environment so before-run tasks can access it.
+    env.putCopyableUserData(DEPLOY_TARGET_KEY, deployTarget);
+
+    if (deployTarget instanceof CloudMatrixTarget) {
+      return new CloudMatrixTestRunningState(env, facet, this, (CloudMatrixTarget)deployTarget);
+    }
+    else if (deployTarget instanceof CloudDeviceLaunchTarget) {
+      return new CloudDeviceLaunchRunningState(facet, (CloudDeviceLaunchTarget)deployTarget);
+    }
+
+    assert deployTarget instanceof DeviceTarget : "Unknown target type: " + deployTarget.getClass().getCanonicalName();
+    DeviceTarget deviceTarget = (DeviceTarget)deployTarget;
     if (deviceTarget.getDeviceFutures().isEmpty()) {
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
-    return new AndroidRunningState(env, facet, getApkProvider(), deviceTarget, printer, getApplicationLauncher(facet), CLEAR_LOGCAT, this,
-                                   nonDebuggableOnDevice);
+    return new AndroidRunningState(env, facet, getApkProvider(), deviceTarget, printer, getApplicationLauncher(facet), CLEAR_LOGCAT, this);
   }
 
   @Nullable
