@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.quickfix;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.dsl.parser.NewExternalDependency;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.NewExternalDependency;
 import com.intellij.codeInsight.daemon.QuickFixBundle;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.parser.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.CommonConfigurationNames.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;

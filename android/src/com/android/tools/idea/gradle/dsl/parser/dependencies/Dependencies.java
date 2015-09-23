@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser;
+package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -51,7 +52,7 @@ public class Dependencies extends GradleDslElement {
 
   @NotNull private final Set<NewExternalDependency> myNewExternal = Sets.newLinkedHashSet();
 
-  Dependencies(@NotNull GradleDslElement parent) {
+  public Dependencies(@NotNull GradleDslElement parent) {
     super(parent);
   }
 
@@ -104,12 +105,12 @@ public class Dependencies extends GradleDslElement {
   }
 
   @NotNull
-  public ImmutableList<ExternalDependency> getExternal() {
+  public ImmutableList<ExternalDependency> external() {
     return ImmutableList.copyOf(myExternal);
   }
 
   @NotNull
-  public ImmutableList<ModuleDependency> getToModules() {
+  public ImmutableList<ModuleDependency> toModules() {
     return ImmutableList.copyOf(myToModules);
   }
 
@@ -118,7 +119,7 @@ public class Dependencies extends GradleDslElement {
     setModified(true);
   }
 
-  boolean parse(@NotNull GrMethodCallExpression methodCallExpression) {
+  public boolean parse(@NotNull GrMethodCallExpression methodCallExpression) {
     setPsiElement(findClosableBlock(methodCallExpression, "dependencies"));
     if (myPsiElement == null) {
       return false;
@@ -285,7 +286,7 @@ public class Dependencies extends GradleDslElement {
     myPsiElement = psiElement;
   }
 
-  void setPsiFile(@Nullable PsiFile psiFile) {
+  public void setPsiFile(@Nullable PsiFile psiFile) {
     myPsiFile = psiFile;
   }
 }
