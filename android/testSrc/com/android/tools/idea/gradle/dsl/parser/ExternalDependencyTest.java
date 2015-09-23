@@ -232,6 +232,41 @@ public class ExternalDependencyTest extends GradleBuildModelParserTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
+  public void testReset() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ExternalDependency> dependencies = buildModel.getDependencies().getExternal();
+
+    ExternalDependency guice = dependencies.get(0);
+    guice.setVersion("1.2.3");
+
+    assertTrue(buildModel.isModified());
+
+    buildModel.resetState();
+
+    assertFalse(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+
+    dependencies = buildModel.getDependencies().getExternal();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.google.code.guice", "guice", "1.0");
+    expected.assertMatches(dependencies.get(0));
+  }
+
   public static class ExpectedExternalDependency extends NewExternalDependency {
     public ExpectedExternalDependency(@NotNull String configurationName,
                                       @NotNull String group,

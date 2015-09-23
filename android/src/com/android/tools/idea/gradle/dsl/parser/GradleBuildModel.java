@@ -125,7 +125,9 @@ public class GradleBuildModel extends GradleDslElement {
     }));
   }
 
-  private void reset() {
+  @Override
+  protected void reset() {
+    myDependencies.resetState();
     myExtendedDslElements.clear();
   }
 

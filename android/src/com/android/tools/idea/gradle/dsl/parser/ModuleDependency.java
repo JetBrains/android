@@ -163,5 +163,12 @@ public class ModuleDependency extends AbstractDependency {
     }
     newPath = quote + newPath + quote;
     myPathElement = myPathElement.updateText(newPath);
+
+    reset();
+  }
+
+  @Override
+  protected void reset() {
+    myNewName = null;
   }
 }
