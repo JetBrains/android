@@ -45,7 +45,7 @@ public class AttributesPanel {
   private JButton myBackButton;
   private JBLabel mySubStyleLabel;
   private ThemeEditorTable myAttributesTable;
-  private JBScrollPane myAttributesScrollPane;
+  private final JBScrollPane myAttributesScrollPane;
   private JPanel myRightPanel;
   private JComboBox myAttrGroupCombo;
   private ColorPalette myPalette;

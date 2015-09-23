@@ -235,8 +235,12 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ThemeEditorSty
       String selectedValue = (String)myParentComboBox.getSelectedItem();
       if (ParentThemesListModel.SHOW_ALL_THEMES.equals(selectedValue)) {
         myParentComboBox.hidePopup();
+
+        ThemeEditorStyle currentTheme = myContext.getCurrentTheme();
+        assert currentTheme != null;
+
         final ThemeSelectionDialog dialog =
-          new ThemeSelectionDialog(myContext.getConfiguration(), Collections.singleton(myContext.getCurrentTheme().getQualifiedName()));
+          new ThemeSelectionDialog(myContext.getConfiguration(), Collections.singleton(currentTheme.getQualifiedName()));
 
         dialog.show();
 

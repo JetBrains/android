@@ -39,7 +39,7 @@ public class AttributesModelColorPaletteModel implements ColorPalette.ColorPalet
   private final Project myProject;
 
   private List<Color> myColorList;
-  private Multimap<Color, EditedStyleItem> myColorReferences = HashMultimap.create();
+  private final Multimap<Color, EditedStyleItem> myColorReferences = HashMultimap.create();
 
   public AttributesModelColorPaletteModel(@NotNull Configuration configuration, @NotNull AttributesTableModel model) {
     myResourceResolver = configuration.getResourceResolver();
