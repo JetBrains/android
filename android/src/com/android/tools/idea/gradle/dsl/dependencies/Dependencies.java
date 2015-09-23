@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.dependencies;
+package com.android.tools.idea.gradle.dsl.dependencies;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -63,8 +64,8 @@ public class Dependencies extends GradleDslElement {
     applyNewExternalDependencies();
   }
 
-  private static void applyChanges(@NotNull List<? extends AbstractDependency> dependencies) {
-    for (AbstractDependency dependency : dependencies) {
+  private static void applyChanges(@NotNull List<? extends Dependency> dependencies) {
+    for (Dependency dependency : dependencies) {
       dependency.applyChanges();
     }
   }
@@ -267,8 +268,8 @@ public class Dependencies extends GradleDslElement {
     removeNewDependencies();
   }
 
-  private static void reset(@NotNull List<? extends AbstractDependency> dependencies) {
-    for (AbstractDependency dependency : dependencies) {
+  private static void reset(@NotNull List<? extends Dependency> dependencies) {
+    for (Dependency dependency : dependencies) {
       dependency.resetState();
     }
   }

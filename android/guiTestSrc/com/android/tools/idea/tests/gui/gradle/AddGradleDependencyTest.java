@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependencyTest.ExpectedExternalDependency;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
+import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependencyTest.ExpectedExternalDependency;
+import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -31,7 +31,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import static com.android.tools.idea.gradle.dsl.parser.dependencies.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.dsl.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS;

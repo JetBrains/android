@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.dependencies;
+package com.android.tools.idea.gradle.dsl.dependencies;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -36,7 +36,7 @@ import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
  * <pre> configurationName project("gradlePath") </pre> and
  * <pre> configurationName project(path: "gradlePath", configuration: "configuration") </pre>
  */
-public class ModuleDependency extends AbstractDependency {
+public class ModuleDependency extends Dependency {
   @NotNull GrLiteralContainer myPathElement;
 
   /**

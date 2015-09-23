@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.dependencies;
+package com.android.tools.idea.gradle.dsl.dependencies;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslElement;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractDependency extends GradleDslElement {
+public abstract class Dependency extends GradleDslElement {
   @NotNull private final String myConfigurationName;
 
-  protected AbstractDependency(@NotNull Dependencies parent, @NotNull String configurationName) {
+  protected Dependency(@NotNull Dependencies parent, @NotNull String configurationName) {
     super(parent);
     myConfigurationName = configurationName;
   }
 
   @NotNull
-  public String getConfigurationName() {
+  public String configurationName() {
     return myConfigurationName;
   }
 }

@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.dependencies;
+package com.android.tools.idea.gradle.dsl.dependencies.external;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModelParserTestCase;
+import com.android.tools.idea.gradle.dsl.dependencies.NewExternalDependency;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.parser.dependencies.CommonConfigurationNames.COMPILE;
-import static com.android.tools.idea.gradle.dsl.parser.dependencies.CommonConfigurationNames.RUNTIME;
+import static com.android.tools.idea.gradle.dsl.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.dependencies.CommonConfigurationNames.RUNTIME;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -143,7 +144,7 @@ public class ExternalDependencyTest extends GradleBuildModelParserTestCase {
     List<ExternalDependency> dependencies = buildModel.dependencies().external();
 
     ExternalDependency appCompat = dependencies.get(0);
-    appCompat.setVersion("1.2.3");
+    appCompat.version("1.2.3");
 
     assertTrue(buildModel.isModified());
     runWriteCommandAction(myProject, new Runnable() {
@@ -173,7 +174,7 @@ public class ExternalDependencyTest extends GradleBuildModelParserTestCase {
     List<ExternalDependency> dependencies = buildModel.dependencies().external();
 
     ExternalDependency guice = dependencies.get(0);
-    guice.setVersion("1.2.3");
+    guice.version("1.2.3");
 
     assertTrue(buildModel.isModified());
 
@@ -245,7 +246,7 @@ public class ExternalDependencyTest extends GradleBuildModelParserTestCase {
     List<ExternalDependency> dependencies = buildModel.dependencies().external();
 
     ExternalDependency guice = dependencies.get(0);
-    guice.setVersion("1.2.3");
+    guice.version("1.2.3");
 
     assertTrue(buildModel.isModified());
 
@@ -278,21 +279,21 @@ public class ExternalDependencyTest extends GradleBuildModelParserTestCase {
     }
 
     public void assertMatches(@NotNull ExternalDependency actual) {
-      assertEquals("configurationName", configurationName, actual.getConfigurationName());
-      assertEquals("group", group, actual.getGroup());
-      assertEquals("name", name, actual.getName());
-      assertEquals("version", version, actual.getVersion());
-      assertEquals("classifier", classifier, actual.getClassifier());
-      assertEquals("extension", extension, actual.getExtension());
+      assertEquals("configurationName", configurationName, actual.configurationName());
+      assertEquals("group", group, actual.group());
+      assertEquals("name", name, actual.name());
+      assertEquals("version", version, actual.version());
+      assertEquals("classifier", classifier, actual.classifier());
+      assertEquals("extension", extension, actual.extension());
     }
 
     public boolean matches(@NotNull ExternalDependency model) {
-      return configurationName.equals(model.getConfigurationName()) &&
-             group.equals(model.getGroup()) &&
-             name.equals(model.getName()) &&
-             version.equals(model.getVersion()) &&
-             Objects.equal(classifier, model.getClassifier()) &&
-             Objects.equal(extension, model.getExtension());
+      return configurationName.equals(model.configurationName()) &&
+             group.equals(model.group()) &&
+             name.equals(model.name()) &&
+             version.equals(model.version()) &&
+             Objects.equal(classifier, model.classifier()) &&
+             Objects.equal(extension, model.extension());
     }
   }
 }

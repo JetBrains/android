@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.quickfix;
 
-import com.android.tools.idea.gradle.dsl.parser.dependencies.NewExternalDependency;
+import com.android.tools.idea.gradle.dsl.dependencies.NewExternalDependency;
 import com.intellij.codeInsight.daemon.QuickFixBundle;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
