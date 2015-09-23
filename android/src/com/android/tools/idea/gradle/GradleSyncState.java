@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
@@ -43,13 +44,13 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.gradle.util.GradleUtil.cleanUpPreferences;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.stats.UsageTracker.*;
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
@@ -197,11 +198,20 @@ public class GradleSyncState {
       }
     });
 
+    FullRevision gradleVersion = getGradleVersion(myProject);
+    if (gradleVersion != null) {
+      trackSyncEvent(ACTION_GRADLE_VERSION, gradleVersion.toString());
+    }
+
     trackSyncEvent(ACTION_GRADLE_SYNC_ENDED);
   }
 
   private static void trackSyncEvent(@NotNull String event) {
-    UsageTracker.getInstance().trackEvent(CATEGORY_GRADLE, event, null, null);
+    trackSyncEvent(event, null);
+  }
+
+  private static void trackSyncEvent(@NotNull String event, @Nullable String extraInfo) {
+    UsageTracker.getInstance().trackEvent(CATEGORY_GRADLE, event, extraInfo, null);
   }
 
   private void addInfoToEventLog(@NotNull String message) {
