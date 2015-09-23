@@ -114,14 +114,14 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
   private List<ComponentDefinition> mySupportLibraryComponents = Collections.emptyList();
 
   /** List of component names that shouldn't be displayed. This is used in the case where a support component supersedes a framework one. */
-  private List<String> myDisabledComponents = new ArrayList<String>();
+  private final List<String> myDisabledComponents = new ArrayList<String>();
 
   private final ThemeEditorContext myContext;
   protected final NavigationComponent<Breadcrumb> myBreadcrumbs;
   protected final AndroidPreviewPanel myAndroidPreviewPanel;
   protected final JBScrollPane myScrollPane;
 
-  protected DumbService myDumbService;
+  protected final DumbService myDumbService;
 
   /** Filters components that are disabled or that do not belong to the current selected group */
   private final Predicate<ComponentDefinition> myGroupFilter = new Predicate<ComponentDefinition>() {

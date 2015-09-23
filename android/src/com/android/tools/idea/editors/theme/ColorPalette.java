@@ -40,7 +40,7 @@ public class ColorPalette extends JComponent implements Scrollable, ItemSelectab
   private int myColorBoxPadding = myColorBoxSize / 10;
   private boolean myShowCheckeredBackground = false;
   private ColorPaletteModel myColorListModel;
-  private Border mySelectedBorder = UIManager.getBorder("Table.focusCellHighlightBorder");
+  private final Border mySelectedBorder = UIManager.getBorder("Table.focusCellHighlightBorder");
   private int mySelectedItem = -1;
 
   /**

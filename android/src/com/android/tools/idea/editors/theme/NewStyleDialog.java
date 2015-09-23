@@ -19,7 +19,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
 import com.android.tools.idea.editors.theme.attributes.editors.StyleListCellRenderer;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.google.common.base.Strings;
