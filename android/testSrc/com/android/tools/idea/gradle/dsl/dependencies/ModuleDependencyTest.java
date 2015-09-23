@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.dependencies;
+package com.android.tools.idea.gradle.dsl.dependencies;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModelParserTestCase;
@@ -279,7 +279,7 @@ public class ModuleDependencyTest extends GradleBuildModelParserTestCase {
     public String configuration;
 
     public void assertMatches(@NotNull ModuleDependency actual) {
-      assertEquals("configurationName", configurationName, actual.getConfigurationName());
+      assertEquals("configurationName", configurationName, actual.configurationName());
       assertEquals("path", path, actual.getPath());
       assertEquals("configuration", configuration, actual.getTargetConfiguration());
     }
