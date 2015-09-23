@@ -21,10 +21,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.AndroidRunConfigurationType;
-import com.android.tools.idea.run.TargetSelectionMode;
+import com.android.tools.idea.run.*;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.codeInsight.navigation.NavigationUtil;
@@ -259,7 +256,7 @@ public class AndroidUtils {
           configuration.MODE = AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY;
           configuration.ACTIVITY_CLASS = activityClass;
         }
-        else if (AndroidRunConfiguration.isWatchFaceApp(facet)) {
+        else if (LaunchUtils.isWatchFaceApp(facet)) {
           // In case of a watch face app, there is only a service and no default activity that can be launched
           // Eventually, we'd need to support launching a service, but currently you cannot launch a watch face service as well.
           // See https://code.google.com/p/android/issues/detail?id=151353
