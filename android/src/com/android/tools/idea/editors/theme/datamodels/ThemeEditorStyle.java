@@ -585,6 +585,10 @@ public class ThemeEditorStyle {
    * @param value     the style attribute value
    */
   public void setValue(@NotNull final String attribute, @NotNull final String value) {
+    if (!isProjectStyle()) {
+      throw new UnsupportedOperationException("Non project styles can not be modified");
+    }
+
     int maxApi =
       Math.max(ResolutionUtils.getOriginalApiLevel(value, myProject), ResolutionUtils.getOriginalApiLevel(attribute, myProject));
     int minSdk = ThemeEditorUtils.getMinApiLevel(myConfiguration.getModule());
