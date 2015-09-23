@@ -28,12 +28,12 @@ import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
 import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 import static com.intellij.psi.util.PsiTreeUtil.findChildOfType;
 
-final class PsiElements {
+public final class PsiElements {
   private PsiElements() {
   }
 
   @Nullable
-  static String getUnquotedText(@NotNull GrLiteral literal) {
+  public static String getUnquotedText(@NotNull GrLiteral literal) {
     String text = literal.getText();
     if (text != null && text.length() > 2 && isQuotedString(text)) {
       return unquoteString(text);
@@ -58,7 +58,7 @@ final class PsiElements {
    * @return the found closure block, or {@code null} if the expression name does not match the given ones.
    */
   @Nullable
-  static GrClosableBlock findClosableBlock(@NotNull GrMethodCallExpression expression, @NotNull String...possibleBlockNames) {
+  public static GrClosableBlock findClosableBlock(@NotNull GrMethodCallExpression expression, @NotNull String...possibleBlockNames) {
     GrExpression invokedExpression = expression.getInvokedExpression();
     GrReferenceExpression childExpression = findChildOfType(invokedExpression, GrReferenceExpression.class, false);
     if (isNotNullWithText(childExpression, possibleBlockNames)) {
@@ -73,7 +73,7 @@ final class PsiElements {
     return null;
   }
 
-  static boolean isNotNullWithText(@Nullable PsiElement e, @NotNull String...possibleTextValues) {
+  public static boolean isNotNullWithText(@Nullable PsiElement e, @NotNull String...possibleTextValues) {
     if (e != null) {
       String elementText = e.getText();
       for (String text : possibleTextValues) {

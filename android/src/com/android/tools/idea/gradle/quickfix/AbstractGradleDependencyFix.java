@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.quickfix;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.parser.NewExternalDependency;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.NewExternalDependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -42,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
-import static com.android.tools.idea.gradle.dsl.parser.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.CommonConfigurationNames.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.psi.util.PsiUtilCore.getVirtualFile;
 
@@ -108,7 +108,7 @@ abstract class AbstractGradleDependencyFix extends AbstractGradleAwareFix {
     if (buildModel == null) {
       return;
     }
-    buildModel.getDependencies().add(newDependency);
+    buildModel.dependencies().add(newDependency);
     GradleSyncListener listener = new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
