@@ -901,7 +901,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       if (canDismissKeyguard.compareTo(DevicePropertyUtil.getDeviceVersion(device)) <= 0) {
         // It is not necessary to wait for the keyguard to be dismissed. On a slow emulator, this seems
         // to take a while (6s on my machine)
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
+        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
           @Override
           public void run() {
             try {
