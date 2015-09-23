@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes;
 
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
@@ -95,6 +96,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
   private void reloadContent() {
     final List<EditedStyleItem> rawAttributes = new ArrayList<EditedStyleItem>(ThemeEditorUtils.resolveAllAttributes(mySelectedStyle, myContext.getThemeResolver()));
+    //noinspection unchecked (SIMPLE_MODE_COMPARATOR can compare EditedStyleItem)
     Collections.sort(rawAttributes, ThemeEditorComponent.SIMPLE_MODE_COMPARATOR);
     myAttributes.clear();
     myLabels = AttributesGrouper.generateLabels(myGroupBy, rawAttributes, myAttributes);
@@ -293,7 +295,14 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     public Class<?> getCellClass(int column) {
       EditedStyleItem item = myAttributes.get(myRowIndex);
 
-      ResourceValue resourceValue = mySelectedStyle.getConfiguration().getResourceResolver().resolveResValue(item.getSelectedValue());
+      ResourceResolver resolver = mySelectedStyle.getConfiguration().getResourceResolver();
+      if (resolver == null) {
+        // The resolver might be null if the configuration doesn't have a theme selected
+        LOG.error("Unable to get resource resolver");
+        return null;
+      }
+
+      ResourceValue resourceValue = resolver.resolveResValue(item.getSelectedValue());
       if (resourceValue == null) {
         LOG.error("Unable to resolve " + item.getValue());
         return null;
