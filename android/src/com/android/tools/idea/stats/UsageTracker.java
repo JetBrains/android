@@ -62,6 +62,7 @@ public abstract class UsageTracker {
   public static final String ACTION_GRADLE_SYNC_SKIPPED = "syncSkipped";
   public static final String ACTION_GRADLE_SYNC_FAILED = "syncFailed";
   public static final String ACTION_GRADLE_CPP_SYNC_COMPLETED = "cppSyncCompleted";
+  public static final String ACTION_GRADLE_VERSION = "gradleVersion";
 
   public static final String CATEGORY_GRADLE_SYNC_FAILURE = "gradleSyncFailure";
   public static final String ACTION_GRADLE_SYNC_FAILURE_UNKNOWN = "syncFailedCauseUnknown";
