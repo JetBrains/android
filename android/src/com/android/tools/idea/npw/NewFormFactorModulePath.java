@@ -78,7 +78,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private final Key<Boolean> myIsIncludedKey;
   private final Key<String> myModuleNameKey;
   private TemplateParameterStep2 myParameterStep;
-  private List<File> myFilesToOpen = Lists.newArrayList();
   private String myDefaultModuleName = null;
   private boolean myGradleSyncIfNecessary = true;
 
@@ -107,7 +106,9 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     return toReturn;
   }
 
-  public NewFormFactorModulePath(@NotNull FormFactorUtils.FormFactor formFactor, @NotNull File templateFile, @NotNull Disposable disposable) {
+  public NewFormFactorModulePath(@NotNull FormFactorUtils.FormFactor formFactor,
+                                 @NotNull File templateFile,
+                                 @NotNull Disposable disposable) {
     myFormFactor = formFactor;
     myTemplateFile = templateFile;
     myDisposable = disposable;
@@ -163,7 +164,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     String packageSegment = myState.get(PACKAGE_NAME_KEY);
     if (packageSegment == null) {
       packageSegment = "";
-    } else {
+    }
+    else {
       packageSegment = packageSegment.replace('.', File.separatorChar);
     }
     return FileUtil.join(RELATIVE_SRC_ROOT, packageSegment);
@@ -174,7 +176,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     String packageSegment = myState.get(PACKAGE_NAME_KEY);
     if (packageSegment == null) {
       packageSegment = "";
-    } else {
+    }
+    else {
       packageSegment = packageSegment.replace('.', File.separatorChar);
     }
     return FileUtil.join(RELATIVE_TEST_ROOT, packageSegment);
@@ -272,7 +275,11 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     String projectLocation = myState.get(PROJECT_LOCATION_KEY);
     if (projectLocation != null) {
       File projectRoot = new File(projectLocation);
-      File moduleRoot = new File(projectRoot, myState.get(myModuleNameKey));
+
+      String moduleName = myState.get(myModuleNameKey);
+      assert moduleName != null;
+
+      File moduleRoot = new File(projectRoot, moduleName);
       try {
         checkedCreateDirectoryIfMissing(moduleRoot);
       }
@@ -284,6 +291,12 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       Template template = Template.createFromPath(myTemplateFile);
       Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
       template.render(projectRoot, moduleRoot, templateState, myWizard.getProject(), myGradleSyncIfNecessary);
+
+      Collection<File> targetFiles = myState.get(WizardConstants.TARGET_FILES_KEY);
+      assert targetFiles != null;
+
+      targetFiles.addAll(template.getTargetFiles());
+
       TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
       if (templateEntry == null) {
         return true;
@@ -293,6 +306,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
         templateState.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
       }
       activityTemplate.render(projectRoot, moduleRoot, templateState, myWizard.getProject(), myGradleSyncIfNecessary);
+
+      targetFiles.addAll(activityTemplate.getTargetFiles());
 
       // If the parent wizard supports opening files in the editor upon completion, do that
       List<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
