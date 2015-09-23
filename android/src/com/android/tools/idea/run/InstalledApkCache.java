@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class InstalledApks implements AndroidDebugBridge.IDeviceChangeListener, Disposable {
+public class InstalledApkCache implements AndroidDebugBridge.IDeviceChangeListener, Disposable {
   /**
    * A map from device serial -> package name -> install state.
    * The install state provides the hash of the apk that was installed, and the last update time as obtained from the device.
@@ -44,7 +44,7 @@ public class InstalledApks implements AndroidDebugBridge.IDeviceChangeListener, 
   /** Diagnostic output set by {@link #getLastUpdateTime(com.android.ddmlib.IDevice, String)} */
   private String myDiagnosticOutput;
 
-  public InstalledApks() {
+  public InstalledApkCache() {
     AndroidDebugBridge.addDeviceChangeListener(this);
   }
 
@@ -87,7 +87,7 @@ public class InstalledApks implements AndroidDebugBridge.IDeviceChangeListener, 
       // We used to log an error, but see https://code.google.com/p/android/issues/detail?id=79778 for a case where this doesn't work
       // on custom Android systems. So we just log a warning: the impact is that these users won't have any benefits of caching - the apk
       // will always be uploaded
-      Logger.getInstance(InstalledApks.class).warn(msg);
+      Logger.getInstance(InstalledApkCache.class).warn(msg);
       return;
     }
     cache.put(pkgName, new InstallState(hash(apk), lastUpdateTime));
