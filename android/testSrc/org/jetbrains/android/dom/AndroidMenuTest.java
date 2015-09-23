@@ -195,6 +195,12 @@ public class AndroidMenuTest extends AndroidDomTest {
     toTestCompletion("actionProvider.xml", "actionProvider_after.xml");
   }
 
+  // Test completion for action providers that are provided by Android framework
+  // Regression test for http://b.android.com/78022
+  public void testActionProviderFrameworkClass() throws Throwable {
+    toTestCompletion("actionProviderFramework.xml", "actionProviderFramework_after.xml");
+  }
+
   public void testActionViewClass() throws Throwable {
     copyFileToProject("MyProvider.java", "src/p1/p2/MyProvider.java");
     copyFileToProject("MyView.java", "src/p1/p2/MyView.java");
