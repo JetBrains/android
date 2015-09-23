@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.theme.attributes;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
@@ -51,7 +50,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   private static final Set<Class<?>> WIDE_CLASSES = ImmutableSet.of(Color.class, DrawableDomElement.class);
 
   protected final List<EditedStyleItem> myAttributes;
-  private final Configuration myConfiguration;
   private List<TableLabel> myLabels;
 
   protected final ThemeEditorStyle mySelectedStyle;
@@ -80,11 +78,9 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     return builder.build();
   }
 
-  public AttributesTableModel(@NotNull Configuration configuration,
-                              @NotNull ThemeEditorStyle selectedStyle,
+  public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle,
                               @NotNull AttributesGrouper.GroupBy groupBy,
                               @NotNull ThemeEditorContext context) {
-    myConfiguration = configuration;
     myContext = context;
     myAttributes = new ArrayList<EditedStyleItem>();
     myLabels = new ArrayList<TableLabel>();
@@ -94,7 +90,8 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   private void reloadContent() {
-    final List<EditedStyleItem> rawAttributes = new ArrayList<EditedStyleItem>(ThemeEditorUtils.resolveAllAttributes(mySelectedStyle, myContext.getThemeResolver()));
+    final List<EditedStyleItem> rawAttributes =
+      new ArrayList<EditedStyleItem>(ThemeEditorUtils.resolveAllAttributes(mySelectedStyle, myContext.getThemeResolver()));
     //noinspection unchecked (SIMPLE_MODE_COMPARATOR can compare EditedStyleItem)
     Collections.sort(rawAttributes, ThemeEditorComponent.SIMPLE_MODE_COMPARATOR);
     myAttributes.clear();
@@ -294,7 +291,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     public Class<?> getCellClass(int column) {
       EditedStyleItem item = myAttributes.get(myRowIndex);
 
-      ResourceResolver resolver = mySelectedStyle.getConfiguration().getResourceResolver();
+      ResourceResolver resolver = myContext.getResourceResolver();
       if (resolver == null) {
         // The resolver might be null if the configuration doesn't have a theme selected
         LOG.error("Unable to get resource resolver");
@@ -315,7 +312,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
 
       AttributeDefinition attrDefinition =
-        ResolutionUtils.getAttributeDefinition(mySelectedStyle.getConfiguration(), item.getSelectedValue());
+        ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), item.getSelectedValue());
 
       if (urlType == ResourceType.COLOR
               || (value != null && value.startsWith("#") && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color))) {
