@@ -27,6 +27,7 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.swing.ui.SwatchComponent;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.ColorUtil;
 import com.intellij.util.ui.JBUI;
@@ -35,6 +36,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+
+import java.awt.image.BufferedImage;
+import java.util.List;
 
 /**
  * Class that implements a {@link javax.swing.JTable} renderer and editor for drawable attributes.
@@ -79,7 +83,14 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
       int iconWidth = Math.max(iconSize.width, MIN_DRAWABLE_PREVIEW_SIZE);
       int iconHeight = Math.max(iconSize.height, MIN_DRAWABLE_PREVIEW_SIZE);
       myRenderTask.setMaxRenderSize(iconWidth, iconHeight);
-      component.setSwatchIcons(SwatchComponent.imageListOf(myRenderTask.renderDrawableAllStates(item.getSelectedValue())));
+      List<BufferedImage> images = myRenderTask.renderDrawableAllStates(item.getSelectedValue());
+      if (images.isEmpty()) {
+        component.setSwatchIcon(SwatchComponent.WARNING_ICON);
+      }
+      else {
+        component.setSwatchIcon(new SwatchComponent.SquareImageIcon(Iterables.getLast(images)));
+      }
+      component.showStack(images.size() > 1);
     }
     String nameText = String
       .format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR),
