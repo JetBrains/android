@@ -235,6 +235,42 @@ public class ModuleDependencyTest extends GradleBuildModelParserTestCase {
     assertEquals("helloWorld", actual.getName());
   }
 
+  public void testReset() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile project(':javalib1')\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependency> dependencies = buildModel.getDependencies().getToModules();
+    ModuleDependency dependency = dependencies.get(0);
+    dependency.setName("newName");
+
+    assertTrue(buildModel.isModified());
+
+    buildModel.resetState();
+
+    assertFalse(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+
+    dependencies = buildModel.getDependencies().getToModules();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
+    expected.configurationName = "compile";
+    expected.path = ":javalib1";
+    expected.assertMatches(dependency);
+  }
+
   public static class ExpectedModuleDependency {
     public String configurationName;
     public String path;
