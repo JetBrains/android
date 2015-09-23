@@ -197,9 +197,9 @@ public class ThemeEditorUtils {
    * as key.
    */
   static class AttributeInheritanceSet implements Iterable<ConfiguredElement<ItemResourceValue>> {
-    private HashSet<ConfiguredElement<ItemResourceValue>> myAttributes = Sets.newHashSet();
+    private final HashSet<ConfiguredElement<ItemResourceValue>> myAttributes = Sets.newHashSet();
     // Index by attribute configuration and name.
-    private Map<String, ConfiguredElement<ItemResourceValue>> myAttributesIndex = Maps.newHashMap();
+    private final Map<String, ConfiguredElement<ItemResourceValue>> myAttributesIndex = Maps.newHashMap();
 
     private static String getItemKey(@NotNull ConfiguredElement<ItemResourceValue> item) {
       return String.format("%1$s - %2$s", item.getConfiguration(), ResolutionUtils.getQualifiedItemName(item.getElement()));

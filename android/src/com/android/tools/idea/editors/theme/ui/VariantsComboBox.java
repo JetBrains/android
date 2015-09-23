@@ -54,7 +54,7 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
 
   private final List<PopupClosingListener> myPopupClosingListeners = new ArrayList<PopupClosingListener>();
   private ComboBoxModel myModel = new DefaultComboBoxModel();
-  private ListDataListener myListDataListener = new ListDataListener() {
+  private final ListDataListener myListDataListener = new ListDataListener() {
     @Override
     public void intervalAdded(ListDataEvent e) {
       fireModelUpdated();
@@ -70,7 +70,7 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
       fireModelUpdated();
     }
   };
-  private List<Action> myActions = Lists.newArrayList();
+  private final List<Action> myActions = Lists.newArrayList();
 
   /**
    * Listens to this combobox popup closing
