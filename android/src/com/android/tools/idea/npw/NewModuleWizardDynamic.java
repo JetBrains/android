@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.npw;
 
-
 import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription.WizardStepHeaderSettings;
@@ -32,7 +29,6 @@ import com.android.tools.idea.wizard.dynamic.SingleStepPath;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -43,8 +39,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.wizard.WizardConstants.*;
@@ -106,7 +103,8 @@ public class NewModuleWizardDynamic extends DynamicWizard {
       state.put(PROJECT_LOCATION_KEY, project.getBasePath());
     }
 
-    state.put(FILES_TO_OPEN_KEY, Lists.<File>newArrayList());
+    state.put(WizardConstants.TARGET_FILES_KEY, new HashSet<File>());
+    state.put(WizardConstants.FILES_TO_OPEN_KEY, new ArrayList<File>());
   }
 
   @NotNull
@@ -165,22 +163,16 @@ public class NewModuleWizardDynamic extends DynamicWizard {
   @Override
   public void performFinishingActions() {
     Project project = getProject();
-    if (project == null) {
-      return;
+
+    if (project != null) {
+      Collection<File> targetFiles = myState.get(WizardConstants.TARGET_FILES_KEY);
+      assert targetFiles != null;
+
+      Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
+      assert filesToOpen != null;
+
+      GradleProjectImporter.getInstance().requestProjectSync(project, new ReformattingGradleSyncListener(targetFiles, filesToOpen));
     }
-
-    GradleProjectImporter.getInstance().requestProjectSync(project, new NewProjectImportGradleSyncListener() {
-      @Override
-      public void syncSucceeded(@NotNull final Project project) {
-          openTemplateFiles(project);
-      }
-
-      private boolean openTemplateFiles(Project project) {
-        List<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
-        assert filesToOpen != null; // Always initialized in initState
-        return TemplateUtils.openEditors(project, filesToOpen, true);
-      }
-    });
   }
 
   @NotNull

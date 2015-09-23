@@ -101,9 +101,11 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   @NotNull private final Stack<String> myTagStack = new Stack<String>();
 
   @NotNull private ServicePanelBuilder myPanelBuilder;
-  @NotNull private ServiceCategory myServiceCategory;
-  @NotNull private DeveloperServiceMetadata myDeveloperServiceMetadata;
-  @NotNull private File myRecipeFile;
+
+  // These fields are not initialized by the constructor but are by the parsing step and not null afterward.
+  @NotNull @SuppressWarnings("NullableProblems") private ServiceCategory myServiceCategory;
+  @NotNull @SuppressWarnings("NullableProblems") private DeveloperServiceMetadata myDeveloperServiceMetadata;
+  @NotNull @SuppressWarnings("NullableProblems") private File myRecipeFile;
 
   public ServiceXmlParser(@NotNull Module module, @NotNull File rootPath, @NotNull ServiceContext serviceContext) {
     myModule = module;
@@ -202,7 +204,9 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       Recipe recipe = Recipe.parse(new StringReader(xml));
 
       if (executeRecipe) {
-        RecipeContext recipeContext = new RecipeContext(myModule, loader, freemarker, paramMap, false);
+        File moduleRoot = new File(myModule.getModuleFilePath()).getParentFile();
+        RecipeContext recipeContext = new RecipeContext(myModule.getProject(), paramMap, freemarker, loader, false, moduleRoot, moduleRoot);
+
         recipe.execute(recipeContext);
 
         // Convert relative paths to absolute paths, so TemplateUtils.openEditors can find them
@@ -304,9 +308,9 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       saxParser.parse(f, new DefaultHandler() {
         @Override
         public void startElement(String uri, String localName, String tagName, Attributes attributes) throws SAXException {
-          if (tagName.equals(SdkConstants.TAG_USES_PERMISSION)
-              || tagName.equals(SdkConstants.TAG_USES_PERMISSION_SDK_23)
-              || tagName.equals(SdkConstants.TAG_USES_PERMISSION_SDK_M)) {
+          if (tagName.equals(SdkConstants.TAG_USES_PERMISSION) ||
+              tagName.equals(SdkConstants.TAG_USES_PERMISSION_SDK_23) ||
+              tagName.equals(SdkConstants.TAG_USES_PERMISSION_SDK_M)) {
             String permission = attributes.getValue(SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_NAME);
             // Most permissions are "android.permission.XXX", so for readability, just remove the prefix if present
             permission = permission.replace(SdkConstants.ANDROID_PKG_PREFIX + SdkConstants.ATTR_PERMISSION + ".", "");
@@ -357,7 +361,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       });
     }
   }
-  
+
   private void parseUiCheckbox(@NotNull Attributes attributes) {
     parseRowCol(attributes);
     JCheckBox checkbox = myPanelBuilder.addCheckbox();
@@ -401,12 +405,14 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       myPanelBuilder.getBindings().bind(textProperty, parseString(textKey));
     }
   }
+
   private void parseUiLink(@NotNull Attributes attributes) {
     parseRowCol(attributes);
-    HyperlinkLabel link = myPanelBuilder.addLink(requireAttr(attributes, Schema.UiLink.ATTR_TEXT),
-                                                 toUri(requireAttr(attributes, Schema.UiLink.ATTR_URL)));
+    HyperlinkLabel link =
+      myPanelBuilder.addLink(requireAttr(attributes, Schema.UiLink.ATTR_TEXT), toUri(requireAttr(attributes, Schema.UiLink.ATTR_URL)));
     bindTopLevelProperties(link, attributes);
   }
+
   private void parseUiPulldown(@NotNull Attributes attributes) {
     parseRowCol(attributes);
     String listKey = requireAttr(attributes, Schema.UiPulldown.ATTR_LIST);
@@ -463,8 +469,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   private ObservableValue<Boolean> parseBool(@NotNull final String value) {
     Matcher matcher = VAR_PATTERN.matcher(value);
     if (matcher.find()) {
-      String varName = matcher.group(1);
-      return (ObservableValue<Boolean>)myContext.getValue(varName);
+      // noinspection unchecked
+      return (ObservableValue<Boolean>)myContext.getValue(matcher.group(1));
     }
     else {
       final Boolean boolValue = (Boolean)TypedVariable.parse(TypedVariable.Type.BOOLEAN, value);
@@ -485,8 +491,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   private ObservableValue<String> parseString(@NotNull final String value) {
     Matcher matcher = VAR_PATTERN.matcher(value);
     if (matcher.find()) {
-      String varName = matcher.group(1);
-      return (ObservableValue<String>)myContext.getValue(varName);
+      // noinspection unchecked
+      return (ObservableValue<String>)myContext.getValue(matcher.group(1));
     }
     else {
       return new StringExpression() {
@@ -503,8 +509,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   private ObservableValue<Integer> parseInt(@NotNull final String value) {
     Matcher matcher = VAR_PATTERN.matcher(value);
     if (matcher.find()) {
-      String varName = matcher.group(1);
-      return (ObservableValue<Integer>)myContext.getValue(varName);
+      // noinspection unchecked
+      return (ObservableValue<Integer>)myContext.getValue(matcher.group(1));
     }
     else {
       final Integer intValue = (Integer)TypedVariable.parse(TypedVariable.Type.INTEGER, value);
@@ -526,8 +532,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   private <E> ObservableList<E> getList(@NotNull final String value) {
     Matcher matcher = VAR_PATTERN.matcher(value);
     if (matcher.find()) {
-      String varName = matcher.group(1);
-      return (ObservableList<E>)myContext.getValue(varName);
+      // noinspection unchecked
+      return (ObservableList<E>)myContext.getValue(matcher.group(1));
     }
     else {
       throw new RuntimeException("Invalid list value (did you forget ${...}): " + value);
