@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.dependencies;
+package com.android.tools.idea.gradle.dsl.dependencies.external;
 
-import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependency.DependencySpec;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependency.MapNotation;
+import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency.Spec;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,9 +36,9 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(Parameterized.class)
 public class MapNotationTest {
   @NotNull private Map<String, String> myNamedArguments;
-  @Nullable private DependencySpec myDependencySpec;
+  @Nullable private Spec myDependencySpec;
 
-  public MapNotationTest(@NotNull Map<String, String> namedArguments, @Nullable DependencySpec dependencySpec) {
+  public MapNotationTest(@NotNull Map<String, String> namedArguments, @Nullable Spec dependencySpec) {
     myNamedArguments = namedArguments;
     myDependencySpec = dependencySpec;
   }
@@ -53,20 +52,20 @@ public class MapNotationTest {
                              .put("classifier", "jdk15")
                              .put("ext", "jar")
                              .build(),
-        new DependencySpec("service", "org.gradle.test.classifiers", "1.0", "jdk15", "jar")},
+        new Spec("service", "org.gradle.test.classifiers", "1.0", "jdk15", "jar")},
 
       {ImmutableMap.builder().put("name", "groovy")
                              .put("group", "org.groovy")
                              .put("version", "2.2.0")
                              .put("ext", "jar")
                              .build(),
-        new DependencySpec("groovy", "org.groovy", "2.2.0", null, "jar")},
+        new Spec("groovy", "org.groovy", "2.2.0", null, "jar")},
     });
   }
 
   @Test
   public void parseCompactNotation() {
-    DependencySpec spec = MapNotation.parse(myNamedArguments);
+    Spec spec = MapNotation.parse(myNamedArguments);
     assertNotNull(spec);
     assertEquals(myDependencySpec, spec);
   }

@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class GradleDslElement {
   @Nullable protected final GradleDslElement myParent;
 
-  private volatile boolean myModified;
+  protected volatile boolean myModified;
 
   protected GradleDslElement(@Nullable GradleDslElement parent) {
     myParent = parent;
