@@ -17,18 +17,16 @@ package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.npw.FormFactorUtils.FormFactor;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.npw.FormFactorUtils.FormFactor;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.google.common.collect.Lists;
-import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -45,8 +43,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
@@ -116,6 +115,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       state.put(WizardConstants.MAVEN_URL_KEY, mavenUrl);
     }
 
+    state.put(WizardConstants.TARGET_FILES_KEY, new HashSet<File>());
     state.put(FILES_TO_OPEN_KEY, Lists.<File>newArrayList());
   }
 
@@ -179,31 +179,15 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     }
 
     try {
-      projectImporter.importNewlyCreatedProject(projectName, rootLocation, new NewProjectImportGradleSyncListener() {
-        @Override
-        public void syncSucceeded(@NotNull final Project project) {
-          // Open files -- but wait until the Android facets are available, otherwise for example
-          // the layout editor won't add Design tabs to the file
-          StartupManagerEx manager = StartupManagerEx.getInstanceEx(project);
-          if (!manager.postStartupActivityPassed()) {
-            manager.registerPostStartupActivity(new Runnable() {
-              @Override
-              public void run() {
-                openTemplateFiles(project);
-              }
-            });
-          }
-          else {
-            openTemplateFiles(project);
-          }
-        }
+      Collection<File> targetFiles = myState.get(WizardConstants.TARGET_FILES_KEY);
+      assert targetFiles != null;
 
-        private boolean openTemplateFiles(Project project) {
-          List<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
-          assert filesToOpen != null; // Always initialized in initState
-          return TemplateUtils.openEditors(project, filesToOpen, true);
-        }
-      }, myProject, initialLanguageLevel);
+      Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
+      assert filesToOpen != null;
+
+      GradleSyncListener listener = new ReformattingGradleSyncListener(targetFiles, filesToOpen);
+
+      projectImporter.importNewlyCreatedProject(projectName, rootLocation, listener, myProject, initialLanguageLevel);
     }
     catch (IOException e) {
       Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
