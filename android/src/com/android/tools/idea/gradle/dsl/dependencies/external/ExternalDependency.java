@@ -50,7 +50,7 @@ public abstract class ExternalDependency extends Dependency {
   @NotNull protected final Spec mySpec;
 
   @Nullable private String myNewVersion;
-  
+
   @Nullable
   public static ExternalDependency withCompactNotation(@NotNull Dependencies parent,
                                                        @NotNull String configurationName,
