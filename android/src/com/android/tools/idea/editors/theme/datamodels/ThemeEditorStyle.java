@@ -22,7 +22,6 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceType;
@@ -430,7 +429,8 @@ public class ThemeEditorStyle {
             // The folder doesn't have version qualifier and minProjectApi < minAcceptable so we can not add the item here
             return false;
           }
-        } else if (versionQualifier.getVersion() < minAcceptableApi) {
+        }
+        else if (versionQualifier.getVersion() < minAcceptableApi) {
           // We can not add the attribute to this version.
           return false;
         }
@@ -487,129 +487,140 @@ public class ThemeEditorStyle {
   }
 
   /**
-   * Sets the value of a given attribute in all possible folders. If an attribute is only declared in certain API level, folders below that
-   * level won't be modified.
-   * @param attribute The style attribute name.
-   * @param value The attribute value.
+   * @param configuration FolderConfiguration of the style
+   * @return XmlTag of this style coming from folder with corresponding FolderConfiguration
+   */
+  @Nullable("if there is no style from this configuration")
+  private XmlTag findXmlTagFromConfiguration(@NotNull FolderConfiguration configuration) {
+    for (ResourceItem item : getStyleResourceItems()) {
+      if (item.getConfiguration().equals(configuration)) {
+        return LocalResourceRepository.getItemTag(myProject, item);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Finds best to be copied {@link FolderConfiguration}s
+   * e.g if style is defined in "port-v8", "port-v18", "port-v22", "night-v20" and desiredApi = 21,
+   * then result is {"port-v18", "night-v20"}
+   * @param desiredApi new api level of {@link FolderConfiguration}s after being copied
+   * @return Collection of FolderConfigurations which are going to be copied to version desiredApi
+   */
+  @NotNull
+  private ImmutableCollection<FolderConfiguration> findToBeCopied(int desiredApi) {
+    // Keeps closest VersionQualifier to 'desiredApi'
+    // e.g. desiredApi = 21, "en-port", "en-port-v18", "en-port-v19", "en-port-v22" then
+    // bestVersionCopyFrom will contain {"en-port" -> v19}, as it is closest one to v21
+    final HashMap<FolderConfiguration, VersionQualifier> bestVersionCopyFrom = Maps.newHashMap();
+
+    for (ResourceItem styleItem : getStyleResourceItems()) {
+      FolderConfiguration configuration = FolderConfiguration.copyOf(styleItem.getConfiguration());
+      int styleItemVersion = ThemeEditorUtils.getVersionFromConfiguration(configuration);
+
+      // We want to get the best from port-v19 port-v20 port-v23. so we need to remove the version qualifier to compare them
+      configuration.setVersionQualifier(null);
+
+      if (styleItemVersion > desiredApi) {
+        // VersionQualifier of the 'styleItem' is higher than 'desiredApi'.
+        // Thus, we don't need to copy it, we are going to just modify it.
+        continue;
+      }
+      // If 'version' is closer to 'desiredApi' than we have found
+      if (!bestVersionCopyFrom.containsKey(configuration) || bestVersionCopyFrom.get(configuration).getVersion() < styleItemVersion) {
+        bestVersionCopyFrom.put(configuration, new VersionQualifier(styleItemVersion));
+      }
+    }
+
+    ImmutableList.Builder<FolderConfiguration> toBeCopied = ImmutableList.builder();
+
+    for (FolderConfiguration key : bestVersionCopyFrom.keySet()) {
+      FolderConfiguration configuration = FolderConfiguration.copyOf(key);
+      VersionQualifier version = bestVersionCopyFrom.get(key);
+
+      if (version.getVersion() != -1) {
+        configuration.setVersionQualifier(version);
+      }
+
+      // If configuration = 'en-port-v19' and desiredApi = 'v21', then we should copy 'en-port-v19' to 'en-port-v21'
+      // But If configuration = 'en-port-v21' and desiredApi = 'v21, then we don't need to copy
+      // Version can't be bigger as we have filtered above
+      if (version.getVersion() < desiredApi) {
+        toBeCopied.add(configuration);
+      }
+    }
+
+    return toBeCopied.build();
+  }
+
+  /**
+   * Sets the value of given attribute in a specific folder.
+   *
+   * @param configuration FolderConfiguration of style that will be modified
+   * @param attribute     the style attribute name
+   * @param value         the style attribute value
+   */
+  private void setValue(@NotNull FolderConfiguration configuration, @NotNull final String attribute, @NotNull final String value) {
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
+    XmlTag styleTag = findXmlTagFromConfiguration(configuration);
+    assert styleTag != null;
+
+    XmlTag tag = getValueTag(styleTag, attribute);
+    if (tag != null) {
+      tag.getValue().setEscapedText(value);
+    }
+    else {
+      // The value didn't exist, add it.
+      XmlTag child = styleTag.createChildTag(SdkConstants.TAG_ITEM, styleTag.getNamespace(), value, false);
+      child.setAttribute(SdkConstants.ATTR_NAME, attribute);
+      styleTag.addSubTag(child, false);
+    }
+  }
+
+  /**
+   * Sets the value of given attribute in all possible folders where this style is defined. If attribute or value can be used from certain API level,
+   * folders below that level won't be modified, instead new folder with certain API will be created.
+   *
+   * @param attribute the style attribute name
+   * @param value     the style attribute value
    */
   public void setValue(@NotNull final String attribute, @NotNull final String value) {
-    if (!isProjectStyle()) {
-      throw new UnsupportedOperationException("Non project styles can not be modified");
-    }
+    int maxApi =
+      Math.max(ResolutionUtils.getOriginalApiLevel(value, myProject), ResolutionUtils.getOriginalApiLevel(attribute, myProject));
+    int minSdk = ThemeEditorUtils.getMinApiLevel(myConfiguration.getModule());
 
-    setValue(getFolderConfigurations(), attribute, value);
-  }
+    // When api level of both attribute and value is not greater that Minimum SDK,
+    // we should modify every FolderConfiguration, thus we set desiredApi to -1
+    final int desiredApi = (maxApi <= minSdk) ? -1 : maxApi;
 
-  /**
-   * Sets the value of a given attribute in a specific folder.
-   * @param attribute The style attribute name.
-   * @param value The attribute value.
-   */
-  public void setValue(@NotNull FolderConfiguration currentFolder, @NotNull final String attribute, @NotNull final String value) {
-    setValue(ImmutableList.of(currentFolder), attribute, value);
-  }
-
-  /**
-   * Sets the attribute value in the given folders
-   * @param attribute The style attribute name.
-   * @param value The attribute value.
-   */
-  public void setValue(@NotNull Collection<FolderConfiguration> selectedFolders, @NotNull final String attribute, @NotNull final String value) {
-    if (!isProjectStyle()) {
-      throw new UnsupportedOperationException("Non project styles can not be modified");
-    }
-
-    if (selectedFolders.isEmpty()) {
-      return;
-    }
-
-    // The API level where the attribute was defined
-    int attributeDefinitionApi = Math.max(ResolutionUtils.getOriginalApiLevel(attribute, myProject),
-                                          ResolutionUtils.getOriginalApiLevel(value, myProject));
-
-    final int minProjectApi = ThemeEditorUtils.getMinApiLevel(myConfiguration.getModule());
-    final int minAcceptableApi = attributeDefinitionApi != -1 ? attributeDefinitionApi : 1;
-    final Collection<ResourceItem> styleResourceItems = getStyleResourceItems();
-    final FolderConfiguration sourceConfiguration = findAcceptableSourceFolderConfiguration(myConfiguration.getModule(), minAcceptableApi,
-                                                                                            getFolderConfigurationsFromResourceItems(
-                                                                                              styleResourceItems));
-
-    // Find a valid source style that we can copy to the new API level
-    final ResourceItem sourceStyle = Iterables.find(styleResourceItems, new Predicate<ResourceItem>() {
-      @Override
-      public boolean apply(@Nullable ResourceItem input) {
-        assert input != null;
-        return input.getConfiguration().equals(sourceConfiguration);
-      }
-    }, null);
-
-    Iterable<ResourceItem> filteredStyles = filterStylesByFolder(selectedFolders, styleResourceItems);
-    filteredStyles = filterStylesByApiLevel(minProjectApi, minAcceptableApi, filteredStyles);
-    final Iterable<XmlTag> stylesXmlTags = getXmlTagsFromStyles(myProject, filteredStyles);
-    PsiFile[] toBeEdited = getPsiFilesFromXmlTags(stylesXmlTags);
-
-    new WriteCommandAction.Simple(myProject, "Setting value of " + attribute, toBeEdited) {
+    new WriteCommandAction.Simple(myProject, "Setting value of " + attribute, null) {
       @Override
       protected void run() {
         // Makes the command global even if only one xml file is modified
         // That way, the Undo is always available from the theme editor
         CommandProcessor.getInstance().markCurrentCommandAsGlobal(myProject);
 
-        boolean copyStyle = true;
-        for (XmlTag sourceXml : stylesXmlTags) {
-          // TODO: Check if the current value is defined by one of the parents and remove the attribute.
-          XmlTag tag = getValueTag(sourceXml, attribute);
-          if (tag != null) {
-            tag.getValue().setEscapedText(value);
-            // If the attribute has already been overridden, assume it has been done everywhere the user deemed necessary.
-            // So do not create new api folders in that case.
-            copyStyle = false;
-          }
-          else {
-            // The value didn't exist, add it.
-            XmlTag child = sourceXml.createChildTag(SdkConstants.TAG_ITEM, sourceXml.getNamespace(), value, false);
-            child.setAttribute(SdkConstants.ATTR_NAME, attribute);
-            sourceXml.addSubTag(child, false);
-          }
+        for (FolderConfiguration configuration : findToBeCopied(desiredApi)) {
+          XmlTag styleTag = findXmlTagFromConfiguration(configuration);
+          assert styleTag != null;
+          ThemeEditorUtils.copyTheme(desiredApi, styleTag);
         }
 
-        if (copyStyle && sourceStyle != null) {
-          final VersionQualifier qualifier = new VersionQualifier(minAcceptableApi);
+        // We need to refreshResource, to get all copied styles
+        // Otherwise, LocalResourceRepositories won't get updated, so we won't get copied styles
+        AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
+        if (facet != null) {
+          facet.refreshResources();
+        }
 
-          // Does the theme already exist at the minimum acceptable API level?
-          boolean acceptableApiExists = Iterables.any(styleResourceItems, new Predicate<ResourceItem>() {
-            @Override
-            public boolean apply(ResourceItem input) {
-              return input.getQualifiers().contains(qualifier.getFolderSegment());
-            }
-          });
-
-          if (!acceptableApiExists) {
-            XmlTag sourceXmlTag = LocalResourceRepository.getItemTag(myProject, sourceStyle);
-            assert sourceXmlTag != null;
-            // copy this theme at the minimum api level for this attribute
-            ThemeEditorUtils.copyTheme(minAcceptableApi, sourceXmlTag);
-
-            AndroidFacet facet = AndroidFacet.getInstance(getModuleForAcquiringResources());
-            if (facet != null) {
-              facet.refreshResources();
-            }
-          }
-
-          Collection<ResourceItem> newResources = getStyleResourceItems();
-          for (ResourceItem resourceItem : newResources) {
-            if (resourceItem.getQualifiers().contains(qualifier.getFolderSegment())) {
-              final XmlTag sourceXml = LocalResourceRepository.getItemTag(myProject, resourceItem);
-              assert sourceXml != null;
-
-              XmlTag child = getValueTag(sourceXml, attribute);
-              if (child == null) {
-                child = sourceXml.createChildTag(SdkConstants.TAG_ITEM, sourceXml.getNamespace(), value, false);
-              }
-              child.setAttribute(SdkConstants.ATTR_NAME, attribute);
-              sourceXml.addSubTag(child, false);
-              break;
-            }
+        Collection<ResourceItem> styleItems = getStyleResourceItems();
+        for (ResourceItem style : styleItems) {
+          FolderConfiguration configuration = style.getConfiguration();
+          int version = ThemeEditorUtils.getVersionFromConfiguration(configuration);
+          // If version qualifier is higher than 'desiredApi' then
+          // it means than we can modify 'attribute' to value 'value'.
+          if (version >= desiredApi) {
+            setValue(configuration, attribute, value);
           }
         }
       }
@@ -867,26 +878,5 @@ public class ThemeEditorStyle {
 
   public boolean isFramework() {
     return myStyleResourceValue.isFramework();
-  }
-
-  @NotNull
-  public FolderConfiguration findBestConfiguration(@NotNull FolderConfiguration configuration) {
-    Collection<FolderConfiguration> folderConfigurations = getFolderConfigurations();
-    Configurable bestMatch = configuration.findMatchingConfigurable(
-      ImmutableList.copyOf(Collections2.transform(folderConfigurations, new Function<FolderConfiguration, Configurable>() {
-        @Nullable
-        @Override
-        public Configurable apply(final FolderConfiguration input) {
-          assert input != null;
-          return new Configurable() {
-            @Override
-            public FolderConfiguration getConfiguration() {
-              return input;
-            }
-          };
-        }
-      })));
-
-    return bestMatch == null ? folderConfigurations.iterator().next() : bestMatch.getConfiguration();
   }
 }
