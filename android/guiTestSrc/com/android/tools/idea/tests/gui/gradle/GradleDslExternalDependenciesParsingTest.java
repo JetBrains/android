@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependency;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependencyTest.ExpectedExternalDependency;
+import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency;
+import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependencyTest.ExpectedExternalDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -28,7 +28,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.parser.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -64,7 +64,7 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
     ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
     expected.assertMatches(appCompat);
 
-    appCompat.setVersion("1.2.3");
+    appCompat.version("1.2.3");
     buildModel.applyChanges();
 
     dependencies = buildModel.getTarget().dependencies().external();
