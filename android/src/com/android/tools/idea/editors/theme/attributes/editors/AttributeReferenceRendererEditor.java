@@ -57,6 +57,7 @@ public class AttributeReferenceRendererEditor extends TypedCellRendererEditor<Ed
       myCompletionProvider = null;
     }
 
+    //noinspection unchecked (EMPTY_COMPLETION doesn't need the generic type as it's empty)
     myTextField = new TextFieldWithAutoCompletion<String>(project, TextFieldWithAutoCompletion.EMPTY_COMPLETION, true, null) {
       @Override
       protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {

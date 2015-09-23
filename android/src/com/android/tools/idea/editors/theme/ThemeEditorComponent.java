@@ -44,6 +44,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameDialog;
@@ -858,8 +859,8 @@ public class ThemeEditorComponent extends Splitter {
     // First remove the table editor so that it won't be called after
     // objects it relies on, like the module, have themselves been disposed
     myAttributesTable.removeEditor();
-    myPreviewPanel.dispose();
-    myThemeEditorContext.dispose();
+    Disposer.dispose(myPreviewPanel);
+    Disposer.dispose(myThemeEditorContext);
     super.dispose();
   }
 

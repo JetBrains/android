@@ -213,7 +213,7 @@ public class SwatchComponent extends JComponent {
   }
 
   public static class SquareImageIcon implements SwatchIcon {
-    private ImageIcon myImageIcon;
+    private final ImageIcon myImageIcon;
 
     public SquareImageIcon(@NotNull ImageIcon imageIcon) {
       myImageIcon = imageIcon;
