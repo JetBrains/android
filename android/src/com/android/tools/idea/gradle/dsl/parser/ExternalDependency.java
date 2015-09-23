@@ -134,6 +134,12 @@ public class ExternalDependency extends AbstractDependency {
       return;
     }
     myNotation.setVersion(myNewVersion);
+    reset();
+  }
+
+  @Override
+  protected void reset() {
+    myNewVersion = null;
   }
 
   private interface Notation {
