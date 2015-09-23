@@ -94,6 +94,9 @@ public abstract class UsageTracker {
   public static final String CATEGORY_TEMPLATE = "template";
   public static final String ACTION_TEMPLATE_RENDER = "render";
 
+  public static final String CATEGORY_THEME_EDITOR = "themeEditor";
+  public static final String ACTION_THEME_EDITOR_OPEN = "themeEditorOpened";
+
 
   /**
    * When using the usage tracker, do NOT include any information that can identify the user
