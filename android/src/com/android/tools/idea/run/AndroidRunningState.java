@@ -96,7 +96,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   private final ApkProvider myApkProvider;
 
   private String myTargetPackageName;
-  private final AndroidFacet myFacet;
+  @NotNull private final AndroidFacet myFacet;
   private final AndroidApplicationLauncher myApplicationLauncher;
   @NotNull private final ProcessHandlerConsolePrinter myPrinter;
   private final AndroidRunConfigurationBase myConfiguration;
@@ -123,7 +123,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   private ConsoleView myConsole;
   private final boolean myClearLogcatBeforeStart;
   private final List<AndroidRunningStateListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
-  private final boolean myNonDebuggableOnDevice;
 
   public AndroidRunningState(@NotNull ExecutionEnvironment environment,
                              @NotNull AndroidFacet facet,
@@ -132,8 +131,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
                              @NotNull ProcessHandlerConsolePrinter printer,
                              AndroidApplicationLauncher applicationLauncher,
                              boolean clearLogcatBeforeStart,
-                             @NotNull AndroidRunConfigurationBase configuration,
-                             boolean nonDebuggableOnDevice) {
+                             @NotNull AndroidRunConfigurationBase configuration) {
     myFacet = facet;
     myApkProvider = apkProvider;
     myDeviceTarget = deviceTarget;
@@ -143,7 +141,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     myEnv = environment;
     myApplicationLauncher = applicationLauncher;
     myClearLogcatBeforeStart = clearLogcatBeforeStart;
-    myNonDebuggableOnDevice = nonDebuggableOnDevice;
   }
 
   public void setDebugMode(boolean debugMode) {
@@ -380,6 +377,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
               getProcessHandler().destroyProcess();
             }
           } else {
+            fireExecutionFailed();
             // todo: check: it may be we don't need to assign it directly
             // TODO: Why stop completely for a problem potentially affecting only a single device?
             myStopped.set(true);
@@ -405,19 +403,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     return myProcessHandler;
   }
 
-  private boolean prepareAndStartApp(@NotNull IDevice device) {
-    if (myDebugMode && myNonDebuggableOnDevice && !device.isEmulator()) {
-      myPrinter.stderr(AndroidBundle.message("android.cannot.debug.noDebugPermissions", getPackageName(), device.getName()));
-      fireExecutionFailed();
-      return false;
-    }
-    if (!doPrepareAndStart(device)) {
-      fireExecutionFailed();
-      return false;
-    }
-    return true;
-  }
-
   private void fireExecutionFailed() {
     for (AndroidRunningStateListener listener : myListeners) {
       listener.executionFailed();
@@ -428,7 +413,12 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     myOpenLogcatAutomatically = openLogcatAutomatically;
   }
 
-  private boolean doPrepareAndStart(@NotNull final IDevice device) {
+  private boolean prepareAndStartApp(@NotNull final IDevice device) {
+    if (myDebugMode && !LaunchUtils.canDebugAppOnDevice(myFacet, device)) {
+      myPrinter.stderr(AndroidBundle.message("android.cannot.debug.noDebugPermissions", getPackageName(), device.getName()));
+      return false;
+    }
+
     if (myClearLogcatBeforeStart) {
       clearLogcatAndConsole(getModule().getProject(), device);
     }
