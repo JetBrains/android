@@ -15,22 +15,30 @@
  */
 package com.android.tools.idea.editors.hprof;
 
-import com.android.tools.perflib.heap.Snapshot;
+import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.editors.hprof.views.HprofAnalysisContentsDelegate;
+import com.android.tools.idea.profiling.view.CaptureEditor;
+import com.android.tools.idea.profiling.view.CapturePanel;
+import com.android.tools.perflib.analyzer.AnalysisReport;
+import com.android.tools.perflib.analyzer.AnalyzerTask;
+import com.android.tools.perflib.analyzer.CaptureGroup;
 import com.android.tools.perflib.captures.MemoryMappedFileBuffer;
+import com.android.tools.perflib.heap.Snapshot;
+import com.android.tools.perflib.heap.memoryanalyzer.DuplicatedStringsAnalyzerTask;
+import com.android.tools.perflib.heap.memoryanalyzer.LeakedActivityAnalyzerTask;
+import com.android.tools.perflib.heap.memoryanalyzer.MemoryAnalyzer;
 import com.google.common.base.Throwables;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
+import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
-import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.status.InlineProgressIndicator;
@@ -38,71 +46,26 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.util.Set;
+import java.util.concurrent.Executors;
 
-public class HprofEditor extends UserDataHolderBase implements FileEditor {
+public class HprofEditor extends CaptureEditor {
   @NotNull private static final Logger LOG = Logger.getInstance(HprofEditor.class);
   private Snapshot mySnapshot;
-  private JPanel myPanel;
   private boolean myIsValid = true;
 
   public HprofEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
-    myPanel = new JPanel();
-    parseHprofFileInBackground(project, file);
-  }
-
-  private void parseHprofFileInBackground(@NotNull final Project project, @NotNull final VirtualFile file) {
-    TaskInfo taskInfo = new TaskInfo() {
-      @NotNull
-      @Override
-      public String getTitle() {
-        return "";
-      }
-
-      @Override
-      public String getCancelText() {
-        return null;
-      }
-
-      @Override
-      public String getCancelTooltipText() {
-        return null;
-      }
-
-      @Override
-      public boolean isCancellable() {
-        return false;
-      }
-
-      @Override
-      public String getProcessId() {
-        return null;
-      }
-    };
-
-    final InlineProgressIndicator indicator = new InlineProgressIndicator(true, taskInfo) {
-      @Override
-      protected void queueProgressUpdate(Runnable update) {
-        ApplicationManager.getApplication().invokeLater(update);
-      }
-
-      @Override
-      protected void queueRunningUpdate(Runnable update) {
-        ApplicationManager.getApplication().invokeLater(update);
-      }
-    };
-
-    JPanel indicatorWrapper = new JPanel();
-    indicatorWrapper.add(indicator.getComponent());
-    myPanel.setLayout(new GridBagLayout());
-    myPanel.add(indicatorWrapper);
+    AnalyzerTask[] tasks = new AnalyzerTask[]{new LeakedActivityAnalyzerTask(), new DuplicatedStringsAnalyzerTask()};
+    myPanel = new CapturePanel(project, this, tasks, true);
 
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
         final File hprofFile = VfsUtilCore.virtualToIoFile(file);
+        InlineProgressIndicator indicator = myPanel.getProgressIndicator();
+        assert indicator != null;
         try {
           indicator.setFraction(0.0);
           indicator.setText("Parsing hprof file...");
@@ -125,18 +88,14 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
           });
         }
         finally {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              myPanel.removeAll();
-              myPanel.setLayout(new BorderLayout());
-              if (mySnapshot != null) {
-                HprofViewPanel view = new HprofViewPanel(project, HprofEditor.this, mySnapshot);
-                Disposer.register(HprofEditor.this, view);
-                myPanel.add(view.getComponent(), BorderLayout.CENTER);
-              }
-            }
-          });
+          if (mySnapshot != null) {
+            HprofViewPanel view = new HprofViewPanel(project, HprofEditor.this, mySnapshot);
+            HprofAnalysisContentsDelegate delegate = new HprofAnalysisContentsDelegate(myPanel);
+            myPanel.setEditorPanel(view.getComponent(), delegate);
+
+            Disposer.register(HprofEditor.this, view);
+            Disposer.register(project, delegate);
+          }
         }
       }
     });
@@ -225,5 +184,24 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
     mySnapshot = null;
     myPanel = null;
     myIsValid = false;
+  }
+
+  @NotNull
+  @Override
+  public DesignerEditorPanelFacade getFacade() {
+    return myPanel;
+  }
+
+  @NotNull
+  @Override
+  public AnalysisReport performAnalysis(@NotNull Set<? extends AnalyzerTask> tasks, @NotNull Set<AnalysisReport.Listener> listeners) {
+    CaptureGroup captureGroup = new CaptureGroup();
+    captureGroup.addCapture(mySnapshot);
+
+    MemoryAnalyzer memoryAnalyzer = new MemoryAnalyzer();
+    assert memoryAnalyzer.accept(captureGroup);
+
+    // TODO change this back to PooledThreadExecutor.INSTANCE once multi-reader problem has been solved in Snapshot
+    return memoryAnalyzer.analyze(captureGroup, listeners, tasks, EdtExecutor.INSTANCE, Executors.newSingleThreadExecutor());
   }
 }
