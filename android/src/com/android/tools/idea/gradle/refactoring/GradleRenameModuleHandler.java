@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.refactoring;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.ModuleDependency;
+import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependency;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.google.common.collect.Lists;

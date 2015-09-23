@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
-import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependency;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.ExternalDependencyTest.ExpectedExternalDependency;
+import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency;
+import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependencyTest.ExpectedExternalDependency;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.ModuleDependency;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
+import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependency;
+import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +50,7 @@ public class GradleBuildModelFixture {
 
   public void requireDependency(@NotNull ExpectedModuleDependency expected) {
     for (ModuleDependency dependency : myTarget.dependencies().toModules()) {
-      if (expected.path.equals(dependency.getPath()) && expected.configurationName.equals(dependency.getConfigurationName())) {
+      if (expected.path.equals(dependency.getPath()) && expected.configurationName.equals(dependency.configurationName())) {
         return;
       }
     }
