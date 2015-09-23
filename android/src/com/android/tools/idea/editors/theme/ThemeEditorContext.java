@@ -181,6 +181,7 @@ public class ThemeEditorContext implements Disposable {
     }
   }
 
+  @Override
   public void dispose() {
     myConfiguration.removeListener(myConfigurationListener);
     myConfigurationListeners.clear();
