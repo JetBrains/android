@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.theme.attributes;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
@@ -384,9 +383,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return false;
       }
       String propertyName = rv.getQualifiedName();
-      // Select the closest config to the current one selected to preview and make the change
-      FolderConfiguration configurationToModify = mySelectedStyle.findBestConfiguration(myConfiguration.getFullConfig());
-      mySelectedStyle.setValue(configurationToModify, propertyName, strValue);
+      mySelectedStyle.setValue(propertyName, strValue);
       return true;
     }
   }
