@@ -45,4 +45,11 @@ public abstract class GradleDslElement {
   }
 
   protected abstract void apply();
+
+  public final void resetState() {
+    reset();
+    setModified(false);
+  }
+
+  protected abstract void reset();
 }

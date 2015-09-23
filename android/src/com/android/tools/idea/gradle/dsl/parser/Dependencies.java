@@ -49,7 +49,7 @@ public class Dependencies extends GradleDslElement {
   @NotNull private final List<ExternalDependency> myExternal = Lists.newArrayList();
   @NotNull private final List<ModuleDependency> myToModules = Lists.newArrayList();
 
-  @NotNull private final Set<NewExternalDependency> myNewExternalDependencies = Sets.newLinkedHashSet();
+  @NotNull private final Set<NewExternalDependency> myNewExternal = Sets.newLinkedHashSet();
 
   Dependencies(@NotNull GradleDslElement parent) {
     super(parent);
@@ -57,23 +57,25 @@ public class Dependencies extends GradleDslElement {
 
   @Override
   protected void apply() {
-    for (ExternalDependency dependency : myExternal) {
-      dependency.applyChanges();
-    }
-    for (ModuleDependency dependency : myToModules) {
-      dependency.applyChanges();
-    }
+    applyChanges(myExternal);
+    applyChanges(myToModules);
     applyNewExternalDependencies();
   }
 
-  private void applyNewExternalDependencies() {
-    for (NewExternalDependency newExternalDependency : myNewExternalDependencies) {
-      apply(newExternalDependency);
+  private static void applyChanges(@NotNull List<? extends AbstractDependency> dependencies) {
+    for (AbstractDependency dependency : dependencies) {
+      dependency.applyChanges();
     }
-    myNewExternalDependencies.clear();
   }
 
-  private void apply(@NotNull NewExternalDependency dependency) {
+  private void applyNewExternalDependencies() {
+    for (NewExternalDependency dependency : myNewExternal) {
+      applyChanges(dependency);
+    }
+    removeNewDependencies();
+  }
+
+  private void applyChanges(@NotNull NewExternalDependency dependency) {
     assert myPsiFile != null;
 
     String configurationName = dependency.configurationName;
@@ -112,7 +114,7 @@ public class Dependencies extends GradleDslElement {
   }
 
   public void add(@NotNull NewExternalDependency dependency) {
-    myNewExternalDependencies.add(dependency);
+    myNewExternal.add(dependency);
     setModified(true);
   }
 
@@ -255,6 +257,23 @@ public class Dependencies extends GradleDslElement {
     if (moduleDependency != null) {
       myToModules.add(moduleDependency);
     }
+  }
+
+  @Override
+  protected void reset() {
+    reset(myExternal);
+    reset(myToModules);
+    removeNewDependencies();
+  }
+
+  private static void reset(@NotNull List<? extends AbstractDependency> dependencies) {
+    for (AbstractDependency dependency : dependencies) {
+      dependency.resetState();
+    }
+  }
+
+  private void removeNewDependencies() {
+    myNewExternal.clear();
   }
 
   @Nullable
