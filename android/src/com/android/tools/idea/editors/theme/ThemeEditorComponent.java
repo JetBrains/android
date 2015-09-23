@@ -502,47 +502,40 @@ public class ThemeEditorComponent extends Splitter {
 
   /**
    * Launches dialog to create a new theme based on selected one.
-   * @return whether creation of new theme succeeded.
    */
-  private boolean createNewTheme() {
+  private void createNewTheme() {
     String newThemeName = ThemeEditorUtils.showCreateNewStyleDialog(getSelectedTheme(), myThemeEditorContext, !isSubStyleSelected(), null);
     if (newThemeName != null) {
       // We don't need to call reload here, because myResourceChangeListener will take care of it
       myThemeName = newThemeName;
       mySubStyleName = null;
-      return true;
     }
-    return false;
   }
 
   /**
    * Launches dialog to choose a theme among all existing ones
-   * @return whether the choice is valid
    */
-  private boolean selectNewTheme() {
+  private void selectNewTheme() {
     ThemeSelectionDialog dialog = new ThemeSelectionDialog(myThemeEditorContext.getConfiguration());
     if (dialog.showAndGet()) {
       String newThemeName = dialog.getTheme();
       if (newThemeName != null) {
         // TODO: call loadStyleProperties instead
         reload(newThemeName);
-        return true;
       }
     }
-    return false;
   }
 
   /**
    * Uses Android Studio refactoring to rename the current theme
-   * @return Whether the renaming is successful
    */
-  private boolean renameTheme() {
+  private void renameTheme() {
     ThemeEditorStyle selectedTheme = getSelectedTheme();
     assert selectedTheme != null;
     assert selectedTheme.isProjectStyle();
     PsiElement namePsiElement = selectedTheme.getNamePsiElement();
     if (namePsiElement == null) {
-      return false;
+      return;
     }
     RenameDialog renameDialog = new RenameDialog(myThemeEditorContext.getProject(), namePsiElement, null, null);
     renameDialog.show();
@@ -551,9 +544,7 @@ public class ThemeEditorComponent extends Splitter {
       // We don't need to call reload here, because myResourceChangeListener will take care of it
       myThemeName = selectedTheme.getQualifiedName().replace(selectedTheme.getName(), newName);
       mySubStyleName = null;
-      return true;
     }
-    return false;
   }
 
   public void goToParent() {
