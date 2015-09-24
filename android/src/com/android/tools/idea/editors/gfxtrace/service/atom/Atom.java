@@ -62,5 +62,7 @@ public abstract class Atom {
 
   public abstract int getResultIndex();
 
-  public abstract boolean getIsEndOfFrame();
+  public abstract boolean isEndOfFrame();
+
+  public abstract boolean isDrawCall();
 }
