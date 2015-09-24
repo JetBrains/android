@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.gfxtrace.renderers;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.idea.editors.gfxtrace.controllers.StateController;
-import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.DynamicAtom;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryPointer;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
@@ -58,8 +57,8 @@ public final class Render {
       render((AtomController.Memory)value, component, attributes);
       return;
     }
-    if (value instanceof AtomGroup) {
-      render((AtomGroup)value, component, attributes);
+    if (value instanceof AtomController.Group) {
+      render((AtomController.Group)value, component, attributes);
       return;
     }
     if (value instanceof DynamicAtom) {
@@ -125,10 +124,11 @@ public final class Render {
     render(memory.observation.getRange(), component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
   }
 
-  public static void render(@NotNull AtomGroup group, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
-    component.append(group.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+  public static void render(@NotNull AtomController.Group group,
+                            @NotNull final SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
+    component.append(group.group.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
-
 
   public static void render(@NotNull DynamicAtom atom, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
     component.append(atom.getName() + "(", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);

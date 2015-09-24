@@ -188,12 +188,7 @@ public class FrameBufferController extends Controller {
   }
 
   private ListenableFuture<FetchedImage> loadImage() {
-    return Futures.transform(getImageInfoPath(), new AsyncFunction<ImageInfoPath, FetchedImage>() {
-      @Override
-      public ListenableFuture<FetchedImage> apply(ImageInfoPath imageInfoPath) throws Exception {
-        return FetchedImage.load(myEditor.getClient(), imageInfoPath);
-      }
-    });
+    return FetchedImage.load(myEditor.getClient(), getImageInfoPath());
   }
 
   private ListenableFuture<ImageInfoPath> getImageInfoPath() {
