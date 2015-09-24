@@ -250,7 +250,7 @@ public class ThemeEditorUtils {
       // configuration to simulate what the device would do when resolving attributes and match more specific folders.
       FolderConfiguration fullFolderConfiguration = FolderConfiguration.copyOf(fullBaseConfiguration);
       fullFolderConfiguration.add(folderConfiguration);
-      ResourceResolver resolver = resolverCache.getResourceResolver(configuration.getTarget(), style.getQualifiedName(), fullFolderConfiguration);
+      ResourceResolver resolver = resolverCache.getResourceResolver(configuration.getTarget(), style.getStyleResourceUrl(), fullFolderConfiguration);
       StyleResourceValue resolvedStyle = resolver.getStyle(style.getName(), style.isFramework());
 
       if (resolvedStyle == null) {
@@ -733,15 +733,16 @@ public class ThemeEditorUtils {
           return;
         }
         for (String simpleThemeName : resources.getItemsOfType(ResourceType.STYLE)) {
-          String themeQualifiedName = SdkConstants.STYLE_RESOURCE_PREFIX + simpleThemeName;
+          String themeStyleResourceUrl = SdkConstants.STYLE_RESOURCE_PREFIX + simpleThemeName;
           List<ResourceItem> themeItems = resources.getResourceItem(ResourceType.STYLE, simpleThemeName);
           assert themeItems != null;
           for (ResourceItem themeItem : themeItems) {
-            ResourceResolver resolver = resolverCache.getResourceResolver(target, themeQualifiedName, themeItem.getConfiguration());
+            ResourceResolver resolver = resolverCache.getResourceResolver(target, themeStyleResourceUrl, themeItem.getConfiguration());
             ResourceValue themeItemResourceValue = themeItem.getResourceValue(false);
             assert themeItemResourceValue != null;
             if (resolver.isTheme(themeItemResourceValue, cache)) {
-              themeNamesSet.add(themeQualifiedName);
+              // TODO(madiyar): After changing getQualifiedName don't forget to change this
+              themeNamesSet.add(themeStyleResourceUrl);
               break;
             }
           }
