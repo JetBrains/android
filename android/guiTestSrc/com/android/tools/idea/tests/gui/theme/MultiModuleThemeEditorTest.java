@@ -56,24 +56,24 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
 
     modulesComboBox.selectItem("app");
     final List<String> appThemes = themeEditor.getThemesList();
-    assertThat(Arrays.asList("@style/AppTheme", "@style/Library1DependentTheme", "@style/Library1Theme", "@style/Library2Theme"), everyItem(isIn(appThemes)));
-    assertThat("@style/Library3Theme", not(isIn(appThemes)));
+    assertThat(Arrays.asList("AppTheme", "Library1DependentTheme", "Library1Theme", "Library2Theme"), everyItem(isIn(appThemes)));
+    assertThat("Library3Theme", not(isIn(appThemes)));
 
     modulesComboBox.selectItem("library");
     final List<String> library1Themes = themeEditor.getThemesList();
-    assertThat(Arrays.asList("@style/Library1Theme", "@style/Library2Theme"), everyItem(isIn(library1Themes)));
-    assertThat(Arrays.asList("@style/AppTheme", "@style/Library1DependentTheme", "@style/Library3Theme"), everyItem(not(isIn(library1Themes))));
+    assertThat(Arrays.asList("Library1Theme", "Library2Theme"), everyItem(isIn(library1Themes)));
+    assertThat(Arrays.asList("AppTheme", "Library1DependentTheme", "Library3Theme"), everyItem(not(isIn(library1Themes))));
 
     modulesComboBox.selectItem("library2");
     final List<String> library2Themes = themeEditor.getThemesList();
-    assertThat("@style/Library2Theme", isIn(library2Themes));
-    assertThat(Arrays.asList("@style/AppTheme", "@style/Library1DependentTheme", "@style/Library1Theme", "@style/Library3Theme"),
+    assertThat("Library2Theme", isIn(library2Themes));
+    assertThat(Arrays.asList("AppTheme", "Library1DependentTheme", "Library1Theme", "Library3Theme"),
                everyItem(not(isIn(library2Themes))));
 
     modulesComboBox.selectItem("library3");
     final List<String> library3Themes = themeEditor.getThemesList();
-    assertThat("@style/Library3Theme", isIn(library3Themes));
-    assertThat(library3Themes, not(containsInAnyOrder("@style/AppTheme", "@style/Library1DependentTheme", "@style/Library1Theme", "@style/Library2Theme")));
+    assertThat("Library3Theme", isIn(library3Themes));
+    assertThat(library3Themes, not(containsInAnyOrder("AppTheme", "Library1DependentTheme", "Library1Theme", "Library2Theme")));
   }
 
   @Test
@@ -85,8 +85,8 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
     final JComboBoxFixture modulesComboBox = themeEditor.getModulesComboBox();
 
     modulesComboBox.selectItem("app");
-    themeEditor.getThemesComboBox().selectItem("@style/AppTheme");
-    themeEditor.waitForThemeSelection("@style/AppTheme");
+    themeEditor.getThemesComboBox().selectItem("AppTheme");
+    themeEditor.waitForThemeSelection("AppTheme");
 
     modulesComboBox.selectItem("nothemeslibrary");
     myRobot.waitForIdle();

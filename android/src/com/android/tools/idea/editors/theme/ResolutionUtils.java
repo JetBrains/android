@@ -46,12 +46,37 @@ public class ResolutionUtils {
   // Utility methods class isn't meant to be constructed, all methods are static.
   private ResolutionUtils() { }
 
+  @NotNull
+  public static String getStyleResourceUrl(@NotNull String qualifiedName) {
+    if (qualifiedName.startsWith(SdkConstants.PREFIX_ANDROID)) {
+      return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + qualifiedName.substring(SdkConstants.PREFIX_ANDROID.length());
+    }
+    return SdkConstants.STYLE_RESOURCE_PREFIX + qualifiedName;
+  }
+
+  @NotNull
+  public static String getQualifiedNameFromResourceUrl(@NotNull String styleResourceUrl) {
+    assert styleResourceUrl.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX) || styleResourceUrl.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX);
+    if (styleResourceUrl.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX)) {
+      return styleResourceUrl.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length());
+    }
+    return SdkConstants.PREFIX_ANDROID + styleResourceUrl.substring(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX.length());
+  }
+
+  @NotNull
+  public static String getNameFromQualifiedName(@NotNull String qualifiedName) {
+    if (qualifiedName.startsWith(SdkConstants.PREFIX_ANDROID)) {
+      return qualifiedName.substring(SdkConstants.PREFIX_ANDROID.length());
+    }
+    return qualifiedName;
+  }
+
   /**
    * Returns the style name, including the appropriate namespace.
    */
   @NotNull
   public static String getQualifiedStyleName(@NotNull StyleResourceValue style) {
-    return (style.isFramework() ? SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX : SdkConstants.STYLE_RESOURCE_PREFIX) + style.getName();
+    return (style.isFramework() ? SdkConstants.PREFIX_ANDROID : "") + style.getName();
   }
 
   /**
@@ -76,17 +101,16 @@ public class ResolutionUtils {
 
   @Nullable
   private static StyleResourceValue getStyleResourceValue(@NotNull ResourceResolver resolver, @NotNull String qualifiedStyleName) {
+    assert !qualifiedStyleName.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX);
+    assert !qualifiedStyleName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX);
     String styleName;
     boolean isFrameworkStyle;
 
-    if (qualifiedStyleName.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX)) {
-      styleName = qualifiedStyleName.substring(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX.length());
+    if (qualifiedStyleName.startsWith(SdkConstants.PREFIX_ANDROID)) {
+      styleName = qualifiedStyleName.substring(SdkConstants.PREFIX_ANDROID.length());
       isFrameworkStyle = true;
     } else {
       styleName = qualifiedStyleName;
-      if (styleName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX)) {
-        styleName = styleName.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length());
-      }
       isFrameworkStyle = false;
     }
 
