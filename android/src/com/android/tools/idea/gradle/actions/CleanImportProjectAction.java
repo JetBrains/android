@@ -31,20 +31,18 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
+import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
  * Closes, removes all IDEA-related files (.idea folder and .iml files) and imports a project.
@@ -91,21 +89,21 @@ public class CleanImportProjectAction extends DumbAwareAction {
   }
   @NotNull
   private static List<File> collectFilesToDelete(@NotNull Project project) {
-    VirtualFile projectFile = project.getProjectFile();
-    if (projectFile == null) {
-      // This is the default project. This will NEVER happen.
-      return Collections.emptyList();
-    }
     List<File> filesToDelete = Lists.newArrayList();
-    filesToDelete.add(virtualToIoFile(projectFile.getParent()));
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      VirtualFile moduleFile = module.getModuleFile();
-      if (moduleFile != null) {
-        filesToDelete.add(virtualToIoFile(moduleFile));
-      }
+    String projectFilePath = project.getProjectFilePath();
+    if (projectFilePath != null) {
+      addFileIfExists(filesToDelete, new File(PathUtil.getParentPath(projectFilePath)));
+    }
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      addFileIfExists(filesToDelete, new File(module.getModuleFilePath()));
     }
     return filesToDelete;
+  }
+
+  private static void addFileIfExists(@NotNull List<File> list, @NotNull File file) {
+    if (file.exists()) {
+      list.add(file);
+    }
   }
 
   private static void close(@NotNull Project project) {
