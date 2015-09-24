@@ -48,7 +48,7 @@ public class AddGradleJetbrainsAnnotationFix extends AbstractGradleDependencyFix
     boolean testScope = isTestScope(myModule, myReference);
     String configurationName = getConfigurationName(myModule, testScope);
 
-    NewExternalDependency newDependency = new NewExternalDependency(configurationName, "org.jetbrains", "annotations", "13.0");
+    NewExternalDependency newDependency = new NewExternalDependency(configurationName, "annotations", "org.jetbrains", "13.0");
 
     addDependencyAndSync(newDependency, new Computable<PsiClass[]>() {
       @Override

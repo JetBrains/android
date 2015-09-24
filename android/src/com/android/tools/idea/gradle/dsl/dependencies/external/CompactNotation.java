@@ -30,7 +30,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.dsl.parser.PsiElements.getUnquotedText;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class CompactNotation extends ExternalDependency {
+final class CompactNotation extends ExternalDependency {
   @NotNull private final GrLiteral myValueLiteral;
 
   @Nullable
