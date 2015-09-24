@@ -834,10 +834,8 @@ public class ThemeEditorComponent extends Splitter {
    * Refreshes the preview panel for theme previews
    */
   private void refreshPreviewPanel(@NotNull String hoveredPreviewTheme) {
-    myHoverPreviewTheme = hoveredPreviewTheme;
-
-    ThemeEditorStyle selectedTheme = getSelectedTheme();
-    if (selectedTheme == null || !hoveredPreviewTheme.equals(selectedTheme.getQualifiedName())) {
+    if (!hoveredPreviewTheme.equals(myHoverPreviewTheme)) {
+      myHoverPreviewTheme = hoveredPreviewTheme;
       // Only refresh when we select a different theme
       ThemeEditorStyle hoveredTheme = myThemeEditorContext.getThemeResolver().getTheme(myHoverPreviewTheme);
 
