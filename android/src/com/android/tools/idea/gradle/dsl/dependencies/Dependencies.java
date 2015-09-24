@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.dependencies;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -26,23 +26,19 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
-import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.dsl.parser.PsiElements.findClosableBlock;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.psi.util.PsiTreeUtil.*;
+import static com.intellij.psi.util.PsiTreeUtil.getChildrenOfType;
 
 public class Dependencies extends GradleDslElement {
   @Nullable private PsiFile myPsiFile;
@@ -101,7 +97,9 @@ public class Dependencies extends GradleDslElement {
     GrStatement statement = factory.createStatementFromText(configurationName + " '" + compactNotation + "'");
     GrStatement added = myPsiElement.addStatementBefore(statement, null);
     assert added instanceof GrApplicationStatement;
-    parseExternalOrModuleDependency((GrApplicationStatement)added);
+    List<Dependency> dependencies = Dependency.parse(this, (GrApplicationStatement)added);
+    add(dependencies);
+
     CodeStyleManager.getInstance(myPsiFile.getProject()).reformat(added);
   }
 
@@ -121,7 +119,7 @@ public class Dependencies extends GradleDslElement {
   }
 
   public boolean parse(@NotNull GrMethodCallExpression methodCallExpression) {
-    setPsiElement(findClosableBlock(methodCallExpression, "dependencies"));
+    myPsiElement = findClosableBlock(methodCallExpression, "dependencies");
     if (myPsiElement == null) {
       return false;
     }
@@ -130,134 +128,24 @@ public class Dependencies extends GradleDslElement {
       return false;
     }
     for (GrMethodCall methodCall : methodCalls) {
-      if (methodCall instanceof GrMethodCallExpression) {
-        parseExternalDependency((GrMethodCallExpression)methodCall);
-        continue;
-      }
-      if (methodCall instanceof GrApplicationStatement) {
-        parseExternalOrModuleDependency((GrApplicationStatement)methodCall);
-      }
+      List<Dependency> dependencies = Dependency.parse(this, methodCall);
+      add(dependencies);
     }
     return true;
   }
 
-  private void parseExternalDependency(@NotNull GrMethodCallExpression expression) {
-    GrReferenceExpression configurationNameExpression = getChildOfType(expression, GrReferenceExpression.class);
-    if (configurationNameExpression == null) {
-      return;
-    }
-
-    String configurationName = configurationNameExpression.getText();
-    if (isEmpty(configurationName)) {
-      return;
-    }
-
-    GrArgumentList argumentList = getNextSiblingOfType(configurationNameExpression, GrArgumentList.class);
-    if (argumentList == null) {
-      return;
-    }
-
-    for (GroovyPsiElement arg : argumentList.getAllArguments()) {
-      if (!(arg instanceof GrListOrMap)) {
-        continue;
-      }
-      GrListOrMap listOrMap = (GrListOrMap)arg;
-      if (!listOrMap.isMap()) {
-        continue;
-      }
-      GrNamedArgument[] namedArgs = listOrMap.getNamedArguments();
-      if (namedArgs.length > 0) {
-        ExternalDependency dependency = ExternalDependency.withMapNotation(this, configurationName, namedArgs);
-        if (dependency != null) {
-          myExternal.add(dependency);
-        }
-      }
+  private void add(@NotNull List<Dependency> dependencies) {
+    for (Dependency dependency : dependencies) {
+      add(dependency);
     }
   }
 
-  private void parseExternalOrModuleDependency(@NotNull GrApplicationStatement statement) {
-    GrReferenceExpression configurationNameExpression = getChildOfType(statement, GrReferenceExpression.class);
-    if (configurationNameExpression == null) {
-      return;
+  private void add(@Nullable Dependency dependency) {
+    if (dependency instanceof ExternalDependency) {
+      myExternal.add((ExternalDependency)dependency);
     }
-
-    String configurationName = configurationNameExpression.getText();
-    if (isEmpty(configurationName)) {
-      return;
-    }
-
-    GrCommandArgumentList argumentList = getNextSiblingOfType(configurationNameExpression, GrCommandArgumentList.class);
-    if (argumentList == null) {
-      return;
-    }
-
-    GroovyPsiElement[] arguments = argumentList.getAllArguments();
-    int argumentCount = arguments.length;
-    if (argumentCount == 0) {
-      return;
-    }
-
-    GroovyPsiElement first = arguments[0];
-    if (first instanceof GrLiteral) {
-      // "Compact" notation
-      for (GroovyPsiElement argument : arguments) {
-        if (argument instanceof GrLiteral) {
-          GrLiteral literal = (GrLiteral)argument;
-          ExternalDependency dependency = ExternalDependency.withCompactNotation(this, configurationName, literal);
-          if (dependency != null) {
-            myExternal.add(dependency);
-          }
-        }
-      }
-      return;
-    }
-
-    if (first instanceof GrNamedArgument) {
-      // "Map" notation
-      List<GrNamedArgument> namedArguments = Lists.newArrayList();
-      for (GroovyPsiElement argument : arguments) {
-        if (argument instanceof GrNamedArgument) {
-          namedArguments.add((GrNamedArgument)argument);
-        }
-      }
-      if (namedArguments.isEmpty()) {
-        return;
-      }
-      GrNamedArgument[] namedArgumentArray = namedArguments.toArray(new GrNamedArgument[namedArguments.size()]);
-      ExternalDependency dependency = ExternalDependency.withMapNotation(this, configurationName, namedArgumentArray);
-      if (dependency != null) {
-        myExternal.add(dependency);
-      }
-      return;
-
-    }
-
-    if (first instanceof GrMethodCallExpression) {
-      GrMethodCallExpression expression = (GrMethodCallExpression)first;
-      GrReferenceExpression referenceExpression = getChildOfType(expression, GrReferenceExpression.class);
-      if (referenceExpression == null) {
-        return;
-      }
-      String referenceName = referenceExpression.getText();
-      if ("project".equals(referenceName)) {
-        parseModuleDependency(configurationName, (GrMethodCallExpression)first);
-      }
-    }
-  }
-
-  private void parseModuleDependency(@NotNull String configurationName, @NotNull GrMethodCallExpression expression) {
-    GrArgumentList argumentList = expression.getArgumentList();
-    GroovyPsiElement[] arguments = argumentList.getAllArguments();
-    if (arguments.length == 1 && arguments[0] instanceof GrLiteral) {
-      ModuleDependency moduleDependency = ModuleDependency.withCompactNotation(this, configurationName, (GrLiteral)arguments[0]);
-      if (moduleDependency != null) {
-        myToModules.add(moduleDependency);
-      }
-      return;
-    }
-    ModuleDependency moduleDependency = ModuleDependency.withMapNotation(this, configurationName, argumentList);
-    if (moduleDependency != null) {
-      myToModules.add(moduleDependency);
+    else if (dependency instanceof ModuleDependency) {
+      myToModules.add((ModuleDependency)dependency);
     }
   }
 
@@ -281,10 +169,6 @@ public class Dependencies extends GradleDslElement {
   @Nullable
   public GrClosableBlock getPsiElement() {
     return myPsiElement;
-  }
-
-  private void setPsiElement(@Nullable GrClosableBlock psiElement) {
-    myPsiElement = psiElement;
   }
 
   public void setPsiFile(@Nullable PsiFile psiFile) {
