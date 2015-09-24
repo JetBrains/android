@@ -61,7 +61,8 @@ public final class FreemarkerUtils {
     paramMap.put("hasDependency", new FmHasDependencyMethod(paramMap));
     paramMap.put("truncate", new FmTruncateStringMethod());
     paramMap.put("compareVersions", new FmCompareVersionsMethod());
-    paramMap.put("getApplicationTheme", new FMGetApplicationThemeMethod(paramMap));
+    paramMap.put("getApplicationTheme", new FmGetApplicationThemeMethod(paramMap));
+    paramMap.put("getAppManifestDir", new FmGetAppManifestDirMethod(paramMap));
 
     // Dependency list
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
