@@ -455,6 +455,12 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Replace with \"the\"", "/res/values-no/strings.xml", "xml");
   }
 
+  // Regression test for http://b.android.com/186465
+  public void testStringTyposCDATA() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintTyposInspection(),
+                  "Replace with \"the\"", "/res/values-no/strings.xml", "xml");
+  }
+
   public void testWrongViewCall() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintWrongCallInspection(),
                   "Replace call with draw()", "/src/test/pkg/WrongViewCall.java", "java");
