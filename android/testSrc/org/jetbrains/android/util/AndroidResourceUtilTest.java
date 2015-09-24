@@ -16,17 +16,27 @@
 package org.jetbrains.android.util;
 
 import com.android.tools.idea.rendering.ResourceHelper;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.common.base.Objects;
+import com.google.common.collect.*;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class AndroidResourceUtilTest extends AndroidTestCase {
+  @Override
+  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+                                            @NotNull List<MyAdditionalModuleData> modules) {
+    addModuleWithAndroidFacet(projectBuilder, modules, "lib", true);
+  }
+
   public void testCaseSensitivityInChangeColorResource() {
     myFixture.copyFileToProject("util/colors_before.xml", "res/values/colors.xml");
     List<String> dirNames = ImmutableList.of("values");
@@ -107,5 +117,82 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
         assertEquals(result1, -result2);
       }
     }
+  }
+
+  public void testFindResourceFields() {
+    String lightRCode = "package light;" +
+                        "class R {" +
+                        "static class string {" +
+                        "static final int hello = 1;" +
+                        "static final int goodbye = 2;" +
+                        "}" +
+                        "}";
+    myFacet.setLightRClass(myFixture.addClass(lightRCode));
+
+    myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+
+    PsiField[] fields = AndroidResourceUtil.findResourceFields(myFacet, "string", "hello", false);
+
+    assertEquals(2, fields.length);
+    Set<String> dirNames = Sets.newHashSet();
+    for (PsiField field : fields) {
+      assertEquals("hello", field.getName());
+      dirNames.add(field.getContainingFile().getContainingDirectory().getName());
+    }
+    assertEquals(ImmutableSet.of("light", "p2"), dirNames);
+  }
+
+  public void testFindResourceFieldsWithMultipleResourceNames() {
+    String lightRCode = "package light;" +
+                        "class R {" +
+                        "static class string {" +
+                        "static final int hello = 1;" +
+                        "static final int goodbye = 2;" +
+                        "}" +
+                        "}";
+    myFacet.setLightRClass(myFixture.addClass(lightRCode));
+
+    myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+
+    PsiField[] fields = AndroidResourceUtil.findResourceFields(
+      myFacet, "string", ImmutableList.of("hello", "goodbye"), false);
+
+    assertEquals(4, fields.length);
+    Set<String> dirNames = Sets.newHashSet();
+    Map<String, Integer> fieldNames = Maps.newHashMap();
+    for (PsiField field : fields) {
+      String name = field.getName();
+      int count = Objects.firstNonNull(fieldNames.get(name), Integer.valueOf(0));
+      fieldNames.put(name, count + 1);
+      dirNames.add(field.getContainingFile().getContainingDirectory().getName());
+    }
+    assertEquals(ImmutableMap.of("hello", 2, "goodbye", 2), fieldNames);
+    assertEquals(ImmutableSet.of("light", "p2"), dirNames);
+  }
+
+  /** Tests that "inherited" resource references are found (R fields in generated in dependent modules). */
+  public void testFindResourceFieldsWithInheritance() throws Exception {
+    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    Module libModule = myAdditionalModules.get(0);
+    // Remove the current manifest (has wrong package name) and copy a manifest with proper package into the lib module.
+    deleteManifest(libModule);
+    myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
+    // Copy an empty R class with the proper package into the lib module.
+    myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+    // Add some lib string resources.
+    myFixture.copyFileToProject("util/lib/strings.xml", "additionalModules/lib/res/values/strings.xml");
+
+    PsiField[] fields = AndroidResourceUtil.findResourceFields(
+      AndroidFacet.getInstance(libModule), "string", "lib_hello", false /* onlyInOwnPackages */);
+
+    Set<String> dirNames = Sets.newHashSet();
+    for (PsiField field : fields) {
+      assertEquals("lib_hello", field.getName());
+      dirNames.add(field.getContainingFile().getContainingDirectory().getName());
+    }
+    assertEquals(ImmutableSet.of("p2", "lib"), dirNames);
+    assertEquals(2, fields.length);
   }
 }

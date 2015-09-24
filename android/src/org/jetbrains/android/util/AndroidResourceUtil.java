@@ -39,7 +39,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModulePackageIndex;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
@@ -53,6 +52,7 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.graph.Graph;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
 import org.jetbrains.android.augment.AndroidPsiElementFinder;
@@ -69,15 +69,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.resources.ResourceType.ATTR;
 import static com.android.resources.ResourceType.STYLEABLE;
@@ -150,23 +142,7 @@ public class AndroidResourceUtil {
                                               @NotNull String resClassName,
                                               @NotNull String resourceName,
                                               boolean onlyInOwnPackages) {
-    resourceName = getRJavaFieldName(resourceName);
-    final List<PsiJavaFile> rClassFiles = findRJavaFiles(facet, onlyInOwnPackages);
-    final List<PsiField> result = new ArrayList<PsiField>();
-
-    for (PsiJavaFile rClassFile : rClassFiles) {
-      if (rClassFile == null) {
-        continue;
-      }
-      final PsiClass rClass = findClass(rClassFile.getClasses(), AndroidUtils.R_CLASS_NAME);
-      findResourceFieldsFromClass(rClass, resClassName, Collections.singleton(resourceName), result);
-    }
-    PsiClass inMemoryRClass = facet.getLightRClass();
-    if (inMemoryRClass != null) {
-      findResourceFieldsFromClass(inMemoryRClass, resClassName, Collections.singleton(resourceName), result);
-    }
-
-    return result.toArray(new PsiField[result.size()]);
+    return findResourceFields(facet, resClassName, Collections.singleton(resourceName), onlyInOwnPackages);
   }
 
   /**
@@ -178,46 +154,40 @@ public class AndroidResourceUtil {
                                               @NotNull String resClassName,
                                               @NotNull Collection<String> resourceNames,
                                               boolean onlyInOwnPackages) {
-    final List<PsiJavaFile> rClassFiles = findRJavaFiles(facet, onlyInOwnPackages);
-    final List<PsiField> result = new ArrayList<PsiField>();
+    final List<PsiClass> rClasses = findRJavaClasses(facet, onlyInOwnPackages);
 
-    for (PsiJavaFile rClassFile : rClassFiles) {
-      if (rClassFile == null) {
-        continue;
-      }
-      findResourceFieldsFromClass(findClass(rClassFile.getClasses(), AndroidUtils.R_CLASS_NAME),
-          resClassName, resourceNames, result);
-    }
     PsiClass inMemoryRClass = facet.getLightRClass();
     if (inMemoryRClass != null) {
-      findResourceFieldsFromClass(inMemoryRClass, resClassName, resourceNames, result);
+      rClasses.add(inMemoryRClass);
+    }
+
+    final List<PsiField> result = new ArrayList<PsiField>();
+    for (PsiClass rClass : rClasses) {
+      findResourceFieldsFromClass(rClass, resClassName, resourceNames, result);
     }
 
     return result.toArray(new PsiField[result.size()]);
   }
 
-  private static void findResourceFieldsFromClass(@Nullable PsiClass rClass,
+  private static void findResourceFieldsFromClass(@NotNull PsiClass rClass,
       @NotNull String resClassName, @NotNull Collection<String> resourceNames,
       @NotNull List<PsiField> result) {
+    final PsiClass resourceTypeClass = findClass(rClass.getInnerClasses(), resClassName);
 
-    if (rClass != null) {
-      final PsiClass resourceTypeClass = findClass(rClass.getInnerClasses(), resClassName);
+    if (resourceTypeClass != null) {
+      for (String resourceName : resourceNames) {
+        String fieldName = getRJavaFieldName(resourceName);
+        final PsiField field = resourceTypeClass.findFieldByName(fieldName, false);
 
-      if (resourceTypeClass != null) {
-        for (String resourceName : resourceNames) {
-          String fieldName = getRJavaFieldName(resourceName);
-          final PsiField field = resourceTypeClass.findFieldByName(fieldName, false);
-
-          if (field != null) {
-            result.add(field);
-          }
+        if (field != null) {
+          result.add(field);
         }
       }
     }
   }
 
   @NotNull
-  private static List<PsiJavaFile> findRJavaFiles(@NotNull AndroidFacet facet, boolean onlyInOwnPackages) {
+  private static List<PsiClass> findRJavaClasses(@NotNull AndroidFacet facet, boolean onlyInOwnPackages) {
     final Module module = facet.getModule();
     final Project project = module.getProject();
     final Manifest manifest = facet.getManifest();
@@ -225,10 +195,16 @@ public class AndroidResourceUtil {
     if (manifest == null) {
       return Collections.emptyList();
     }
-    final Set<PsiDirectory> dirs = new HashSet<PsiDirectory>();
-    collectDirsForPackage(module, project, null, dirs, new HashSet<Module>(), onlyInOwnPackages);
 
-    final List<PsiJavaFile> rJavaFiles = new ArrayList<PsiJavaFile>();
+    Graph<Module> graph = ModuleManager.getInstance(project).moduleGraph();
+    Set<Module> dependentModules = Sets.newHashSet();
+    collectDependentModules(graph, module, dependentModules);
+
+    String targetPackage = onlyInOwnPackages ? null : manifest.getPackage().getValue();
+    final Set<PsiDirectory> dirs = new HashSet<PsiDirectory>();
+    collectDirsForPackage(dependentModules, project, targetPackage, dirs);
+
+    final List<PsiClass> rJavaClasses = new ArrayList<PsiClass>();
 
     for (PsiDirectory dir : dirs) {
       final VirtualFile file = dir.getVirtualFile().findChild(AndroidCommonUtils.R_JAVA_FILENAME);
@@ -237,62 +213,59 @@ public class AndroidResourceUtil {
         final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
 
         if (psiFile instanceof PsiJavaFile) {
-          rJavaFiles.add((PsiJavaFile)psiFile);
+          PsiJavaFile javaFile = (PsiJavaFile) psiFile;
+          PsiClass rClass = findClass(javaFile.getClasses(), AndroidUtils.R_CLASS_NAME);
+          if (rClass != null) {
+            rJavaClasses.add(rClass);
+          }
         }
       }
     }
-    return rJavaFiles;
+    return rJavaClasses;
   }
 
-  private static void collectDirsForPackage(Module module,
-                                            final Project project,
-                                            @Nullable String packageName,
-                                            final Set<PsiDirectory> dirs,
-                                            Set<Module> visitedModules,
-                                            boolean onlyInOwnPackages) {
-    if (!visitedModules.add(module)) {
+  private static void collectDependentModules(@NotNull Graph<Module> graph,
+                                              @NotNull Module module,
+                                              @NotNull Set<Module> result) {
+    if (result.contains(module)) {
       return;
     }
+    result.add(module);
+    Iterator<Module> out = graph.getOut(module);
+    while (out.hasNext()) {
+      collectDependentModules(graph, out.next(), result);
+    }
+  }
 
-    if (packageName != null) {
-      ModulePackageIndex.getInstance(module).getDirsByPackageName(packageName, false).forEach(new Processor<VirtualFile>() {
-        @Override
-        public boolean process(final VirtualFile directory) {
-          final PsiDirectory psiDir = PsiManager.getInstance(project).findDirectory(directory);
+  private static void collectDirsForPackage(@NotNull Set<Module> modules,
+                                            @NotNull final Project project,
+                                            @Nullable String targetPackageName,
+                                            @NotNull final Set<PsiDirectory> dirs) {
+    Processor<VirtualFile> processor = new Processor<VirtualFile>() {
+      @Override
+      public boolean process(VirtualFile directory) {
+        final PsiDirectory psiDir = PsiManager.getInstance(project).findDirectory(directory);
 
-          if (psiDir != null) {
-            dirs.add(psiDir);
-          }
-          return true;
+        if (psiDir != null) {
+          dirs.add(psiDir);
         }
-      });
-    }
-    final AndroidFacet ownFacet = AndroidFacet.getInstance(module);
-    String ownPackageName = null;
-
-    if (ownFacet != null) {
-      final Manifest ownManifest = ownFacet.getManifest();
-      ownPackageName = ownManifest != null ? ownManifest.getPackage().getValue() : null;
-
-      if (ownPackageName != null && !ownPackageName.equals(packageName)) {
-        ModulePackageIndex.getInstance(module).getDirsByPackageName(ownPackageName, false).forEach(new Processor<VirtualFile>() {
-          @Override
-          public boolean process(final VirtualFile directory) {
-            final PsiDirectory psiDir = PsiManager.getInstance(project).findDirectory(directory);
-
-            if (psiDir != null) {
-              dirs.add(psiDir);
-            }
-            return true;
-          }
-        });
+        return true;
       }
-    }
+    };
 
-    for (Module otherModule : ModuleManager.getInstance(project).getModules()) {
-      if (ModuleRootManager.getInstance(otherModule).isDependsOn(module)) {
-        collectDirsForPackage(otherModule, project, packageName != null || onlyInOwnPackages ? packageName : ownPackageName, dirs,
-                              visitedModules, onlyInOwnPackages);
+    for (Module module : modules) {
+      if (targetPackageName != null) {
+        ModulePackageIndex.getInstance(module).getDirsByPackageName(targetPackageName, false).forEach(processor);
+      }
+
+      final AndroidFacet ownFacet = AndroidFacet.getInstance(module);
+      if (ownFacet != null) {
+        final Manifest ownManifest = ownFacet.getManifest();
+        String ownPackageName = ownManifest != null ? ownManifest.getPackage().getValue() : null;
+
+        if (ownPackageName != null && !ownPackageName.equals(targetPackageName)) {
+          ModulePackageIndex.getInstance(module).getDirsByPackageName(ownPackageName, false).forEach(processor);
+        }
       }
     }
   }
