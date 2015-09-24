@@ -62,6 +62,7 @@ class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunCon
   private JPanel myPanel;
   private LabeledComponent<EditorTextFieldWithBrowseButton> myRunnerComponent;
   private JBLabel myLabelTest;
+  private JTextField myExtraOptionsFied;
   private final JRadioButton[] myTestingType2RadioButton = new JRadioButton[4];
 
   private final Project myProject;
@@ -207,6 +208,7 @@ class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunCon
     configuration.METHOD_NAME = myMethodComponent.getComponent().getText();
     configuration.PACKAGE_NAME = myPackageComponent.getComponent().getText();
     configuration.INSTRUMENTATION_RUNNER_CLASS = myRunnerComponent.getComponent().getText();
+    configuration.EXTRA_OPTIONS = myExtraOptionsFied.getText().trim();
   }
 
   @Override
@@ -216,6 +218,7 @@ class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunCon
     myClassComponent.getComponent().setText(configuration.CLASS_NAME);
     myMethodComponent.getComponent().setText(configuration.METHOD_NAME);
     myRunnerComponent.getComponent().setText(configuration.INSTRUMENTATION_RUNNER_CLASS);
+    myExtraOptionsFied.setText(configuration.EXTRA_OPTIONS);
   }
 
   @Override
