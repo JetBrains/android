@@ -57,6 +57,19 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     return true;
   }
 
+  public void testGetStyleResourceUrl() {
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
+    myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
+
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+    ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
+    assertEquals("@style/AppTheme", theme.getStyleResourceUrl());
+    theme = themeResolver.getTheme("@android:style/Theme");
+    assertEquals("@android:style/Theme", theme.getStyleResourceUrl());
+  }
+
   public void testHasItem() {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
