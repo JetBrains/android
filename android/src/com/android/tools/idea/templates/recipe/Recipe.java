@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.templates.recipe;
 
+import com.android.tools.idea.templates.FreemarkerUtils;
+import com.android.tools.idea.templates.FreemarkerUtils.TemplatePostProcessor;
+import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.parse.StringFileAdapter;
+import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
-import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +35,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.io.File;
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.List;
 
 import static com.android.SdkConstants.DOT_FTL;
@@ -54,19 +58,10 @@ public final class Recipe {
   private List<RecipeInstruction> instructions = Lists.newArrayList();
   // @formatter:on
 
-  @NotNull
-  private final List<String> myDependencies = Lists.newArrayList();
-  @NotNull
-  private final List<File> mySourceFiles = Lists.newArrayList();
-  @NotNull
-  private final List<File> myTargetFiles = Lists.newArrayList();
-  @NotNull
-  private final List<File> myFilesToOpen = Lists.newArrayList();
-
-  /**
-   * True if this recipe is a parent (executes child recipes in execution instructions).
-   */
-  private boolean myIsParent;
+  @NotNull private final List<String> myDependencies = Lists.newArrayList();
+  @NotNull private final List<File> mySourceFiles = Lists.newArrayList();
+  @NotNull private final List<File> myTargetFiles = Lists.newArrayList();
+  @NotNull private final List<File> myFilesToOpen = Lists.newArrayList();
 
   @NotNull
   public List<String> getDependencies() {
@@ -94,9 +89,14 @@ public final class Recipe {
    * in the main editor. Once parsed, you should remember to {@link #execute(RecipeContext)} it.
    */
   public static Recipe parse(@NotNull Reader xmlReader) throws JAXBException {
-    JAXBContext jc = JAXBContext.newInstance(Recipe.class);
-    Unmarshaller u = jc.createUnmarshaller();
-    return (Recipe)u.unmarshal(xmlReader);
+    Recipe recipe = unmarshal(xmlReader);
+    recipe.instructions.add(new UpdateAndSyncGradleInstruction());
+
+    return recipe;
+  }
+
+  private static Recipe unmarshal(@NotNull Reader xmlReader) throws JAXBException {
+    return (Recipe)JAXBContext.newInstance(Recipe.class).createUnmarshaller().unmarshal(xmlReader);
   }
 
   @NotNull
@@ -116,8 +116,6 @@ public final class Recipe {
 
   @SuppressWarnings("unused") // Called by JAXB via reflection
   private void afterUnmarshal(Unmarshaller u, Object parent) {
-    instructions.add(new FinalInstruction());
-
     for (RecipeInstruction instruction : instructions) {
       instruction.addDependenciesInto(myDependencies);
       instruction.addSourceFilesInto(mySourceFiles);
@@ -132,13 +130,17 @@ public final class Recipe {
   private static abstract class RecipeInstruction {
     abstract void execute(@NotNull Recipe recipe, @NotNull RecipeContext context);
 
-    public void addDependenciesInto(@NotNull List<String> dependencies) {}
+    public void addDependenciesInto(@NotNull List<String> dependencies) {
+    }
 
-    public void addSourceFilesInto(@NotNull List<File> files) {}
+    public void addSourceFilesInto(@NotNull List<File> files) {
+    }
 
-    public void addTargetFilesInto(@NotNull List<File> files) {}
+    public void addTargetFilesInto(@NotNull List<File> files) {
+    }
 
-    public void addFilesToOpenInto(@NotNull List<File> files) {}
+    public void addFilesToOpenInto(@NotNull List<File> files) {
+    }
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
@@ -307,31 +309,39 @@ public final class Recipe {
     private File file;
 
     @Override
-    void execute(@NotNull final Recipe parent, @NotNull RecipeContext context) {
-      context.parseRecipe(file, new Consumer<Recipe>() {
-        @Override
-        public void consume(Recipe child) {
-          parent.myDependencies.addAll(child.myDependencies);
-          parent.mySourceFiles.addAll(child.mySourceFiles);
-          parent.myTargetFiles.addAll(child.myTargetFiles);
-          parent.myFilesToOpen.addAll(child.myFilesToOpen);
+    void execute(@NotNull final Recipe parent, @NotNull final RecipeContext context) {
+      try {
+        FreemarkerUtils.processFreemarkerTemplate(context.getFreemarker(), context.getParamMap(), file, new TemplatePostProcessor() {
+          @Override
+          public void process(@NotNull String content) throws TemplateProcessingException {
+            try {
+              Recipe child = unmarshal(new StringReader(XmlUtils.stripBom(content)));
+              child.execute(context);
 
-          parent.myIsParent = true;
-        }
-      });
+              parent.myDependencies.addAll(child.myDependencies);
+              parent.mySourceFiles.addAll(child.mySourceFiles);
+              parent.myTargetFiles.addAll(child.myTargetFiles);
+              parent.myFilesToOpen.addAll(child.myFilesToOpen);
+            }
+            catch (JAXBException exception) {
+              throw new TemplateProcessingException(exception);
+            }
+          }
+        });
+      }
+      catch (TemplateProcessingException exception) {
+        throw new RuntimeException(exception);
+      }
     }
   }
 
   /**
-   * Post-process instruction that's always added to the end of a recipe's instruction list.
+   * This should only be executed by the root recipe and only at the end.
    */
-  private static final class FinalInstruction extends RecipeInstruction {
-
+  private static final class UpdateAndSyncGradleInstruction extends RecipeInstruction {
     @Override
     void execute(@NotNull Recipe recipe, @NotNull RecipeContext context) {
-      if (recipe.myIsParent) {
-        context.updateAndSyncGradle();
-      }
+      context.updateAndSyncGradle();
     }
   }
 }
