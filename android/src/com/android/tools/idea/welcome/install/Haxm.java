@@ -85,6 +85,7 @@ public final class Haxm extends InstallableComponent {
     GeneralCommandLine command;
     String path = FileUtil.join(SdkConstants.FD_EXTRAS, ID_INTEL.getId(), COMPONENT_PATH);
     File sourceLocation = new File(sdk, path);
+
     if (SystemInfo.isMac) {
       command = addVersionParameters(getMacHaxmCommandLine(sourceLocation));
     }
@@ -110,13 +111,28 @@ public final class Haxm extends InstallableComponent {
 
   public static boolean canRun() {
     // TODO HAXM is disabled on Windows as headless installer currently fails to request admin access as needed.
-    if ((Boolean.getBoolean("install.haxm") && SystemInfo.isWindows) || SystemInfo.isMac) {
+    if (((Boolean.getBoolean("install.haxm") && SystemInfo.isWindows) || SystemInfo.isMac) &&
+        isSupportedProcessor()) {
       return getMemorySize() >= Storage.Unit.GiB.getNumberOfBytes();
     }
     else {
       return false;
     }
   }
+
+  private static boolean isSupportedProcessor() {
+    if (SystemInfo.isMac) {
+      return true;
+    } else if (SystemInfo.isWindows) {
+      String id = System.getenv().get("PROCESSOR_IDENTIFIER");
+      if (id != null && id.contains("GenuineIntel")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
 
   public Haxm(@NotNull ScopedStateStore store, ScopedStateStore.Key<Boolean> isCustomInstall) {
     super(store, "Performance (Intel ® HAXM)", 2306867, "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
