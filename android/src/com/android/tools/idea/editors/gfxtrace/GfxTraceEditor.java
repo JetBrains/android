@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
-import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.controllers.MainController;
 import com.android.tools.idea.editors.gfxtrace.service.*;
@@ -60,13 +58,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
-import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
+import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
 
 public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull public static final String SELECT_CAPTURE = "Select a capture";
   @NotNull public static final String SELECT_ATOM = "Select an atom";
 
-  @NotNull private static final String OVERRIDE_PATH_GAPIS = "override.path.gapis";
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   @NotNull private static final String SERVER_HOST = "localhost";
   @NotNull private static final String SERVER_EXECUTABLE_NAME = "gapis";
@@ -91,9 +88,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private List<PathListener> myPathListeners = new ArrayList<PathListener>();
 
   public static boolean isEnabled() {
-    if (!Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
-      return false;
-    }
     updatePath();
     return myGapisPath != null;
   }
@@ -404,21 +398,33 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     return myServerDirectory;
   }
 
+  private static boolean testPath(File root) {
+    File bin = new File(root, SERVER_RELATIVE_PATH);
+    File gapis = new File(bin, SERVER_EXECUTABLE_NAME);
+    if (!gapis.exists()) {
+      return false;
+    }
+    myGapisRoot = root;
+    myServerDirectory = bin;
+    myGapisPath = gapis;
+    return true;
+  }
+
   private static void updatePath() {
     synchronized (myPathLock) {
       if (myGapisPath != null) {
         return;
       }
-      myGapisRoot = PluginPathManager.getPluginHome("android");
-      String pathOverride = System.getProperty(OVERRIDE_PATH_GAPIS, "");
-      if (pathOverride.length() > 0) {
-        myGapisRoot = new File(pathOverride);
+      File androidPlugin = PluginPathManager.getPluginHome("android");
+      if (Boolean.getBoolean(IDEA_IS_INTERNAL_PROPERTY)) {
+        // Check the default build location for a standard repo checkout
+        if (testPath(new File(androidPlugin.getParentFile().getParentFile().getParentFile(), "gpu"))) return;
+        // Check the GOPATH in case it is non standard
+        String gopath = System.getenv("GOPATH");
+        if (gopath != null && gopath.length() > 0 && testPath(new File(gopath))) return;
+        // TODO: Check the prebuilts location
       }
-      myServerDirectory = new File(myGapisRoot, SERVER_RELATIVE_PATH);
-      myGapisPath = new File(myServerDirectory, SERVER_EXECUTABLE_NAME);
-      if (!myGapisPath.exists()) {
-        myGapisPath = null;
-      }
+      testPath(androidPlugin);
     }
   }
 
