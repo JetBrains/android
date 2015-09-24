@@ -297,7 +297,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
         console.attachToProcess(myProcessHandler);
       }
     }
-    myPrinter.setProcessHandler(myProcessHandler);
 
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
@@ -309,6 +308,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     if (console == null) { //Will not be null in debug mode or if additional option was chosen.
       console = myConfiguration.attachConsole(this, executor);
     }
+    myPrinter.setProcessHandler(myProcessHandler);
 
     getProcessHandler().addProcessListener(new ProcessAdapter() {
       @Override
@@ -387,6 +387,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
         @Override
         public void onFailure(@NotNull Throwable t) {
+          myPrinter.stderr(t.getMessage());
           myStopped.set(true);
           getProcessHandler().destroyProcess();
         }
