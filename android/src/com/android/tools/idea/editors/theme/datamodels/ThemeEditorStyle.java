@@ -22,6 +22,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceType;
@@ -86,6 +87,32 @@ public class ThemeEditorStyle {
     myConfiguration = configuration;
     myProject = configuration.getModule().getProject();
     mySourceModule = sourceModule;
+  }
+
+  /**
+   * Returns the style name. If this is a framework style, it will include the "android:" prefix.
+   * Can be null, if there is no corresponding StyleResourceValue
+   */
+  @NotNull
+  public String getQualifiedName() {
+    return ResolutionUtils.getQualifiedStyleName(myStyleResourceValue);
+  }
+
+  /**
+   * Returns the style name without namespaces or prefixes.
+   */
+  @NotNull
+  public String getName() {
+    return myStyleResourceValue.getName();
+  }
+
+  /**
+   * @return url representation of this style,
+   * Result will start either with {@value SdkConstants#ANDROID_STYLE_RESOURCE_PREFIX} or {@value SdkConstants#STYLE_RESOURCE_PREFIX}
+   */
+  @NotNull
+  public String getStyleResourceUrl() {
+    return ResourceUrl.create(myStyleResourceValue).toString();
   }
 
   public boolean isProjectStyle() {
@@ -170,23 +197,6 @@ public class ThemeEditorStyle {
    */
   public boolean isReadOnly() {
     return !isProjectStyle();
-  }
-
-  /**
-   * Returns the style name. If this is a framework style, it will include the "android:" prefix.
-   * Can be null, if there is no corresponding StyleResourceValue
-   */
-  @NotNull
-  public String getQualifiedName() {
-    return ResolutionUtils.getQualifiedStyleName(myStyleResourceValue);
-  }
-
-  /**
-   * Returns the style name without namespaces or prefixes.
-   */
-  @NotNull
-  public String getName() {
-    return getStyleResourceValue().getName();
   }
 
   private static ImmutableCollection<FolderConfiguration> getFolderConfigurationsFromResourceItems(@NotNull Collection<ResourceItem> items) {
@@ -334,7 +344,7 @@ public class ThemeEditorStyle {
       fullFolderConfiguration.add(folderConfiguration);
 
       // Get a ResourceResolver configured with the item FolderConfiguration
-      ResourceResolver resolver = resolverCache.getResourceResolver(myConfiguration.getTarget(), getQualifiedName(), fullFolderConfiguration);
+      ResourceResolver resolver = resolverCache.getResourceResolver(myConfiguration.getTarget(), getStyleResourceUrl(), fullFolderConfiguration);
       // Resolve the parent of the current theme, using that configuration
       StyleResourceValue parent = resolver.getParent(myStyleResourceValue);
       if (parent != null) {
