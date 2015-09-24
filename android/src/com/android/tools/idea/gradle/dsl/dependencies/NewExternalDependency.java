@@ -25,16 +25,16 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class NewExternalDependency {
   @NotNull public String configurationName;
-  @NotNull public String group;
   @NotNull public String name;
-  @NotNull public String version;
+  @Nullable public String group;
+  @Nullable public String version;
   @Nullable public String classifier;
   @Nullable public String extension;
 
-  public NewExternalDependency(@NotNull String configurationName, @NotNull String group, @NotNull String name, @NotNull String version) {
+  public NewExternalDependency(@NotNull String configurationName, @NotNull String name, @Nullable String group, @Nullable String version) {
     this.configurationName = configurationName;
-    this.group = group;
     this.name = name;
+    this.group = group;
     this.version = version;
   }
 

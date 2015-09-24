@@ -82,7 +82,7 @@ public class ExternalDependencyTest extends GradleBuildModelParserTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    NewExternalDependency newDependency = new NewExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
+    NewExternalDependency newDependency = new NewExternalDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
     buildModel.dependencies().add(newDependency);
 
     assertTrue(buildModel.isModified());
@@ -112,7 +112,7 @@ public class ExternalDependencyTest extends GradleBuildModelParserTestCase {
     writeToBuildFile("");
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    NewExternalDependency newDependency = new NewExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
+    NewExternalDependency newDependency = new NewExternalDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
     buildModel.dependencies().add(newDependency);
 
     assertTrue(buildModel.isModified());
@@ -275,7 +275,7 @@ public class ExternalDependencyTest extends GradleBuildModelParserTestCase {
                                       @NotNull String group,
                                       @NotNull String name,
                                       @NotNull String version) {
-      super(configurationName, group, name, version);
+      super(configurationName, name, group, version);
     }
 
     public void assertMatches(@NotNull ExternalDependency actual) {
