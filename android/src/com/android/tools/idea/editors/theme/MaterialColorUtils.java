@@ -321,7 +321,7 @@ public class MaterialColorUtils {
    * For each hue (complementary, analogous, triad or monochromatic), two colors are suggested as accents:
    * <ul>
    * <li>75% saturation and 100% brightness</li>
-   * <li>100% saturation and original brightness of the colour</li>
+   * <li>100% saturation and original brightness of the color</li>
    * </ul>
    */
   @NotNull
@@ -393,7 +393,7 @@ public class MaterialColorUtils {
 
       for (Color materialColor : MATERIAL_NAMES_MAP.keySet()) {
 
-        float distance = colourDistance(color, materialColor);
+        float distance = colorDistance(color, materialColor);
 
         if (distance < minDistance) {
           minDistance = distance;
@@ -409,7 +409,7 @@ public class MaterialColorUtils {
   /**
    * taken from: http://www.compuphase.com/cmetric.htm
    */
-  public static float colourDistance(Color c1, Color c2) {
+  public static float colorDistance(Color c1, Color c2) {
     double rmean = (c1.getRed() + c2.getRed()) / 2;
     int r = c1.getRed() - c2.getRed();
     int g = c1.getGreen() - c2.getGreen();

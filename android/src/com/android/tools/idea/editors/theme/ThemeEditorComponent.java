@@ -29,6 +29,7 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNotificationManager;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
 import com.google.common.collect.ImmutableList;
@@ -49,6 +50,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.ui.*;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -77,9 +79,11 @@ import java.util.concurrent.TimeUnit;
 
 public class ThemeEditorComponent extends Splitter {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
-
-  private static final JBColor PREVIEW_BACKGROUND = new JBColor(new Color(0xFFFFFF), new Color(0x343739));
   private static final DefaultTableModel EMPTY_TABLE_MODEL = new DefaultTableModel();
+
+  public static final JBColor PREVIEW_BACKGROUND = new JBColor(new Color(0xFFFFFF), new Color(0x343739));
+  /** Color to use for the preview background when the background color of the theme being displayed is too similar to PREVIEW_BACKGROUND */
+  public static final JBColor ALT_PREVIEW_BACKGROUND = new JBColor(new Color(0xFAFAFA), new Color(0x282828));
 
   private static final ImmutableMap<String, Integer> SORTING_MAP =
     ImmutableMap.<String, Integer>builder()
@@ -123,6 +127,11 @@ public class ThemeEditorComponent extends Splitter {
 
   public static final int REGULAR_CELL_PADDING = 4;
   public static final int LARGE_CELL_PADDING = 10;
+  /**
+   * Distance to PREVIEW_BACKGROUND under which the contrast becomes too small to see the cards on screen well enough.
+   * As a reference, the distance between the light versions of PREVIEW_BACKGROUND and ALT_PREVIEW_BACKGROUND is 15.0
+   */
+  public static final float COLOR_DISTANCE_THRESHOLD = 8.5f;
   private final Project myProject;
 
   private EditedStyleItem mySubStyleSourceAttribute;
@@ -151,6 +160,9 @@ public class ThemeEditorComponent extends Splitter {
   private ScheduledFuture<?> myScheduledSearch;
 
   private String myHoverPreviewTheme;
+  private final JPanel myToolbar;
+  private final JComponent myActionToolbarComponent;
+  private final SearchTextField myTextField;
 
   public interface GoToListener {
     void goTo(@NotNull EditedStyleItem value);
@@ -349,38 +361,19 @@ public class ThemeEditorComponent extends Splitter {
     ActionToolbar actionToolbar = actionManager.createActionToolbar("ThemeToolbar", group, true);
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
 
-    final JPanel toolbar = new JPanel(null);
-    toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
-    toolbar.setBorder(BorderFactory.createMatteBorder(7, 14, 7, 14, PREVIEW_BACKGROUND));
-    toolbar.setBackground(PREVIEW_BACKGROUND);
+    myToolbar = new JPanel(null);
+    myToolbar.setLayout(new BoxLayout(myToolbar, BoxLayout.X_AXIS));
+    myToolbar.setBorder(JBUI.Borders.empty(7, 14, 7, 14));
 
-    final JComponent actionToolbarComponent = actionToolbar.getComponent();
-    actionToolbarComponent.setBackground(PREVIEW_BACKGROUND);
-    // The action toolbar is not always populated immediately.
-    // Wait to make sure the components exist before setting their background.
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        for (Component component : actionToolbarComponent.getComponents()) {
-          component.setBackground(PREVIEW_BACKGROUND);
-        }
-      }
-    });
-    toolbar.add(actionToolbarComponent);
+    myActionToolbarComponent = actionToolbar.getComponent();
+    myToolbar.add(myActionToolbarComponent);
 
-    final SearchTextField textField = new SearchTextField(true);
+    myTextField = new SearchTextField(true);
     // Avoid search box stretching more than 1 line.
-    textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, textField.getPreferredSize().height));
-    textField.setBackground(PREVIEW_BACKGROUND);
-    // If the text field has icons outside of the search field, their background needs to be set correctly
-    for (Component component : textField.getComponents()) {
-      if (component instanceof JLabel) {
-        component.setBackground(PREVIEW_BACKGROUND);
-      }
-    }
+    myTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, myTextField.getPreferredSize().height));
 
     final ScheduledExecutorService searchUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
-    textField.addDocumentListener(new DocumentAdapter() {
+    myTextField.addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(DocumentEvent e) {
         if (myScheduledSearch != null) {
@@ -390,16 +383,18 @@ public class ThemeEditorComponent extends Splitter {
         myScheduledSearch = searchUpdateScheduler.schedule(new Runnable() {
           @Override
           public void run() {
-            myPreviewPanel.setSearchTerm(textField.getText());
+            myPreviewPanel.setSearchTerm(myTextField.getText());
           }
         }, 300, TimeUnit.MILLISECONDS);
       }
     });
-    toolbar.add(textField);
+    myToolbar.add(myTextField);
 
     final JPanel previewPanel = new JPanel(new BorderLayout());
     previewPanel.add(myPreviewPanel, BorderLayout.CENTER);
-    previewPanel.add(toolbar, BorderLayout.NORTH);
+    previewPanel.add(myToolbar, BorderLayout.NORTH);
+
+    setPreviewBackground(PREVIEW_BACKGROUND);
 
     setFirstComponent(previewPanel);
     setSecondComponent(myPanel.getRightPanel());
@@ -416,6 +411,21 @@ public class ThemeEditorComponent extends Splitter {
     // Set an initial state in case that the editor didn't have a previously saved state
     // TODO: Try to be smarter about this and get the ThemeEditor to set a default state where there is no previous state
     reload(null);
+  }
+
+  public void setPreviewBackground(@NotNull final Color bg) {
+    myToolbar.setBackground(bg);
+    myActionToolbarComponent.setBackground(bg);
+
+    myTextField.setBackground(bg);
+    // If the text field has icons outside of the search field, their background needs to be set correctly
+    for (Component component : myTextField.getComponents()) {
+      if (component instanceof JLabel) {
+        component.setBackground(bg);
+      }
+    }
+
+    myPreviewPanel.setBackground(bg);
   }
 
   @NotNull
@@ -824,10 +834,33 @@ public class ThemeEditorComponent extends Splitter {
     });
 
     myAttributesTable.updateRowHeights();
+
+    ResourceResolver resourceResolver = myThemeEditorContext.getResourceResolver();
+    assert resourceResolver != null;
+    setPreviewBackground(getGoodContrastPreviewBackground(selectedTheme, resourceResolver));
+
     myPreviewPanel.invalidateGraphicsRenderer();
     myPreviewPanel.revalidate();
     myAttributesTable.repaint();
     myPanel.getThemeCombo().repaint();
+  }
+
+  /**
+   * Returns the color that should be used for the background of the preview panel depending on the background color
+   * of the theme being displayed, so as to always keep some contrast between the two.
+   */
+  public static JBColor getGoodContrastPreviewBackground(@NotNull ThemeEditorStyle theme, @NotNull ResourceResolver resourceResolver) {
+    ItemResourceValue themeColorBackgroundItem = ThemeEditorUtils.resolveItemFromParents(theme, "colorBackground", true);
+    String colorBackgroundValue = resourceResolver.resolveResValue(themeColorBackgroundItem).getValue();
+    Color colorBackground = ResourceHelper.parseColor(colorBackgroundValue);
+    if (colorBackground != null) {
+      float backgroundDistance = MaterialColorUtils.colorDistance(colorBackground, PREVIEW_BACKGROUND);
+      if (backgroundDistance < COLOR_DISTANCE_THRESHOLD &&
+          backgroundDistance < MaterialColorUtils.colorDistance(colorBackground, ALT_PREVIEW_BACKGROUND)) {
+        return ALT_PREVIEW_BACKGROUND;
+      }
+    }
+    return PREVIEW_BACKGROUND;
   }
 
   /**
@@ -844,6 +877,10 @@ public class ThemeEditorComponent extends Splitter {
       myThemeEditorContext.setCurrentTheme(hoveredTheme);
       final Configuration configuration = myThemeEditorContext.getConfiguration();
       configuration.setTheme(hoveredTheme.getStyleResourceUrl());
+
+      ResourceResolver resourceResolver = myThemeEditorContext.getResourceResolver();
+      assert resourceResolver != null;
+      setPreviewBackground(getGoodContrastPreviewBackground(hoveredTheme, resourceResolver));
 
       myPreviewPanel.invalidateGraphicsRenderer();
       myPreviewPanel.revalidate();
