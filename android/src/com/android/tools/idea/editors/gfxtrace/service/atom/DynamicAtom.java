@@ -76,7 +76,12 @@ public class DynamicAtom extends Atom {
   }
 
   @Override
-  public boolean getIsEndOfFrame() {
+  public boolean isEndOfFrame() {
     return myMetadata.getEndOfFrame();
+  }
+
+  @Override
+  public boolean isDrawCall() {
+    return myMetadata.getDrawCall();
   }
 }

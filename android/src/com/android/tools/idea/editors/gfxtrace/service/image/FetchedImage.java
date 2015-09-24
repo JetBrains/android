@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.service.image;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.path.AsPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.AsyncFunction;
@@ -42,6 +43,15 @@ public class FetchedImage {
   @NotNull public final byte[] myData;
   @NotNull public final Dimension dimensions;
   @NotNull public final ImageIcon icon;
+
+  public static ListenableFuture<FetchedImage> load(final ServiceClient client, ListenableFuture<ImageInfoPath> imageInfo) {
+    return Futures.transform(imageInfo, new AsyncFunction<ImageInfoPath, FetchedImage>() {
+      @Override
+      public ListenableFuture<FetchedImage> apply(ImageInfoPath imageInfoPath) throws Exception {
+        return load(client, imageInfoPath);
+      }
+    });
+  }
 
   public static ListenableFuture<FetchedImage> load(final ServiceClient client, final Path imagePath) {
     return Futures.transform(client.get(imagePath), new AsyncFunction<Object, FetchedImage>() {
