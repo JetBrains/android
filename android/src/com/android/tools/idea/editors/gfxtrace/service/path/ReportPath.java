@@ -30,6 +30,7 @@ public final class ReportPath extends Path {
 
   //<<<Start:Java.ClassBody:1>>>
   private CapturePath myCapture;
+  private DevicePath myDevice;
 
   // Constructs a default-initialized {@link ReportPath}.
   public ReportPath() {}
@@ -44,10 +45,19 @@ public final class ReportPath extends Path {
     return this;
   }
 
+  public DevicePath getDevice() {
+    return myDevice;
+  }
+
+  public ReportPath setDevice(DevicePath v) {
+    myDevice = v;
+    return this;
+  }
+
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-61, 21, 48, 18, -76, -90, 126, 113, 58, -93, -20, -75, -109, 33, -10, 47, -46, -15, 79, -87, };
+  private static final byte[] IDBytes = {59, -2, -18, -99, -22, -82, -7, 118, -118, 46, -27, -109, 110, -30, 59, 7, 125, -120, 52, -14, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
@@ -69,12 +79,14 @@ public final class ReportPath extends Path {
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ReportPath o = (ReportPath)obj;
       e.object(o.myCapture);
+      e.object(o.myDevice);
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ReportPath o = (ReportPath)obj;
       o.myCapture = (CapturePath)d.object();
+      o.myDevice = (DevicePath)d.object();
     }
     //<<<End:Java.KlassBody:2>>>
   }
