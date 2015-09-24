@@ -26,7 +26,9 @@ import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.ConstantSet;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.SchemaClass;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -53,11 +55,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.*;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 
 import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
@@ -75,7 +79,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private LoadingDecorator myLoadingDecorator;
   @NotNull private JBPanel myView = new JBPanel(new BorderLayout());
   @NotNull private final ListeningExecutorService myExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
-  private ServerProcess myServerProcess;
+  private ServerConnection myServerConnection;
   private ServiceClient myClient;
 
   @NotNull private List<PathListener> myPathListeners = new ArrayList<PathListener>();
@@ -100,7 +104,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
         }
 
         try {
-          myClient = new ServiceClientCache(myServerProcess.createServiceClient(myExecutor));
+          myClient = new ServiceClientCache(myServerConnection.createServiceClient(myExecutor));
         }
         catch (IOException e) {
           setLoadingErrorTextOnEdt("Unable to talk to server");
@@ -284,8 +288,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private boolean connectToServer() {
     assert !ApplicationManager.getApplication().isDispatchThread();
 
-    myServerProcess = ServerProcess.connect();
-    return myServerProcess.isConnected();
+    myServerConnection = ServerProcess.INSTANCE.connect();
+    return myServerConnection.isConnected();
   }
 
   private void setLoadingErrorTextOnEdt(@NotNull final String error) {
@@ -298,9 +302,9 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   }
 
   private void shutdown() {
-    if (myServerProcess != null) {
-      myServerProcess.close();
-      myServerProcess = null;
+    if (myServerConnection != null) {
+      myServerConnection.close();
+      myServerConnection = null;
     }
 
     myExecutor.shutdown();
@@ -319,14 +323,17 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     }
   }
 
-  private static class ServerProcess implements Closeable {
+  private static class ServerProcess {
+    public static final ServerProcess INSTANCE = new ServerProcess();
+    private static final ServerConnection NOT_CONNECTED = new ServerConnection(INSTANCE, null);
+
     private static final int SERVER_LAUNCH_TIMEOUT_MS = 2000;
     private static final int SERVER_LAUNCH_SLEEP_INCREMENT_MS = 10;
     private static final String SERVER_HOST = "localhost";
-    private static final int SERVER_PORT = 6700;
 
+    private final Set<ServerConnection> myConnections = Sets.newIdentityHashSet();
     private Thread myServerThread;
-    private Socket myServerSocket;
+    private int myPort;
 
     private ServerProcess() {
       Factory.register();
@@ -335,23 +342,27 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     /**
      * Attempts to connect to a gapis server.
      * <p/>
-     * If the first attempt to connect fails, will launch a new server process and attempt to connect again.
+     * Will launch a new server process if none has been started.
      * <p/>
      * TODO: Implement more robust process management.  For example:
-     * TODO: - Better handling of shutdown so that the replayd process does not continue running.
      * TODO: - Better way to detect when server has started in order to avoid polling for the socket.
      */
-    public static ServerProcess connect() {
-      ServerProcess process = new ServerProcess();
-      if (process.attemptToConnect() || !process.launchServer()) {
-        return process;
+    public ServerConnection connect() {
+      synchronized (this) {
+        if (!isServerRunning()) {
+          if (!launchServer()) {
+            return NOT_CONNECTED;
+          }
+        }
       }
 
       // After starting, the server requires a little time before it will be ready to accept connections.
       // This loop polls the server to establish a connection.
+      ServerConnection connection = NOT_CONNECTED;
       try {
         for (int waitTime = 0; waitTime < SERVER_LAUNCH_TIMEOUT_MS; waitTime += SERVER_LAUNCH_SLEEP_INCREMENT_MS) {
-          if (process.attemptToConnect()) {
+          if ((connection = attemptToConnect()).isConnected()) {
+            LOG.info("Established a new client connection to " + myPort);
             break;
           }
           Thread.sleep(SERVER_LAUNCH_SLEEP_INCREMENT_MS);
@@ -359,49 +370,39 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
       }
       catch (InterruptedException e) {
         Thread.interrupted(); // reset interrupted status
-        process.close();
       }
-      return process;
+      return connection;
     }
 
-    public boolean isConnected() {
-      return myServerSocket != null && myServerSocket.isConnected();
-    }
-
-    public ServiceClient createServiceClient(ListeningExecutorService executor) throws IOException {
-      if (!isConnected()) {
-        throw new IOException("Not connected");
-      }
-      return new ServiceClientRPC(executor, myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
-    }
-
-    @Override
-    public void close() {
-      try {
-        if (myServerSocket != null) {
-          myServerSocket.close();
+    public void onClose(ServerConnection serverConnection) {
+      synchronized (myConnections) {
+        myConnections.remove(serverConnection);
+        if (myConnections.isEmpty()) {
+          LOG.info("Interrupting server thread on last connection close");
+          myServerThread.interrupt();
         }
       }
-      catch (IOException ignored) {
-      }
-
-      if (myServerThread != null) {
-        myServerThread.interrupt();
-      }
     }
 
-    private boolean attemptToConnect() {
-      myServerSocket = null;
+    private ServerConnection attemptToConnect() {
       try {
-        // Try to connect to an existing server.
-        myServerSocket = new Socket(SERVER_HOST, SERVER_PORT);
+        ServerConnection connection = new ServerConnection(this, new Socket(SERVER_HOST, myPort));
+        synchronized (myConnections) {
+          myConnections.add(connection);
+        }
+        return connection;
       }
       catch (IOException ignored) {
       }
-      return isConnected();
+      return NOT_CONNECTED;
+    }
+
+    private boolean isServerRunning() {
+      return myServerThread != null && myServerThread.isAlive();
     }
 
     private boolean launchServer() {
+      myPort = findFreePort();
       final Paths paths = getPaths();
       // The connection failed, so try to start a new instance of the server.
       if (paths.myGapisPath == null) {
@@ -411,7 +412,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
       myServerThread = new Thread() {
         @Override
         public void run() {
-          LOG.info("Launching gapis: \"" + paths.myGapisPath.getAbsolutePath() + "\"");
+          LOG.info("Launching gapis: \"" + paths.myGapisPath.getAbsolutePath() + "\" on port " + myPort);
           ProcessBuilder pb = new ProcessBuilder(getCommandAndArgs(paths.myGapisPath));
 
           // Add the server's directory to the path.  This allows the server to find and launch the replayd.
@@ -446,6 +447,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
             int exitValue = serverProcess.waitFor();
             if (exitValue != 0) {
               LOG.warn("The gapis process exited with a non-zero exit value: " + exitValue);
+            } else {
+              LOG.info("gapis exited cleanly");
             }
           }
           catch (IOException e) {
@@ -453,6 +456,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           }
           catch (InterruptedException e) {
             if (serverProcess != null) {
+              LOG.info("Killing server process");
               serverProcess.destroy();
             }
           }
@@ -462,12 +466,67 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           List<String> result = Lists.newArrayList();
           result.add(gapis.getAbsolutePath());
           result.add("-shutdown_on_disconnect");
-          result.add("-rpc"); result.add(SERVER_HOST + ":" + SERVER_PORT);
+          result.add("-rpc"); result.add(SERVER_HOST + ":" + myPort);
           return result;
         }
       };
       myServerThread.start();
       return true;
+    }
+
+    private static int findFreePort() {
+      ServerSocket socket = null;
+      try {
+        socket = new ServerSocket(0);
+        return socket.getLocalPort();
+      }
+      catch (IOException e) {
+        throw Throwables.propagate(e);
+      }
+      finally {
+        if (socket != null) {
+          try {
+            socket.close();
+          }
+          catch (IOException ignored) {
+          }
+        }
+      }
+    }
+  }
+
+  private static class ServerConnection implements Closeable {
+    private final ServerProcess myParent;
+    private final Socket myServerSocket;
+
+    public ServerConnection(ServerProcess parent, Socket serverSocket) {
+      myParent = parent;
+      myServerSocket = serverSocket;
+    }
+
+    public boolean isConnected() {
+      return myServerSocket != null && myServerSocket.isConnected();
+    }
+
+    public ServiceClient createServiceClient(ListeningExecutorService executor) throws IOException {
+      if (!isConnected()) {
+        throw new IOException("Not connected");
+      }
+      return new ServiceClientRPC(executor, myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
+    }
+
+    @Override
+    public void close() {
+      synchronized (this) {
+        if (isConnected()) {
+          try {
+            myServerSocket.close();
+          }
+          catch (IOException e) {
+          }
+          myParent.onClose(this);
+        }
+      }
     }
   }
 
