@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeCellRenderer;
 import java.awt.*;
 
 public abstract class TreeController extends Controller {
@@ -42,13 +43,18 @@ public abstract class TreeController extends Controller {
     myTree.setRowHeight(TREE_ROW_HEIGHT);
     myTree.setRootVisible(false);
     myTree.setLineStyleAngled();
-    myTree.setCellRenderer(new TreeRenderer());
+    myTree.setCellRenderer(getRenderer());
     myTree.getEmptyText().setText(emptyText);
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), editor.getProject());
     myLoadingPanel.add(myTree);
     myScrollPane.setViewportView(myLoadingPanel);
     myScrollPane.getHorizontalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
     myScrollPane.getVerticalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
+  }
+
+  @NotNull
+  protected TreeCellRenderer getRenderer() {
+    return new TreeRenderer();
   }
 
   @Override
