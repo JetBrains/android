@@ -17,12 +17,11 @@ package com.android.tools.idea.editors.gfxtrace.actions;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.editors.gfxtrace.GfxTracer;
+import com.android.tools.idea.monitor.render.RenderMonitorView;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
-import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,58 +29,55 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public abstract class GfxTraceCaptureAction extends ToggleAction {
-  @NotNull protected final Project myProject;
-  @NotNull protected final DeviceContext myDeviceContext;
+  @NotNull protected final RenderMonitorView myView;
   private GfxTracer myActive = null;
 
   public static class Listen extends GfxTraceCaptureAction {
-    public Listen(@NotNull Project project, @NotNull DeviceContext deviceContext) {
-      super(project, deviceContext, "Listen", "Listen for GFX traces", AndroidIcons.Ddms.StartMethodProfiling);
+    public Listen(@NotNull RenderMonitorView view) {
+      super(view, "Listen", "Listen for GFX traces", AndroidIcons.Ddms.StartMethodProfiling);
     }
 
     @Override
     boolean isEnabled() {
-      return myDeviceContext.getSelectedDevice() != null;
+      return myView.getDeviceContext().getSelectedDevice() != null;
     }
 
     @Override
     GfxTracer start() {
-      final IDevice device = myDeviceContext.getSelectedDevice();
+      final IDevice device = myView.getDeviceContext().getSelectedDevice();
       if (device == null) {
         return null;
       }
-      return GfxTracer.listen(myProject, device);
+      return GfxTracer.listen(myView.getProject(), device, myView.getEvents());
     }
   }
 
   public static class Relaunch extends GfxTraceCaptureAction {
-    public Relaunch(@NotNull Project project, @NotNull DeviceContext deviceContext) {
-      super(project, deviceContext, "Launch", "Launch in GFX trace mode", AndroidIcons.Ddms.Threads);
+    public Relaunch(@NotNull RenderMonitorView view) {
+      super(view, "Launch", "Launch in GFX trace mode", AndroidIcons.Ddms.Threads);
     }
 
     @Override
     boolean isEnabled() {
-      return myDeviceContext.getSelectedClient() != null;
+      return myView.getDeviceContext().getSelectedClient() != null;
     }
 
     @Override
     GfxTracer start() {
-      final Client client = myDeviceContext.getSelectedClient();
+      final Client client = myView.getDeviceContext().getSelectedClient();
       if (client == null) {
         return null;
       }
-      return GfxTracer.launch(myProject, client);
+      return GfxTracer.launch(myView.getProject(), client, myView.getEvents());
     }
   }
 
-  public GfxTraceCaptureAction(@NotNull Project project,
-                               @NotNull DeviceContext deviceContext,
+  public GfxTraceCaptureAction(@NotNull RenderMonitorView view,
                                @Nullable final String text,
                                @Nullable final String description,
                                @Nullable final Icon icon) {
     super(text, description, icon);
-    myProject = project;
-    myDeviceContext = deviceContext;
+    myView = view;
   }
 
   @Override
@@ -92,6 +88,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
   @Override
   public final void setSelected(AnActionEvent e, boolean state) {
     if (myActive == null) {
+      myView.setPaused(false);
       myActive = start();
     }
     else {

@@ -56,7 +56,6 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
   @NotNull protected final T mySampler;
   @NotNull protected final EventData myEvents = new EventData();
 
-
   private static class ZOrderedOverlayText {
     @NotNull private String myText;
     private int myZ;
@@ -150,6 +149,20 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
 
   public abstract ActionGroup getToolbarActions();
 
+  @NotNull
+  public Project getProject() {
+    return myProject;
+  }
+
+  @NotNull
+  public DeviceContext getDeviceContext() {
+    return myDeviceContext;
+  }
+
+  @NotNull
+  public EventData getEvents() {
+    return myEvents;
+  }
 
   @Override
   public void clientSelected(@Nullable Client c) {
