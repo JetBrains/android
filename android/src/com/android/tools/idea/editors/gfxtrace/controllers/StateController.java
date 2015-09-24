@@ -45,6 +45,7 @@ public class StateController extends TreeController {
 
   private StateController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_ATOM);
+    myScrollPane.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU State"));
   }
 
   public static class Typed {

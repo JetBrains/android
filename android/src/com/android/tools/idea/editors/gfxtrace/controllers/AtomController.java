@@ -127,6 +127,7 @@ public class AtomController extends TreeController {
 
   private AtomController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_CAPTURE);
+    myScrollPane.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU Commands"));
     myTree.setLargeModel(true); // Set some performance optimizations for large models.
     myTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
