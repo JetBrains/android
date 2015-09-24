@@ -80,7 +80,7 @@ public class StyleListPaletteCellRenderer extends StyleListCellRenderer {
     if (primaryResourceValue != null && primaryDarkResourceValue != null && accentResourceValue != null) {
       Configuration configuration = theme.getConfiguration();
       ResourceResolver resourceResolver = configuration.getConfigurationManager().getResolverCache()
-        .getResourceResolver(configuration.getTarget(), theme.getQualifiedName(), configuration.getFullConfig());
+        .getResourceResolver(configuration.getTarget(), theme.getStyleResourceUrl(), configuration.getFullConfig());
 
       Color primaryColor = ResourceHelper.resolveColor(resourceResolver, primaryResourceValue, myContext.getProject());
       Color primaryDarkColor = ResourceHelper.resolveColor(resourceResolver, primaryDarkResourceValue, myContext.getProject());
