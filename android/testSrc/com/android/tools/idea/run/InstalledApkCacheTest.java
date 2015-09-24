@@ -29,8 +29,8 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("StaticMethodReferencedViaSubclass")
-public class InstalledApksTest extends TestCase {
-  private InstalledApks myService;
+public class InstalledApkCacheTest extends TestCase {
+  private InstalledApkCache myService;
   private IDevice myDevice1;
   private IDevice myDevice2;
   private File myFile;
@@ -59,7 +59,7 @@ public class InstalledApksTest extends TestCase {
     EasyMock.expectLastCall().anyTimes();
 
     myDumpSysOutput = "Package [com.foo.bar]";
-    myService = new InstalledApks() {
+    myService = new InstalledApkCache() {
       @Override
       protected String executeShellCommand(@NotNull IDevice device, @NotNull String cmd, long timeout, @NotNull TimeUnit timeUnit)
         throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, InterruptedException {
