@@ -771,7 +771,7 @@ public class ThemeEditorComponent extends Splitter {
     myPanel.setSubstyleName(mySubStyleName);
     myPanel.getBackButton().setVisible(mySubStyleName != null);
     final Configuration configuration = myThemeEditorContext.getConfiguration();
-    configuration.setTheme(selectedTheme.getQualifiedName());
+    configuration.setTheme(selectedTheme.getStyleResourceUrl());
 
     myModel = new AttributesTableModel(selectedStyle != null ? selectedStyle : selectedTheme, getSelectedAttrGroup(), myThemeEditorContext);
 
@@ -845,7 +845,7 @@ public class ThemeEditorComponent extends Splitter {
 
       myThemeEditorContext.setCurrentTheme(hoveredTheme);
       final Configuration configuration = myThemeEditorContext.getConfiguration();
-      configuration.setTheme(hoveredTheme.getQualifiedName());
+      configuration.setTheme(hoveredTheme.getStyleResourceUrl());
 
       myPreviewPanel.invalidateGraphicsRenderer();
       myPreviewPanel.revalidate();
