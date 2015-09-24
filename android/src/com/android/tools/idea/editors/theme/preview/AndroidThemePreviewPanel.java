@@ -329,12 +329,19 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
 
   @Override
   public void setBackground(Color bg) {
+    if(Objects.equal(bg, getBackground())) {
+      return;
+    }
     super.setBackground(bg);
 
     myAndroidPreviewPanel.setBackground(bg);
     myScrollPane.getViewport().setBackground(bg);
     myBreadcrumbs.setBackground(bg);
     myMainPanel.setBackground(bg);
+
+    // Necessary so that the preview uses the updated background color,
+    // since the background of the preview is set when it is built.
+    rebuild();
   }
 
   @Override
