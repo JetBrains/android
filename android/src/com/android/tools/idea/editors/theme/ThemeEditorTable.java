@@ -53,6 +53,11 @@ public class ThemeEditorTable extends CellSpanTable {
   private ThemeEditorComponent.GoToListener myGoToListener;
   private ThemeEditorContext myContext;
 
+  /**
+   * label text consistent with rest of IDE (e.g. right click)
+   */
+  private static final String GO_TO_DECLARATION = "Go To Declaration";
+
   public ThemeEditorTable() {
     putClientProperty("terminateEditOnFocusLost", true);
     // We shouldn't allow autoCreateColumnsFromModel, because when setModel() will be invoked, it removes
@@ -200,7 +205,7 @@ public class ThemeEditorTable extends CellSpanTable {
 
       final JBPopupMenu popupMenu = new JBPopupMenu();
       if (attribute.getCellClass(1) == ThemeEditorStyle.class) {
-        popupMenu.add(new AbstractAction("Go to definition") {
+        popupMenu.add(new AbstractAction(GO_TO_DECLARATION) {
           @Override
           public void actionPerformed(ActionEvent e) {
             myGoToListener.goTo(item);
@@ -217,7 +222,7 @@ public class ThemeEditorTable extends CellSpanTable {
         final VirtualFileManager manager = VirtualFileManager.getInstance();
         final VirtualFile virtualFile = file.exists() ? manager.findFileByUrl("file://" + file.getAbsolutePath()) : null;
         if (virtualFile != null) {
-          popupMenu.add(new AbstractAction("Go to definition") {
+          popupMenu.add(new AbstractAction(GO_TO_DECLARATION) {
             @Override
             public void actionPerformed(ActionEvent e) {
               final OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile);
@@ -250,7 +255,7 @@ public class ThemeEditorTable extends CellSpanTable {
       }
 
       final JBPopupMenu menu = new JBPopupMenu();
-      menu.add(new AbstractAction("Edit parent") {
+      menu.add(new AbstractAction(GO_TO_DECLARATION) {
         @Override
         public void actionPerformed(ActionEvent e) {
           myGoToListener.goToParent();
