@@ -100,7 +100,7 @@ public class ScrubberController extends CellController<ScrubberController.Data> 
     range.setStart(0);
     for (int index = 0; index < atoms.getAtoms().length; ++index) {
       Atom atom = atoms.get(index);
-      if (atom.getIsEndOfFrame()) {
+      if (atom.isEndOfFrame()) {
         range.setEnd(index + 1);
         Data frameData = new Data(path.index(index), range, Integer.toString(frameCount++), myRenderer.getDefaultIcon());
         generatedList.add(frameData);

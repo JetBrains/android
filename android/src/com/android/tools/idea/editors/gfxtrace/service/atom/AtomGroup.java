@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.intellij.ui.SimpleColoredComponent;
@@ -37,7 +38,8 @@ public final class AtomGroup implements BinaryObject {
       // add any atoms that come before the group
       atoms.addAtoms(parent, next, subGroup.getRange().getStart());
       // and add the group itself
-      DefaultMutableTreeNode subNode = new DefaultMutableTreeNode(subGroup, true);
+      DefaultMutableTreeNode subNode = new DefaultMutableTreeNode(
+        new AtomController.Group(subGroup, atoms.get(subGroup.getRange().getLast()), subGroup.getRange().getLast()), true);
       subGroup.addChildren(subNode, atoms);
       parent.add(subNode);
       next = subGroup.getRange().getEnd();
