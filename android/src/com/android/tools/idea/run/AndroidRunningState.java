@@ -626,8 +626,8 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     String errorMessage;
     myPrinter.stdout("Uploading file\n\tlocal path: " + localFile + "\n\tremote path: " + remotePath);
     try {
-      InstalledApks installedApks = ServiceManager.getService(InstalledApks.class);
-      if (myConfiguration.SKIP_NOOP_APK_INSTALLATIONS && installedApks.isInstalled(device, localFile, packageName)) {
+      InstalledApkCache installedApkCache = ServiceManager.getService(InstalledApkCache.class);
+      if (myConfiguration.SKIP_NOOP_APK_INSTALLATIONS && installedApkCache.isInstalled(device, localFile, packageName)) {
         myPrinter.stdout("No apk changes detected.");
         if (myConfiguration.FORCE_STOP_RUNNING_APP) {
           myPrinter.stdout("Skipping file upload, force stopping package instead.");
@@ -638,7 +638,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
         device.pushFile(localFile.getPath(), remotePath);
         boolean installed = installApp(device, remotePath, packageName);
         if (installed) {
-          installedApks.setInstalled(device, localFile, packageName);
+          installedApkCache.setInstalled(device, localFile, packageName);
         }
         return installed;
       }
