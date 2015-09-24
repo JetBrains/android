@@ -312,10 +312,17 @@ public class ThemeEditorComponent extends Splitter {
 
       @Override
       public void popupMenuWillBecomeInvisible(PopupMenuEvent popupMenuEvent) {
-        myHoverPreviewTheme = null;
+        String currentHoverTheme = myHoverPreviewTheme;
+
         mySubStyleName = null;
         mySubStyleSourceAttribute = null;
-        loadStyleAttributes();
+        myHoverPreviewTheme = null;
+
+        ThemeEditorStyle selectedTheme = getSelectedTheme();
+        if (selectedTheme == null || !selectedTheme.getQualifiedName().equals(currentHoverTheme)) {
+          // Only refresh if we are previewing a different theme
+          loadStyleAttributes();
+        }
       }
 
       @Override
@@ -829,16 +836,20 @@ public class ThemeEditorComponent extends Splitter {
   private void refreshPreviewPanel(@NotNull String hoveredPreviewTheme) {
     myHoverPreviewTheme = hoveredPreviewTheme;
 
-    ThemeEditorStyle hoveredTheme = myThemeEditorContext.getThemeResolver().getTheme(myHoverPreviewTheme);
+    ThemeEditorStyle selectedTheme = getSelectedTheme();
+    if (selectedTheme == null || !hoveredPreviewTheme.equals(selectedTheme.getQualifiedName())) {
+      // Only refresh when we select a different theme
+      ThemeEditorStyle hoveredTheme = myThemeEditorContext.getThemeResolver().getTheme(myHoverPreviewTheme);
 
-    assert hoveredTheme != null;
+      assert hoveredTheme != null;
 
-    myThemeEditorContext.setCurrentTheme(hoveredTheme);
-    final Configuration configuration = myThemeEditorContext.getConfiguration();
-    configuration.setTheme(hoveredTheme.getQualifiedName());
+      myThemeEditorContext.setCurrentTheme(hoveredTheme);
+      final Configuration configuration = myThemeEditorContext.getConfiguration();
+      configuration.setTheme(hoveredTheme.getQualifiedName());
 
-    myPreviewPanel.invalidateGraphicsRenderer();
-    myPreviewPanel.revalidate();
+      myPreviewPanel.invalidateGraphicsRenderer();
+      myPreviewPanel.revalidate();
+    }
   }
 
   @Override
