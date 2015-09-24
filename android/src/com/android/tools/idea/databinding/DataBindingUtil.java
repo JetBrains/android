@@ -271,8 +271,7 @@ public class DataBindingUtil {
    * The light class that represents the generated data binding code for a layout file.
    */
   static class LightBindingClass extends AndroidLightClassBase {
-    private static final String BASE_CLASS = "android.databinding.ViewDataBinding";
-    static final int STATIC_METHOD_COUNT = 3;
+    static final int STATIC_METHOD_COUNT = 6;
     private DataBindingInfo myInfo;
     private CachedValue<PsiMethod[]> myPsiMethodsCache;
     private CachedValue<PsiField[]> myPsiFieldsCache;
@@ -405,7 +404,7 @@ public class DataBindingUtil {
     @Override
     public PsiClass getSuperClass() {
       return JavaPsiFacade.getInstance(myInfo.getProject())
-        .findClass(BASE_CLASS, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
+        .findClass(SdkConstants.CLASS_DATA_BINDING_BASE_BINDING, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
     }
 
     @Override
@@ -429,7 +428,7 @@ public class DataBindingUtil {
     public PsiClassType[] getExtendsListTypes() {
       if (myExtendsListTypes == null) {
         myExtendsListTypes = new PsiClassType[]{
-          PsiType.getTypeByName(BASE_CLASS, myInfo.getProject(),
+          PsiType.getTypeByName(SdkConstants.CLASS_DATA_BINDING_BASE_BINDING, myInfo.getProject(),
                                 myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false))};
       }
       return myExtendsListTypes;
@@ -573,25 +572,43 @@ public class DataBindingUtil {
                        myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
       PsiClassType layoutInflaterType = PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, myInfo.getProject(),
                                                               myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
+      PsiClassType dataBindingComponent = PsiType.getTypeByName(SdkConstants.CLASS_DATA_BINDING_COMPONENT, myInfo.getProject(),
+                                                                myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
       PsiClassType viewType = PsiType
         .getTypeByName(SdkConstants.CLASS_VIEW, myInfo.getProject(), myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
       PsiParameter layoutInflaterParam = factory.createParameter("inflater", layoutInflaterType);
       PsiParameter rootParam = factory.createParameter("root", viewGroupType);
       PsiParameter attachToRootParam = factory.createParameter("attachToRoot", PsiType.BOOLEAN);
       PsiParameter viewParam = factory.createParameter("view", viewType);
+      PsiParameter componentParam = factory.createParameter("bindingComponent", dataBindingComponent);
+
+      PsiMethod inflate4Arg = factory.createMethod("inflate", myType);
+      inflate4Arg.getParameterList().add(layoutInflaterParam);
+      inflate4Arg.getParameterList().add(rootParam);
+      inflate4Arg.getParameterList().add(attachToRootParam);
+      inflate4Arg.getParameterList().add(componentParam);
 
       PsiMethod inflate3Arg = factory.createMethod("inflate", myType);
       inflate3Arg.getParameterList().add(layoutInflaterParam);
       inflate3Arg.getParameterList().add(rootParam);
       inflate3Arg.getParameterList().add(attachToRootParam);
 
+      PsiMethod inflate2Arg = factory.createMethod("inflate", myType);
+      inflate2Arg.getParameterList().add(layoutInflaterParam);
+      inflate2Arg.getParameterList().add(componentParam);
+
       PsiMethod inflate1Arg = factory.createMethod("inflate", myType);
       inflate1Arg.getParameterList().add(layoutInflaterParam);
+
 
       PsiMethod bind = factory.createMethod("bind", myType);
       bind.getParameterList().add(viewParam);
 
-      PsiMethod[] methods = new PsiMethod[]{inflate1Arg, inflate3Arg, bind};
+      PsiMethod bindWithComponent = factory.createMethod("bind", myType);
+      bindWithComponent.getParameterList().add(viewParam);
+      bindWithComponent.getParameterList().add(componentParam);
+
+      PsiMethod[] methods = new PsiMethod[]{inflate1Arg, inflate2Arg, inflate3Arg, inflate4Arg, bind, bindWithComponent};
       PsiManager psiManager = PsiManager.getInstance(myInfo.getProject());
       for (PsiMethod method : methods) {
         PsiUtil.setModifierProperty(method, PsiModifier.PUBLIC, true);
