@@ -107,7 +107,7 @@ public abstract class CellController<T extends CellController.Data> extends Cont
     myList.setExpandableItemsEnabled(false); // Turn this off, since the "preview" will cause all the thumbnails to be loaded.
     myList.setMinimumSize(minCellDimension);
     myList.setVisibleRowCount(1);
-    myList.getEmptyText().setText(GfxTraceEditor.SELECT_CAPTURE);
+    myList.getEmptyText().setText(GfxTraceEditor.SELECT_ATOM);
     myList.addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent listSelectionEvent) {
