@@ -77,6 +77,10 @@ public final class ServiceClientRPC extends ServiceClient {
     return myExecutorService.submit(new ImportCaptureCallable(name, Data));
   }
   @Override
+  public ListenableFuture<CapturePath> loadCapture(String path) {
+    return myExecutorService.submit(new LoadCaptureCallable(path));
+  }
+  @Override
   public ListenableFuture<Path> set(Path p, Object v) {
     return myExecutorService.submit(new SetCallable(p, v));
   }
@@ -198,6 +202,19 @@ public final class ServiceClientRPC extends ServiceClient {
     @Override
     public CapturePath call() throws Exception {
       ResultImportCapture result = (ResultImportCapture)myBroadcaster.Send(myCall);
+      return result.getValue();
+    }
+  }
+  private class LoadCaptureCallable implements Callable<CapturePath> {
+    private final CallLoadCapture myCall;
+
+    private LoadCaptureCallable(String path) {
+      myCall = new CallLoadCapture();
+      myCall.setPath(path);
+    }
+    @Override
+    public CapturePath call() throws Exception {
+      ResultLoadCapture result = (ResultLoadCapture)myBroadcaster.Send(myCall);
       return result.getValue();
     }
   }

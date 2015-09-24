@@ -69,6 +69,10 @@ public class ServiceClientWrapper extends ServiceClient {
     return myClient.importCapture(name, Data);
   }
   @Override
+  public ListenableFuture<CapturePath> loadCapture(String path) {
+    return myClient.loadCapture(path);
+  }
+  @Override
   public ListenableFuture<Path> set(Path p, Object v) {
     return myClient.set(p, v);
   }
