@@ -32,7 +32,7 @@ import static com.android.tools.idea.gradle.dsl.parser.PsiElements.getUnquotedTe
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 
-public class MapNotation extends ExternalDependency {
+final class MapNotation extends ExternalDependency {
   @NonNls private static final String VERSION_PROPERTY = "version";
 
   @NotNull private final Map<String, GrLiteral> myValueLiteralsByName;
@@ -68,10 +68,10 @@ public class MapNotation extends ExternalDependency {
     return null;
   }
 
-  protected MapNotation(@NotNull Dependencies parent,
-                        @NotNull String configurationName,
-                        @NotNull Spec spec,
-                        @NotNull Map<String, GrLiteral> valueLiteralsByName) {
+  private MapNotation(@NotNull Dependencies parent,
+                      @NotNull String configurationName,
+                      @NotNull Spec spec,
+                      @NotNull Map<String, GrLiteral> valueLiteralsByName) {
     super(parent, configurationName, spec);
     myValueLiteralsByName = valueLiteralsByName;
   }
