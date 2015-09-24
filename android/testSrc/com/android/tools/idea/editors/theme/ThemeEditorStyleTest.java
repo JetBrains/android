@@ -64,9 +64,9 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
+    ThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
     assertEquals("@style/AppTheme", theme.getStyleResourceUrl());
-    theme = themeResolver.getTheme("@android:style/Theme");
+    theme = themeResolver.getTheme("android:Theme");
     assertEquals("@android:style/Theme", theme.getStyleResourceUrl());
   }
 
@@ -77,7 +77,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
+    ThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
     assertNotNull(theme);
     ThemeEditorStyle parent = theme.getParent();
     assertNotNull(parent);
@@ -104,7 +104,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     ConfigurationManager configurationManager = myFacet.getConfigurationManager();
     Configuration configuration = configurationManager.getConfiguration(virtualFile);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ThemeEditorStyle theme = themeResolver.getTheme("@style/Theme.MyTheme");
+    ThemeEditorStyle theme = themeResolver.getTheme("Theme.MyTheme");
 
     assertNotNull(theme);
     theme.setParent(newParent);
@@ -127,7 +127,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     ConfigurationManager configurationManager = myFacet.getConfigurationManager();
     Configuration configuration = configurationManager.getConfiguration(virtualFile);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ThemeEditorStyle theme = themeResolver.getTheme("@style/Theme.MyOtherTheme");
+    ThemeEditorStyle theme = themeResolver.getTheme("Theme.MyOtherTheme");
 
     assertNotNull(theme);
     theme.setValue("android:windowIsFloating", "holo_purple");
@@ -145,28 +145,28 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
    * Tests setting a non-framework parent
    */
   public void testNonFrameworkParent() {
-    doTestForParentApi("@style/MyStyle", "apiParentTestAfter1");
+    doTestForParentApi("MyStyle", "apiParentTestAfter1");
   }
 
   /**
    * Tests setting a parent defined for api < projectMinApi
    */
   public void testSmallApiParent() {
-    doTestForParentApi("@android:style/Theme.Light", "apiParentTestAfter2");
+    doTestForParentApi("android:Theme.Light", "apiParentTestAfter2");
   }
 
   /**
    * Tests setting a parent with api = projectMinApi
    */
   public void testMinApiParent() {
-    doTestForParentApi("@android:style/Theme.Holo", "apiParentTestAfter3");
+    doTestForParentApi("android:Theme.Holo", "apiParentTestAfter3");
   }
 
   /**
    * Tests setting a parent with api that has no associated values folder
    */
   public void testHighNewApiParent() {
-    doTestForParentApi("@android:style/Theme.Holo.NoActionBar.Overscan", "apiParentTestAfter4");
+    doTestForParentApi("android:Theme.Holo.NoActionBar.Overscan", "apiParentTestAfter4");
     myFixture.checkResultByFile("res/values-v18/styles.xml", "themeEditor/apiParentTestAfter4/stylesApi-v18.xml", true);
   }
 
@@ -174,7 +174,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
    * Tests setting a parent with api that has an associated values folder
    */
   public void testHighExistingApiParent() {
-    doTestForParentApi("@android:style/Theme.Holo.NoActionBar.TranslucentDecor", "apiParentTestAfter5");
+    doTestForParentApi("android:Theme.Holo.NoActionBar.TranslucentDecor", "apiParentTestAfter5");
   }
 
   /**
@@ -188,15 +188,15 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
     // Non-framework themes are always public
-    ThemeEditorStyle projectTheme = themeResolver.getTheme("@style/AppTheme");
+    ThemeEditorStyle projectTheme = themeResolver.getTheme("AppTheme");
     assertNotNull(projectTheme);
     assertTrue(projectTheme.isPublic());
 
-    ThemeEditorStyle frameworkPublicTheme = themeResolver.getTheme("@android:style/Theme.Material");
+    ThemeEditorStyle frameworkPublicTheme = themeResolver.getTheme("android:Theme.Material");
     assertNotNull(frameworkPublicTheme);
     assertTrue(frameworkPublicTheme.isPublic());
 
-    ThemeEditorStyle frameworkPrivateTheme = themeResolver.getTheme("@android:style/Theme.Material.Dialog.NoFrame");
+    ThemeEditorStyle frameworkPrivateTheme = themeResolver.getTheme("android:Theme.Material.Dialog.NoFrame");
     assertNotNull(frameworkPrivateTheme);
     assertFalse(frameworkPrivateTheme.isPublic());
   }
@@ -213,7 +213,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     assertNotNull(configuration.getTarget());
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 22, null));
 
-    ThemeEditorStyle myTheme = ResolutionUtils.getStyle(configuration, "@style/Theme.MyTheme", null);
+    ThemeEditorStyle myTheme = ResolutionUtils.getStyle(configuration, "Theme.MyTheme", null);
     assertNotNull(myTheme);
     Set<String> expectedAttributes = Sets.newHashSet("actionModeStyle", "windowIsFloating", "checkedTextViewStyle");
     for(EditedStyleItem item : ThemeEditorTestUtils.getStyleLocalValues(myTheme)) {
@@ -252,7 +252,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
 
     // Test with a v14 configuration
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 14, null));
-    myTheme = ResolutionUtils.getStyle(configuration, "@style/Theme.MyTheme", null);
+    myTheme = ResolutionUtils.getStyle(configuration, "Theme.MyTheme", null);
     assertNotNull(myTheme);
 
     Collection<EditedStyleItem> values = ThemeEditorTestUtils.getStyleLocalValues(myTheme);
@@ -274,7 +274,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
   private void checkSetValue(VirtualFile file, ItemResourceValue item, String... answerFolders) {
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(file);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ThemeEditorStyle style = themeResolver.getTheme("@style/AppTheme");
+    ThemeEditorStyle style = themeResolver.getTheme("AppTheme");
     assertNotNull(style);
     style.setValue(ResolutionUtils.getQualifiedItemName(item), item.getValue());
 
@@ -383,7 +383,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
-    ThemeEditorStyle style = themeResolver.getTheme("@style/AppTheme");
+    ThemeEditorStyle style = themeResolver.getTheme("AppTheme");
     assertNotNull(style);
 
     // This should modify not modify the default folder
@@ -406,7 +406,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     Configuration configuration = configurationManager.getConfiguration(file);
 
     ThemeResolver resolver = new ThemeResolver(configuration);
-    ThemeEditorStyle theme = resolver.getTheme("@style/AppTheme");
+    ThemeEditorStyle theme = resolver.getTheme("AppTheme");
     assertNotNull(theme);
 
     Collection<ConfiguredElement<String>> parents = theme.getParentNames();
@@ -415,7 +415,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
       Iterables.get(parents, 0).getElement(),
       Iterables.get(parents, 1).getElement()
     );
-    assertContainsElements(parentNames, "@style/Base.V20", "@style/Base.V17");
+    assertContainsElements(parentNames, "Base.V20", "Base.V17");
 
     // Set API 17 and try the same resolution
     //noinspection ConstantConditions
@@ -427,7 +427,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
       Iterables.get(parents, 0).getElement(),
       Iterables.get(parents, 1).getElement()
     );
-    assertContainsElements(parentNames, "@style/Base.V20", "@style/Base.V17");
+    assertContainsElements(parentNames, "Base.V20", "Base.V17");
   }
 
   @Override
@@ -448,7 +448,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     ConfigurationManager configurationManager = myFacet.getConfigurationManager();
     Configuration configuration = configurationManager.getConfiguration(virtualFile);
     ThemeResolver resolver = new ThemeResolver(configuration);
-    ThemeEditorStyle theme = resolver.getTheme("@style/AppTheme");
+    ThemeEditorStyle theme = resolver.getTheme("AppTheme");
 
     assertNotNull(theme);
     assertEquals(2, theme.getParentNames().size());
@@ -464,12 +464,12 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     ConfigurationManager configurationManager = myFacet.getConfigurationManager();
     Configuration configuration = configurationManager.getConfiguration(virtualFile);
     ThemeResolver resolver = new ThemeResolver(configuration);
-    ThemeEditorStyle theme = resolver.getTheme("@style/AppTheme");
+    ThemeEditorStyle theme = resolver.getTheme("AppTheme");
 
     assertNotNull(theme);
     assertEquals(1, theme.getParentNames().size());
     // We expect only the main app parent to be available
-    assertEquals("@style/ATheme", theme.getParentNames().iterator().next().getElement());
+    assertEquals("ATheme", theme.getParentNames().iterator().next().getElement());
   }
 
 }
