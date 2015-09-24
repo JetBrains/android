@@ -136,7 +136,7 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
     if (coordinates == null) {
       return null;
     }
-    return new NewExternalDependency(COMPILE, coordinates.getGroupId(), coordinates.getArtifactId(), coordinates.getVersion());
+    return new NewExternalDependency(COMPILE, coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getVersion());
   }
 
   @Nullable
@@ -174,7 +174,7 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
         String artifactId = pathSegments.get(i);
         String version = pathSegments.get(i + 1);
         if (libraryName.endsWith(version)) {
-          return new NewExternalDependency(COMPILE, groupId, artifactId, version);
+          return new NewExternalDependency(COMPILE, artifactId, groupId, version);
         }
       }
     }

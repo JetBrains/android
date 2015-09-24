@@ -28,7 +28,7 @@ public class NewExternalDependencyTest {
 
   @Before
   public void setUp() {
-    myDependency = new NewExternalDependency("configurationName", "group", "name", "version");
+    myDependency = new NewExternalDependency("configurationName", "name", "group", "version");
   }
 
   @Test
