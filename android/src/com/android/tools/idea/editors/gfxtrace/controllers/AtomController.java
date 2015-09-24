@@ -135,8 +135,8 @@ public class AtomController extends TreeController {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)myTree.getLastSelectedPathComponent();
         if (node == null || node.getUserObject() == null) return;
         Object object = node.getUserObject();
-        if (object instanceof AtomGroup) {
-          myEditor.activatePath(myAtomsPath.getPath().index(((AtomGroup)object).getRange().getLast()));
+        if (object instanceof Group) {
+          myEditor.activatePath(myAtomsPath.getPath().index(((Group)object).group.getRange().getLast()));
         }
         else if (object instanceof Node) {
           myEditor.activatePath(myAtomsPath.getPath().index(((Node)object).index));
@@ -365,7 +365,7 @@ public class AtomController extends TreeController {
       DefaultMutableTreeNode child = (DefaultMutableTreeNode)obj;
       Object object = child.getUserObject();
       boolean matches = false;
-      if ((object instanceof AtomGroup) && (((AtomGroup)object).getRange().contains(atomIndex)) ||
+      if ((object instanceof Group) && (((Group)object).group.getRange().contains(atomIndex)) ||
           (object instanceof Node) && ((((Node)object).index == atomIndex))) {
         matches = true;
       }
