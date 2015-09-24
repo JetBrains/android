@@ -36,13 +36,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.npw.FormFactorApiComboBox.AndroidTargetComboBoxItem;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.wizard.WizardConstants.INVALID_FILENAME_CHARS;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
-import static com.android.tools.idea.wizard.WizardConstants.INVALID_FILENAME_CHARS;
 
 /**
  * Utility methods for dealing with Form Factors in Wizards.
@@ -53,8 +53,8 @@ public class FormFactorUtils {
 
   /** TODO: Turn into an enum and combine with {@link DeviceMenuAction.FormFactor} */
   public static class FormFactor implements Comparable<FormFactor> {
-    public static final FormFactor MOBILE = new FormFactor("Mobile", DeviceMenuAction.FormFactor.MOBILE, "Phone and Tablet", 15,
-                                                           Lists.newArrayList("20", "google_gdk", "google_apis", "google_tv_addon", "Glass"), null, 0, null);
+    public static final FormFactor MOBILE = new FormFactor("Mobile", DeviceMenuAction.FormFactor.MOBILE, "Phone and Tablet", 15, Lists
+      .newArrayList("20", "google_gdk", "google_apis", "google_tv_addon", "Glass", "Google APIs"), null, 0, null);
     // TODO: in the future instead of whitelisting maybe we could determine this by availability of system images.
     public static final FormFactor WEAR = new FormFactor("Wear", DeviceMenuAction.FormFactor.WEAR, "Wear", 21,
                                                          Lists.newArrayList("google_apis"), Lists.newArrayList("20", "21", "22"), 1, null);
