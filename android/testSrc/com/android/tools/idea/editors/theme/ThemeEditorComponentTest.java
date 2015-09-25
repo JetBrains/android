@@ -30,11 +30,11 @@ public class ThemeEditorComponentTest extends AndroidTestCase {
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
-    ThemeEditorStyle theme1 = themeResolver.getTheme("@style/Theme.Theme1");
+    ThemeEditorStyle theme1 = themeResolver.getTheme("Theme.Theme1");
     assertNotNull(theme1);
-    ThemeEditorStyle theme2 = themeResolver.getTheme("@style/Theme.Theme2");
+    ThemeEditorStyle theme2 = themeResolver.getTheme("Theme.Theme2");
     assertNotNull(theme2);
-    ThemeEditorStyle theme3 = themeResolver.getTheme("@style/Theme.Theme3");
+    ThemeEditorStyle theme3 = themeResolver.getTheme("Theme.Theme3");
     assertNotNull(theme3);
 
     assertEquals(ThemeEditorComponent.ALT_PREVIEW_BACKGROUND,

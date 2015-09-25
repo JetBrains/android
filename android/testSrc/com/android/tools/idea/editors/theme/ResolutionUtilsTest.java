@@ -29,19 +29,19 @@ public class ResolutionUtilsTest extends AndroidTestCase {
 
   public void testGetQualifiedName() {
     StyleResourceValue styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", true);
-    assertEquals("@android:style/myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
+    assertEquals("android:myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
 
     styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", false);
-    assertEquals("@style/myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
+    assertEquals("myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
   }
 
   public void testFrameworkStyleRead() {
     VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout1.xml");
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
 
-    assertNotNull(ResolutionUtils.getStyle(configuration, "@android:style/TextAppearance", null));
+    assertNotNull(ResolutionUtils.getStyle(configuration, "android:TextAppearance", null));
 
-    ThemeEditorStyle style = ResolutionUtils.getStyle(configuration, "@android:style/Theme.Holo.Light", null);
+    ThemeEditorStyle style = ResolutionUtils.getStyle(configuration, "android:Theme.Holo.Light", null);
     assertEquals("Theme.Holo.Light", style.getName());
     assertEmpty(style.getConfiguredValues().values()); // Style shouldn't have the values of the parent.
 

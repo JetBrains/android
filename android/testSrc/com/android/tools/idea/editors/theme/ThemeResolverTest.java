@@ -38,15 +38,15 @@ public class ThemeResolverTest extends AndroidTestCase {
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
-    assertNull(themeResolver.getTheme("@style/Theme.Holo.Light")); // It's system theme and we're not specifying namespace so it will fail.
+    assertNull(themeResolver.getTheme("Theme.Holo.Light")); // It's system theme and we're not specifying namespace so it will fail.
 
-    ThemeEditorStyle theme = themeResolver.getTheme("@android:style/Theme.Holo.Light");
+    ThemeEditorStyle theme = themeResolver.getTheme("android:Theme.Holo.Light");
     assertEquals("Theme.Holo.Light", theme.getName());
 
     assertEquals(themeResolver.getThemesCount(), themeResolver.getFrameworkThemes().size()); // Only framework themes.
     assertEmpty(themeResolver.getLocalThemes());
 
-    assertNull("Theme resolver shouldn't resolve styles", themeResolver.getTheme("@android:style/TextAppearance"));
+    assertNull("Theme resolver shouldn't resolve styles", themeResolver.getTheme("android:TextAppearance"));
   }
 
   public void testLocalThemes() throws IOException {
@@ -61,9 +61,9 @@ public class ThemeResolverTest extends AndroidTestCase {
     assertEquals(0, themeResolver.getExternalLibraryThemes().size()); // No library themes
 
     assertNull("The theme is an app theme and shouldn't be returned for the android namespace",
-               themeResolver.getTheme("@android:style/Theme.MyTheme"));
+               themeResolver.getTheme("android:Theme.MyTheme"));
 
-    ThemeEditorStyle theme = themeResolver.getTheme("@style/Theme.MyTheme");
+    ThemeEditorStyle theme = themeResolver.getTheme("Theme.MyTheme");
     assertEquals("Theme.MyTheme", theme.getName());
     assertEquals("Theme", theme.getParent().getName());
 
@@ -96,17 +96,17 @@ public class ThemeResolverTest extends AndroidTestCase {
 
     ThemeEditorContext context = new ThemeEditorContext(configuration);
     ThemeResolver resolver = context.getThemeResolver();
-    assertNotNull(resolver.getTheme("@style/V20OnlyTheme"));
-    assertNotNull(resolver.getTheme("@style/V19OnlyTheme"));
-    assertNotNull(resolver.getTheme("@style/V17OnlyTheme"));
+    assertNotNull(resolver.getTheme("V20OnlyTheme"));
+    assertNotNull(resolver.getTheme("V19OnlyTheme"));
+    assertNotNull(resolver.getTheme("V17OnlyTheme"));
 
     // Set API level 17 and check that only the V17 theme can be resolved
     //noinspection ConstantConditions
     configuration
       .setTarget(new CompatibilityRenderTarget(configurationManager.getHighestApiTarget(), 17, configurationManager.getHighestApiTarget()));
     resolver = context.getThemeResolver();
-    assertNull(resolver.getTheme("@style/V20OnlyTheme"));
-    assertNull(resolver.getTheme("@style/V19OnlyTheme"));
-    assertNotNull(resolver.getTheme("@style/V17OnlyTheme"));
+    assertNull(resolver.getTheme("V20OnlyTheme"));
+    assertNull(resolver.getTheme("V19OnlyTheme"));
+    assertNotNull(resolver.getTheme("V17OnlyTheme"));
   }
 }
