@@ -496,7 +496,7 @@ public class ThemeEditorUtils {
     }
 
     int minModuleApi = getMinApiLevel(themeEditorContext.getCurrentContextModule());
-    int minAcceptableApi = ResolutionUtils.getOriginalApiLevel(dialog.getStyleParentName(), themeEditorContext.getProject());
+    int minAcceptableApi = ResolutionUtils.getOriginalApiLevel(ResolutionUtils.getStyleResourceUrl(dialog.getStyleParentName()), themeEditorContext.getProject());
 
     final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STYLE);
     FolderConfiguration config = new FolderConfiguration();
@@ -515,7 +515,7 @@ public class ThemeEditorUtils {
     boolean isCreated = createNewStyle(
       themeEditorContext.getCurrentContextModule(), dialog.getStyleName(), parentStyleName, fileName, dirNames);
 
-    return isCreated ? SdkConstants.STYLE_RESOURCE_PREFIX + dialog.getStyleName() : null;
+    return isCreated ? dialog.getStyleName() : null;
   }
 
   /**
@@ -741,8 +741,7 @@ public class ThemeEditorUtils {
             ResourceValue themeItemResourceValue = themeItem.getResourceValue(false);
             assert themeItemResourceValue != null;
             if (resolver.isTheme(themeItemResourceValue, cache)) {
-              // TODO(madiyar): After changing getQualifiedName don't forget to change this
-              themeNamesSet.add(themeStyleResourceUrl);
+              themeNamesSet.add(simpleThemeName);
               break;
             }
           }
