@@ -26,6 +26,9 @@ import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.ConstantSet;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.SchemaClass;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -51,12 +54,14 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 
 import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
@@ -66,34 +71,24 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull public static final String SELECT_ATOM = "Select an atom";
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
-  @NotNull private static final String SERVER_HOST = "localhost";
-  @NotNull private static final String SERVER_EXECUTABLE_NAME = "gapis";
-  @NotNull private static final String SERVER_RELATIVE_PATH = "bin";
-  private static final int SERVER_PORT = 6700;
-  private static final int SERVER_LAUNCH_TIMEOUT_MS = 2000;
-  private static final int SERVER_LAUNCH_SLEEP_INCREMENT_MS = 10;
 
   private static final Object myPathLock = new Object();
-  private static File myGapisRoot;
-  private static File myServerDirectory;
-  private static File myGapisPath;
+  private static Paths myPaths;
 
   @NotNull private final Project myProject;
   @NotNull private LoadingDecorator myLoadingDecorator;
   @NotNull private JBPanel myView = new JBPanel(new BorderLayout());
   @NotNull private final ListeningExecutorService myExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
-  private Process myServerProcess;
-  private Socket myServerSocket;
+  private ServerConnection myServerConnection;
   private ServiceClient myClient;
 
   @NotNull private List<PathListener> myPathListeners = new ArrayList<PathListener>();
 
   public static boolean isEnabled() {
-    updatePath();
-    return myGapisPath != null;
+    return getPaths().isValid();
   }
 
-  public GfxTraceEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
+  public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
     myProject = project;
     myLoadingDecorator = new LoadingDecorator(myView, this, 0);
     myLoadingDecorator.setLoadingText("Initializing GFX Trace System");
@@ -109,9 +104,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
         }
 
         try {
-          ServiceClient rpcClient =
-            new ServiceClientRPC(myExecutor, myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
-          myClient = new ServiceClientCache(rpcClient);
+          myClient = new ServiceClientCache(myServerConnection.createServiceClient(myExecutor));
         }
         catch (IOException e) {
           setLoadingErrorTextOnEdt("Unable to talk to server");
@@ -245,22 +238,18 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public void selectNotify() {
-
   }
 
   @Override
   public void deselectNotify() {
-
   }
 
   @Override
   public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
-
   }
 
   @Override
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
-
   }
 
   @Nullable
@@ -296,80 +285,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     shutdown();
   }
 
-  /**
-   * Attempts to connect to a gapis server.
-   * <p/>
-   * If the first attempt to connect fails, will launch a new server process and attempt to connect again.
-   * <p/>
-   * TODO: Implement more robust process management.  For example:
-   * TODO: - Better handling of shutdown so that the replayd process does not continue running.
-   * TODO: - Better way to detect when server has started in order to avoid polling for the socket.
-   *
-   * @return true if a connection to the server was established.
-   */
   private boolean connectToServer() {
     assert !ApplicationManager.getApplication().isDispatchThread();
 
-    Factory.register();
-
-    myServerSocket = null;
-    try {
-      // Try to connect to an existing server.
-      myServerSocket = new Socket(SERVER_HOST, SERVER_PORT);
-    }
-    catch (IOException ignored) {
-    }
-
-    if (myServerSocket != null) {
-      return true;
-    }
-
-    // The connection failed, so try to start a new instance of the server.
-    try {
-      LOG.info("launch gapis: \"" + myGapisPath.getAbsolutePath() + "\"");
-      ProcessBuilder pb = new ProcessBuilder(myGapisPath.getAbsolutePath());
-
-      // Add the server's directory to the path.  This allows the server to find and launch the replayd.
-      Map<String, String> env = pb.environment();
-      String path = env.get("PATH");
-      path = myServerDirectory.getAbsolutePath() + File.pathSeparator + path;
-      env.put("PATH", path);
-
-      // Use the plugin directory as the working directory for the server.
-      pb.directory(myGapisRoot);
-
-      // This will throw IOException if the server executable is not found.
-      myServerProcess = pb.start();
-    }
-    catch (IOException e) {
-      LOG.warn(e);
-      return false;
-    }
-
-    // After starting, the server requires a little time before it will be ready to accept connections.
-    // This loop polls the server to establish a connection.
-    for (int waitTime = 0; waitTime < SERVER_LAUNCH_TIMEOUT_MS; waitTime += SERVER_LAUNCH_SLEEP_INCREMENT_MS) {
-      try {
-        myServerSocket = new Socket(SERVER_HOST, SERVER_PORT);
-        return true;
-      }
-      catch (IOException e1) {
-        myServerSocket = null;
-      }
-
-      try {
-        // Wait before trying again.
-        Thread.sleep(SERVER_LAUNCH_SLEEP_INCREMENT_MS);
-      }
-      catch (InterruptedException e) {
-        Thread.interrupted(); // reset interrupted status
-        shutdown();
-        return false; // Some external factor cancelled our busy-wait, so exit immediately.
-      }
-    }
-
-    shutdown();
-    return false;
+    myServerConnection = ServerProcess.INSTANCE.connect();
+    return myServerConnection.isConnected();
   }
 
   private void setLoadingErrorTextOnEdt(@NotNull final String error) {
@@ -382,56 +302,277 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   }
 
   private void shutdown() {
-    if (myServerSocket != null) {
-      try {
-        myServerSocket.close();
-      }
-      catch (IOException e) {
-        LOG.error(e);
-      }
-    }
-
-    // Only kill the server if we started it.
-    if (myServerProcess != null) {
-      myServerProcess.destroy();
+    if (myServerConnection != null) {
+      myServerConnection.close();
+      myServerConnection = null;
     }
 
     myExecutor.shutdown();
   }
 
   static File getBinaryPath() {
-    updatePath();
-    return myServerDirectory;
+    return getPaths().myServerDirectory;
   }
 
-  private static boolean testPath(File root) {
-    File bin = new File(root, SERVER_RELATIVE_PATH);
-    File gapis = new File(bin, SERVER_EXECUTABLE_NAME);
-    if (!gapis.exists()) {
-      return false;
-    }
-    myGapisRoot = root;
-    myServerDirectory = bin;
-    myGapisPath = gapis;
-    return true;
-  }
-
-  private static void updatePath() {
+  private static Paths getPaths() {
     synchronized (myPathLock) {
-      if (myGapisPath != null) {
-        return;
+      if (myPaths == null || !myPaths.isValid()) {
+        myPaths = Paths.get();
       }
+      return myPaths;
+    }
+  }
+
+  private static class ServerProcess {
+    public static final ServerProcess INSTANCE = new ServerProcess();
+    private static final ServerConnection NOT_CONNECTED = new ServerConnection(INSTANCE, null);
+
+    private static final int SERVER_LAUNCH_TIMEOUT_MS = 2000;
+    private static final int SERVER_LAUNCH_SLEEP_INCREMENT_MS = 10;
+    private static final String SERVER_HOST = "localhost";
+
+    private final Set<ServerConnection> myConnections = Sets.newIdentityHashSet();
+    private Thread myServerThread;
+    private int myPort;
+
+    private ServerProcess() {
+      Factory.register();
+    }
+
+    /**
+     * Attempts to connect to a gapis server.
+     * <p/>
+     * Will launch a new server process if none has been started.
+     * <p/>
+     * TODO: Implement more robust process management.  For example:
+     * TODO: - Better way to detect when server has started in order to avoid polling for the socket.
+     */
+    public ServerConnection connect() {
+      synchronized (this) {
+        if (!isServerRunning()) {
+          if (!launchServer()) {
+            return NOT_CONNECTED;
+          }
+        }
+      }
+
+      // After starting, the server requires a little time before it will be ready to accept connections.
+      // This loop polls the server to establish a connection.
+      ServerConnection connection = NOT_CONNECTED;
+      try {
+        for (int waitTime = 0; waitTime < SERVER_LAUNCH_TIMEOUT_MS; waitTime += SERVER_LAUNCH_SLEEP_INCREMENT_MS) {
+          if ((connection = attemptToConnect()).isConnected()) {
+            LOG.info("Established a new client connection to " + myPort);
+            break;
+          }
+          Thread.sleep(SERVER_LAUNCH_SLEEP_INCREMENT_MS);
+        }
+      }
+      catch (InterruptedException e) {
+        Thread.interrupted(); // reset interrupted status
+      }
+      return connection;
+    }
+
+    public void onClose(ServerConnection serverConnection) {
+      synchronized (myConnections) {
+        myConnections.remove(serverConnection);
+        if (myConnections.isEmpty()) {
+          LOG.info("Interrupting server thread on last connection close");
+          myServerThread.interrupt();
+        }
+      }
+    }
+
+    private ServerConnection attemptToConnect() {
+      try {
+        ServerConnection connection = new ServerConnection(this, new Socket(SERVER_HOST, myPort));
+        synchronized (myConnections) {
+          myConnections.add(connection);
+        }
+        return connection;
+      }
+      catch (IOException ignored) {
+      }
+      return NOT_CONNECTED;
+    }
+
+    private boolean isServerRunning() {
+      return myServerThread != null && myServerThread.isAlive();
+    }
+
+    private boolean launchServer() {
+      myPort = findFreePort();
+      final Paths paths = getPaths();
+      // The connection failed, so try to start a new instance of the server.
+      if (paths.myGapisPath == null) {
+        LOG.warn("Could not find gapis, but needed to start the server.");
+        return false;
+      }
+      myServerThread = new Thread() {
+        @Override
+        public void run() {
+          LOG.info("Launching gapis: \"" + paths.myGapisPath.getAbsolutePath() + "\" on port " + myPort);
+          ProcessBuilder pb = new ProcessBuilder(getCommandAndArgs(paths.myGapisPath));
+
+          // Add the server's directory to the path.  This allows the server to find and launch the replayd.
+          Map<String, String> env = pb.environment();
+          String path = env.get("PATH");
+          path = paths.myServerDirectory.getAbsolutePath() + File.pathSeparator + path;
+          env.put("PATH", path);
+
+          // Use the plugin directory as the working directory for the server.
+          pb.directory(paths.myGapisRoot);
+          pb.redirectErrorStream(true);
+
+          Process serverProcess = null;
+          try {
+            // This will throw IOException if the server executable is not found.
+            serverProcess = pb.start();
+            final BufferedReader stdout =
+              new BufferedReader(new InputStreamReader(serverProcess.getInputStream(), Charset.forName("UTF-8")));
+            new Thread() {
+              @Override
+              public void run() {
+                try {
+                  for (String line; (line = stdout.readLine()) != null; ) {
+                    LOG.warn("gapis: " + line);
+                  }
+                }
+                catch (IOException ignored) {
+                }
+              }
+            }.start();
+
+            int exitValue = serverProcess.waitFor();
+            if (exitValue != 0) {
+              LOG.warn("The gapis process exited with a non-zero exit value: " + exitValue);
+            } else {
+              LOG.info("gapis exited cleanly");
+            }
+          }
+          catch (IOException e) {
+            LOG.warn(e);
+          }
+          catch (InterruptedException e) {
+            if (serverProcess != null) {
+              LOG.info("Killing server process");
+              serverProcess.destroy();
+            }
+          }
+        }
+
+        private List<String> getCommandAndArgs(File gapis) {
+          List<String> result = Lists.newArrayList();
+          result.add(gapis.getAbsolutePath());
+          result.add("-shutdown_on_disconnect");
+          result.add("-rpc"); result.add(SERVER_HOST + ":" + myPort);
+          return result;
+        }
+      };
+      myServerThread.start();
+      return true;
+    }
+
+    private static int findFreePort() {
+      ServerSocket socket = null;
+      try {
+        socket = new ServerSocket(0);
+        return socket.getLocalPort();
+      }
+      catch (IOException e) {
+        throw Throwables.propagate(e);
+      }
+      finally {
+        if (socket != null) {
+          try {
+            socket.close();
+          }
+          catch (IOException ignored) {
+          }
+        }
+      }
+    }
+  }
+
+  private static class ServerConnection implements Closeable {
+    private final ServerProcess myParent;
+    private final Socket myServerSocket;
+
+    public ServerConnection(ServerProcess parent, Socket serverSocket) {
+      myParent = parent;
+      myServerSocket = serverSocket;
+    }
+
+    public boolean isConnected() {
+      return myServerSocket != null && myServerSocket.isConnected();
+    }
+
+    public ServiceClient createServiceClient(ListeningExecutorService executor) throws IOException {
+      if (!isConnected()) {
+        throw new IOException("Not connected");
+      }
+      return new ServiceClientRPC(executor, myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
+    }
+
+    @Override
+    public void close() {
+      synchronized (this) {
+        if (isConnected()) {
+          try {
+            myServerSocket.close();
+          }
+          catch (IOException e) {
+          }
+          myParent.onClose(this);
+        }
+      }
+    }
+  }
+
+  private static class Paths {
+    private static final String SERVER_EXECUTABLE_NAME = "gapis";
+    private static final String SERVER_RELATIVE_PATH = "bin";
+
+    public final File myGapisRoot;
+    public final File myServerDirectory;
+    public final File myGapisPath;
+
+    public Paths(File gapisRoot, File serverDirectory, File gapisPath) {
+      myGapisRoot = gapisRoot;
+      myServerDirectory = serverDirectory;
+      myGapisPath = gapisPath;
+    }
+
+    public boolean isValid() {
+      return myGapisPath.exists();
+    }
+
+    private static Paths create(File root) {
+      File bin = new File(root, SERVER_RELATIVE_PATH);
+      File gapis = new File(bin, SERVER_EXECUTABLE_NAME);
+      return new Paths(root, bin, gapis);
+    }
+
+    public static Paths get() {
       File androidPlugin = PluginPathManager.getPluginHome("android");
+      Paths result = create(androidPlugin);
       if (Boolean.getBoolean(IDEA_IS_INTERNAL_PROPERTY)) {
         // Check the default build location for a standard repo checkout
-        if (testPath(new File(androidPlugin.getParentFile().getParentFile().getParentFile(), "gpu"))) return;
-        // Check the GOPATH in case it is non standard
-        String gopath = System.getenv("GOPATH");
-        if (gopath != null && gopath.length() > 0 && testPath(new File(gopath))) return;
+        Paths internal = create(new File(androidPlugin.getParentFile().getParentFile().getParentFile(), "gpu"));
+        if (!internal.isValid()) {
+          // Check the GOPATH in case it is non standard
+          String gopath = System.getenv("GOPATH");
+          if (gopath != null && gopath.length() > 0) {
+            internal = create(new File(gopath));
+          }
+        }
         // TODO: Check the prebuilts location
+        if (internal.isValid()) {
+          result = internal;
+        }
       }
-      testPath(androidPlugin);
+      return result;
     }
   }
-
 }
