@@ -128,7 +128,7 @@ public class CloudTestingConfigurable implements SearchableConfigurable, Configu
 
   @Override
   public void apply() throws ConfigurationException {
-    PropertiesComponent.getInstance().setValue(ENABLE_CLOUD_TESTING_PROPERTY, String.valueOf(enableCloudTesting.isSelected()));
+    PropertiesComponent.getInstance().setValue(ENABLE_CLOUD_TESTING_PROPERTY, enableCloudTesting.isSelected());
   }
 
   @Override
@@ -137,7 +137,7 @@ public class CloudTestingConfigurable implements SearchableConfigurable, Configu
   }
 
   public static boolean getPersistedEnableProperty() {
-    return PropertiesComponent.getInstance().getBoolean(ENABLE_CLOUD_TESTING_PROPERTY, false);
+    return PropertiesComponent.getInstance().getBoolean(ENABLE_CLOUD_TESTING_PROPERTY);
   }
 
   @Override

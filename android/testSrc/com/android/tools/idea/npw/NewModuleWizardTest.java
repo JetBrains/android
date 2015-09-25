@@ -24,7 +24,11 @@ import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.Processor;
+import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.HashSet;
 import icons.AndroidIcons;
 import org.jetbrains.android.AndroidTestCase;
@@ -32,12 +36,38 @@ import org.jetbrains.android.AndroidTestCase;
 import javax.swing.*;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.*;
 
 /**
  * Tests for {@link NewModuleWizard}
  */
 public class NewModuleWizardTest extends AndroidTestCase {
+
+  @Override
+  protected void collectAllowedRoots(final List<String> roots) throws IOException {
+    JavaSdk javaSdk = JavaSdk.getInstance();
+    final List<String> jdkPaths = Lists.newArrayList(javaSdk.suggestHomePaths());
+    jdkPaths.add(SystemProperties.getJavaHome());
+    roots.addAll(jdkPaths);
+
+    for (final String jdkPath : jdkPaths) {
+      FileUtil.processFilesRecursively(new File(jdkPath), new Processor<File>() {
+        @Override
+        public boolean process(File file) {
+          try {
+            String path = file.getCanonicalPath();
+            if (!FileUtil.isAncestor(jdkPath, path, false)) {
+              roots.add(path);
+            }
+          }
+          catch (IOException ignore) { }
+          return true;
+        }
+      });
+    }
+  }
+
   public void testTemplateChanged() throws Exception {
     NewModuleWizard wizard = NewModuleWizard.createNewModuleWizard(myModule.getProject());
     TemplateWizardModuleBuilder moduleBuilder = (TemplateWizardModuleBuilder)wizard.myModuleBuilder;

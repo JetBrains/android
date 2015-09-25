@@ -9,4 +9,9 @@
   <extensionPoints>
     <extensionPoint name="androidStudioInitializer" interface="java.lang.Runnable"/>
   </extensionPoints>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceInterface="com.intellij.openapi.updateSettings.UpdateStrategyCustomization"
+                        serviceImplementation="com.android.tools.idea.AndroidStudioUpdateStrategyCustomization"
+                        overrides="true"/>
+  </extensions>
 </idea-plugin>

@@ -16,6 +16,7 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -29,9 +30,9 @@ import java.util.List;
 public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorDelegateBase {
   @Nullable
   @Override
-  public Collection<? extends PsiElement> getElementsToSearch(PsiElement element,
+  public Collection<? extends PsiElement> getElementsToSearch(@NotNull PsiElement element,
                                                               @Nullable Module module,
-                                                              Collection<PsiElement> allElementsToDelete) {
+                                                              @NotNull Collection<PsiElement> allElementsToDelete) {
     return Collections.singletonList(element);
   }
 
@@ -53,7 +54,7 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
 
   @Nullable
   @Override
-  public NonCodeUsageSearchInfo findUsages(PsiElement element, PsiElement[] allElementsToDelete, List<UsageInfo> result) {
+  public NonCodeUsageSearchInfo findUsages(@NotNull PsiElement element, @NotNull PsiElement[] allElementsToDelete, @NotNull List<UsageInfo> result) {
     SafeDeleteProcessor.findGenericElementUsages(element, result, allElementsToDelete);
 
     if (element instanceof PsiFile) {
@@ -68,8 +69,8 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
 
   @Nullable
   @Override
-  public Collection<PsiElement> getAdditionalElementsToDelete(PsiElement element,
-                                                              Collection<PsiElement> allElementsToDelete,
+  public Collection<PsiElement> getAdditionalElementsToDelete(@NotNull PsiElement element,
+                                                              @NotNull Collection<PsiElement> allElementsToDelete,
                                                               boolean askUser) {
     if (allElementsToDelete.size() > 1) {
       // todo: support this case (we should ask once)
@@ -111,7 +112,7 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
 
   @Nullable
   @Override
-  public Collection<String> findConflicts(PsiElement element, PsiElement[] allElementsToDelete) {
+  public Collection<String> findConflicts(@NotNull PsiElement element, @NotNull PsiElement[] allElementsToDelete) {
     return null;
   }
 

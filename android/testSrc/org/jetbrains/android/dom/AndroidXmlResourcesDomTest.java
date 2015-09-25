@@ -21,6 +21,7 @@ import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.vfs.VirtualFile;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -207,10 +208,6 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTest {
     doTestHighlighting();
   }
 
-  public void testCustomXmlFileCompletion1() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml");
-  }
-
   public void testCustomXmlFileCompletion2() throws Throwable {
     VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(file);
@@ -223,7 +220,7 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTest {
         return;
       }
     }
-    fail();
+    fail(Arrays.asList(lookupElements).toString());
   }
 
   public void testJavaCompletion1() throws Throwable {

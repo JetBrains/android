@@ -142,14 +142,8 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
           continue;
         }
         final File to = new File(contentRoot.getPath(), child.getName());
-
         try {
-          if (child.isDirectory()) {
-            FileUtil.copyDir(child, to);
-          }
-          else {
-            FileUtil.copy(child, to);
-          }
+          FileUtil.copyFileOrDir(child, to);
         }
         catch (IOException e) {
           LOG.error(e);

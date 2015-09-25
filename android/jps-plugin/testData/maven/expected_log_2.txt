@@ -4,13 +4,13 @@ package
 -m
 --non-constant-id
 --output-text-symbols
-$DATA_STORAGE_ROOT$/android/intermediate_artifacts/lib2/r_txt
+$DATA_STORAGE_ROOT$/android/intermediate_artifacts/lib3/r_txt
 -J
 $AAPT_OUTPUT_TMP$
 -M
-$PROJECT_DIR$/root/lib2/AndroidManifest.xml
+$PROJECT_DIR$/root/lib3/AndroidManifest.xml
 -S
-$PROJECT_DIR$/root/lib2/res
+$PROJECT_DIR$/root/lib3/res
 -I
 $ANDROID_SDK_DIR$/platforms/android-1.5/android.jar
 
@@ -18,24 +18,22 @@ ______ENTRY_1:0
 $JAVA_PATH$
 -Xmx1024M
 -classpath
-$IDEA_RT_PATH$
-com.intellij.rt.execution.CommandLineWrapper
 $CLASSPATH_TMP$
 org.jetbrains.android.compiler.tools.AndroidDxRunner
 $ANDROID_SDK_DIR$/platform-tools/lib/dx.jar
-$DATA_STORAGE_ROOT$/android/intermediate_artifacts/pre_dexed_libs/lib2/classes.jar
+$DATA_STORAGE_ROOT$/android/intermediate_artifacts/pre_dexed_libs/lib3/classes.jar
 --optimize
 true
-$DATA_STORAGE_ROOT$/android/intermediate_artifacts/lib2/classes.jar
+$DATA_STORAGE_ROOT$/android/intermediate_artifacts/lib3/classes.jar
 --exclude
 
 ______ENTRY_2:
 $ANDROID_SDK_DIR$/platform-tools/aapt
 crunch
 -S
-$PROJECT_DIR$/root/lib2/res
+$PROJECT_DIR$/root/lib3/res
 -C
-$DATA_STORAGE_ROOT$/android/res_cache/lib2
+$DATA_STORAGE_ROOT$/android/res_cache/lib3
 
 ______ENTRY_3:
 $ANDROID_SDK_DIR$/platform-tools/aapt
@@ -52,7 +50,7 @@ $PROJECT_DIR$/root/lib1/AndroidManifest.xml
 -S
 $PROJECT_DIR$/root/lib1/res
 -S
-$PROJECT_DIR$/root/lib2/res
+$PROJECT_DIR$/root/lib3/res
 -I
 $ANDROID_SDK_DIR$/platforms/android-1.5/android.jar
 
@@ -68,7 +66,7 @@ $PROJECT_DIR$/root/non_maven_app/AndroidManifest.xml
 -S
 $PROJECT_DIR$/root/non_maven_app/res
 -S
-$PROJECT_DIR$/root/lib/res
+$PROJECT_DIR$/root/lib2/res
 -S
 $PROJECT_DIR$/root/lib1/res
 -I
@@ -90,9 +88,9 @@ $DATA_STORAGE_ROOT$/android/res_cache/non_maven_app
 -S
 $PROJECT_DIR$/root/non_maven_app/res
 -S
-$DATA_STORAGE_ROOT$/android/res_cache/lib
+$DATA_STORAGE_ROOT$/android/res_cache/lib2
 -S
-$PROJECT_DIR$/root/lib/res
+$PROJECT_DIR$/root/lib2/res
 -S
 $DATA_STORAGE_ROOT$/android/res_cache/lib1
 -S
@@ -112,8 +110,6 @@ ______ENTRY_7:3
 $JAVA_PATH$
 -Xmx1024M
 -classpath
-$IDEA_RT_PATH$
-com.intellij.rt.execution.CommandLineWrapper
 $CLASSPATH_TMP$
 org.jetbrains.android.compiler.tools.AndroidDxRunner
 $ANDROID_SDK_DIR$/platform-tools/lib/dx.jar
@@ -127,8 +123,6 @@ ______ENTRY_8:0,1,3,4,7
 $JAVA_PATH$
 -Xmx1024M
 -classpath
-$IDEA_RT_PATH$
-com.intellij.rt.execution.CommandLineWrapper
 $CLASSPATH_TMP$
 org.jetbrains.android.compiler.tools.AndroidDxRunner
 $ANDROID_SDK_DIR$/platform-tools/lib/dx.jar
@@ -136,7 +130,7 @@ $DATA_STORAGE_ROOT$/android/intermediate_artifacts/non_maven_app/classes.dex
 --optimize
 true
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/pre_dexed_libs/lib1/classes.jar
-$DATA_STORAGE_ROOT$/android/intermediate_artifacts/pre_dexed_libs/lib/classes.jar
+$DATA_STORAGE_ROOT$/android/intermediate_artifacts/pre_dexed_libs/lib2/classes.jar
 $PROJECT_DIR$/out/production/non_maven_app/com
 --exclude
 
@@ -145,9 +139,9 @@ apk_builder
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/non_maven_app/non_maven_app.apk.res
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/non_maven_app/classes.dex
 [
-$PROJECT_DIR$/out/production/lib
 $PROJECT_DIR$/out/production/lib1
 $PROJECT_DIR$/out/production/lib2
+$PROJECT_DIR$/out/production/lib3
 $PROJECT_DIR$/out/production/non_maven_app
 ]
 []

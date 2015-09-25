@@ -33,7 +33,6 @@ import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
-import com.intellij.execution.testframework.ui.BaseTestsOutputConsoleView;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -274,14 +273,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @NotNull
   @Override
   protected ConsoleView attachConsole(AndroidRunningState state, Executor executor) throws ExecutionException {
-    final AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
-
-    //TODO[for android guys]: attach stactrace filter for "Open Source at Exception" feature:
-    // properties.addStackTraceFilter(new ...);
-    
-    BaseTestsOutputConsoleView consoleView = SMTestRunnerConnectionUtil
-      .createAndAttachConsole("Android", state.getProcessHandler(), properties, state.getEnvironment()
-      );
+    AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
+    ConsoleView consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Android", state.getProcessHandler(), properties);
     Disposer.register(state.getFacet().getModule().getProject(), consoleView);
     return consoleView;
   }

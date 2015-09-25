@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
@@ -55,13 +57,15 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
    * <li>there is a matching Android SDK already defined in IDEA</li>
    * </ol>
    *
-   * @param project      project that owns the module to customize.
-   * @param moduleModel  modifiable root module of the module to customize.
-   * @param androidModel the imported Android model.
+   * @param project        project that owns the module to customize.
+   * @param modelsProvider modifiable IDE models provider to customize. The caller is responsible to commit the changes to models
+   *                       and the customizer should not call commit on the models.
+   * @param androidModel   the imported Android model.
    */
   @Override
   public void customizeModule(@NotNull Project project,
-                              @NotNull ModifiableRootModel moduleModel,
+                              @NotNull Module module,
+                              @NotNull IdeModifiableModelsProvider modelsProvider,
                               @Nullable AndroidGradleModel androidModel) {
     if (androidModel == null) {
       return;
@@ -79,6 +83,7 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
       return;
     }
 
+    final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     LanguageLevel languageLevel = androidModel.getJavaLanguageLevel();
     if (languageLevel != null) {
       moduleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
@@ -107,7 +112,7 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
       return;
     }
 
-    String text = String.format("Module '%1$s': platform '%2$s' not found.", moduleModel.getModule().getName(), compileTarget);
+    String text = String.format("Module '%1$s': platform '%2$s' not found.", module.getName(), compileTarget);
     LOG.warn(text);
 
     Message msg = new Message(FAILED_TO_SET_UP_SDK, Message.Type.ERROR, text);

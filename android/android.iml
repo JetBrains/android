@@ -61,17 +61,6 @@
     <orderEntry type="library" name="swingx" level="project" />
     <orderEntry type="module" module-name="util" />
     <orderEntry type="module" module-name="ui-designer-core" />
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/mockito-all-1.9.5.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/mockito-all-1.9.5.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Eclipse" level="project" />
     <orderEntry type="module" module-name="properties-psi-api" />
@@ -80,9 +69,33 @@
     <orderEntry type="module" module-name="platform-main" scope="TEST" />
     <orderEntry type="module" module-name="bootstrap" scope="TEST" />
     <orderEntry type="library" name="jcip" level="project" />
-    <orderEntry type="library" name="spantable" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="rpclib" />
     <orderEntry type="module" module-name="chartlib" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/spantable.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/lib/src/spantable-src.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Jsr305">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/jsr305-1.3.9.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/jsr305-1.3.9.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
     <orderEntry type="module" module-name="diff-impl" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="Mocks" level="project" />
+    <orderEntry type="library" scope="TEST" name="hamcrest" level="project" />
   </component>
 </module>

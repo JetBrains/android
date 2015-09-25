@@ -214,12 +214,13 @@ class AndroidDbUtil {
   private static boolean installGetModificationTimeTool(@NotNull IDevice device,
                                                         @NotNull AndroidDbErrorReporter reporter,
                                                         @NotNull ProgressIndicator progressIndicator) {
-    String abi = device.getProperty("ro.product.cpu.abi");
+    String abi = device.getProperty(IDevice.PROP_DEVICE_CPU_ABI);
 
     if (abi == null) {
       abi = "armeabi";
     }
-    final String urlStr = "/native_tools/" + abi + "/get_modification_time";
+    String pieDir = arePositionIndependentExecutablesSupported(device) ? "pie" : "non_pie";
+    final String urlStr = "/native_tools/" + pieDir + "/" + abi + "/get_modification_time";
     final URL url = AndroidDbUtil.class.getResource(urlStr);
 
     if (url == null) {
@@ -342,9 +343,13 @@ class AndroidDbUtil {
                                             @NotNull String dbName,
                                             boolean external,
                                             @NotNull AndroidDbErrorReporter errorReporter) {
-    final String command = getRunAsPrefix(packageName, external) + TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH +
-                           " " + getDatabaseRemoteFilePath(packageName, dbName, external);
-    final String s = executeSingleCommand(device, errorReporter, command);
+    String databaseRemoteFilePath = getDatabaseRemoteFilePath(packageName, dbName, external);
+    final String command = getRunAsPrefix(packageName, external) + TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH + " " + databaseRemoteFilePath;
+    String s = executeSingleCommand(device, errorReporter, command);
+
+    if (s != null && s.contains("Permission denied")) {
+      s = executeSingleCommand(device, errorReporter, TEMP_REMOTE_GET_MODIFICATION_TIME_TOOL_PATH + " " + databaseRemoteFilePath);
+    }
 
     if (s == null) {
       return null;
@@ -422,6 +427,16 @@ class AndroidDbUtil {
     return builder.toString();
   }
 
+  private static boolean arePositionIndependentExecutablesSupported(IDevice device) {
+    try {
+      return Integer.parseInt(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)) >= 16;
+    }
+    catch (NumberFormatException e) {
+      LOG.info(e);
+      return false;
+    }
+  }
+
   @NotNull
   public static String getInternalDatabasesRemoteDirPath(@NotNull String packageName) {
     return "/data/data/" + packageName + "/databases";
@@ -445,7 +460,7 @@ class AndroidDbUtil {
 
     public MyShellOutputReceiver(@Nullable ProgressIndicator progressIndicator, @NotNull IDevice device) {
       myProgressIndicator = progressIndicator;
-      myAndroid43 = "18".equals(device.getProperty("ro.build.version.sdk"));
+      myAndroid43 = "18".equals(device.getProperty(IDevice.PROP_BUILD_API_LEVEL));
     }
 
     @Override

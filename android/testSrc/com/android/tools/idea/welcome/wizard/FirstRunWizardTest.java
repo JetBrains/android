@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
 import com.android.tools.idea.welcome.install.ComponentCategory;
-import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -96,8 +96,12 @@ public final class FirstRunWizardTest extends AndroidTestBase {
 
   @Override
   protected void tearDown() throws Exception {
-    myFixture.tearDown();
-    super.tearDown();
+    try {
+      myFixture.tearDown();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testStepsVisibility() {
