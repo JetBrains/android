@@ -45,6 +45,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
@@ -194,10 +195,12 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
           msg = String.format("Unable to establish a connection to adb.\n\n" +
                               "Check the Event Log for possible issues.\n" +
                               "This can happen if you have an incompatible version of adb running already.\n" +
-                              "Try re-opening Studio after killing any existing adb daemons.\n\n" +
+                              "Try re-opening %1$s after killing any existing adb daemons.\n\n" +
                               "If this happens repeatedly, please file a bug at http://b.android.com including the following:\n" +
-                              "  1. Output of the command: '%1$s devices'\n" +
-                              "  2. Your idea.log file (Help | Show Log in Explorer)\n", adb.getAbsolutePath());
+                              "  1. Output of the command: '%2$s devices'\n" +
+                              "  2. Your idea.log file (Help | Show Log in Explorer)\n",
+                              ApplicationNamesInfo.getInstance().getProductName(),
+                              adb.getAbsolutePath());
         }
         Messages.showErrorDialog(msg, "ADB Connection Error");
       }

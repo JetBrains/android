@@ -101,7 +101,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   @Override
-  protected UsageViewDescriptor createUsageViewDescriptor(UsageInfo[] usages) {
+  protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
     return new RtlSupportUsageViewDescriptor();
   }
 
@@ -127,7 +127,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   }
 
   @Override
-  protected void performRefactoring(UsageInfo[] usages) {
+  protected void performRefactoring(@NotNull UsageInfo[] usages) {
     for (UsageInfo usageInfo : usages) {
       RtlRefactoringUsageInfo refactoring = (RtlRefactoringUsageInfo)usageInfo;
       switch (refactoring.getType()) {

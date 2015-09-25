@@ -116,7 +116,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
     // Ensure that we don't render on the read lock (since we want to test that all parts of the
     // rendering system which needs a read lock asks for one!)
     final AtomicReference<RenderResult> holder = new AtomicReference<RenderResult>();
-    Thread thread = new Thread() {
+    Thread thread = new Thread("render test") {
       @Override
       public void run() {
         holder.set(task.render());

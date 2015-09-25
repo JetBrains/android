@@ -3,8 +3,6 @@ $JAVA_PATH$
 -Xms64m
 -Xmx1024M
 -classpath
-$IDEA_RT_PATH$
-com.intellij.rt.execution.CommandLineWrapper
 $CLASSPATH_TMP$
 org.jetbrains.android.compiler.tools.AndroidDxRunner
 $ANDROID_SDK_DIR$/platform-tools/lib/dx.jar

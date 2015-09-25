@@ -25,11 +25,14 @@ import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.ex.InspectionManagerEx;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.InspectionTestUtil;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
@@ -39,6 +42,7 @@ import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +60,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   private boolean myCreateManifest;
   protected AndroidFacet myFacet;
+
+  private List<String> myAllowedRoots = new ArrayList<String>();
 
   public AndroidTestCase(boolean createManifest) {
     this.myCreateManifest = createManifest;
@@ -131,6 +137,30 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       // Unit test class loader includes disk directories which security manager does not allow access to
       RenderSecurityManager.sEnabled = false;
     }
+
+    ArrayList<String> allowedRoots = new ArrayList<String>();
+    collectAllowedRoots(allowedRoots);
+    registerAllowedRoots(allowedRoots, myTestRootDisposable);
+  }
+
+  protected void collectAllowedRoots(List<String> roots) throws IOException {
+  }
+
+  public void registerAllowedRoots(List<String> roots, @NotNull Disposable disposable) {
+    final List<String> newRoots = new ArrayList<String>(roots);
+    newRoots.removeAll(myAllowedRoots);
+
+    final String[] newRootsArray = ArrayUtil.toStringArray(newRoots);
+    VfsRootAccess.allowRootAccess(newRootsArray);
+    myAllowedRoots.addAll(newRoots);
+
+    Disposer.register(disposable, new Disposable() {
+      @Override
+      public void dispose() {
+        VfsRootAccess.disallowRootAccess(newRootsArray);
+        myAllowedRoots.removeAll(newRoots);
+      }
+    });
   }
 
   protected boolean isToAddSdk() {
@@ -220,15 +250,19 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   @Override
   protected void tearDown() throws Exception {
-    myModule = null;
-    myAdditionalModules = null;
-    myFixture.tearDown();
-    myFixture = null;
-    myFacet = null;
-    if (RenderSecurityManager.RESTRICT_READS) {
-      RenderSecurityManager.sEnabled = true;
+    try {
+      myModule = null;
+      myAdditionalModules = null;
+      myFixture.tearDown();
+      myFixture = null;
+      myFacet = null;
+      if (RenderSecurityManager.RESTRICT_READS) {
+        RenderSecurityManager.sEnabled = true;
+      }
     }
-    super.tearDown();
+    finally {
+      super.tearDown();
+    }
   }
 
   public static AndroidFacet addAndroidFacet(Module module, String sdkPath, String platformDir) {

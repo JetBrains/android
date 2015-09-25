@@ -49,11 +49,6 @@ public class BuildVariantViewTest extends AndroidTestCase {
     myBuildVariantName = "debug";
   }
 
-  @Override
-  public void tearDown() throws Exception {
-    super.tearDown();
-  }
-
   public void testSelectVariantWithSuccessfulUpdate() {
     expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(myAndroidFacets);
     replay(myUpdater);
