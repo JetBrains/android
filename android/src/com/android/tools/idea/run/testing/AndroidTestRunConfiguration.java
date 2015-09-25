@@ -444,7 +444,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
           break;
       }
       runner.setDebug(state.isDebugMode());
-      runner.setExtraInstrumentationOptions(EXTRA_OPTIONS);
+      runner.setRunOptions(EXTRA_OPTIONS);
 
       try {
         runner.run(new AndroidTestListener(state));
