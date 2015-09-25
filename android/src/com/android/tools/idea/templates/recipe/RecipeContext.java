@@ -18,9 +18,8 @@ package com.android.tools.idea.templates.recipe;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.templates.*;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
-import com.android.utils.XmlUtils;
+import com.android.tools.idea.templates.*;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
@@ -32,15 +31,12 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
-import com.intellij.util.Consumer;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 
@@ -97,6 +93,16 @@ public final class RecipeContext {
     //noinspection unchecked
     List<String> dependencyList = (List<String>)myParamMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
     dependencyList.add(mavenUrl);
+  }
+
+  @NotNull
+  Map<String, Object> getParamMap() {
+    return myParamMap;
+  }
+
+  @NotNull
+  Configuration getFreemarker() {
+    return myFreemarker;
   }
 
   /**
@@ -228,31 +234,6 @@ public final class RecipeContext {
       checkedCreateDirectoryIfMissing(getTargetFile(at));
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * Parse a recipe nested within the current recipe.
-   */
-  void parseRecipe(@NotNull File file, @NotNull final Consumer<Recipe> callback) {
-    try {
-      processFreemarkerTemplate(myFreemarker, myParamMap, file, new FreemarkerUtils.TemplatePostProcessor() {
-        @Override
-        public void process(@NotNull String xml) throws TemplateProcessingException {
-          try {
-            Recipe child = Recipe.parse(new StringReader(XmlUtils.stripBom(xml)));
-            child.execute(RecipeContext.this);
-
-            callback.consume(child);
-          }
-          catch (JAXBException ex) {
-            throw new TemplateProcessingException(ex);
-          }
-        }
-      });
-    }
-    catch (TemplateProcessingException e) {
       throw new RuntimeException(e);
     }
   }
