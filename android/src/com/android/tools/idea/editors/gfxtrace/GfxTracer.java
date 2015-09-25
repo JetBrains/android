@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.Collections;
@@ -63,7 +64,23 @@ public class GfxTracer {
 
   private volatile boolean myStopped = false;
 
-  public static GfxTracer launch(@NotNull final Project project, @NotNull final Client client, @NotNull EventData events) {
+  // Options holds the flags used to control the capture mode.
+  public static class Options {
+    public Options(boolean observeFramebufferOnEOF, boolean observeFramebufferOnDrawCall) {
+      myObserveFramebufferOnEOF = observeFramebufferOnEOF;
+      myObserveFramebufferOnDrawCall = observeFramebufferOnDrawCall;
+    }
+
+    // If true, then a framebuffer-observation will be made after every end-of-frame.
+    public final boolean myObserveFramebufferOnEOF;
+    // If true, then a framebuffer-observation will be made after every draw call.
+    public final boolean myObserveFramebufferOnDrawCall;
+  }
+
+  public static GfxTracer launch(@NotNull final Project project,
+                                 @NotNull final Client client,
+                                 @NotNull final Options options,
+                                 @NotNull EventData events) {
     final GfxTracer tracer = new GfxTracer(project, client.getDevice(), events);
     final String pkg = client.getClientData().getClientDescription();
     final String pid = Integer.toString(client.getClientData().getPid());
@@ -72,18 +89,21 @@ public class GfxTracer {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        tracer.relaunchAndCapture(pkg, pid, abi);
+        tracer.relaunchAndCapture(pkg, pid, abi, options);
       }
     });
     return tracer;
   }
 
-  public static GfxTracer listen(@NotNull final Project project, @NotNull final IDevice device, @NotNull EventData events) {
+  public static GfxTracer listen(@NotNull final Project project,
+                                 @NotNull final IDevice device,
+                                 @NotNull final Options options,
+                                 @NotNull EventData events) {
     final GfxTracer tracer = new GfxTracer(project, device, events);
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        tracer.capture();
+        tracer.capture(options);
       }
     });
     return tracer;
@@ -101,7 +121,7 @@ public class GfxTracer {
     }
   }
 
-  private void relaunchAndCapture(String pkg, String pid, String abi) {
+  private void relaunchAndCapture(String pkg, String pid, String abi, @NotNull Options options) {
     EventData.Event event = myEvents.start(System.currentTimeMillis(), RenderMonitorView.EVENT_LAUNCH);
     try {
       final File myGapii = findTraceLibrary(abi);
@@ -151,7 +171,7 @@ public class GfxTracer {
           // Relaunch the app with the spy enabled
           captureAdbShell(myDevice, "am start -S -W -n " + component);
           event.stop(System.currentTimeMillis());
-          capture();
+          capture(options);
         }
         finally {
           // Undo the preload wrapping
@@ -177,9 +197,9 @@ public class GfxTracer {
     }
   }
 
-  private void capture() {
+  private void capture(@NotNull Options options) {
     try {
-      captureFromDevice();
+      captureFromDevice(options);
     }
     catch (RuntimeException e) {
       throw e;
@@ -209,17 +229,18 @@ public class GfxTracer {
     }
   }
 
-  private void captureFromDevice() throws AdbCommandRejectedException, IOException, TimeoutException, InterruptedException {
+  private void captureFromDevice(@NotNull Options options)
+    throws AdbCommandRejectedException, IOException, TimeoutException, InterruptedException {
     try {
       myDevice.createForward(GAPII_PORT, GAPII_ABSTRACT_PORT, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-      captureFromSocket("localhost", GAPII_PORT);
+      captureFromSocket("localhost", GAPII_PORT, options);
     }
     finally {
       myDevice.removeForward(GAPII_PORT, GAPII_ABSTRACT_PORT, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
     }
   }
 
-  private void captureFromSocket(String host, int port) throws IOException, InterruptedException {
+  private void captureFromSocket(String host, int port, @NotNull Options options) throws IOException, InterruptedException {
     Socket socket = null;
     EventData.Event event = null;
     long total = 0;
@@ -232,6 +253,7 @@ public class GfxTracer {
           //noinspection SocketOpenedButNotSafelyClosed
           socket = new Socket(host, port);
           socket.setSoTimeout(500);
+          sendHeader(socket, options);
         }
         len = copyBlock(socket, myCapture, buffer);
         if (len > 0) {
@@ -261,6 +283,39 @@ public class GfxTracer {
         socket.close();
       }
     }
+  }
+
+  private static void sendHeader(@NotNull Socket socket, @NotNull Options options) throws IOException {
+    // The GAPII header version 1 is defined as:
+    //
+    // struct ConnectionHeader {
+    //   uint8_t  mMagic[4];                     // 's', 'p', 'y', '0'
+    //   uint32_t mVersion;                      // 1
+    //   uint8_t  mObserveFramebufferOnEOF;      // non-zero == enabled
+    //   uint8_t  mObserveFramebufferOnDrawCall; // non-zero == enabled
+    // };
+    //
+    // All fields are encoded little-endian with no compression, regardless of
+    // architecture. All changes must be kept in sync with:
+    //   platform/tools/gpu/cc/gapii/connection_header.h
+    OutputStream out = socket.getOutputStream();
+    byte[] b = new byte[10];
+    // magic
+    b[0] = 's';
+    b[1] = 'p';
+    b[2] = 'y';
+    b[3] = '0';
+    // version
+    b[4] = 0;
+    b[5] = 0;
+    b[6] = 0;
+    b[7] = 1;
+    out.write(b);
+    // mObserveFramebufferOnEOF, mObserveFramebufferOnDrawcall
+    b[8] = options.myObserveFramebufferOnEOF ? (byte)1 : (byte)0;
+    b[9] = options.myObserveFramebufferOnDrawCall ? (byte)1 : (byte)0;
+    out.write(b);
+    out.flush();
   }
 
   public void stop() {
