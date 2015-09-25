@@ -144,7 +144,7 @@ public class AtomController extends TreeController {
         }
         else if (object instanceof Memory) {
           Memory memory = (Memory) object;
-          myEditor.activatePath(myAtomsPath.getPath().index(((Memory)object).index), AtomController.this);
+          myEditor.activatePath(myAtomsPath.getPath().index(((Memory)object).index));
           myEditor.activatePath(
             myAtomsPath.getPath().index(memory.index).memoryAfter(PoolID.applicationPool(), memory.observation.getRange()));
         }
