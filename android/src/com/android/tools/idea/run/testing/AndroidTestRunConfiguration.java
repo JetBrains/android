@@ -77,6 +77,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public String METHOD_NAME = "";
   public String CLASS_NAME = "";
   public String PACKAGE_NAME = "";
+  public String EXTRA_OPTIONS = "";
 
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
     super(project, factory);
@@ -450,6 +451,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
           break;
       }
       runner.setDebug(state.isDebugMode());
+      runner.setExtraInstrumentationOptions(EXTRA_OPTIONS);
+
       try {
         runner.run(new AndroidTestListener(state));
       }
