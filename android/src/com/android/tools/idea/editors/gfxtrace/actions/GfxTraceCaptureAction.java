@@ -48,7 +48,8 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
       if (device == null) {
         return null;
       }
-      return GfxTracer.listen(myView.getProject(), device, myView.getEvents());
+      GfxTracer.Options options = new GfxTracer.Options(false, false);
+      return GfxTracer.listen(myView.getProject(), device, options, myView.getEvents());
     }
   }
 
@@ -68,7 +69,8 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
       if (client == null) {
         return null;
       }
-      return GfxTracer.launch(myView.getProject(), client, myView.getEvents());
+      GfxTracer.Options options = new GfxTracer.Options(false, false);
+      return GfxTracer.launch(myView.getProject(), client, options, myView.getEvents());
     }
   }
 
