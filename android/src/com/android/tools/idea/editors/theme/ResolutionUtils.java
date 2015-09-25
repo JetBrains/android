@@ -46,6 +46,10 @@ public class ResolutionUtils {
   // Utility methods class isn't meant to be constructed, all methods are static.
   private ResolutionUtils() { }
 
+  /**
+   * @return ResourceUrl representation of a style from qualifiedName
+   * e.g. for "android:Theme" returns "@android:style/Theme" or for "AppTheme" returns "@style/AppTheme"
+   */
   @NotNull
   public static String getStyleResourceUrl(@NotNull String qualifiedName) {
     if (qualifiedName.startsWith(SdkConstants.PREFIX_ANDROID)) {
@@ -54,6 +58,10 @@ public class ResolutionUtils {
     return SdkConstants.STYLE_RESOURCE_PREFIX + qualifiedName;
   }
 
+  /**
+   * @return qualified name of a style from ResourceUrl representation
+   * e.g. for "@android:style/Theme" returns "android:Theme" or for "@style/AppTheme" returns "AppTheme"
+   */
   @NotNull
   public static String getQualifiedNameFromResourceUrl(@NotNull String styleResourceUrl) {
     assert styleResourceUrl.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX) || styleResourceUrl.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX);
@@ -63,6 +71,10 @@ public class ResolutionUtils {
     return SdkConstants.PREFIX_ANDROID + styleResourceUrl.substring(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX.length());
   }
 
+  /**
+   * @return name without qualifier
+   * e.g. for "android:Theme" returns "Theme" or for "AppTheme" returns "AppTheme"
+   */
   @NotNull
   public static String getNameFromQualifiedName(@NotNull String qualifiedName) {
     if (qualifiedName.startsWith(SdkConstants.PREFIX_ANDROID)) {
