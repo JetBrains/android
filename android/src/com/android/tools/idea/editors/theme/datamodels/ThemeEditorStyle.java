@@ -38,9 +38,7 @@ import com.android.tools.idea.editors.theme.qualifiers.QualifierUtils;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -207,15 +205,6 @@ public class ThemeEditorStyle {
     }
 
     return listBuilder.build();
-  }
-
-  @NotNull
-  public Collection<FolderConfiguration> getFolderConfigurations() {
-    if (isFramework()) {
-      return ImmutableList.of(new FolderConfiguration());
-    }
-
-    return getFolderConfigurationsFromResourceItems(getStyleResourceItems());
   }
 
   /**
@@ -414,89 +403,6 @@ public class ThemeEditorStyle {
   }
 
   /**
-   * Returns the {@link ResourceItem}s that are above minAcceptableApi
-   * @param minProjectApi the project min API level
-   * @param minAcceptableApi the minimum acceptable API level
-   * @param styleResourceItems the ResourceItems
-   */
-  @NotNull
-  private static Iterable<ResourceItem> filterStylesByApiLevel(final int minProjectApi, final int minAcceptableApi, @NotNull Iterable<ResourceItem> styleResourceItems) {
-    return Iterables.filter(styleResourceItems, new Predicate<ResourceItem>() {
-      @Override
-      public boolean apply(@Nullable ResourceItem input) {
-        assert input != null;
-
-        FolderConfiguration itemConfiguration = input.getConfiguration();
-
-        if (itemConfiguration.isDefault() && minProjectApi < minAcceptableApi) {
-          // We can not add the parent to the default version (which we assume is == minProjectApi)
-          return false;
-        }
-
-        VersionQualifier versionQualifier = itemConfiguration.getVersionQualifier();
-        if (versionQualifier == null) {
-          if (minProjectApi < minAcceptableApi) {
-            // The folder doesn't have version qualifier and minProjectApi < minAcceptable so we can not add the item here
-            return false;
-          }
-        }
-        else if (versionQualifier.getVersion() < minAcceptableApi) {
-          // We can not add the attribute to this version.
-          return false;
-        }
-
-        return true;
-      }
-    });
-  }
-
-  /**
-   * Filters out {@link ResourceItem}s that are not contained in the passed folders
-   */
-  @NotNull
-  private static Iterable<ResourceItem> filterStylesByFolder(@NotNull Collection<FolderConfiguration> selectedFolders, @NotNull Iterable<ResourceItem> styleResourceItems) {
-    final Set<FolderConfiguration> foldersSet = Sets.newHashSet(selectedFolders);
-
-    return Iterables.filter(styleResourceItems, new Predicate<ResourceItem>() {
-      @Override
-      public boolean apply(@Nullable ResourceItem input) {
-        assert input != null;
-        return foldersSet.contains(input.getConfiguration());
-      }
-    });
-  }
-
-  /**
-   * Returns the {@link XmlTag}s associated to the passed {@link ResourceItem}s.
-   */
-  @NotNull
-  private static Iterable<XmlTag> getXmlTagsFromStyles(@NotNull final Project project, @NotNull Iterable<ResourceItem> styleResourceItems) {
-    return FluentIterable.from(styleResourceItems)
-      .transform(new Function<ResourceItem, XmlTag>() {
-        @Override
-        public XmlTag apply(@Nullable ResourceItem input) {
-          assert input != null;
-          return LocalResourceRepository.getItemTag(project, input);
-        }
-      })
-      .filter(Predicates.notNull());
-  }
-
-  @NotNull
-  private static PsiFile[] getPsiFilesFromXmlTags(@NotNull Iterable<XmlTag> stylesXmlTags) {
-    return FluentIterable.from(stylesXmlTags)
-      .transform(new Function<XmlTag, PsiFile>() {
-        @Override
-        public PsiFile apply(@Nullable XmlTag input) {
-          assert input != null;
-          return input.getContainingFile();
-        }
-      })
-      .filter(Predicates.notNull())
-      .toArray(PsiFile.class);
-  }
-
-  /**
    * @param configuration FolderConfiguration of the style
    * @return XmlTag of this style coming from folder with corresponding FolderConfiguration
    */
@@ -590,6 +496,7 @@ public class ThemeEditorStyle {
   /**
    * Sets the value of given attribute in all possible folders where this style is defined. If attribute or value can be used from certain API level,
    * folders below that level won't be modified, instead new folder with certain API will be created.
+   * Note: {@link LocalResourceRepository}'s won't get updated immediately
    *
    * @param attribute the style attribute name
    * @param value     the style attribute value
@@ -614,17 +521,20 @@ public class ThemeEditorStyle {
         // That way, the Undo is always available from the theme editor
         CommandProcessor.getInstance().markCurrentCommandAsGlobal(myProject);
 
-        for (FolderConfiguration configuration : findToBeCopied(desiredApi)) {
+        Collection<FolderConfiguration> toBeCopied = findToBeCopied(desiredApi);
+        for (FolderConfiguration configuration : toBeCopied) {
           XmlTag styleTag = findXmlTagFromConfiguration(configuration);
           assert styleTag != null;
           ThemeEditorUtils.copyTheme(desiredApi, styleTag);
         }
 
-        // We need to refreshResource, to get all copied styles
-        // Otherwise, LocalResourceRepositories won't get updated, so we won't get copied styles
-        AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
-        if (facet != null) {
-          facet.refreshResources();
+        if (!toBeCopied.isEmpty()) {
+          // We need to refreshResource, to get all copied styles
+          // Otherwise, LocalResourceRepositories won't get updated, so we won't get copied styles
+          AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
+          if (facet != null) {
+            facet.refreshResources();
+          }
         }
 
         Collection<ResourceItem> styleItems = getStyleResourceItems();
@@ -642,87 +552,72 @@ public class ThemeEditorStyle {
   }
 
   /**
-   * Changes the name of the themes in all the xml files
-   * The theme needs to be reloaded in ThemeEditorComponent for the change to be complete
-   * THIS METHOD DOES NOT DIRECTLY MODIFY THE VALUE ONE GETS WHEN EVALUATING getParent()
+   * Sets the parent of the style in a specific folder.
+   * @param configuration  FolderConfiguration of style that will be modified
+   * @param newParent new name of the parent
    */
-  public void setParent(@NotNull final String newParent) {
+  private void setParent(@NotNull final FolderConfiguration configuration, @NotNull final String newParent) {
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
+    XmlTag styleTag = findXmlTagFromConfiguration(configuration);
+    assert styleTag != null;
+    styleTag.setAttribute(SdkConstants.ATTR_PARENT, newParent);
+  }
+
+  /**
+   * Sets the parent of the style in all possible folders where this style is defined.
+   * If new parent can be used from certain API level, folders below that level won't be modified,
+   * instead new folder with API of the new parent will be created.
+   * Note: {@link LocalResourceRepository}'s won't get updated immediately
+   *
+   * @param qualifiedThemeName new name of the parent
+   */
+  public void setParent(@NotNull final String qualifiedThemeName) {
     if (!isProjectStyle()) {
       throw new UnsupportedOperationException("Non project styles can not be modified");
     }
 
-    setParent(getFolderConfigurations(), newParent);
-  }
+    assert !qualifiedThemeName.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX);
+    assert !qualifiedThemeName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX);
 
-  /**
-   * Changes the name of the themes in the given folder
-   * The theme needs to be reloaded in ThemeEditorComponent for the change to be complete
-   * THIS METHOD DOES NOT DIRECTLY MODIFY THE VALUE ONE GETS WHEN EVALUATING getParent()
-   */
-  public void setParent(@NotNull FolderConfiguration currentFolder, @NotNull final String newParent) {
-    setParent(ImmutableList.of(currentFolder), newParent);
-  }
+    String newParentResourceUrl = ResolutionUtils.getStyleResourceUrl(qualifiedThemeName);
+    int parentApi = ResolutionUtils.getOriginalApiLevel(newParentResourceUrl, myProject);
+    int minSdk = ThemeEditorUtils.getMinApiLevel(myConfiguration.getModule());
 
-  /**
-   * Changes the name of the themes in given folders
-   * The theme needs to be reloaded in ThemeEditorComponent for the change to be complete
-   * THIS METHOD DOES NOT DIRECTLY MODIFY THE VALUE ONE GETS WHEN EVALUATING getParent()
-   */
-  public void setParent(@NotNull Collection<FolderConfiguration> selectedFolders, @NotNull final String newParent) {
-    if (!isProjectStyle()) {
-      throw new UnsupportedOperationException("Non project styles can not be modified");
-    }
-    String newParentResourceUrl = ResolutionUtils.getStyleResourceUrl(newParent);
-    final int minProjectApi = ThemeEditorUtils.getMinApiLevel(myConfiguration.getModule());
-    final int minAcceptableApi = ResolutionUtils.getOriginalApiLevel(newParentResourceUrl, myProject);
-    final FolderConfiguration sourceConfiguration = findAcceptableSourceFolderConfiguration(myConfiguration.getModule(), minAcceptableApi,
-                                                                                            getFolderConfigurations());
-    Collection<ResourceItem> styleResourceItems = getStyleResourceItems();
+    // When api level of both attribute and value is not greater that Minimum SDK,
+    // we should modify every FolderConfiguration, thus we set desiredApi to -1
+    final int desiredApi = (parentApi <= minSdk) ? -1 : parentApi;
 
-    // Find a valid source style that we can copy to the new API level
-    final ResourceItem sourceStyle = Iterables.find(styleResourceItems, new Predicate<ResourceItem>() {
-      @Override
-      public boolean apply(@Nullable ResourceItem input) {
-        assert input != null;
-        return input.getConfiguration().equals(sourceConfiguration);
-      }
-    }, null);
-    Iterable<ResourceItem> filteredStyles = filterStylesByFolder(selectedFolders, styleResourceItems);
-    filteredStyles = filterStylesByApiLevel(minProjectApi, minAcceptableApi, filteredStyles);
-    final Iterable<XmlTag> stylesXmlTags = getXmlTagsFromStyles(myProject, filteredStyles);
-    PsiFile[] toBeEdited = getPsiFilesFromXmlTags(stylesXmlTags);
-
-    new WriteCommandAction.Simple(myProject, "Updating parent to " + newParent, toBeEdited) {
+    new WriteCommandAction.Simple(myProject, "Updating Parent to " + qualifiedThemeName, null) {
       @Override
       protected void run() {
         // Makes the command global even if only one xml file is modified
         // That way, the Undo is always available from the theme editor
         CommandProcessor.getInstance().markCurrentCommandAsGlobal(myProject);
 
-        for (XmlTag sourceXml : stylesXmlTags) {
-          sourceXml.setAttribute(SdkConstants.ATTR_PARENT, newParent);
+        Collection<FolderConfiguration> toBeCopied = findToBeCopied(desiredApi);
+        for (FolderConfiguration configuration : toBeCopied) {
+          XmlTag styleTag = findXmlTagFromConfiguration(configuration);
+          assert styleTag != null;
+          ThemeEditorUtils.copyTheme(desiredApi, styleTag);
         }
 
-        if (sourceStyle != null) {
-          XmlTag sourceXmlTag = LocalResourceRepository.getItemTag(myProject, sourceStyle);
-          assert sourceXmlTag != null;
-          // copy this theme at the minimum api level for this attribute
-          ThemeEditorUtils.copyTheme(minAcceptableApi, sourceXmlTag);
-
+        if (!toBeCopied.isEmpty()) {
+          // We need to refreshResource, to get all copied styles
+          // Otherwise, LocalResourceRepositories won't get updated, so we won't get copied styles
           AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
           if (facet != null) {
             facet.refreshResources();
           }
-          Collection<ResourceItem> newResources = getStyleResourceItems();
-          VersionQualifier qualifier = new VersionQualifier(minAcceptableApi);
-          for (ResourceItem resourceItem : newResources) {
-            if (resourceItem.getQualifiers().contains(qualifier.getFolderSegment())) {
-              final XmlTag sourceXml = LocalResourceRepository.getItemTag(myProject, resourceItem);
-              assert sourceXml != null;
+        }
 
-              sourceXml.setAttribute(SdkConstants.ATTR_PARENT, newParent);
-              break;
-            }
+        Collection<ResourceItem> styleItems = getStyleResourceItems();
+        for (ResourceItem style : styleItems) {
+          FolderConfiguration configuration = style.getConfiguration();
+          int version = ThemeEditorUtils.getVersionFromConfiguration(configuration);
+          // If version qualifier is higher than 'desiredApi' then
+          // it means than we can modify 'attribute' to value 'value'.
+          if (version >= desiredApi) {
+            setParent(configuration, qualifiedThemeName);
           }
         }
       }
@@ -823,49 +718,6 @@ public class ThemeEditorStyle {
   @Nullable
   public Module getSourceModule() {
     return mySourceModule;
-  }
-
-  /**
-   * Checks all the passed source folders and find an acceptable source to copy to the folder with minAcceptableApi.
-   */
-  @Nullable("when there is no need to copy the folder since it already exists")
-  private static FolderConfiguration findAcceptableSourceFolderConfiguration(@NotNull Module module,
-                                                                             int minAcceptableApi,
-                                                                             @NotNull Collection<FolderConfiguration> folders) {
-    int minProjectApiLevel = ThemeEditorUtils.getMinApiLevel(module);
-    int highestNonAllowedApi = 0;
-    FolderConfiguration toBeCopied = null;
-
-    if (minAcceptableApi < minProjectApiLevel) {
-      // Do not create a theme for an api level inferior to the min api level of the project
-      return null;
-    }
-
-    for (FolderConfiguration folderConfiguration : folders) {
-      int version = minProjectApiLevel;
-
-      VersionQualifier versionQualifier = folderConfiguration.getVersionQualifier();
-      if (versionQualifier != null && versionQualifier.isValid()) {
-        version = versionQualifier.getVersion();
-      }
-
-      if (version < minAcceptableApi) {
-        // The attribute is not defined for (version)
-        // attribute not defined for api levels less than minAcceptableApi
-        if (version > highestNonAllowedApi) {
-          highestNonAllowedApi = version;
-          toBeCopied = folderConfiguration;
-        }
-        continue;
-      }
-
-      if (version == minAcceptableApi) {
-        // This theme already exists at its minimum api level, no need to create it
-        return null;
-      }
-    }
-
-    return toBeCopied;
   }
 
   /**
