@@ -26,10 +26,10 @@ import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.ConstantSet;
 import com.android.tools.rpclib.schema.Dynamic;
-import com.android.tools.rpclib.schema.SchemaClass;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.android.tools.rpclib.schema.Entity;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -120,7 +120,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           public void onSuccess(@Nullable final Schema schema) {
             LOG.info("Schema with " + schema.getClasses().length + " classes, " + schema.getConstants().length + " constant sets");
             int atoms = 0;
-            for (SchemaClass type : schema.getClasses()) {
+            for (Entity type : schema.getClasses()) {
               // Find the atom metadata, if present
               if (AtomMetadata.find(type) != null) {
                 atoms++;
@@ -139,7 +139,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           if (file.getFileSystem().getProtocol().equals(StandardFileSystems.FILE_PROTOCOL)) {
             LOG.info("Load gfxtrace in " + file.getPresentableName());
             captureF = myClient.loadCapture(file.getCanonicalPath());
-          } else {
+          }
+          else {
             // Upload the trace file
             byte[] data = file.contentsToByteArray();
             LOG.info("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
