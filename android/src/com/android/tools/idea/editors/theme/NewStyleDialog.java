@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
@@ -93,7 +94,6 @@ public class NewStyleDialog extends DialogWrapper {
           final ThemeSelectionDialog dialog = new ThemeSelectionDialog(configuration);
 
           dialog.show();
-
           selectedValue = dialog.isOK() ? dialog.getTheme() : null;
         }
         if (selectedValue == null) {
@@ -157,16 +157,16 @@ public class NewStyleDialog extends DialogWrapper {
    * <p/>For a parent style name like <pre>Widget.Material.Button</pre> and a theme name <pre>MyTheme</pre>, it would generate the name
    * <pre>Widget.MyTheme.Button</pre>
    *
-   * @param parentStyleUri  The parent style URI.
+   * @param parentQualifiedName  The parent style name, possibly with "android:" prefix.
    * @param currentThemeName The current theme name.
    */
   @NotNull
-  static String getNewStyleNameSuggestion(@Nullable String parentStyleUri, @Nullable String currentThemeName) {
-    if (Strings.isNullOrEmpty(parentStyleUri) || Strings.isNullOrEmpty(currentThemeName)) {
+  static String getNewStyleNameSuggestion(@Nullable String parentQualifiedName, @Nullable String currentThemeName) {
+    if (Strings.isNullOrEmpty(parentQualifiedName) || Strings.isNullOrEmpty(currentThemeName)) {
       return "";
     }
 
-    String parentStyleName = parentStyleUri.substring(parentStyleUri.indexOf('/') + 1);
+    String parentStyleName = ResolutionUtils.getNameFromQualifiedName(parentQualifiedName);
     if (parentStyleName.equals(currentThemeName)) {
       return "";
     }

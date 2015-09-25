@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -43,7 +44,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.*;
 
-import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
+import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
 
@@ -54,17 +55,17 @@ import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
  * to an activity.
  */
 public class ThemeSelectionPanel implements TreeSelectionListener, ListSelectionListener, Disposable {
-  private static final String DEVICE_LIGHT_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.DeviceDefault.Light";
-  private static final String DEVICE_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.DeviceDefault";
-  private static final String HOLO_LIGHT_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Holo.Light";
-  private static final String HOLO_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Holo";
-  private static final String MATERIAL_LIGHT_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light";
-  private static final String MATERIAL_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material";
-  private static final String LIGHT_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Light";
-  private static final String ANDROID_THEME = ANDROID_STYLE_RESOURCE_PREFIX + "Theme";
-  private static final String ANDROID_THEME_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.";
-  private static final String PROJECT_THEME = STYLE_RESOURCE_PREFIX + "Theme";
-  private static final String PROJECT_THEME_PREFIX = STYLE_RESOURCE_PREFIX + "Theme.";
+  private static final String DEVICE_LIGHT_PREFIX = PREFIX_ANDROID + "Theme.DeviceDefault.Light";
+  private static final String DEVICE_PREFIX = PREFIX_ANDROID + "Theme.DeviceDefault";
+  private static final String HOLO_LIGHT_PREFIX = PREFIX_ANDROID + "Theme.Holo.Light";
+  private static final String HOLO_PREFIX = PREFIX_ANDROID + "Theme.Holo";
+  private static final String MATERIAL_LIGHT_PREFIX = PREFIX_ANDROID + "Theme.Material.Light";
+  private static final String MATERIAL_PREFIX = PREFIX_ANDROID + "Theme.Material";
+  private static final String LIGHT_PREFIX = PREFIX_ANDROID + "Theme.Light";
+  private static final String ANDROID_THEME = PREFIX_ANDROID + "Theme";
+  private static final String ANDROID_THEME_PREFIX = PREFIX_ANDROID + "Theme.";
+  private static final String PROJECT_THEME = "Theme";
+  private static final String PROJECT_THEME_PREFIX = "Theme.";
   private static final String DIALOG_SUFFIX = ".Dialog";
   private static final String DIALOG_PART = ".Dialog.";
   private static final SimpleTextAttributes SEARCH_HIGHLIGHT_ATTRIBUTES =
@@ -322,9 +323,11 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         }
         List<String> sorted = new ArrayList<String>(allThemes);
         Collections.sort(sorted);
+
         for (String theme : sorted) {
-          themes.add(theme);
+          themes.add(ResolutionUtils.getQualifiedNameFromResourceUrl(theme));
         }
+
         break;
       }
       case ALL:
