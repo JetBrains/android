@@ -178,10 +178,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     return myProject;
   }
 
-  @Override
-  public void notifyRun() {
-  }
-
   @NotNull
   @Override
   public JComponent getComponent() {
@@ -632,7 +628,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   }
 
   private void doAction() {
-    notifyRun();
     AvdInfo info = getAvdInfo();
     if (info != null) {
       if (info.getStatus() == AvdInfo.AvdStatus.OK) {
