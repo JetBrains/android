@@ -18,27 +18,17 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.*;
-import com.android.tools.idea.welcome.wizard.ProgressStep;
-import com.android.tools.idea.wizard.*;
-import com.android.tools.idea.wizard.dynamic.*;
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessOutput;
-import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.util.ExecUtil;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
@@ -46,8 +36,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -55,8 +43,6 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.text.View;
 import java.awt.*;
 import java.io.*;
-import java.util.Collection;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -114,13 +100,14 @@ public class HaxmAlert extends JPanel {
 
     boolean hasLink = false;
     StringBuilder warningTextBuilder = new StringBuilder();
-    if (isIntel()) {
+
+    if (Haxm.canRun() || SystemInfo.isUnix) {
       if (!myImageDescription.getAbiType().startsWith(Abi.X86.toString())) {
         warningTextBuilder.append("Consider using an x86 system image for better emulation performance.<br>");
       } else {
         HaxmState haxmState = getHaxmState(false);
         if (haxmState == HaxmState.NOT_INSTALLED) {
-          if (SystemInfo.isLinux) {
+          if (SystemInfo.isUnix) {
             warningTextBuilder.append("Enable Linux KVM for better emulation performance.<br>");
             myErrorInstructionsLink.setHyperlinkTarget(FirstRunWizardDefaults.KVM_LINUX_INSTALL_URL);
             myErrorInstructionsLink.setHtmlText("<a>KVM Instructions</a>");
@@ -129,7 +116,7 @@ public class HaxmAlert extends JPanel {
             }
             hasLink = true;
           }
-          else if (Haxm.canRun()) {
+          else {
             warningTextBuilder.append("Install Intel HAXM for better emulation performance.<br>");
             setupDownloadLink();
             hasLink = true;
@@ -183,41 +170,10 @@ public class HaxmAlert extends JPanel {
     myErrorInstructionsLink.addHyperlinkListener(myErrorLinkListener);
   }
 
-  private boolean isIntel() {
-    if (SystemInfo.isMac) {
-      return true;
-    } else if (SystemInfo.isLinux) {
-      BufferedReader br = null;
-      try {
-        br = new BufferedReader(new FileReader("/proc/cpuinfo"));
-        String line = br.readLine();
-        while (br.ready()) {
-          if (line.startsWith("vendor_id") && line.endsWith("GenuineIntel")) {
-            return true;
-          }
-          line = br.readLine();
-        }
-      } catch (FileNotFoundException e) {
-        Logger.getInstance(getClass()).warn("/proc/cpuinfo not found, assuming non-intel CPU");
-        return false;
-      } catch (IOException e) {
-        Logger.getInstance(getClass()).warn("Error reading /proc/cpuinfo, assuming non-intel CPU");
-        return false;
-      } finally {
-        Closeables.closeQuietly(br);
-      }
-      return false;
-    } else if (SystemInfo.isWindows) {
-      String id = System.getenv().get("PROCESSOR_IDENTIFIER");
-      return id != null && id.contains("GenuineIntel");
-    }
-    return false;
-  }
-
-  enum HaxmState { NOT_INITIALIZED, INSTALLED, NOT_INSTALLED, NOT_LATEST }
+  public enum HaxmState { NOT_INITIALIZED, INSTALLED, NOT_INSTALLED, NOT_LATEST }
   private static HaxmState ourHaxmState = HaxmState.NOT_INITIALIZED;
 
-  private static HaxmState getHaxmState(boolean forceRefresh) {
+  public static HaxmState getHaxmState(boolean forceRefresh) {
     if (ourHaxmState == HaxmState.NOT_INITIALIZED || forceRefresh) {
       ourHaxmState = computeHaxmState();
     }
@@ -277,140 +233,4 @@ public class HaxmAlert extends JPanel {
     return HaxmState.NOT_INSTALLED;
   }
 
-  private class HaxmPath extends DynamicWizardPath {
-    DynamicWizardHost myHost;
-
-    public HaxmPath(DynamicWizardHost host) {
-      myHost = host;
-    }
-
-    @Override
-    protected void init() {
-      ScopedStateStore.Key<Boolean> canShow = ScopedStateStore.createKey("ShowHaxmSteps",
-                                                                         ScopedStateStore.Scope.PATH, Boolean.class);
-      myState.put(canShow, true);
-      Haxm haxm = new Haxm(getState(), canShow);
-      for (IPkgDesc desc : haxm.getRequiredSdkPackages(null)) {
-        myState.listPush(WizardConstants.INSTALL_REQUESTS_KEY, desc);
-      }
-
-      for (DynamicWizardStep step : haxm.createSteps()) {
-        addStep(step);
-      }
-      addStep(new LicenseAgreementStep(getWizard().getDisposable()));
-      ProgressStep progressStep = new SetupProgressStep(getWizard().getDisposable(), haxm, myHost);
-      addStep(progressStep);
-      haxm.init(progressStep);
-    }
-
-    @NotNull
-    @Override
-    public String getPathName() {
-      return "Haxm Path";
-    }
-
-    @Override
-    public boolean performFinishingActions() {
-      return false;
-    }
-  }
-
-
-  private class HaxmWizard extends DynamicWizard {
-
-    public HaxmWizard() {
-      super(null, null, "HAXM");
-      HaxmPath path = new HaxmPath(myHost);
-      addPath(path);
-    }
-
-    @Override
-    public void performFinishingActions() {
-      // Nothing. Handled by SetupProgressStep.
-    }
-
-    @NotNull
-    @Override
-    protected String getProgressTitle() {
-      return "Finishing install...";
-    }
-
-    @Override
-    protected String getWizardActionDescription() {
-      return "HAXM Installation";
-    }
-  }
-
-  private static class SetupProgressStep extends ProgressStep {
-    private Haxm myHaxm;
-    private final AtomicBoolean myIsBusy = new AtomicBoolean(false);
-    private DynamicWizardHost myHost;
-
-    public SetupProgressStep(Disposable parentDisposable, Haxm haxm, DynamicWizardHost host) {
-      super(parentDisposable);
-      myHaxm = haxm;
-      myHost = host;
-    }
-
-    @Override
-    public boolean canGoNext() {
-      return false;
-    }
-
-    @Override
-    protected void execute() {
-      myIsBusy.set(true);
-      myHost.runSensitiveOperation(getProgressIndicator(), true, new Runnable() {
-        @Override
-        public void run() {
-          try {
-            setupHaxm();
-          }
-          catch (Exception e) {
-            Logger.getInstance(getClass()).error(e);
-            showConsole();
-            print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
-          }
-          finally {
-            myIsBusy.set(false);
-          }
-        }
-      });
-    }
-
-    @Override
-    public boolean canGoPrevious() {
-      return false;
-    }
-
-    private void setupHaxm() throws IOException {
-      final InstallContext installContext = new InstallContext(
-        FileUtil.createTempDirectory("AndroidStudio", "Haxm", true), this);
-      final File destination = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
-
-      final Collection<? extends InstallableComponent> selectedComponents = Lists.newArrayList(myHaxm);
-      installContext.print("Looking for SDK updates...\n", ConsoleViewContentType.NORMAL_OUTPUT);
-
-      // Assume install and configure take approximately the same time; assign 0.5 progressRatio to each
-      InstallComponentsOperation install =
-        new InstallComponentsOperation(installContext, selectedComponents, new ComponentInstaller(null, true), 0.5);
-
-      try {
-        install.then(InstallOperation.wrap(installContext, new Function<File, File>() {
-          @Override
-          public File apply(@Nullable File input) {
-            myHaxm.configure(installContext, input);
-            return input;
-          }
-        }, 0.5)).execute(destination);
-      }
-      catch (InstallationCancelledException e) {
-        installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
-      }
-      catch (WizardException e) {
-        throw new RuntimeException(e);
-      }
-      installContext.print("Done", ConsoleViewContentType.NORMAL_OUTPUT);
-    }
-  }
 }
