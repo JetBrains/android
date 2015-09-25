@@ -98,7 +98,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);
 
   /** Indicates whether the test is being run by the presubmit runner. */
-  public static final boolean IS_PRESUBMIT_RUNNER = Boolean.getBoolean("STUDIO_PRESUBMIT_RUNNER");
+  public static final boolean IS_PRESUBMIT_RUNNER = Boolean.parseBoolean(System.getenv("STUDIO_PRESUBMIT_RUNNER"));
 
   /**
    * The name of the gradle wrapper executable associated with the current OS.
