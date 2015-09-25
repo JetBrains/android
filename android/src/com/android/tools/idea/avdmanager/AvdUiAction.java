@@ -41,7 +41,6 @@ public abstract class AvdUiAction implements Action, HyperlinkListener {
     @Nullable
     AvdInfo getAvdInfo();
     void refreshAvds();
-    void notifyRun();
 
     @Nullable
     Project getProject();
