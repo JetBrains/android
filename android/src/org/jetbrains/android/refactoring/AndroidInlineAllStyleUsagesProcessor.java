@@ -56,7 +56,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   @Override
-  protected UsageViewDescriptor createUsageViewDescriptor(UsageInfo[] usages) {
+  protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
     return new UsageViewDescriptorAdapter() {
       @NotNull
       @Override
@@ -90,7 +90,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
 
 
   @Override
-  protected void performRefactoring(UsageInfo[] usages) {
+  protected void performRefactoring(@NotNull UsageInfo[] usages) {
     final List<StyleUsageData> inlineInfos = new ArrayList<StyleUsageData>();
 
     for (UsageInfo usage : usages) {
@@ -112,7 +112,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
   }
 
   @Override
-  protected boolean preprocessUsages(Ref<UsageInfo[]> refUsages) {
+  protected boolean preprocessUsages(@NotNull Ref<UsageInfo[]> refUsages) {
     final UsageInfo[] usages = refUsages.get();
     final MultiMap<PsiElement, String> conflicts = detectConflicts(usages);
 
@@ -162,6 +162,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
     return AndroidBundle.message("android.inline.style.command.name", myStyleName);
   }
 
+  @NotNull
   @Override
   protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
     // do it because the refactoring can be invoked from UI designer

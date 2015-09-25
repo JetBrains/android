@@ -2,8 +2,6 @@ package p1.p2;
 
 import android.app.Activity;
 
-import java.lang.Override;
-
 public class MyActivity extends Activity {
   public void onCreate() {
     super.onCreate();
@@ -13,4 +11,6 @@ public class MyActivity extends Activity {
   public void func(android.app.ObjClass param) {
     new android.app.ObjClass();
   }
+
+  private class MyInheritor extends android.app.SubClass {}
 }

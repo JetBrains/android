@@ -30,7 +30,11 @@ public class AndroidInMemoryRFindUsagesTest extends AndroidFindUsagesTest {
 
   @Override
   public void tearDown() throws Exception {
-    myRUtil.tearDown();
-    super.tearDown();
+    try {
+      myRUtil.tearDown();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 }

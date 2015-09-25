@@ -1,7 +1,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
-import com.intellij.codeInsight.TargetElementUtilBase;
+import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.documentation.DocumentationManager;
@@ -641,7 +641,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
       @SuppressWarnings("ConstantConditions")
       @Override
       public void run() throws Throwable {
-        final PsiReference reference = TargetElementUtilBase.findReference(myFixture.getEditor(), myFixture.getCaretOffset());
+        final PsiReference reference = TargetElementUtil.findReference(myFixture.getEditor(), myFixture.getCaretOffset());
         final ResolveResult[] results = ((PsiPolyVariantReference)reference).multiResolve(false);
         for (ResolveResult result : results) {
           final PsiElement navElement = result.getElement().getNavigationElement();
@@ -770,7 +770,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     final VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(file);
 
-    final PsiReference reference = TargetElementUtilBase.findReference(myFixture.getEditor(), myFixture.getCaretOffset());
+    final PsiReference reference = TargetElementUtil.findReference(myFixture.getEditor(), myFixture.getCaretOffset());
     assertNotNull(reference);
     assertInstanceOf(reference, PsiPolyVariantReference.class);
     final ResolveResult[] results = ((PsiPolyVariantReference)reference).multiResolve(false);

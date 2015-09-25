@@ -24,13 +24,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
-import org.easymock.IArgumentMatcher;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -79,8 +76,8 @@ public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
   }
 
   @Override
-  protected CompositeException checkForSettingsDamage() throws Exception {
-    return new CompositeException();
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
   }
 
   public void testImportData() {
@@ -95,34 +92,21 @@ public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
 
     assertEquals(key, service.getTargetDataKey());
 
+    final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     // ModuleCustomizers should be called.
     //noinspection ConstantConditions
-    myCustomizer1.customizeModule(eq(myProject), rootModelOfModule(myModule), eq(myAndroidModel));
+    myCustomizer1.customizeModule(eq(myProject), eq(myModule), eq(modelsProvider), eq(myAndroidModel));
     expectLastCall();
 
     //noinspection ConstantConditions
-    myCustomizer2.customizeModule(eq(myProject), rootModelOfModule(myModule), eq(myAndroidModel));
+    myCustomizer2.customizeModule(eq(myProject), eq(myModule), eq(modelsProvider), eq(myAndroidModel));
     expectLastCall();
 
     replay(myCustomizer1, myCustomizer2);
 
-    service.importData(nodes, myProject, true);
+    service.importData(nodes, null, myProject, modelsProvider);
+    modelsProvider.commit();
 
     verify(myCustomizer1, myCustomizer2);
-  }
-
-  private static ModifiableRootModel rootModelOfModule(@NotNull final Module module) {
-    reportMatcher(new IArgumentMatcher() {
-      @Override
-      public void appendTo(StringBuffer buffer) {
-        buffer.append("Expected RootModel of module ").append(module.getName());
-      }
-
-      @Override
-      public boolean matches(Object argument) {
-        return argument instanceof ModifiableRootModel && ((ModifiableRootModel)argument).getModule().equals(module);
-      }
-    });
-    return null;
   }
 }

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
-import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.intellij.openapi.util.io.FileUtil.ensureCanCreateFile;
@@ -43,8 +43,8 @@ public abstract class GradleBuildModelParserTestCase extends PlatformTestCase {
   }
 
   @Override
-  protected CompositeException checkForSettingsDamage() {
-    return new CompositeException();
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
   }
 
   protected void writeToBuildFile(@NotNull String text) throws IOException {

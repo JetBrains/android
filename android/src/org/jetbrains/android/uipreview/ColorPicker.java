@@ -134,7 +134,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     myFormat.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        PropertiesComponent.getInstance().setValue(HSB_PROPERTY, String.valueOf(!isRGBMode()));
+        PropertiesComponent.getInstance().setValue(HSB_PROPERTY, !isRGBMode());
         myColorSelectionPanel.myOpacityComponent.setVisible(isARGBMode());
         myA.setVisible(isARGBMode());
         myAlpha.setVisible(isARGBMode());
@@ -181,7 +181,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     setColor(color == null ? Color.WHITE : color, this);
     setSize(JBUI.size(300, 350));
 
-    final boolean hsb = PropertiesComponent.getInstance().getBoolean(HSB_PROPERTY, false);
+    final boolean hsb = PropertiesComponent.getInstance().getBoolean(HSB_PROPERTY);
     if (hsb) {
       myFormat.setSelectedIndex(1);
     }

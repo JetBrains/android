@@ -17,7 +17,7 @@
 package org.jetbrains.android;
 
 import com.google.common.collect.Lists;
-import com.intellij.codeInsight.TargetElementUtilBase;
+import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.util.Segment;
@@ -439,9 +439,9 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
 
   public static Collection<UsageInfo> findUsages(VirtualFile file, JavaCodeInsightTestFixture fixture) throws Exception {
     fixture.configureFromExistingVirtualFile(file);
-    final PsiElement targetElement = TargetElementUtilBase
+    final PsiElement targetElement = TargetElementUtil
       .findTargetElement(fixture.getEditor(),
-                         TargetElementUtilBase.ELEMENT_NAME_ACCEPTED | TargetElementUtilBase.REFERENCED_ELEMENT_ACCEPTED);
+                         TargetElementUtil.ELEMENT_NAME_ACCEPTED | TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED);
     assert targetElement != null;
     return fixture.findUsages(targetElement);
   }

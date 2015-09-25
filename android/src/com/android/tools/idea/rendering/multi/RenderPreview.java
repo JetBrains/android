@@ -32,6 +32,7 @@ import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.*;
 import com.android.utils.SdkUtils;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -988,7 +989,7 @@ public class RenderPreview implements Disposable {
       //noinspection UseJBColor
       gc.setColor(Color.BLACK);
       gc.setFont(UIUtil.getToolTipFont());
-      UIUtil.applyRenderingHints(gc);
+      UISettings.setupAntialiasing(gc);
       final UIUtil.TextPainter painter = new UIUtil.TextPainter().withShadow(true).withLineSpacing(1.4f);
       for (String line : msg.split("\n")) {
         painter.appendLine(line);

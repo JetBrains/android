@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.invoker;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -24,7 +23,6 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -72,8 +70,8 @@ public class GradleInvokerTest extends IdeaTestCase {
   }
 
   @Override
-  protected CompositeException checkForSettingsDamage() throws Exception {
-    return new CompositeException();
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
   }
 
   public void testCleanProject() throws Exception {

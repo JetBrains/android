@@ -234,7 +234,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     @NotNull private final List<ModuleListener> additionalListeners = Lists.newArrayList();
 
     @Override
-    public void moduleAdded(Project project, Module module) {
+    public void moduleAdded(@NotNull Project project, @NotNull Module module) {
       updateBuildVariantView(project);
       for (ModuleListener listener : additionalListeners) {
         listener.moduleAdded(project, module);
@@ -242,14 +242,14 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     }
 
     @Override
-    public void beforeModuleRemoved(Project project, Module module) {
+    public void beforeModuleRemoved(@NotNull Project project, @NotNull Module module) {
       for (ModuleListener listener : additionalListeners) {
         listener.beforeModuleRemoved(project, module);
       }
     }
 
     @Override
-    public void modulesRenamed(Project project, List<Module> modules, Function<Module, String> oldNameProvider) {
+    public void modulesRenamed(@NotNull Project project, @NotNull List<Module> modules, @NotNull Function<Module, String> oldNameProvider) {
       updateBuildVariantView(project);
       for (ModuleListener listener : additionalListeners) {
         listener.modulesRenamed(project, modules, oldNameProvider);
@@ -257,7 +257,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     }
 
     @Override
-    public void moduleRemoved(Project project, Module module) {
+    public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
       updateBuildVariantView(project);
       for (ModuleListener listener : additionalListeners) {
         listener.moduleRemoved(project, module);

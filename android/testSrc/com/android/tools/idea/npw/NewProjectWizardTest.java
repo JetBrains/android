@@ -16,23 +16,19 @@
 package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.npw.AssetStudioAssetGenerator;
-import com.android.tools.idea.npw.FormFactorUtils;
-import com.android.tools.idea.npw.NewProjectWizard;
-import com.android.tools.idea.npw.NewProjectWizardState;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.io.FileUtil;
 
 import java.io.File;
 
+import static com.android.tools.idea.npw.NewProjectWizardState.ATTR_CREATE_ACTIVITY;
+import static com.android.tools.idea.npw.NewProjectWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.npw.NewProjectWizardState.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -60,8 +56,12 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
 
   @Override
   public void tearDown() throws Exception {
-    Disposer.dispose(myWizard.getDisposable());
-    super.tearDown();
+    try {
+      myWizard.close(DialogWrapper.OK_EXIT_CODE);
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testInit() throws Exception {

@@ -27,8 +27,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.KeyValue;
-import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
@@ -56,9 +56,8 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   }
 
   @Override
-  protected CompositeException checkForSettingsDamage() throws Exception {
-    // For this test we don't care about checking for settings damage.
-    return new CompositeException();
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
   }
 
   public void testPopulateJvmArgsWithGradleExecutionSettings() {

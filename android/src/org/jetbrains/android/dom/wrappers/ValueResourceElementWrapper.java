@@ -324,7 +324,7 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
 
   @Override
   public boolean isPhysical() {
-    return myWrappee.isPhysical();
+    return false;
   }
 
   @Override

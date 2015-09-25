@@ -36,15 +36,15 @@ public class AndroidTestListener implements ITestRunListener {
   private String myTestClassName = null;
   private ProcessHandler myProcessHandler;
 
+  public AndroidTestListener(AndroidRunningState runningState) {
+    myRunningState = runningState;
+  }
+
   public ProcessHandler getProcessHandler() {
     if (myProcessHandler == null) {
       myProcessHandler = myRunningState.getProcessHandler();
     }
     return myProcessHandler;
-  }
-
-  public AndroidTestListener(AndroidRunningState runningState) {
-    myRunningState = runningState;
   }
 
   @Override
@@ -84,9 +84,7 @@ public class AndroidTestListener implements ITestRunListener {
     }
     ServiceMessageBuilder builder = new ServiceMessageBuilder("testStarted");
     builder.addAttribute("name", test.getTestName());
-    builder
-      .addAttribute("locationHint", AndroidTestLocationProvider.PROTOCOL_ID + "://" + myRunningState.getModule().getName() +
-                                    ':' + test.getClassName() + '.' + test.getTestName() + "()");
+    builder.addAttribute("locationHint", AndroidTestLocationProvider.PROTOCOL_ID + "://" + test.getClassName() + '.' + test.getTestName() + "()");
     getProcessHandler().notifyTextAvailable(builder.toString() + '\n', ProcessOutputTypes.STDOUT);
     myTestStartingTime = System.currentTimeMillis();
   }
@@ -95,8 +93,7 @@ public class AndroidTestListener implements ITestRunListener {
     myTestSuiteStartingTime = System.currentTimeMillis();
     ServiceMessageBuilder builder = new ServiceMessageBuilder("testSuiteStarted");
     builder.addAttribute("name", myTestClassName);
-    builder.addAttribute("locationHint", AndroidTestLocationProvider.PROTOCOL_ID + "://" +
-                                         myRunningState.getModule().getName() + ':' + myTestClassName);
+    builder.addAttribute("locationHint", AndroidTestLocationProvider.PROTOCOL_ID + "://" + myTestClassName);
     getProcessHandler().notifyTextAvailable(builder.toString() + '\n', ProcessOutputTypes.STDOUT);
   }
 
