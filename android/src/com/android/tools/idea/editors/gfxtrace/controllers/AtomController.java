@@ -127,6 +127,7 @@ public class AtomController extends TreeController {
 
   private AtomController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_CAPTURE);
+    myScrollPane.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU Commands"));
     myTree.setLargeModel(true); // Set some performance optimizations for large models.
     myTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
@@ -135,14 +136,15 @@ public class AtomController extends TreeController {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)myTree.getLastSelectedPathComponent();
         if (node == null || node.getUserObject() == null) return;
         Object object = node.getUserObject();
-        if (object instanceof AtomGroup) {
-          myEditor.activatePath(myAtomsPath.getPath().index(((AtomGroup)object).getRange().getLast()));
+        if (object instanceof Group) {
+          myEditor.activatePath(myAtomsPath.getPath().index(((Group)object).group.getRange().getLast()));
         }
         else if (object instanceof Node) {
           myEditor.activatePath(myAtomsPath.getPath().index(((Node)object).index));
         }
         else if (object instanceof Memory) {
           Memory memory = (Memory) object;
+          myEditor.activatePath(myAtomsPath.getPath().index(((Memory)object).index), AtomController.this);
           myEditor.activatePath(
             myAtomsPath.getPath().index(memory.index).memoryAfter(PoolID.applicationPool(), memory.observation.getRange()));
         }
@@ -365,7 +367,7 @@ public class AtomController extends TreeController {
       DefaultMutableTreeNode child = (DefaultMutableTreeNode)obj;
       Object object = child.getUserObject();
       boolean matches = false;
-      if ((object instanceof AtomGroup) && (((AtomGroup)object).getRange().contains(atomIndex)) ||
+      if ((object instanceof Group) && (((Group)object).group.getRange().contains(atomIndex)) ||
           (object instanceof Node) && ((((Node)object).index == atomIndex))) {
         matches = true;
       }

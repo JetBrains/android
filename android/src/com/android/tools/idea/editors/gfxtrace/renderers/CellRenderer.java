@@ -39,8 +39,8 @@ public class CellRenderer implements ListCellRenderer {
   public static final int MAX_WIDTH = JBUI.scale(192);
   public static final int MAX_HEIGHT = JBUI.scale(192);
   private static final int TICK_MILLISECONDS = 66;
-  @NotNull private static final Border DEFAULT_BORDER = JBUI.Borders.empty(BORDER_SIZE, BORDER_SIZE);
-  @NotNull private static final Border SELECTED_BORDER = new RoundedLineBorder(UIUtil.getFocusedBoundsColor(), JBUI.scale(5), false);
+  @NotNull private static final Border DEFAULT_BORDER = new RoundedLineBorder(UIUtil.getBoundsColor(), BORDER_SIZE, false);
+  @NotNull private static final Border SELECTED_BORDER = new RoundedLineBorder(UIUtil.getFocusedBoundsColor(), BORDER_SIZE, false);
   @NotNull private static final Dimension DEFAULT_IMAGE_SIZE = new Dimension(MAX_WIDTH, MAX_HEIGHT);
   @NotNull private static final ScheduledExecutorService ourTickerScheduler =
     ConcurrencyUtil.newSingleScheduledThreadExecutor("CellAnimation");
