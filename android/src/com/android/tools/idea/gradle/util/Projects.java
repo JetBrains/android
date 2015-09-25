@@ -130,7 +130,7 @@ public final class Projects {
                 @Override
                 public void run() {
                   ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-                  dataManager.importData(ProjectKeys.MODULE, modules, project, true /* synchronous */);
+                  dataManager.importData(modules, project, true /* synchronous */);
                 }
               });
             }

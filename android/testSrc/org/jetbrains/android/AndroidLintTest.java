@@ -78,7 +78,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
     new WriteCommandAction(myFixture.getProject(), "") {
       @Override
-      protected void run(Result result) throws Throwable {
+      protected void run(@NotNull Result result) throws Throwable {
         ((AndroidAddStringResourceQuickFix)action)
           .invokeIntention(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), "hello");
       }
@@ -648,7 +648,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
     new WriteCommandAction(myFixture.getProject(), "") {
       @Override
-      protected void run(Result result) throws Throwable {
+      protected void run(@NotNull Result result) throws Throwable {
         action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
       }
     }.execute();

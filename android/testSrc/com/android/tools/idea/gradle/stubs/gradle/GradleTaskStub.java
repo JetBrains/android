@@ -53,6 +53,11 @@ public class GradleTaskStub implements GradleTask {
   }
 
   @Override
+  public String getGroup() {
+    return null;
+  }
+
+  @Override
   public boolean isPublic() {
     return true;
   }

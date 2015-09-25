@@ -33,6 +33,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.TextBrowseFolderListener;
@@ -292,11 +293,10 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     if (project != null) {
       if (dir.equals(project.getBaseDir())) {
         return true;
-      } else {
+      }
+      else {
         for (Module module : ModuleManager.getInstance(project).getModules()) {
-          //noinspection SSBasedInspection
-          VirtualFile moduleFile = module.getModuleFile();
-          if (moduleFile != null && dir.equals(moduleFile.getParent())) {
+          if (ModuleUtilCore.isModuleDir(module, dir)) {
             return true;
           }
         }

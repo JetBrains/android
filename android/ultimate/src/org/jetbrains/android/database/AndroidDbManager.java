@@ -4,9 +4,9 @@ import com.intellij.database.DatabaseMessages;
 import com.intellij.database.dataSource.DataSourceTemplate;
 import com.intellij.database.dialects.DatabaseDialectEx;
 import com.intellij.database.dialects.SqliteDialect;
-import com.intellij.database.model.info.DataSourceInfo;
+import com.intellij.database.model.DatabaseSystem;
 import com.intellij.database.psi.BasicDbPsiManager;
-import com.intellij.database.psi.DbDataSourceElement;
+import com.intellij.database.psi.DbDataSource;
 import com.intellij.database.psi.DbElement;
 import com.intellij.database.psi.DbPsiFacade;
 import com.intellij.facet.ProjectFacetManager;
@@ -45,12 +45,12 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
 
   @Nullable
   @Override
-  public DatabaseDialectEx getDatabaseDialect(@NotNull DbDataSourceElement element) {
+  public DatabaseDialectEx getDatabaseDialect(@NotNull DbDataSource element) {
     return SqliteDialect.INSTANCE;
   }
 
   @Override
-  public void setDataSourceName(@NotNull DbDataSourceElement element, String name) {
+  public void setDataSourceName(@NotNull DbDataSource element, String name) {
     if (!(element.getDelegate() instanceof AndroidDataSource)) throw new UnsupportedOperationException();
     final AndroidDataSource dataSource = (AndroidDataSource)element.getDelegate();
     dataSource.setName(name);
@@ -64,7 +64,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
   }
 
   @Override
-  public void removeDataSource(DbDataSourceElement element) {
+  public void removeDataSource(DbDataSource element) {
     if (!(element.getDelegate() instanceof AndroidDataSource)) throw new UnsupportedOperationException();
     final AndroidDataSource dataSource = (AndroidDataSource)element.getDelegate();
     processAddOrRemove(dataSource, false);
@@ -72,7 +72,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
 
   @NotNull
   @Override
-  public Configurable createDataSourceEditor(DbDataSourceElement template) {
+  public Configurable createDataSourceEditor(DbDataSource template) {
     if (!(template.getDelegate() instanceof AndroidDataSource)) throw new UnsupportedOperationException();
     AndroidDataSource dataSource = (AndroidDataSource)template.getDelegate();
     return new AndroidDataSourcePropertiesDialog(this, template.getProject(), dataSource);
@@ -87,6 +87,12 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
     else {
       return Collections.emptyList();
     }
+  }
+
+  @Nullable
+  @Override
+  public DataSourceTemplate getDataSourceTemplate(DbDataSource element) {
+    return DEFAULT_TEMPLATE;
   }
 
   public void processAddOrRemove(final AndroidDataSource dataSource, final boolean add) {
@@ -114,7 +120,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
     final String commandName = add ? DatabaseMessages.message("command.name.add.data.source")
                                    : DatabaseMessages.message("command.name.remove.data.source");
     new WriteCommandAction(project, commandName) {
-      protected void run(final Result result) throws Throwable {
+      protected void run(@NotNull final Result result) throws Throwable {
         action.redo();
         UndoManager.getInstance(project).undoableActionPerformed(action);
       }
@@ -140,7 +146,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
     clearCaches(null);
   }
 
-  private void clearCaches(@Nullable final DataSourceInfo info) {
+  private void clearCaches(@Nullable final DatabaseSystem info) {
     myDbFacade.clearCaches(info != null ? myDbFacade.findDataSource(info.getUniqueId()) : null);
   }
 
@@ -151,12 +157,12 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
 
   @NotNull
   @Override
-  public Collection<DbDataSourceElement> createDataSourceByFiles(Collection<VirtualFile> files) {
+  public Collection<DbDataSource> createDataSourceByFiles(Collection<VirtualFile> files) {
     return Collections.emptyList();
   }
 
   @Override
-  public void fireDataSourceUpdated(DbDataSourceElement element) {
+  public void fireDataSourceUpdated(DbDataSource element) {
   }
 
   private static class AndroidDataSourceTemplate implements DataSourceTemplate {
@@ -180,7 +186,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
 
     @NotNull
     @Override
-    public DataSourceInfo createDataSource(@NotNull Project project, @Nullable DataSourceInfo copyFrom, @Nullable String newName) {
+    public DatabaseSystem createDataSource(@NotNull Project project, @Nullable DatabaseSystem copyFrom, @Nullable String newName) {
       AndroidDataSource result;
       if (copyFrom instanceof AndroidDataSource) {
         result = ((AndroidDataSource)copyFrom).copy();

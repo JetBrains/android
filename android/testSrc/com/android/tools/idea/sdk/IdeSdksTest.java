@@ -24,7 +24,6 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -67,9 +66,8 @@ public class IdeSdksTest extends IdeaTestCase {
   }
 
   @Override
-  protected CompositeException checkForSettingsDamage() throws Exception {
-    // Disable check.
-    return new CompositeException();
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
   }
 
   public void testCreateAndroidSdkPerAndroidTarget() {

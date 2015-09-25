@@ -22,7 +22,7 @@ import com.android.tools.idea.ui.properties.Observable;
 import com.android.tools.idea.ui.properties.collections.ObservableList;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.ui.AbstractCollectionComboBoxModel;
+import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.containers.Stack;
 import org.jetbrains.annotations.NotNull;
@@ -140,10 +140,10 @@ public final class ServicePanelBuilder {
   }
 
   public JComboBox addComboBox(@NotNull final ObservableList<String> backingList) {
-    final AbstractCollectionComboBoxModel<String> model = new AbstractCollectionComboBoxModel<String>(null) {
+    final CollectionComboBoxModel<String> model = new CollectionComboBoxModel<String>(backingList) {
       @NotNull
       @Override
-      protected List<String> getItems() {
+      public List<String> getItems() {
         return backingList;
       }
     };

@@ -27,7 +27,6 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.impl.DefaultProject;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
@@ -74,7 +73,7 @@ public class GradleFileMerger {
     dest = dest.replace("\r", "");
     final Project project2;
     boolean projectNeedsCleanup = false;
-    if (project != null && !(project instanceof DefaultProject)) {
+    if (project != null && !project.isDefault()) {
       project2 = project;
     } else {
       project2 = ((ProjectManagerImpl)ProjectManager.getInstance()).newProject("MergingOnly", "", false, true);

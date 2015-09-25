@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.google.common.collect.Lists;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -35,11 +37,15 @@ import static com.android.tools.idea.gradle.util.FilePaths.*;
 
 public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCustomizer<T> {
   @Override
-  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable T externalProjectModel) {
+  public void customizeModule(@NotNull Project project,
+                              @NotNull Module module,
+                              @NotNull IdeModifiableModelsProvider modelsProvider,
+                              @Nullable T externalProjectModel) {
     if (externalProjectModel == null) {
       return;
     }
 
+    final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     for (ContentEntry contentEntry : moduleModel.getContentEntries()) {
       moduleModel.removeContentEntry(contentEntry);
     }

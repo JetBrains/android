@@ -22,7 +22,7 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.ide.util.projectWizard.JavaModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.platform.ProjectTemplate;
 import com.intellij.platform.ProjectTemplatesFactory;
@@ -84,7 +84,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
       if (metadata == null || !metadata.isSupported()) {
         continue;
       }
-      tt.add(new AndroidProjectTemplate(template, metadata, project));
+      tt.add(new AndroidProjectTemplate(template, metadata, project, context.getDisposable()));
     }
     return tt.toArray(new ProjectTemplate[tt.size()]);
   }
@@ -92,8 +92,8 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
   private static class AndroidProjectTemplate extends BuilderBasedTemplate {
     private final TemplateMetadata myTemplateMetadata;
 
-    private AndroidProjectTemplate(File templateFile, TemplateMetadata metadata, Project project) {
-      super(new TemplateWizardModuleBuilder(templateFile, metadata, project, null, new ArrayList<ModuleWizardStep>(), ApplicationManager.getApplication(), true));
+    private AndroidProjectTemplate(File templateFile, TemplateMetadata metadata, Project project, Disposable parentDisposable) {
+      super(new TemplateWizardModuleBuilder(templateFile, metadata, project, null, new ArrayList<ModuleWizardStep>(), parentDisposable, true));
       myTemplateMetadata = metadata;
     }
 

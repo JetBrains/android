@@ -84,7 +84,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
   @NotNull
   @Override
-  protected UsageViewDescriptor createUsageViewDescriptor(UsageInfo[] usages) {
+  protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
     return new UsageViewDescriptorAdapter() {
       @NotNull
       @Override
@@ -113,7 +113,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
   }
 
   @Override
-  protected boolean preprocessUsages(Ref<UsageInfo[]> refUsages) {
+  protected boolean preprocessUsages(@NotNull Ref<UsageInfo[]> refUsages) {
     super.preprocessUsages(refUsages);
 
     if (refUsages.get().length == 0) {
@@ -125,7 +125,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
   }
 
   @Override
-  protected void performRefactoring(UsageInfo[] usages) {
+  protected void performRefactoring(@NotNull UsageInfo[] usages) {
     final Set<Pair<String, String>> attrsInStyle = new HashSet<Pair<String, String>>();
 
     for (AndroidAttributeInfo info : myAttrMap.keySet()) {

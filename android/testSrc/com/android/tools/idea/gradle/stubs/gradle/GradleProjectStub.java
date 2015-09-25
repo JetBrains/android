@@ -90,4 +90,9 @@ public class GradleProjectStub implements GradleProject {
   public File getBuildDirectory() {
     return null;
   }
+
+  @Override
+  public File getProjectDirectory() {
+    return null;
+  }
 }

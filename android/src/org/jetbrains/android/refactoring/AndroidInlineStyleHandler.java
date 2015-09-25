@@ -1,6 +1,6 @@
 package org.jetbrains.android.refactoring;
 
-import com.intellij.codeInsight.TargetElementUtilBase;
+import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.lang.Language;
 import com.intellij.lang.refactoring.InlineActionHandler;
 import com.intellij.lang.xml.XMLLanguage;
@@ -53,7 +53,7 @@ public class AndroidInlineStyleHandler extends InlineActionHandler {
       StyleUsageData usageData = null;
 
       if (editor != null) {
-        final PsiReference reference = TargetElementUtilBase.findReference(editor);
+        final PsiReference reference = TargetElementUtil.findReference(editor);
 
         if (reference instanceof AndroidResourceReferenceBase) {
           usageData = getUsageDataFromEditor(reference);
