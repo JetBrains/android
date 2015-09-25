@@ -1,5 +1,0 @@
-<resources>
-    <style name="Theme.MyOtherTheme">
-        <item name="android:windowIsFloating">false</item>
-    </style>
-</resources>
