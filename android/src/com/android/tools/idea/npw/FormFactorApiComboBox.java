@@ -198,10 +198,15 @@ public final class FormFactorApiComboBox extends JComboBox {
              !ourInstalledVersions.contains(androidVersion) &&
              stateStore.get(myInclusionKey))) {
 
+          // The user selected a stable platform minSDK that is higher than any installed SDK. Let us install it.
           stateStore.listPush(INSTALL_REQUESTS_KEY, platformDesc);
           myInstallRequest = platformDesc;
+
+          // The selected minVersion would also be the highest sdkVersion after this install, so specify buildApi again here:
+          populateApiLevels(androidVersion.getApiLevel(), null, stateStore);
         }
         if (targetItem.myAddon != null) {
+          // The user selected a non stable SDK (a preview version) or a non platform SDK (e.g. for Google Glass). Let us install it:
           IPkgDesc addonDesc = targetItem.myAddon;
           stateStore.listPush(INSTALL_REQUESTS_KEY, addonDesc);
           // Overwrite request from above, since (earlier in this method) removing an addon will also remove the platform.
@@ -212,10 +217,10 @@ public final class FormFactorApiComboBox extends JComboBox {
           if (platform == null) {
             stateStore.listPush(INSTALL_REQUESTS_KEY, platformDesc);
           }
+
+          // The selected minVersion should also be the buildApi:
+          populateApiLevels(targetItem.apiLevel, null, stateStore);
         }
-
-        populateApiLevels(androidVersion.getApiLevel(), ourHighestInstalledApiTarget, stateStore);
-
       }
       PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(myFormFactor), targetItem.id.toString());
 
@@ -420,14 +425,6 @@ public final class FormFactorApiComboBox extends JComboBox {
       } else if (ourHighestInstalledApiTarget != null) {
         state.put(myTargetApiLevelKey, ourHighestInstalledApiTarget.getVersion().getApiLevel());
         state.put(myTargetApiStringKey, ourHighestInstalledApiTarget.getVersion().getApiString());
-      }
-
-      // Are we installing a new platform (so we don't have an IAndroidTarget yet) ?
-      // If so, adjust compile and target sdk to that new platform
-      if (apiTarget != null && apiLevel > apiTarget.getVersion().getApiLevel() && !apiTarget.getVersion().isPreview()) {
-        state.put(myBuildApiKey, Integer.toString(apiLevel));
-        state.put(myTargetApiStringKey, Integer.toString(apiLevel));
-        // myBuildApiLevelKey is already correct
       }
     }
   }
