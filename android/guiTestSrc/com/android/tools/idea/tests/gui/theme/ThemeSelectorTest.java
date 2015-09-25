@@ -71,24 +71,24 @@ public class ThemeSelectorTest extends GuiTestCase {
     RenameRefactoringDialogFixture renameRefactoringDialog = RenameRefactoringDialogFixture.find(myRobot);
     renameRefactoringDialog.setNewName("NewAppTheme").clickRefactor();
 
-    themeEditor.waitForThemeSelection("@style/NewAppTheme");
+    themeEditor.waitForThemeSelection("NewAppTheme");
 
-    themesComboBox.requireSelection("@style/NewAppTheme");
+    themesComboBox.requireSelection("NewAppTheme");
 
     List<String> themeList = themeEditor.getThemesList();
     assertThat(themeList)
       .hasSize(8)
-      .contains("@style/NewAppTheme", atIndex(0))
+      .contains("NewAppTheme", atIndex(0))
       .contains("Rename NewAppTheme", atIndex(7));
 
-    themesComboBox.selectItem("@style/Theme.AppCompat.NoActionBar"); // AppCompat is read-only, being a library theme
+    themesComboBox.selectItem("Theme.AppCompat.NoActionBar"); // AppCompat is read-only, being a library theme
 
     themeList = themeEditor.getThemesList();
     assertThat(themeList)
       .hasSize(7)
-      .contains("@style/NewAppTheme", atIndex(0))
-      .contains("@style/Theme.AppCompat.Light.NoActionBar", atIndex(2))
-      .contains("@style/Theme.AppCompat.NoActionBar", atIndex(3))
+      .contains("NewAppTheme", atIndex(0))
+      .contains("Theme.AppCompat.Light.NoActionBar", atIndex(2))
+      .contains("Theme.AppCompat.NoActionBar", atIndex(3))
       .contains("Show all themes", atIndex(4))
       .contains("Create New Theme", atIndex(6));
 
@@ -101,7 +101,7 @@ public class ThemeSelectorTest extends GuiTestCase {
 
     // Testing Undo
     projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
-    themesComboBox.selectItem("@style/NewAppTheme");
+    themesComboBox.selectItem("NewAppTheme");
     projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
     DialogFixture message = new DialogFixture(myRobot, myRobot.finder().findByType(Dialog.class));
     message.focus();
@@ -117,7 +117,7 @@ public class ThemeSelectorTest extends GuiTestCase {
     });
     JButtonFixture OkFixture = new JButtonFixture(myRobot, OkButton);
     OkFixture.click();
-    themeEditor.waitForThemeSelection("@style/AppTheme");
+    themeEditor.waitForThemeSelection("AppTheme");
     projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     assertEquals(-1, editor.findOffset(null, "name=\"NewAppTheme", true));
     editor.moveTo(editor.findOffset(null, "name=\"AppTheme", true));
@@ -149,20 +149,20 @@ public class ThemeSelectorTest extends GuiTestCase {
     categoriesTree.clickRow(1);
     assertEquals("Manifest Themes", categoriesTree.node(1).value());
     assertThat(ImmutableList.copyOf(themeList.contents())).hasSize(1)
-      .contains("@style/AppTheme", atIndex(0));
+      .contains("AppTheme", atIndex(0));
 
     categoriesTree.clickRow(2);
     assertEquals("Project Themes", categoriesTree.node(2).value());
     assertThat(ImmutableList.copyOf(themeList.contents())).hasSize(1)
-      .contains("@style/AppTheme", atIndex(0));
+      .contains("AppTheme", atIndex(0));
 
     categoriesTree.clickRow(10);
     assertEquals("All", categoriesTree.node(10).value());
-    assertThat(ImmutableList.copyOf(themeList.contents())).contains("@android:style/Theme", atIndex(0));
-    themeList.selectItem("@style/Theme.AppCompat.NoActionBar");
+    assertThat(ImmutableList.copyOf(themeList.contents())).contains("android:Theme", atIndex(0));
+    themeList.selectItem("Theme.AppCompat.NoActionBar");
     themeSelectionDialog.clickOk();
 
-    themeEditor.waitForThemeSelection("@style/Theme.AppCompat.NoActionBar");
+    themeEditor.waitForThemeSelection("Theme.AppCompat.NoActionBar");
   }
 
   /**
@@ -188,7 +188,7 @@ public class ThemeSelectorTest extends GuiTestCase {
     JTextComponentFixture newNameTextField = newStyleDialog.getNewNameTextField();
     JComboBoxFixture parentComboBox = newStyleDialog.getParentComboBox();
 
-    parentComboBox.requireSelection("@style/AppTheme");
+    parentComboBox.requireSelection("AppTheme");
     ImmutableList<String> parentsList = ImmutableList.copyOf(parentComboBox.contents());
     // The expected elements are:
     // 0. AppTheme
@@ -198,14 +198,14 @@ public class ThemeSelectorTest extends GuiTestCase {
     // 4. -- Separator
     // 5. Show all themes
     assertThat(parentsList).hasSize(6)
-      .contains("@style/AppTheme", atIndex(0))
-      .contains("@style/Theme.AppCompat.Light.NoActionBar", atIndex(2))
-      .contains("@style/Theme.AppCompat.NoActionBar", atIndex(3))
+      .contains("AppTheme", atIndex(0))
+      .contains("Theme.AppCompat.Light.NoActionBar", atIndex(2))
+      .contains("Theme.AppCompat.NoActionBar", atIndex(3))
       .contains("Show all themes", atIndex(5));
     assertThat(parentsList.get(1)).startsWith("javax.swing.JSeparator");
     assertThat(parentsList.get(4)).startsWith("javax.swing.JSeparator");
 
-    parentComboBox.selectItem("@style/Theme.AppCompat.NoActionBar");
+    parentComboBox.selectItem("Theme.AppCompat.NoActionBar");
     newNameTextField.requireText("Theme.AppTheme.NoActionBar");
 
     parentComboBox.selectItem("Show all themes");
@@ -215,30 +215,30 @@ public class ThemeSelectorTest extends GuiTestCase {
 
     categoriesTree.clickRow(5);
     themeList.clickItem(0);
-    themeList.requireSelection("@android:style/Theme.Holo");
+    themeList.requireSelection("android:Theme.Holo");
     themeSelectionDialog.clickOk();
 
-    parentComboBox.requireSelection("@android:style/Theme.Holo");
+    parentComboBox.requireSelection("android:Theme.Holo");
     newNameTextField.requireText("Theme.AppTheme");
     newNameTextField.deleteText().enterText("NewTheme");
 
     newStyleDialog.clickOk();
-    themeEditor.waitForThemeSelection("@style/NewTheme");
+    themeEditor.waitForThemeSelection("NewTheme");
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
     TableCell parentCell = row(0).column(0);
-    assertEquals("@android:style/Theme.Holo", themeEditorTable.getComboBoxSelectionAt(parentCell));
+    assertEquals("android:Theme.Holo", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     EditorFixture editor = projectFrame.getEditor();
     assertNotEquals(-1, editor.findOffset(null, "name=\"AppTheme", true));
     editor.moveTo(editor.findOffset(null, "name=\"NewTheme", true));
-    assertEquals("<style ^name=\"NewTheme\" parent=\"@android:style/Theme.Holo\" />",
+    assertEquals("<style ^name=\"NewTheme\" parent=\"android:Theme.Holo\" />",
                  editor.getCurrentLineContents(true, true, 0));
 
     // Tests Undo
     projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
     projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
-    themeEditor.waitForThemeSelection("@style/AppTheme");
+    themeEditor.waitForThemeSelection("AppTheme");
     projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     assertEquals(-1, editor.findOffset(null, "name=\"NewTheme", true));
   }
@@ -253,7 +253,7 @@ public class ThemeSelectorTest extends GuiTestCase {
     IdeFrameFixture projectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
     List<String> themeList = themeEditor.getThemesList();
-    assertThat(themeList).contains("@style/Theme.AppCompat.Light.NoActionBar");
+    assertThat(themeList).contains("Theme.AppCompat.Light.NoActionBar");
 
     EditorFixture editor = projectFrame.getEditor();
 
@@ -273,8 +273,8 @@ public class ThemeSelectorTest extends GuiTestCase {
     themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
     themeList = themeEditor.getThemesList();
     assertThat(themeList)
-      .excludes("@style/Theme.AppCompat.Light.NoActionBar")
-      .contains("@android:style/Theme.Material.NoActionBar")
-      .contains("@android:style/Theme.Material.Light.NoActionBar");
+      .excludes("Theme.AppCompat.Light.NoActionBar")
+      .contains("android:Theme.Material.NoActionBar")
+      .contains("android:Theme.Material.Light.NoActionBar");
   }
 }
