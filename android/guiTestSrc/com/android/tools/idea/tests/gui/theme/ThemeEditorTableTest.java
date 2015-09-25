@@ -125,7 +125,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     JPopupMenuFixture popupMenu = cell.showPopupMenu();
     String[] menuLabels = popupMenu.menuLabels();
     assertEquals(1, menuLabels.length);
-    JMenuItemFixture edit = popupMenu.menuItemWithPath("Edit parent");
+    JMenuItemFixture edit = popupMenu.menuItemWithPath("Go To Declaration");
     edit.requireVisible();
     edit.click();
 
