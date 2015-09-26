@@ -23,13 +23,15 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteralContainer;
 
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.gradle.dsl.parser.PsiElements.getUnquotedText;
+import static com.android.tools.idea.gradle.dsl.parser.PsiElements.setLiteralText;
 import static com.android.tools.idea.gradle.util.GradleUtil.getPathSegments;
-import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.notNullize;
 
 /**
  * A Gradle project dependency. There are two notations supported for declaring a project dependency:
@@ -37,7 +39,7 @@ import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
  * <pre> configurationName project(path: "gradlePath", configuration: "configuration") </pre>
  */
 public class ModuleDependency extends Dependency {
-  @NotNull GrLiteralContainer myPathElement;
+  @NotNull GrLiteral myPathLiteral;
 
   /**
    * Not {@code null} if the dependency uses map notation and configuration argument is specified.
@@ -45,7 +47,7 @@ public class ModuleDependency extends Dependency {
    *   compile project(path: "gradlePath", configuration: "configuration")
    * </pre>
    */
-  @Nullable GrLiteralContainer myConfigurationElement;
+  @Nullable GrLiteral myConfigurationLiteral;
 
   @Nullable private String myNewName;
 
@@ -57,12 +59,12 @@ public class ModuleDependency extends Dependency {
    */
   @Nullable
   public static ModuleDependency withCompactNotation(@NotNull Dependencies parent,
-                                                          @NotNull String configurationName,
-                                                          @NotNull GrLiteralContainer pathElement) {
-    if (pathElement.getValue() == null) {
+                                                     @NotNull String configurationName,
+                                                     @NotNull GrLiteral pathLiteral) {
+    if (isEmpty(getUnquotedText(pathLiteral))) {
       return null;
     }
-    return new ModuleDependency(parent, configurationName, pathElement, null);
+    return new ModuleDependency(parent, configurationName, pathLiteral, null);
   }
 
   /**
@@ -74,14 +76,13 @@ public class ModuleDependency extends Dependency {
    */
   @Nullable
   public static ModuleDependency withMapNotation(@NotNull Dependencies parent,
-                                                      @NotNull String configurationName,
-                                                      @NotNull GrArgumentList argumentList) {
-    GrLiteral pathPsiElement = findNamedArgumentLiteralValue(argumentList, "path");
-    if (pathPsiElement == null || pathPsiElement.getValue() == null) {
+                                                 @NotNull String configurationName,
+                                                 @NotNull GrArgumentList argumentList) {
+    GrLiteral pathLiteral = findNamedArgumentLiteralValue(argumentList, "path");
+    if (pathLiteral == null || isEmpty(getUnquotedText(pathLiteral))) {
       return null;
     }
-    return new ModuleDependency(parent, configurationName, pathPsiElement,
-                                     findNamedArgumentLiteralValue(argumentList, "configuration"));
+    return new ModuleDependency(parent, configurationName, pathLiteral, findNamedArgumentLiteralValue(argumentList, "configuration"));
   }
 
   @Nullable
@@ -98,18 +99,16 @@ public class ModuleDependency extends Dependency {
 
   private ModuleDependency(@NotNull Dependencies parent,
                            @NotNull String configurationName,
-                           @NotNull GrLiteralContainer pathElement,
-                           @Nullable GrLiteralContainer configurationElement) {
+                           @NotNull GrLiteral pathLiteral,
+                           @Nullable GrLiteral configurationLiteral) {
     super(parent, configurationName);
-    myPathElement = pathElement;
-    myConfigurationElement = configurationElement;
+    myPathLiteral = pathLiteral;
+    myConfigurationLiteral = configurationLiteral;
   }
 
   @NotNull
   public String getPath() {
-    Object literalValue = myPathElement.getValue();
-    assert literalValue != null;
-    return literalValue.toString();
+    return notNullize(getUnquotedText(myPathLiteral));
   }
 
   @NotNull
@@ -121,11 +120,10 @@ public class ModuleDependency extends Dependency {
 
   @Nullable
   public String getTargetConfiguration() {
-    if (myConfigurationElement == null) {
+    if (myConfigurationLiteral == null) {
       return null;
     }
-    Object value = myConfigurationElement.getValue();
-    return value != null ? value.toString() : null;
+    return getUnquotedText(myConfigurationLiteral);
   }
 
   public void setName(@NotNull String newName) {
@@ -155,15 +153,7 @@ public class ModuleDependency extends Dependency {
       modifiableSegments.set(segmentCount - 1, myNewName);
       newPath = Joiner.on(GRADLE_PATH_SEPARATOR).join(modifiableSegments);
     }
-    String currentText = myPathElement.getText();
-    char quote = '\'';
-    if (isQuotedString(currentText)) {
-      // Use same quote as the original text.
-      quote = currentText.charAt(0);
-    }
-    newPath = quote + newPath + quote;
-    myPathElement = myPathElement.updateText(newPath);
-
+    myPathLiteral = setLiteralText(myPathLiteral, newPath);
     reset();
   }
 
