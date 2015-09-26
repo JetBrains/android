@@ -19,15 +19,14 @@ import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.parser.PsiElements.getUnquotedText;
+import static com.android.tools.idea.gradle.dsl.parser.PsiElements.setLiteralText;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 final class CompactNotation extends ExternalDependency {
@@ -111,12 +110,7 @@ final class CompactNotation extends ExternalDependency {
 
   @Override
   protected void applyVersion(@NotNull String newVersion) {
-    Project project = myValueLiteral.getProject();
-    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
-
     mySpec.version = newVersion;
-    GrLiteral newCoordinatePsiLiteral = factory.createLiteralFromValue(mySpec.toString());
-
-    myValueLiteral.replace(newCoordinatePsiLiteral);
+    setLiteralText(myValueLiteral, mySpec.toString());
   }
 }
