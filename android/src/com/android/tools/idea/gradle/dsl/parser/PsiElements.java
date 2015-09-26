@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
@@ -83,5 +85,20 @@ public final class PsiElements {
       }
     }
     return false;
+  }
+
+  /**
+   * Sets the text of the given literal.
+   * @param literal the given literal.
+   * @param text the text to set.
+   * @return the new literal created when the text was set.
+   */
+  public static GrLiteral setLiteralText(@NotNull GrLiteral literal, @NotNull String text) {
+    Project project = literal.getProject();
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
+    GrLiteral newLiteral = factory.createLiteralFromValue(text);
+    PsiElement replace = literal.replace(newLiteral);
+    assert replace instanceof GrLiteral;
+    return (GrLiteral)replace;
   }
 }
