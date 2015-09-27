@@ -42,10 +42,12 @@ import static com.intellij.psi.util.PsiTreeUtil.getChildrenOfType;
 
 public class Dependencies extends GradleDslElement {
   @Nullable private PsiFile myPsiFile;
-  @Nullable private GrClosableBlock myPsiElement;
+  @Nullable private GrClosableBlock myClosureBlock;
 
   @NotNull private final List<ExternalDependency> myExternal = Lists.newArrayList();
   @NotNull private final List<ModuleDependency> myToModules = Lists.newArrayList();
+
+  @NotNull private final List<ExternalDependency> myExternalToRemove = Lists.newArrayList();
 
   @NotNull private final Set<NewExternalDependency> myNewExternal = Sets.newLinkedHashSet();
 
@@ -57,7 +59,10 @@ public class Dependencies extends GradleDslElement {
   protected void apply() {
     applyChanges(myExternal);
     applyChanges(myToModules);
+    removeExternalDependencies();
     applyNewExternalDependencies();
+    myExternalToRemove.clear();
+    myNewExternal.clear();
   }
 
   private static void applyChanges(@NotNull List<? extends Dependency> dependencies) {
@@ -66,11 +71,16 @@ public class Dependencies extends GradleDslElement {
     }
   }
 
+  private void removeExternalDependencies() {
+    for (ExternalDependency dependency : myExternalToRemove) {
+      dependency.removeFromParent();
+    }
+  }
+
   private void applyNewExternalDependencies() {
     for (NewExternalDependency dependency : myNewExternal) {
       applyChanges(dependency);
     }
-    removeNewDependencies();
   }
 
   private void applyChanges(@NotNull NewExternalDependency dependency) {
@@ -80,7 +90,7 @@ public class Dependencies extends GradleDslElement {
     String compactNotation = dependency.getCompactNotation();
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(myPsiFile.getProject());
-    if (myPsiElement == null) {
+    if (myClosureBlock == null) {
       // There are no dependency blocks. Add one.
       // We need to add line separators, otherwise reformatting won't work.
       String lineSeparator = SystemProperties.getLineSeparator();
@@ -90,12 +100,12 @@ public class Dependencies extends GradleDslElement {
       PsiElement added = myPsiFile.add(expression);
       assert added instanceof GrMethodCallExpression;
       parse((GrMethodCallExpression)added);
-      CodeStyleManager.getInstance(myPsiFile.getProject()).reformat(myPsiElement);
+      CodeStyleManager.getInstance(myPsiFile.getProject()).reformat(myClosureBlock);
       return;
     }
 
     GrStatement statement = factory.createStatementFromText(configurationName + " '" + compactNotation + "'");
-    GrStatement added = myPsiElement.addStatementBefore(statement, null);
+    GrStatement added = myClosureBlock.addStatementBefore(statement, null);
     assert added instanceof GrApplicationStatement;
     List<Dependency> dependencies = Dependency.parse(this, (GrApplicationStatement)added);
     add(dependencies);
@@ -118,12 +128,23 @@ public class Dependencies extends GradleDslElement {
     setModified(true);
   }
 
+  public void remove(@NotNull ExternalDependency dependency) {
+    boolean removed = myExternal.remove(dependency);
+    if (!removed) {
+      String msg =
+        String.format("Dependency '%1$s' cannot be removed because it does not belong to this model", dependency.compactNotation());
+      throw new IllegalArgumentException(msg);
+    }
+    myExternalToRemove.add(dependency);
+    setModified(true);
+  }
+
   public boolean parse(@NotNull GrMethodCallExpression methodCallExpression) {
-    myPsiElement = findClosableBlock(methodCallExpression, "dependencies");
-    if (myPsiElement == null) {
+    myClosureBlock = findClosableBlock(methodCallExpression, "dependencies");
+    if (myClosureBlock == null) {
       return false;
     }
-    GrMethodCall[] methodCalls = getChildrenOfType(myPsiElement, GrMethodCall.class);
+    GrMethodCall[] methodCalls = getChildrenOfType(myClosureBlock, GrMethodCall.class);
     if (methodCalls == null) {
       return false;
     }
@@ -153,7 +174,8 @@ public class Dependencies extends GradleDslElement {
   protected void reset() {
     reset(myExternal);
     reset(myToModules);
-    removeNewDependencies();
+    myExternalToRemove.clear();
+    myNewExternal.clear();
   }
 
   private static void reset(@NotNull List<? extends Dependency> dependencies) {
@@ -162,13 +184,9 @@ public class Dependencies extends GradleDslElement {
     }
   }
 
-  private void removeNewDependencies() {
-    myNewExternal.clear();
-  }
-
   @Nullable
-  public GrClosableBlock getPsiElement() {
-    return myPsiElement;
+  public GrClosableBlock getClosureBlock() {
+    return myClosureBlock;
   }
 
   public void setPsiFile(@Nullable PsiFile psiFile) {
