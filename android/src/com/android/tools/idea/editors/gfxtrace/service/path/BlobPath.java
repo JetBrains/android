@@ -47,7 +47,7 @@ public final class BlobPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-60, 26, -87, -85, 107, 79, 27, -8, 33, -121, -36, 37, 106, 23, 79, 111, -56, 26, 97, -41, };
+  private static final byte[] IDBytes = {-112, -63, -73, -64, -89, 30, 99, 74, 23, 74, -75, 13, -61, -128, -120, 55, 70, -55, -46, -33, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

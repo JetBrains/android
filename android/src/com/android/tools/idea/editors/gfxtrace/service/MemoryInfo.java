@@ -73,7 +73,7 @@ public final class MemoryInfo implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-48, 81, 77, -64, -21, -12, -69, 109, 70, -6, 62, 2, -108, -124, -52, -97, -126, -55, -60, -98, };
+  private static final byte[] IDBytes = {55, 126, 85, 57, -49, 123, 112, 32, 9, -64, -53, 64, -5, -34, -42, -50, -27, -2, -103, 118, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

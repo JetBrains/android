@@ -132,7 +132,7 @@ public final class Device implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {84, -10, -113, 92, -52, -27, 30, 94, 58, -91, -106, -87, -57, 96, 3, 81, 103, 56, 79, 81, };
+  private static final byte[] IDBytes = {102, 121, 100, 116, 48, 91, 34, -50, 12, -48, 20, 5, -22, -48, -8, 84, -92, -111, -50, 11, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

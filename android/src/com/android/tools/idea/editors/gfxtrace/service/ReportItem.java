@@ -63,7 +63,7 @@ public final class ReportItem implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-118, -78, 20, 111, 64, -80, 11, 16, -87, 2, -5, -95, 118, 26, -23, -41, -100, 98, 64, -109, };
+  private static final byte[] IDBytes = {-125, 113, -54, -109, 87, -75, 71, -9, 74, -23, -57, 87, -65, -83, 13, 8, -35, -89, -67, 9, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

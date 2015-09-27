@@ -54,7 +54,7 @@ final class CallSet implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-73, -128, 20, -31, -124, -79, 9, -78, -1, 126, -122, -72, 113, 53, -50, -49, -94, -91, 13, -7, };
+  private static final byte[] IDBytes = {77, -116, -43, -43, 14, 3, -90, 102, 1, -97, -103, -28, -63, 36, -103, -89, 68, 91, -28, 16, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

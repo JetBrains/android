@@ -43,7 +43,7 @@ final class ResultGetFramebufferColor implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-62, 33, 54, -15, -11, -39, 79, 99, 81, 121, -102, -63, -78, 47, 12, -28, 82, 80, -14, -84, };
+  private static final byte[] IDBytes = {-69, 33, -55, 94, -42, -125, 4, 57, 115, 99, -21, 90, -51, 38, 14, -74, 92, 69, 57, -1, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

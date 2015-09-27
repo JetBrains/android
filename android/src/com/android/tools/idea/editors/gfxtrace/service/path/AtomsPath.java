@@ -51,7 +51,7 @@ public final class AtomsPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {23, 107, 124, 8, -62, 54, 44, -29, 27, 23, -43, 58, 10, -104, 91, 118, -59, 29, 1, -89, };
+  private static final byte[] IDBytes = {-115, 14, -27, 70, 73, -14, 25, 34, -53, -48, 38, 57, -111, 79, -89, 56, -44, 106, -60, 6, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

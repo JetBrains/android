@@ -42,7 +42,7 @@ final class ResultGetSchema implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-48, 84, -79, 88, 35, -41, 13, 43, 101, -18, -52, 42, -72, 18, 39, 108, -113, -51, 117, -118, };
+  private static final byte[] IDBytes = {-53, 23, 123, 80, 46, 69, 25, -68, -45, -99, -88, -113, 24, 6, -62, -99, 101, -72, 44, -91, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
