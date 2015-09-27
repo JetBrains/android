@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependencyTest.ExpectedExternalDependency;
+import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
@@ -98,8 +98,8 @@ public class AddGradleDependencyTest extends GuiTestCase {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     GradleBuildModelFixture library3BuildModel = myProjectFrame.parseBuildFileForModule("library3", false);
-    ExpectedExternalDependency guava = new ExpectedExternalDependency(COMPILE, "com.google.guava", "guava", "18.0");
-    library3BuildModel.getTarget().dependencies().add(guava);
+    ExternalDependencySpec guava = new ExternalDependencySpec("com.google.guava", "guava", "18.0");
+    library3BuildModel.getTarget().dependencies().add(COMPILE, guava);
     library3BuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -115,7 +115,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
-    appBuildModel.requireDependency(guava);
+    appBuildModel.requireDependency(COMPILE, guava);
 
     verifyUndo(editor, 1);
   }
@@ -125,8 +125,8 @@ public class AddGradleDependencyTest extends GuiTestCase {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
-    ExpectedExternalDependency guava = new ExpectedExternalDependency(COMPILE, "com.google.guava", "guava", "18.0");
-    appBuildModel.getTarget().dependencies().add(guava);
+    ExternalDependencySpec guava = new ExternalDependencySpec("com.google.guava", "guava", "18.0");
+    appBuildModel.getTarget().dependencies().add(COMPILE, guava);
     appBuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -195,8 +195,8 @@ public class AddGradleDependencyTest extends GuiTestCase {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
-    ExpectedExternalDependency expected = new ExpectedExternalDependency(TEST_COMPILE, "junit", "junit", "4.12");
-    appBuildModel.requireDependency(expected);
+    ExternalDependencySpec expected = new ExternalDependencySpec("junit", "junit", "4.12");
+    appBuildModel.requireDependency(TEST_COMPILE, expected);
 
     verifyUndo(editor, 6);
   }
@@ -218,8 +218,8 @@ public class AddGradleDependencyTest extends GuiTestCase {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
-    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "org.jetbrains", "annotations", "13.0");
-    appBuildModel.requireDependency(expected);
+    ExternalDependencySpec expected = new ExternalDependencySpec("org.jetbrains", "annotations", "13.0");
+    appBuildModel.requireDependency(COMPILE, expected);
 
     editor.invokeAction(UNDO); // Undo the import statement first
     verifyUndo(editor, 1);
