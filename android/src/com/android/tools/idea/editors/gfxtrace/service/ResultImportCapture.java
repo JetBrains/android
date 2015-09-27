@@ -43,7 +43,7 @@ final class ResultImportCapture implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {97, -59, -121, -88, -33, -56, 43, -91, -12, 99, -4, 2, 80, -3, 14, 97, 49, -94, -113, -18, };
+  private static final byte[] IDBytes = {-79, -104, -90, -14, 2, -20, -104, 77, -79, -101, -43, 41, 112, -29, -66, -22, 8, 106, 86, -6, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

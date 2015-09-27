@@ -32,7 +32,7 @@ final class CallGetCaptures implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-80, 47, 61, -91, -123, -107, -12, 33, 32, 118, -88, -90, 90, 83, -97, -4, -40, 16, -37, 21, };
+  private static final byte[] IDBytes = {65, 13, 45, 105, 78, 12, -55, -71, 45, -18, -99, 119, -54, 6, -9, -125, -47, 115, 32, 44, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

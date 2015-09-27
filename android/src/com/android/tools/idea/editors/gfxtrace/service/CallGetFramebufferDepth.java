@@ -54,7 +54,7 @@ final class CallGetFramebufferDepth implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-106, 38, -72, 36, 57, 91, -60, 83, -44, -3, 13, -93, 84, -68, -6, 120, -81, -46, -10, -99, };
+  private static final byte[] IDBytes = {-2, -75, -10, -37, 95, -83, -19, -20, 87, 105, -65, -49, 85, 33, -83, -104, -2, -3, 92, -126, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

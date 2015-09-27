@@ -58,7 +58,7 @@ public final class MemoryRange implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {77, 8, 67, -77, -73, 125, -116, 123, 95, 127, 84, -73, 123, -93, -42, 85, 119, 1, 82, 44, };
+  private static final byte[] IDBytes = {-5, 63, -1, -116, 45, -60, 123, -32, -17, -30, -107, 87, -82, 72, 98, -124, -78, -104, -10, -42, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

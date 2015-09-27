@@ -64,7 +64,7 @@ public final class AsPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-65, 54, -6, -105, -102, 24, -107, -111, 31, -5, -113, 48, -83, -5, -68, 102, -125, -70, 77, 124, };
+  private static final byte[] IDBytes = {-23, 4, -70, -75, 13, -116, -128, 118, 7, 53, -5, 79, -22, -92, -46, 80, -101, -106, 24, -124, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

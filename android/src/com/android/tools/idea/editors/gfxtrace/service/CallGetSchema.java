@@ -32,7 +32,7 @@ final class CallGetSchema implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {95, -3, -103, -60, 24, 54, -102, 63, -56, 105, -24, -48, -12, -6, 22, -60, -4, -22, 12, -62, };
+  private static final byte[] IDBytes = {34, 33, -4, -36, -52, 123, -127, 2, 125, 109, 83, 19, 22, 127, -46, 98, 97, -8, -96, -45, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

@@ -58,7 +58,7 @@ public final class MemoryPointer implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {50, -111, 32, 44, 113, 28, -103, -45, -34, -83, -42, -85, -84, 103, 120, -83, -3, -75, 5, -7, };
+  private static final byte[] IDBytes = {-86, 71, 47, -27, -57, 21, -66, -8, -13, 99, 90, 92, 86, -57, 35, 102, -73, -123, -124, 89, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

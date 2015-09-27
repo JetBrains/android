@@ -62,7 +62,7 @@ public final class Capture implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {83, -125, -36, 55, 30, 38, -97, -71, -55, -8, 111, 75, 66, 59, -51, -68, 1, -125, 118, -30, };
+  private static final byte[] IDBytes = {11, -118, 68, -40, 99, 119, 42, -39, -30, 23, 42, 93, 18, -43, -67, -89, -27, -126, -70, 109, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

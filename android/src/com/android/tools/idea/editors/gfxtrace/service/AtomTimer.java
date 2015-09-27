@@ -52,7 +52,7 @@ public final class AtomTimer implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-37, 67, 42, 88, -108, -73, 49, 99, -78, -2, 2, -9, 35, -51, -18, -87, 36, 106, -49, -74, };
+  private static final byte[] IDBytes = {43, -45, -87, -128, -86, 114, -122, -20, 1, 65, 77, -76, 68, -111, 76, -30, 94, 80, 14, 65, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
