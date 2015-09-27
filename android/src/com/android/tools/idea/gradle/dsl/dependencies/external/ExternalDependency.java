@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.dependencies.external;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependency;
+import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.google.common.base.Joiner;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -36,8 +37,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrM
 
 import java.util.Collections;
 import java.util.List;
-
-import static com.google.common.base.Strings.emptyToNull;
 
 /**
  * A Gradle external dependency. There are two notations supported for declaring a dependency on an external module. One is a string
@@ -57,14 +56,14 @@ import static com.google.common.base.Strings.emptyToNull;
  * </ol>
  */
 public abstract class ExternalDependency extends Dependency {
-  @NotNull protected final Spec mySpec;
+  @NotNull protected final ExternalDependencySpec mySpec;
 
   @Nullable private String myNewVersion;
 
   protected ExternalDependency(@NotNull Dependencies parent,
                                @NotNull GrMethodCall methodCall,
                                @NotNull String configurationName,
-                               @NotNull Spec spec) {
+                               @NotNull ExternalDependencySpec spec) {
     super(parent, methodCall, configurationName);
     mySpec = spec;
   }
@@ -104,6 +103,12 @@ public abstract class ExternalDependency extends Dependency {
     return mySpec.toString();
   }
 
+  @VisibleForTesting
+  @NotNull
+  public ExternalDependencySpec spec() {
+    return mySpec;
+  }
+
   @Override
   protected void apply() {
     applyVersionChange();
@@ -122,58 +127,6 @@ public abstract class ExternalDependency extends Dependency {
   @Override
   protected void reset() {
     myNewVersion = null;
-  }
-
-  protected static class Spec {
-    @NotNull public String name;
-
-    @Nullable public String group;
-    @Nullable public String version;
-    @Nullable public String classifier;
-    @Nullable public String extension;
-
-    public Spec(@NotNull String name,
-                @Nullable String group,
-                @Nullable String version,
-                @Nullable String classifier,
-                @Nullable String extension) {
-      this.name = name;
-      this.group = emptyToNull(group);
-      this.version = emptyToNull(version);
-      this.classifier = emptyToNull(classifier);
-      this.extension = emptyToNull(extension);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      Spec that = (Spec)o;
-      return Objects.equal(name, that.name) &&
-             Objects.equal(group, that.group) &&
-             Objects.equal(version, that.version) &&
-             Objects.equal(classifier, that.classifier) &&
-             Objects.equal(extension, that.extension);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(name, group, version, classifier, extension);
-    }
-
-    @Override
-    public String toString() {
-      List<String> segments = Lists.newArrayList(group, name, version, classifier);
-      String s = Joiner.on(':').skipNulls().join(segments);
-      if (extension != null) {
-        s += "@" + extension;
-      }
-      return s;
-    }
   }
 
   /**

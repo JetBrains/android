@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.dependencies.external;
 
-import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency.Spec;
+import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
@@ -33,9 +33,9 @@ import static org.junit.Assert.assertEquals;
 @RunWith(Parameterized.class)
 public class CompactNotationTest {
   @NotNull private String myNotationValue;
-  @Nullable private Spec myDependencySpec;
+  @Nullable private ExternalDependencySpec myDependencySpec;
 
-  public CompactNotationTest(@NotNull String notationValue, @Nullable Spec dependencySpec) {
+  public CompactNotationTest(@NotNull String notationValue, @Nullable ExternalDependencySpec dependencySpec) {
     myNotationValue = notationValue;
     myDependencySpec = dependencySpec;
   }
@@ -44,18 +44,18 @@ public class CompactNotationTest {
   public static Collection<Object[]> parameters() {
     return Arrays.asList(new Object[][]{
       {"org.gradle.test.classifiers:service:1.0:jdk15@jar",
-        new Spec("service", "org.gradle.test.classifiers", "1.0", "jdk15", "jar")},
+        new ExternalDependencySpec("service", "org.gradle.test.classifiers", "1.0", "jdk15", "jar")},
 
-      {"org.groovy:groovy:2.2.0@jar", new Spec("groovy", "org.groovy", "2.2.0", null, "jar")},
-      {"org.mockito:mockito:1.9.0-rc1", new Spec("mockito", "org.mockito", "1.9.0-rc1", null, null)},
-      {"org.hibernate:hibernate:3.1", new Spec("hibernate", "org.hibernate", "3.1", null, null)},
+      {"org.groovy:groovy:2.2.0@jar", new ExternalDependencySpec("groovy", "org.groovy", "2.2.0", null, "jar")},
+      {"org.mockito:mockito:1.9.0-rc1", new ExternalDependencySpec("mockito", "org.mockito", "1.9.0-rc1", null, null)},
+      {"org.hibernate:hibernate:3.1", new ExternalDependencySpec("hibernate", "org.hibernate", "3.1", null, null)},
       {"", null}
     });
   }
 
   @Test
   public void parseCompactNotation() {
-    Spec spec = CompactNotation.parse(myNotationValue);
+    ExternalDependencySpec spec = CompactNotation.parse(myNotationValue);
     assertEquals(myDependencySpec, spec);
     if (spec != null) {
       assertEquals(myNotationValue, spec.toString());
