@@ -18,10 +18,18 @@ package com.android.tools.idea.gradle.dsl.dependencies.external;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.Map;
@@ -36,8 +44,14 @@ final class MapNotation extends ExternalDependency {
 
   @NotNull private final Map<String, GrLiteral> myValueLiteralsByName;
 
+  @Nullable private final GrListOrMap myListOrMap;
+
   @Nullable
-  static MapNotation parse(@NotNull Dependencies parent, @NotNull String configurationName, @NotNull GrNamedArgument[] namedArguments) {
+  static MapNotation parse(@NotNull Dependencies parent,
+                           @NotNull GrMethodCall methodCall,
+                           @NotNull String configurationName,
+                           @NotNull GrNamedArgument[] namedArguments,
+                           @Nullable GrListOrMap listOrMap) {
     Map<String, GrLiteral> valueLiteralsByName = Maps.newHashMap();
     Map<String, String> valuesByName = Maps.newHashMap();
     for (GrNamedArgument argument : namedArguments) {
@@ -50,7 +64,7 @@ final class MapNotation extends ExternalDependency {
     }
     Spec spec = parse(valuesByName);
     if (spec != null) {
-      return new MapNotation(parent, configurationName, spec, valueLiteralsByName);
+      return new MapNotation(parent, methodCall, configurationName, spec, valueLiteralsByName, listOrMap);
     }
     return null;
 
@@ -68,11 +82,14 @@ final class MapNotation extends ExternalDependency {
   }
 
   private MapNotation(@NotNull Dependencies parent,
+                      @NotNull GrMethodCall methodCall,
                       @NotNull String configurationName,
                       @NotNull Spec spec,
-                      @NotNull Map<String, GrLiteral> valueLiteralsByName) {
-    super(parent, configurationName, spec);
+                      @NotNull Map<String, GrLiteral> valueLiteralsByName,
+                      @Nullable GrListOrMap listOrMap) {
+    super(parent, methodCall, configurationName, spec);
     myValueLiteralsByName = valueLiteralsByName;
+    myListOrMap = listOrMap;
   }
 
   @Override
@@ -84,5 +101,16 @@ final class MapNotation extends ExternalDependency {
       myValueLiteralsByName.put(VERSION_PROPERTY, newLiteral);
     }
     // TODO handle case where 'version' property is not defined, and needs to be added.
+  }
+
+  @Override
+  protected void removeFromParent() {
+    GrClosableBlock closureBlock = getParent().getClosureBlock();
+    assert closureBlock != null;
+
+    if (myListOrMap != null && removeArgumentIfMoreThanOne(myListOrMap)) {
+      return;
+    }
+    closureBlock.removeElements(new PsiElement[] {getMethodCall()});
   }
 }
