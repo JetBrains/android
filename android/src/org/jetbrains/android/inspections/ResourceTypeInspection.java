@@ -2245,7 +2245,12 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       PsiType paramType = parameter.getType();
       // This is where we diverge from ExceptionUtil:
       //if (paramType.isAssignableFrom(exceptionType)) return true;
-      if (paramType.equals(exceptionType)) return true;
+      if (paramType instanceof PsiDisjunctionType) {
+        for (PsiType multiCatchType : ((PsiDisjunctionType)paramType).getDisjunctions()) {
+          if (multiCatchType.equals(exceptionType)) return true;
+        }
+      }
+      else if (paramType.equals(exceptionType)) return true;
     }
 
     return false;
