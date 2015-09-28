@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.gfxtrace;
 
 import com.android.ddmlib.*;
 import com.android.tools.chartlib.EventData;
-import com.android.tools.idea.monitor.render.RenderMonitorView;
+import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
@@ -122,7 +122,7 @@ public class GfxTracer {
   }
 
   private void relaunchAndCapture(String pkg, String pid, String abi, @NotNull Options options) {
-    EventData.Event event = myEvents.start(System.currentTimeMillis(), RenderMonitorView.EVENT_LAUNCH);
+    EventData.Event event = myEvents.start(System.currentTimeMillis(), GpuMonitorView.EVENT_LAUNCH);
     try {
       final File myGapii = findTraceLibrary(abi);
       // Find out the full activity name from the package name
@@ -258,7 +258,7 @@ public class GfxTracer {
         len = copyBlock(socket, myCapture, buffer);
         if (len > 0) {
           if (event == null) {
-            event = myEvents.start(System.currentTimeMillis(), RenderMonitorView.EVENT_TRACING);
+            event = myEvents.start(System.currentTimeMillis(), GpuMonitorView.EVENT_TRACING);
           }
           total += len;
         }

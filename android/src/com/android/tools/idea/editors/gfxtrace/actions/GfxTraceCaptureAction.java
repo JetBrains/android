@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.actions;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.editors.gfxtrace.GfxTracer;
-import com.android.tools.idea.monitor.render.RenderMonitorView;
+import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
@@ -29,11 +29,11 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public abstract class GfxTraceCaptureAction extends ToggleAction {
-  @NotNull protected final RenderMonitorView myView;
+  @NotNull protected final GpuMonitorView myView;
   private GfxTracer myActive = null;
 
   public static class Listen extends GfxTraceCaptureAction {
-    public Listen(@NotNull RenderMonitorView view) {
+    public Listen(@NotNull GpuMonitorView view) {
       super(view, "Listen", "Listen for GFX traces", AndroidIcons.Ddms.StartMethodProfiling);
     }
 
@@ -54,7 +54,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
   }
 
   public static class Relaunch extends GfxTraceCaptureAction {
-    public Relaunch(@NotNull RenderMonitorView view) {
+    public Relaunch(@NotNull GpuMonitorView view) {
       super(view, "Launch", "Launch in GFX trace mode", AndroidIcons.Ddms.Threads);
     }
 
@@ -74,7 +74,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
     }
   }
 
-  public GfxTraceCaptureAction(@NotNull RenderMonitorView view,
+  public GfxTraceCaptureAction(@NotNull GpuMonitorView view,
                                @Nullable final String text,
                                @Nullable final String description,
                                @Nullable final Icon icon) {
