@@ -47,8 +47,7 @@ public class MainController extends Controller {
     myPanel.add(threePanes, BorderLayout.CENTER);
     threePanes.setDividerWidth(5);
 
-    // Add the toolbar for the device selection.
-    myPanel.add(ContextController.createUI(editor), BorderLayout.NORTH);
+    ContextController.loadReplayDevice(editor);
 
     // Add the scrubber view to the top panel.
     threePanes.setFirstComponent(ScrubberController.createUI(editor));
