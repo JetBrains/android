@@ -33,4 +33,8 @@ public abstract class CaptureEditor extends UserDataHolderBase implements FileEd
   @NotNull
   public abstract AnalysisReport performAnalysis(@NotNull Set<? extends AnalyzerTask> tasks,
                                                  @NotNull Set<AnalysisReport.Listener> listeners);
+
+  public final CapturePanel getCapturePanel() {
+    return myPanel;
+  }
 }
