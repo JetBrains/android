@@ -278,12 +278,11 @@ public class GradleInvoker {
     if (androidFacet != null) {
       JpsAndroidModuleProperties properties = androidFacet.getProperties();
 
-      // Make sure all the generated sources, unpacked aars and mockable jars are in place. They are usually up to date, since we
-      // generate them at sync time, so Gradle will just skip those tasks. The generated files can be missing if this is a "Rebuild
-      // Project" run or if the user cleaned the project from the command line. The mockable jar is necessary to run unit tests, but the
-      // compilation tasks don't depend on it, so we have to call it explicitly.
-      addAfterSyncTasks(tasks, gradlePath, properties);
       switch (buildMode) {
+        case CLEAN: // Intentional fall-through.
+        case SOURCE_GEN:
+          addAfterSyncTasks(tasks, gradlePath, properties);
+          break;
         case ASSEMBLE:
           tasks.add(createBuildTask(gradlePath, properties.ASSEMBLE_TASK_NAME));
 
@@ -292,14 +291,13 @@ public class GradleInvoker {
           }
           break;
         default:
+          addAfterSyncTasks(tasks, gradlePath, properties);
+
           // When compiling for unit tests, run only COMPILE_JAVA_TEST_TASK_NAME, which will run javac over main and test code. If the
           // Jack compiler is enabled in Gradle, COMPILE_JAVA_TASK_NAME will end up running e.g. compileDebugJavaWithJack, which produces
           // no *.class files and would be just a waste of time.
           if (testCompileType != TestCompileType.JAVA_TESTS) {
-            String taskName = properties.COMPILE_JAVA_TASK_NAME;
-            if (isNotEmpty(taskName)) {
-              tasks.add(createBuildTask(gradlePath, taskName));
-            }
+            addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TASK_NAME);
           }
           addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TEST_TASK_NAME);
           break;
@@ -320,6 +318,10 @@ public class GradleInvoker {
   }
 
   private static void addAfterSyncTasks(@NotNull List<String> tasks, String gradlePath, JpsAndroidModuleProperties properties) {
+    // Make sure all the generated sources, unpacked aars and mockable jars are in place. They are usually up to date, since we
+    // generate them at sync time, so Gradle will just skip those tasks. The generated files can be missing if this is a "Rebuild
+    // Project" run or if the user cleaned the project from the command line. The mockable jar is necessary to run unit tests, but the
+    // compilation tasks don't depend on it, so we have to call it explicitly.
     for (String taskName : properties.AFTER_SYNC_TASK_NAMES) {
       addTaskIfSpecified(tasks, gradlePath, taskName);
     }
