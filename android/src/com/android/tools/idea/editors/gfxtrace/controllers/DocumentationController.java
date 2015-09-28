@@ -116,7 +116,7 @@ public class DocumentationController extends Controller {
   }
 
   @Override
-  public void notifyPath(Path path) {
+  public void notifyPath(PathEvent event) {
     // TODO: detect paths that have associated documentation...
   }
 }
