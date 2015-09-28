@@ -22,6 +22,7 @@ import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -126,6 +127,18 @@ abstract class AndroidDomTest extends AndroidTestCase {
     VirtualFile file = copyFileToProject(fileBefore);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResultByFile(testFolder + '/' + fileAfter);
+  }
+
+  /**
+   * Variant of {@link #toTestCompletion(String, String)} that chooses the first completion variant
+   * when several possibilities are available.
+   */
+  protected void toTestFirstCompletion(@NotNull String fileBefore, @NotNull String fileAfter) throws Throwable {
+    VirtualFile file = copyFileToProject(fileBefore);
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type('\n');
     myFixture.checkResultByFile(testFolder + '/' + fileAfter);
   }
 
