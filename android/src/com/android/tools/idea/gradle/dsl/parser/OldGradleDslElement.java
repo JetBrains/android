@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import com.android.tools.idea.gradle.dsl.GradleDslElement;
+
 /**
  * @deprecated Use {@link GradleDslElement} instead.
  */
