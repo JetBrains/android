@@ -35,10 +35,10 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-public class FMGetApplicationThemeMethod implements TemplateMethodModelEx {
+public class FmGetApplicationThemeMethod implements TemplateMethodModelEx {
   private final Map<String, Object> myParamMap;
 
-  public FMGetApplicationThemeMethod(Map<String, Object> paramMap) {
+  public FmGetApplicationThemeMethod(Map<String, Object> paramMap) {
     myParamMap = paramMap;
   }
 
