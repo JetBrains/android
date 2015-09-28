@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-public class HprofViewPanel implements Disposable {
+public class HprofView implements Disposable {
   public static final String TOOLBAR_NAME = "HprofActionToolbar";
 
   private static final int DIVIDER_WIDTH = 4;
@@ -45,7 +45,7 @@ public class HprofViewPanel implements Disposable {
   private Snapshot mySnapshot;
   @SuppressWarnings("NullableProblems") @NotNull private SelectionModel mySelectionModel;
 
-  public HprofViewPanel(@NotNull final Project project, @NotNull HprofEditor editor, @NotNull Snapshot snapshot) {
+  public HprofView(@NotNull Project project, @NotNull HprofEditor editor, @NotNull Snapshot snapshot) {
     JBPanel treePanel = new JBPanel(new BorderLayout());
     treePanel.setBackground(JBColor.background());
 
