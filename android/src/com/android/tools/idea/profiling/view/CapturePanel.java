@@ -143,4 +143,9 @@ public class CapturePanel extends JPanel implements DesignerEditorPanelFacade {
     assert myResultsDelegate != null;
     return myResultsDelegate;
   }
+
+  @NotNull
+  public CaptureEditor getEditor() {
+    return myEditor;
+  }
 }

@@ -50,10 +50,10 @@ import java.util.Set;
  * helps to preserve selection state of the components.
  */
 public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer implements Disposable {
-  @NotNull private CapturePanel myCapturePanel;
+  @NotNull protected CapturePanel myCapturePanel;
   @NotNull private ThreeComponentsSplitter mySplitter;
   @NotNull private JPanel myTaskPanel;
-  @NotNull private Tree myResultsTree;
+  @NotNull protected Tree myResultsTree;
   @NotNull private JTextPane myResultExplanationArea;
 
   @NotNull private Set<AnalyzerTask> myEnabledTasks = new HashSet<AnalyzerTask>();
