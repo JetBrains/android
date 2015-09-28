@@ -422,6 +422,20 @@ public class AndroidUtils {
     return relativePath.substring(index + 1);
   }
 
+  /**
+   * Return a suffix of passed string after the last dot, if at least one dot is present and
+   * resulting suffix is non-empty.
+   */
+  @Nullable
+  public static String getUnqualifiedName(@NotNull String qualifiedName) {
+    int start = qualifiedName.lastIndexOf('.');
+    if (start == -1 || start + 1 == qualifiedName.length()) {
+      return null;
+    }
+
+    return qualifiedName.substring(start + 1);
+  }
+
   public static void printMessageToConsole(@NotNull Project project, @NotNull String s, @NotNull ConsoleViewContentType contentType) {
     final ConsoleView consoleView = project.getUserData(CONSOLE_VIEW_KEY);
 
