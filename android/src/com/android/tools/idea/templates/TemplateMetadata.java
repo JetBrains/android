@@ -286,7 +286,7 @@ public class TemplateMetadata {
 
   public boolean useImplicitRootFolder() {
     String format = myDocument.getDocumentElement().getAttribute(ATTR_FORMAT);
-    if (format == null) {
+    if (format == null || format.isEmpty()) {
       // If no format is specified, assume this is an old format:
       return true;
     }
