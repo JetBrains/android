@@ -97,7 +97,7 @@ public class ContextController extends Controller {
                   myDevices[i] = new DeviceEntry(paths[i], devices.get(i));
                 }
                 if (paths.length > 0 && mySelectedDevice.update(paths[0]) && mySelectedDevice.getPath() != null) {
-                  myEditor.activatePath(mySelectedDevice.getPath());
+                  myEditor.activatePath(mySelectedDevice.getPath(), ContextController.this);
                 }
               }
             });
@@ -120,7 +120,7 @@ public class ContextController extends Controller {
               @Override
               public void actionPerformed(AnActionEvent e) {
                 if (mySelectedDevice.update(device.myPath) && mySelectedDevice.getPath() != null) {
-                  myEditor.activatePath(mySelectedDevice.getPath());
+                  myEditor.activatePath(mySelectedDevice.getPath(), ContextController.this);
                 }
               }
             });
@@ -166,9 +166,9 @@ public class ContextController extends Controller {
   }
 
   @Override
-  public void notifyPath(Path path) {
-    if (path instanceof DevicePath) {
-      if (mySelectedDevice.update((DevicePath)path)) {
+  public void notifyPath(PathEvent event) {
+    if (event.path instanceof DevicePath) {
+      if (mySelectedDevice.update((DevicePath)event.path)) {
         if (myDevices != null) {
           for (DeviceEntry myDevice : myDevices) {
             if (mySelectedDevice.is(myDevice.myPath)) {
