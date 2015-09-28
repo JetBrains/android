@@ -186,9 +186,9 @@ public class ThemeEditorUtils {
       }
     }
 
-    Multimap<String, ConfiguredElement<ItemResourceValue>> configuredValues = style.getConfiguredValues();
-    for (Map.Entry<String, ConfiguredElement<ItemResourceValue>> entry : configuredValues.entries()) {
-      attributeConfigurations.put(entry.getKey(), entry.getValue().getConfiguration());
+    Collection<ConfiguredElement<ItemResourceValue>> configuredValues = style.getConfiguredValues();
+    for (ConfiguredElement<ItemResourceValue> value : configuredValues) {
+      attributeConfigurations.put(ResolutionUtils.getQualifiedItemName(value.getElement()), value.getConfiguration());
     }
   }
 
