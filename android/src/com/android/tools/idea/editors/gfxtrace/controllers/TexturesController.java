@@ -18,31 +18,38 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
+import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
 import com.android.tools.idea.editors.gfxtrace.service.Resources;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
+import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TexturesController extends CellController<TexturesController.Data> {
+public class TexturesController extends ImageCellController<TexturesController.Data> {
+  private static final Dimension PREVIEW_SIZE = JBUI.size(200, 200);
+
   public static JComponent createUI(GfxTraceEditor editor) {
-    return new TexturesController(editor).myPanel;
+    return new TexturesController(editor).myList;
   }
 
-  public static class Data extends CellController.Data {
+  public static class Data extends ImageCellList.Data {
     @NotNull public final ResourceInfo info;
     @NotNull public final ResourcePath path;
 
-    public Data(@NotNull ResourceInfo info, @NotNull ResourcePath path, @NotNull ImageIcon icon) {
-      super(info.getName(), icon);
+    public Data(@NotNull ResourceInfo info, @NotNull ResourcePath path) {
+      super(info.getName());
       this.info = info;
       this.path = path;
     }
@@ -54,18 +61,18 @@ public class TexturesController extends CellController<TexturesController.Data> 
   @NotNull private Resources myResources;
 
   private TexturesController(@NotNull final GfxTraceEditor editor) {
-    super(editor, Orientation.VERTICAL);
+    super(editor, CellList.Orientation.HORIZONTAL, PREVIEW_SIZE);
   }
 
   @Override
-  void selected(@NotNull Data cell) {
+  public void selected(@NotNull Data cell) {
   }
 
   @Override
-  public boolean loadCell(final Data cell) {
+  public boolean loadCell(Data cell, Runnable onLoad) {
     final ServiceClient client = myEditor.getClient();
-    final ThumbnailPath path = cell.path.thumbnail(myRenderer.getCellDimensions());
-    loadCellImage(cell, client, path);
+    final ThumbnailPath path = cell.path.thumbnail(PREVIEW_SIZE);
+    loadCellImage(cell, client, path, onLoad);
     return true;
   }
 
@@ -78,13 +85,13 @@ public class TexturesController extends CellController<TexturesController.Data> 
         public void run() {
           final List<Data> cells = new ArrayList<Data>();
           for (ResourceInfo info : resources.getTextures()) {
-            cells.add(new Data(info, atomPath.resourceAfter(info.getID()), myRenderer.getDefaultIcon()));
+            cells.add(new Data(info, atomPath.resourceAfter(info.getID())));
           }
           EdtExecutor.INSTANCE.execute(new Runnable() {
             @Override
             public void run() {
               // Back in the UI thread here
-              populateUi(cells);
+              myList.setData(cells);
             }
           });
         }
