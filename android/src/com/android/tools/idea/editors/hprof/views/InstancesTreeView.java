@@ -20,6 +20,7 @@ import com.android.tools.idea.actions.PsiFileAndLineNavigation;
 import com.android.tools.idea.editors.allocations.ColumnTreeBuilder;
 import com.android.tools.idea.editors.hprof.descriptors.*;
 import com.android.tools.perflib.heap.*;
+import com.android.tools.perflib.heap.memoryanalyzer.HprofBitmapProvider;
 import com.intellij.debugger.engine.DebugProcessEvents;
 import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.SuspendContextImpl;
@@ -57,14 +58,16 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class InstancesTreeView implements DataProvider, Disposable {
+public final class InstancesTreeView implements DataProvider, Disposable {
   public static final String TREE_NAME = "HprofInstancesTree";
+  public static final DataKey<ClassInstance> SELECTED_CLASS_INSTANCE = DataKey.create("HprofInstanceTreeView.SelectedClassInstance");
 
   private static final int NODES_PER_EXPANSION = 100;
 
   @NotNull private Project myProject;
   @NotNull private DebuggerTree myDebuggerTree;
   @NotNull private JComponent myColumnTree;
+  @NotNull private SelectionModel mySelectionModel;
 
   @NotNull private DebugProcessImpl myDebugProcess;
   @SuppressWarnings("NullableProblems") @NotNull private volatile SuspendContextImpl myDummySuspendContext;
@@ -74,8 +77,9 @@ public class InstancesTreeView implements DataProvider, Disposable {
   @Nullable private Comparator<DebuggerTreeNodeImpl> myComparator;
   @NotNull private SortOrder mySortOrder = SortOrder.UNSORTED;
 
-  public InstancesTreeView(@NotNull Project project, @NotNull final SelectionModel selectionModel) {
+  public InstancesTreeView(@NotNull Project project, @NotNull SelectionModel selectionModel) {
     myProject = project;
+    mySelectionModel = selectionModel;
 
     myDebuggerTree = new DebuggerTree(project) {
       @Override
@@ -95,7 +99,7 @@ public class InstancesTreeView implements DataProvider, Disposable {
     Disposer.register(myProject, this);
     Disposer.register(this, myDebuggerTree);
 
-    myHeap = selectionModel.getHeap();
+    myHeap = mySelectionModel.getHeap();
     myDebugProcess = new DebugProcessEvents(project);
     final SuspendManagerImpl suspendManager = new SuspendManagerImpl(myDebugProcess);
     myDebugProcess.getManagerThread().invokeAndWait(new DebuggerCommandImpl() {
@@ -158,15 +162,20 @@ public class InstancesTreeView implements DataProvider, Disposable {
     myDebuggerTree.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this);
     JBList contextActionList = new JBList(new EditMultipleSourcesAction());
     JBPopupFactory.getInstance().createListPopupBuilder(contextActionList);
-    final DefaultActionGroup popupGroup = new DefaultActionGroup(new EditMultipleSourcesAction());
     myDebuggerTree.addMouseListener(new PopupHandler() {
       @Override
       public void invokePopup(Component comp, int x, int y) {
+        DefaultActionGroup popupGroup = new DefaultActionGroup(new EditMultipleSourcesAction());
+        Instance selectedInstance = mySelectionModel.getInstance();
+        if (selectedInstance instanceof ClassInstance && HprofBitmapProvider.canGetBitmapFromInstance(selectedInstance)) {
+          popupGroup.add(new ViewBitmapAction());
+        }
+
         ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, popupGroup).getComponent().show(comp, x, y);
       }
     });
 
-    selectionModel.addListener(new SelectionModel.SelectionListener() {
+    mySelectionModel.addListener(new SelectionModel.SelectionListener() {
       @Override
       public void onHeapChanged(@NotNull Heap heap) {
         if (heap != myHeap) {
@@ -236,8 +245,8 @@ public class InstancesTreeView implements DataProvider, Disposable {
         }
 
         if (singleChild != null) {
-          myDebuggerTree.setSelectionInterval(0, 0);
-          selectionModel.setInstance(singleChild);
+          myDebuggerTree.setSelectionInterval(0 , 0);
+          mySelectionModel.setInstance(singleChild);
         }
       }
     });
@@ -247,15 +256,15 @@ public class InstancesTreeView implements DataProvider, Disposable {
       public void valueChanged(TreeSelectionEvent e) {
         TreePath path = e.getPath();
         if (path == null || path.getPathCount() < 2 || !e.isAddedPath()) {
-          selectionModel.setInstance(null);
+          mySelectionModel.setInstance(null);
           return;
         }
 
         DebuggerTreeNodeImpl instanceNode = (DebuggerTreeNodeImpl)path.getPathComponent(1);
         if (instanceNode.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
           InstanceFieldDescriptorImpl descriptor = (InstanceFieldDescriptorImpl)instanceNode.getDescriptor();
-          if (descriptor.getInstance() != selectionModel.getInstance()) {
-            selectionModel.setInstance(descriptor.getInstance());
+          if (descriptor.getInstance() != mySelectionModel.getInstance()) {
+            mySelectionModel.setInstance(descriptor.getInstance());
           }
         }
 
@@ -465,12 +474,12 @@ public class InstancesTreeView implements DataProvider, Disposable {
 
           sortTree(root);
 
-          selectionModel.setSelectionLocked(true);
+          mySelectionModel.setSelectionLocked(true);
           TreePath selectionPath = myDebuggerTree.getSelectionPath();
           mutableModel.nodeStructureChanged(root);
           myDebuggerTree.setSelectionPath(selectionPath);
           myDebuggerTree.scrollPathToVisible(selectionPath);
-          selectionModel.setSelectionLocked(false);
+          mySelectionModel.setSelectionLocked(false);
         }
       }
     });
@@ -685,6 +694,10 @@ public class InstancesTreeView implements DataProvider, Disposable {
     }
     else if (CommonDataKeys.PROJECT.is(dataId)) {
       return myProject;
+    }
+    else if (SELECTED_CLASS_INSTANCE.is(dataId)){
+      Instance instance = mySelectionModel.getInstance();
+      return instance instanceof ClassInstance ? (ClassInstance)instance : null;
     }
     return null;
   }
