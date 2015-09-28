@@ -1,7 +1,0 @@
-<resources>
-    <style name="Theme.MyTheme">
-        <item name="android:windowIsFloating">myValue</item>
-        <item name="android:actionModeStyle">@null</item>
-        <item name="android:checkedTextViewStyle">@null</item>
-    </style>
-</resources>
