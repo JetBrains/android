@@ -23,14 +23,15 @@ import com.android.tools.idea.npw.AssetStudioAssetGenerator;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
 import static com.android.tools.idea.templates.Template.*;
 
@@ -281,6 +282,22 @@ public class TemplateMetadata {
 
     // Older templates without version specified: supported
     return true;
+  }
+
+  public boolean useImplicitRootFolder() {
+    String format = myDocument.getDocumentElement().getAttribute(ATTR_FORMAT);
+    if (format == null || format.isEmpty()) {
+      // If no format is specified, assume this is an old format:
+      return true;
+    }
+    try {
+      int version = Integer.parseInt(format);
+      return version < Template.RELATIVE_FILES_FORMAT;
+    }
+    catch (NumberFormatException ignore) {
+      // If we cannot parse the format string assume this is an old format:
+      return true;
+    }
   }
 
   /** Returns the list of available parameters */
