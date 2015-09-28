@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser;
+package com.android.tools.idea.gradle.dsl;
 
 import com.android.tools.idea.gradle.dsl.android.AndroidElement;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
 import com.android.tools.idea.gradle.dsl.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.parser.*;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaProjectElementParser;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;

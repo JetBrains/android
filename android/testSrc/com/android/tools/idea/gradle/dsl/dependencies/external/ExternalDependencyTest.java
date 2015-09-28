@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.dependencies.external;
 
 import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
-import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModelParserTestCase;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
