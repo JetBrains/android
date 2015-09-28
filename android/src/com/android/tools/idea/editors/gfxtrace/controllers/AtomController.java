@@ -29,6 +29,7 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.Observation;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.google.common.base.Objects;
 import com.google.common.util.concurrent.Futures;
@@ -46,20 +47,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
+import java.awt.event.*;
 import java.util.Enumeration;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 public class AtomController extends TreeController {
   public static JComponent createUI(GfxTraceEditor editor) {
@@ -124,9 +124,13 @@ public class AtomController extends TreeController {
     }
   }
 
+  @NotNull private RegexFilterComponent mySearchField = new RegexFilterComponent(AtomController.class.getName(), 10, false);
+
   private AtomController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_CAPTURE);
-    myScrollPane.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU Commands"));
+    myPanel.add(mySearchField, BorderLayout.NORTH);
+    myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU Commands"));
+    myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
     myTree.setLargeModel(true); // Set some performance optimizations for large models.
     myTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
@@ -147,6 +151,14 @@ public class AtomController extends TreeController {
           myEditor.activatePath(
             myAtomsPath.getPath().index(memory.index).memoryAfter(PoolID.applicationPool(), memory.observation.getRange()),
             AtomController.this);
+        }
+      }
+    });
+    mySearchField.getTextEditor().addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(KeyEvent evt) {
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+          findNextNode(mySearchField.getPattern());
         }
       }
     });
@@ -335,6 +347,67 @@ public class AtomController extends TreeController {
         }
       }
     };
+  }
+
+  private void findNextNode(Pattern pattern) {
+    DefaultMutableTreeNode start = (DefaultMutableTreeNode)myTree.getLastSelectedPathComponent();
+    if (start == null) {
+      start = (DefaultMutableTreeNode)myTree.getModel().getRoot();
+    }
+    DefaultMutableTreeNode change = findMatchingChild(start, pattern);
+    if (change == null) {
+      DefaultMutableTreeNode node = start;
+      while (change == null && node != null) {
+        change = findMatchingSibling(node, pattern);
+        node = (DefaultMutableTreeNode)node.getParent();
+      }
+    }
+    if (change == null && start != myTree.getModel().getRoot()) {
+      // TODO: this searches the entire tree again.
+      change = findMatchingChild((DefaultMutableTreeNode)myTree.getModel().getRoot(), pattern);
+    }
+    if (change != null) {
+      TreePath path = new TreePath(change.getPath());
+      myTree.setSelectionPath(path);
+      myTree.scrollPathToVisible(path);
+    }
+  }
+
+  private DefaultMutableTreeNode findMatchingChild(DefaultMutableTreeNode node, Pattern pattern) {
+    for (int i = 0; i < node.getChildCount(); i++) {
+      DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
+      if (matches(child, pattern)) {
+        return child;
+      }
+      DefaultMutableTreeNode result = findMatchingChild(child, pattern);
+      if (result != null) {
+        return result;
+      }
+    }
+    return null;
+  }
+
+  private DefaultMutableTreeNode findMatchingSibling(DefaultMutableTreeNode node, Pattern pattern) {
+    DefaultMutableTreeNode sibling = node.getNextSibling();
+    while (sibling != null) {
+      if (matches(sibling, pattern)) {
+        return sibling;
+      }
+      DefaultMutableTreeNode result = findMatchingChild(sibling, pattern);
+      if (result != null) {
+        return result;
+      }
+      sibling = sibling.getNextSibling();
+    }
+    return null;
+  }
+
+  private boolean matches(DefaultMutableTreeNode child, Pattern pattern) {
+    Object node = child.getUserObject();
+    if (node instanceof Node) {
+      return pattern.matcher(((Node)node).atom.getName()).find();
+    }
+    return false;
   }
 
   private static boolean shouldShowPreview(Group group) {
