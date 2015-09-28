@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
+import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency;
 import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependencyTest.ExpectedExternalDependency;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
@@ -39,13 +40,13 @@ public class GradleBuildModelFixture {
     return myTarget;
   }
 
-  public void requireDependency(@NotNull ExpectedExternalDependency expected) {
+  public void requireDependency(@NotNull String configurationName, @NotNull ExternalDependencySpec expected) {
     for (ExternalDependency dependency : myTarget.dependencies().external()) {
-      if (expected.matches(dependency)) {
+      if (configurationName.equals(dependency.configurationName()) && expected.equals(dependency.spec())) {
         return;
       }
     }
-    fail("Failed to find dependency '" + expected.name + "'");
+    fail("Failed to find dependency '" + expected.compactNotation() + "'");
   }
 
   public void requireDependency(@NotNull ExpectedModuleDependency expected) {
