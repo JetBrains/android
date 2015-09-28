@@ -2,7 +2,6 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
@@ -10,13 +9,10 @@ import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.actions.OverrideResourceAction;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.lint.checks.*;
-import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -37,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
@@ -1719,11 +1716,13 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      List<String> suggestions = TypoDetector.getSuggestions(message, RAW);
-      if (suggestions != null && !suggestions.isEmpty()) {
+      TypoDetector.TypoSuggestionInfo info = TypoDetector.getSuggestions(message, RAW);
+      final List<String> suggestions = info.getReplacements();
+      if (!suggestions.isEmpty()) {
         List<AndroidLintQuickFix> fixes = Lists.newArrayListWithExpectedSize(suggestions.size());
+        final String originalPattern = '(' + Pattern.quote(info.getOriginal()) + ')';
         for (String suggestion : suggestions) {
-          fixes.add(new ReplaceStringQuickFix("Replace with \"" + suggestion + "\"", null, suggestion));
+          fixes.add(new ReplaceStringQuickFix("Replace with \"" + suggestion + "\"", originalPattern, suggestion));
         }
         return fixes.toArray(new AndroidLintQuickFix[fixes.size()]);
       }
