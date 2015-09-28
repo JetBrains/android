@@ -111,10 +111,10 @@ public class StateController extends TreeController {
   }
 
   @Override
-  public void notifyPath(Path path) {
+  public void notifyPath(PathEvent event) {
     boolean updateState = false;
-    if (path instanceof AtomPath) {
-      updateState |= myStatePath.update(((AtomPath)path).stateAfter());
+    if (event.path instanceof AtomPath) {
+      updateState |= myStatePath.update(((AtomPath)event.path).stateAfter());
     }
     if (updateState && myStatePath.getPath() != null) {
       Futures.addCallback(myEditor.getClient().get(myStatePath.getPath()), new LoadingCallback<Object>(LOG, myLoadingPanel) {

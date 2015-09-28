@@ -69,7 +69,6 @@ public class AtomController extends TreeController {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
   private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
-  private boolean mDisableActivation = false;
 
   public static class Node {
     public final long index;
@@ -132,21 +131,22 @@ public class AtomController extends TreeController {
     myTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
       public void valueChanged(TreeSelectionEvent treeSelectionEvent) {
-        if (mDisableActivation || myAtomsPath.getPath() == null) return;
+        if (myAtomsPath.getPath() == null) return;
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)myTree.getLastSelectedPathComponent();
         if (node == null || node.getUserObject() == null) return;
         Object object = node.getUserObject();
         if (object instanceof Group) {
-          myEditor.activatePath(myAtomsPath.getPath().index(((Group)object).group.getRange().getLast()));
+          myEditor.activatePath(myAtomsPath.getPath().index(((Group)object).group.getRange().getLast()), AtomController.this);
         }
         else if (object instanceof Node) {
-          myEditor.activatePath(myAtomsPath.getPath().index(((Node)object).index));
+          myEditor.activatePath(myAtomsPath.getPath().index(((Node)object).index), AtomController.this);
         }
         else if (object instanceof Memory) {
           Memory memory = (Memory) object;
-          myEditor.activatePath(myAtomsPath.getPath().index(((Memory)object).index));
+          myEditor.activatePath(myAtomsPath.getPath().index(((Memory)object).index), AtomController.this);
           myEditor.activatePath(
-            myAtomsPath.getPath().index(memory.index).memoryAfter(PoolID.applicationPool(), memory.observation.getRange()));
+            myAtomsPath.getPath().index(memory.index).memoryAfter(PoolID.applicationPool(), memory.observation.getRange()),
+            AtomController.this);
         }
       }
     });
@@ -350,15 +350,9 @@ public class AtomController extends TreeController {
 
   public void selectDeepestVisibleNode(DefaultMutableTreeNode node, TreePath path, long atomIndex) {
     if (node.isLeaf() || !myTree.isExpanded(path)) {
-      try {
-        mDisableActivation = true;
-        myTree.setSelectionPath(path);
-        myTree.scrollPathToVisible(path);
-        return;
-      }
-      finally {
-        mDisableActivation = false;
-      }
+      myTree.setSelectionPath(path);
+      myTree.scrollPathToVisible(path);
+      return;
     }
     // Search through the list for now.
     for (Enumeration it = node.children(); it.hasMoreElements(); ) {
@@ -378,19 +372,19 @@ public class AtomController extends TreeController {
   }
 
   @Override
-  public void notifyPath(Path path) {
+  public void notifyPath(PathEvent event) {
     boolean updateAtoms = false;
-    if (path instanceof CapturePath) {
-      updateAtoms |= myAtomsPath.update(((CapturePath)path).atoms());
+    if (event.path instanceof CapturePath) {
+      updateAtoms |= myAtomsPath.update(((CapturePath)event.path).atoms());
     }
-    if (path instanceof DevicePath) {
-      if (myRenderDevice.update((DevicePath)path)) {
+    if (event.path instanceof DevicePath) {
+      if (myRenderDevice.update((DevicePath)event.path)) {
         // Only the icons would need to be changed.
         myTree.repaint();
       }
     }
-    if (path instanceof AtomPath) {
-      selectDeepestVisibleNode(((AtomPath)path).getIndex());
+    if (event.path instanceof AtomPath && event.source != this) {
+      selectDeepestVisibleNode(((AtomPath)event.path).getIndex());
     }
     if (updateAtoms && myAtomsPath.getPath() != null) {
       myTree.getEmptyText().setText("");
