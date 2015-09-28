@@ -44,10 +44,10 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
     List<ExternalDependency> dependencies = buildModel.getTarget().dependencies().external();
     assertThat(dependencies).hasSize(2);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
     expected.assertMatches(dependencies.get(0));
 
-    expected = new ExpectedExternalDependency(COMPILE, "com.google.guava", "guava", "18.0");
+    expected = new ExpectedExternalDependency(COMPILE, "guava", "com.google.guava", "18.0");
     expected.assertMatches(dependencies.get(1));
   }
 
@@ -61,7 +61,7 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
 
     final ExternalDependency appCompat = dependencies.get(0);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
     expected.assertMatches(appCompat);
 
     appCompat.version("1.2.3");

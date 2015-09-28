@@ -16,17 +16,14 @@
 package com.android.tools.idea.gradle.dsl.dependencies.external;
 
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
+import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
@@ -62,7 +59,7 @@ final class MapNotation extends ExternalDependency {
         valuesByName.put(name, getUnquotedText(literal));
       }
     }
-    Spec spec = parse(valuesByName);
+    ExternalDependencySpec spec = parse(valuesByName);
     if (spec != null) {
       return new MapNotation(parent, methodCall, configurationName, spec, valueLiteralsByName, listOrMap);
     }
@@ -72,10 +69,10 @@ final class MapNotation extends ExternalDependency {
 
   @VisibleForTesting
   @Nullable
-  static Spec parse(@NotNull Map<String, String> valuesByName) {
+  static ExternalDependencySpec parse(@NotNull Map<String, String> valuesByName) {
     String name = valuesByName.get("name");
     if (isNotEmpty(name)) {
-      return new Spec(name, valuesByName.get("group"), valuesByName.get(VERSION_PROPERTY), valuesByName.get("classifier"),
+      return new ExternalDependencySpec(name, valuesByName.get("group"), valuesByName.get(VERSION_PROPERTY), valuesByName.get("classifier"),
                       valuesByName.get("ext"));
     }
     return null;
@@ -84,7 +81,7 @@ final class MapNotation extends ExternalDependency {
   private MapNotation(@NotNull Dependencies parent,
                       @NotNull GrMethodCall methodCall,
                       @NotNull String configurationName,
-                      @NotNull Spec spec,
+                      @NotNull ExternalDependencySpec spec,
                       @NotNull Map<String, GrLiteral> valueLiteralsByName,
                       @Nullable GrListOrMap listOrMap) {
     super(parent, methodCall, configurationName, spec);
