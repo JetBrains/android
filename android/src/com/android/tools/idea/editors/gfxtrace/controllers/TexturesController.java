@@ -93,10 +93,10 @@ public class TexturesController extends CellController<TexturesController.Data> 
   }
 
   @Override
-  public void notifyPath(Path path) {
+  public void notifyPath(PathEvent event) {
     boolean updateIcons = false;
-    if (path instanceof CapturePath) {
-      if (myResourcesPath.update(((CapturePath)path).resources())) {
+    if (event.path instanceof CapturePath) {
+      if (myResourcesPath.update(((CapturePath)event.path).resources())) {
         Futures.addCallback(myEditor.getClient().get(myResourcesPath.getPath()), new LoadingCallback<Resources>(LOG) {
           @Override
           public void onSuccess(@Nullable final Resources resources) {
@@ -112,7 +112,7 @@ public class TexturesController extends CellController<TexturesController.Data> 
         });
       }
     }
-    if ((path instanceof AtomPath) && myAtomPath.update((AtomPath)path)) {
+    if ((event.path instanceof AtomPath) && myAtomPath.update((AtomPath)event.path)) {
       update();
     }
   }

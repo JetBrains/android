@@ -16,5 +16,15 @@
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
 public interface PathListener {
-  void notifyPath(Path path);
+  void notifyPath(PathEvent event);
+
+  class PathEvent {
+    public final Path path;
+    public final Object source;
+
+    public PathEvent(Path path, Object source) {
+      this.path = path;
+      this.source = source;
+    }
+  }
 }

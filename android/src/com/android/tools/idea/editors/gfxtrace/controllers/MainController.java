@@ -92,7 +92,7 @@ public class MainController extends Controller {
   }
 
   @Override
-  public void notifyPath(Path path) {
+  public void notifyPath(PathEvent event) {
   }
 
   @Override
