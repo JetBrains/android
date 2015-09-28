@@ -16,16 +16,13 @@
 package com.android.tools.idea.gradle.dsl.dependencies.external;
 
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
+import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
@@ -46,7 +43,7 @@ final class CompactNotation extends ExternalDependency {
                                @NotNull GrLiteral valueLiteral) {
     String notation = getUnquotedText(valueLiteral);
     if (isNotEmpty(notation)) {
-      Spec spec = parse(notation);
+      ExternalDependencySpec spec = parse(notation);
       if (spec != null) {
         return new CompactNotation(parent, methodCall, configurationName, spec, valueLiteral);
       }
@@ -56,7 +53,7 @@ final class CompactNotation extends ExternalDependency {
 
   @VisibleForTesting
   @Nullable
-  static Spec parse(@NotNull String notation) {
+  static ExternalDependencySpec parse(@NotNull String notation) {
     // Example: org.gradle.test.classifiers:service:1.0:jdk15@jar where
     //   group: org.gradle.test.classifiers
     //   name: service
@@ -104,7 +101,7 @@ final class CompactNotation extends ExternalDependency {
         }
       }
       if (isNotEmpty(name)) {
-        return new Spec(name, group, version, classifier, extension);
+        return new ExternalDependencySpec(name, group, version, classifier, extension);
       }
     }
     return null;
@@ -113,7 +110,7 @@ final class CompactNotation extends ExternalDependency {
   private CompactNotation(@NotNull Dependencies parent,
                           @NotNull GrMethodCall methodCall,
                           @NotNull String configurationName,
-                          @NotNull Spec spec,
+                          @NotNull ExternalDependencySpec spec,
                           @NotNull GrLiteral valueLiteral) {
     super(parent, methodCall, configurationName, spec);
     myValueLiteral = valueLiteral;
