@@ -49,6 +49,17 @@ public class ContextController extends Controller {
     return new ContextController(editor).myToolBar;
   }
 
+  public static void loadReplayDevice(final GfxTraceEditor editor) {
+    Futures.addCallback(editor.getClient().getDevices(), new LoadingCallback<DevicePath[]>(LOG) {
+      @Override
+      public void onSuccess(@Nullable DevicePath[] devices) {
+        if (devices.length >= 1) {
+          editor.activatePath(devices[0]);
+        }
+      }
+    });
+  }
+
   private ContextController(@NotNull GfxTraceEditor editor) {
     super(editor);
     DefaultActionGroup group = new DefaultActionGroup(getContextAction());
