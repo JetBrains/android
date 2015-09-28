@@ -284,7 +284,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
 
     HashSet<String> modifiedFolders = new HashSet<String>(Arrays.asList(answerFolders));
     int valuesFound = 0;
-    for (ConfiguredElement<ItemResourceValue> value : style.getConfiguredValues().values()) {
+    for (ConfiguredElement<ItemResourceValue> value : style.getConfiguredValues()) {
       if (item.equals(value.getElement())) {
         valuesFound++;
         assertTrue(modifiedFolders.contains(value.getConfiguration().getUniqueKey()));
