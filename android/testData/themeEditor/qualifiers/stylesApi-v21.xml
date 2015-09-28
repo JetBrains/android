@@ -1,5 +1,5 @@
 <resources>
-    <style name="Theme.MyTheme">
+    <style name="MyTheme" parent="@android:style/Theme">
         <item name="android:windowIsFloating">true</item>
         <item name="android:actionModeStyle">@null</item>
         <item name="android:checkedTextViewStyle">@null</item>
