@@ -298,7 +298,7 @@ public final class MHandler implements GfxinfoHandler {
         }
 
         String[] timings = line.split(",");
-        if (timings.length == 13) {
+        if (timings.length == 14) {
           try {
             long flags = Long.parseLong(timings[0]);
             long endTime = Long.parseLong(timings[12]);
