@@ -87,6 +87,11 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   @NotNull private Set<String> myExcludedThemes;
   private boolean myIgnore;
 
+  private ThemeChangedListener myThemeChangedListener;
+
+  /**
+   * @param excludedThemes Themes not to be shown in the selection dialog
+   */
   public ThemeSelectionPanel(@NotNull ThemeSelectionDialog dialog,
                              @NotNull Configuration configuration,
                              @NotNull Set<String> excludedThemes) {
@@ -152,6 +157,10 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         }
       }
     });
+  }
+
+  public void setThemeChangedListener(@NotNull ThemeChangedListener themeChangedListener) {
+    myThemeChangedListener = themeChangedListener;
   }
 
   private void setInitialSelection(@Nullable String currentTheme) {
@@ -414,6 +423,12 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   public void valueChanged(ListSelectionEvent listSelectionEvent) {
     if (myIgnore) {
       return;
+    }
+    if (myThemeChangedListener != null) {
+      String themeName = getTheme();
+      if (themeName != null) {
+        myThemeChangedListener.themeChanged(themeName);
+      }
     }
 
     myDialog.checkValidation();
@@ -704,5 +719,13 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
       focus();
       e.consume();
     }
+  }
+
+  public interface ThemeChangedListener {
+    /**
+     * Called when the theme has changed
+     * @param name qualified name of the new theme
+     */
+    void themeChanged(@NotNull String name);
   }
 }
