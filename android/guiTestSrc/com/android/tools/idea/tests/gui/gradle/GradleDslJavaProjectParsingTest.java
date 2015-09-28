@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaProjectElement;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionElement;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;

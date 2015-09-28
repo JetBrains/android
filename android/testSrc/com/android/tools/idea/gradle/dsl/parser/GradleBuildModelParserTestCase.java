@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import com.android.tools.idea.gradle.dsl.GradleBuildModel;
 import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;

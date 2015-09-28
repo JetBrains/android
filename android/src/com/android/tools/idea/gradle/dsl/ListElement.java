@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser;
+package com.android.tools.idea.gradle.dsl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

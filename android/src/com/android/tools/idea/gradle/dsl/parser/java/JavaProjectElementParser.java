@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.java;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslElementParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
