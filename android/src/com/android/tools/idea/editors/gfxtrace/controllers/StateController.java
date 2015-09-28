@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class StateController extends TreeController {
@@ -45,7 +46,8 @@ public class StateController extends TreeController {
 
   private StateController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_ATOM);
-    myScrollPane.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU State"));
+    myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU State"));
+    myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
   }
 
   public static class Typed {
