@@ -19,8 +19,15 @@ import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.List;
@@ -33,12 +40,15 @@ final class CompactNotation extends ExternalDependency {
   @NotNull private final GrLiteral myValueLiteral;
 
   @Nullable
-  static CompactNotation parse(@NotNull Dependencies parent, @NotNull String configurationName, @NotNull GrLiteral valueLiteral) {
+  static CompactNotation parse(@NotNull Dependencies parent,
+                               @NotNull GrMethodCall methodCall,
+                               @NotNull String configurationName,
+                               @NotNull GrLiteral valueLiteral) {
     String notation = getUnquotedText(valueLiteral);
     if (isNotEmpty(notation)) {
       Spec spec = parse(notation);
       if (spec != null) {
-        return new CompactNotation(parent, configurationName, spec, valueLiteral);
+        return new CompactNotation(parent, methodCall, configurationName, spec, valueLiteral);
       }
     }
     return null;
@@ -101,10 +111,11 @@ final class CompactNotation extends ExternalDependency {
   }
 
   private CompactNotation(@NotNull Dependencies parent,
+                          @NotNull GrMethodCall methodCall,
                           @NotNull String configurationName,
                           @NotNull Spec spec,
                           @NotNull GrLiteral valueLiteral) {
-    super(parent, configurationName, spec);
+    super(parent, methodCall, configurationName, spec);
     myValueLiteral = valueLiteral;
   }
 
@@ -112,5 +123,15 @@ final class CompactNotation extends ExternalDependency {
   protected void applyVersion(@NotNull String newVersion) {
     mySpec.version = newVersion;
     setLiteralText(myValueLiteral, mySpec.toString());
+  }
+
+  @Override
+  protected void removeFromParent() {
+    GrClosableBlock closureBlock = getParent().getClosureBlock();
+    assert closureBlock != null;
+
+    if (!removeArgumentIfMoreThanOne(myValueLiteral)) {
+      closureBlock.removeElements(new PsiElement[]{getMethodCall()});
+    }
   }
 }

@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.List;
@@ -59,12 +60,13 @@ public class ModuleDependency extends Dependency {
    */
   @Nullable
   public static ModuleDependency withCompactNotation(@NotNull Dependencies parent,
+                                                     @NotNull GrMethodCall methodCall,
                                                      @NotNull String configurationName,
                                                      @NotNull GrLiteral pathLiteral) {
     if (isEmpty(getUnquotedText(pathLiteral))) {
       return null;
     }
-    return new ModuleDependency(parent, configurationName, pathLiteral, null);
+    return new ModuleDependency(parent, methodCall, configurationName, pathLiteral, null);
   }
 
   /**
@@ -76,13 +78,15 @@ public class ModuleDependency extends Dependency {
    */
   @Nullable
   public static ModuleDependency withMapNotation(@NotNull Dependencies parent,
+                                                 @NotNull GrMethodCall methodCall,
                                                  @NotNull String configurationName,
                                                  @NotNull GrArgumentList argumentList) {
     GrLiteral pathLiteral = findNamedArgumentLiteralValue(argumentList, "path");
     if (pathLiteral == null || isEmpty(getUnquotedText(pathLiteral))) {
       return null;
     }
-    return new ModuleDependency(parent, configurationName, pathLiteral, findNamedArgumentLiteralValue(argumentList, "configuration"));
+    return new ModuleDependency(parent, methodCall, configurationName, pathLiteral,
+                                findNamedArgumentLiteralValue(argumentList, "configuration"));
   }
 
   @Nullable
@@ -98,10 +102,11 @@ public class ModuleDependency extends Dependency {
   }
 
   private ModuleDependency(@NotNull Dependencies parent,
+                           @NotNull GrMethodCall methodCall,
                            @NotNull String configurationName,
                            @NotNull GrLiteral pathLiteral,
                            @Nullable GrLiteral configurationLiteral) {
-    super(parent, configurationName);
+    super(parent, methodCall, configurationName);
     myPathLiteral = pathLiteral;
     myConfigurationLiteral = configurationLiteral;
   }
