@@ -17,9 +17,10 @@ package com.android.tools.idea.gradle.dsl.dependencies;
 
 import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslElement;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Multimap;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -35,7 +36,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethod
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import static com.android.tools.idea.gradle.dsl.parser.PsiElements.findClosableBlock;
 import static com.intellij.psi.util.PsiTreeUtil.getChildrenOfType;
@@ -49,7 +50,7 @@ public class Dependencies extends GradleDslElement {
 
   @NotNull private final List<ExternalDependency> myExternalToRemove = Lists.newArrayList();
 
-  @NotNull private final Set<NewExternalDependency> myNewExternal = Sets.newLinkedHashSet();
+  @NotNull private final Multimap<String, ExternalDependencySpec> myNewExternal = HashMultimap.create();
 
   public Dependencies(@NotNull GradleDslElement parent) {
     super(parent);
@@ -78,16 +79,15 @@ public class Dependencies extends GradleDslElement {
   }
 
   private void applyNewExternalDependencies() {
-    for (NewExternalDependency dependency : myNewExternal) {
-      applyChanges(dependency);
+    for (Map.Entry<String, ExternalDependencySpec> entry : myNewExternal.entries()) {
+      applyChanges(entry.getKey(), entry.getValue());
     }
   }
 
-  private void applyChanges(@NotNull NewExternalDependency dependency) {
+  private void applyChanges(@NotNull String configurationName, @NotNull ExternalDependencySpec dependency) {
     assert myPsiFile != null;
 
-    String configurationName = dependency.configurationName;
-    String compactNotation = dependency.getCompactNotation();
+    String compactNotation = dependency.compactNotation();
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(myPsiFile.getProject());
     if (myClosureBlock == null) {
@@ -123,8 +123,8 @@ public class Dependencies extends GradleDslElement {
     return ImmutableList.copyOf(myToModules);
   }
 
-  public void add(@NotNull NewExternalDependency dependency) {
-    myNewExternal.add(dependency);
+  public void add(@NotNull String configurationName, @NotNull ExternalDependencySpec dependency) {
+    myNewExternal.put(configurationName, dependency);
     setModified(true);
   }
 

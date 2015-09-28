@@ -21,37 +21,37 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link NewExternalDependency}.
+ * Tests for {@link ExternalDependencySpec}.
  */
-public class NewExternalDependencyTest {
-  private NewExternalDependency myDependency;
+public class ExternalDependencySpecTest {
+  private ExternalDependencySpec myDependency;
 
   @Before
   public void setUp() {
-    myDependency = new NewExternalDependency("configurationName", "name", "group", "version");
+    myDependency = new ExternalDependencySpec("name", "group", "version");
   }
 
   @Test
   public void testGetCompactNotationWithoutClassifierAndExtension() {
-    assertEquals("group:name:version", myDependency.getCompactNotation());
+    assertEquals("group:name:version", myDependency.compactNotation());
   }
 
   @Test
   public void testGetCompactNotationWithoutExtension() {
     myDependency.classifier = "classifier";
-    assertEquals("group:name:version:classifier", myDependency.getCompactNotation());
+    assertEquals("group:name:version:classifier", myDependency.compactNotation());
   }
 
   @Test
   public void testGetCompactNotationWithoutClassifier() {
     myDependency.extension = "ext";
-    assertEquals("group:name:version@ext", myDependency.getCompactNotation());
+    assertEquals("group:name:version@ext", myDependency.compactNotation());
   }
 
   @Test
   public void testGetCompactNotation() {
     myDependency.classifier = "classifier";
     myDependency.extension = "ext";
-    assertEquals("group:name:version:classifier@ext", myDependency.getCompactNotation());
+    assertEquals("group:name:version:classifier@ext", myDependency.compactNotation());
   }
 }
