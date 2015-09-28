@@ -53,7 +53,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class ClassesTreeView implements DataProvider, Disposable {
+public final class ClassesTreeView implements DataProvider, Disposable {
   public static final String TREE_NAME = "HprofClassesTree";
 
   @NotNull private Project myProject;

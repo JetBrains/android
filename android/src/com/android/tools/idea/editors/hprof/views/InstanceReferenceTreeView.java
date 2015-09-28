@@ -47,7 +47,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class InstanceReferenceTreeView implements DataProvider {
+public final class InstanceReferenceTreeView implements DataProvider {
   public static final String TREE_NAME = "HprofInstanceReferenceTree";
 
   private static final int MAX_AUTO_EXPANSION_DEPTH = 5;
