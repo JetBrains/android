@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.quickfix;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.dependencies.NewExternalDependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -103,14 +103,15 @@ abstract class AbstractGradleDependencyFix extends AbstractGradleAwareFix {
     return COMPILE;
   }
 
-  void addDependencyAndSync(@NotNull final NewExternalDependency newDependency,
+  void addDependencyAndSync(@NotNull final String configurationName,
+                            @NotNull final ExternalDependencySpec dependency,
                             @NotNull final Computable<PsiClass[]> getTargetClasses,
                             @Nullable final Editor editor) {
     final GradleBuildModel buildModel = GradleBuildModel.get(myModule);
     if (buildModel == null) {
       return;
     }
-    buildModel.dependencies().add(newDependency);
+    buildModel.dependencies().add(configurationName, dependency);
     GradleSyncListener listener = new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
@@ -129,8 +130,8 @@ abstract class AbstractGradleDependencyFix extends AbstractGradleAwareFix {
       public void run() {
         buildModel.applyChanges();
         registerUndoAction(project);
-        myAddedDependency = newDependency.getCompactNotation();
-        myAddedDependencyConfiguration = newDependency.configurationName;
+        myAddedDependency = dependency.compactNotation();
+        myAddedDependencyConfiguration = configurationName;
       }
     }, listener);
   }
