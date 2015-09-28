@@ -13,38 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser;
+package com.android.tools.idea.gradle.dsl.ext;
 
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslPropertiesElement;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 /**
- * An extra user-defined property.
+ * Represents the extra user-defined properties defined in the Gradle file.
  * <p>
  * For more details please read
  * <a href="https://docs.gradle.org/current/userguide/writing_build_scripts.html#sec:extra_properties">Extra Properties</a>.
  * </p>
  */
-public class ExtPropertyElement implements OldGradleDslElement {
-  @NotNull private final String myName;
-  @NotNull private final GrLiteral myValueExpression;
+public class ExtModel extends GradleDslPropertiesElement {
+  public static final String NAME = "ext";
 
-  public ExtPropertyElement(@NotNull String name, @NotNull GrLiteral valueExpression) {
-    myName = name;
-    myValueExpression = valueExpression;
-  }
-
-  @NotNull
-  public String getName() {
-    return myName;
-  }
-
-  /**
-   * @return the value of this property, using the appropriate data type as defined in the build.gradle file.
-   */
-  @Nullable
-  public Object getValue() {
-    return myValueExpression.getValue();
+  public ExtModel(@Nullable GradleDslElement parent) {
+    super(parent);
   }
 }
