@@ -104,9 +104,17 @@ public class Template {
    * to indicate whether a wizard is created as part of a new blank project
    * <li> 4: Constraint type app_package ({@link Constraint#APP_PACKAGE}), provides
    * srcDir, resDir and manifestDir variables for locations of files
+   * <li> 5: All files are relative to the template instead of using an implicit "root" folder.
    * </ul>
    */
-  static final int CURRENT_FORMAT = 4;
+  static final int CURRENT_FORMAT = 5;
+
+  /**
+   * Templates from this version and up use relative (from this template) path names.
+   * Recipe files from older versions uses an implicit "root" folder.
+   */
+  static final int RELATIVE_FILES_FORMAT = 5;
+
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.Template");
   /**
    * Most recent thrown exception during template instantiation. This should
@@ -477,6 +485,10 @@ public class Template {
 
             RecipeContext recipeContext =
               new RecipeContext(myProject, paramMap, freemarker, myLoader, gradleSyncIfNeeded, outputRoot, moduleRoot);
+
+            if (getMetadata().useImplicitRootFolder()) {
+              myLoader.setTemplateFolder(new File(myLoader.getTemplateFolder(), "root"));
+            }
 
             recipe.execute(recipeContext);
 
