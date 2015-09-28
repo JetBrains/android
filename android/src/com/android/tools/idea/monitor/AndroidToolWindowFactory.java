@@ -226,7 +226,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
                                           @NotNull Project project,
                                           @NotNull DeviceContext deviceContext) {
     GpuMonitorView view = new GpuMonitorView(project, deviceContext);
-    Content content = layoutUi.createContent("Render", view.createComponent(), "Render", AndroidIcons.GpuMonitor, null);
+    Content content = layoutUi.createContent("GPU", view.createComponent(), "GPU", AndroidIcons.GpuMonitor, null);
     content.setCloseable(false);
     return content;
   }
