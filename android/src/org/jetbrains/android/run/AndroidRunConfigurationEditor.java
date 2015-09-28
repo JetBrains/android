@@ -23,6 +23,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.CloudConfiguration.Kind;
 import com.google.common.base.Predicate;
+import com.intellij.application.options.ModulesComboBox;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -67,7 +68,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
   private JPanel myPanel;
   protected JBTabbedPane myTabbedPane;
-  private JComboBox myModulesComboBox;
+  private ModulesComboBox myModulesComboBox;
   private JPanel myConfigurationSpecificPanel;
   private JCheckBox myWipeUserDataCheckBox;
   private JComboBox myNetworkSpeedCombo;
