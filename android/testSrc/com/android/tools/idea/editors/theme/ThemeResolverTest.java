@@ -67,8 +67,8 @@ public class ThemeResolverTest extends AndroidTestCase {
     assertEquals("Theme.MyTheme", theme.getName());
     assertEquals("Theme", theme.getParent().getName());
 
-    assertEquals(1, theme.getConfiguredValues().values().size());
-    ConfiguredElement<ItemResourceValue> value = Iterables.get(theme.getConfiguredValues().values(), 0);
+    assertEquals(1, theme.getConfiguredValues().size());
+    ConfiguredElement<ItemResourceValue> value = Iterables.get(theme.getConfiguredValues(), 0);
     assertEquals("windowBackground", value.getElement().getName());
     assertEquals("@drawable/pic", value.getElement().getValue());
 
