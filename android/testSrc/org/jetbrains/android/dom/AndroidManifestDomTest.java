@@ -250,7 +250,16 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     doTestCompletionVariants(getTestName(false) + ".xml");
   }
 
-  public void testIntentCategoryCompletion() throws Throwable {
+  // Regression test for http://b.android.com/154004
+  public void testIntentActionCompletion4() throws Throwable {
+    toTestFirstCompletion("IntentActionCompletion4.xml", "IntentActionCompletion4_after.xml");
+  }
+
+  public void testIntentCategoryCompletion1() throws Throwable {
+    doTestCompletion(false);
+  }
+
+  public void testIntentCategoryCompletion2() throws Throwable {
     doTestCompletion(false);
   }
 
