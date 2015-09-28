@@ -270,6 +270,163 @@ public class ExternalDependencyTest extends GradleBuildModelParserTestCase {
     expected.assertMatches(dependencies.get(0));
   }
 
+  public void testRemoveDependencyWithCompactNotation() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
+                  "    runtime 'com.google.guava:guava:18.0'\n" +
+                  "    test 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ExternalDependency> dependencies = buildModel.dependencies().external();
+    assertThat(dependencies).hasSize(3);
+
+    ExternalDependency guava = dependencies.get(1);
+    buildModel.dependencies().remove(guava);
+
+    assertTrue(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+    buildModel.reparse();
+
+    dependencies = buildModel.dependencies().external();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedExternalDependency("test", "org.gradle.test.classifiers", "service", "1.0");
+    expected.classifier = "jdk15";
+    expected.extension = "jar";
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  public void testRemoveDependencyWithCompactNotationAndSingleConfigurationName() throws IOException {
+    String text = "dependencies {\n" +
+                  "    runtime /* Hey */ 'org.springframework:spring-core:2.5', /* Hey */ 'org.springframework:spring-aop:2.5'\n" +
+                  "    test 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ExternalDependency> dependencies = buildModel.dependencies().external();
+    assertThat(dependencies).hasSize(3);
+
+    ExternalDependency springAop = dependencies.get(1);
+    buildModel.dependencies().remove(springAop);
+
+    assertTrue(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+    buildModel.reparse();
+
+    dependencies = buildModel.dependencies().external();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(RUNTIME, "org.springframework", "spring-core", "2.5");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedExternalDependency("test", "org.gradle.test.classifiers", "service", "1.0");
+    expected.classifier = "jdk15";
+    expected.extension = "jar";
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  public void testRemoveDependencyWithMapNotation() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
+                  "    compile group: 'com.google.guava', name: 'guava', version: '18.0'\n" +
+                  "    compile group: 'com.android.support', name: 'appcompat-v7', version: '22.1.1'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ExternalDependency> dependencies = buildModel.dependencies().external();
+    assertThat(dependencies).hasSize(3);
+
+    ExternalDependency guava = dependencies.get(1);
+    buildModel.dependencies().remove(guava);
+
+    assertTrue(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+    buildModel.reparse();
+
+    dependencies = buildModel.dependencies().external();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedExternalDependency expected = new ExpectedExternalDependency("compile", "com.google.code.guice", "guice", "1.0");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedExternalDependency(COMPILE, "com.android.support", "appcompat-v7", "22.1.1");
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  public void testRemoveDependencyWithMapNotationAndSingleConfigurationName() throws IOException {
+    String text = "dependencies {\n" +
+                  "    runtime(\n" +
+                  "        [group: 'com.google.code.guice', name: 'guice', version: '1.0'],\n" +
+                  "        [group: 'com.google.guava', name: 'guava', version: '18.0'],\n" +
+                  "        [group: 'com.android.support', name: 'appcompat-v7', version: '22.1.1']\n" +
+                  "    )\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ExternalDependency> dependencies = buildModel.dependencies().external();
+    assertThat(dependencies).hasSize(3);
+
+    ExternalDependency guava = dependencies.get(1);
+    buildModel.dependencies().remove(guava);
+
+    assertTrue(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+    buildModel.reparse();
+
+    dependencies = buildModel.dependencies().external();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedExternalDependency expected = new ExpectedExternalDependency(RUNTIME, "com.google.code.guice", "guice", "1.0");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedExternalDependency(RUNTIME, "com.android.support", "appcompat-v7", "22.1.1");
+    expected.assertMatches(dependencies.get(1));
+  }
+
   public static class ExpectedExternalDependency extends NewExternalDependency {
     public ExpectedExternalDependency(@NotNull String configurationName,
                                       @NotNull String group,
@@ -287,13 +444,13 @@ public class ExternalDependencyTest extends GradleBuildModelParserTestCase {
       assertEquals("extension", extension, actual.extension());
     }
 
-    public boolean matches(@NotNull ExternalDependency model) {
-      return configurationName.equals(model.configurationName()) &&
-             group.equals(model.group()) &&
-             name.equals(model.name()) &&
-             version.equals(model.version()) &&
-             Objects.equal(classifier, model.classifier()) &&
-             Objects.equal(extension, model.extension());
+    public boolean matches(@NotNull ExternalDependency dependency) {
+      return configurationName.equals(dependency.configurationName()) &&
+             name.equals(dependency.name()) &&
+             Objects.equal(group, dependency.group()) &&
+             Objects.equal(version, dependency.version()) &&
+             Objects.equal(classifier, dependency.classifier()) &&
+             Objects.equal(extension, dependency.extension());
     }
   }
 }
