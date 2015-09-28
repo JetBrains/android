@@ -112,11 +112,14 @@ public abstract class AndroidLogcatView implements Disposable {
       return;
     }
 
+    myLogFilterModel.beginRejectingOldMessages();
     AndroidLogcatUtils.clearLogcat(myProject, device);
 
     // In theory, we only need to clear the console. However, due to issues in the platform, clearing logcat via "logcat -c" could
     // end up blocking the current logcat readers. As a result, we need to issue a restart of the logging to work around the platform bug.
     // See https://code.google.com/p/android/issues/detail?id=81164 and https://android-review.googlesource.com/#/c/119673
+    // NOTE: We can avoid this and just clear the console if we ever decide to stop issuing a "logcat -c" to the device or if we are
+    // confident that https://android-review.googlesource.com/#/c/119673 doesn't happen anymore.
     if (device.equals(getSelectedDevice())) {
       notifyDeviceUpdated(true);
     }
