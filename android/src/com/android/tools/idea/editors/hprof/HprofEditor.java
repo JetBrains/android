@@ -53,6 +53,7 @@ import java.util.concurrent.Executors;
 
 public class HprofEditor extends CaptureEditor {
   @NotNull private static final Logger LOG = Logger.getInstance(HprofEditor.class);
+  @Nullable private HprofView myView;
   private Snapshot mySnapshot;
   private boolean myIsValid = true;
 
@@ -89,16 +90,21 @@ public class HprofEditor extends CaptureEditor {
         }
         finally {
           if (mySnapshot != null) {
-            HprofViewPanel view = new HprofViewPanel(project, HprofEditor.this, mySnapshot);
-            HprofAnalysisContentsDelegate delegate = new HprofAnalysisContentsDelegate(myPanel);
-            myPanel.setEditorPanel(view.getComponent(), delegate);
+            myView = new HprofView(project, HprofEditor.this, mySnapshot);
+            HprofAnalysisContentsDelegate delegate = new HprofAnalysisContentsDelegate(HprofEditor.this);
+            myPanel.setEditorPanel(myView.getComponent(), delegate);
 
-            Disposer.register(HprofEditor.this, view);
+            Disposer.register(HprofEditor.this, myView);
             Disposer.register(project, delegate);
           }
         }
       }
     });
+  }
+
+  @Nullable
+  public HprofView getView() {
+    return myView;
   }
 
   @NotNull
@@ -195,6 +201,7 @@ public class HprofEditor extends CaptureEditor {
   @NotNull
   @Override
   public AnalysisReport performAnalysis(@NotNull Set<? extends AnalyzerTask> tasks, @NotNull Set<AnalysisReport.Listener> listeners) {
+    assert mySnapshot != null;
     CaptureGroup captureGroup = new CaptureGroup();
     captureGroup.addCapture(mySnapshot);
 

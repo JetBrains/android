@@ -151,7 +151,16 @@ public class ClassesTreeView implements DataProvider, Disposable {
 
       @Override
       public void onClassObjChanged(@Nullable ClassObj classObj) {
+        TreeNode nodeToSelect = null;
+        if (classObj != null) {
+          nodeToSelect = findClassObjNode(classObj);
+        }
 
+        if (nodeToSelect != null) {
+          TreePath pathToSelect = new TreePath(myTreeModel.getPathToRoot(nodeToSelect));
+          myTree.setSelectionPath(pathToSelect);
+          myTree.scrollPathToVisible(pathToSelect);
+        }
       }
 
       @Override
