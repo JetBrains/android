@@ -54,7 +54,7 @@ public class ContextController extends Controller {
       @Override
       public void onSuccess(@Nullable DevicePath[] devices) {
         if (devices.length >= 1) {
-          editor.activatePath(devices[0]);
+          editor.activatePath(devices[0], editor);
         }
       }
     });
