@@ -212,13 +212,13 @@ public class ThemeEditorStyle {
    * representing the multiple values in different configurations for each item.
    */
   @NotNull
-  public Multimap<String, ConfiguredElement<ItemResourceValue>> getConfiguredValues() {
+  public ImmutableCollection<ConfiguredElement<ItemResourceValue>> getConfiguredValues() {
     // Get a list of all the items indexed by the item name. Each item contains a list of the
     // possible values in this theme in different configurations.
     //
     // If item1 has multiple values in different configurations, there will be an
     // item1 = {folderConfiguration1 -> value1, folderConfiguration2 -> value2}
-    final Multimap<String, ConfiguredElement<ItemResourceValue>> itemResourceValues = ArrayListMultimap.create();
+    final ImmutableList.Builder<ConfiguredElement<ItemResourceValue>> itemResourceValues = ImmutableList.builder();
 
     if (isFramework()) {
       assert myConfiguration.getFrameworkResources() != null;
@@ -232,8 +232,7 @@ public class ThemeEditorStyle {
 
         if (styleResourceValue instanceof StyleResourceValue) {
           for (final ItemResourceValue value : ((StyleResourceValue)styleResourceValue).getValues()) {
-            itemResourceValues
-              .put(ResolutionUtils.getQualifiedItemName(value), ConfiguredElement.create(folderConfiguration, value));
+            itemResourceValues.add(ConfiguredElement.create(folderConfiguration, value));
           }
         }
       }
@@ -251,14 +250,13 @@ public class ThemeEditorStyle {
         if (styleResourceValue instanceof StyleResourceValue) {
           for (final ItemResourceValue value : ((StyleResourceValue)styleResourceValue).getValues()) {
             // We use the qualified name since apps and libraries can use the same attribute name twice with and without "android:"
-            itemResourceValues
-              .put(ResolutionUtils.getQualifiedItemName(value), ConfiguredElement.create(folderConfiguration, value));
+            itemResourceValues.add(ConfiguredElement.create(folderConfiguration, value));
           }
         }
       }
     }
 
-    return itemResourceValues;
+    return itemResourceValues.build();
   }
 
   public boolean hasItem(@Nullable EditedStyleItem item) {
