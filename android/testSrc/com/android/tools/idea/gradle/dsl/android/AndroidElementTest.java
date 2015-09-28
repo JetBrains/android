@@ -138,4 +138,164 @@ public class AndroidElementTest extends GradleBuildModelParserTestCase {
     assertEquals("publishNonDefault", Boolean.TRUE, android.publishNonDefault());
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix());
   }
+
+  public void testEditAndResetLiteralElements() throws Exception {
+    String text = "android { \n" +
+                  "  buildToolsVersion \"23.0.0\"\n" +
+                  "  compileSdkVersion \"23\"\n" +
+                  "  defaultPublishConfig \"debug\"\n" +
+                  "  generatePureSplits true\n" +
+                  "  publishNonDefault false\n" +
+                  "  resourcePrefix \"abcd\"\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
+    assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
+    assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
+    assertEquals("generatePureSplits", Boolean.TRUE, android.generatePureSplits());
+    assertEquals("publishNonDefault", Boolean.FALSE, android.publishNonDefault());
+    assertEquals("resourcePrefix", "abcd", android.resourcePrefix());
+
+    android
+      .setBuildToolsVersion("24.0.0")
+      .setCompileSdkVersion("24")
+      .setDefaultPublishConfig("release")
+      .setGeneratePureSplits(false)
+      .setPublishNonDefault(true)
+      .setResourcePrefix("efgh");
+
+    assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion());
+    assertEquals("compileSdkVersion", "24", android.compileSdkVersion());
+    assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig());
+    assertEquals("generatePureSplits", Boolean.FALSE, android.generatePureSplits());
+    assertEquals("publishNonDefault", Boolean.TRUE, android.publishNonDefault());
+    assertEquals("resourcePrefix", "efgh", android.resourcePrefix());
+
+    android.resetState();
+
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
+    assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
+    assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
+    assertEquals("generatePureSplits", Boolean.TRUE, android.generatePureSplits());
+    assertEquals("publishNonDefault", Boolean.FALSE, android.publishNonDefault());
+    assertEquals("resourcePrefix", "abcd", android.resourcePrefix());
+
+    // Test the fields that also accept an integer value along with the String valye.
+    android
+      .setBuildToolsVersion(22)
+      .setCompileSdkVersion(21);
+
+    assertEquals("buildToolsVersion", "22", android.buildToolsVersion());
+    assertEquals("compileSdkVersion", "21", android.compileSdkVersion());
+
+    android.resetState();
+
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
+    assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
+  }
+
+  public void testAddAndResetLiteralElements() throws Exception {
+    String text = "android { \n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    assertNull("buildToolsVersion", android.buildToolsVersion());
+    assertNull("compileSdkVersion", android.compileSdkVersion());
+    assertNull("defaultPublishConfig", android.defaultPublishConfig());
+    assertNull("generatePureSplits", android.generatePureSplits());
+    assertNull("publishNonDefault", android.publishNonDefault());
+    assertNull("resourcePrefix", android.resourcePrefix());
+
+    android
+      .setBuildToolsVersion("24.0.0")
+      .setCompileSdkVersion("24")
+      .setDefaultPublishConfig("release")
+      .setGeneratePureSplits(false)
+      .setPublishNonDefault(true)
+      .setResourcePrefix("efgh");
+
+    assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion());
+    assertEquals("compileSdkVersion", "24", android.compileSdkVersion());
+    assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig());
+    assertEquals("generatePureSplits", Boolean.FALSE, android.generatePureSplits());
+    assertEquals("publishNonDefault", Boolean.TRUE, android.publishNonDefault());
+    assertEquals("resourcePrefix", "efgh", android.resourcePrefix());
+
+    android.resetState();
+
+    assertNull("buildToolsVersion", android.buildToolsVersion());
+    assertNull("compileSdkVersion", android.compileSdkVersion());
+    assertNull("defaultPublishConfig", android.defaultPublishConfig());
+    assertNull("generatePureSplits", android.generatePureSplits());
+    assertNull("publishNonDefault", android.publishNonDefault());
+    assertNull("resourcePrefix", android.resourcePrefix());
+
+    // Test the fields that also accept an integer value along with the String value.
+    android
+      .setBuildToolsVersion(22)
+      .setCompileSdkVersion(21);
+
+    assertEquals("buildToolsVersion", "22", android.buildToolsVersion());
+    assertEquals("compileSdkVersion", "21", android.compileSdkVersion());
+
+    android.resetState();
+
+    assertNull("buildToolsVersion", android.buildToolsVersion());
+    assertNull("compileSdkVersion", android.compileSdkVersion());
+  }
+
+  public void testRemoveAndResetLiteralElements() throws Exception {
+    String text = "android { \n" +
+                  "  buildToolsVersion \"23.0.0\"\n" +
+                  "  compileSdkVersion \"23\"\n" +
+                  "  defaultPublishConfig \"debug\"\n" +
+                  "  generatePureSplits true\n" +
+                  "  publishNonDefault false\n" +
+                  "  resourcePrefix \"abcd\"\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
+    assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
+    assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
+    assertEquals("generatePureSplits", Boolean.TRUE, android.generatePureSplits());
+    assertEquals("publishNonDefault", Boolean.FALSE, android.publishNonDefault());
+    assertEquals("resourcePrefix", "abcd", android.resourcePrefix());
+
+    android.removeProperty("buildToolsVersion");
+    android.removeProperty("compileSdkVersion");
+    android.removeProperty("defaultPublishConfig");
+    android.removeProperty("generatePureSplits");
+    android.removeProperty("publishNonDefault");
+    android.removeProperty("resourcePrefix");
+
+    assertNull("buildToolsVersion", android.buildToolsVersion());
+    assertNull("compileSdkVersion", android.compileSdkVersion());
+    assertNull("defaultPublishConfig", android.defaultPublishConfig());
+    assertNull("generatePureSplits", android.generatePureSplits());
+    assertNull("publishNonDefault", android.publishNonDefault());
+    assertNull("resourcePrefix", android.resourcePrefix());
+
+    android.resetState();
+
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
+    assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
+    assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
+    assertEquals("generatePureSplits", Boolean.TRUE, android.generatePureSplits());
+    assertEquals("publishNonDefault", Boolean.FALSE, android.publishNonDefault());
+    assertEquals("resourcePrefix", "abcd", android.resourcePrefix());
+  }
 }
