@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser;
+package com.android.tools.idea.gradle.dsl.ext;
+
+import com.android.tools.idea.gradle.dsl.parser.GradleBuildModelParserTestCase;
 
 import java.io.IOException;
 
 /**
- * Tests for {@link ExtPropertyElement}.
+ * Tests for {@link ExtModel}.
  */
-public class ExtPropertyElementTest extends GradleBuildModelParserTestCase {
+public class ExtModelTest extends GradleBuildModelParserTestCase {
 
   public void testParsingSimplePropertyPerLine() throws IOException {
     String text = "ext.COMPILE_SDK_VERSION = 21\n" +
@@ -28,15 +30,16 @@ public class ExtPropertyElementTest extends GradleBuildModelParserTestCase {
 
     writeToBuildFile(text);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModel extModel = getGradleBuildModel().ext();
+    assertNotNull(extModel);
 
-    ExtPropertyElement compileSdkVersion = buildModel.getExtProperty("COMPILE_SDK_VERSION");
+    Integer compileSdkVersion = extModel.getProperty("COMPILE_SDK_VERSION", Integer.class);
     assertNotNull(compileSdkVersion);
-    assertEquals(21, compileSdkVersion.getValue());
+    assertEquals(21, compileSdkVersion.intValue());
 
-    ExtPropertyElement srcDirName = buildModel.getExtProperty("srcDirName");
+    String srcDirName = extModel.getProperty("srcDirName", String.class);
     assertNotNull(srcDirName);
-    assertEquals("src/java", srcDirName.getValue());
+    assertEquals("src/java", srcDirName);
   }
 
   public void testParsingSimplePropertyInExtBlock() throws IOException {
@@ -47,15 +50,16 @@ public class ExtPropertyElementTest extends GradleBuildModelParserTestCase {
 
     writeToBuildFile(text);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModel extModel = getGradleBuildModel().ext();
+    assertNotNull(extModel);
 
-    ExtPropertyElement compileSdkVersion = buildModel.getExtProperty("COMPILE_SDK_VERSION");
+    Integer compileSdkVersion = extModel.getProperty("COMPILE_SDK_VERSION", Integer.class);
     assertNotNull(compileSdkVersion);
-    assertEquals(21, compileSdkVersion.getValue());
+    assertEquals(21, compileSdkVersion.intValue());
 
-    ExtPropertyElement srcDirName = buildModel.getExtProperty("srcDirName");
+    String srcDirName = extModel.getProperty("srcDirName", String.class);
     assertNotNull(srcDirName);
-    assertEquals("src/java", srcDirName.getValue());
+    assertEquals("src/java", srcDirName);
   }
 
   public void testParsingListOfProperties() throws IOException {
@@ -65,10 +69,11 @@ public class ExtPropertyElementTest extends GradleBuildModelParserTestCase {
                   "]";
     writeToBuildFile(text);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModel extModel = getGradleBuildModel().ext();
+    assertNotNull(extModel);
 
-    ExtPropertyElement guava = buildModel.getExtProperty("libraries.guava");
-    assertNotNull(guava);
-    assertEquals("com.google.guava:guava:19.0-rc1", guava.getValue());
+    String guavaLibrary = extModel.getProperty("libraries.guava", String.class);
+    assertNotNull(guavaLibrary);
+    assertEquals("com.google.guava:guava:19.0-rc1", guavaLibrary);
   }
 }
