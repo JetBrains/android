@@ -95,6 +95,9 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myExcludedThemes = excludedThemes;
     myThemeResolver = new ThemeResolver(configuration);
     String currentTheme = configuration.getTheme();
+    if (currentTheme != null) {
+      currentTheme = ResolutionUtils.getQualifiedNameFromResourceUrl(currentTheme);
+    }
     touchTheme(currentTheme, myExcludedThemes);
 
     myCategoryTree.setModel(new CategoryModel());
