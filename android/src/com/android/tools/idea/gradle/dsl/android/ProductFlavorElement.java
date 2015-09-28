@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.android;
 
-import com.android.tools.idea.gradle.dsl.parser.*;
+import com.android.tools.idea.gradle.dsl.*;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;

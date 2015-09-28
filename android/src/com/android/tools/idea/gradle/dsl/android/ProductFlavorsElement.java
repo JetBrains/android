@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.android;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.GradleDslPropertiesElement;
+import com.android.tools.idea.gradle.dsl.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.GradleDslPropertiesElement;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

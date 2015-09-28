@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.dependencies;
 
 import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency;
-import com.android.tools.idea.gradle.dsl.parser.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.GradleDslElement;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

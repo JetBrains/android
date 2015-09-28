@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import com.android.tools.idea.gradle.dsl.GradleBuildModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
