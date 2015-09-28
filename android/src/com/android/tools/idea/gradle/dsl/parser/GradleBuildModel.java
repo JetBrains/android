@@ -42,7 +42,8 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 public class GradleBuildModel extends GradleDslElement {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
-  @NotNull private final Dependencies myDependencies = new Dependencies(this);
+
+  @NotNull private Dependencies myDependencies = new Dependencies(this);
 
   @NotNull private final Map<String, ExtPropertyElement> myExtraProperties = Maps.newLinkedHashMap();
 
@@ -67,7 +68,7 @@ public class GradleBuildModel extends GradleDslElement {
   @NotNull
   public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project) {
     GradleBuildModel buildFile = new GradleBuildModel(file, project);
-    buildFile.reparse();
+    buildFile.parse();
     return buildFile;
   }
 
@@ -86,6 +87,11 @@ public class GradleBuildModel extends GradleDslElement {
    * an already parsed build.gradle file needs to be parsed again (for example, after making changes to the PSI elements.)
    */
   public void reparse() {
+    myDependencies = new Dependencies(this);
+    parse();
+  }
+
+  private void parse() {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     PsiFile psiFile = PsiManager.getInstance(myProject).findFile(myFile);
 
@@ -98,8 +104,6 @@ public class GradleBuildModel extends GradleDslElement {
     if (myPsiFile == null) {
       return;
     }
-
-    reset();
 
     myPsiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
       @Override
