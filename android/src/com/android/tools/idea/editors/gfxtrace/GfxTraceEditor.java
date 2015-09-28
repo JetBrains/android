@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.AtomMetadata;
 import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.ConstantSet;
 import com.android.tools.rpclib.schema.Dynamic;
@@ -83,6 +84,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private ServiceClient myClient;
 
   @NotNull private List<PathListener> myPathListeners = new ArrayList<PathListener>();
+  @NotNull private PathStore<Path> myLastActivatadPath = new PathStore<Path>();
 
   public static boolean isEnabled() {
     return getPaths().isValid();
@@ -151,7 +153,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
               CapturePath path = (CapturePath)all.get(1);
               LOG.info("Capture uploaded");
               if (path != null) {
-                activatePath(path);
+                activatePath(path, GfxTraceEditor.this);
               }
               else {
                 LOG.error("Invalid capture file " + file.getPresentableName());
@@ -198,14 +200,21 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     return "GfxTraceView";
   }
 
-  public void activatePath(@NotNull final Path path) {
+  public void activatePath(@NotNull final Path path, final Object source) {
+    synchronized (myLastActivatadPath) {
+      if (!myLastActivatadPath.update(path)) {
+        return;
+      }
+    }
+
+    final PathListener.PathEvent event = new PathListener.PathEvent(path, source);
     // All path notifications are executed in the editor thread
     EdtExecutor.INSTANCE.execute(new Runnable() {
       @Override
       public void run() {
-        LOG.warn("Activate path " + path);
+        LOG.info("Activate path " + path + ", source: " + source.getClass().getName());
         for (PathListener listener : myPathListeners) {
-          listener.notifyPath(path);
+          listener.notifyPath(event);
         }
       }
     });

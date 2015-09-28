@@ -93,7 +93,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
       return;
     }
     AtomPath atomPath = myAtomsPath.getPath().index(cell.range.getLast());
-    myEditor.activatePath(atomPath);
+    myEditor.activatePath(atomPath, this);
   }
 
 
@@ -128,16 +128,16 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
   }
 
   @Override
-  public void notifyPath(Path path) {
+  public void notifyPath(PathEvent event) {
     boolean updateIcons = false;
-    if (path instanceof DevicePath) {
-      updateIcons |= myRenderDevice.update((DevicePath)path);
+    if (event.path instanceof DevicePath) {
+      updateIcons |= myRenderDevice.update((DevicePath)event.path);
     }
-    if (path instanceof CapturePath) {
-      updateIcons |= myAtomsPath.update(((CapturePath)path).atoms());
+    if (event.path instanceof CapturePath) {
+      updateIcons |= myAtomsPath.update(((CapturePath)event.path).atoms());
     }
-    if (path instanceof AtomPath) {
-      selectFrame(((AtomPath)path).getIndex());
+    if (event.path instanceof AtomPath) {
+      selectFrame(((AtomPath)event.path).getIndex());
     }
     if (updateIcons && myAtomsPath.getPath() != null) {
       Futures.addCallback(myEditor.getClient().get(myAtomsPath.getPath()), new LoadingCallback<AtomList>(LOG) {
