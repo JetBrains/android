@@ -64,6 +64,11 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
     return getProperty(APPLICATION_ID, String.class);
   }
 
+  @NotNull
+  public ProductFlavorElement setApplicationId(@NotNull String applicationId) {
+    return (ProductFlavorElement)setLiteralProperty(APPLICATION_ID, applicationId);
+  }
+
   @Nullable
   public List<String> consumerProguardFiles() {
     return getListProperty(CONSUMER_PROGUARD_FILES, String.class);
@@ -72,6 +77,11 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
   @Nullable
   public String dimension() {
     return getProperty(DIMENSION, String.class);
+  }
+
+  @NotNull
+  public ProductFlavorElement setDimension(@NotNull String dimension) {
+    return (ProductFlavorElement)setLiteralProperty(DIMENSION, dimension);
   }
 
   @Nullable
@@ -84,15 +94,35 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
     return getProperty(MAX_SDK_VERSION, Integer.class);
   }
 
+  @NotNull
+  public ProductFlavorElement setMaxSdkVersion(int maxSdkVersion) {
+    return (ProductFlavorElement)setLiteralProperty(MAX_SDK_VERSION, maxSdkVersion);
+  }
+
   @Nullable
   public String minSdkVersion() {
     Integer intValue = getProperty(MIN_SDK_VERSION, Integer.class);
     return intValue != null ? intValue.toString() : getProperty(MIN_SDK_VERSION, String.class);
   }
 
+  @NotNull
+  public ProductFlavorElement setMinSdkVersion(int minSdkVersion) {
+    return (ProductFlavorElement)setLiteralProperty(MIN_SDK_VERSION, minSdkVersion);
+  }
+
+  @NotNull
+  public ProductFlavorElement setMinSdkVersion(@NotNull String minSdkVersion) {
+    return (ProductFlavorElement)setLiteralProperty(MIN_SDK_VERSION, minSdkVersion);
+  }
+
   @Nullable
   public Boolean multiDexEnabled() {
     return getProperty(MULTI_DEX_ENABLED, Boolean.class);
+  }
+
+  @NotNull
+  public ProductFlavorElement setMultiDexEnabled(boolean multiDexEnabled) {
+    return (ProductFlavorElement)setLiteralProperty(MULTI_DEX_ENABLED, multiDexEnabled);
   }
 
   @Nullable
@@ -124,9 +154,24 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
     return intValue != null ? intValue.toString() : getProperty(TARGET_SDK_VERSION, String.class);
   }
 
+  @NotNull
+  public ProductFlavorElement setTargetSdkVersion(int targetSdkVersion) {
+    return (ProductFlavorElement)setLiteralProperty(TARGET_SDK_VERSION, targetSdkVersion);
+  }
+
+  @NotNull
+  public ProductFlavorElement setTargetSdkVersion(@NotNull String targetSdkVersion) {
+    return (ProductFlavorElement)setLiteralProperty(TARGET_SDK_VERSION, targetSdkVersion);
+  }
+
   @Nullable
   public String testApplicationId() {
     return getProperty(TEST_APPLICATION_ID, String.class);
+  }
+
+  @NotNull
+  public ProductFlavorElement setTestApplicationId(@NotNull String testApplicationId) {
+    return (ProductFlavorElement)setLiteralProperty(TEST_APPLICATION_ID, testApplicationId);
   }
 
   @Nullable
@@ -134,14 +179,29 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
     return getProperty(TEST_FUNCTIONAL_TEST, Boolean.class);
   }
 
+  @NotNull
+  public ProductFlavorElement setTestFunctionalTest(boolean testFunctionalTest) {
+    return (ProductFlavorElement)setLiteralProperty(TEST_FUNCTIONAL_TEST, testFunctionalTest);
+  }
+
   @Nullable
   public Boolean testHandleProfiling() {
     return getProperty(TEST_HANDLE_PROFILING, Boolean.class);
   }
 
+  @NotNull
+  public ProductFlavorElement setTestHandleProfiling(boolean testHandleProfiling) {
+    return (ProductFlavorElement)setLiteralProperty(TEST_HANDLE_PROFILING, testHandleProfiling);
+  }
+
   @Nullable
   public String testInstrumentationRunner() {
     return getProperty(TEST_INSTRUMENTATION_RUNNER, String.class);
+  }
+
+  @NotNull
+  public ProductFlavorElement setTestInstrumentationRunner(@NotNull String testInstrumentationRunner) {
+    return (ProductFlavorElement)setLiteralProperty(TEST_INSTRUMENTATION_RUNNER, testInstrumentationRunner);
   }
 
   @Nullable
@@ -154,15 +214,35 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
     return getProperty(USE_JACK, Boolean.class);
   }
 
+  @NotNull
+  public ProductFlavorElement setUseJack(boolean useJack) {
+    return (ProductFlavorElement)setLiteralProperty(USE_JACK, useJack);
+  }
+
   @Nullable
   public String versionCode() {
     Integer intValue = getProperty(VERSION_CODE, Integer.class);
     return intValue != null ? intValue.toString() : getProperty(VERSION_CODE, String.class);
   }
 
+  @NotNull
+  public ProductFlavorElement setVersionCode(int versionCode) {
+    return (ProductFlavorElement)setLiteralProperty(VERSION_CODE, versionCode);
+  }
+
+  @NotNull
+  public ProductFlavorElement setVersionCode(@NotNull String versionCode) {
+    return (ProductFlavorElement)setLiteralProperty(VERSION_CODE, versionCode);
+  }
+
   @Nullable
   public String versionName() {
     return getProperty(VERSION_NAME, String.class);
+  }
+
+  @NotNull
+  public ProductFlavorElement setversionName(@NotNull String versionName) {
+    return (ProductFlavorElement)setLiteralProperty(VERSION_NAME, versionName);
   }
 
   @Override
