@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.render;
+package com.android.tools.idea.monitor.gpu;
 
 import com.android.ddmlib.Client;
 import com.android.tools.chartlib.TimelineComponent;
@@ -23,9 +23,9 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.actions.GfxTraceCaptureAction;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.actions.RecordingAction;
-import com.android.tools.idea.monitor.render.gfxinfohandlers.JHandler;
-import com.android.tools.idea.monitor.render.gfxinfohandlers.LHandler;
-import com.android.tools.idea.monitor.render.gfxinfohandlers.MHandler;
+import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
+import com.android.tools.idea.monitor.gpu.gfxinfohandlers.LHandler;
+import com.android.tools.idea.monitor.gpu.gfxinfohandlers.MHandler;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-public class RenderMonitorView extends BaseMonitorView<RenderSampler> implements ProfileStateListener {
+public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements ProfileStateListener {
   public static final int PRE_M_SAMPLE_FREQUENCY_MS = 33;
   private static final float PRE_M_TIMELINE_BUFFER_TIME = PRE_M_SAMPLE_FREQUENCY_MS * 1.5f / 1000;
   private static final float PRE_M_TIMELINE_ABSOLUTE_MAX = 67.0f;
@@ -61,8 +61,8 @@ public class RenderMonitorView extends BaseMonitorView<RenderSampler> implements
   public static final int EVENT_LAUNCH = 1;
   public static final int EVENT_TRACING = 2;
 
-  public RenderMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
-    super(project, deviceContext, new RenderSampler(POST_M_SAMPLE_FREQUENCY_MS), POST_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX,
+  public GpuMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
+    super(project, deviceContext, new GpuSampler(POST_M_SAMPLE_FREQUENCY_MS), POST_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX,
           POST_M_TIMELINE_ABSOLUTE_MAX, TIMELINE_INITIAL_MARKER_SEPARATION);
     mySampler.myProfileStateListener = this;
     myPanel = new JPanel(new BorderLayout());
@@ -113,7 +113,7 @@ public class RenderMonitorView extends BaseMonitorView<RenderSampler> implements
   @NotNull
   @Override
   public String getDescription() {
-    return "render thread usage";
+    return "gpu usage";
   }
 
   private void configureTimelineComponent(@NotNull TimelineData data) {
