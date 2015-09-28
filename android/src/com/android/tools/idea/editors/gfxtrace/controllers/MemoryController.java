@@ -96,12 +96,12 @@ public class MemoryController extends Controller {
   }
 
   @Override
-  public void notifyPath(Path path) {
+  public void notifyPath(PathEvent event) {
     myScrollPane.setViewportView(null);
-    if (path instanceof MemoryRangePath) {
+    if (event.path instanceof MemoryRangePath) {
       myLoading.startLoading();
 
-      final MemoryRangePath memoryPath = (MemoryRangePath)path;
+      final MemoryRangePath memoryPath = (MemoryRangePath)event.path;
       PagedMemoryDataModel.MemoryFetcher fetcher = new PagedMemoryDataModel.MemoryFetcher() {
         @Override
         public ListenableFuture<byte[]> get(long address, long count) {

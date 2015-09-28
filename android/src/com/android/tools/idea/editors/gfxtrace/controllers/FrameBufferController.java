@@ -143,13 +143,13 @@ public class FrameBufferController extends Controller {
   }
 
   @Override
-  public void notifyPath(Path path) {
+  public void notifyPath(PathEvent event) {
     boolean updateTabs = false;
-    if (path instanceof DevicePath) {
-      updateTabs |= myRenderDevice.update((DevicePath)path);
+    if (event.path instanceof DevicePath) {
+      updateTabs |= myRenderDevice.update((DevicePath)event.path);
     }
-    if (path instanceof AtomPath) {
-      updateTabs |= myAtomPath.update((AtomPath)path);
+    if (event.path instanceof AtomPath) {
+      updateTabs |= myAtomPath.update((AtomPath)event.path);
     }
     if (updateTabs && myRenderDevice.getPath() != null && myAtomPath.getPath() != null) {
       // TODO: maybe do the selected tab first, but it's probably not much of a win
