@@ -31,6 +31,11 @@ public class AnalysisResultsContent implements LightToolWindowContent {
     myMainPanel = new JPanel(new BorderLayout());
   }
 
+  @Nullable
+  public Icon getIcon() {
+    return myCapturePanel != null ? myCapturePanel.getContentsDelegate().getToolIcon() : null;
+  }
+
   @NotNull
   public JComponent getMainPanel() {
     return myMainPanel;

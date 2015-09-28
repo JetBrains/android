@@ -55,6 +55,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
       myToolWindow.setAvailable(false, null);
     }
     else {
+      myToolWindow.setIcon(getIcon());
       myToolWindow.setAvailable(true, null);
       myToolWindow.show(null);
     }
@@ -63,8 +64,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
   @NotNull
   @Override
   protected Icon getIcon() {
-    // TODO make an icon for this
-    return AndroidIcons.Ddms.HeapInfo;
+    return myContent.getIcon() == null ? AllIcons.Toolwindows.ToolWindowFind : myContent.getIcon();
   }
 
   @NotNull
@@ -152,10 +152,15 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
     AnalysisResultsContent content = new AnalysisResultsContent();
     content.update(designer);
 
+    Icon icon = content.getIcon();
+    if (icon == null) {
+      icon = getIcon();
+    }
+
     // TODO figure out how to properly dispose this if it needs to be
     LightToolWindow lightToolWindow =
-      createContent(designer, content, getToolWindowTitleBarText(), getIcon(), content.getMainPanel(), content.getFocusComponent(), 320,
-                    createActions());
+      createContent(designer, content, getToolWindowTitleBarText(), icon, content.getMainPanel(), content.getFocusComponent(),
+                    320, createActions());
     lightToolWindow.minimize();
     return lightToolWindow;
   }

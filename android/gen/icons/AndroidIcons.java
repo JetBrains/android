@@ -265,4 +265,9 @@ public class AndroidIcons {
     public static final Icon EclipseModule = load("/icons/module_templates/eclipse_module.png"); // 512x512
     public static final Icon GradleModule = load("/icons/module_templates/gradle_module.png"); // 512x512
   }
+
+  public static class ToolWindows {
+    public static final Icon HeapAnalysis = IconLoader.getIcon("/icons/toolwindows/toolWindowHeapAnalysis.png"); // 13x13
+    public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.png"); // 13x13
+  }
 }

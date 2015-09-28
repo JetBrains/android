@@ -175,6 +175,9 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
   }
 
   @NotNull
+  public abstract Icon getToolIcon();
+
+  @NotNull
   public JComponent getComponent() {
     return mySplitter;
   }

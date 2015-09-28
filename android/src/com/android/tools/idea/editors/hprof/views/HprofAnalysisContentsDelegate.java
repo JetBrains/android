@@ -18,8 +18,6 @@ package com.android.tools.idea.editors.hprof.views;
 import com.android.tools.idea.editors.hprof.HprofEditor;
 import com.android.tools.idea.editors.hprof.HprofView;
 import com.android.tools.idea.profiling.view.AnalysisContentsDelegate;
-import com.android.tools.idea.profiling.view.CaptureEditor;
-import com.android.tools.idea.profiling.view.CapturePanel;
 import com.android.tools.perflib.analyzer.AnalysisResultEntry;
 import com.android.tools.perflib.heap.*;
 import com.android.tools.perflib.heap.memoryanalyzer.MemoryAnalysisResultEntry;
@@ -30,6 +28,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.PlatformIcons;
 import com.intellij.xdebugger.impl.ui.DebuggerUIUtil;
 import com.intellij.xdebugger.impl.ui.XDebuggerUIConstants;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -136,13 +135,16 @@ public class HprofAnalysisContentsDelegate extends AnalysisContentsDelegate {
       else if (userObject != null) {
         LOG.warn("Unhandled user object type: " + userObject.getClass().getSimpleName());
       }
-      else {
-        LOG.warn("Empty user object");
-      }
     }
     else if (value != null) {
       LOG.warn("Invalid tree node type: " + value.getClass().getSimpleName());
     }
+  }
+
+  @NotNull
+  @Override
+  public Icon getToolIcon() {
+    return AndroidIcons.ToolWindows.HeapAnalysis;
   }
 
   @Override
