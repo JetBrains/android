@@ -549,9 +549,9 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Returns the current theme style
+   * Returns the current theme style name, in the form @style/ThemeName or @android:style/ThemeName
    *
-   * @return the theme style
+   * @return the theme style name
    */
   @Nullable
   public String getTheme() {
