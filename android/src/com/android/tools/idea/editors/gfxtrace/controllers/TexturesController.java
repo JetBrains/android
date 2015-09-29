@@ -19,6 +19,7 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
+import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
 import com.android.tools.idea.editors.gfxtrace.service.Resources;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
@@ -38,10 +39,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TexturesController extends ImageCellController<TexturesController.Data> {
-  private static final Dimension PREVIEW_SIZE = JBUI.size(200, 200);
+  private static final Dimension PREVIEW_SIZE = JBUI.size(100, 50);
 
   public static JComponent createUI(GfxTraceEditor editor) {
-    return new TexturesController(editor).myList;
+    return new TexturesController(editor).myPanel;
   }
 
   public static class Data extends ImageCellList.Data {
@@ -56,12 +57,16 @@ public class TexturesController extends ImageCellController<TexturesController.D
   }
 
   @NotNull private static final Logger LOG = Logger.getInstance(TexturesController.class);
+  @NotNull private final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull private final PathStore<ResourcesPath> myResourcesPath = new PathStore<ResourcesPath>();
   @NotNull private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
   @NotNull private Resources myResources;
 
   private TexturesController(@NotNull final GfxTraceEditor editor) {
-    super(editor, CellList.Orientation.HORIZONTAL, PREVIEW_SIZE);
+    super(editor);
+    usingComboBoxWidget(PREVIEW_SIZE);
+    ((ImageCellRenderer<?>)myList.getRenderer()).setLayout(ImageCellRenderer.Layout.LEFT_TO_RIGHT);
+    myPanel.add(myList, BorderLayout.NORTH);
   }
 
   @Override
@@ -69,11 +74,10 @@ public class TexturesController extends ImageCellController<TexturesController.D
   }
 
   @Override
-  public boolean loadCell(Data cell, Runnable onLoad) {
+  public void loadCell(Data cell, Runnable onLoad) {
     final ServiceClient client = myEditor.getClient();
     final ThumbnailPath path = cell.path.thumbnail(PREVIEW_SIZE);
     loadCellImage(cell, client, path, onLoad);
-    return true;
   }
 
   void update() {

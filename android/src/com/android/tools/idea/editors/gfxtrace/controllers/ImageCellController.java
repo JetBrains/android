@@ -19,10 +19,13 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
+import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.widgets.CellComboBox;
 import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
+import com.android.tools.idea.editors.gfxtrace.widgets.CellWidget;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
@@ -43,10 +46,13 @@ import java.util.List;
 public abstract class ImageCellController<T extends ImageCellList.Data> extends Controller
     implements CellList.SelectionListener<T>, CellRenderer.CellLoader<T> {
   @NotNull private static final Logger LOG = Logger.getInstance(ImageCellController.class);
-  @NotNull protected final CellList<T> myList;
+  @NotNull protected CellWidget<T, ?> myList;
 
-  public ImageCellController(@NotNull GfxTraceEditor editor, @NotNull CellList.Orientation orientation, final Dimension maxCellSize) {
+  public ImageCellController(@NotNull GfxTraceEditor editor) {
     super(editor);
+  }
+
+  protected ImageCellController<T> usingListWidget(@NotNull CellList.Orientation orientation, final Dimension maxCellSize) {
     myList = new ImageCellList<T>(orientation, this) {
       @Override
       protected Dimension getMaxCellSize() {
@@ -54,7 +60,26 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
       }
     };
     myList.addSelectionListener(this);
+    return this;
   }
+
+  protected ImageCellController<T> usingComboBoxWidget(final Dimension maxCellSize) {
+    myList = new CellComboBox<T>(this) {
+      @Override
+      protected CellRenderer<T> createCellRenderer(CellRenderer.CellLoader<T> loader) {
+        return new ImageCellRenderer<T>(loader, maxCellSize) {
+          @Override
+          public Dimension getInitialCellSize() {
+            return
+              new Dimension(maxCellSize.width + 2 * ImageCellRenderer.BORDER_SIZE, maxCellSize.height + 2 * ImageCellRenderer.BORDER_SIZE);
+          }
+        };
+      }
+    };
+    myList.addSelectionListener(this);
+    return this;
+  }
+
 
   protected void loadCellImage(final T cell, final ServiceClient client, final Path imagePath, final Runnable onLoad) {
     cell.startLoading();
