@@ -26,6 +26,7 @@ import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.ConstantSet;
 import com.android.tools.rpclib.schema.Dynamic;
+import com.android.tools.rpclib.schema.Message;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -114,13 +115,13 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
         }
 
         // Prefetch the schema
-        final ListenableFuture<Schema> schemaF = myClient.getSchema();
-        Futures.addCallback(schemaF, new LoadingCallback<Schema>(LOG) {
+        final ListenableFuture<Message> schemaF = myClient.getSchema();
+        Futures.addCallback(schemaF, new LoadingCallback<Message>(LOG) {
           @Override
-          public void onSuccess(@Nullable final Schema schema) {
-            LOG.info("Schema with " + schema.getClasses().length + " classes, " + schema.getConstants().length + " constant sets");
+          public void onSuccess(@Nullable final Message schema) {
+            LOG.info("Schema with " + schema.entities.length + " classes, " + schema.constants.length + " constant sets");
             int atoms = 0;
-            for (Entity type : schema.getClasses()) {
+            for (Entity type : schema.entities) {
               // Find the atom metadata, if present
               if (AtomMetadata.find(type) != null) {
                 atoms++;
@@ -128,7 +129,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
               Dynamic.register(type);
             }
             LOG.info("Schema with " + atoms + " atoms");
-            for (ConstantSet set : schema.getConstants()) {
+            for (ConstantSet set : schema.constants) {
               ConstantSet.register(set);
             }
           }
