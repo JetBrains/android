@@ -27,7 +27,6 @@ import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
-import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +54,13 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
       myToolWindow.setAvailable(false, null);
     }
     else {
+      DesignerEditorPanelFacade activeDesigner = getActiveDesigner();
+      if (activeDesigner != null &&
+          activeDesigner instanceof CapturePanel &&
+          activeDesigner.getClientProperty(getComponentName()) == null) {
+        activeDesigner.putClientProperty(getComponentName(), myContent);
+      }
+      myToolWindow.setIcon(getIcon());
       myToolWindow.setAvailable(true, null);
       myToolWindow.show(null);
     }
@@ -63,8 +69,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
   @NotNull
   @Override
   protected Icon getIcon() {
-    // TODO make an icon for this
-    return AndroidIcons.Ddms.HeapInfo;
+    return myContent.getIcon() == null ? AllIcons.Toolwindows.ToolWindowFind : myContent.getIcon();
   }
 
   @NotNull
@@ -125,7 +130,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
     return myContent.getMainPanel();
   }
 
-  @NotNull
+  @Nullable
   @Override
   protected JComponent getFocusedComponent() {
     return myContent.getFocusComponent();
@@ -152,10 +157,15 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
     AnalysisResultsContent content = new AnalysisResultsContent();
     content.update(designer);
 
+    Icon icon = content.getIcon();
+    if (icon == null) {
+      icon = getIcon();
+    }
+
     // TODO figure out how to properly dispose this if it needs to be
-    LightToolWindow lightToolWindow =
-      createContent(designer, content, getToolWindowTitleBarText(), getIcon(), content.getMainPanel(), content.getFocusComponent(), 320,
-                    createActions());
+    JComponent focus = content.getFocusComponent();
+    LightToolWindow lightToolWindow = createContent(designer, content, getToolWindowTitleBarText(), icon, content.getMainPanel(),
+                                                    focus == null ? content.getMainPanel() : focus, 320, createActions());
     lightToolWindow.minimize();
     return lightToolWindow;
   }
@@ -174,13 +184,16 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
   private AnalysisResultsContent getContentFromDesigner() {
     DesignerEditorPanelFacade activeDesigner = getActiveDesigner();
     if (activeDesigner != null && activeDesigner instanceof CapturePanel) {
-      Object window = activeDesigner.getClientProperty(getComponentName());
-      if (window instanceof LightToolWindow) {
-        LightToolWindow lightToolWindow = (LightToolWindow)window;
+      Object property = activeDesigner.getClientProperty(getComponentName());
+      if (property instanceof LightToolWindow) {
+        LightToolWindow lightToolWindow = (LightToolWindow)property;
         Object content = lightToolWindow.getContent();
         if (content instanceof AnalysisResultsContent) {
           return (AnalysisResultsContent)content;
         }
+      }
+      else if (property instanceof AnalysisResultsContent) {
+        return (AnalysisResultsContent)property;
       }
     }
 

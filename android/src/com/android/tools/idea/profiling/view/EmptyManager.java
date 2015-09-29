@@ -16,12 +16,12 @@
 package com.android.tools.idea.profiling.view;
 
 import com.intellij.designer.*;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,8 +56,7 @@ public class EmptyManager extends CaptureEditorLightToolWindowManager {
   @NotNull
   @Override
   protected Icon getIcon() {
-    // TODO make a 13x13 error icon
-    return AllIcons.General.Error;
+    return AndroidIcons.ToolWindows.Warning;
   }
 
   @NotNull
@@ -84,7 +83,7 @@ public class EmptyManager extends CaptureEditorLightToolWindowManager {
     return myEmptyPanel;
   }
 
-  @NotNull
+  @Nullable
   @Override
   protected JComponent getFocusedComponent() {
     return myEmptyPanel;
