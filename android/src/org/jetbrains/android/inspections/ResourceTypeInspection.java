@@ -28,7 +28,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.codeInsight.ExceptionUtil;
 import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.codeInspection.*;
@@ -674,6 +673,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
           Set<String> revocablePermissions = requirement.getRevocablePermissions(lookup);
           AddCheckPermissionFix fix = new AddCheckPermissionFix(facet, requirement, methodCall, revocablePermissions);
+          // TODO: Use GlobalInspectionContext#isSuppressed here and for the other registerProblem calls
+          // to also check for the lint issue suppressions used by the command line check
           holder.registerProblem(methodCall, getUnhandledPermissionMessage(), fix);
         }
       }
@@ -863,7 +864,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
 
       JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-      PsiClass manifest = facade.findClass("android.Manifest.permission", GlobalSearchScope.moduleWithLibrariesScope(myFacet.getModule()));
+      GlobalSearchScope moduleScope = GlobalSearchScope.moduleWithLibrariesScope(myFacet.getModule());
+      PsiClass manifest = facade.findClass("android.Manifest.permission", moduleScope);
       Map<String, PsiField> permissionNames;
 
       if (manifest != null) {
@@ -898,6 +900,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       StringBuilder sb = new StringBuilder(200);
       sb.append("if (");
       boolean first = true;
+
+      PsiClass activityCompat = facade.findClass("android.support.v4.app.ActivityCompat", moduleScope);
+      boolean usingAppCompat = activityCompat != null;
+      if (usingAppCompat && (activityCompat.findMethodsByName("requestPermissions", false).length == 0)) {
+        // Using an older version of appcompat than 23.0.1. Later we should prompt the user to
+        // see if they'd like to upgrade instead; for now, revert to platform version.
+        usingAppCompat = false;
+      }
+
       for (String permission : myRevocablePermissions) {
         if (first) {
           first = false;
@@ -906,7 +917,13 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           sb.append(operator.getSymbol());
           sb.append(' ');
         }
+        if (usingAppCompat) {
+          sb.append("android.support.v4.app.ActivityCompat.");
+        }
         sb.append("checkSelfPermission(");
+        if (usingAppCompat) {
+          sb.append("this, ");
+        }
 
         // Try to map permission strings back to field references!
         PsiField field = permissionNames.get(permission);
@@ -919,13 +936,18 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
       sb.append(") {\n");
       sb.append(" // TODO: Consider calling\n" +
-                " //    public void requestPermissions(@NonNull String[] permissions, int requestCode)\n" +
+                " //    Activity").append(usingAppCompat ? "Compat" : "").append("#requestPermissions\n" +
                 " // here to request the missing permissions, and then overriding\n" +
                 " //   public void onRequestPermissionsResult(int requestCode, String[] permissions,\n" +
                 " //                                          int[] grantResults)\n" +
                 " // to handle the case where the user grants the permission. See the documentation\n" +
-                " // for Activity#requestPermissions for more details.\n");
+                " // for Activity").append(usingAppCompat ? "Compat" : "").append("#requestPermissions for more details.\n");
       PsiMethod method = PsiTreeUtil.getParentOfType(myCall, PsiMethod.class, true);
+
+      // TODO: Add additional information here, perhaps pointing to
+      //    http://android-developers.blogspot.com/2015/09/google-play-services-81-and-android-60.html
+      // or adding more of a skeleton from that article.
+
       if (method != null && !PsiType.VOID.equals(method.getReturnType())) {
         sb.append("return TODO;\n");
       } else {
