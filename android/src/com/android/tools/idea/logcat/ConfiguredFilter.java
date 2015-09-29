@@ -28,8 +28,6 @@ import java.util.regex.PatternSyntaxException;
  * A filter which can reject lines of logcat output based on user configured patterns.
  */
 final class ConfiguredFilter {
-  private static final Logger LOG = Logger.getInstance(ConfiguredFilter.class);
-
   @NotNull private final String myName;
   @Nullable private final Pattern myMessagePattern;
   @Nullable private final Pattern myTagPattern;
