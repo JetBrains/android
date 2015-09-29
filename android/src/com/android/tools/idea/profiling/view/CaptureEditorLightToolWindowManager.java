@@ -39,7 +39,7 @@ public abstract class CaptureEditorLightToolWindowManager extends LightToolWindo
 
   @Nullable
   @Override
-  protected DesignerEditorPanelFacade getDesigner(@NotNull FileEditor editor) {
+  protected DesignerEditorPanelFacade getDesigner(FileEditor editor) {
     if (editor instanceof CaptureEditor) {
       return ((CaptureEditor)editor).getFacade();
     }
@@ -61,7 +61,7 @@ public abstract class CaptureEditorLightToolWindowManager extends LightToolWindo
     ContentManager contentManager = myToolWindow.getContentManager();
     Content content = contentManager.getFactory().createContent(getContent(), getToolWindowTitleBarText(), false);
     content.setCloseable(false);
-    content.setPreferredFocusableComponent(getContent());
+    content.setPreferredFocusableComponent(getFocusedComponent());
     contentManager.addContent(content);
     contentManager.setSelectedContent(content, true);
     myToolWindow.setAvailable(false, null);
@@ -82,6 +82,6 @@ public abstract class CaptureEditorLightToolWindowManager extends LightToolWindo
   @NotNull
   protected abstract JComponent getContent();
 
-  @NotNull
+  @Nullable
   protected abstract JComponent getFocusedComponent();
 }

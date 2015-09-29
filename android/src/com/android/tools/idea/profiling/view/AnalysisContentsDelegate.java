@@ -23,6 +23,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.treeStructure.Tree;
@@ -34,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.MatteBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
@@ -114,7 +116,7 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
 
     JScrollPane topScrollPane = ScrollPaneFactory
       .createScrollPane(myTaskPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    topScrollPane.setBorder(BorderFactory.createEmptyBorder());
+    topScrollPane.setBorder(new MatteBorder(0, 0, 1, 0, JBColor.border()));
 
     JLabel resultsTitle = new JLabel(AndroidBundle.message("android.captures.analysis.results.title"), SwingConstants.LEFT);
     resultsTitle.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
@@ -126,7 +128,7 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
     myResultsTree.setRowHeight(19);
     JScrollPane middleScrollPane = ScrollPaneFactory.createScrollPane(myResultsTree, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                                       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    middleScrollPane.setBorder(BorderFactory.createEmptyBorder());
+    middleScrollPane.setBorder(new MatteBorder(1, 0, 1, 0, JBColor.border()));
 
     JPanel middlePanel = new JPanel(new BorderLayout());
     middlePanel.add(resultsTitle, BorderLayout.NORTH);
@@ -137,6 +139,7 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
     explanationTitle.setBorder(BorderFactory.createEmptyBorder(2, 5, 5, 10));
 
     myResultExplanationArea = new JTextPane();
+    myResultExplanationArea.setBorder(new MatteBorder(1, 0, 0, 0, JBColor.border()));
     JScrollPane bottomScrollPane = ScrollPaneFactory
       .createScrollPane(myResultExplanationArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                         ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -173,6 +176,9 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
       myEnabledTasks.add(task);
     }
   }
+
+  @NotNull
+  public abstract Icon getToolIcon();
 
   @NotNull
   public JComponent getComponent() {
