@@ -96,7 +96,7 @@ public class ResourceEditor extends PropertyEditor {
       });
     }
     else if (formats.contains(AttributeFormat.Enum)) {
-      ComboboxWithBrowseButton editor = new ComboboxWithBrowseButton(SystemInfo.isWindows ? new MyComboBox() : new JComboBox()) {
+      ComboboxWithBrowseButton editor = new ComboboxWithBrowseButton(SystemInfo.isWindows ? new MyComboBox() : new ComboBox()) {
         @Override
         public Dimension getPreferredSize() {
           return getComponentPreferredSize();
