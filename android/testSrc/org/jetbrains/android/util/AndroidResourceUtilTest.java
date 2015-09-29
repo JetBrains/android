@@ -134,13 +134,13 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
 
     PsiField[] fields = AndroidResourceUtil.findResourceFields(myFacet, "string", "hello", false);
 
-    assertEquals(2, fields.length);
     Set<String> dirNames = Sets.newHashSet();
     for (PsiField field : fields) {
       assertEquals("hello", field.getName());
       dirNames.add(field.getContainingFile().getContainingDirectory().getName());
     }
     assertEquals(ImmutableSet.of("light", "p2"), dirNames);
+    assertEquals(2, fields.length);
   }
 
   public void testFindResourceFieldsWithMultipleResourceNames() {
@@ -159,7 +159,6 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     PsiField[] fields = AndroidResourceUtil.findResourceFields(
       myFacet, "string", ImmutableList.of("hello", "goodbye"), false);
 
-    assertEquals(4, fields.length);
     Set<String> dirNames = Sets.newHashSet();
     Map<String, Integer> fieldNames = Maps.newHashMap();
     for (PsiField field : fields) {
@@ -170,6 +169,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     }
     assertEquals(ImmutableMap.of("hello", 2, "goodbye", 2), fieldNames);
     assertEquals(ImmutableSet.of("light", "p2"), dirNames);
+    assertEquals(4, fields.length);
   }
 
   /** Tests that "inherited" resource references are found (R fields in generated in dependent modules). */

@@ -38,12 +38,12 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModulePackageIndex;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
@@ -51,7 +51,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.graph.Graph;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
@@ -97,6 +96,8 @@ public class AndroidResourceUtil {
   static final String LAYOUT_WIDTH_PROPERTY = "LAYOUT_WIDTH";
   static final String LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT";
 
+  private static final String RESOURCE_CLASS_SUFFIX = "." + AndroidUtils.R_CLASS_NAME;
+
   /**
    * Comparator which orders {@link PsiElement} items into a priority order most suitable for presentation
    * to the user; for example, it prefers base resource folders such as {@code values/} over resource
@@ -137,6 +138,10 @@ public class AndroidResourceUtil {
     ALL_VALUE_RESOURCE_TYPES.add(STYLEABLE);
   }
 
+  public static String packageToRClass(@NotNull String packageName) {
+    return packageName + RESOURCE_CLASS_SUFFIX;
+  }
+
   @NotNull
   public static PsiField[] findResourceFields(@NotNull AndroidFacet facet,
                                               @NotNull String resClassName,
@@ -154,7 +159,7 @@ public class AndroidResourceUtil {
                                               @NotNull String resClassName,
                                               @NotNull Collection<String> resourceNames,
                                               boolean onlyInOwnPackages) {
-    final List<PsiClass> rClasses = findRJavaClasses(facet, onlyInOwnPackages);
+    final Set<PsiClass> rClasses = findRJavaClasses(facet, onlyInOwnPackages);
 
     PsiClass inMemoryRClass = facet.getLightRClass();
     if (inMemoryRClass != null) {
@@ -172,7 +177,7 @@ public class AndroidResourceUtil {
   private static void findResourceFieldsFromClass(@NotNull PsiClass rClass,
       @NotNull String resClassName, @NotNull Collection<String> resourceNames,
       @NotNull List<PsiField> result) {
-    final PsiClass resourceTypeClass = findClass(rClass.getInnerClasses(), resClassName);
+    final PsiClass resourceTypeClass = rClass.findInnerClassByName(resClassName, false);
 
     if (resourceTypeClass != null) {
       for (String resourceName : resourceNames) {
@@ -187,41 +192,51 @@ public class AndroidResourceUtil {
   }
 
   @NotNull
-  private static List<PsiClass> findRJavaClasses(@NotNull AndroidFacet facet, boolean onlyInOwnPackages) {
+  private static Set<PsiClass> findRJavaClasses(@NotNull AndroidFacet facet, boolean onlyInOwnPackages) {
     final Module module = facet.getModule();
     final Project project = module.getProject();
-    final Manifest manifest = facet.getManifest();
-
-    if (manifest == null) {
-      return Collections.emptyList();
+    if (facet.getManifest() == null) {
+      return Collections.emptySet();
     }
 
     Graph<Module> graph = ModuleManager.getInstance(project).moduleGraph();
     Set<Module> dependentModules = Sets.newHashSet();
     collectDependentModules(graph, module, dependentModules);
 
-    String targetPackage = onlyInOwnPackages ? null : manifest.getPackage().getValue();
-    final Set<PsiDirectory> dirs = new HashSet<PsiDirectory>();
-    collectDirsForPackage(dependentModules, project, targetPackage, dirs);
+    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
 
-    final List<PsiClass> rJavaClasses = new ArrayList<PsiClass>();
-
-    for (PsiDirectory dir : dirs) {
-      final VirtualFile file = dir.getVirtualFile().findChild(AndroidCommonUtils.R_JAVA_FILENAME);
-
-      if (file != null) {
-        final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-
-        if (psiFile instanceof PsiJavaFile) {
-          PsiJavaFile javaFile = (PsiJavaFile) psiFile;
-          PsiClass rClass = findClass(javaFile.getClasses(), AndroidUtils.R_CLASS_NAME);
-          if (rClass != null) {
-            rJavaClasses.add(rClass);
-          }
-        }
+    Set<PsiClass> rClasses = Sets.newHashSet();
+    String targetPackage = onlyInOwnPackages ? null : manifestPackageForModule(module);
+    if (targetPackage != null) {
+      GlobalSearchScope[] scopes = new GlobalSearchScope[dependentModules.size()];
+      int i = 0;
+      for (Module dependentModule : dependentModules) {
+        scopes[i++] = dependentModule.getModuleScope();
       }
+      rClasses.addAll(Arrays.asList(psiFacade.findClasses(packageToRClass(targetPackage), GlobalSearchScope.union(scopes))));
     }
-    return rJavaClasses;
+
+    for (Module dependentModule : dependentModules) {
+      String dependentPackage = manifestPackageForModule(dependentModule);
+      if (dependentPackage == null || dependentPackage.equals(targetPackage)) {
+        continue;
+      }
+      rClasses.addAll(Arrays.asList(psiFacade.findClasses(packageToRClass(dependentPackage), dependentModule.getModuleScope())));
+    }
+    return rClasses;
+  }
+
+  @Nullable
+  private static String manifestPackageForModule(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return null;
+    }
+    Manifest manifest = facet.getManifest();
+    if (manifest == null) {
+      return null;
+    }
+    return manifest.getPackage().getValue();
   }
 
   private static void collectDependentModules(@NotNull Graph<Module> graph,
@@ -235,49 +250,6 @@ public class AndroidResourceUtil {
     while (out.hasNext()) {
       collectDependentModules(graph, out.next(), result);
     }
-  }
-
-  private static void collectDirsForPackage(@NotNull Set<Module> modules,
-                                            @NotNull final Project project,
-                                            @Nullable String targetPackageName,
-                                            @NotNull final Set<PsiDirectory> dirs) {
-    Processor<VirtualFile> processor = new Processor<VirtualFile>() {
-      @Override
-      public boolean process(VirtualFile directory) {
-        final PsiDirectory psiDir = PsiManager.getInstance(project).findDirectory(directory);
-
-        if (psiDir != null) {
-          dirs.add(psiDir);
-        }
-        return true;
-      }
-    };
-
-    for (Module module : modules) {
-      if (targetPackageName != null) {
-        ModulePackageIndex.getInstance(module).getDirsByPackageName(targetPackageName, false).forEach(processor);
-      }
-
-      final AndroidFacet ownFacet = AndroidFacet.getInstance(module);
-      if (ownFacet != null) {
-        final Manifest ownManifest = ownFacet.getManifest();
-        String ownPackageName = ownManifest != null ? ownManifest.getPackage().getValue() : null;
-
-        if (ownPackageName != null && !ownPackageName.equals(targetPackageName)) {
-          ModulePackageIndex.getInstance(module).getDirsByPackageName(ownPackageName, false).forEach(processor);
-        }
-      }
-    }
-  }
-
-  @Nullable
-  private static PsiClass findClass(@NotNull PsiClass[] classes, @NotNull String name) {
-    for (PsiClass c : classes) {
-      if (name.equals(c.getName())) {
-        return c;
-      }
-    }
-    return null;
   }
 
   @NotNull
