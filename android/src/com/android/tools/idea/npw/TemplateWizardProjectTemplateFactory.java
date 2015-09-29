@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.ide.util.projectWizard.JavaModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -38,13 +39,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactory {
-
   public static final ProjectTemplate[] EMPTY_PROJECT_TEMPLATES = new ProjectTemplate[]{};
+  private static final String IMPORT_EXISTING_PROJECT_TEMPLATE_NAME = "ImportExistingProject";
 
   @NotNull
   @Override
   public String[] getGroups() {
-    return new String[] {AndroidProjectTemplatesFactory.ANDROID};
+    return new String[]{AndroidProjectTemplatesFactory.ANDROID};
   }
 
   @Override
@@ -75,9 +76,9 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
     for (File template : templates) {
       final String templateName = template.getName();
 
-      if (NewProjectWizardState.PROJECT_TEMPLATE_NAME.equals(templateName) ||
-          NewProjectWizardState.IMPORT_EXISTING_PROJECT_TEMPLATE_NAME.equals(templateName) ||
-          project == null && !NewProjectWizardState.MODULE_TEMPLATE_NAME.equals(templateName)) {
+      if (WizardConstants.PROJECT_TEMPLATE_NAME.equals(templateName) ||
+          IMPORT_EXISTING_PROJECT_TEMPLATE_NAME.equals(templateName) ||
+          project == null && !WizardConstants.MODULE_TEMPLATE_NAME.equals(templateName)) {
         continue;
       }
       TemplateMetadata metadata = manager.getTemplate(template);
@@ -93,7 +94,13 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
     private final TemplateMetadata myTemplateMetadata;
 
     private AndroidProjectTemplate(File templateFile, TemplateMetadata metadata, Project project, Disposable parentDisposable) {
-      super(new TemplateWizardModuleBuilder(templateFile, metadata, project, null, new ArrayList<ModuleWizardStep>(), parentDisposable, true));
+      super(new TemplateWizardModuleBuilder(templateFile,
+                                            metadata,
+                                            project,
+                                            null,
+                                            new ArrayList<ModuleWizardStep>(),
+                                            parentDisposable,
+                                            true));
       myTemplateMetadata = metadata;
     }
 
