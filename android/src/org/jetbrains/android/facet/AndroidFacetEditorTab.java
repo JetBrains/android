@@ -114,6 +114,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private RawCommandLineEditor myAdditionalPackagingCommandLineParametersField;
   private TextFieldWithBrowseButton myProguardLogsDirectoryField;
   private JBLabel myProGuardLogsDirectoryLabel;
+  private JBCheckBox myEnableMultiDexCheckBox;
 
   private static final String MAVEN_TAB_TITLE = "Maven";
   private final Component myMavenTabComponent;
@@ -407,6 +408,9 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (!myProGuardConfigFilesPanel.getUrls().equals(myConfiguration.getState().myProGuardCfgFiles)) {
       return true;
     }
+    if (myConfiguration.getState().ENABLE_MULTI_DEX != myEnableMultiDexCheckBox.isSelected()) {
+      return true;
+    }
     if (myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE != myUseCustomManifestPackage.isSelected()) {
       return true;
     }
@@ -540,6 +544,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     myConfiguration.getState().ENABLE_PRE_DEXING = myPreDexEnabledCheckBox.isSelected();
 
+    myConfiguration.getState().ENABLE_MULTI_DEX = myEnableMultiDexCheckBox.isSelected();
+
     myConfiguration.getState().PACK_TEST_CODE = myIncludeTestCodeAndCheckBox.isSelected();
 
     myConfiguration.getState().ENABLE_SOURCES_AUTOGENERATION = myEnableSourcesAutogenerationCheckBox.isSelected();
@@ -649,6 +655,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     final boolean runProguard = configuration.getState().RUN_PROGUARD;
     myRunProguardCheckBox.setSelected(runProguard);
     myProGuardConfigFilesPanel.setUrls(configuration.getState().myProGuardCfgFiles);
+
+    myEnableMultiDexCheckBox.setSelected(configuration.getState().ENABLE_MULTI_DEX);
 
     myUseCustomSourceDirectoryRadio.setSelected(configuration.getState().USE_CUSTOM_APK_RESOURCE_FOLDER);
     myUseAptResDirectoryFromPathRadio.setSelected(!configuration.getState().USE_CUSTOM_APK_RESOURCE_FOLDER);
