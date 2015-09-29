@@ -119,10 +119,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
       assert project != null;
       File projectRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
 
-      // TODO NewProjectWizardState is deprecated. Pull PROJECT_TEMPLATE_NAME out.
-      @SuppressWarnings("deprecation") String name = NewProjectWizardState.PROJECT_TEMPLATE_NAME;
-
-      Template projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, name);
+      Template projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
       projectTemplate.render(projectRoot, projectRoot, myState.flatten(), project);
 
       Collection<File> files = myState.get(WizardConstants.TARGET_FILES_KEY);

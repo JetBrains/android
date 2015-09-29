@@ -19,6 +19,7 @@ import com.android.assetstudiolib.*;
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestCase;
@@ -30,11 +31,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Map;
 
+import static com.android.assetstudiolib.BitmapGeneratorTest.assertImageSimilar;
 import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
-
-import static com.android.assetstudiolib.BitmapGeneratorTest.assertImageSimilar;
 
 /**
  * Tests for generation of asset images.
@@ -46,7 +46,7 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
   private ActionBarIconGenerator myActionBarIconGenerator;
   private LauncherIconGenerator myLauncherIconGenerator;
   private VectorIconGenerator myVectorIconGenerator;
-  private TemplateWizardState myState = new TemplateWizardState();
+  @SuppressWarnings("deprecation") private TemplateWizardState myState = new TemplateWizardState();
   private AssetStudioAssetGenerator myAssetGenerator;
   private static final String ASSET_NAME = "ThisIsTheFileName";
 
@@ -68,7 +68,7 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
     // This is no longer done by the asset state by default, but by the
     // RasterAssetSetStep#initialize method
     state.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), FileUtil
-      .join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME, "root", "res", "mipmap-xhdpi", "ic_launcher.png"))
+      .join(Template.CATEGORY_PROJECTS, WizardConstants.MODULE_TEMPLATE_NAME, "root", "res", "mipmap-xhdpi", "ic_launcher.png"))
       .getAbsolutePath());
   }
 
@@ -190,8 +190,7 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
     myState.put(ATTR_SOURCE_TYPE, SourceType.SVG);
     myState.put(ATTR_ASSET_TYPE, AssetType.ACTIONBAR.name());
     myState.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), FileUtil
-      .join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME, "root",
-            "res", "mipmap-anydpi", "test.svg"))
+      .join(Template.CATEGORY_PROJECTS, WizardConstants.MODULE_TEMPLATE_NAME, "root", "res", "mipmap-anydpi", "test.svg"))
       .getAbsolutePath());
     myState.put(ATTR_VECTOR_DRAWBLE_WIDTH, "24");
     myState.put(ATTR_VECTOR_DRAWBLE_HEIGHT, "24");
@@ -238,7 +237,7 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
 
     ActionBarIconGenerator generator = mock(ActionBarIconGenerator.class);
 
-    TemplateWizardState state = new TemplateWizardState();
+    @SuppressWarnings("deprecation") TemplateWizardState state = new TemplateWizardState();
     AssetStudioAssetGenerator studioGenerator = new AssetStudioAssetGenerator(new TemplateWizardContextAdapter(state),
                                                                               generator, null, null, null);
     pickImage(state);

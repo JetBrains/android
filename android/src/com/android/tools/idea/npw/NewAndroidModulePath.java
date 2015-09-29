@@ -18,6 +18,7 @@ package com.android.tools.idea.npw;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.collect.ImmutableSet;
@@ -36,9 +37,9 @@ import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 
+import static com.android.tools.idea.npw.ChooseTemplateStep.MetadataListItem;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ICONS;
-import static com.android.tools.idea.npw.ChooseTemplateStep.MetadataListItem;
 
 /**
  * This class deals with the "main" flow of the new module wizard when
@@ -48,6 +49,7 @@ import static com.android.tools.idea.npw.ChooseTemplateStep.MetadataListItem;
  */
 @Deprecated
 @LegacyWizardPathProvider.Migrated
+@SuppressWarnings("deprecation")
 public final class NewAndroidModulePath implements WizardPath {
   private static final Logger LOG = Logger.getInstance(NewAndroidModulePath.class);
   @NotNull private final NewModuleWizardState myWizardState;
@@ -68,20 +70,26 @@ public final class NewAndroidModulePath implements WizardPath {
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(wizardState, project, sidePanelIcon, builder);
     myAssetSetStep = new RasterAssetSetStep(myWizardState, project, null, sidePanelIcon, builder, null);
     Disposer.register(disposable, myAssetSetStep);
-    myChooseActivityStep =
-      new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, project, null, sidePanelIcon, builder, null,
-                             ContainerUtil.newHashSet("Android TV Activity")) {
-        @Override
-        public String getHelpId() {
-          return "Android_Application_Template_Page";
-        }
-      };
-    myActivityTemplateParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), project, null, sidePanelIcon, builder) {
+    myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(),
+                                                  CATEGORY_ACTIVITIES,
+                                                  project,
+                                                  null,
+                                                  sidePanelIcon,
+                                                  builder,
+                                                  null,
+                                                  ContainerUtil.newHashSet("Android TV Activity")) {
       @Override
       public String getHelpId() {
-        return "Android_Activity_Settings_Page";
+        return "Android_Application_Template_Page";
       }
     };
+    myActivityTemplateParameterStep =
+      new TemplateParameterStep(myWizardState.getActivityTemplateState(), project, null, sidePanelIcon, builder) {
+        @Override
+        public String getHelpId() {
+          return "Android_Activity_Settings_Page";
+        }
+      };
     myJavaModuleTemplateParameterStep = new TemplateParameterStep(myWizardState, project, null, sidePanelIcon, builder);
     myAssetSetStep.finalizeAssetType(AssetStudioAssetGenerator.AssetType.LAUNCHER);
   }
@@ -110,7 +118,9 @@ public final class NewAndroidModulePath implements WizardPath {
     if (myProject != null) {
       try {
         myWizardState.populateDirectoryParameters();
-        File projectRoot = new File(myProject.getBasePath());
+
+        // Let the catch block handle the NullPointerException
+        @SuppressWarnings("ConstantConditions") File projectRoot = new File(myProject.getBasePath());
         File moduleRoot = new File(projectRoot, myWizardState.getString(FormFactorUtils.ATTR_MODULE_NAME));
         // TODO: handle return type of "mkdirs".
         projectRoot.mkdirs();
@@ -140,8 +150,12 @@ public final class NewAndroidModulePath implements WizardPath {
 
   @Override
   public Collection<ModuleWizardStep> getSteps() {
-    return ImmutableSet.of(new ChooseAndroidAndJavaSdkStep(), myJavaModuleTemplateParameterStep, myConfigureAndroidModuleStep,
-                           myAssetSetStep, myChooseActivityStep, myActivityTemplateParameterStep);
+    return ImmutableSet.of(new ChooseAndroidAndJavaSdkStep(),
+                           myJavaModuleTemplateParameterStep,
+                           myConfigureAndroidModuleStep,
+                           myAssetSetStep,
+                           myChooseActivityStep,
+                           myActivityTemplateParameterStep);
   }
 
   @Override
@@ -160,8 +174,8 @@ public final class NewAndroidModulePath implements WizardPath {
   @Override
   public Collection<MetadataListItem> getBuiltInTemplates() {
     // Now, we're going to add in two pointers to the same template
-    File moduleTemplate = new File(TemplateManager.getTemplateRootFolder(),
-                                   FileUtil.join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME));
+    File moduleTemplate =
+      new File(TemplateManager.getTemplateRootFolder(), FileUtil.join(Template.CATEGORY_PROJECTS, WizardConstants.MODULE_TEMPLATE_NAME));
     TemplateManager manager = TemplateManager.getInstance();
     TemplateMetadata metadata = manager.getTemplate(moduleTemplate);
 

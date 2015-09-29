@@ -20,12 +20,13 @@ import com.android.SdkConstants;
 import com.android.assetstudiolib.ActionBarIconGenerator;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.resources.Density;
+import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.android.tools.idea.ui.ImageComponent;
-import com.android.tools.idea.templates.StringEvaluator;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -126,7 +127,7 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
-  public RasterAssetSetStep(TemplateWizardState state,
+  public RasterAssetSetStep(@SuppressWarnings("deprecation") TemplateWizardState state,
                             @Nullable Project project,
                             @Nullable Module module,
                             @Nullable Icon sidePanelIcon,
@@ -189,15 +190,29 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
 
     // Source Radio button
     if (myImageRadioButton.isSelected()) {
-      hide(myChooseClipart, myChooseClipartLabel, myText, myTextLabel, myFontFamily, myFontFamilyLabel, myForegroundColor,
+      hide(myChooseClipart,
+           myChooseClipartLabel,
+           myText,
+           myTextLabel,
+           myFontFamily,
+           myFontFamilyLabel,
+           myForegroundColor,
            myForegroundColorLabel);
       show(myImageFile, myImageFileLabel, myBackgroundColor, myBackgroundColorLabel);
-    } else if (myClipartRadioButton.isSelected()) {
+    }
+    else if (myClipartRadioButton.isSelected()) {
       hide(myText, myTextLabel, myFontFamily, myFontFamilyLabel, myImageFile, myImageFileLabel);
-      show(myChooseClipart, myChooseClipartLabel, myBackgroundColor, myBackgroundColorLabel,myForegroundColor, myForegroundColorLabel);
-    } else if (myTextRadioButton.isSelected()) {
+      show(myChooseClipart, myChooseClipartLabel, myBackgroundColor, myBackgroundColorLabel, myForegroundColor, myForegroundColorLabel);
+    }
+    else if (myTextRadioButton.isSelected()) {
       hide(myChooseClipart, myChooseClipartLabel, myImageFile, myImageFileLabel);
-      show(myText, myTextLabel, myFontFamily, myFontFamilyLabel, myBackgroundColor, myBackgroundColorLabel, myForegroundColor,
+      show(myText,
+           myTextLabel,
+           myFontFamily,
+           myFontFamilyLabel,
+           myBackgroundColor,
+           myBackgroundColorLabel,
+           myForegroundColor,
            myForegroundColorLabel);
       myFontFamily.setSelectedItem(myTemplateState.getString(ATTR_FONT));
     }
@@ -209,31 +224,49 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
       if (selectedAssetType != null) {
         switch (selectedAssetType) {
           case LAUNCHER:
-            hide(myChooseThemeComboBox, myChooseThemeLabel, myVersionPanel,
-                 myDogEarEffectCheckBox);
-            show(myForegroundScalingLabel, myScalingPanel, myShapeLabel, myShapePanel,
-                 myResourceNameLabel, myResourceNameField, myXXXHdpiPreview, myXXXHDPILabel, myScrollPane);
+            hide(myChooseThemeComboBox, myChooseThemeLabel, myVersionPanel, myDogEarEffectCheckBox);
+            show(myForegroundScalingLabel,
+                 myScalingPanel,
+                 myShapeLabel,
+                 myShapePanel,
+                 myResourceNameLabel,
+                 myResourceNameField,
+                 myXXXHdpiPreview,
+                 myXXXHDPILabel,
+                 myScrollPane);
             if (!myTemplateState.myModified.contains(ATTR_ASSET_NAME)) {
               myTemplateState.put(ATTR_ASSET_NAME, "icon");
             }
             //Dog-ear effect
-            if(mySquareRadioButton.isSelected() || myVerticalRadioButton .isSelected()
-               || myHorizontalRadioButton.isSelected()) {
+            if (mySquareRadioButton.isSelected() || myVerticalRadioButton.isSelected() || myHorizontalRadioButton.isSelected()) {
               show(myDogEarEffectCheckBox);
             }
             break;
           case ACTIONBAR:
             show(myResourceNameField, myResourceNameLabel);
             show(myChooseThemeComboBox, myChooseThemeLabel, myScrollPane);
-            hide(myForegroundScalingLabel, myScalingPanel, myShapeLabel, myShapePanel,
-                 myBackgroundColorLabel, myBackgroundColor, myVersionPanel, myXXXHdpiPreview,
-                 myXXXHDPILabel, myDogEarEffectCheckBox);
+            hide(myForegroundScalingLabel,
+                 myScalingPanel,
+                 myShapeLabel,
+                 myShapePanel,
+                 myBackgroundColorLabel,
+                 myBackgroundColor,
+                 myVersionPanel,
+                 myXXXHdpiPreview,
+                 myXXXHDPILabel,
+                 myDogEarEffectCheckBox);
             break;
           case NOTIFICATION:
             show(myResourceNameField, myResourceNameLabel, myVersionPanel);
             hide(myChooseThemeComboBox, myChooseThemeLabel, myForegroundColor, myForegroundColorLabel);
-            hide(myForegroundScalingLabel, myScalingPanel, myShapeLabel, myShapePanel,
-                 myBackgroundColorLabel, myBackgroundColor, myScrollPane, myDogEarEffectCheckBox);
+            hide(myForegroundScalingLabel,
+                 myScalingPanel,
+                 myShapeLabel,
+                 myShapePanel,
+                 myBackgroundColorLabel,
+                 myBackgroundColor,
+                 myScrollPane,
+                 myDogEarEffectCheckBox);
             break;
         }
 
@@ -250,10 +283,10 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
 
     // Theme chooser
     if (myChooseThemeComboBox.isVisible() && myTemplateState.hasAttr(ATTR_ASSET_THEME)) {
-      if (ActionBarIconGenerator.Theme.valueOf(myTemplateState.getString(ATTR_ASSET_THEME))
-          .equals(ActionBarIconGenerator.Theme.CUSTOM)) {
+      if (ActionBarIconGenerator.Theme.valueOf(myTemplateState.getString(ATTR_ASSET_THEME)).equals(ActionBarIconGenerator.Theme.CUSTOM)) {
         show(myForegroundColor, myForegroundColorLabel);
-      } else {
+      }
+      else {
         hide(myForegroundColor, myForegroundColorLabel);
       }
     }
@@ -284,7 +317,8 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
       setIconOrClear(myV11XHdpiPreview, v11_xhdpi);
       setIconOrClear(myV11XXHdpiPreview, v11_xxhdpi);
 
-    } else {
+    }
+    else {
       final BufferedImage mdpi = getImage(myImageMap, Density.MEDIUM.getResourceValue());
       final BufferedImage hdpi = getImage(myImageMap, Density.HIGH.getResourceValue());
       final BufferedImage xhdpi = getImage(myImageMap, Density.XHIGH.getResourceValue());
@@ -302,12 +336,14 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
       }
     }
 
-    myUpdateListener.update();
+    if (myUpdateListener != null) {
+      myUpdateListener.update();
+    }
   }
 
   /**
    * Displays a modal dialog with one button for each entry in the {@link GraphicGenerator} clipart library. Clicking on a button sets that
-   * entry into the {@link ATTR_CLIPART_NAME} parameter.
+   * entry into the ATTR_CLIPART_NAME parameter.
    */
   private void displayClipartDialog() {
     Window window = SwingUtilities.getWindowAncestor(myPanel);
@@ -315,8 +351,7 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
     FlowLayout layout = new FlowLayout();
     dialog.getRootPane().setLayout(layout);
     int count = 0;
-    for (Iterator<String> iter = GraphicGenerator.getResourcesNames(IMAGES_CLIPART_BIG, SdkConstants.DOT_PNG);
-         iter.hasNext(); ) {
+    for (Iterator<String> iter = GraphicGenerator.getResourcesNames(IMAGES_CLIPART_BIG, SdkConstants.DOT_PNG); iter.hasNext(); ) {
       final String name = iter.next();
       try {
         JButton btn = new JButton();
@@ -332,7 +367,7 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
             dialog.setVisible(false);
             update();
           }
-          });
+        });
         dialog.getRootPane().add(btn);
         count++;
       }
@@ -372,7 +407,8 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
 
   @Nullable
   private static BufferedImage getImage(@NotNull Map<String, Map<String, BufferedImage>> map,
-                                        @NotNull String category, @NotNull Density density) {
+                                        @NotNull String category,
+                                        @NotNull Density density) {
     String densityString = density.getResourceValue();
     final Map<String, BufferedImage> images = map.get(category);
     if (images == null) {
@@ -399,9 +435,14 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
 
   @Override
   protected void initialize() {
-    myTemplateState.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), FileUtil
-      .join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME, "root", "res", "mipmap-xhdpi", "ic_launcher.png"))
-      .getAbsolutePath());
+    myTemplateState.put(ATTR_IMAGE_PATH,
+                        new File(TemplateManager.getTemplateRootFolder(),
+                                 FileUtil.join(Template.CATEGORY_PROJECTS,
+                                               WizardConstants.MODULE_TEMPLATE_NAME,
+                                               "root",
+                                               "res",
+                                               "mipmap-xhdpi",
+                                               "ic_launcher.png")).getAbsolutePath());
     register(ATTR_IMAGE_PATH, myImageFile);
   }
 
@@ -410,7 +451,8 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
   protected String computeResourceName() {
     String resourceName = null;
     if (myTemplateState.get(TemplateMetadata.ATTR_ICON_NAME) != null) {
-      resourceName = myStringEvaluator.evaluate(myTemplateState.getString(TemplateMetadata.ATTR_ICON_NAME), myTemplateState.getParameters());
+      resourceName =
+        myStringEvaluator.evaluate(myTemplateState.getString(TemplateMetadata.ATTR_ICON_NAME), myTemplateState.getParameters());
     }
 
     if (resourceName == null) {
