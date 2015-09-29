@@ -19,25 +19,25 @@ package com.android.tools.idea.editors.gfxtrace.service;
 
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.ConstantSet;
-import com.android.tools.rpclib.schema.SchemaClass;
+import com.android.tools.rpclib.schema.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
 public final class Schema implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  private SchemaClass[] myClasses;
+  private Entity[] myClasses;
   private ConstantSet[] myConstants;
 
   // Constructs a default-initialized {@link Schema}.
   public Schema() {}
 
 
-  public SchemaClass[] getClasses() {
+  public Entity[] getClasses() {
     return myClasses;
   }
 
-  public Schema setClasses(SchemaClass[] v) {
+  public Schema setClasses(Entity[] v) {
     myClasses = v;
     return this;
   }
@@ -54,7 +54,7 @@ public final class Schema implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {116, -30, 33, -15, 73, -113, 27, -112, -13, -117, -24, 86, -17, -65, 23, 121, -33, -4, 56, 37, };
+  private static final byte[] IDBytes = {88, 28, 37, -60, -66, -89, -81, 27, 21, 67, -31, 70, -29, 120, -120, -70, 112, -36, 99, -31, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
@@ -88,9 +88,9 @@ public final class Schema implements BinaryObject {
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       Schema o = (Schema)obj;
-      o.myClasses = new SchemaClass[d.uint32()];
+      o.myClasses = new Entity[d.uint32()];
       for (int i = 0; i <o.myClasses.length; i++) {
-        o.myClasses[i] = (SchemaClass)d.object();
+        o.myClasses[i] = (Entity)d.object();
       }
       o.myConstants = new ConstantSet[d.uint32()];
       for (int i = 0; i <o.myConstants.length; i++) {
