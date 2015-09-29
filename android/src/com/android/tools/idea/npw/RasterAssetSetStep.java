@@ -127,7 +127,7 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
-  public RasterAssetSetStep(@SuppressWarnings("deprecation") TemplateWizardState state,
+  public RasterAssetSetStep(TemplateWizardState state,
                             @Nullable Project project,
                             @Nullable Module module,
                             @Nullable Icon sidePanelIcon,
@@ -435,14 +435,9 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
 
   @Override
   protected void initialize() {
-    myTemplateState.put(ATTR_IMAGE_PATH,
-                        new File(TemplateManager.getTemplateRootFolder(),
-                                 FileUtil.join(Template.CATEGORY_PROJECTS,
-                                               WizardConstants.MODULE_TEMPLATE_NAME,
-                                               "root",
-                                               "res",
-                                               "mipmap-xhdpi",
-                                               "ic_launcher.png")).getAbsolutePath());
+    String child =
+      FileUtil.join(Template.CATEGORY_PROJECTS, WizardConstants.MODULE_TEMPLATE_NAME, "root", "res", "mipmap-xhdpi", "ic_launcher.png");
+    myTemplateState.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), child).getAbsolutePath());
     register(ATTR_IMAGE_PATH, myImageFile);
   }
 
