@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
@@ -24,14 +25,18 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlo
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
  * data as key value pairs and convenient methods to access the data.
  */
 public abstract class GradleDslPropertiesElement extends GradleDslElement {
-  protected GrClosableBlock myPsiElement;
-  protected Map<String, GradleDslElement> myProperties = Maps.newHashMap();
+  @Nullable protected GrClosableBlock myPsiElement;
+
+  @NotNull protected Map<String, GradleDslElement> myProperties = Maps.newHashMap();
+  @NotNull protected Map<String, GradleDslElement> myToBeAddedProperties = Maps.newHashMap();
+  @NotNull protected Set<String> myToBeRemovedProperties = Sets.newHashSet();
 
   protected GradleDslPropertiesElement(@Nullable GradleDslElement parent) {
     super(parent);
@@ -73,7 +78,11 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
   @Nullable
   public GradleDslElement getPropertyElement(@NotNull String property) {
     if (!property.contains(".")) {
-      return myProperties.get(property);
+      if (myToBeRemovedProperties.contains(property)) {
+        return null;
+      }
+      GradleDslElement toBeAddedElement = myToBeAddedProperties.get(property);
+      return toBeAddedElement != null ? toBeAddedElement : myProperties.get(property);
     }
     List<String> propertyNameSegments = Splitter.on('.').splitToList(property);
     GradleDslPropertiesElement nestedElement = this;
@@ -106,6 +115,47 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
     return null;
   }
 
+  @NotNull
+  protected GradleDslPropertiesElement setLiteralProperty(@NotNull String property, @NotNull String value) {
+    return setLiteralPropertyImpl(property, value);
+  }
+
+  @NotNull
+  protected GradleDslPropertiesElement setLiteralProperty(@NotNull String property, @NotNull Integer value) {
+    return setLiteralPropertyImpl(property, value);
+  }
+
+  @NotNull
+  protected GradleDslPropertiesElement setLiteralProperty(@NotNull String property, @NotNull Boolean value) {
+    return setLiteralPropertyImpl(property, value);
+  }
+
+  @NotNull
+  private GradleDslPropertiesElement setLiteralPropertyImpl(@NotNull String property, @NotNull Object value) {
+    LiteralElement literalElement = getProperty(property, LiteralElement.class);
+    if (literalElement != null) {
+      literalElement.setValue(value);
+      return this;
+    }
+
+    literalElement = new LiteralElement(this, property);
+    literalElement.setValue(value);
+    myToBeAddedProperties.put(property, literalElement);
+    setModified(true);
+    return this;
+  }
+
+  /**
+   * Marks the given {@code property} for removal.
+   *
+   * <p>The actual property will be removed from Gradle file when {@link #apply()} method is invoked.
+   *
+   * <p>The property will be un-marked for removal when {@link #reset()} method is invoked.
+   */
+  public void removeProperty(@NotNull String property) {
+    myToBeRemovedProperties.add(property);
+  }
+
   /**
    * Returns the list of values of type {@code clazz} when the given {@code property} corresponds to a {@link ListElement}.
    *
@@ -116,7 +166,7 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
    * that list is empty or does not contain any element of type {@code clazz}.
    */
   @Nullable
-  public <E> List<E> getListProperty(@NotNull String property, @NotNull Class<E> clazz) {
+  protected <E> List<E> getListProperty(@NotNull String property, @NotNull Class<E> clazz) {
     ListElement listElement = getProperty(property, ListElement.class);
     if (listElement != null) {
       return listElement.getValues(clazz);
@@ -135,7 +185,7 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
    * map is empty or does not contain any values of type {@code clazz}.
    */
   @Nullable
-  public <V> Map<String, V> getMapProperty(@NotNull String property, @NotNull Class<V> clazz) {
+  protected <V> Map<String, V> getMapProperty(@NotNull String property, @NotNull Class<V> clazz) {
     MapElement mapElement = getProperty(property, MapElement.class);
     if (mapElement != null) {
       return mapElement.getValues(clazz);
@@ -150,6 +200,12 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
 
   @Override
   protected void reset() {
-    // TODO: implement.
+    myToBeRemovedProperties.clear();
+    myToBeAddedProperties.clear();
+    for (GradleDslElement element : myProperties.values()) {
+      if (element.isModified()) {
+        element.reset();
+      }
+    }
   }
 }

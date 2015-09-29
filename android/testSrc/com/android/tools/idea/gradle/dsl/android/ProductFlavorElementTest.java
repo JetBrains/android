@@ -370,4 +370,281 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key1", "value1", "key2", "value2"),
                  defaultConfig.testInstrumentationRunnerArguments());
   }
+
+  public void testEditAndResetLiteralElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    applicationId \"com.example.myapplication\"\n" +
+                  "    dimension \"abcd\"\n" +
+                  "    maxSdkVersion 23\n" +
+                  "    minSdkVersion \"15\"\n" +
+                  "    multiDexEnabled true\n" +
+                  "    targetSdkVersion \"22\" \n" +
+                  "    testApplicationId \"com.example.myapplication.test\"\n" +
+                  "    testFunctionalTest false\n" +
+                  "    testHandleProfiling true\n" +
+                  "    testInstrumentationRunner \"abcd\"\n" +
+                  "    useJack false\n" +
+                  "    versionCode 1\n" +
+                  "    versionName \"1.0\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
+    assertEquals("dimension", "abcd", defaultConfig.dimension());
+    assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion());
+    assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion());
+    assertEquals("multiDexEnabled", Boolean.TRUE, defaultConfig.multiDexEnabled());
+    assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion());
+    assertEquals("testApplicationId", "com.example.myapplication.test", defaultConfig.testApplicationId());
+    assertEquals("testFunctionalTest", Boolean.FALSE, defaultConfig.testFunctionalTest());
+    assertEquals("testHandleProfiling", Boolean.TRUE, defaultConfig.testHandleProfiling());
+    assertEquals("testInstrumentationRunner", "abcd", defaultConfig.testInstrumentationRunner());
+    assertEquals("useJack", Boolean.FALSE, defaultConfig.useJack());
+    assertEquals("versionCode", "1", defaultConfig.versionCode());
+    assertEquals("versionName", "1.0", defaultConfig.versionName());
+
+    defaultConfig
+      .setApplicationId("com.example.myapplication-1")
+      .setDimension("efgh")
+      .setMaxSdkVersion(24)
+      .setMinSdkVersion("16")
+      .setMultiDexEnabled(false)
+      .setTargetSdkVersion("23")
+      .setTestApplicationId("com.example.myapplication-1.test")
+      .setTestFunctionalTest(true)
+      .setTestHandleProfiling(false)
+      .setTestInstrumentationRunner("efgh")
+      .setUseJack(true)
+      .setVersionCode("2")
+      .setversionName("2.0");
+
+    assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId());
+    assertEquals("dimension", "efgh", defaultConfig.dimension());
+    assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion());
+    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
+    assertEquals("multiDexEnabled", Boolean.FALSE, defaultConfig.multiDexEnabled());
+    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+    assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId());
+    assertEquals("testFunctionalTest", Boolean.TRUE, defaultConfig.testFunctionalTest());
+    assertEquals("testHandleProfiling", Boolean.FALSE, defaultConfig.testHandleProfiling());
+    assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner());
+    assertEquals("useJack", Boolean.TRUE, defaultConfig.useJack());
+    assertEquals("versionCode", "2", defaultConfig.versionCode());
+    assertEquals("versionName", "2.0", defaultConfig.versionName());
+
+    defaultConfig.resetState();
+
+    assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
+    assertEquals("dimension", "abcd", defaultConfig.dimension());
+    assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion());
+    assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion());
+    assertEquals("multiDexEnabled", Boolean.TRUE, defaultConfig.multiDexEnabled());
+    assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion());
+    assertEquals("testApplicationId", "com.example.myapplication.test", defaultConfig.testApplicationId());
+    assertEquals("testFunctionalTest", Boolean.FALSE, defaultConfig.testFunctionalTest());
+    assertEquals("testHandleProfiling", Boolean.TRUE, defaultConfig.testHandleProfiling());
+    assertEquals("testInstrumentationRunner", "abcd", defaultConfig.testInstrumentationRunner());
+    assertEquals("useJack", Boolean.FALSE, defaultConfig.useJack());
+    assertEquals("versionCode", "1", defaultConfig.versionCode());
+    assertEquals("versionName", "1.0", defaultConfig.versionName());
+
+    // Test the fields that also accept an integer value along with the String valye.
+    defaultConfig.setMinSdkVersion(16)
+      .setTargetSdkVersion(23)
+      .setVersionCode(2);
+
+    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
+    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+    assertEquals("versionCode", "2", defaultConfig.versionCode());
+
+    defaultConfig.resetState();
+
+    assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion());
+    assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion());
+    assertEquals("versionCode", "1", defaultConfig.versionCode());
+  }
+
+  public void testAddAndResetLiteralElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertNull("applicationId", defaultConfig.applicationId());
+    assertNull("dimension", defaultConfig.dimension());
+    assertNull("maxSdkVersion", defaultConfig.maxSdkVersion());
+    assertNull("minSdkVersion", defaultConfig.minSdkVersion());
+    assertNull("multiDexEnabled", defaultConfig.multiDexEnabled());
+    assertNull("targetSdkVersion", defaultConfig.targetSdkVersion());
+    assertNull("testApplicationId", defaultConfig.testApplicationId());
+    assertNull("testFunctionalTest", defaultConfig.testFunctionalTest());
+    assertNull("testHandleProfiling", defaultConfig.testHandleProfiling());
+    assertNull("testInstrumentationRunner", defaultConfig.testInstrumentationRunner());
+    assertNull("useJack", defaultConfig.useJack());
+    assertNull("versionCode", defaultConfig.versionCode());
+    assertNull("versionName", defaultConfig.versionName());
+
+    defaultConfig
+      .setApplicationId("com.example.myapplication-1")
+      .setDimension("efgh")
+      .setMaxSdkVersion(24)
+      .setMinSdkVersion("16")
+      .setMultiDexEnabled(false)
+      .setTargetSdkVersion("23")
+      .setTestApplicationId("com.example.myapplication-1.test")
+      .setTestFunctionalTest(true)
+      .setTestHandleProfiling(false)
+      .setTestInstrumentationRunner("efgh")
+      .setUseJack(true)
+      .setVersionCode("2")
+      .setversionName("2.0");
+
+    assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId());
+    assertEquals("dimension", "efgh", defaultConfig.dimension());
+    assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion());
+    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
+    assertEquals("multiDexEnabled", Boolean.FALSE, defaultConfig.multiDexEnabled());
+    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+    assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId());
+    assertEquals("testFunctionalTest", Boolean.TRUE, defaultConfig.testFunctionalTest());
+    assertEquals("testHandleProfiling", Boolean.FALSE, defaultConfig.testHandleProfiling());
+    assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner());
+    assertEquals("useJack", Boolean.TRUE, defaultConfig.useJack());
+    assertEquals("versionCode", "2", defaultConfig.versionCode());
+    assertEquals("versionName", "2.0", defaultConfig.versionName());
+
+    defaultConfig.resetState();
+
+    assertNull("applicationId", defaultConfig.applicationId());
+    assertNull("dimension", defaultConfig.dimension());
+    assertNull("maxSdkVersion", defaultConfig.maxSdkVersion());
+    assertNull("minSdkVersion", defaultConfig.minSdkVersion());
+    assertNull("multiDexEnabled", defaultConfig.multiDexEnabled());
+    assertNull("targetSdkVersion", defaultConfig.targetSdkVersion());
+    assertNull("testApplicationId", defaultConfig.testApplicationId());
+    assertNull("testFunctionalTest", defaultConfig.testFunctionalTest());
+    assertNull("testHandleProfiling", defaultConfig.testHandleProfiling());
+    assertNull("testInstrumentationRunner", defaultConfig.testInstrumentationRunner());
+    assertNull("useJack", defaultConfig.useJack());
+    assertNull("versionCode", defaultConfig.versionCode());
+    assertNull("versionName", defaultConfig.versionName());
+
+    // Test the fields that also accept an integer value along with the String valye.
+    defaultConfig.setMinSdkVersion(16)
+      .setTargetSdkVersion(23)
+      .setVersionCode(2);
+
+    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
+    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+    assertEquals("versionCode", "2", defaultConfig.versionCode());
+
+    defaultConfig.resetState();
+
+    assertNull("minSdkVersion", defaultConfig.minSdkVersion());
+    assertNull("targetSdkVersion", defaultConfig.targetSdkVersion());
+    assertNull("versionCode", defaultConfig.versionCode());
+  }
+
+  public void testRemoveAndResetLiteralElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    applicationId \"com.example.myapplication\"\n" +
+                  "    dimension \"abcd\"\n" +
+                  "    maxSdkVersion 23\n" +
+                  "    minSdkVersion \"15\"\n" +
+                  "    multiDexEnabled true\n" +
+                  "    targetSdkVersion \"22\" \n" +
+                  "    testApplicationId \"com.example.myapplication.test\"\n" +
+                  "    testFunctionalTest false\n" +
+                  "    testHandleProfiling true\n" +
+                  "    testInstrumentationRunner \"abcd\"\n" +
+                  "    useJack false\n" +
+                  "    versionCode 1\n" +
+                  "    versionName \"1.0\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
+    assertEquals("dimension", "abcd", defaultConfig.dimension());
+    assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion());
+    assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion());
+    assertEquals("multiDexEnabled", Boolean.TRUE, defaultConfig.multiDexEnabled());
+    assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion());
+    assertEquals("testApplicationId", "com.example.myapplication.test", defaultConfig.testApplicationId());
+    assertEquals("testFunctionalTest", Boolean.FALSE, defaultConfig.testFunctionalTest());
+    assertEquals("testHandleProfiling", Boolean.TRUE, defaultConfig.testHandleProfiling());
+    assertEquals("testInstrumentationRunner", "abcd", defaultConfig.testInstrumentationRunner());
+    assertEquals("useJack", Boolean.FALSE, defaultConfig.useJack());
+    assertEquals("versionCode", "1", defaultConfig.versionCode());
+    assertEquals("versionName", "1.0", defaultConfig.versionName());
+
+    defaultConfig.removeProperty("applicationId");
+    defaultConfig.removeProperty("dimension");
+    defaultConfig.removeProperty("maxSdkVersion");
+    defaultConfig.removeProperty("minSdkVersion");
+    defaultConfig.removeProperty("multiDexEnabled");
+    defaultConfig.removeProperty("targetSdkVersion");
+    defaultConfig.removeProperty("testApplicationId");
+    defaultConfig.removeProperty("testFunctionalTest");
+    defaultConfig.removeProperty("testHandleProfiling");
+    defaultConfig.removeProperty("testInstrumentationRunner");
+    defaultConfig.removeProperty("useJack");
+    defaultConfig.removeProperty("versionCode");
+    defaultConfig.removeProperty("versionName");
+
+    assertNull("applicationId", defaultConfig.applicationId());
+    assertNull("dimension", defaultConfig.dimension());
+    assertNull("maxSdkVersion", defaultConfig.maxSdkVersion());
+    assertNull("minSdkVersion", defaultConfig.minSdkVersion());
+    assertNull("multiDexEnabled", defaultConfig.multiDexEnabled());
+    assertNull("targetSdkVersion", defaultConfig.targetSdkVersion());
+    assertNull("testApplicationId", defaultConfig.testApplicationId());
+    assertNull("testFunctionalTest", defaultConfig.testFunctionalTest());
+    assertNull("testHandleProfiling", defaultConfig.testHandleProfiling());
+    assertNull("testInstrumentationRunner", defaultConfig.testInstrumentationRunner());
+    assertNull("useJack", defaultConfig.useJack());
+    assertNull("versionCode", defaultConfig.versionCode());
+    assertNull("versionName", defaultConfig.versionName());
+
+    defaultConfig.resetState();
+
+    assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
+    assertEquals("dimension", "abcd", defaultConfig.dimension());
+    assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion());
+    assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion());
+    assertEquals("multiDexEnabled", Boolean.TRUE, defaultConfig.multiDexEnabled());
+    assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion());
+    assertEquals("testApplicationId", "com.example.myapplication.test", defaultConfig.testApplicationId());
+    assertEquals("testFunctionalTest", Boolean.FALSE, defaultConfig.testFunctionalTest());
+    assertEquals("testHandleProfiling", Boolean.TRUE, defaultConfig.testHandleProfiling());
+    assertEquals("testInstrumentationRunner", "abcd", defaultConfig.testInstrumentationRunner());
+    assertEquals("useJack", Boolean.FALSE, defaultConfig.useJack());
+    assertEquals("versionCode", "1", defaultConfig.versionCode());
+    assertEquals("versionName", "1.0", defaultConfig.versionName());
+  }
 }
