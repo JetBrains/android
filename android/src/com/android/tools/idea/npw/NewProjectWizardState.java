@@ -16,12 +16,9 @@
 
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.npw.ConfigureAndroidProjectPath;
-import com.android.tools.idea.npw.NewModuleWizardState;
-import com.android.tools.idea.npw.NewProjectWizard;
-import com.android.tools.idea.npw.NewProjectWizardDynamic;
 import com.android.tools.idea.templates.Template;
-import com.intellij.ide.RecentProjectsManagerImpl;
+import com.android.tools.idea.wizard.WizardConstants;
+import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
@@ -38,12 +35,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  */
 @Deprecated
 public class NewProjectWizardState extends NewModuleWizardState {
-  public static final String ATTR_MODULE_NAME = "projectName";
-
-  static final String MODULE_TEMPLATE_NAME = "NewAndroidModule";
-  static final String PROJECT_TEMPLATE_NAME = "NewAndroidProject";
-  static final String IMPORT_EXISTING_PROJECT_TEMPLATE_NAME = "ImportExistingProject";
-  static final String APPLICATION_NAME = "My Application";
+  private static final String APPLICATION_NAME = "My Application";
 
   protected Template myProjectTemplate;
 
@@ -59,8 +51,8 @@ public class NewProjectWizardState extends NewModuleWizardState {
     final int DEFAULT_MIN = 9;
     put(ATTR_MIN_API_LEVEL, DEFAULT_MIN);
     put(ATTR_MIN_API, Integer.toString(DEFAULT_MIN));
-    myProjectTemplate = Template.createFromName(CATEGORY_PROJECTS, PROJECT_TEMPLATE_NAME);
-    myTemplate = Template.createFromName(CATEGORY_PROJECTS, MODULE_TEMPLATE_NAME);
+    myProjectTemplate = Template.createFromName(CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
+    myTemplate = Template.createFromName(CATEGORY_PROJECTS, WizardConstants.MODULE_TEMPLATE_NAME);
     setParameterDefaults();
 
     updateParameters();
@@ -71,7 +63,7 @@ public class NewProjectWizardState extends NewModuleWizardState {
    */
   @NotNull
   public static String getProjectFileDirectory() {
-    final String lastProjectLocation = RecentProjectsManagerImpl.getInstance().getLastProjectCreationLocation();
+    final String lastProjectLocation = RecentProjectsManager.getInstance().getLastProjectCreationLocation();
     if (lastProjectLocation != null) {
       return lastProjectLocation.replace('/', File.separatorChar);
     }
