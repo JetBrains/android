@@ -95,7 +95,8 @@ public class HprofAnalysisContentsDelegate extends AnalysisContentsDelegate {
           DuplicatedStringsEntry entry = (DuplicatedStringsEntry)resultEntry;
           append(Integer.toString(index), XDebuggerUIConstants.VALUE_NAME_ATTRIBUTES);
           append(" = ", SimpleTextAttributes.REGULAR_ATTRIBUTES);
-          append(String.format("\"%s\"", entry.getOffender().getOffendingDescription()),
+          append(String.format("\"%s\" (%d instances)", entry.getOffender().getOffendingDescription(),
+                               entry.getOffender().getOffenders().size()),
                  SimpleTextAttributes.fromTextAttributes(DebuggerUIUtil.getColorScheme(null).getAttributes(JavaHighlightingColors.STRING)));
         }
       }

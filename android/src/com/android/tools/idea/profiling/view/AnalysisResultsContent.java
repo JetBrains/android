@@ -33,7 +33,8 @@ public class AnalysisResultsContent implements LightToolWindowContent {
 
   @Nullable
   public Icon getIcon() {
-    return myCapturePanel != null ? myCapturePanel.getContentsDelegate().getToolIcon() : null;
+    AnalysisContentsDelegate delegate = getContentsDelegate();
+    return delegate != null ? delegate.getToolIcon() : null;
   }
 
   @NotNull
@@ -41,10 +42,10 @@ public class AnalysisResultsContent implements LightToolWindowContent {
     return myMainPanel;
   }
 
-  @NotNull
+  @Nullable
   public JComponent getFocusComponent() {
-    assert myCapturePanel != null;
-    return myCapturePanel.getContentsDelegate().getFocusComponent();
+    AnalysisContentsDelegate delegate = getContentsDelegate();
+    return delegate == null ? null : delegate.getFocusComponent();
   }
 
   public void update(@Nullable DesignerEditorPanelFacade mainPanel) {
@@ -52,7 +53,16 @@ public class AnalysisResultsContent implements LightToolWindowContent {
 
     if (mainPanel instanceof CapturePanel && mainPanel != myCapturePanel) {
       myCapturePanel = (CapturePanel)mainPanel;
-      myMainPanel.add(myCapturePanel.getContentsDelegate().getComponent(), BorderLayout.CENTER);
+      final CapturePanel currentCapturePanel = myCapturePanel;
+      myCapturePanel.runWhenFinishedLoading(new Runnable() {
+        @Override
+        public void run() {
+          if (currentCapturePanel == myCapturePanel) {
+            myMainPanel.removeAll();
+            myMainPanel.add(myCapturePanel.getContentsDelegate().getComponent(), BorderLayout.CENTER);
+          }
+        }
+      });
     }
     else {
       myCapturePanel = null;
@@ -60,16 +70,23 @@ public class AnalysisResultsContent implements LightToolWindowContent {
   }
 
   public boolean canRunAnalysis() {
-    return myCapturePanel != null && myCapturePanel.getContentsDelegate().canRunAnalysis();
+    AnalysisContentsDelegate delegate = getContentsDelegate();
+    return delegate != null && delegate.canRunAnalysis();
   }
 
   public void performAnalysis() {
-    if (myCapturePanel != null) {
-      myCapturePanel.getContentsDelegate().performAnalysis();
+    AnalysisContentsDelegate delegate = getContentsDelegate();
+    if (delegate != null) {
+      delegate.performAnalysis();
     }
   }
 
   @Override
   public void dispose() {
+  }
+
+  @Nullable
+  private AnalysisContentsDelegate getContentsDelegate() {
+    return myCapturePanel != null && myCapturePanel.isDoneLoading() ? myCapturePanel.getContentsDelegate() : null;
   }
 }
