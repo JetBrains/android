@@ -74,6 +74,9 @@ public class RepositoryUrlManager {
   /** The path ID of the Wearable Play Services library */
   public static final String PLAY_SERVICES_WEARABLE_ID = "play-services-wearable";
 
+  /** The path ID of the Maps Play Services library */
+  public static final String PLAY_SERVICES_MAPS_ID = "play-services-maps";
+
   /** The path ID of the wearable support library */
   public static final String SUPPORT_WEARABLE_ID = "wearable";
 
@@ -136,6 +139,7 @@ public class RepositoryUrlManager {
     .put(PLAY_SERVICES_ID, new RepositoryLibrary(PLAY_SERVICES_ID, GOOGLE_REPOSITORY_BASE_PATH, GOOGLE_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(PLAY_SERVICES_ADS_ID, new RepositoryLibrary(PLAY_SERVICES_ADS_ID, GOOGLE_REPOSITORY_BASE_PATH, GOOGLE_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(PLAY_SERVICES_WEARABLE_ID, new RepositoryLibrary(PLAY_SERVICES_WEARABLE_ID, GOOGLE_REPOSITORY_BASE_PATH, GOOGLE_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(PLAY_SERVICES_MAPS_ID, new RepositoryLibrary(PLAY_SERVICES_MAPS_ID, GOOGLE_REPOSITORY_BASE_PATH, GOOGLE_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(CARDVIEW_ID_V7, new RepositoryLibrary(CARDVIEW_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(PALETTE_ID_V7, new RepositoryLibrary(PALETTE_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(RECYCLER_VIEW_ID_V7, new RepositoryLibrary(RECYCLER_VIEW_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
