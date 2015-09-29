@@ -24,9 +24,15 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
  */
 public class LiteralElement extends GradleDslElement {
   @NotNull private final String myName;
-  @NotNull private final GrLiteral myLiteral;
 
-  public LiteralElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrLiteral literal) {
+  @Nullable private GrLiteral myLiteral;
+  @Nullable private Object myUnsavedValue;
+
+  public LiteralElement(@Nullable GradleDslElement parent, @NotNull String name) {
+    this(parent, name, null);
+  }
+
+  public LiteralElement(@Nullable GradleDslElement parent, @NotNull String name, @Nullable GrLiteral literal) {
     super(parent);
     myName = name;
     myLiteral = literal;
@@ -37,14 +43,21 @@ public class LiteralElement extends GradleDslElement {
     return myName;
   }
 
-  @NotNull
+  @Nullable
   public GrLiteral getLiteral() {
     return myLiteral;
   }
 
   @Nullable
   public Object getValue() {
-    return myLiteral.getValue();
+    if (myUnsavedValue != null) {
+      return myUnsavedValue;
+    }
+
+    if (myLiteral != null) {
+      return myLiteral.getValue();
+    }
+    return null;
   }
 
   /**
@@ -60,6 +73,11 @@ public class LiteralElement extends GradleDslElement {
     return null;
   }
 
+  public void setValue(@NotNull Object value) {
+    myUnsavedValue = value;
+    setModified(true);
+  }
+
   @Override
   public String toString() {
     Object value = getValue();
@@ -72,5 +90,6 @@ public class LiteralElement extends GradleDslElement {
 
   @Override
   protected void reset() {
+    myUnsavedValue = null;
   }
 }
