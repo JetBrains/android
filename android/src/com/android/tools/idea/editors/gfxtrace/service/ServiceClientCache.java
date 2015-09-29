@@ -16,13 +16,14 @@
 package com.android.tools.idea.editors.gfxtrace.service;
 
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.rpclib.schema.Message;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.ListenableFuture;
 
 public class ServiceClientCache extends ServiceClientWrapper {
-  private ListenableFuture<Schema> mySchema;
+  private ListenableFuture<Message> mySchema;
   private final Object mySchemaLock = new Object();
   private final LoadingCache<Path, ListenableFuture<Object>> myPathCache;
   private static final int MAXIMUM_CACHE_COUNT = 1000;
@@ -41,7 +42,7 @@ public class ServiceClientCache extends ServiceClientWrapper {
   }
 
   @Override
-  public ListenableFuture<Schema> getSchema() {
+  public ListenableFuture<Message> getSchema() {
     synchronized (mySchemaLock) {
       if (mySchema == null) {
         mySchema = myClient.getSchema();
