@@ -83,7 +83,7 @@ public class EmptyManager extends CaptureEditorLightToolWindowManager {
     return myEmptyPanel;
   }
 
-  @NotNull
+  @Nullable
   @Override
   protected JComponent getFocusedComponent() {
     return myEmptyPanel;
