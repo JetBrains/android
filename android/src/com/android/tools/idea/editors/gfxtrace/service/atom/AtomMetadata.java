@@ -17,8 +17,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.rpclib.schema.Entity;
 import com.android.tools.rpclib.schema.Field;
-import com.android.tools.rpclib.schema.SchemaClass;
 import com.android.tools.rpclib.schema.Struct;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +33,7 @@ import com.android.tools.rpclib.binary.Namespace;
 import java.io.IOException;
 
 public final class AtomMetadata implements BinaryObject {
-  public static AtomMetadata find(SchemaClass c) {
+  public static AtomMetadata find(Entity c) {
     for (BinaryObject o : c.getMetadata()) {
       if (o instanceof AtomMetadata) {
         AtomMetadata meta = (AtomMetadata)o;
@@ -49,7 +49,7 @@ public final class AtomMetadata implements BinaryObject {
   int myObservationsIndex = -1;
   @NotNull private static final Logger LOG = Logger.getInstance(AtomMetadata.class);
 
-  private void prepare(SchemaClass c) {
+  private void prepare(Entity c) {
     if (myIsPrepared) return;
     myIsPrepared = true;
     for (int index = 0; index < c.getFields().length; index++) {
