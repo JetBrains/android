@@ -28,9 +28,6 @@ import java.io.StringWriter;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class AndroidLogcatReceiverTest {
-  private static final String SPACE_BEFORE_AT = StringUtil.repeatSymbol(' ', 2);
-  private static final String SPACE_BEFORE_CAUSED_BY = " ";
-
   private AndroidConsoleWriter myWriter;
   private AndroidLogcatReceiver myReceiver;
 
@@ -67,8 +64,7 @@ public class AndroidLogcatReceiverTest {
         myInnerWriter.append(text).append('\n');
       }
     };
-    StackTraceExpander expander = new StackTraceExpander(SPACE_BEFORE_AT, SPACE_BEFORE_CAUSED_BY);
-    myReceiver = new AndroidLogcatReceiver(createMockDevice(), myWriter, expander);
+    myReceiver = new AndroidLogcatReceiver(createMockDevice(), myWriter);
   }
 
   @Test
@@ -105,8 +101,8 @@ public class AndroidLogcatReceiverTest {
     String expected = "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime: FATAL EXCEPTION: Timer-0\n" +
                       "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime: Process: com.android.chattylogger, PID: 11698\n" +
                       "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime: java.lang.RuntimeException: Bad response\n" +
-                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime:   at com.android.chattylogger.MainActivity$1.run(MainActivity.java:64)\n" +
-                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime:   at java.util.Timer$TimerImpl.run(Timer.java:284)\n";
+                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime:     at com.android.chattylogger.MainActivity$1.run(MainActivity.java:64)\n" +
+                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime:     at java.util.Timer$TimerImpl.run(Timer.java:284)\n";
 
     assertThat(myWriter.toString()).isEqualTo(expected);
   }
