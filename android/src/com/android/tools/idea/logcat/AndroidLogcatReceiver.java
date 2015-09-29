@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.logcat;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log;
 import com.intellij.openapi.Disposable;
@@ -25,6 +24,9 @@ import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,10 +52,10 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
                     Pattern.DOTALL);
 
   /** Prefix to use for stack trace lines. */
-  public static final String STACK_TRACE_LINE_PREFIX = StringUtil.repeatSymbol(' ', 4);
+  private static final String STACK_TRACE_LINE_PREFIX = StringUtil.repeatSymbol(' ', 4);
 
   /** Prefix to use for the stack trace "Caused by:" lines. */
-  public static final String STACK_TRACE_CAUSE_LINE_PREFIX = Character.toString(' ');
+  private static final String STACK_TRACE_CAUSE_LINE_PREFIX = Character.toString(' ');
 
   private volatile boolean myCanceled = false;
   private final AndroidConsoleWriter myWriter;
@@ -63,14 +65,9 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
   @Nullable private LogMessageHeader myActiveHeader;
 
   public AndroidLogcatReceiver(@NotNull IDevice device, @NotNull AndroidConsoleWriter writer) {
-    this(device, writer, new StackTraceExpander(STACK_TRACE_LINE_PREFIX, STACK_TRACE_CAUSE_LINE_PREFIX));
-  }
-
-  @VisibleForTesting
-  AndroidLogcatReceiver(@NotNull IDevice device, @NotNull AndroidConsoleWriter writer, StackTraceExpander expander) {
     myDevice = device;
     myWriter = writer;
-    myStackTraceExpander = expander;
+    myStackTraceExpander = new StackTraceExpander(STACK_TRACE_LINE_PREFIX, STACK_TRACE_CAUSE_LINE_PREFIX);
   }
 
   @Override
@@ -141,12 +138,30 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
   }
 
   static final class LogMessageHeader {
+
+    // Parser that matches the format of the time portion of HEADER_PATTERN
+    private static SimpleDateFormat TIME_PARSER = new SimpleDateFormat("MM-dd hh:mm:ss.SSS");
+
     String myTime;
     Log.LogLevel myLogLevel;
     int myPid;
     String myTid;
     String myAppPackage;
     String myTag;
+
+    /**
+     * Returns the header time as a {@link Date} instance, which is more convenient for comparing
+     * one header's time with another.
+     */
+    @NotNull
+    Date getTimeAsDate() {
+      try {
+        return TIME_PARSER.parse(myTime);
+      }
+      catch (ParseException e) {
+        throw new RuntimeException(String.format("Could not convert %s to %s", myTime, Date.class.getSimpleName()), e);
+      }
+    }
   }
 
   private static String getFullMessage(LogMessageHeader header, String message) {
