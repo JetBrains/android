@@ -38,6 +38,7 @@ public class CapturePanel extends JPanel implements DesignerEditorPanelFacade {
   @NotNull private ThreeComponentsSplitter myThreeComponentsSplitter;
   @Nullable private InlineProgressIndicator myProgressIndicator;
   @Nullable private AnalysisContentsDelegate myResultsDelegate;
+  @Nullable private Runnable myFinishedLoadingCallback;
 
   public CapturePanel(@NotNull Project project, @NotNull CaptureEditor editor, @NotNull AnalyzerTask[] tasks, boolean startAsLoading) {
     myProject = project;
@@ -90,14 +91,14 @@ public class CapturePanel extends JPanel implements DesignerEditorPanelFacade {
 
   /**
    * Stops loading indicator and sets the main component of the panel. Call this after all required data have been initialized and the main
-   * panel is ready to be shown.
+   * panel is ready to be shown. Call this only once.
    *
    * @param editorPanel              the main editor panel to show
-   * @param analysisNodeGenerator    the callback to generate the subtree for each analysis result entry
-   * @param analysisResultsRenderer  the tree cell renderer to render individual analysis result entries
+   * @param delegate                 the delegate that is responsible for the contents of the analysis light tool window
    */
   public void setEditorPanel(@NotNull final JComponent editorPanel,
                              @NotNull final AnalysisContentsDelegate delegate) {
+    assert !isDoneLoading();
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
@@ -109,6 +110,11 @@ public class CapturePanel extends JPanel implements DesignerEditorPanelFacade {
         myThreeComponentsSplitter.setInnerComponent(editorPanel);
         AnalysisResultsManager.getInstance(myProject).bind(CapturePanel.this);
         add(myThreeComponentsSplitter, BorderLayout.CENTER);
+
+        if (myFinishedLoadingCallback != null) {
+          myFinishedLoadingCallback.run();
+          myFinishedLoadingCallback = null;
+        }
       }
     });
   }
@@ -121,6 +127,10 @@ public class CapturePanel extends JPanel implements DesignerEditorPanelFacade {
   @Nullable
   public InlineProgressIndicator getProgressIndicator() {
     return myProgressIndicator;
+  }
+
+  public boolean isDoneLoading() {
+    return myProgressIndicator == null;
   }
 
   @NotNull
@@ -142,5 +152,14 @@ public class CapturePanel extends JPanel implements DesignerEditorPanelFacade {
   @NotNull
   public CaptureEditor getEditor() {
     return myEditor;
+  }
+
+  public void runWhenFinishedLoading(@NotNull Runnable callback) {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+    myFinishedLoadingCallback = callback;
+    if (isDoneLoading()) {
+      myFinishedLoadingCallback.run();
+      myFinishedLoadingCallback = null;
+    }
   }
 }
