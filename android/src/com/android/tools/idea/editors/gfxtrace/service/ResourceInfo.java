@@ -68,7 +68,7 @@ public final class ResourceInfo implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-15, 58, 71, 50, 86, 117, 121, -94, 122, -70, -126, 5, -76, 35, 49, 109, -26, 14, 80, -50, };
+  private static final byte[] IDBytes = {71, 125, -92, 88, -28, -6, -77, 40, 49, -59, -115, 115, 78, 19, -57, -32, -52, 31, -62, 21, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

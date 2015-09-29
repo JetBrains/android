@@ -125,7 +125,7 @@ public final class AtomMetadata implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {19, -11, -108, -61, 18, 72, -29, -11, 72, -17, 32, 58, 46, -66, 72, 29, 74, -98, 45, 3, };
+  private static final byte[] IDBytes = {19, 125, 65, -49, -11, 97, 15, 37, -111, -36, -30, 79, -13, 35, -46, -27, -58, -3, -89, -91, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

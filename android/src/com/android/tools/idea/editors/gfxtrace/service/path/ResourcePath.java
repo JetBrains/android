@@ -67,7 +67,7 @@ public final class ResourcePath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-80, -63, 118, 17, -83, -63, 12, 39, 16, -23, 68, -119, -21, 3, 24, -6, -100, -35, 47, -42, };
+  private static final byte[] IDBytes = {-22, 27, -117, 126, -79, 70, -92, 49, -66, 14, 74, -80, -63, -105, -11, -98, 65, -108, -84, 35, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

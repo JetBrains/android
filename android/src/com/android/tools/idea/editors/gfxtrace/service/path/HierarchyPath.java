@@ -47,7 +47,7 @@ public final class HierarchyPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-97, 105, 91, -121, 127, -117, 92, -93, -86, -99, -76, 110, -87, 57, 47, -43, 119, -110, -118, -83, };
+  private static final byte[] IDBytes = {-102, 107, 104, 56, -87, 91, -7, 2, 2, 101, -42, -61, 92, -97, -86, 92, -61, -91, 82, 18, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

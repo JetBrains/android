@@ -52,7 +52,7 @@ public final class Resource implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-35, -30, 0, 24, 37, 69, 113, -71, -37, 111, -19, 57, -35, -114, 113, 75, -10, 118, 38, -50, };
+  private static final byte[] IDBytes = {61, -88, 122, -50, -67, -115, -20, 25, -7, 51, 12, -116, -128, 100, -16, -23, -101, 58, -116, -44, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

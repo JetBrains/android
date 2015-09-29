@@ -54,7 +54,7 @@ public final class AtomList implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {2, 107, -20, -35, 87, 105, 37, -85, -4, 108, 33, -114, -90, -31, 81, -59, 4, -13, -117, 47, };
+  private static final byte[] IDBytes = {-65, 95, 79, 108, 82, 112, -115, 69, 63, 38, -16, -47, -73, -38, -64, 33, 93, -83, 52, 46, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
