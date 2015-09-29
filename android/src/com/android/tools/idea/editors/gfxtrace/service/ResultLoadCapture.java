@@ -49,7 +49,7 @@ final class ResultLoadCapture implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {64, -69, -85, -63, -118, -45, 95, -117, 78, 46, -35, 88, -52, -69, -98, 89, -104, -104, 25, 38, };
+  private static final byte[] IDBytes = {-55, 50, -84, -41, -124, -90, 123, 26, -51, 48, 47, -21, 117, -27, -92, -27, -81, 78, 76, -118, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

@@ -43,7 +43,7 @@ final class ResultFollow implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-101, -48, -83, -80, 65, -104, 13, -11, 110, 7, -29, -101, -62, 3, 72, -6, -54, -17, 74, -77, };
+  private static final byte[] IDBytes = {-60, -93, 98, -87, 33, 125, 71, -17, -38, 18, -11, 81, -48, -16, -115, 81, -70, 28, -11, 2, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

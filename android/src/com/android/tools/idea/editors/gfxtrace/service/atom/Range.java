@@ -64,7 +64,7 @@ public final class Range implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {23, -99, -5, 1, 126, 121, 28, 91, 124, -56, -58, -54, -97, -119, 96, 27, -21, -24, -79, 20, };
+  private static final byte[] IDBytes = {-65, 102, -55, -112, 28, 38, -16, 119, 121, 31, 116, 105, 69, 53, 25, -64, 20, -54, -45, -76, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

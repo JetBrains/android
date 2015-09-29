@@ -32,7 +32,7 @@ final public class FmtRGBA extends Format {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {107, -98, 49, -85, -9, 12, -112, -118, -13, -53, 50, -86, -99, -104, 45, 19, -13, -104, 15, -85, };
+  private static final byte[] IDBytes = {2, 30, 86, 28, -79, 29, -90, -114, -33, -82, -103, 15, -111, -77, 30, 49, -99, 54, 46, 69, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

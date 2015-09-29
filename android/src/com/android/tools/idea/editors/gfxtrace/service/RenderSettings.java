@@ -62,7 +62,7 @@ public final class RenderSettings implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-8, -108, -123, 29, -105, 84, 28, -73, -126, -109, 122, 40, 101, -25, 85, -107, 77, -119, 122, 2, };
+  private static final byte[] IDBytes = {-27, 66, 95, -119, -121, 113, -36, 124, -107, -122, 125, 9, 61, -127, 10, 95, -72, -59, -42, 98, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

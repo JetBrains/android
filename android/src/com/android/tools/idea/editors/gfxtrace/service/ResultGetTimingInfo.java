@@ -43,7 +43,7 @@ final class ResultGetTimingInfo implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-80, 59, 85, -20, -30, -15, -121, 21, -116, 17, 93, 18, 58, -57, 31, 127, -3, -23, 32, -45, };
+  private static final byte[] IDBytes = {32, 11, -67, 8, 78, 113, 13, -124, -17, 109, -116, 46, 6, -106, -79, -24, -72, 33, -60, -25, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

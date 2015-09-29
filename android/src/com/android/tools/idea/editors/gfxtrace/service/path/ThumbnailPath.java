@@ -73,7 +73,7 @@ public final class ThumbnailPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-43, 89, -25, 113, -85, -51, 2, 106, -36, 89, -9, 122, 118, 114, -68, 24, 98, -124, -97, 47, };
+  private static final byte[] IDBytes = {-50, 0, 103, 125, 72, -55, -48, 101, -27, -37, -102, -2, 112, 61, -112, -17, 18, 25, 83, 113, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
