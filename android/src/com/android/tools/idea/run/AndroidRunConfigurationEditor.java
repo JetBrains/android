@@ -54,10 +54,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.net.URI;
 
 import static com.android.tools.idea.run.cloud.CloudConfiguration.Kind.MATRIX;
 import static com.android.tools.idea.run.cloud.CloudConfiguration.Kind.SINGLE_DEVICE;
@@ -101,6 +103,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private CloudProjectIdLabel myCloudDeviceProjectIdLabel;
   private ActionButton myCloudDeviceProjectIdUpdateButton;
   private CloudConfigurationComboBox myCloudDeviceConfigurationCombo;
+  private ActionButton myCloudMatrixHelpButton;
   @Nullable private final CloudConfigurationProvider myCloudConfigurationProvider;
 
   private AvdComboBox myAvdCombo;
@@ -244,6 +247,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     AnAction cloudDeviceProjectAction = new SelectCloudProjectAction(myCloudDeviceProjectIdLabel, myCloudDeviceConfigurationCombo);
     myCloudDeviceProjectIdUpdateButton = new ActionButton(
       cloudDeviceProjectAction, new PresentationFactory().getPresentation(cloudDeviceProjectAction), "MyPlace", JBUI.size(25, 25));
+    AnAction cloudMatrixHelpAction = new CloudMatrixHelpAction();
+    myCloudMatrixHelpButton = new ActionButton(
+      cloudMatrixHelpAction, new PresentationFactory().getPresentation(cloudMatrixHelpAction), "MyPlace", JBUI.size(25, 25));
+
     Disposer.register(this, myCloudDeviceConfigurationCombo);
   }
 
@@ -263,6 +270,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myCloudMatrixConfigLabel.setVisible(shouldShowCloudMatrix);
     myCloudMatrixProjectIdLabel.setVisible(shouldShowCloudMatrix);
     myCloudMatrixProjectIdUpdateButton.setVisible(shouldShowCloudMatrix);
+    myCloudMatrixHelpButton.setVisible(shouldShowCloudMatrix);
   }
 
   private void updateEnabled() {
@@ -585,4 +593,24 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       presentation.setIcon(AllIcons.General.Settings);
     }
   }
+
+  private class CloudMatrixHelpAction extends AnAction {
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      try {
+        Desktop.getDesktop().browse(new URI("https://cloud.google.com/test-lab/android-studio"));
+      } catch (Exception ex) {
+        // ignore
+      }
+    }
+
+    @Override
+    public void update(AnActionEvent event) {
+      Presentation presentation = event.getPresentation();
+      presentation.setText("Learn about using Cloud Test Lab from Android Studio");
+      presentation.setIcon(AllIcons.Actions.Help);
+    }
+  }
+
 }
