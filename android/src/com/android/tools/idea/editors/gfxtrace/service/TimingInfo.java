@@ -62,7 +62,7 @@ public final class TimingInfo implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-8, -2, -120, 80, 61, 114, -77, 85, -80, 1, 115, -2, -118, -126, -67, 30, -73, -55, 91, -79, };
+  private static final byte[] IDBytes = {-45, 22, 84, -89, -71, -2, 26, 57, 47, 89, 114, -115, -82, 53, 9, -62, 61, 51, -103, 82, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

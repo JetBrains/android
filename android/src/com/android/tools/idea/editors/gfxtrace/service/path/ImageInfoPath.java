@@ -47,7 +47,7 @@ public final class ImageInfoPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {37, 69, 111, -72, 117, -118, 16, -105, -124, 93, 90, 110, -96, -32, -31, 47, 44, -114, 85, -53, };
+  private static final byte[] IDBytes = {-54, 42, -19, 47, -116, 43, -112, 113, -10, 107, -124, 71, -86, -54, 125, 72, -76, 19, 7, 94, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

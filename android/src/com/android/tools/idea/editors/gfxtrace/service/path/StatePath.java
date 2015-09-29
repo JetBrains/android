@@ -47,7 +47,7 @@ public final class StatePath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-15, -92, 25, 81, 1, -60, -30, -112, -62, -54, 40, 0, 23, 8, 114, -71, 70, 58, -47, 123, };
+  private static final byte[] IDBytes = {-56, -18, 93, 1, -24, -124, -71, 104, 88, 36, -75, 67, -113, -78, 120, -65, -80, 29, 62, -62, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

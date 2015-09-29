@@ -53,7 +53,7 @@ public final class Observation implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-12, -67, -65, -32, -126, 120, -92, -67, 85, -84, -21, 30, 11, -34, -27, 39, 26, -40, -124, 15, };
+  private static final byte[] IDBytes = {-9, -67, 86, -7, -120, 84, 58, -62, -109, 93, 103, -103, 30, -19, -86, 25, -102, -34, -54, 4, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

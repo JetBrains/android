@@ -43,7 +43,7 @@ final class ResultGetDevices implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {51, -11, -71, -47, 36, -99, 13, -97, 44, 0, 79, -19, -42, 47, 118, -88, 118, 116, 60, 9, };
+  private static final byte[] IDBytes = {-90, -3, 67, 40, 29, 118, 73, 39, -56, -66, -63, 24, -36, 18, -127, 4, 88, 123, 10, 37, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

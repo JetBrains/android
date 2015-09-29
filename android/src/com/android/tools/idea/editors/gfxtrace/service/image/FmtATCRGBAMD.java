@@ -32,7 +32,7 @@ final public class FmtATCRGBAMD extends Format {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-117, 72, 98, -122, 24, -23, 32, 98, 95, -11, -128, -91, -70, -71, 94, 105, 107, -91, 50, -10, };
+  private static final byte[] IDBytes = {-103, -113, 32, -97, -71, -88, 50, 126, -9, -50, 1, 78, 58, -39, 7, 121, 61, 68, -49, -13, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

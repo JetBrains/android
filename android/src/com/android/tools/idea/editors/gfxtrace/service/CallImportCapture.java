@@ -52,7 +52,7 @@ final class CallImportCapture implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-30, -38, -88, 71, 75, -101, -36, 106, -40, -92, -7, -102, -89, -109, -23, 77, 72, 7, 123, -114, };
+  private static final byte[] IDBytes = {-118, -80, 21, -56, -75, 91, -35, -15, -125, -17, -121, 42, -67, 83, -61, 76, 26, -93, 27, -9, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

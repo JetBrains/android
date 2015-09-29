@@ -43,7 +43,7 @@ final class CallGet implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {92, -86, -19, -55, -46, -112, -25, -78, -82, 52, 93, -97, 50, 103, 108, 39, -58, 14, 51, -106, };
+  private static final byte[] IDBytes = {-74, 15, -108, -55, -99, 82, -126, -12, 105, 127, -128, -89, 28, -74, 60, -19, -40, 59, -18, 67, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
