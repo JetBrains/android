@@ -64,11 +64,11 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
     boolean updated = false;
     if (myLargestKnownIconDimension.width < Math.min(myMaxSize.width, cell.icon.getIconWidth())) {
       updated = true;
-      myLargestKnownIconDimension.width = cell.icon.getIconWidth();
+      myLargestKnownIconDimension.width = Math.min(myMaxSize.width, cell.icon.getIconWidth());
     }
     if (myLargestKnownIconDimension.height < Math.min(myMaxSize.height, cell.icon.getIconHeight())) {
       updated = true;
-      myLargestKnownIconDimension.height = cell.icon.getIconHeight();
+      myLargestKnownIconDimension.height = Math.min(myMaxSize.height, cell.icon.getIconHeight());
     }
     if (updated) {
       list.setFixedCellWidth(2 * BORDER_SIZE + myLargestKnownIconDimension.width);
