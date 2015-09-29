@@ -59,6 +59,8 @@ public class AndroidDxRunner {
   private static Field myConsoleOut;
   private static Field myConsoleErr;
 
+  private static Field myMultiDex;
+
   private AndroidDxRunner() { }
 
   private static void loadDex(String dxPath) {
@@ -91,6 +93,8 @@ public class AndroidDxRunner {
 
       myConsoleOut = consoleClass.getField("out");
       myConsoleErr = consoleClass.getField("err");
+
+      myMultiDex = getFieldIfPossible(argClass, "multiDex");
     }
     catch (SecurityException e) {
       reportError("Unable to find API for dex.jar", e);
@@ -124,7 +128,7 @@ public class AndroidDxRunner {
                             String[] fileNames,
                             boolean optimize,
                             boolean forceJumbo,
-                            boolean coreLibrary) {
+                            boolean coreLibrary, boolean multiDex) {
     loadDex(dxPath);
 
     try {
@@ -157,6 +161,13 @@ public class AndroidDxRunner {
       }
       else {
         reportWarning("Cannot find 'coreLibrary' field. The option won't be passed to DEX");
+      }
+
+      if (myMultiDex != null) {
+        myMultiDex.set(args, multiDex);
+      }
+      else {
+        reportWarning("Cannot find 'multiDex' field. The option won't be passed to DEX");
       }
       Object res = myMethod.invoke(null, args);
 
@@ -248,6 +259,7 @@ public class AndroidDxRunner {
     boolean optimize = true;
     boolean forceJumbo = false;
     boolean coreLibrary = false;
+    boolean multiDex = false;
 
     int i = 2;
 
@@ -266,6 +278,9 @@ public class AndroidDxRunner {
       }
       else if ("--coreLibrary".equals(args[i])) {
         coreLibrary = true;
+      }
+      else if ("--multi-dex".equals(args[i])) {
+        multiDex = true;
       }
       i++;
     }
@@ -291,7 +306,7 @@ public class AndroidDxRunner {
     files.removeAll(Arrays.asList(excludedFiles));
     String[] filesArray = files.toArray(new String[files.size()]);
     //System.out.println("file names: " + concat(filesArray));
-    runDex(dxPath, outFilePath, filesArray, optimize, forceJumbo, coreLibrary);
+    runDex(dxPath, outFilePath, filesArray, optimize, forceJumbo, coreLibrary, multiDex);
   }
 
   private static String concat(String[] ar) {
