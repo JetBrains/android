@@ -49,7 +49,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ICON
  */
 @Deprecated
 @LegacyWizardPathProvider.Migrated
-@SuppressWarnings("deprecation")
 public final class NewAndroidModulePath implements WizardPath {
   private static final Logger LOG = Logger.getInstance(NewAndroidModulePath.class);
   @NotNull private final NewModuleWizardState myWizardState;
