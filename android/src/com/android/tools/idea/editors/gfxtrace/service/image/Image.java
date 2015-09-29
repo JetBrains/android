@@ -78,7 +78,7 @@ public final class Image implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-49, 98, 78, -88, -55, -10, -5, 114, -43, 58, -96, -13, -106, 106, 14, 123, 34, -99, -5, -32, };
+  private static final byte[] IDBytes = {-100, 40, -103, 14, 118, 72, 96, -37, 125, -26, -88, 79, -63, -31, -97, -81, 107, 43, -8, -122, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

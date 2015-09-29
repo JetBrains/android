@@ -32,7 +32,7 @@ final class CallGetDevices implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {25, 20, 100, 5, -10, -83, -115, 72, -61, -114, 123, -56, 24, 91, 47, 124, -73, -97, 92, 115, };
+  private static final byte[] IDBytes = {57, -54, 38, -27, 110, 13, 62, -128, 85, -67, 49, 16, 6, 19, 126, -30, 62, -6, 55, 46, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

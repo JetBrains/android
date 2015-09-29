@@ -32,7 +32,7 @@ final public class FmtLuminance extends Format {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-101, -27, 88, 40, -100, -68, 26, -86, 29, -100, -111, -7, 70, -88, -102, 121, 112, -2, -41, -108, };
+  private static final byte[] IDBytes = {-53, -38, -77, 115, -60, 120, 117, -41, 2, 78, 24, -81, -70, 3, -116, 75, -114, 67, -58, 24, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

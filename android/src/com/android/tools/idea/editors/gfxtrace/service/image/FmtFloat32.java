@@ -32,7 +32,7 @@ final public class FmtFloat32 extends Format {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-28, 27, -76, 63, -44, -65, 60, -95, -108, 95, -102, 48, 34, 67, 44, -64, 97, -36, 0, 93, };
+  private static final byte[] IDBytes = {61, -61, -44, 119, 65, -56, -96, -75, -113, 89, 76, 4, -111, 29, -41, -22, 70, -88, 58, -19, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

@@ -67,7 +67,7 @@ public final class SlicePath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-46, 42, 12, 30, -111, 46, 107, -115, -63, -34, 5, -14, 23, 30, -12, 66, 59, 18, -39, 118, };
+  private static final byte[] IDBytes = {-54, -53, 92, 26, -21, -24, -16, -87, -46, -106, -120, -8, 100, -39, -108, 72, -22, -70, -5, -74, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

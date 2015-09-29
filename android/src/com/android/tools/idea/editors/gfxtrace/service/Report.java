@@ -42,7 +42,7 @@ public final class Report implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-61, -48, -118, 98, 56, -111, -70, 98, -56, 75, 113, 85, 120, 88, 115, -44, 6, 82, 113, 21, };
+  private static final byte[] IDBytes = {-13, -81, 27, 69, -116, 44, -45, 98, -123, 34, 76, 8, 45, -19, -94, 3, 77, -34, 92, -23, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

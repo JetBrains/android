@@ -58,7 +58,7 @@ public final class MapIndexPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {13, 70, 86, -13, 29, -70, -7, -40, 94, -49, -52, 14, -124, -109, 56, 91, -69, -46, -20, -34, };
+  private static final byte[] IDBytes = {-117, 46, -84, 108, 75, 107, -28, 75, -55, -28, 55, 3, 8, -26, 124, -120, -77, -67, -114, 59, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

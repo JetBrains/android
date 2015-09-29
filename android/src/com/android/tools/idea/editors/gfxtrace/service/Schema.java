@@ -54,7 +54,7 @@ public final class Schema implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {88, 28, 37, -60, -66, -89, -81, 27, 21, 67, -31, 70, -29, 120, -120, -70, 112, -36, 99, -31, };
+  private static final byte[] IDBytes = {64, 27, 126, 120, 92, -67, 17, 83, -123, -25, 60, 126, -35, 97, -109, 0, -31, -93, 118, 37, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

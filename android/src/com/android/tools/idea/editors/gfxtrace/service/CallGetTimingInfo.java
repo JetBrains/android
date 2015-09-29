@@ -64,7 +64,7 @@ final class CallGetTimingInfo implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {0, -19, -122, 8, -84, -41, -39, 125, 63, -12, 56, -12, -77, -34, -56, -101, -42, -55, -62, -80, };
+  private static final byte[] IDBytes = {68, 17, 99, 95, -120, -63, -37, 103, 103, 120, -93, -77, 99, 70, 18, -122, -76, 79, -126, 20, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

@@ -57,7 +57,7 @@ public final class ReportPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {59, -2, -18, -99, -22, -82, -7, 118, -118, 46, -27, -109, 110, -30, 59, 7, 125, -120, 52, -14, };
+  private static final byte[] IDBytes = {-2, 16, -123, 67, -30, -127, -35, 16, 68, -72, 125, 30, -56, -3, 53, -17, 20, -119, 122, 36, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

@@ -32,7 +32,7 @@ final public class FmtRGB extends Format {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-127, -30, 64, -8, -13, 111, -14, -26, -79, -122, 47, -69, -31, -21, -86, -85, -109, -85, -45, 97, };
+  private static final byte[] IDBytes = {123, 7, -73, -52, -77, 36, -63, 49, -12, -4, -65, 75, 59, 40, 92, -9, -1, -43, -95, -58, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
