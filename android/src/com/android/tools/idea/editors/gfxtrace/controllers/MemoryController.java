@@ -48,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.Segment;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -82,6 +83,9 @@ public class MemoryController extends Controller {
       });
     }}, BorderLayout.NORTH);
     myPanel.add(myLoading, BorderLayout.CENTER);
+
+    myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "Memory"));
+    myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
   }
 
   private void setDataType(DataType dataType) {

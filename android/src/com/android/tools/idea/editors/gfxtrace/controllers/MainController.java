@@ -70,26 +70,11 @@ public class MainController extends Controller {
     middleSplitter.setProportion(0.3f);
     threePanes.setInnerComponent(middleSplitter);
 
-    // Configure the miscellaneous tabs.
-    JBRunnerTabs miscTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
-    miscTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
-      .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
-    miscTabs.setBorder(JBUI.Borders.empty(0, 2, 0, 0));
-
-    // Add the textures view to the misc tabs.
-    miscTabs.addTab(new TabInfo(MemoryController.createUI(editor)).setText("Memory"));
-    miscTabs.addTab(new TabInfo(DocumentationController.createUI(editor)).setText("Docs"));
-
-    // More borders for miscellaneous tabs.
-    JPanel miscPanel = new JPanel(new BorderLayout());
-    miscPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-    miscPanel.add(miscTabs, BorderLayout.CENTER);
-
     // Configure the bottom splitter.
     JBSplitter bottomSplitter = new JBSplitter(false);
     bottomSplitter.setMinimumSize(JBUI.size(100, 10));
     bottomSplitter.setFirstComponent(StateController.createUI(editor));
-    bottomSplitter.setSecondComponent(miscPanel);
+    bottomSplitter.setSecondComponent(MemoryController.createUI(editor));
     threePanes.setLastComponent(bottomSplitter);
     threePanes.setLastSize(300);
 
