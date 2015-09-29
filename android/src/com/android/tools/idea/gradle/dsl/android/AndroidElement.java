@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.android;
 
 import com.android.tools.idea.gradle.dsl.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.GradleDslPropertiesElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -45,10 +46,30 @@ public class AndroidElement extends GradleDslPropertiesElement {
     return intValue != null ? intValue.toString() : getProperty(BUILD_TOOLS_VERSION, String.class);
   }
 
+  @NotNull
+  public AndroidElement setBuildToolsVersion(int buildToolsVersion) {
+    return (AndroidElement)setLiteralProperty(BUILD_TOOLS_VERSION, buildToolsVersion);
+  }
+
+  @NotNull
+  public AndroidElement setBuildToolsVersion(@NotNull String buildToolsVersion) {
+    return (AndroidElement)setLiteralProperty(BUILD_TOOLS_VERSION, buildToolsVersion);
+  }
+
   @Nullable
   public String compileSdkVersion() {
     Integer intValue = getProperty(COMPILE_SDK_VERSION, Integer.class);
     return intValue != null ? intValue.toString() : getProperty(COMPILE_SDK_VERSION, String.class);
+  }
+
+  @NotNull
+  public AndroidElement setCompileSdkVersion(int compileSdkVersion) {
+    return (AndroidElement)setLiteralProperty(COMPILE_SDK_VERSION, compileSdkVersion);
+  }
+
+  @NotNull
+  public AndroidElement setCompileSdkVersion(@NotNull String compileSdkVersion) {
+    return (AndroidElement)setLiteralProperty(COMPILE_SDK_VERSION, compileSdkVersion);
   }
 
   @Nullable
@@ -61,6 +82,11 @@ public class AndroidElement extends GradleDslPropertiesElement {
     return getProperty(DEFAULT_PUBLISH_CONFIG, String.class);
   }
 
+  @NotNull
+  public AndroidElement setDefaultPublishConfig(@NotNull String defaultPublishConfig) {
+    return (AndroidElement)setLiteralProperty(DEFAULT_PUBLISH_CONFIG, defaultPublishConfig);
+  }
+
   @Nullable
   public List<String> flavorDimensions() {
     return getListProperty(FLAVOR_DIMENSIONS, String.class);
@@ -69,6 +95,11 @@ public class AndroidElement extends GradleDslPropertiesElement {
   @Nullable
   public Boolean generatePureSplits() {
     return getProperty(GENERATE_PURE_SPLITS, Boolean.class);
+  }
+
+  @NotNull
+  public AndroidElement setGeneratePureSplits(boolean generatePureSplits) {
+    return (AndroidElement)setLiteralProperty(GENERATE_PURE_SPLITS, generatePureSplits);
   }
 
   @Nullable
@@ -82,8 +113,18 @@ public class AndroidElement extends GradleDslPropertiesElement {
     return getProperty(PUBLISH_NON_DEFAULT, Boolean.class);
   }
 
+  @NotNull
+  public AndroidElement setPublishNonDefault(boolean publishNonDefault) {
+    return (AndroidElement)setLiteralProperty(PUBLISH_NON_DEFAULT, publishNonDefault);
+  }
+
   @Nullable
   public String resourcePrefix() {
     return getProperty(RESOURCE_PREFIX, String.class);
+  }
+
+  @NotNull
+  public AndroidElement setResourcePrefix(@NotNull String resourcePrefix) {
+    return (AndroidElement)setLiteralProperty(RESOURCE_PREFIX, resourcePrefix);
   }
 }
